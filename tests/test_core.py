@@ -4,6 +4,7 @@ import pandas as pd
 from cryptoai.gates import PromotionGates
 from cryptoai.metrics import max_drawdown, performance, block_bootstrap_ruin_probability
 from cryptoai.replay import _daily_hold
+from cryptoai.splits import ResearchSplit
 
 
 def test_promotion_gates_match_frozen_thresholds():
@@ -66,3 +67,15 @@ def test_daily_hold_samples_matrix_at_requested_hour():
     assert (held.loc["2024-01-01 06:00":"2024-01-02 05:00", "BTCUSDT"] == 6.0).all()
     assert (held.loc["2024-01-02 06:00":, "BTCUSDT"] == 30.0).all()
     assert held.loc["2024-01-01 05:00", "BTCUSDT"] == 0.0
+
+
+def test_research_split_normalizes_naive_and_aware_boundaries_to_utc():
+    idx = pd.date_range("2022-12-31 21:00", periods=5, freq="1h", tz="UTC")
+    r = pd.Series(np.arange(5.0), index=idx)
+    split = ResearchSplit(
+        discovery_start="2022-12-31 22:00",
+        discovery_end="2022-12-31 23:00:00+00:00",
+    )
+    sliced = split.discovery_slice(r)
+    assert list(sliced.index) == list(pd.date_range("2022-12-31 22:00", periods=2, freq="1h", tz="UTC"))
+    assert sliced.tolist() == [1.0, 2.0]
