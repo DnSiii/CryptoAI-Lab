@@ -79,7 +79,7 @@ def _core_signal(close: pd.DataFrame, horizons_days: tuple[int, ...]) -> pd.Data
         score = score.add(momentum.fillna(0.0) + trend.fillna(0.0) + slope_proxy.fillna(0.0), fill_value=0.0)
         components += 3
     score = (score / components).clip(-1.0, 1.0)
-    rv = core.pct_change().rolling(30 * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
+    rv = core.pct_change(fill_method=None).rolling(30 * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
     inv = 1.0 / rv.replace(0.0, np.nan)
     raw = score * inv
     denom = raw.abs().sum(axis=1).replace(0.0, np.nan)
@@ -95,7 +95,7 @@ def _carry_signal(close: pd.DataFrame, funding: pd.DataFrame, spec: CandidateSpe
         avg_funding += funding.reindex(columns=close.columns, fill_value=0.0).rolling(d * 24, min_periods=max(7 * 24, d * 12)).sum()
     avg_funding /= len(spec.horizons_days)
 
-    rv = close.pct_change().rolling(spec.vol_lookback_days * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
+    rv = close.pct_change(fill_method=None).rolling(spec.vol_lookback_days * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
     history = close.notna().rolling(spec.min_history_days * 24, min_periods=1).sum() >= spec.min_history_days * 24 * 0.90
     score = avg_funding.div(rv.replace(0.0, np.nan)).where(history)
 
@@ -193,12 +193,21 @@ def run_replay(data: ReplayData, spec: CandidateSpec, *, cost_multiplier: float 
         returns = _sleeve_return(weights, asset_returns, funding, spec.one_way_cost_bps * cost_multiplier)
     perf = performance(returns)
     liquidated = bool((returns <= -1.0).any())
+    carry_alloc = sleeves["carry_allocation"]
+    diagnostics = {
+        "core_sleeve": performance(sleeves["core"]).to_dict(),
+        "carry_sleeve": performance(sleeves["carry"]).to_dict(),
+        "carry_dominant_fraction": float((carry_alloc == spec.carry_dominant_allocation).mean()),
+        "average_gross_exposure": float(weights.abs().sum(axis=1).mean()),
+        "p95_gross_exposure": float(weights.abs().sum(axis=1).quantile(0.95)),
+    }
     return {
         "performance": perf.to_dict(),
         "yearly_returns": yearly_returns(returns),
         "decisions_per_month": decisions_per_month(weights),
         "min_hourly_return": float(returns.min()) if len(returns) else 0.0,
         "liquidated": liquidated,
+        "diagnostics": diagnostics,
         "returns": returns,
         "weights": weights,
         "sleeves": sleeves,
