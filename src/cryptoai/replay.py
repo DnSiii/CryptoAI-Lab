@@ -15,6 +15,8 @@ from .metrics import performance, yearly_returns, decisions_per_month
 class CandidateSpec:
     horizons_days: tuple[int, ...] = (60, 90, 120, 150)
     core_model: str = "ensemble"
+    core_scope: str = "btc_eth"
+    cross_section_quantile: float = 0.25
     carry_horizons_days: tuple[int, ...] = (60, 90, 120, 150)
     carry_base_allocation: float = 0.35
     carry_dominant_allocation: float = 0.85
@@ -63,18 +65,39 @@ def _daily_hold(signal: pd.DataFrame, hour: int, close: pd.DataFrame) -> pd.Data
     return held.where(close.notna(), 0.0)
 
 
-def _core_signal(close: pd.DataFrame, horizons_days: tuple[int, ...], model: str = "ensemble") -> pd.DataFrame:
-    core_assets = [c for c in ("BTCUSDT", "ETHUSDT") if c in close.columns]
+def _core_signal(
+    close: pd.DataFrame,
+    horizons_days: tuple[int, ...],
+    model: str = "ensemble",
+    scope: str = "btc_eth",
+    cross_section_quantile: float = 0.25,
+) -> pd.DataFrame:
+    if scope not in {"btc_eth", "universe"}:
+        raise ValueError(f"Unknown core_scope: {scope}")
+    core_assets = [c for c in ("BTCUSDT", "ETHUSDT") if c in close.columns] if scope == "btc_eth" else list(close.columns)
     if not core_assets:
         return pd.DataFrame(0.0, index=close.index, columns=close.columns)
-    if model not in {"momentum", "ema", "breakout", "ensemble"}:
+    if model not in {"momentum", "ema", "breakout", "ensemble", "rank_momentum"}:
         raise ValueError(f"Unknown core_model: {model}")
+    if not 0.0 < cross_section_quantile < 0.5:
+        raise ValueError("cross_section_quantile must be between 0 and 0.5")
+    if model == "rank_momentum" and scope != "universe":
+        raise ValueError("rank_momentum requires core_scope='universe'")
 
     core = close[core_assets]
     score = pd.DataFrame(0.0, index=close.index, columns=core_assets)
     components = 0
     for d in horizons_days:
         h = d * 24
+        if model == "rank_momentum":
+            momentum = np.log(core / core.shift(h))
+            ranks = momentum.rank(axis=1, pct=True, method="average")
+            component = (ranks >= (1.0 - cross_section_quantile)).astype(float)
+            component -= (ranks <= cross_section_quantile).astype(float)
+            component = component.where(momentum.notna(), 0.0)
+            score = score.add(component, fill_value=0.0)
+            components += 1
+            continue
         if model in {"momentum", "ensemble"}:
             score = score.add(np.sign(np.log(core / core.shift(h))).fillna(0.0), fill_value=0.0)
             components += 1
@@ -162,7 +185,7 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     asset_returns = close.pct_change(fill_method=None)
     funding = data.funding.reindex_like(close).fillna(0.0)
 
-    core_raw = _core_signal(close, spec.horizons_days, spec.core_model)
+    core_raw = _core_signal(close, spec.horizons_days, spec.core_model, spec.core_scope, spec.cross_section_quantile)
     core = _daily_hold(core_raw, spec.rebalance_hour, close)
     core_ret = _sleeve_return(core, asset_returns, funding, spec.one_way_cost_bps)
 
@@ -218,10 +241,11 @@ def run_replay(data: ReplayData, spec: CandidateSpec, *, cost_multiplier: float 
     perf = performance(returns)
     liquidated = bool((returns <= -1.0).any())
     carry_alloc = sleeves["carry_allocation"]
+    carry_disabled = spec.carry_base_allocation == 0.0 and spec.carry_dominant_allocation == 0.0
     diagnostics = {
         "core_sleeve": performance(sleeves["core"]).to_dict(),
         "carry_sleeve": performance(sleeves["carry"]).to_dict(),
-        "carry_dominant_fraction": float((carry_alloc == spec.carry_dominant_allocation).mean()),
+        "carry_dominant_fraction": 0.0 if carry_disabled else float((carry_alloc == spec.carry_dominant_allocation).mean()),
         "average_gross_exposure": float(weights.abs().sum(axis=1).mean()),
         "p95_gross_exposure": float(weights.abs().sum(axis=1).quantile(0.95)),
     }
