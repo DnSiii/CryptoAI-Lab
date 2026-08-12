@@ -14,6 +14,10 @@ on:
         required: false
         default: "1000"
 
+concurrency:
+  group: cryptoai-v13-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
