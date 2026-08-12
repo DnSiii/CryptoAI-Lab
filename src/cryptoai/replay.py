@@ -54,8 +54,10 @@ def load_universe(symbols: Iterable[str], start: str, end: str, cache_dir: Path)
 
 
 def _daily_hold(signal: pd.DataFrame, hour: int, close: pd.DataFrame) -> pd.DataFrame:
-    mask = signal.index.hour == hour
-    held = signal.where(mask, np.nan).ffill().fillna(0.0)
+    """Sample a full weight matrix once per UTC day, then hold until next sample."""
+    sampled = signal.copy()
+    sampled.loc[sampled.index.hour != hour, :] = np.nan
+    held = sampled.ffill().fillna(0.0)
     return held.where(close.notna(), 0.0)
 
 
@@ -125,7 +127,7 @@ def _carry_signal(close: pd.DataFrame, funding: pd.DataFrame, spec: CandidateSpe
                 continue
             w = inv.loc[names] / inv.loc[names].sum() * 0.5
             weights.loc[ts, names] = side * w
-    return _daily_hold(weights.where(rebalance_mask, np.nan), spec.rebalance_hour, close)
+    return _daily_hold(weights, spec.rebalance_hour, close)
 
 
 def _sleeve_return(weights: pd.DataFrame, asset_returns: pd.DataFrame, funding: pd.DataFrame, cost_bps: float) -> pd.Series:
@@ -146,7 +148,6 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     core = _daily_hold(core_raw, spec.rebalance_hour, close)
     carry = _carry_signal(close, funding, spec)
 
-    # Sleeve comparison uses the same executable daily rebalance rule as the final portfolio.
     core_ret = _sleeve_return(core, asset_returns, funding, spec.one_way_cost_bps)
     carry_ret = _sleeve_return(carry, asset_returns, funding, spec.one_way_cost_bps)
     look = spec.allocation_compare_days * 24
@@ -168,7 +169,6 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     gross_scale = (spec.max_gross_leverage / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(1.0)
     combined = combined.mul(gross_scale, axis=0)
 
-    # Dynamic allocation and vol targeting are also sampled only at the chosen rebalance hour.
     combined = _daily_hold(combined, spec.rebalance_hour, close)
 
     if spec.execution_delay_hours:
