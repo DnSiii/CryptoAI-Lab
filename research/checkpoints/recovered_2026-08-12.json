@@ -1,0 +1,38 @@
+{
+  "checkpoint": "post_v12_btc_eth_core_plus_causal_funding_carry",
+  "mode": "PAPER_ONLY",
+  "source_status": "PARTIAL_RECOVERY",
+  "frozen_gates": {
+    "exact_base_cagr_gt": 0.50,
+    "max_drawdown_abs_lte": 0.35,
+    "severe_cost_cagr_gt": 0.35,
+    "delay_3h_cagr_gt": 0.40,
+    "min_decisions_per_month": 10,
+    "bootstrap_ruin_probability_lt": 0.01,
+    "rebalance_phases": 24,
+    "no_liquidation": true
+  },
+  "recovered_candidate_metrics": {
+    "exact_base_cagr": 0.561,
+    "exact_base_max_drawdown": -0.279,
+    "delay_3h_cagr": 0.520,
+    "severe_cost_cagr": 0.371,
+    "reduced_sizing_cagr": 0.525,
+    "reduced_sizing_max_drawdown": -0.263,
+    "reduced_sizing_severe_cost_cagr": 0.351,
+    "reduced_sizing_bootstrap_ruin_probability": 0.00582,
+    "phase_cagr_range": [0.552, 0.627]
+  },
+  "recovered_structure": {
+    "market": "Binance USD-M futures",
+    "bar_interval": "1h",
+    "direction": "long_short",
+    "horizons_days": [60, 90, 120, 150],
+    "funding_base_weight": 0.35,
+    "funding_dominant_weight": 0.85,
+    "initial_universe_contracts": 10,
+    "expanded_universe_contracts": 48,
+    "delisted_contracts_included": true
+  },
+  "provenance_gap": "The exact pre-repository formulas and source code for the BTC/ETH Core + Funding Carry candidate were not recoverable. Recovered metrics are historical checkpoint facts, not reproduced results. New code must independently reproduce or exceed them before promotion."
+}
