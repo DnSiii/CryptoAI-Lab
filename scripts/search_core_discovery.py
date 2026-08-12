@@ -26,11 +26,6 @@ RISK_PROFILES = (
 )
 
 
-def slice_perf(returns, start: str, end: str) -> dict[str, float | int]:
-    segment = returns.loc[start:end]
-    return performance(segment).to_dict()
-
-
 def robust_score(discovery: dict, val1: dict, val2: dict, pre: dict) -> float:
     cagrs = [float(discovery["cagr"]), float(val1["cagr"]), float(val2["cagr"])]
     min_cagr = min(cagrs)
@@ -67,10 +62,10 @@ def main() -> int:
                 result = run_replay(data, spec)
                 returns = result["returns"]
                 split.assert_selection_index_is_pre_holdout(returns.index)
-                discovery = slice_perf(returns, "2020-01-01", "2022-12-31 23:00:00+00:00")
-                val1 = slice_perf(returns, "2023-01-01", "2023-12-31 23:00:00+00:00")
-                val2 = slice_perf(returns, "2024-01-01", "2024-12-31 23:00:00+00:00")
-                pre = slice_perf(returns, "2020-01-01", "2024-12-31 23:00:00+00:00")
+                discovery = performance(split.discovery_slice(returns)).to_dict()
+                val1 = performance(split.validation_1_slice(returns)).to_dict()
+                val2 = performance(split.validation_2_slice(returns)).to_dict()
+                pre = performance(split.pre_holdout_slice(returns)).to_dict()
                 score = robust_score(discovery, val1, val2, pre)
                 rows.append({
                     "spec": asdict(spec),
@@ -93,8 +88,8 @@ def main() -> int:
         spec = CandidateSpec(**raw)
         severe = run_replay(data, spec, cost_multiplier=3.0)
         delayed = run_replay(data, replace(spec, execution_delay_hours=3))
-        severe_pre = slice_perf(severe["returns"], "2020-01-01", "2024-12-31 23:00:00+00:00")
-        delayed_pre = slice_perf(delayed["returns"], "2020-01-01", "2024-12-31 23:00:00+00:00")
+        severe_pre = performance(split.pre_holdout_slice(severe["returns"])).to_dict()
+        delayed_pre = performance(split.pre_holdout_slice(delayed["returns"])).to_dict()
         stress.append({
             "spec": raw,
             "score": row["score"],
