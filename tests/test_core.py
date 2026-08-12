@@ -3,6 +3,7 @@ import pandas as pd
 
 from cryptoai.gates import PromotionGates
 from cryptoai.metrics import max_drawdown, performance, block_bootstrap_ruin_probability
+from cryptoai.replay import _daily_hold
 
 
 def test_promotion_gates_match_frozen_thresholds():
@@ -55,3 +56,13 @@ def test_bootstrap_detects_obviously_ruinous_series():
     r.iloc[::50] = -0.25
     prob = block_bootstrap_ruin_probability(r, samples=200, block_hours=24, seed=7)
     assert prob > 0.5
+
+
+def test_daily_hold_samples_matrix_at_requested_hour():
+    idx = pd.date_range("2024-01-01", periods=48, freq="1h", tz="UTC")
+    signal = pd.DataFrame({"BTCUSDT": np.arange(48.0), "ETHUSDT": np.arange(48.0) * -1}, index=idx)
+    close = pd.DataFrame(1.0, index=idx, columns=signal.columns)
+    held = _daily_hold(signal, 6, close)
+    assert (held.loc["2024-01-01 06:00":"2024-01-02 05:00", "BTCUSDT"] == 6.0).all()
+    assert (held.loc["2024-01-02 06:00":, "BTCUSDT"] == 30.0).all()
+    assert held.loc["2024-01-01 05:00", "BTCUSDT"] == 0.0
