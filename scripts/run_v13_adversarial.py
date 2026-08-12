@@ -5,6 +5,8 @@ import json
 from dataclasses import asdict, replace
 from pathlib import Path
 
+import pandas as pd
+
 from cryptoai.binance_data import discover_archives
 from cryptoai.gates import PromotionGates
 from cryptoai.metrics import block_bootstrap_ruin_probability
@@ -39,6 +41,25 @@ def select_universe(max_symbols: int) -> tuple[list[str], list[dict[str, object]
     return [a.symbol for a in chosen], metadata
 
 
+def complete_archive_end(requested_end: str, universe_meta: list[dict[str, object]]) -> str:
+    """Do not silently zero-fill a partial funding month.
+
+    Funding-rate archives are monthly in the reproducible public archive path used by this lab.
+    The replay therefore stops at the last month available for both BTC and ETH core contracts.
+    """
+    core_last = {
+        str(row["symbol"]): str(row["last_month"])
+        for row in universe_meta
+        if row.get("symbol") in {"BTCUSDT", "ETHUSDT"} and row.get("last_month")
+    }
+    if set(core_last) != {"BTCUSDT", "ETHUSDT"}:
+        raise RuntimeError(f"Could not determine complete funding archive cutoff for BTC/ETH: {core_last}")
+    latest_common_month = min(core_last.values())
+    archive_end = pd.Period(latest_common_month, freq="M").end_time.normalize()
+    requested = pd.Timestamp(requested_end)
+    return str(min(requested, archive_end).date())
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--start", default="2020-01-01")
@@ -54,7 +75,8 @@ def main() -> int:
     if not {"BTCUSDT", "ETHUSDT"}.issubset(symbols):
         raise RuntimeError(f"BTC/ETH not both discovered in Binance Vision universe: {symbols}")
 
-    data = load_universe(symbols, args.start, args.end, Path(args.cache_dir))
+    effective_end = complete_archive_end(args.end, universe_meta)
+    data = load_universe(symbols, args.start, effective_end, Path(args.cache_dir))
     spec = CandidateSpec()
 
     base = run_replay(data, spec)
@@ -83,7 +105,7 @@ def main() -> int:
         "status": "RECONSTRUCTION_UNVERIFIED" if not gates["passed"] else "CANDIDATE_PASSES_RECONSTRUCTED_GATES",
         "warning": "The exact formula source of the pre-repository candidate was not recoverable; this replay is a causal reconstruction and must not be represented as reproducing the legacy 56.1% result unless metrics independently match.",
         "mode": "RESEARCH_ONLY_PAPER_ONLY",
-        "period": {"start": args.start, "end": args.end},
+        "period": {"requested_start": args.start, "requested_end": args.end, "effective_end": effective_end},
         "spec": asdict(spec),
         "universe": universe_meta,
         "base": {k: v for k, v in base.items() if k not in {"returns", "weights", "sleeves"}},
@@ -100,6 +122,7 @@ def main() -> int:
     print(json.dumps({
         "status": report["status"],
         "symbols": symbols,
+        "effective_end": effective_end,
         "base_cagr": gate_metrics["base_cagr"],
         "max_drawdown": gate_metrics["max_drawdown"],
         "severe_cost_cagr": gate_metrics["severe_cost_cagr"],
