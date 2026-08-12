@@ -53,6 +53,12 @@ def load_universe(symbols: Iterable[str], start: str, end: str, cache_dir: Path)
     return ReplayData(close=close, funding=fund)
 
 
+def _daily_hold(signal: pd.DataFrame, hour: int, close: pd.DataFrame) -> pd.DataFrame:
+    mask = signal.index.hour == hour
+    held = signal.where(mask, np.nan).ffill().fillna(0.0)
+    return held.where(close.notna(), 0.0)
+
+
 def _core_signal(close: pd.DataFrame, horizons_days: tuple[int, ...]) -> pd.DataFrame:
     core_assets = [c for c in ("BTCUSDT", "ETHUSDT") if c in close.columns]
     if not core_assets:
@@ -119,9 +125,7 @@ def _carry_signal(close: pd.DataFrame, funding: pd.DataFrame, spec: CandidateSpe
                 continue
             w = inv.loc[names] / inv.loc[names].sum() * 0.5
             weights.loc[ts, names] = side * w
-    weights = weights.where(rebalance_mask, np.nan).ffill().fillna(0.0)
-    weights = weights.where(close.notna(), 0.0)
-    return weights
+    return _daily_hold(weights.where(rebalance_mask, np.nan), spec.rebalance_hour, close)
 
 
 def _sleeve_return(weights: pd.DataFrame, asset_returns: pd.DataFrame, funding: pd.DataFrame, cost_bps: float) -> pd.Series:
@@ -137,9 +141,12 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     close = data.close
     asset_returns = close.pct_change(fill_method=None)
     funding = data.funding.reindex_like(close).fillna(0.0)
-    core = _core_signal(close, spec.horizons_days)
+
+    core_raw = _core_signal(close, spec.horizons_days)
+    core = _daily_hold(core_raw, spec.rebalance_hour, close)
     carry = _carry_signal(close, funding, spec)
 
+    # Sleeve comparison uses the same executable daily rebalance rule as the final portfolio.
     core_ret = _sleeve_return(core, asset_returns, funding, spec.one_way_cost_bps)
     carry_ret = _sleeve_return(carry, asset_returns, funding, spec.one_way_cost_bps)
     look = spec.allocation_compare_days * 24
@@ -161,11 +168,8 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     gross_scale = (spec.max_gross_leverage / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(1.0)
     combined = combined.mul(gross_scale, axis=0)
 
-    # The whole portfolio rebalances only at the selected UTC hour. This makes
-    # the 24-phase sweep meaningful and prevents hidden hourly turnover in the core sleeve.
-    rebalance_mask = combined.index.hour == spec.rebalance_hour
-    combined = combined.where(rebalance_mask, np.nan).ffill().fillna(0.0)
-    combined = combined.where(close.notna(), 0.0)
+    # Dynamic allocation and vol targeting are also sampled only at the chosen rebalance hour.
+    combined = _daily_hold(combined, spec.rebalance_hour, close)
 
     if spec.execution_delay_hours:
         combined = combined.shift(spec.execution_delay_hours).fillna(0.0)
