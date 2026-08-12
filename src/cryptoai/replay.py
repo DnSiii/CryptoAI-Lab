@@ -161,6 +161,12 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     gross_scale = (spec.max_gross_leverage / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(1.0)
     combined = combined.mul(gross_scale, axis=0)
 
+    # The whole portfolio rebalances only at the selected UTC hour. This makes
+    # the 24-phase sweep meaningful and prevents hidden hourly turnover in the core sleeve.
+    rebalance_mask = combined.index.hour == spec.rebalance_hour
+    combined = combined.where(rebalance_mask, np.nan).ffill().fillna(0.0)
+    combined = combined.where(close.notna(), 0.0)
+
     if spec.execution_delay_hours:
         combined = combined.shift(spec.execution_delay_hours).fillna(0.0)
     return combined, {"core": core_ret, "carry": carry_ret, "carry_allocation": carry_alloc}
