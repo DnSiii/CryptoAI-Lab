@@ -1,0 +1,64 @@
+name: CryptoAI CI + adversarial smoke
+
+on:
+  push:
+    branches: ["agent/v13-adversarial-rebuild"]
+  workflow_dispatch:
+    inputs:
+      max_symbols:
+        description: "Maximum USD-M contracts for adversarial replay"
+        required: false
+        default: "16"
+      bootstrap_samples:
+        description: "Bootstrap paths"
+        required: false
+        default: "1000"
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest
+
+  adversarial-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Cache Binance public archives
+        uses: actions/cache@v4
+        with:
+          path: .cache/cryptoai
+          key: cryptoai-binance-v1-${{ runner.os }}
+      - run: python -m pip install -e .
+      - name: Run causal adversarial replay
+        run: >-
+          python scripts/run_v13_adversarial.py
+          --start 2020-01-01
+          --end 2026-08-10
+          --max-symbols ${{ github.event.inputs.max_symbols || '16' }}
+          --bootstrap-samples ${{ github.event.inputs.bootstrap_samples || '1000' }}
+          --report reports/v13_adversarial.json
+      - name: Upload research report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v13-adversarial-report
+          path: reports/v13_adversarial.json
+          if-no-files-found: warn
