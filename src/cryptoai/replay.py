@@ -21,6 +21,7 @@ class CandidateSpec:
     carry_base_allocation: float = 0.35
     carry_dominant_allocation: float = 0.85
     carry_names_each_side: int = 3
+    carry_require_sign: bool = True
     target_volatility: float = 0.55
     max_gross_leverage: float = 2.25
     max_single_weight: float = 0.55
@@ -151,10 +152,10 @@ def _carry_signal(close: pd.DataFrame, funding: pd.DataFrame, spec: CandidateSpe
         longs = s.nsmallest(n)
         selected: dict[str, float] = {}
         for sym, val in shorts.items():
-            if val > 0:
+            if (not spec.carry_require_sign) or val > 0:
                 selected[sym] = -1.0
         for sym, val in longs.items():
-            if val < 0:
+            if (not spec.carry_require_sign) or val < 0:
                 selected[sym] = 1.0
         if not selected:
             continue
