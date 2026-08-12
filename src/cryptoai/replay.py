@@ -14,6 +14,8 @@ from .metrics import performance, yearly_returns, decisions_per_month
 @dataclass(frozen=True)
 class CandidateSpec:
     horizons_days: tuple[int, ...] = (60, 90, 120, 150)
+    core_model: str = "ensemble"
+    carry_horizons_days: tuple[int, ...] = (60, 90, 120, 150)
     carry_base_allocation: float = 0.35
     carry_dominant_allocation: float = 0.85
     carry_names_each_side: int = 3
@@ -61,24 +63,38 @@ def _daily_hold(signal: pd.DataFrame, hour: int, close: pd.DataFrame) -> pd.Data
     return held.where(close.notna(), 0.0)
 
 
-def _core_signal(close: pd.DataFrame, horizons_days: tuple[int, ...]) -> pd.DataFrame:
+def _core_signal(close: pd.DataFrame, horizons_days: tuple[int, ...], model: str = "ensemble") -> pd.DataFrame:
     core_assets = [c for c in ("BTCUSDT", "ETHUSDT") if c in close.columns]
     if not core_assets:
         return pd.DataFrame(0.0, index=close.index, columns=close.columns)
+    if model not in {"momentum", "ema", "breakout", "ensemble"}:
+        raise ValueError(f"Unknown core_model: {model}")
+
     core = close[core_assets]
     score = pd.DataFrame(0.0, index=close.index, columns=core_assets)
     components = 0
     for d in horizons_days:
         h = d * 24
-        momentum = np.sign(np.log(core / core.shift(h)))
-        ema_fast = core.ewm(span=max(24, h // 4), adjust=False, min_periods=max(24, h // 4)).mean()
-        ema_slow = core.ewm(span=h, adjust=False, min_periods=h).mean()
-        trend = np.sign(ema_fast - ema_slow)
-        mean = core.rolling(h, min_periods=h).mean()
-        slope_proxy = np.sign(core - mean)
-        score = score.add(momentum.fillna(0.0) + trend.fillna(0.0) + slope_proxy.fillna(0.0), fill_value=0.0)
-        components += 3
-    score = (score / components).clip(-1.0, 1.0)
+        if model in {"momentum", "ensemble"}:
+            score = score.add(np.sign(np.log(core / core.shift(h))).fillna(0.0), fill_value=0.0)
+            components += 1
+        if model in {"ema", "ensemble"}:
+            ema_fast = core.ewm(span=max(24, h // 4), adjust=False, min_periods=max(24, h // 4)).mean()
+            ema_slow = core.ewm(span=h, adjust=False, min_periods=h).mean()
+            score = score.add(np.sign(ema_fast - ema_slow).fillna(0.0), fill_value=0.0)
+            components += 1
+        if model == "breakout":
+            high = core.rolling(h, min_periods=h).max().shift(1)
+            low = core.rolling(h, min_periods=h).min().shift(1)
+            midpoint = (high + low) / 2.0
+            score = score.add(np.sign(core - midpoint).fillna(0.0), fill_value=0.0)
+            components += 1
+        elif model == "ensemble":
+            mean = core.rolling(h, min_periods=h).mean()
+            score = score.add(np.sign(core - mean).fillna(0.0), fill_value=0.0)
+            components += 1
+
+    score = (score / max(1, components)).clip(-1.0, 1.0)
     rv = core.pct_change(fill_method=None).rolling(30 * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
     inv = 1.0 / rv.replace(0.0, np.nan)
     raw = score * inv
@@ -91,9 +107,11 @@ def _core_signal(close: pd.DataFrame, horizons_days: tuple[int, ...]) -> pd.Data
 
 def _carry_signal(close: pd.DataFrame, funding: pd.DataFrame, spec: CandidateSpec) -> pd.DataFrame:
     avg_funding = pd.DataFrame(0.0, index=close.index, columns=close.columns)
-    for d in spec.horizons_days:
-        avg_funding += funding.reindex(columns=close.columns, fill_value=0.0).rolling(d * 24, min_periods=max(7 * 24, d * 12)).sum()
-    avg_funding /= len(spec.horizons_days)
+    for d in spec.carry_horizons_days:
+        avg_funding += funding.reindex(columns=close.columns, fill_value=0.0).rolling(
+            d * 24, min_periods=max(7 * 24, d * 12)
+        ).sum()
+    avg_funding /= len(spec.carry_horizons_days)
 
     rv = close.pct_change(fill_method=None).rolling(spec.vol_lookback_days * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
     history = close.notna().rolling(spec.min_history_days * 24, min_periods=1).sum() >= spec.min_history_days * 24 * 0.90
@@ -144,19 +162,26 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     asset_returns = close.pct_change(fill_method=None)
     funding = data.funding.reindex_like(close).fillna(0.0)
 
-    core_raw = _core_signal(close, spec.horizons_days)
+    core_raw = _core_signal(close, spec.horizons_days, spec.core_model)
     core = _daily_hold(core_raw, spec.rebalance_hour, close)
-    carry = _carry_signal(close, funding, spec)
-
     core_ret = _sleeve_return(core, asset_returns, funding, spec.one_way_cost_bps)
-    carry_ret = _sleeve_return(carry, asset_returns, funding, spec.one_way_cost_bps)
-    look = spec.allocation_compare_days * 24
-    core_growth = (1.0 + core_ret).rolling(look, min_periods=look // 2).apply(np.prod, raw=True) - 1.0
-    carry_growth = (1.0 + carry_ret).rolling(look, min_periods=look // 2).apply(np.prod, raw=True) - 1.0
-    carry_alloc = pd.Series(spec.carry_base_allocation, index=close.index)
-    carry_alloc = carry_alloc.where(~(carry_growth > core_growth), spec.carry_dominant_allocation)
-    core_alloc = 1.0 - carry_alloc
-    combined = core.mul(core_alloc, axis=0).add(carry.mul(carry_alloc, axis=0), fill_value=0.0)
+
+    carry_disabled = spec.carry_base_allocation == 0.0 and spec.carry_dominant_allocation == 0.0
+    if carry_disabled:
+        carry = pd.DataFrame(0.0, index=close.index, columns=close.columns)
+        carry_ret = pd.Series(0.0, index=close.index)
+        carry_alloc = pd.Series(0.0, index=close.index)
+        combined = core.copy()
+    else:
+        carry = _carry_signal(close, funding, spec)
+        carry_ret = _sleeve_return(carry, asset_returns, funding, spec.one_way_cost_bps)
+        look = spec.allocation_compare_days * 24
+        core_growth = (1.0 + core_ret).rolling(look, min_periods=look // 2).apply(np.prod, raw=True) - 1.0
+        carry_growth = (1.0 + carry_ret).rolling(look, min_periods=look // 2).apply(np.prod, raw=True) - 1.0
+        carry_alloc = pd.Series(spec.carry_base_allocation, index=close.index)
+        carry_alloc = carry_alloc.where(~(carry_growth > core_growth), spec.carry_dominant_allocation)
+        core_alloc = 1.0 - carry_alloc
+        combined = core.mul(core_alloc, axis=0).add(carry.mul(carry_alloc, axis=0), fill_value=0.0)
 
     raw_ret = (combined.shift(1).fillna(0.0) * asset_returns.fillna(0.0)).sum(axis=1)
     rolling_vol = raw_ret.rolling(spec.vol_lookback_days * 24, min_periods=14 * 24).std() * np.sqrt(365.25 * 24)
@@ -168,7 +193,6 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     gross = combined.abs().sum(axis=1)
     gross_scale = (spec.max_gross_leverage / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(1.0)
     combined = combined.mul(gross_scale, axis=0)
-
     combined = _daily_hold(combined, spec.rebalance_hour, close)
 
     if spec.execution_delay_hours:
