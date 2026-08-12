@@ -5,6 +5,31 @@ import pandas as pd
 from .binance_data import discover_archives
 
 
+def _metadata(chosen) -> list[dict[str, object]]:
+    return [
+        {
+            "symbol": a.symbol,
+            "first_month": a.first_month,
+            "last_month": a.last_month,
+            "monthly_files": a.monthly_files,
+            "delisted": a.delisted,
+        }
+        for a in chosen
+    ]
+
+
+def _force_core(chosen, eligible):
+    by_symbol = {a.symbol: a for a in eligible}
+    out = list(chosen)
+    for required in ("BTCUSDT", "ETHUSDT"):
+        if required in by_symbol and required not in {x.symbol for x in out}:
+            if out:
+                out[-1] = by_symbol[required]
+            else:
+                out.append(by_symbol[required])
+    return sorted({x.symbol: x for x in out}.values(), key=lambda x: x.symbol)
+
+
 def select_adversarial_universe(max_symbols: int) -> tuple[list[str], list[dict[str, object]]]:
     """Select an old-contract stress universe with deliberate delisted inclusion.
 
@@ -16,26 +41,24 @@ def select_adversarial_universe(max_symbols: int) -> tuple[list[str], list[dict[
     delisted = [a for a in eligible if a.delisted]
     live = [a for a in eligible if not a.delisted]
     n_delisted = min(max(4, max_symbols // 4), len(delisted))
-    chosen = delisted[:n_delisted] + live[: max_symbols - n_delisted]
-    by_symbol = {a.symbol: a for a in eligible}
-    for required in ("BTCUSDT", "ETHUSDT"):
-        if required in by_symbol and required not in {x.symbol for x in chosen}:
-            if chosen:
-                chosen[-1] = by_symbol[required]
-            else:
-                chosen.append(by_symbol[required])
-    chosen = sorted({x.symbol: x for x in chosen}.values(), key=lambda x: x.symbol)
-    metadata = [
-        {
-            "symbol": a.symbol,
-            "first_month": a.first_month,
-            "last_month": a.last_month,
-            "monthly_files": a.monthly_files,
-            "delisted": a.delisted,
-        }
-        for a in chosen
-    ]
-    return [a.symbol for a in chosen], metadata
+    chosen = _force_core(delisted[:n_delisted] + live[: max_symbols - n_delisted], eligible)
+    meta = _metadata(chosen)
+    return [a.symbol for a in chosen], meta
+
+
+def select_discovery_universe(max_symbols: int, *, existed_by: str = "2021-01") -> tuple[list[str], list[dict[str, object]]]:
+    """Select contracts using only first-listing information available by a historical cutoff.
+
+    The selector deliberately does not filter on current listing status, last archive month,
+    or future realized liquidity. Delisted contracts can therefore remain in the sample
+    naturally without using their future failure as a selection input.
+    """
+    archives = discover_archives()
+    eligible = [a for a in archives if a.first_month and a.first_month <= existed_by]
+    eligible = sorted(eligible, key=lambda a: (a.first_month or "9999-99", a.symbol))
+    chosen = _force_core(eligible[:max_symbols], eligible)
+    meta = _metadata(chosen)
+    return [a.symbol for a in chosen], meta
 
 
 def complete_funding_archive_end(requested_end: str, universe_meta: list[dict[str, object]]) -> str:
