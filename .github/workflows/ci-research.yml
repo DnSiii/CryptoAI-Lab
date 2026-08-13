@@ -36,8 +36,38 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: pytest
 
-  structural-discovery:
+  adaptive-trend-discovery:
     if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Cache Binance public archives
+        uses: actions/cache@v4
+        with:
+          path: .cache/cryptoai
+          key: cryptoai-binance-v1-${{ runner.os }}
+      - run: python -m pip install -e .
+      - name: Search adaptive high-conviction trend without holdout access
+        run: >-
+          python scripts/search_adaptive_trend.py
+          --max-symbols 12
+          --bootstrap-samples 1500
+          --report reports/adaptive_trend.json
+      - name: Upload adaptive trend report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-trend-report
+          path: reports/adaptive_trend.json
+          if-no-files-found: warn
+
+  structural-discovery:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
