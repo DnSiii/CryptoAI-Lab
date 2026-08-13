@@ -1,0 +1,360 @@
+{
+  "status": "completed",
+  "candidate": {
+    "name": "CryptoAI V13 PIT Carry-Core + Circuit Breaker",
+    "research_status": "historical finalist; forward paper trading required before capital",
+    "base_candidate_config": "candidate_v13_pit_carry_core.json",
+    "target_cap": 1.35,
+    "gross_guard_cap": 1.5,
+    "circuit_breaker": {
+      "drawdown_threshold": 0.15,
+      "exposure_multiplier": 0.5,
+      "cooldown_hours": 336,
+      "reference_reset_after_cooldown": true,
+      "decision_uses_previous_close_equity": true
+    },
+    "bootstrap": {
+      "ruin_definition": "equity <= 10% of start or drawdown <= -60%",
+      "maximum_acceptable_probability": 0.01,
+      "switch_cost": 0.001
+    },
+    "real_orders": false
+  },
+  "historical_disclosure": "All available historical data participated in iterative research. This is adversarial evidence, not a pristine untouched holdout. Forward paper trading remains mandatory.",
+  "scenarios": {
+    "base": {
+      "return": 12.836900605110818,
+      "cagr": 0.601404177112246,
+      "max_drawdown": -0.288183332732057,
+      "sharpe": 1.322558305334331,
+      "sortino": 1.939672438430258,
+      "calmar": 2.0868804986422,
+      "positive_month_ratio": 0.5757575757575758,
+      "median_month": 0.025534546434804906,
+      "worst_month": -0.18237724008712375,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.4192156178811519,
+        "2022": 0.8787181025168576,
+        "2023": 0.378261417752755,
+        "2024": 0.6077452803971217,
+        "2025": 0.948646313697137,
+        "2026": 0.2018408375644487
+      },
+      "turnover": 959.5358722781083,
+      "position_decisions_per_month": 258.15649853816115,
+      "avg_gross_exposure": 0.7680271589591764,
+      "max_gross_exposure": 1.4948147430111853,
+      "cash_hour_ratio": 2.0444880601897286e-05
+    },
+    "severe_cost": {
+      "return": 8.192361991172747,
+      "cagr": 0.4882255907208557,
+      "max_drawdown": -0.3053986173157436,
+      "sharpe": 1.1467201418453659,
+      "sortino": 1.6821296821443072,
+      "calmar": 1.5986502984592499,
+      "positive_month_ratio": 0.5454545454545454,
+      "median_month": 0.014082393254026604,
+      "worst_month": -0.18866250826427788,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.3780979226114387,
+        "2022": 0.8036442078240964,
+        "2023": 0.25404390011068445,
+        "2024": 0.33980881529594176,
+        "2025": 0.7795391950993287,
+        "2026": 0.23689558668248933
+      },
+      "turnover": 950.2863156713761,
+      "position_decisions_per_month": 258.2461102819407,
+      "avg_gross_exposure": 0.7655649398009265,
+      "max_gross_exposure": 1.4948147430111853,
+      "cash_hour_ratio": 2.0444880601897286e-05
+    },
+    "extreme_cost_20bps": {
+      "return": 2.4651681066016455,
+      "cagr": 0.24948565043637227,
+      "max_drawdown": -0.386761986873682,
+      "sharpe": 0.7455883556657312,
+      "sortino": 1.0868372696729913,
+      "calmar": 0.6450624903782368,
+      "positive_month_ratio": 0.48484848484848486,
+      "median_month": -0.011759224165853066,
+      "worst_month": -0.20516718522730015,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.15660918048494454,
+        "2022": 0.41723558215490386,
+        "2023": 0.06577433640957597,
+        "2024": 0.19515751026027894,
+        "2025": 0.5970508042558242,
+        "2026": 0.039169737449469944
+      },
+      "turnover": 922.1315207084358,
+      "position_decisions_per_month": 258.2461102819407,
+      "avg_gross_exposure": 0.7462046390396745,
+      "max_gross_exposure": 1.4948147430111853,
+      "cash_hour_ratio": 2.0444880601897286e-05
+    },
+    "delay_3h": {
+      "return": 11.019991669259799,
+      "cagr": 0.5615079187690322,
+      "max_drawdown": -0.2853934953877476,
+      "sharpe": 1.2608660226153223,
+      "sortino": 1.8436129365115332,
+      "calmar": 1.967486743193442,
+      "positive_month_ratio": 0.5454545454545454,
+      "median_month": 0.011015882602783522,
+      "worst_month": -0.14601818685724222,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.6652750502476357,
+        "2022": 0.8763200337646175,
+        "2023": 0.4846191167231295,
+        "2024": 0.3257764753435779,
+        "2025": 0.6679578459515232,
+        "2026": 0.1717658805117661
+      },
+      "turnover": 949.944048177096,
+      "position_decisions_per_month": 258.1415632475312,
+      "avg_gross_exposure": 0.7642811638421768,
+      "max_gross_exposure": 1.4588610849683268,
+      "cash_hour_ratio": 6.133464180569185e-05
+    },
+    "delay_6h": {
+      "return": 7.4526457759909555,
+      "cagr": 0.4660165028511316,
+      "max_drawdown": -0.29711986226243314,
+      "sharpe": 1.11906837086898,
+      "sortino": 1.6213300408515159,
+      "calmar": 1.5684461459514254,
+      "positive_month_ratio": 0.48484848484848486,
+      "median_month": -0.005766123700676362,
+      "worst_month": -0.1337704626801658,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.495415820142304,
+        "2022": 0.6352918866045572,
+        "2023": 0.40807393731268315,
+        "2024": 0.4309309627280886,
+        "2025": 0.5573300864336856,
+        "2026": 0.10156619959032054
+      },
+      "turnover": 959.4903375622434,
+      "position_decisions_per_month": 258.0668867943816,
+      "avg_gross_exposure": 0.7628107488571989,
+      "max_gross_exposure": 1.4300846400450264,
+      "cash_hour_ratio": 0.0001226692836113837
+    },
+    "adverse_funding": {
+      "return": 7.519798490425925,
+      "cagr": 0.46809712504706935,
+      "max_drawdown": -0.2886563169398987,
+      "sharpe": 1.1167343013691886,
+      "sortino": 1.636047706404083,
+      "calmar": 1.6216417156896386,
+      "positive_month_ratio": 0.5454545454545454,
+      "median_month": 0.020182047548946258,
+      "worst_month": -0.17322670196048373,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.231084295184534,
+        "2022": 0.8100133956904445,
+        "2023": 0.2763418421866881,
+        "2024": 0.3212686019219819,
+        "2025": 0.8457886959071228,
+        "2026": 0.22834295491052337
+      },
+      "turnover": 952.2085307374546,
+      "position_decisions_per_month": 258.17143382879107,
+      "avg_gross_exposure": 0.765130814050229,
+      "max_gross_exposure": 1.4948147430111853,
+      "cash_hour_ratio": 2.0444880601897286e-05
+    },
+    "harsh_funding": {
+      "return": 3.3806442684603057,
+      "cagr": 0.303102792726631,
+      "max_drawdown": -0.35716147767979145,
+      "sharpe": 0.840752672256413,
+      "sortino": 1.2258087841675487,
+      "calmar": 0.8486435734773555,
+      "positive_month_ratio": 0.4696969696969697,
+      "median_month": -0.004025235653712156,
+      "worst_month": -0.1819661979926065,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": -0.015780342846161255,
+        "2022": 0.7480131941203425,
+        "2023": 0.1476193455015511,
+        "2024": 0.17472869322288664,
+        "2025": 0.7771178589195404,
+        "2026": 0.06279518457089805
+      },
+      "turnover": 936.3270042578581,
+      "position_decisions_per_month": 258.2759808632005,
+      "avg_gross_exposure": 0.7527394934871764,
+      "max_gross_exposure": 1.4948147430111853,
+      "cash_hour_ratio": 2.0444880601897286e-05
+    },
+    "severe_cost_and_adverse_funding": {
+      "return": 4.294057699506888,
+      "cagr": 0.3480932363263527,
+      "max_drawdown": -0.3395606551874103,
+      "sharpe": 0.9181545032326899,
+      "sortino": 1.343126021835235,
+      "calmar": 1.0251282974296096,
+      "positive_month_ratio": 0.5,
+      "median_month": 0.0037083778444217397,
+      "worst_month": -0.19025559189419017,
+      "ruin": false,
+      "hours": 48912,
+      "annual_returns": {
+        "2021": 0.09367814609550895,
+        "2022": 0.7393023203071067,
+        "2023": 0.15537522389111968,
+        "2024": 0.21825352376293883,
+        "2025": 0.7025501139780173,
+        "2026": 0.16135081584877353
+      },
+      "turnover": 940.2780513601133,
+      "position_decisions_per_month": 258.2461102819407,
+      "avg_gross_exposure": 0.7593789613113071,
+      "max_gross_exposure": 1.4948147430111853,
+      "cash_hour_ratio": 2.0444880601897286e-05
+    }
+  },
+  "bootstrap": {
+    "status": "completed",
+    "designs": {
+      "block_7d_horizon_3y": {
+        "seed": 1300260816,
+        "paths": 30000,
+        "block_days": 7,
+        "horizon_years": 3,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.0321,
+        "drawdown_percentiles": {
+          "1": -0.2516758754443751,
+          "5": -0.23540671981674688,
+          "25": -0.21655409440172604,
+          "50": -0.20486371162338046,
+          "75": -0.19479557922933907,
+          "95": -0.1821436776724232,
+          "99": -0.17414472473357692
+        }
+      },
+      "block_7d_horizon_5y": {
+        "seed": 1300260816,
+        "paths": 30000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.007833333333333333,
+        "drawdown_percentiles": {
+          "1": -0.25544668432640016,
+          "5": -0.24055879953363227,
+          "25": -0.22276282602753925,
+          "50": -0.21209670771670314,
+          "75": -0.20254345112307812,
+          "95": -0.19126632229154603,
+          "99": -0.18386212236412494
+        }
+      },
+      "block_14d_horizon_3y": {
+        "seed": 1300260816,
+        "paths": 30000,
+        "block_days": 14,
+        "horizon_years": 3,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.030766666666666668,
+        "drawdown_percentiles": {
+          "1": -0.239983641033685,
+          "5": -0.22722255544353923,
+          "25": -0.21137029265421334,
+          "50": -0.20143950807951383,
+          "75": -0.19249268812910833,
+          "95": -0.18072227125475726,
+          "99": -0.1734069251716301
+        }
+      },
+      "block_14d_horizon_5y": {
+        "seed": 1300260816,
+        "paths": 30000,
+        "block_days": 14,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.007733333333333333,
+        "drawdown_percentiles": {
+          "1": -0.24327742378946587,
+          "5": -0.23135661824525836,
+          "25": -0.2168408480354297,
+          "50": -0.20734115308460727,
+          "75": -0.199052272070996,
+          "95": -0.18885751625811784,
+          "99": -0.18245099910119153
+        }
+      },
+      "block_30d_horizon_3y": {
+        "seed": 1300260816,
+        "paths": 30000,
+        "block_days": 30,
+        "horizon_years": 3,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.0287,
+        "drawdown_percentiles": {
+          "1": -0.2336798051308658,
+          "5": -0.22074494631590116,
+          "25": -0.20597247830944418,
+          "50": -0.19748616690664433,
+          "75": -0.18954303026157562,
+          "95": -0.1794602467841127,
+          "99": -0.17347143288716477
+        }
+      },
+      "block_30d_horizon_5y": {
+        "seed": 1300260816,
+        "paths": 30000,
+        "block_days": 30,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.006666666666666667,
+        "drawdown_percentiles": {
+          "1": -0.23832280911196113,
+          "5": -0.22506972851863083,
+          "25": -0.21072761950484192,
+          "50": -0.2027337617312015,
+          "75": -0.19562782947635274,
+          "95": -0.1864058754874114,
+          "99": -0.1807339334495586
+        }
+      }
+    },
+    "worst_estimated_ruin_probability": 0.0
+  },
+  "gate_snapshot": {
+    "base_cagr_at_least_50pct": true,
+    "base_drawdown_no_worse_than_35pct": true,
+    "all_base_years_positive": true,
+    "severe_cost_cagr_at_least_35pct": true,
+    "delay_3h_cagr_at_least_40pct": true,
+    "adverse_funding_cagr_at_least_35pct": true,
+    "combined_stress_cagr_at_least_25pct": true,
+    "bootstrap_ruin_below_1pct": true,
+    "no_exact_ruin": true,
+    "gross_exposure_within_1_5x": true
+  }
+}
