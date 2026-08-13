@@ -3,7 +3,7 @@ import pandas as pd
 
 from cryptoai.gates import PromotionGates
 from cryptoai.metrics import max_drawdown, performance, block_bootstrap_ruin_probability
-from cryptoai.replay import CandidateSpec, _carry_signal, _core_signal, _daily_hold
+from cryptoai.replay import CandidateSpec, _carry_signal, _core_signal, _daily_hold, _trend_confirmation_multiplier
 from cryptoai.splits import ResearchSplit
 
 
@@ -120,3 +120,29 @@ def test_relative_funding_carry_can_long_low_positive_and_short_high_positive():
     last = weights.iloc[-1]
     assert (last > 0).any()
     assert (last < 0).any()
+
+
+def test_trend_confirmation_cuts_risk_when_slow_and_fast_disagree():
+    periods = 900
+    idx = pd.date_range("2024-01-01", periods=periods, freq="1h", tz="UTC")
+    t = np.arange(periods, dtype=float)
+    late_drop = np.maximum(t - 820.0, 0.0)
+    base = np.exp(4.0 + 0.0010 * t - 0.0030 * late_drop + 0.005 * np.sin(t / 11.0))
+    close = pd.DataFrame({"BTCUSDT": base, "ETHUSDT": base * 0.7}, index=idx)
+    spec = CandidateSpec(
+        horizons_days=(20,),
+        trend_filter_mode="agreement",
+        trend_fast_horizons_days=(2,),
+        trend_conflict_scale=0.25,
+        carry_base_allocation=0.0,
+        carry_dominant_allocation=0.0,
+    )
+    multiplier = _trend_confirmation_multiplier(close, spec)
+    assert np.isclose(multiplier.iloc[-1]["BTCUSDT"], 0.25)
+    assert np.isclose(multiplier.iloc[-1]["ETHUSDT"], 0.25)
+
+
+def test_trend_confirmation_default_is_neutral():
+    close = _synthetic_close()
+    multiplier = _trend_confirmation_multiplier(close, CandidateSpec())
+    assert (multiplier == 1.0).all().all()
