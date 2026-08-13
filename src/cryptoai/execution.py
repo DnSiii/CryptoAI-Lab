@@ -15,8 +15,9 @@ def scheduled_hold(
     """Causally sample target weights on a fixed UTC schedule with L1 hysteresis.
 
     A scheduled target is accepted only when its L1 distance from the last accepted
-    portfolio is at least ``l1_band``. This suppresses small rebalances without
-    looking ahead. Missing prices force the affected weight to zero in the output.
+    portfolio is at least ``l1_band``. The state transition remains sequential and
+    causal, while NumPy arrays avoid expensive pandas indexing inside the loop.
+    Missing prices force the affected weight to zero in the output.
     """
     if interval_hours not in {1, 2, 3, 4, 6, 8, 12, 24}:
         raise ValueError("interval_hours must divide a UTC day")
@@ -28,20 +29,23 @@ def scheduled_hold(
         return target.copy()
 
     target = target.reindex(index=close.index, columns=close.columns).fillna(0.0)
-    schedule_mask = ((target.index.hour - anchor_hour) % interval_hours) == 0
-    scheduled_index = target.index[schedule_mask]
+    target_values = target.to_numpy(dtype=float, copy=True)
+    valid_values = close.notna().to_numpy(dtype=bool, copy=False)
+    hours = target.index.hour.to_numpy()
+    scheduled_positions = np.flatnonzero(((hours - anchor_hour) % interval_hours) == 0)
 
-    sampled = pd.DataFrame(np.nan, index=target.index, columns=target.columns)
-    last = pd.Series(0.0, index=target.columns)
+    held_values = np.zeros_like(target_values, dtype=float)
+    last = np.zeros(target_values.shape[1], dtype=float)
     initialized = False
 
-    for ts in scheduled_index:
-        candidate = target.loc[ts].where(close.loc[ts].notna(), 0.0).fillna(0.0)
-        delta = float((candidate - last).abs().sum())
+    for i, pos in enumerate(scheduled_positions):
+        candidate = np.where(valid_values[pos], target_values[pos], 0.0)
+        delta = float(np.abs(candidate - last).sum())
         if (not initialized) or delta >= l1_band:
-            last = candidate
+            last = candidate.copy()
             initialized = True
-        sampled.loc[ts] = last
+        end = scheduled_positions[i + 1] if i + 1 < len(scheduled_positions) else len(target_values)
+        held_values[pos:end] = last
 
-    held = sampled.ffill().fillna(0.0)
-    return held.where(close.notna(), 0.0)
+    held_values[~valid_values] = 0.0
+    return pd.DataFrame(held_values, index=target.index, columns=target.columns)
