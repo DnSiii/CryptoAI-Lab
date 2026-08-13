@@ -1,0 +1,56 @@
+{
+  "status": "REJECTED_RECONSTRUCTION",
+  "decision": "Do not promote, do not run real money, do not represent as reproduction of the legacy candidate.",
+  "workflow_run_id": 31635285751,
+  "artifact_id": 9156773957,
+  "artifact_sha256": "f8f73259acd716595605fae8e1a966e80245da8c1070d547439e23d3c009eba9",
+  "period": {
+    "requested_start": "2020-01-01",
+    "requested_end": "2026-08-10",
+    "effective_end": "2026-07-31"
+  },
+  "stress_universe": [
+    "ADAUSDT",
+    "BCHUSDT",
+    "BTCUSDT",
+    "DEFIUSDT",
+    "EOSUSDT",
+    "ETCUSDT",
+    "ETHUSDT",
+    "MKRUSDT",
+    "OMGUSDT",
+    "SXPUSDT"
+  ],
+  "metrics": {
+    "base_cagr": 0.0009988636940341244,
+    "base_max_drawdown": -0.7124653712883375,
+    "base_total_return": 0.00659,
+    "base_sharpe": 0.2486,
+    "base_annual_volatility": 0.4923,
+    "decisions_per_month": 9.7975,
+    "severe_cost_cagr": -0.15096900075101982,
+    "delay_3h_cagr": 0.021090306367147038,
+    "adverse_funding_cagr": -0.053528,
+    "bootstrap_ruin_probability": 0.202,
+    "simulated_liquidation_flag": false
+  },
+  "yearly_base_returns": {
+    "2020": 0.5701,
+    "2021": -0.2190,
+    "2022": -0.0534,
+    "2023": 0.3619,
+    "2024": -0.1607,
+    "2025": -0.2203,
+    "2026": -0.0270
+  },
+  "failed_frozen_gates": [
+    "base_cagr",
+    "drawdown",
+    "severe_cost_cagr",
+    "delay_3h_cagr",
+    "activity",
+    "bootstrap_ruin",
+    "24_phases_not_run_after_early_rejection"
+  ],
+  "interpretation": "The causal reconstruction recovered the broad labels of the prior candidate but not its edge. The exact legacy formulas were unavailable. The correct next step is leakage-controlled strategy discovery on pre-2025 data, with 2025-2026 held out from selection."
+}
