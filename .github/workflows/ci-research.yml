@@ -36,7 +36,7 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: pytest
 
-  relative-overlay-discovery:
+  execution-hysteresis-discovery:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -52,170 +52,18 @@ jobs:
           path: .cache/cryptoai
           key: cryptoai-binance-v1-${{ runner.os }}
       - run: python -m pip install -e .
-      - name: Search ETH BTC relative overlay without holdout access
+      - name: Search cost-aware execution hysteresis without holdout access
         run: >-
-          python scripts/search_relative_overlay.py
+          python scripts/search_execution_hysteresis.py
           --max-symbols 12
           --bootstrap-samples 2000
-          --report reports/relative_overlay.json
-      - name: Upload relative overlay report
+          --report reports/execution_hysteresis.json
+      - name: Upload execution hysteresis report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: relative-overlay-report
-          path: reports/relative_overlay.json
-          if-no-files-found: warn
-
-  shock-braked-trend-discovery:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-      - name: Cache Binance public archives
-        uses: actions/cache@v4
-        with:
-          path: .cache/cryptoai
-          key: cryptoai-binance-v1-${{ runner.os }}
-      - run: python -m pip install -e .
-      - name: Search volatility-braked high-conviction trend without holdout access
-        run: >-
-          python scripts/search_shock_braked_trend.py
-          --max-symbols 12
-          --bootstrap-samples 2000
-          --report reports/shock_braked_trend.json
-      - name: Upload shock-braked trend report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: shock-braked-trend-report
-          path: reports/shock_braked_trend.json
-          if-no-files-found: warn
-
-  adaptive-trend-discovery:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-      - name: Cache Binance public archives
-        uses: actions/cache@v4
-        with:
-          path: .cache/cryptoai
-          key: cryptoai-binance-v1-${{ runner.os }}
-      - run: python -m pip install -e .
-      - name: Search adaptive high-conviction trend without holdout access
-        run: >-
-          python scripts/search_adaptive_trend.py
-          --max-symbols 12
-          --bootstrap-samples 1500
-          --report reports/adaptive_trend.json
-      - name: Upload adaptive trend report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: adaptive-trend-report
-          path: reports/adaptive_trend.json
-          if-no-files-found: warn
-
-  structural-discovery:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-      - name: Cache Binance public archives
-        uses: actions/cache@v4
-        with:
-          path: .cache/cryptoai
-          key: cryptoai-binance-v1-${{ runner.os }}
-      - run: python -m pip install -e .
-      - name: Search structural trend and carry families without holdout access
-        run: >-
-          python scripts/search_structural_discovery.py
-          --max-symbols 28
-          --bootstrap-samples 1000
-          --report reports/structural_discovery.json
-      - name: Upload structural discovery report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: structural-discovery-report
-          path: reports/structural_discovery.json
-          if-no-files-found: warn
-
-  core-discovery:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-      - name: Cache Binance public archives
-        uses: actions/cache@v4
-        with:
-          path: .cache/cryptoai
-          key: cryptoai-binance-v1-${{ runner.os }}
-      - run: python -m pip install -e .
-      - name: Search core families without holdout access
-        run: >-
-          python scripts/search_core_discovery.py
-          --max-symbols 12
-          --report reports/core_discovery.json
-      - name: Upload discovery report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: core-discovery-report
-          path: reports/core_discovery.json
-          if-no-files-found: warn
-
-  adversarial-triage:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-      - name: Cache Binance public archives
-        uses: actions/cache@v4
-        with:
-          path: .cache/cryptoai
-          key: cryptoai-binance-v1-${{ runner.os }}
-      - run: python -m pip install -e .
-      - name: Run failed-reconstruction regression triage
-        run: >-
-          python scripts/run_v13_adversarial.py
-          --start 2020-01-01
-          --end 2026-08-10
-          --max-symbols 10
-          --bootstrap-samples 500
-          --skip-phases
-          --report reports/v13_triage.json
-      - name: Upload triage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: v13-triage-report
-          path: reports/v13_triage.json
+          name: execution-hysteresis-report
+          path: reports/execution_hysteresis.json
           if-no-files-found: warn
 
   adversarial-full:
