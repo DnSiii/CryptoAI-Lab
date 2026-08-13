@@ -36,8 +36,38 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: pytest
 
-  shock-braked-trend-discovery:
+  relative-overlay-discovery:
     if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Cache Binance public archives
+        uses: actions/cache@v4
+        with:
+          path: .cache/cryptoai
+          key: cryptoai-binance-v1-${{ runner.os }}
+      - run: python -m pip install -e .
+      - name: Search ETH BTC relative overlay without holdout access
+        run: >-
+          python scripts/search_relative_overlay.py
+          --max-symbols 12
+          --bootstrap-samples 2000
+          --report reports/relative_overlay.json
+      - name: Upload relative overlay report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relative-overlay-report
+          path: reports/relative_overlay.json
+          if-no-files-found: warn
+
+  shock-braked-trend-discovery:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
