@@ -36,8 +36,38 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: pytest
 
-  adaptive-trend-discovery:
+  shock-braked-trend-discovery:
     if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Cache Binance public archives
+        uses: actions/cache@v4
+        with:
+          path: .cache/cryptoai
+          key: cryptoai-binance-v1-${{ runner.os }}
+      - run: python -m pip install -e .
+      - name: Search volatility-braked high-conviction trend without holdout access
+        run: >-
+          python scripts/search_shock_braked_trend.py
+          --max-symbols 12
+          --bootstrap-samples 2000
+          --report reports/shock_braked_trend.json
+      - name: Upload shock-braked trend report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shock-braked-trend-report
+          path: reports/shock_braked_trend.json
+          if-no-files-found: warn
+
+  adaptive-trend-discovery:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
