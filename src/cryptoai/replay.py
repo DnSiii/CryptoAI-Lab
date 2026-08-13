@@ -17,6 +17,9 @@ class CandidateSpec:
     core_model: str = "ensemble"
     core_scope: str = "btc_eth"
     cross_section_quantile: float = 0.25
+    trend_filter_mode: str = "none"
+    trend_fast_horizons_days: tuple[int, ...] = (20, 40, 60)
+    trend_conflict_scale: float = 1.0
     carry_horizons_days: tuple[int, ...] = (60, 90, 120, 150)
     carry_base_allocation: float = 0.35
     carry_dominant_allocation: float = 0.85
@@ -129,6 +132,40 @@ def _core_signal(
     return out
 
 
+def _trend_confirmation_multiplier(close: pd.DataFrame, spec: CandidateSpec) -> pd.DataFrame:
+    """Causal post-volatility risk brake based on slow momentum vs fast breakout agreement.
+
+    The multiplier is applied after volatility targeting so a conflict genuinely cuts
+    exposure instead of being mechanically re-levered by the volatility target.
+    """
+    out = pd.DataFrame(1.0, index=close.index, columns=close.columns)
+    if spec.trend_filter_mode == "none":
+        return out
+    if spec.trend_filter_mode != "agreement":
+        raise ValueError(f"Unknown trend_filter_mode: {spec.trend_filter_mode}")
+    if not 0.0 <= spec.trend_conflict_scale <= 1.0:
+        raise ValueError("trend_conflict_scale must be between 0 and 1")
+
+    slow = _core_signal(
+        close,
+        spec.horizons_days,
+        model="momentum",
+        scope=spec.core_scope,
+        cross_section_quantile=spec.cross_section_quantile,
+    )
+    fast = _core_signal(
+        close,
+        spec.trend_fast_horizons_days,
+        model="breakout",
+        scope=spec.core_scope,
+        cross_section_quantile=spec.cross_section_quantile,
+    )
+    informed = slow.ne(0.0) & fast.ne(0.0)
+    conflict = informed & (np.sign(slow) != np.sign(fast))
+    out = out.mask(conflict, spec.trend_conflict_scale)
+    return out
+
+
 def _carry_signal(close: pd.DataFrame, funding: pd.DataFrame, spec: CandidateSpec) -> pd.DataFrame:
     avg_funding = pd.DataFrame(0.0, index=close.index, columns=close.columns)
     for d in spec.carry_horizons_days:
@@ -217,11 +254,20 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     gross = combined.abs().sum(axis=1)
     gross_scale = (spec.max_gross_leverage / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(1.0)
     combined = combined.mul(gross_scale, axis=0)
+
+    confirmation = _trend_confirmation_multiplier(close, spec)
+    if spec.trend_filter_mode != "none":
+        combined = combined.mul(confirmation)
     combined = _daily_hold(combined, spec.rebalance_hour, close)
 
     if spec.execution_delay_hours:
         combined = combined.shift(spec.execution_delay_hours).fillna(0.0)
-    return combined, {"core": core_ret, "carry": carry_ret, "carry_allocation": carry_alloc}
+    return combined, {
+        "core": core_ret,
+        "carry": carry_ret,
+        "carry_allocation": carry_alloc,
+        "trend_confirmation": confirmation.mean(axis=1),
+    }
 
 
 def run_replay(data: ReplayData, spec: CandidateSpec, *, cost_multiplier: float = 1.0, funding_adverse: bool = False) -> dict[str, object]:
@@ -247,6 +293,7 @@ def run_replay(data: ReplayData, spec: CandidateSpec, *, cost_multiplier: float 
         "core_sleeve": performance(sleeves["core"]).to_dict(),
         "carry_sleeve": performance(sleeves["carry"]).to_dict(),
         "carry_dominant_fraction": 0.0 if carry_disabled else float((carry_alloc == spec.carry_dominant_allocation).mean()),
+        "trend_confirmation_mean": float(sleeves["trend_confirmation"].mean()),
         "average_gross_exposure": float(weights.abs().sum(axis=1).mean()),
         "p95_gross_exposure": float(weights.abs().sum(axis=1).quantile(0.95)),
     }
