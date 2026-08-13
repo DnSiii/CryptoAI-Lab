@@ -1,0 +1,39 @@
+{
+  "name": "CryptoAI V13 PIT Carry-Core",
+  "research_status": "historically validated; forward paper trading required before capital",
+  "data_config": "research_pit48.json",
+  "point_in_time_universe": {
+    "top_n": 20,
+    "quote_volume_lookback_hours": 720,
+    "minimum_history_hours": 720,
+    "membership_uses_data_through": "t-1"
+  },
+  "core": {
+    "symbols": ["BTCUSDT", "ETHUSDT"],
+    "component_ids": [1428, 1434, 1745],
+    "weight": 0.7
+  },
+  "funding_carry": {
+    "component_id": 356,
+    "weight": 0.3
+  },
+  "sleeve_normalization": {
+    "target_volatility": 0.25,
+    "maximum_target_gross_leverage": 1.0,
+    "volatility_lookback_hours": 1440,
+    "rebalance_hours": 24
+  },
+  "risk_overlay": {
+    "target_volatility": 0.45,
+    "maximum_target_gross_leverage": 1.5,
+    "volatility_lookback_hours": 1440,
+    "rebalance_hours": 24,
+    "phase_utc_hour": 0
+  },
+  "execution": {
+    "signal_at_close_execution_at_next_open": true,
+    "base_cost_per_side": 0.0007,
+    "severe_cost_per_side": 0.0012,
+    "maintenance_equity_fraction": 0.02
+  }
+}
