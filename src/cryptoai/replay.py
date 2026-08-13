@@ -20,6 +20,11 @@ class CandidateSpec:
     trend_filter_mode: str = "none"
     trend_fast_horizons_days: tuple[int, ...] = (20, 40, 60)
     trend_conflict_scale: float = 1.0
+    volatility_shock_mode: str = "none"
+    volatility_shock_short_days: int = 7
+    volatility_shock_long_days: int = 30
+    volatility_shock_threshold: float = 1.5
+    volatility_shock_scale: float = 1.0
     carry_horizons_days: tuple[int, ...] = (60, 90, 120, 150)
     carry_base_allocation: float = 0.35
     carry_dominant_allocation: float = 0.85
@@ -133,11 +138,7 @@ def _core_signal(
 
 
 def _trend_confirmation_multiplier(close: pd.DataFrame, spec: CandidateSpec) -> pd.DataFrame:
-    """Causal post-volatility risk brake based on slow momentum vs fast breakout agreement.
-
-    The multiplier is applied after volatility targeting so a conflict genuinely cuts
-    exposure instead of being mechanically re-levered by the volatility target.
-    """
+    """Causal post-volatility risk brake based on slow momentum vs fast breakout agreement."""
     out = pd.DataFrame(1.0, index=close.index, columns=close.columns)
     if spec.trend_filter_mode == "none":
         return out
@@ -162,7 +163,34 @@ def _trend_confirmation_multiplier(close: pd.DataFrame, spec: CandidateSpec) -> 
     )
     informed = slow.ne(0.0) & fast.ne(0.0)
     conflict = informed & (np.sign(slow) != np.sign(fast))
-    out = out.mask(conflict, spec.trend_conflict_scale)
+    return out.mask(conflict, spec.trend_conflict_scale)
+
+
+def _volatility_shock_multiplier(close: pd.DataFrame, spec: CandidateSpec) -> pd.DataFrame:
+    """Cut exposure when short-horizon realized volatility jumps versus its slow baseline."""
+    out = pd.DataFrame(1.0, index=close.index, columns=close.columns)
+    if spec.volatility_shock_mode == "none":
+        return out
+    if spec.volatility_shock_mode != "ratio":
+        raise ValueError(f"Unknown volatility_shock_mode: {spec.volatility_shock_mode}")
+    if spec.volatility_shock_short_days <= 0 or spec.volatility_shock_long_days <= spec.volatility_shock_short_days:
+        raise ValueError("volatility shock windows require 0 < short_days < long_days")
+    if spec.volatility_shock_threshold <= 0.0:
+        raise ValueError("volatility_shock_threshold must be positive")
+    if not 0.0 <= spec.volatility_shock_scale <= 1.0:
+        raise ValueError("volatility_shock_scale must be between 0 and 1")
+
+    assets = [c for c in ("BTCUSDT", "ETHUSDT") if c in close.columns] if spec.core_scope == "btc_eth" else list(close.columns)
+    if not assets:
+        return out
+    returns = close[assets].pct_change(fill_method=None)
+    short_h = spec.volatility_shock_short_days * 24
+    long_h = spec.volatility_shock_long_days * 24
+    rv_short = returns.rolling(short_h, min_periods=max(24, short_h // 2)).std()
+    rv_long = returns.rolling(long_h, min_periods=max(7 * 24, long_h // 2)).std()
+    ratio = rv_short.div(rv_long.replace(0.0, np.nan))
+    market_shock = ratio.max(axis=1) >= spec.volatility_shock_threshold
+    out.loc[market_shock, assets] = spec.volatility_shock_scale
     return out
 
 
@@ -256,8 +284,11 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
     combined = combined.mul(gross_scale, axis=0)
 
     confirmation = _trend_confirmation_multiplier(close, spec)
+    shock = _volatility_shock_multiplier(close, spec)
     if spec.trend_filter_mode != "none":
         combined = combined.mul(confirmation)
+    if spec.volatility_shock_mode != "none":
+        combined = combined.mul(shock)
     combined = _daily_hold(combined, spec.rebalance_hour, close)
 
     if spec.execution_delay_hours:
@@ -267,6 +298,7 @@ def build_weights(data: ReplayData, spec: CandidateSpec) -> tuple[pd.DataFrame, 
         "carry": carry_ret,
         "carry_allocation": carry_alloc,
         "trend_confirmation": confirmation.mean(axis=1),
+        "volatility_shock": shock.mean(axis=1),
     }
 
 
@@ -294,6 +326,7 @@ def run_replay(data: ReplayData, spec: CandidateSpec, *, cost_multiplier: float 
         "carry_sleeve": performance(sleeves["carry"]).to_dict(),
         "carry_dominant_fraction": 0.0 if carry_disabled else float((carry_alloc == spec.carry_dominant_allocation).mean()),
         "trend_confirmation_mean": float(sleeves["trend_confirmation"].mean()),
+        "volatility_shock_mean": float(sleeves["volatility_shock"].mean()),
         "average_gross_exposure": float(weights.abs().sum(axis=1).mean()),
         "p95_gross_exposure": float(weights.abs().sum(axis=1).quantile(0.95)),
     }
