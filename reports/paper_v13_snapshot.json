@@ -3,7 +3,7 @@
   "real_orders_enabled": false,
   "candidate": "CryptoAI V13 PIT Carry-Core + Circuit Breaker",
   "initialized_at_utc": "2026-08-13T19:01:27.722238+00:00",
-  "paper_start_after_timestamp": "2026-07-31T23:00:00+00:00",
+  "paper_start_after_timestamp": "2026-08-13T19:00:00+00:00",
   "latest_data_timestamp": "2026-07-31T23:00:00+00:00",
   "new_forward_hours": 0,
   "status": "waiting_for_new_data",
@@ -17,5 +17,5 @@
     "ETHUSDT": 0.50824082
   },
   "gross_exposure": 1.16939986,
-  "disclosure": "No exchange order method exists in this runner. The paper ledger only counts timestamps strictly newer than its frozen start cutoff."
+  "disclosure": "No exchange order method exists in this runner. The paper ledger only counts timestamps strictly newer than the model-freeze hour; later backfills from before that hour are excluded."
 }

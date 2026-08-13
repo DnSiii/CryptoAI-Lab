@@ -48,4 +48,5 @@ diversification.
 
 All available history participated in iterative research. No historical result
 is a pristine holdout. The next valid evidence must come from timestamps newer
-than the paper boundary frozen by `scripts/paper_once_v13.py`.
+than the model-freeze boundary set on 13 August 2026 by
+`scripts/paper_once_v13.py`; later backfills of earlier dates are excluded.

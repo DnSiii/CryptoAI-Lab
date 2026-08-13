@@ -9,10 +9,11 @@
 
 ## Start rule
 
-The first execution of `scripts/paper_once_v13.py` freezes the last available
-market timestamp as the boundary. Performance is counted only on timestamps
-strictly newer than that boundary. Backfilled history cannot be presented as
-forward paper performance.
+The first execution of `scripts/paper_once_v13.py` freezes the later of the
+model-initialization hour and the last available market timestamp. Performance
+is counted only on timestamps strictly newer than that boundary. Backfilled
+history from before the model freeze cannot be presented as forward paper
+performance.
 
 ## Minimum evidence before any capital discussion
 

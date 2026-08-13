@@ -55,11 +55,21 @@ def main() -> None:
     )
     latest = data.close.index[-1]
     previous = load_state()
-    paper_start = (
-        pd.Timestamp(previous["paper_start_after_timestamp"])
+    initialized_at = (
+        pd.Timestamp(previous["initialized_at_utc"])
         if previous
-        else latest
+        else pd.Timestamp.now(tz="UTC")
     )
+    honest_forward_boundary = max(latest, initialized_at.floor("h"))
+    if previous:
+        previous_boundary = pd.Timestamp(previous["paper_start_after_timestamp"])
+        paper_start = (
+            max(previous_boundary, honest_forward_boundary)
+            if int(previous.get("new_forward_hours", 0)) == 0
+            else previous_boundary
+        )
+    else:
+        paper_start = honest_forward_boundary
     forward_equity = result.equity.loc[paper_start:]
     if len(forward_equity):
         forward_equity = forward_equity / forward_equity.iloc[0]
@@ -78,11 +88,7 @@ def main() -> None:
         "mode": "PAPER_ONLY",
         "real_orders_enabled": False,
         "candidate": finalist["name"],
-        "initialized_at_utc": (
-            previous["initialized_at_utc"]
-            if previous
-            else pd.Timestamp.now(tz="UTC").isoformat()
-        ),
+        "initialized_at_utc": initialized_at.isoformat(),
         "paper_start_after_timestamp": paper_start.isoformat(),
         "latest_data_timestamp": latest.isoformat(),
         "new_forward_hours": new_hours,
@@ -97,7 +103,8 @@ def main() -> None:
         "gross_exposure": round(float(result.gross_exposure.iloc[-1]), 8),
         "disclosure": (
             "No exchange order method exists in this runner. The paper ledger "
-            "only counts timestamps strictly newer than its frozen start cutoff."
+            "only counts timestamps strictly newer than the model-freeze hour; "
+            "later backfills from before that hour are excluded."
         ),
     }
     checkpoint(payload)
