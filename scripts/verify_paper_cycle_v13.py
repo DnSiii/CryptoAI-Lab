@@ -28,7 +28,7 @@ def main() -> None:
         raise RuntimeError("runner saiu do modo PAPER_ONLY")
     if state.get("real_orders_enabled") is not False:
         raise RuntimeError("runner habilitou ordens reais")
-    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 1:
+    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 2:
         raise RuntimeError("ledger didático inválido ou fora do modo PAPER_ONLY")
     if ledger.get("paper_start_after_timestamp") != state.get("paper_start_after_timestamp"):
         raise RuntimeError("ledger e estado divergem no corte forward")
@@ -36,6 +36,13 @@ def main() -> None:
         raise RuntimeError("ledger e estado divergem no último candle")
     if not {"BTCUSDT", "ETHUSDT"}.issubset(ledger.get("candles", {})):
         raise RuntimeError("ledger não contém candles BTC e ETH")
+    if not {"BTCUSDT", "ETHUSDT"}.issubset(ledger.get("assets", {})):
+        raise RuntimeError("ledger não contém atribuição por ativo")
+    asset_net = sum(
+        float(item["net_result_brl"]) for item in ledger["assets"].values()
+    )
+    if abs(asset_net - float(ledger["summary"]["net_result_brl"])) > 0.05:
+        raise RuntimeError("resultado por ativo não reconcilia com o total")
     if sync.get("mode") != "PUBLIC_DATA_ONLY" or sync.get("private_api_used") is not False:
         raise RuntimeError("sincronização não está limitada a dados públicos")
     if sync.get("core_stale"):
