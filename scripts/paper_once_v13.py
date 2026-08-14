@@ -93,9 +93,6 @@ def build_ledger(
     base_equity = float(result.equity.loc[paper_start])
     forward_index = index[index >= paper_start]
     forward_after_start = index[index > paper_start]
-    event_index = index[
-        (index > paper_start) & (result.turnover.reindex(index).fillna(0.0) > 1e-12)
-    ]
     latest = forward_index[-1]
 
     if any(
@@ -105,9 +102,16 @@ def build_ledger(
             result.asset_gross,
             result.asset_fees,
             result.asset_funding,
+            result.asset_orders,
+            result.asset_order_notional,
         )
     ):
         raise RuntimeError("motor paper sem atribuição por ativo")
+
+    event_index = index[
+        (index > paper_start)
+        & (result.asset_orders.reindex(index).abs().sum(axis=1) > 1e-12)
+    ]
 
     def to_brl(value: float) -> float:
         return PAPER_CAPITAL_BRL * float(value) / base_equity
@@ -206,16 +210,13 @@ def build_ledger(
     decisions = []
     for timestamp in event_index:
         position = index.get_loc(timestamp)
-        previous_target = targets.iloc[max(0, position - 2)]
-        requested_target = targets.iloc[position - 1]
-        changed = (requested_target - previous_target).abs() > 1e-8
-        symbols = list(targets.columns[changed])
-        if not symbols:
-            symbols = list(targets.columns[(result.positions.iloc[position] - result.positions.iloc[position - 1]).abs() > 1e-8])
+        orders = result.asset_orders.loc[timestamp]
+        symbols = list(orders.index[orders.abs() > 1e-12])
         rows = []
         for symbol in symbols:
-            before = float(previous_target[symbol])
-            after = float(requested_target[symbol])
+            order_weight = float(result.asset_orders.loc[timestamp, symbol])
+            after = float(result.open_positions.loc[timestamp, symbol])
+            before = after - order_weight
             label, code = action_label(before, after)
             breakdown = result_breakdown(timestamp, symbol)
             rows.append(
@@ -223,11 +224,25 @@ def build_ledger(
                     "symbol": symbol,
                     "action": label,
                     "action_code": code,
+                    "order_side": "buy" if order_weight > 0.0 else "sell",
+                    "order_value_brl": round(
+                        to_brl(
+                            abs(
+                                float(
+                                    result.asset_order_notional.loc[
+                                        timestamp, symbol
+                                    ]
+                                )
+                            )
+                        ),
+                        2,
+                    ),
                     "previous_weight": round(before, 8),
                     "new_weight": round(after, 8),
                     "execution_price": round(
                         float(data.frames["open"].loc[timestamp, symbol]), 8
                     ),
+                    "result_scope": "whole_asset_hour_not_order_profit",
                     **breakdown,
                 }
             )
@@ -241,6 +256,7 @@ def build_ledger(
                 "timestamp": timestamp.isoformat(),
                 "status": "open_or_rebalanced",
                 "reason": "O robô mudou o tamanho das posições na abertura desta hora.",
+                "result_scope": "whole_hour_not_trade_profit",
                 "capital_before_brl": round(capital_before, 2),
                 "capital_after_hour_brl": round(capital_after, 2),
                 **decision_breakdown,
@@ -297,7 +313,7 @@ def build_ledger(
     hourly_results = [point["net_result_brl"] for point in equity_curve[1:]]
     capital_values = [point["capital_brl"] for point in equity_curve]
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "mode": "PAPER_ONLY",
         "candidate": candidate,
         "base_capital_brl": PAPER_CAPITAL_BRL,
