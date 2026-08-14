@@ -1,6 +1,9 @@
 name: CryptoAI V13 hourly paper
 
 on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v13-paper.yml"]
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
