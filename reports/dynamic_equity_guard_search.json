@@ -1,0 +1,370 @@
+{
+  "status": "completed",
+  "candidate": "CryptoAI V13 PIT Carry-Core",
+  "method": "Stateful portfolio-equity guard inside exact execution. Bootstrap reapplies the same guard to every synthetic path and charges 10 bps whenever the guard switches state.",
+  "unguarded_metric": {
+    "return": 14.779570663331487,
+    "cagr": 0.6395580469529878,
+    "max_drawdown": -0.31079102052056473,
+    "sharpe": 1.3272981758299813,
+    "sortino": 1.9450367791145406,
+    "calmar": 2.057839527930212,
+    "positive_month_ratio": 0.5606060606060606,
+    "median_month": 0.026926773606203103,
+    "worst_month": -0.17882168546694233,
+    "ruin": false,
+    "hours": 48912,
+    "annual_returns": {
+      "2021": 0.5799957461700687,
+      "2022": 0.7790016258424415,
+      "2023": 0.2723484270232568,
+      "2024": 0.6383588631081591,
+      "2025": 1.0284579387121773,
+      "2026": 0.3276445620670583
+    },
+    "turnover": 1038.8298823585233,
+    "position_decisions_per_month": 257.7383104005234,
+    "avg_gross_exposure": 0.8332420565061099,
+    "max_gross_exposure": 1.4948147430111853,
+    "cash_hour_ratio": 2.0444880601897286e-05
+  },
+  "rows": [
+    {
+      "threshold": 0.1,
+      "multiplier": 0.25,
+      "recovery": 0.05,
+      "exact_metric": {
+        "return": 0.8793200362378588,
+        "cagr": 0.11971467194138397,
+        "max_drawdown": -0.16462153727741036,
+        "sharpe": 0.6730583281593691,
+        "sortino": 0.9396274407307963,
+        "calmar": 0.7272114810812875,
+        "positive_month_ratio": 0.5151515151515151,
+        "median_month": 0.0017475872799888048,
+        "worst_month": -0.06519164118740439,
+        "ruin": false,
+        "hours": 48912,
+        "annual_returns": {
+          "2021": 0.028621944558287815,
+          "2022": 0.1262976241113225,
+          "2023": 0.07403138631705297,
+          "2024": 0.11463953123635662,
+          "2025": 0.2857215918499372,
+          "2026": 0.05388552370009969
+        },
+        "turnover": 326.1086941952692,
+        "position_decisions_per_month": 257.94740446934225,
+        "avg_gross_exposure": 0.27341732903173155,
+        "max_gross_exposure": 1.3909571521836106,
+        "cash_hour_ratio": 2.0444880601897286e-05
+      },
+      "dynamic_bootstrap": {
+        "seed": 1300260815,
+        "paths": 8000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.012125,
+        "drawdown_percentiles": {
+          "1": -0.30416162841829414,
+          "5": -0.26223963994562044,
+          "25": -0.2159090014223916,
+          "50": -0.19193520881942866,
+          "75": -0.17426697550558956,
+          "95": -0.1553315854675161,
+          "99": -0.14449309408890587
+        }
+      },
+      "passes": {
+        "cagr_at_least_50pct": false,
+        "historical_drawdown_no_worse_than_35pct": true,
+        "synthetic_ruin_below_1pct": true,
+        "no_exact_ruin": true
+      },
+      "passes_all": false
+    },
+    {
+      "threshold": 0.1,
+      "multiplier": 0.5,
+      "recovery": 0.05,
+      "exact_metric": {
+        "return": 2.8293241140221874,
+        "cagr": 0.2720646418784458,
+        "max_drawdown": -0.23120706500214583,
+        "sharpe": 0.9509030390527625,
+        "sortino": 1.3516017946421988,
+        "calmar": 1.1767142231398542,
+        "positive_month_ratio": 0.5303030303030303,
+        "median_month": 0.009762601361572143,
+        "worst_month": -0.09869363157699607,
+        "ruin": false,
+        "hours": 48912,
+        "annual_returns": {
+          "2021": 0.11440392812380118,
+          "2022": 0.23801116314574133,
+          "2023": 0.09935321610157599,
+          "2024": 0.28718469300381066,
+          "2025": 0.619934568514374,
+          "2026": 0.2108193162925176
+        },
+        "turnover": 609.3922747255986,
+        "position_decisions_per_month": 258.17143382879107,
+        "avg_gross_exposure": 0.5037177093096605,
+        "max_gross_exposure": 1.443400347146401,
+        "cash_hour_ratio": 2.0444880601897286e-05
+      },
+      "dynamic_bootstrap": {
+        "seed": 1300260815,
+        "paths": 8000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.00025,
+        "probability_terminal_below_start": 0.00375,
+        "drawdown_percentiles": {
+          "1": -0.46971290774779945,
+          "5": -0.3984903098078911,
+          "25": -0.3185947885806536,
+          "50": -0.27565360939193706,
+          "75": -0.24135273969689663,
+          "95": -0.20535609164940308,
+          "99": -0.18737972640362022
+        }
+      },
+      "passes": {
+        "cagr_at_least_50pct": false,
+        "historical_drawdown_no_worse_than_35pct": true,
+        "synthetic_ruin_below_1pct": true,
+        "no_exact_ruin": true
+      },
+      "passes_all": false
+    },
+    {
+      "threshold": 0.15,
+      "multiplier": 0.25,
+      "recovery": 0.075,
+      "exact_metric": {
+        "return": 0.6279998254176549,
+        "cagr": 0.09127305363573646,
+        "max_drawdown": -0.2065848665366996,
+        "sharpe": 0.4819793089314444,
+        "sortino": 0.6712631269812619,
+        "calmar": 0.4418186828778278,
+        "positive_month_ratio": 0.5606060606060606,
+        "median_month": 0.007083423705257719,
+        "worst_month": -0.09837296567315923,
+        "ruin": false,
+        "hours": 48912,
+        "annual_returns": {
+          "2021": 0.12039295659885463,
+          "2022": 0.1727684520351518,
+          "2023": 0.07896203756202436,
+          "2024": 0.026502092183679826,
+          "2025": 0.15414666960764323,
+          "2026": -0.030730151728358135
+        },
+        "turnover": 402.2006548373894,
+        "position_decisions_per_month": 257.9175338880824,
+        "avg_gross_exposure": 0.33570362054853525,
+        "max_gross_exposure": 1.443400347146401,
+        "cash_hour_ratio": 2.0444880601897286e-05
+      },
+      "dynamic_bootstrap": {
+        "seed": 1300260815,
+        "paths": 8000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.01775,
+        "drawdown_percentiles": {
+          "1": -0.33620336657257577,
+          "5": -0.2913579765783035,
+          "25": -0.2487106662370733,
+          "50": -0.22602193452472558,
+          "75": -0.20899346014180267,
+          "95": -0.19072371966592305,
+          "99": -0.18059661120733053
+        }
+      },
+      "passes": {
+        "cagr_at_least_50pct": false,
+        "historical_drawdown_no_worse_than_35pct": true,
+        "synthetic_ruin_below_1pct": true,
+        "no_exact_ruin": true
+      },
+      "passes_all": false
+    },
+    {
+      "threshold": 0.15,
+      "multiplier": 0.5,
+      "recovery": 0.075,
+      "exact_metric": {
+        "return": 3.6283469019071353,
+        "cagr": 0.31601230779983513,
+        "max_drawdown": -0.2398794172273574,
+        "sharpe": 0.9778854040057666,
+        "sortino": 1.4002968343542557,
+        "calmar": 1.317379837972172,
+        "positive_month_ratio": 0.5303030303030303,
+        "median_month": 0.010941859950255761,
+        "worst_month": -0.14508832477843514,
+        "ruin": false,
+        "hours": 48912,
+        "annual_returns": {
+          "2021": 0.23668385491799437,
+          "2022": 0.5203845255078485,
+          "2023": 0.09720829837617728,
+          "2024": 0.20037631267196687,
+          "2025": 0.6036798360337801,
+          "2026": 0.16543914673361182
+        },
+        "turnover": 714.5235292725107,
+        "position_decisions_per_month": 258.0370162131218,
+        "avg_gross_exposure": 0.5812752484412631,
+        "max_gross_exposure": 1.443400347146401,
+        "cash_hour_ratio": 2.0444880601897286e-05
+      },
+      "dynamic_bootstrap": {
+        "seed": 1300260815,
+        "paths": 8000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0005,
+        "probability_terminal_below_start": 0.005,
+        "drawdown_percentiles": {
+          "1": -0.48303013183083676,
+          "5": -0.4171231499369152,
+          "25": -0.33926386569726713,
+          "50": -0.2970662180154593,
+          "75": -0.263852632550827,
+          "95": -0.22951442462193666,
+          "99": -0.2110295678486986
+        }
+      },
+      "passes": {
+        "cagr_at_least_50pct": false,
+        "historical_drawdown_no_worse_than_35pct": true,
+        "synthetic_ruin_below_1pct": true,
+        "no_exact_ruin": true
+      },
+      "passes_all": false
+    },
+    {
+      "threshold": 0.2,
+      "multiplier": 0.25,
+      "recovery": 0.1,
+      "exact_metric": {
+        "return": 1.2753527291245508,
+        "cagr": 0.1587547271153975,
+        "max_drawdown": -0.2259012951380559,
+        "sharpe": 0.6471163236362704,
+        "sortino": 0.9198122863502279,
+        "calmar": 0.7027614738480235,
+        "positive_month_ratio": 0.5606060606060606,
+        "median_month": 0.006622738634327274,
+        "worst_month": -0.16793651474136184,
+        "ruin": false,
+        "hours": 48912,
+        "annual_returns": {
+          "2021": 0.5799957461700687,
+          "2022": 0.12605006355720172,
+          "2023": 0.032304478793478975,
+          "2024": 0.05015505478032889,
+          "2025": 0.22979520425884514,
+          "2026": -0.0407295192347531
+        },
+        "turnover": 541.3178502408279,
+        "position_decisions_per_month": 257.8577927255628,
+        "avg_gross_exposure": 0.4326183327563795,
+        "max_gross_exposure": 1.4171836130623665,
+        "cash_hour_ratio": 2.0444880601897286e-05
+      },
+      "dynamic_bootstrap": {
+        "seed": 1300260815,
+        "paths": 8000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.0,
+        "probability_terminal_below_start": 0.02025,
+        "drawdown_percentiles": {
+          "1": -0.36565113231215846,
+          "5": -0.3245942912194468,
+          "25": -0.2830751412956378,
+          "50": -0.26145648642229896,
+          "75": -0.24529720390775442,
+          "95": -0.22709988356246213,
+          "99": -0.21722322869893002
+        }
+      },
+      "passes": {
+        "cagr_at_least_50pct": false,
+        "historical_drawdown_no_worse_than_35pct": true,
+        "synthetic_ruin_below_1pct": true,
+        "no_exact_ruin": true
+      },
+      "passes_all": false
+    },
+    {
+      "threshold": 0.2,
+      "multiplier": 0.5,
+      "recovery": 0.1,
+      "exact_metric": {
+        "return": 3.903994548456448,
+        "cagr": 0.32972788290691435,
+        "max_drawdown": -0.28133901293883257,
+        "sharpe": 0.9394485438003406,
+        "sortino": 1.3520121378301782,
+        "calmar": 1.1719948807050171,
+        "positive_month_ratio": 0.5303030303030303,
+        "median_month": 0.009005821260127944,
+        "worst_month": -0.17156695590646986,
+        "ruin": false,
+        "hours": 48912,
+        "annual_returns": {
+          "2021": 0.5799957461700687,
+          "2022": 0.40833741131961143,
+          "2023": 0.0496026960338396,
+          "2024": 0.12212957596823615,
+          "2025": 0.5869299379653166,
+          "2026": 0.17912987986318019
+        },
+        "turnover": 824.8907752043871,
+        "position_decisions_per_month": 257.8876633068226,
+        "avg_gross_exposure": 0.6574694676035946,
+        "max_gross_exposure": 1.4588993224618068,
+        "cash_hour_ratio": 2.0444880601897286e-05
+      },
+      "dynamic_bootstrap": {
+        "seed": 1300260815,
+        "paths": 8000,
+        "block_days": 7,
+        "horizon_years": 5,
+        "switch_cost": 0.001,
+        "estimated_ruin_probability": 0.00075,
+        "probability_terminal_below_start": 0.005375,
+        "drawdown_percentiles": {
+          "1": -0.5017341007641034,
+          "5": -0.4346861055381961,
+          "25": -0.3597321047252374,
+          "50": -0.3187405398504141,
+          "75": -0.28757541243068174,
+          "95": -0.2529777891648512,
+          "99": -0.23408876589557173
+        }
+      },
+      "passes": {
+        "cagr_at_least_50pct": false,
+        "historical_drawdown_no_worse_than_35pct": true,
+        "synthetic_ruin_below_1pct": true,
+        "no_exact_ruin": true
+      },
+      "passes_all": false
+    }
+  ],
+  "selected": null
+}

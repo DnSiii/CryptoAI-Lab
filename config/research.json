@@ -1,0 +1,32 @@
+{
+  "cutoff_month": "2026-07",
+  "interval": "1h",
+  "market": "Binance USD-M perpetual futures",
+  "source": "https://data.binance.vision",
+  "symbols": {
+    "BTCUSDT": "2019-09",
+    "ETHUSDT": "2019-11",
+    "BNBUSDT": "2020-02",
+    "XRPUSDT": "2020-01",
+    "ADAUSDT": "2020-01",
+    "LINKUSDT": "2020-01",
+    "LTCUSDT": "2020-01",
+    "DOGEUSDT": "2020-07",
+    "SOLUSDT": "2020-09",
+    "AVAXUSDT": "2020-09"
+  },
+  "costs": {
+    "base_fee_per_side": 0.0005,
+    "base_slippage_per_side": 0.0002,
+    "severe_fee_per_side": 0.0007,
+    "severe_slippage_per_side": 0.0005
+  },
+  "promotion_gate": {
+    "walk_forward_cagr_min": 0.5,
+    "walk_forward_max_drawdown_min": -0.35,
+    "positive_oos_block_ratio_min": 0.75,
+    "position_decisions_per_month_min": 10,
+    "severe_cost_cagr_min": 0.35,
+    "estimated_ruin_probability_max": 0.01
+  }
+}

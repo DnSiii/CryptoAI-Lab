@@ -1,0 +1,27 @@
+{
+  "status": "post-research candidate; not approved for real money",
+  "disclosure": "All historical years participated in post-holdout research. Forward paper is still required before real capital.",
+  "funding_component_id": 673,
+  "regime_component_ids": [1428, 1434, 1745],
+  "allocator": {
+    "windows_days": [60, 90, 120, 150],
+    "funding_weight_when_leading": 0.85,
+    "funding_weight_when_lagging": 0.35,
+    "rebalance_hours": 24,
+    "phase_utc_hour": 0
+  },
+  "risk_overlay": {
+    "target_volatility": 0.375,
+    "maximum_target_gross_leverage": 1.4,
+    "intraperiod_gross_safety_limit": 2.0,
+    "volatility_lookback_hours": 1440,
+    "rebalance_hours": 24
+  },
+  "execution": {
+    "signal_delay_hours": 1,
+    "base_cost_per_side": 0.0007,
+    "severe_cost_per_side": 0.0012,
+    "extreme_cost_per_side": 0.002,
+    "funding": "actual archived Binance USD-M funding"
+  }
+}

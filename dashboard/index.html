@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080b10" />
+    <title>CryptoAI · Painel de Pesquisa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegação principal">
+        <a class="brand" href="#overview" aria-label="CryptoAI">
+          <span class="brand-mark">C</span>
+          <span class="brand-copy"><strong>CryptoAI</strong><small>LAB V13</small></span>
+        </a>
+        <nav>
+          <button class="nav-item active" data-target="overview"><span>⌁</span>Visão geral</button>
+          <button class="nav-item" data-target="operations"><span>↗</span>Operações</button>
+          <button class="nav-item" data-target="validation"><span>✓</span>Validação</button>
+          <button class="nav-item" data-target="guide"><span>?</span>Como ler</button>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="status-dot"></span>
+          <div><strong>Motor offline</strong><small>Ordens reais bloqueadas</small></div>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">PAINEL DE DECISÃO</p>
+            <h1>CryptoAI</h1>
+          </div>
+          <div class="research-badge"><span></span>MODO PESQUISA · SEM ORDENS REAIS</div>
+        </header>
+
+        <section id="overview" class="section-block">
+          <article class="decision-card">
+            <div class="decision-main">
+              <div class="decision-icon">Ⅱ</div>
+              <div>
+                <p class="eyebrow">DECISÃO ATUAL</p>
+                <h2>INICIAR PAPER</h2>
+                <p>O finalista histórico passou pelos portões técnicos. A próxima prova usa somente dados futuros e nenhum dinheiro real.</p>
+              </div>
+            </div>
+            <div class="decision-side">
+              <span>Próximo portão</span>
+              <strong>Execução futura simulada</strong>
+              <small>Dinheiro real permanece bloqueado</small>
+            </div>
+          </article>
+
+          <div class="section-heading">
+            <div><p class="eyebrow">FOCO EM PRAZOS CURTOS</p><h2>Como o patrimônio se comportou</h2></div>
+            <span id="candidate-name" class="muted-pill">Carregando candidato…</span>
+          </div>
+          <div id="horizon-cards" class="metric-grid" aria-live="polite"></div>
+
+          <div class="two-column overview-grid">
+            <article class="panel monthly-panel">
+              <div class="panel-header">
+                <div><p class="eyebrow">BASE ROBUSTA</p><h3>Últimos 12 meses do replay</h3></div>
+                <span class="legend"><i class="positive"></i>Ganho <i class="negative"></i>Perda</span>
+              </div>
+              <div id="monthly-chart" class="monthly-chart" aria-label="Retornos mensais históricos"></div>
+              <p class="microcopy">O mês é apenas uma janela de medição; o capital não é zerado quando o calendário vira.</p>
+            </article>
+
+            <article class="panel reality-panel">
+              <div class="panel-header"><div><p class="eyebrow">LEITURA HONESTA</p><h3>O que já sabemos</h3></div></div>
+              <div id="reality-list" class="reality-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="operations" class="section-block">
+          <div class="section-heading operations-title">
+            <div><p class="eyebrow">DOS NOSSOS ÚLTIMOS</p><h2>Operações explicadas no gráfico</h2></div>
+            <div class="filter-row" role="group" aria-label="Filtrar operações">
+              <button class="filter active" data-filter="recent">Recentes</button>
+              <button class="filter" data-filter="wins">Ganhos</button>
+              <button class="filter" data-filter="losses">Perdas</button>
+              <button class="filter" data-filter="highlights">Destaques</button>
+            </div>
+          </div>
+
+          <div class="operations-stage">
+            <aside class="trades-panel">
+              <div class="trades-head">
+                <div><span class="pulse-dot"></span>REPLAY HISTÓRICO</div>
+                <small>TST · diagnóstico isolado</small>
+              </div>
+              <div id="trade-list" class="trade-list" aria-live="polite"></div>
+            </aside>
+
+            <article class="chart-panel">
+              <div class="chart-topline">
+                <div class="symbol-title"><span class="coin">T</span><div><strong id="chart-symbol">TSTUSDT</strong><small>Perpétuo · 1 hora</small></div></div>
+                <div id="chart-return" class="chart-return">—</div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="trade-chart" aria-label="Gráfico da operação selecionada"></canvas>
+                <div class="chart-watermark">CRYPTOAI · REPLAY</div>
+                <div id="chart-empty" class="chart-empty">Selecione uma operação</div>
+              </div>
+              <div id="trade-details" class="trade-details"></div>
+              <p class="chart-note">Marcadores mostram entrada e saída. Resultado exibido é o impacto estimado no patrimônio, já com o peso da posição.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="validation" class="section-block">
+          <div class="section-heading">
+            <div><p class="eyebrow">NÃO BASTA PARECER BOM</p><h2>Portões de validação</h2></div>
+            <span class="muted-pill">Candidato agressivo</span>
+          </div>
+          <div class="panel table-panel">
+            <div class="validation-table" role="table" aria-label="Cenários de validação">
+              <div class="validation-row validation-head" role="row">
+                <span>Cenário</span><span>Mediana 30d</span><span>30d positivos</span><span>Pior queda</span><span>Estado</span>
+              </div>
+              <div id="validation-rows"></div>
+            </div>
+          </div>
+          <div class="gate-grid">
+            <article><span class="gate-number done">01</span><div><strong>Motor causal</strong><small>Sem olhar o futuro; execução alinhada à próxima abertura.</small></div></article>
+            <article><span class="gate-number done">02</span><div><strong>Custos e atrasos</strong><small>Testes severos rodados, inclusive funding desfavorável.</small></div></article>
+            <article><span class="gate-number done">03</span><div><strong>Universo e ruína</strong><small>48 contratos, encerrados incluídos, e 180 mil trajetórias simuladas.</small></div></article>
+            <article><span class="gate-number current">04</span><div><strong>Paper trading</strong><small>Próxima etapa: provar a estratégia apenas em dados futuros.</small></div></article>
+          </div>
+        </section>
+
+        <section id="guide" class="section-block guide-section">
+          <div class="section-heading"><div><p class="eyebrow">SEM PEGADINHAS</p><h2>Como ler este painel</h2></div></div>
+          <div id="disclosures" class="disclosure-grid"></div>
+        </section>
+
+        <footer><span>CryptoAI Research Lab · V13</span><span id="generated-at">Snapshot local</span></footer>
+      </main>
+    </div>
+    <script src="app.js" defer></script>
+  </body>
+</html>
