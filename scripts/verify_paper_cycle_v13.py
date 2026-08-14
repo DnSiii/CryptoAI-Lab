@@ -17,6 +17,7 @@ def main() -> None:
     finalist = load("config/candidate_v13_circuit_breaker.json")
     state = load("state/paper_v13_state.json")
     snapshot = load("reports/paper_v13_snapshot.json")
+    ledger = load("reports/paper_v13_ledger.json")
     sync = load("reports/paper_data_sync_v13.json")
 
     if finalist.get("real_orders") is not False:
@@ -27,6 +28,14 @@ def main() -> None:
         raise RuntimeError("runner saiu do modo PAPER_ONLY")
     if state.get("real_orders_enabled") is not False:
         raise RuntimeError("runner habilitou ordens reais")
+    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 1:
+        raise RuntimeError("ledger didático inválido ou fora do modo PAPER_ONLY")
+    if ledger.get("paper_start_after_timestamp") != state.get("paper_start_after_timestamp"):
+        raise RuntimeError("ledger e estado divergem no corte forward")
+    if ledger.get("latest_data_timestamp") != state.get("latest_data_timestamp"):
+        raise RuntimeError("ledger e estado divergem no último candle")
+    if not {"BTCUSDT", "ETHUSDT"}.issubset(ledger.get("candles", {})):
+        raise RuntimeError("ledger não contém candles BTC e ETH")
     if sync.get("mode") != "PUBLIC_DATA_ONLY" or sync.get("private_api_used") is not False:
         raise RuntimeError("sincronização não está limitada a dados públicos")
     if sync.get("core_stale"):
@@ -58,6 +67,7 @@ def main() -> None:
                 "paper_start_after_timestamp": state["paper_start_after_timestamp"],
                 "latest_data_timestamp": state["latest_data_timestamp"],
                 "new_forward_hours": state["new_forward_hours"],
+                "decision_events": ledger["summary"]["decision_events"],
             },
             indent=2,
         )
