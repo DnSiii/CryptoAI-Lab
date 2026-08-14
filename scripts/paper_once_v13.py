@@ -112,6 +112,42 @@ def build_ledger(
     def to_brl(value: float) -> float:
         return PAPER_CAPITAL_BRL * float(value) / base_equity
 
+    def rounded_breakdown(
+        gross_brl: float, fees_brl: float, funding_result_brl: float
+    ) -> dict:
+        """Round for display while keeping bruto - custos = líquido to the cent."""
+        exact_net_brl = round(gross_brl - fees_brl + funding_result_brl, 2)
+        rounded_fees = round(fees_brl, 2)
+        rounded_funding = round(funding_result_brl, 2)
+        rounded_cost = round(rounded_fees - rounded_funding, 2)
+        rounded_gross = round(gross_brl, 2)
+        rounded_gross = round(
+            rounded_gross + exact_net_brl - (rounded_gross - rounded_cost), 2
+        )
+        return {
+            "gross_result_brl": rounded_gross,
+            "fees_brl": rounded_fees,
+            "funding_result_brl": rounded_funding,
+            "total_cost_brl": rounded_cost,
+            "net_result_brl": exact_net_brl,
+        }
+
+    def reconcile_rows(rows: list[dict], total: dict) -> None:
+        """Put cent-rounding residue in the last row so visible rows add to total."""
+        if not rows:
+            return
+        last = rows[-1]
+        for key in ("gross_result_brl", "fees_brl", "funding_result_brl"):
+            residue = round(total[key] - sum(float(row[key]) for row in rows), 2)
+            last[key] = round(float(last[key]) + residue, 2)
+        for row in rows:
+            row["total_cost_brl"] = round(
+                float(row["fees_brl"]) - float(row["funding_result_brl"]), 2
+            )
+            row["net_result_brl"] = round(
+                float(row["gross_result_brl"]) - float(row["total_cost_brl"]), 2
+            )
+
     def result_breakdown(timestamp: pd.Timestamp, symbol: str | None = None) -> dict:
         if symbol is None:
             gross_value = float(result.asset_gross.loc[timestamp].sum())
@@ -124,15 +160,7 @@ def build_ledger(
         gross_brl = to_brl(gross_value)
         fees_brl = to_brl(fee_value)
         funding_result_brl = -to_brl(funding_cost_value)
-        total_cost_brl = fees_brl - funding_result_brl
-        net_brl = gross_brl - fees_brl + funding_result_brl
-        return {
-            "gross_result_brl": round(gross_brl, 2),
-            "fees_brl": round(fees_brl, 2),
-            "funding_result_brl": round(funding_result_brl, 2),
-            "total_cost_brl": round(total_cost_brl, 2),
-            "net_result_brl": round(net_brl, 2),
-        }
+        return rounded_breakdown(gross_brl, fees_brl, funding_result_brl)
 
     equity_curve = []
     for timestamp in forward_index:
@@ -207,6 +235,7 @@ def build_ledger(
         capital_before = PAPER_CAPITAL_BRL * float(result.equity.loc[previous_timestamp]) / base_equity
         capital_after = PAPER_CAPITAL_BRL * float(result.equity.loc[timestamp]) / base_equity
         decision_breakdown = result_breakdown(timestamp)
+        reconcile_rows(rows, decision_breakdown)
         decisions.append(
             {
                 "timestamp": timestamp.isoformat(),
@@ -228,8 +257,7 @@ def build_ledger(
         funding_result_brl = -to_brl(
             float(result.asset_funding.loc[forward_after_start, symbol].sum())
         )
-        total_cost_brl = fees_brl - funding_result_brl
-        net_brl = gross_brl - fees_brl + funding_result_brl
+        breakdown = rounded_breakdown(gross_brl, fees_brl, funding_result_brl)
         current_weight = float(result.positions.loc[latest, symbol])
         current_capital = PAPER_CAPITAL_BRL * float(result.equity.loc[latest]) / base_equity
         first_open = forward_index[
@@ -248,22 +276,20 @@ def build_ledger(
                 first_open[0].isoformat() if len(first_open) else paper_start.isoformat()
             ),
             "inherited_at_paper_start": inherited,
-            "gross_result_brl": round(gross_brl, 2),
-            "fees_brl": round(fees_brl, 2),
-            "funding_result_brl": round(funding_result_brl, 2),
-            "total_cost_brl": round(total_cost_brl, 2),
-            "net_result_brl": round(net_brl, 2),
+            **breakdown,
         }
 
-    total_gross_brl = sum(item["gross_result_brl"] for item in asset_summaries.values())
-    total_fees_brl = sum(item["fees_brl"] for item in asset_summaries.values())
-    total_funding_result_brl = sum(
-        item["funding_result_brl"] for item in asset_summaries.values()
+    total_breakdown = rounded_breakdown(
+        to_brl(float(result.asset_gross.loc[forward_after_start].sum().sum())),
+        to_brl(float(result.asset_fees.loc[forward_after_start].sum().sum())),
+        -to_brl(float(result.asset_funding.loc[forward_after_start].sum().sum())),
     )
-    total_cost_brl = total_fees_brl - total_funding_result_brl
+    reconcile_rows(list(asset_summaries.values()), total_breakdown)
     latest_multiple = float(result.equity.loc[latest]) / base_equity
     exact_net_brl = PAPER_CAPITAL_BRL * (latest_multiple - 1.0)
-    attributed_net_brl = total_gross_brl - total_fees_brl + total_funding_result_brl
+    attributed_net_brl = sum(
+        item["net_result_brl"] for item in asset_summaries.values()
+    )
     if abs(exact_net_brl - attributed_net_brl) > 0.05:
         raise RuntimeError(
             f"atribuição não reconcilia: {attributed_net_brl:.6f} != {exact_net_brl:.6f}"
@@ -283,11 +309,7 @@ def build_ledger(
             "positioned_hours": int((result.gross_exposure.loc[forward_after_start] > 1e-8).sum()),
             "positive_hours": sum(value > 0 for value in hourly_results),
             "negative_hours": sum(value < 0 for value in hourly_results),
-            "gross_result_brl": round(total_gross_brl, 2),
-            "fees_brl": round(total_fees_brl, 2),
-            "funding_result_brl": round(total_funding_result_brl, 2),
-            "total_cost_brl": round(total_cost_brl, 2),
-            "net_result_brl": round(exact_net_brl, 2),
+            **total_breakdown,
             "current_capital_brl": round(PAPER_CAPITAL_BRL * latest_multiple, 2),
             "highest_capital_brl": round(max(capital_values), 2),
             "lowest_capital_brl": round(min(capital_values), 2),
