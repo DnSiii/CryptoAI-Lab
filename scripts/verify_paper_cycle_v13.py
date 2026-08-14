@@ -28,7 +28,7 @@ def main() -> None:
         raise RuntimeError("runner saiu do modo PAPER_ONLY")
     if state.get("real_orders_enabled") is not False:
         raise RuntimeError("runner habilitou ordens reais")
-    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 2:
+    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 3:
         raise RuntimeError("ledger didático inválido ou fora do modo PAPER_ONLY")
     if ledger.get("paper_start_after_timestamp") != state.get("paper_start_after_timestamp"):
         raise RuntimeError("ledger e estado divergem no corte forward")
@@ -43,6 +43,20 @@ def main() -> None:
     )
     if abs(asset_net - float(ledger["summary"]["net_result_brl"])) > 0.05:
         raise RuntimeError("resultado por ativo não reconcilia com o total")
+    for decision in ledger.get("decisions", []):
+        if decision.get("result_scope") != "whole_hour_not_trade_profit":
+            raise RuntimeError("escopo do resultado horário não está explícito")
+        for adjustment in decision.get("adjustments", []):
+            delta = float(adjustment["new_weight"]) - float(
+                adjustment["previous_weight"]
+            )
+            expected_side = "buy" if delta > 0 else "sell"
+            if adjustment.get("order_side") != expected_side:
+                raise RuntimeError("lado da ordem não corresponde à execução real")
+            if float(adjustment.get("order_value_brl", 0.0)) <= 0.0:
+                raise RuntimeError("movimentação sem valor executado")
+            if adjustment.get("result_scope") != "whole_asset_hour_not_order_profit":
+                raise RuntimeError("resultado do ativo está atribuído incorretamente à ordem")
     if sync.get("mode") != "PUBLIC_DATA_ONLY" or sync.get("private_api_used") is not False:
         raise RuntimeError("sincronização não está limitada a dados públicos")
     if sync.get("core_stale"):
