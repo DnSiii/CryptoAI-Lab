@@ -96,6 +96,7 @@ jobs:
           path: |
             state/paper_v13_state.json
             reports/paper_v13_snapshot.json
+            reports/paper_v13_ledger.json
             reports/paper_data_sync_v13.json
 
       - name: Publish durable paper results
@@ -114,10 +115,12 @@ jobs:
           mkdir -p "$results_dir/state" "$results_dir/reports"
           cp state/paper_v13_state.json "$results_dir/state/paper_v13_state.json"
           cp reports/paper_v13_snapshot.json "$results_dir/reports/paper_v13_snapshot.json"
+          cp reports/paper_v13_ledger.json "$results_dir/reports/paper_v13_ledger.json"
           cp reports/paper_data_sync_v13.json "$results_dir/reports/paper_data_sync_v13.json"
           git -C "$results_dir" add \
             state/paper_v13_state.json \
             reports/paper_v13_snapshot.json \
+            reports/paper_v13_ledger.json \
             reports/paper_data_sync_v13.json
           if ! git -C "$results_dir" diff --cached --quiet; then
             git -C "$results_dir" commit -m "Update V13 paper snapshot ${{ steps.utc.outputs.date }}"
