@@ -21,6 +21,8 @@ class BacktestResult:
     asset_gross: pd.DataFrame | None = None
     asset_fees: pd.DataFrame | None = None
     asset_funding: pd.DataFrame | None = None
+    asset_orders: pd.DataFrame | None = None
+    asset_order_notional: pd.DataFrame | None = None
 
 
 def screen(data: FuturesData, targets: pd.DataFrame, cost_per_side: float = 0.0007) -> BacktestResult:
@@ -235,6 +237,8 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
     asset_gross_values = np.zeros((size, assets), dtype=float)
     asset_fee_values = np.zeros((size, assets), dtype=float)
     asset_funding_values = np.zeros((size, assets), dtype=float)
+    asset_order_values = np.zeros((size, assets), dtype=float)
+    asset_order_notional_values = np.zeros((size, assets), dtype=float)
     current_equity = 1.0
     peak_equity = 1.0
     weights = np.zeros(assets, dtype=float)
@@ -322,14 +326,18 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
                 target_gross = float(np.abs(target).sum())
                 if target_gross > gross_guard_cap:
                     target *= gross_guard_cap / target_gross
-            asset_traded = np.abs(target - weights)
+            signed_order = target - weights
+            asset_traded = np.abs(signed_order)
+            signed_order_notional = current_equity * signed_order
             traded = float(asset_traded.sum())
-            asset_fee = current_equity * asset_traded * cost_per_side
+            asset_fee = np.abs(signed_order_notional) * cost_per_side
             fee = float(asset_fee.sum())
             current_equity -= fee
             turnover_values[i] = traded
             fee_values[i] = fee
             asset_fee_values[i] = asset_fee
+            asset_order_values[i] = signed_order
+            asset_order_notional_values[i] = signed_order_notional
             weights = target
 
         open_position_values[i] = weights
@@ -375,7 +383,12 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
     asset_gross = pd.DataFrame(asset_gross_values, index=index, columns=columns)
     asset_fees = pd.DataFrame(asset_fee_values, index=index, columns=columns)
     asset_funding = pd.DataFrame(asset_funding_values, index=index, columns=columns)
+    asset_orders = pd.DataFrame(asset_order_values, index=index, columns=columns)
+    asset_order_notional = pd.DataFrame(
+        asset_order_notional_values, index=index, columns=columns
+    )
     return BacktestResult(
         equity, positions, turnover, fees, funding_cost, gross, ruined,
-        open_positions, asset_gross, asset_fees, asset_funding,
+        open_positions, asset_gross, asset_fees, asset_funding, asset_orders,
+        asset_order_notional,
     )
