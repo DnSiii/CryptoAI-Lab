@@ -31,6 +31,12 @@ def main() -> None:
         raise RuntimeError("sincronização não está limitada a dados públicos")
     if sync.get("core_stale"):
         raise RuntimeError(f"dados centrais atrasados: {sync['core_stale']}")
+    if sync.get("source_method") != "OFFICIAL_CHECKSUMMED_DAILY_ARCHIVES":
+        raise RuntimeError("fonte incremental não usa os arquivos oficiais verificados")
+    lag = int(sync.get("publication_lag_hours", -1))
+    maximum_lag = int(sync.get("maximum_publication_lag_hours", -1))
+    if lag < 0 or maximum_lag < 0 or lag > maximum_lag:
+        raise RuntimeError(f"atraso de publicação inválido: {lag}h")
 
     expected = pd.Timestamp(sync["expected_latest_closed_hour"])
     latest = pd.Timestamp(state["latest_data_timestamp"])

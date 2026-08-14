@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+import zipfile
 from pathlib import Path
 
 import pandas as pd
@@ -32,6 +33,20 @@ class PaperAutomationTests(unittest.TestCase):
         rows = frozen_component_rows()
         self.assertTrue({1428, 1434, 1745, 356}.issubset(rows))
 
+    def test_frozen_seed_preserves_the_first_forward_checkpoint(self) -> None:
+        path = PROJECT / "data" / "paper_seed_v13.zip"
+        with zipfile.ZipFile(path) as archive:
+            names = set(archive.namelist())
+            self.assertIn("BTCUSDT_1h.csv", names)
+            self.assertIn("ETHUSDT_1h.csv", names)
+            with archive.open("BTCUSDT_1h.csv") as stream:
+                btc = pd.read_csv(stream)
+        timestamps = pd.to_datetime(btc["timestamp"], utc=True)
+        self.assertEqual(timestamps.min(), pd.Timestamp("2026-08-01", tz="UTC"))
+        self.assertEqual(
+            timestamps.max(), pd.Timestamp("2026-08-14T03:00:00+00:00")
+        )
+
     def test_workflow_is_scheduled_manual_and_has_no_secret_dependency(self) -> None:
         source = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
         self.assertIn("paths: [\".github/workflows/v13-paper.yml\"]", source)
@@ -41,16 +56,17 @@ class PaperAutomationTests(unittest.TestCase):
         self.assertNotIn("secrets.", source)
         self.assertIn("cancel-in-progress: false", source)
 
-    def test_data_sync_uses_only_public_market_endpoints(self) -> None:
+    def test_data_sync_uses_only_official_public_archives(self) -> None:
         source = (PROJECT / "scripts" / "sync_paper_data_v13.py").read_text()
-        self.assertIn("https://fapi.binance.com", source)
-        self.assertIn("/fapi/v1/klines", source)
-        self.assertIn("/fapi/v1/fundingRate", source)
+        self.assertIn("https://data.binance.vision/data/futures/um/daily", source)
+        self.assertIn(".CHECKSUM", source)
+        self.assertIn("OFFICIAL_CHECKSUMMED_DAILY_ARCHIVES", source)
         for forbidden in (
             "/fapi/v1/order",
             "create_order(",
             "apiSecret",
             "X-MBX-APIKEY",
+            "fapi.binance.com",
         ):
             self.assertNotIn(forbidden, source)
 

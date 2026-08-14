@@ -16,9 +16,11 @@ timestamps strictly newer than the frozen boundary. Backfilled history from
 before the model freeze cannot be presented as forward paper performance.
 
 The current durable boundary is `2026-08-13T19:00:00+00:00`. GitHub Actions
-runs at minute 17 of every hour, uses public Binance USD-M market endpoints,
-and refuses a cycle when BTC or ETH is stale. Compact state, data-sync evidence,
-and the latest snapshot are written to the `paper-results` branch. No exchange
+runs at minute 17 of every hour and checks the official, checksummed Binance
+USD-M daily archives. New observations enter the paper ledger when Binance
+publishes the corresponding daily file; a cycle is refused if BTC or ETH moves
+beyond the 48-hour publication window. Compact state, data-sync evidence, and
+the latest snapshot are written to the `paper-results` branch. No exchange
 credential is required or accepted by this workflow.
 
 ## Minimum evidence before any capital discussion

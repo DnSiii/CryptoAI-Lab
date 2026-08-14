@@ -2,25 +2,27 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import functools
+import hashlib
+import io
 import json
-import os
 import subprocess
 import sys
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import pandas as pd
 
 
 PROJECT = Path(__file__).resolve().parents[1]
-PUBLIC_API = os.environ.get(
-    "BINANCE_FUTURES_PUBLIC_BASE", "https://fapi.binance.com"
-).rstrip("/")
+PUBLIC_ARCHIVE = "https://data.binance.vision/data/futures/um/daily"
+PAPER_SEED_ARCHIVE = PROJECT / "data" / "paper_seed_v13.zip"
 CONFIG_NAME = "research_pit48.json"
 CORE_SYMBOLS = ("BTCUSDT", "ETHUSDT")
+MAX_PUBLICATION_LAG_HOURS = 48
 KLINE_COLUMNS = (
     "open_time",
     "open",
@@ -47,9 +49,7 @@ CANONICAL_COLUMNS = (
 )
 
 
-def request_json(path: str, params: dict[str, object], attempts: int = 5) -> object:
-    query = urllib.parse.urlencode(params)
-    url = f"{PUBLIC_API}{path}?{query}"
+def request_bytes(url: str, attempts: int = 5) -> bytes | None:
     error: Exception | None = None
     for attempt in range(attempts):
         try:
@@ -58,7 +58,7 @@ def request_json(path: str, params: dict[str, object], attempts: int = 5) -> obj
                 headers={"User-Agent": "CryptoAI-V13-paper-public-data/1.0"},
             )
             with urllib.request.urlopen(request, timeout=45) as response:
-                return json.loads(response.read())
+                return response.read()
         except (
             TimeoutError,
             ConnectionError,
@@ -66,10 +66,12 @@ def request_json(path: str, params: dict[str, object], attempts: int = 5) -> obj
             urllib.error.URLError,
         ) as exc:
             error = exc
+            if isinstance(exc, urllib.error.HTTPError) and exc.code == 404:
+                return None
             if isinstance(exc, urllib.error.HTTPError) and 400 <= exc.code < 500:
                 break
             time.sleep(min(12.0, 1.5 * (2**attempt)))
-    raise RuntimeError(f"falha na API pública {url}: {error}")
+    raise RuntimeError(f"falha no arquivo público {url}: {error}")
 
 
 def utc_now() -> pd.Timestamp:
@@ -90,6 +92,20 @@ def write_csv_atomic(frame: pd.DataFrame, path: Path) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     frame.to_csv(temporary, index=False)
     temporary.replace(path)
+
+
+def last_csv_timestamp(path: Path) -> pd.Timestamp | None:
+    if not path.exists() or path.stat().st_size == 0:
+        return None
+    with path.open("rb") as stream:
+        stream.seek(max(0, path.stat().st_size - 4096))
+        lines = [line for line in stream.read().splitlines() if line]
+    if not lines:
+        return None
+    value = lines[-1].decode().split(",", 1)[0]
+    if value == "timestamp":
+        return None
+    return pd.Timestamp(value)
 
 
 def canonical_ready(symbols: tuple[str, ...]) -> bool:
@@ -120,57 +136,124 @@ def bootstrap_canonical() -> None:
     build_canonical(PROJECT, CONFIG_NAME)
 
 
-def fetch_closed_klines(
-    symbol: str, start: pd.Timestamp, end: pd.Timestamp, now: pd.Timestamp
-) -> list[list[object]]:
-    rows: list[list[object]] = []
-    cursor = start
-    now_ms = int(now.timestamp() * 1000)
-    while cursor <= end:
-        payload = request_json(
-            "/fapi/v1/klines",
-            {
-                "symbol": symbol,
-                "interval": "1h",
-                "startTime": int(cursor.timestamp() * 1000),
-                "endTime": int(end.timestamp() * 1000 + 3_599_999),
-                "limit": 1500,
-            },
-        )
-        if not isinstance(payload, list) or not payload:
-            break
-        accepted = [
-            row
-            for row in payload
-            if len(row) >= 12 and int(row[6]) < now_ms
-        ]
-        rows.extend(accepted)
-        next_cursor = pd.to_datetime(int(payload[-1][0]), unit="ms", utc=True) + pd.Timedelta(hours=1)
-        if next_cursor <= cursor:
-            raise RuntimeError(f"paginação de klines não avançou para {symbol}")
-        cursor = next_cursor
-        if len(payload) < 1500:
-            break
-    return rows
+@functools.cache
+def paper_seed_names() -> frozenset[str]:
+    if not PAPER_SEED_ARCHIVE.exists():
+        return frozenset()
+    with zipfile.ZipFile(PAPER_SEED_ARCHIVE) as archive:
+        return frozenset(archive.namelist())
 
 
-def append_klines(symbol: str, end: pd.Timestamp, now: pd.Timestamp) -> dict[str, object]:
+def read_paper_seed(name: str) -> pd.DataFrame:
+    with zipfile.ZipFile(PAPER_SEED_ARCHIVE) as archive:
+        with archive.open(name) as stream:
+            return pd.read_csv(stream)
+
+
+def merge_paper_seed(symbols: tuple[str, ...]) -> int:
+    """Merge the compact, frozen post-July seed into a rebuilt/cache data set."""
+    rows_added = 0
+    seed_names = paper_seed_names()
+    for symbol in symbols:
+        for suffix in ("1h", "funding"):
+            seed_name = f"{symbol}_{suffix}.csv"
+            target_path = PROJECT / "data" / "canonical" / seed_name
+            if seed_name not in seed_names or not target_path.exists():
+                continue
+            seed = read_paper_seed(seed_name)
+            if seed.empty:
+                continue
+            seed_last = pd.to_datetime(
+                seed["timestamp"], utc=True, format="mixed"
+            ).max()
+            current_last = last_csv_timestamp(target_path)
+            if current_last is not None and current_last >= seed_last:
+                continue
+            current = pd.read_csv(target_path)
+            before = len(current)
+            combined = pd.concat([current, seed], ignore_index=True)
+            combined["timestamp"] = pd.to_datetime(
+                combined["timestamp"], utc=True, format="mixed"
+            )
+            combined = combined.drop_duplicates("timestamp", keep="last").sort_values(
+                "timestamp"
+            )
+            write_csv_atomic(combined, target_path)
+            rows_added += len(combined) - before
+    return rows_added
+
+
+def archive_url(kind: str, symbol: str, day: str) -> str:
+    if kind == "klines":
+        stem = f"{symbol}-1h-{day}"
+        return f"{PUBLIC_ARCHIVE}/klines/{symbol}/1h/{stem}.zip"
+    stem = f"{symbol}-fundingRate-{day}"
+    return f"{PUBLIC_ARCHIVE}/fundingRate/{symbol}/{stem}.zip"
+
+
+def verified_archive(url: str) -> bytes | None:
+    payload = request_bytes(url)
+    if payload is None:
+        return None
+    checksum_payload = request_bytes(url + ".CHECKSUM")
+    if checksum_payload is None:
+        raise RuntimeError(f"checksum ausente para {url}")
+    expected = checksum_payload.decode().split()[0]
+    actual = hashlib.sha256(payload).hexdigest()
+    if actual != expected:
+        raise RuntimeError(f"checksum inválido para {url}: {actual} != {expected}")
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        if archive.testzip() is not None:
+            raise RuntimeError(f"CRC inválido em {url}")
+    return payload
+
+
+def archive_csv(payload: bytes, names: tuple[str, ...] | None = None) -> pd.DataFrame:
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+        if len(members) != 1:
+            raise RuntimeError(f"esperado um CSV no arquivo, encontrados {members}")
+        with archive.open(members[0]) as stream:
+            return pd.read_csv(stream, names=names, header=None if names else "infer")
+
+
+def available_days(start: pd.Timestamp, now: pd.Timestamp) -> list[str]:
+    first = start.floor("d")
+    last = now.floor("d") - pd.Timedelta(days=1)
+    if first > last:
+        return []
+    return [day.strftime("%Y-%m-%d") for day in pd.date_range(first, last, freq="d")]
+
+
+def append_klines(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     path = PROJECT / "data" / "canonical" / f"{symbol}_1h.csv"
     current = pd.read_csv(path)
     current["timestamp"] = pd.to_datetime(current["timestamp"], utc=True)
     original_count = len(current)
     previous_last = current["timestamp"].max()
-    start = previous_last + pd.Timedelta(hours=1)
-    rows = fetch_closed_klines(symbol, start, end, now) if start <= end else []
-    if rows:
-        incoming = pd.DataFrame(rows, columns=KLINE_COLUMNS)
+    frames: list[pd.DataFrame] = []
+    archives_found = 0
+    days = (
+        available_days(previous_last, now)
+        if f"{symbol}_1h.csv" in paper_seed_names()
+        else []
+    )
+    for day in days:
+        payload = verified_archive(archive_url("klines", symbol, day))
+        if payload is None:
+            continue
+        archives_found += 1
+        incoming = archive_csv(payload, KLINE_COLUMNS)
+        incoming = incoming.loc[incoming["open_time"].astype(str) != "open_time"].copy()
         open_time = pd.to_numeric(incoming["open_time"], errors="raise")
         open_time = open_time.where(open_time <= 10**14, open_time // 1000)
         incoming["timestamp"] = pd.to_datetime(open_time, unit="ms", utc=True)
         for column in CANONICAL_COLUMNS[1:]:
             incoming[column] = pd.to_numeric(incoming[column], errors="raise")
+        frames.append(incoming[list(CANONICAL_COLUMNS)])
+    if frames:
         combined = pd.concat(
-            [current[list(CANONICAL_COLUMNS)], incoming[list(CANONICAL_COLUMNS)]],
+            [current[list(CANONICAL_COLUMNS)], *frames],
             ignore_index=True,
         )
         combined = combined.drop_duplicates("timestamp", keep="last").sort_values("timestamp")
@@ -181,59 +264,48 @@ def append_klines(symbol: str, end: pd.Timestamp, now: pd.Timestamp) -> dict[str
         "previous_last": previous_last.isoformat(),
         "latest": latest.isoformat(),
         "rows_added": int(len(current) - original_count),
-        "rows_received": len(rows),
-        "fresh_through_closed_hour": bool(latest >= end),
+        "archives_found": archives_found,
     }
-
-
-def fetch_funding(symbol: str, start_ms: int, end_ms: int) -> list[dict[str, object]]:
-    rows: list[dict[str, object]] = []
-    cursor = start_ms
-    while cursor <= end_ms:
-        payload = request_json(
-            "/fapi/v1/fundingRate",
-            {
-                "symbol": symbol,
-                "startTime": cursor,
-                "endTime": end_ms,
-                "limit": 1000,
-            },
-        )
-        if not isinstance(payload, list) or not payload:
-            break
-        rows.extend(payload)
-        next_cursor = int(payload[-1]["fundingTime"]) + 1
-        if next_cursor <= cursor:
-            raise RuntimeError(f"paginação de funding não avançou para {symbol}")
-        cursor = next_cursor
-        if len(payload) < 1000:
-            break
-    return rows
 
 
 def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     path = PROJECT / "data" / "canonical" / f"{symbol}_funding.csv"
     current = pd.read_csv(path)
+    original_count = len(current)
     if len(current):
         current["timestamp"] = pd.to_datetime(current["timestamp"], utc=True, format="mixed")
         previous_last = current["timestamp"].max()
-        start_ms = int(previous_last.timestamp() * 1000) + 1
     else:
         previous_last = None
-        start_ms = 0
-    end_ms = int(now.timestamp() * 1000)
-    payload = fetch_funding(symbol, start_ms, end_ms)
-    if payload:
-        incoming = pd.DataFrame(
-            {
-                "timestamp": pd.to_datetime(
-                    [int(row["fundingTime"]) for row in payload], unit="ms", utc=True
-                ).floor("h"),
-                "funding_rate": [float(row["fundingRate"]) for row in payload],
-                "funding_interval_hours": 8.0,
-            }
+    start = previous_last if previous_last is not None else now.floor("d")
+    frames: list[pd.DataFrame] = []
+    archives_found = 0
+    days = (
+        available_days(start, now)
+        if f"{symbol}_funding.csv" in paper_seed_names()
+        else []
+    )
+    for day in days:
+        payload = verified_archive(archive_url("funding", symbol, day))
+        if payload is None:
+            continue
+        archives_found += 1
+        incoming = archive_csv(payload)
+        incoming["calc_time"] = pd.to_numeric(incoming["calc_time"], errors="raise")
+        incoming["timestamp"] = pd.to_datetime(
+            incoming["calc_time"], unit="ms", utc=True
+        ).dt.floor("h")
+        incoming["funding_rate"] = pd.to_numeric(
+            incoming["last_funding_rate"], errors="raise"
         )
-        combined = pd.concat([current, incoming], ignore_index=True)
+        incoming["funding_interval_hours"] = pd.to_numeric(
+            incoming["funding_interval_hours"], errors="raise"
+        )
+        frames.append(
+            incoming[["timestamp", "funding_rate", "funding_interval_hours"]]
+        )
+    if frames:
+        combined = pd.concat([current, *frames], ignore_index=True)
         combined = combined.drop_duplicates("timestamp", keep="last").sort_values("timestamp")
         write_csv_atomic(combined, path)
         current = combined
@@ -241,13 +313,14 @@ def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     return {
         "previous_last": previous_last.isoformat() if previous_last is not None else None,
         "latest": latest.isoformat() if latest is not None else None,
-        "rows_added": len(payload),
+        "rows_added": int(len(current) - original_count),
+        "archives_found": archives_found,
     }
 
 
-def sync_symbol(symbol: str, end: pd.Timestamp, now: pd.Timestamp) -> tuple[str, dict[str, object]]:
+def sync_symbol(symbol: str, now: pd.Timestamp) -> tuple[str, dict[str, object]]:
     return symbol, {
-        "klines": append_klines(symbol, end, now),
+        "klines": append_klines(symbol, now),
         "funding": append_funding(symbol, now),
     }
 
@@ -269,13 +342,14 @@ def main() -> None:
             raise RuntimeError("cache canônico ausente e bootstrap foi desabilitado")
         bootstrap_canonical()
         bootstrapped = True
+    seed_rows_added = merge_paper_seed(symbols)
 
     now = utc_now()
-    end = latest_closed_hour(now)
+    target = latest_closed_hour(now)
     results: dict[str, dict[str, object]] = {}
     errors: dict[str, str] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futures = {pool.submit(sync_symbol, symbol, end, now): symbol for symbol in symbols}
+        futures = {pool.submit(sync_symbol, symbol, now): symbol for symbol in symbols}
         for future in concurrent.futures.as_completed(futures):
             symbol = futures[future]
             try:
@@ -284,20 +358,35 @@ def main() -> None:
             except Exception as exc:
                 errors[symbol] = str(exc)
 
-    core_stale = [
-        symbol
+    core_latest = {
+        symbol: pd.Timestamp(results[symbol]["klines"]["latest"])
         for symbol in CORE_SYMBOLS
-        if symbol in errors
-        or not results.get(symbol, {}).get("klines", {}).get(
-            "fresh_through_closed_hour", False
-        )
-    ]
+        if symbol in results
+    }
+    source_available = min(core_latest.values()) if len(core_latest) == len(CORE_SYMBOLS) else None
+    publication_lag_hours = (
+        max(0, int((target - source_available).total_seconds() // 3600))
+        if source_available is not None
+        else None
+    )
+    core_stale = list(CORE_SYMBOLS) if (
+        publication_lag_hours is None
+        or publication_lag_hours > MAX_PUBLICATION_LAG_HOURS
+    ) else []
     manifest = {
         "mode": "PUBLIC_DATA_ONLY",
         "private_api_used": False,
+        "source": PUBLIC_ARCHIVE,
+        "source_method": "OFFICIAL_CHECKSUMMED_DAILY_ARCHIVES",
         "generated_at_utc": now.isoformat(),
-        "expected_latest_closed_hour": end.isoformat(),
+        "target_latest_closed_hour": target.isoformat(),
+        "expected_latest_closed_hour": (
+            source_available.isoformat() if source_available is not None else None
+        ),
+        "publication_lag_hours": publication_lag_hours,
+        "maximum_publication_lag_hours": MAX_PUBLICATION_LAG_HOURS,
         "bootstrapped": bootstrapped,
+        "seed_rows_added": seed_rows_added,
         "symbols": results,
         "errors": errors,
         "core_stale": core_stale,
