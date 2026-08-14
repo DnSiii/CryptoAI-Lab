@@ -10,10 +10,16 @@
 ## Start rule
 
 The first execution of `scripts/paper_once_v13.py` freezes the later of the
-model-initialization hour and the last available market timestamp. Performance
-is counted only on timestamps strictly newer than that boundary. Backfilled
-history from before the model freeze cannot be presented as forward paper
-performance.
+model-initialization hour and the last available market timestamp. Once stored,
+that boundary never follows later downloads. Performance is counted only on
+timestamps strictly newer than the frozen boundary. Backfilled history from
+before the model freeze cannot be presented as forward paper performance.
+
+The current durable boundary is `2026-08-13T19:00:00+00:00`. GitHub Actions
+runs at minute 17 of every hour, uses public Binance USD-M market endpoints,
+and refuses a cycle when BTC or ETH is stale. Compact state, data-sync evidence,
+and the latest snapshot are written to the `paper-results` branch. No exchange
+credential is required or accepted by this workflow.
 
 ## Minimum evidence before any capital discussion
 

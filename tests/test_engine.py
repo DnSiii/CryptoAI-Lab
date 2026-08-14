@@ -193,7 +193,7 @@ class EngineTests(unittest.TestCase):
         forbidden = ("create_order(", "place_order(", "fapiPrivatePostOrder")
         for token in forbidden:
             self.assertNotIn(token, source)
-        self.assertIn("honest_forward_boundary", source)
+        self.assertIn("resolve_paper_start", source)
         self.assertIn("initialized_at.floor", source)
 
     def test_allocator_does_not_use_future_returns(self):

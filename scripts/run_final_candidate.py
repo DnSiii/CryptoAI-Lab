@@ -25,6 +25,20 @@ def rows(patterns: tuple[str, ...]) -> dict[int, dict]:
     return result
 
 
+def frozen_component_rows() -> dict[int, dict]:
+    """Load the compact, checked-in component snapshot used by the finalist.
+
+    The large search batches are intentionally not stored in Git.  This fallback
+    makes the frozen paper candidate reproducible on a clean GitHub runner without
+    rerunning or reopening the historical model search.
+    """
+    path = PROJECT / "reports" / "candidate_v13_pit_carry_core_exact.json"
+    if not path.exists():
+        return {}
+    components = json.loads(path.read_text()).get("components", {})
+    return {int(index): {"spec": spec} for index, spec in components.items()}
+
+
 def build_candidate(config: dict, phase: int = 0):
     raw = load_data(PROJECT, config["data_config"])
     u = config["point_in_time_universe"]
@@ -34,6 +48,9 @@ def build_candidate(config: dict, phase: int = 0):
     core_data = load_data(PROJECT, "research_core2.json")
     core_rows = rows(("reports/core2_coarse_*.json", "reports/core2_regime_*.json"))
     pit_rows = rows(("reports/pit48_coarse_*.json", "reports/pit48_regime_*.json"))
+    frozen_rows = frozen_component_rows()
+    core_rows = {**frozen_rows, **core_rows}
+    pit_rows = {**frozen_rows, **pit_rows}
     core_ids = config["core"]["component_ids"]
     core = sum(build_targets(core_data, StrategySpec(**core_rows[index]["spec"]))
                for index in core_ids) / len(core_ids)

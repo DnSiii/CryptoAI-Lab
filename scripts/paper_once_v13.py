@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import numpy as np
 
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -12,12 +13,17 @@ sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
 from cryptoai_v13.backtest import exact_fast
-from run_canonical_risk_stress import cap_targets
 from run_final_candidate import build_candidate
 
 
 STATE_PATH = PROJECT / "state" / "paper_v13_state.json"
 SNAPSHOT_PATH = PROJECT / "reports" / "paper_v13_snapshot.json"
+
+
+def cap_targets(targets: pd.DataFrame, cap: float) -> pd.DataFrame:
+    gross = targets.abs().sum(axis=1)
+    scale = (cap / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(0.0)
+    return targets.mul(scale, axis=0)
 
 
 def load_state() -> dict | None:
@@ -30,6 +36,21 @@ def checkpoint(payload: dict) -> None:
     STATE_PATH.parent.mkdir(exist_ok=True)
     STATE_PATH.write_text(json.dumps(payload, indent=2) + "\n")
     SNAPSHOT_PATH.write_text(json.dumps(payload, indent=2) + "\n")
+
+
+def resolve_paper_start(
+    previous: dict | None, initialized_at: pd.Timestamp, latest: pd.Timestamp
+) -> pd.Timestamp:
+    initialization_hour = initialized_at.floor("h")
+    if previous:
+        # Once frozen, the forward boundary must never chase newly downloaded
+        # data.  Backfills before this hour remain excluded naturally, while
+        # genuinely new hours after it are allowed into the paper ledger.
+        return max(
+            pd.Timestamp(previous["paper_start_after_timestamp"]),
+            initialization_hour,
+        )
+    return max(latest, initialization_hour)
 
 
 def main() -> None:
@@ -60,16 +81,7 @@ def main() -> None:
         if previous
         else pd.Timestamp.now(tz="UTC")
     )
-    honest_forward_boundary = max(latest, initialized_at.floor("h"))
-    if previous:
-        previous_boundary = pd.Timestamp(previous["paper_start_after_timestamp"])
-        paper_start = (
-            max(previous_boundary, honest_forward_boundary)
-            if int(previous.get("new_forward_hours", 0)) == 0
-            else previous_boundary
-        )
-    else:
-        paper_start = honest_forward_boundary
+    paper_start = resolve_paper_start(previous, initialized_at, latest)
     forward_equity = result.equity.loc[paper_start:]
     if len(forward_equity):
         forward_equity = forward_equity / forward_equity.iloc[0]

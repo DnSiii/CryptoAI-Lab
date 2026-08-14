@@ -27,3 +27,21 @@ Régua provisória para um candidato chegar ao paper:
 - nenhuma dependência de um único ativo, ano ou parâmetro estreito.
 
 Essa régua é um critério de pesquisa, não promessa de retorno.
+
+## Paper V13 automatizado
+
+O workflow `CryptoAI V13 hourly paper` executa no GitHub Actions a cada hora,
+no minuto 17, e também pode ser iniciado manualmente. Ele:
+
+- usa exclusivamente endpoints públicos de klines e funding da Binance USD-M;
+- preserva o candidato congelado e o corte forward de 13/08/2026 19:00 UTC;
+- não usa API key, segredo, saldo ou método de envio de ordem;
+- exige BTC e ETH atualizados até o último candle horário encerrado;
+- mantém o histórico canônico em cache diário e publica snapshots compactos na
+  branch `paper-results`;
+- interrompe o ciclo se testes, atualidade dos dados ou trava `PAPER_ONLY`
+  falharem.
+
+O primeiro ciclo sem cache reconstrói o histórico público e pode demorar mais.
+Os ciclos seguintes baixam somente os dados novos. O computador do usuário não
+precisa permanecer ligado.
