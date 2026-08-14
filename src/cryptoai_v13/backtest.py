@@ -17,6 +17,10 @@ class BacktestResult:
     funding: pd.Series
     gross_exposure: pd.Series
     ruin: bool
+    open_positions: pd.DataFrame | None = None
+    asset_gross: pd.DataFrame | None = None
+    asset_fees: pd.DataFrame | None = None
+    asset_funding: pd.DataFrame | None = None
 
 
 def screen(data: FuturesData, targets: pd.DataFrame, cost_per_side: float = 0.0007) -> BacktestResult:
@@ -227,6 +231,10 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
     turnover_values = np.zeros(size, dtype=float)
     fee_values = np.zeros(size, dtype=float)
     funding_cost_values = np.zeros(size, dtype=float)
+    open_position_values = np.zeros((size, assets), dtype=float)
+    asset_gross_values = np.zeros((size, assets), dtype=float)
+    asset_fee_values = np.zeros((size, assets), dtype=float)
+    asset_funding_values = np.zeros((size, assets), dtype=float)
     current_equity = 1.0
     peak_equity = 1.0
     weights = np.zeros(assets, dtype=float)
@@ -273,6 +281,8 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
         with np.errstate(divide="ignore", invalid="ignore"):
             ratio = opened / previous_close
         ratio = np.where(np.isfinite(ratio), ratio, 1.0)
+        equity_before_hour = current_equity
+        overnight_asset_gross = equity_before_hour * weights * (ratio - 1.0)
         overnight_factor = 1.0 + float(np.sum(weights * (ratio - 1.0)))
         if overnight_factor <= maintenance_equity_fraction:
             current_equity = 0.0
@@ -283,15 +293,15 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
         weights = np.nan_to_num(weights * ratio / overnight_factor)
 
         funding_contribution = weights * funding_values[i]
-        fund_fraction = float(
-            np.clip(funding_contribution, 0.0, None).sum()
-            * funding_debit_multiplier
-            + np.clip(funding_contribution, None, 0.0).sum()
-            * funding_credit_multiplier
+        effective_funding = (
+            np.clip(funding_contribution, 0.0, None) * funding_debit_multiplier
+            + np.clip(funding_contribution, None, 0.0) * funding_credit_multiplier
         )
-        funding_value = current_equity * fund_fraction
+        asset_funding_value = current_equity * effective_funding
+        funding_value = float(asset_funding_value.sum())
         current_equity -= funding_value
         funding_cost_values[i] = funding_value
+        asset_funding_values[i] = asset_funding_value
 
         requested_target = target_values[i - 1].copy() * guard_factor
         signal_event = float(
@@ -312,12 +322,17 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
                 target_gross = float(np.abs(target).sum())
                 if target_gross > gross_guard_cap:
                     target *= gross_guard_cap / target_gross
-            traded = float(np.abs(target - weights).sum())
-            fee = current_equity * traded * cost_per_side
+            asset_traded = np.abs(target - weights)
+            traded = float(asset_traded.sum())
+            asset_fee = current_equity * asset_traded * cost_per_side
+            fee = float(asset_fee.sum())
             current_equity -= fee
             turnover_values[i] = traded
             fee_values[i] = fee
+            asset_fee_values[i] = asset_fee
             weights = target
+
+        open_position_values[i] = weights
 
         with np.errstate(divide="ignore", invalid="ignore"):
             low_move = low_values[i] / opened - 1.0
@@ -336,6 +351,7 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
         with np.errstate(divide="ignore", invalid="ignore"):
             close_move = close_values[i] / opened - 1.0
         close_move = np.where(np.isfinite(close_move), close_move, 0.0)
+        intraday_asset_gross = current_equity * weights * close_move
         close_factor = 1.0 + float(np.sum(weights * close_move))
         if close_factor <= maintenance_equity_fraction:
             current_equity = 0.0
@@ -343,6 +359,7 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
             equity_values[i:] = 0.0
             break
         current_equity *= close_factor
+        asset_gross_values[i] = overnight_asset_gross + intraday_asset_gross
         weights = np.nan_to_num(weights * (1.0 + close_move) / close_factor)
         equity_values[i] = current_equity
         position_values[i] = weights
@@ -354,4 +371,11 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
     fees = pd.Series(fee_values, index=index)
     funding_cost = pd.Series(funding_cost_values, index=index)
     gross = positions.abs().sum(axis=1)
-    return BacktestResult(equity, positions, turnover, fees, funding_cost, gross, ruined)
+    open_positions = pd.DataFrame(open_position_values, index=index, columns=columns)
+    asset_gross = pd.DataFrame(asset_gross_values, index=index, columns=columns)
+    asset_fees = pd.DataFrame(asset_fee_values, index=index, columns=columns)
+    asset_funding = pd.DataFrame(asset_funding_values, index=index, columns=columns)
+    return BacktestResult(
+        equity, positions, turnover, fees, funding_cost, gross, ruined,
+        open_positions, asset_gross, asset_fees, asset_funding,
+    )
