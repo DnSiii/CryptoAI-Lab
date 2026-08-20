@@ -10,6 +10,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -19,10 +20,13 @@ import pandas as pd
 
 PROJECT = Path(__file__).resolve().parents[1]
 PUBLIC_ARCHIVE = "https://data.binance.vision/data/futures/um/daily"
+PUBLIC_FUNDING_REST = "https://fapi.binance.com/fapi/v1/fundingRate"
+PUBLIC_FUNDING_REST_FALLBACK = "https://www.binance.com/fapi/v1/fundingRate"
 PAPER_SEED_ARCHIVE = PROJECT / "data" / "paper_seed_v13.zip"
 CONFIG_NAME = "research_pit48.json"
 CORE_SYMBOLS = ("BTCUSDT", "ETHUSDT")
 MAX_PUBLICATION_LAG_HOURS = 48
+MAX_FUNDING_LAG_HOURS = 12
 KLINE_COLUMNS = (
     "open_time",
     "open",
@@ -49,7 +53,11 @@ CANONICAL_COLUMNS = (
 )
 
 
-def request_bytes(url: str, attempts: int = 5) -> bytes | None:
+def request_bytes(
+    url: str,
+    attempts: int = 5,
+    missing_statuses: tuple[int, ...] = (404,),
+) -> bytes | None:
     error: Exception | None = None
     for attempt in range(attempts):
         try:
@@ -66,7 +74,10 @@ def request_bytes(url: str, attempts: int = 5) -> bytes | None:
             urllib.error.URLError,
         ) as exc:
             error = exc
-            if isinstance(exc, urllib.error.HTTPError) and exc.code == 404:
+            if (
+                isinstance(exc, urllib.error.HTTPError)
+                and exc.code in missing_statuses
+            ):
                 return None
             if isinstance(exc, urllib.error.HTTPError) and 400 <= exc.code < 500:
                 break
@@ -217,6 +228,77 @@ def archive_csv(payload: bytes, names: tuple[str, ...] | None = None) -> pd.Data
             return pd.read_csv(stream, names=names, header=None if names else "infer")
 
 
+def public_funding_url(
+    symbol: str,
+    start: pd.Timestamp,
+    end: pd.Timestamp,
+    base_url: str = PUBLIC_FUNDING_REST,
+) -> str:
+    query = urllib.parse.urlencode(
+        {
+            "symbol": symbol,
+            "startTime": int(start.timestamp() * 1000),
+            "endTime": int(end.timestamp() * 1000),
+            "limit": 1000,
+        }
+    )
+    return f"{base_url}?{query}"
+
+
+def request_public_funding(
+    symbol: str, start: pd.Timestamp, end: pd.Timestamp
+) -> tuple[bytes | None, str | None]:
+    errors: list[str] = []
+    for base_url in (PUBLIC_FUNDING_REST, PUBLIC_FUNDING_REST_FALLBACK):
+        try:
+            payload = request_bytes(
+                public_funding_url(symbol, start, end, base_url),
+                missing_statuses=(400, 404),
+            )
+            return payload, base_url
+        except RuntimeError as exc:
+            errors.append(str(exc))
+    raise RuntimeError(
+        f"funding público indisponível para {symbol}: {' | '.join(errors)}"
+    )
+
+
+def public_funding_frame(payload: bytes | None) -> pd.DataFrame:
+    columns = ["timestamp", "funding_rate", "funding_interval_hours"]
+    if not payload:
+        return pd.DataFrame(columns=columns)
+    rows = json.loads(payload.decode())
+    if not isinstance(rows, list):
+        raise RuntimeError("resposta pública de funding não é uma lista")
+    if not rows:
+        return pd.DataFrame(columns=columns)
+    incoming = pd.DataFrame(rows)
+    required = {"fundingTime", "fundingRate"}
+    if not required.issubset(incoming.columns):
+        raise RuntimeError("resposta pública de funding sem campos obrigatórios")
+    incoming["timestamp"] = pd.to_datetime(
+        pd.to_numeric(incoming["fundingTime"], errors="raise"),
+        unit="ms",
+        utc=True,
+    ).dt.floor("h")
+    incoming["funding_rate"] = pd.to_numeric(
+        incoming["fundingRate"], errors="raise"
+    )
+    incoming = incoming.sort_values("timestamp")
+    backward = incoming["timestamp"].diff().dt.total_seconds().div(3600)
+    forward = (
+        incoming["timestamp"].shift(-1).sub(incoming["timestamp"])
+        .dt.total_seconds()
+        .div(3600)
+    )
+    incoming["funding_interval_hours"] = (
+        backward.where(backward > 0)
+        .fillna(forward.where(forward > 0))
+        .fillna(8.0)
+    )
+    return incoming[columns].drop_duplicates("timestamp", keep="last")
+
+
 def available_days(start: pd.Timestamp, now: pd.Timestamp) -> list[str]:
     first = start.floor("d")
     last = now.floor("d") - pd.Timedelta(days=1)
@@ -280,6 +362,8 @@ def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     start = previous_last if previous_last is not None else now.floor("d")
     frames: list[pd.DataFrame] = []
     archives_found = 0
+    public_rest_records = 0
+    public_rest_source = None
     days = (
         available_days(start, now)
         if f"{symbol}_funding.csv" in paper_seed_names()
@@ -304,6 +388,31 @@ def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
         frames.append(
             incoming[["timestamp", "funding_rate", "funding_interval_hours"]]
         )
+    latest_before_rest = max(
+        [
+            timestamp
+            for timestamp in [
+                previous_last,
+                *(frame["timestamp"].max() for frame in frames if len(frame)),
+            ]
+            if timestamp is not None and pd.notna(timestamp)
+        ],
+        default=None,
+    )
+    rest_start = (
+        latest_before_rest + pd.Timedelta(milliseconds=1)
+        if latest_before_rest is not None
+        else now.floor("d")
+    )
+    rest_end = latest_closed_hour(now)
+    if rest_start <= rest_end:
+        payload, public_rest_source = request_public_funding(
+            symbol, rest_start, rest_end
+        )
+        rest_frame = public_funding_frame(payload)
+        public_rest_records = len(rest_frame)
+        if len(rest_frame):
+            frames.append(rest_frame)
     if frames:
         combined = pd.concat([current, *frames], ignore_index=True)
         combined = combined.drop_duplicates("timestamp", keep="last").sort_values("timestamp")
@@ -315,6 +424,8 @@ def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
         "latest": latest.isoformat() if latest is not None else None,
         "rows_added": int(len(current) - original_count),
         "archives_found": archives_found,
+        "public_rest_records": public_rest_records,
+        "public_rest_source": public_rest_source,
     }
 
 
@@ -373,11 +484,46 @@ def main() -> None:
         publication_lag_hours is None
         or publication_lag_hours > MAX_PUBLICATION_LAG_HOURS
     ) else []
+    active_symbols = [
+        symbol
+        for symbol, item in results.items()
+        if pd.Timestamp(item["klines"]["latest"]) >= target
+        - pd.Timedelta(hours=MAX_PUBLICATION_LAG_HOURS)
+    ]
+    funding_lag_hours = {
+        symbol: (
+            max(
+                0,
+                int(
+                    (
+                        target - pd.Timestamp(results[symbol]["funding"]["latest"])
+                    ).total_seconds()
+                    // 3600
+                ),
+            )
+            if results[symbol]["funding"]["latest"] is not None
+            else None
+        )
+        for symbol in active_symbols
+    }
+    funding_stale = [
+        symbol
+        for symbol, lag in funding_lag_hours.items()
+        if lag is None or lag > MAX_FUNDING_LAG_HOURS
+    ]
+    core_funding_stale = [
+        symbol for symbol in CORE_SYMBOLS if symbol in funding_stale
+    ]
+    core_stale = sorted(set(core_stale) | set(core_funding_stale))
     manifest = {
         "mode": "PUBLIC_DATA_ONLY",
         "private_api_used": False,
-        "source": PUBLIC_ARCHIVE,
-        "source_method": "OFFICIAL_CHECKSUMMED_DAILY_ARCHIVES",
+        "source": [
+            PUBLIC_ARCHIVE,
+            PUBLIC_FUNDING_REST,
+            PUBLIC_FUNDING_REST_FALLBACK,
+        ],
+        "source_method": "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST",
         "generated_at_utc": now.isoformat(),
         "target_latest_closed_hour": target.isoformat(),
         "expected_latest_closed_hour": (
@@ -385,18 +531,24 @@ def main() -> None:
         ),
         "publication_lag_hours": publication_lag_hours,
         "maximum_publication_lag_hours": MAX_PUBLICATION_LAG_HOURS,
+        "maximum_funding_lag_hours": MAX_FUNDING_LAG_HOURS,
+        "funding_lag_hours": funding_lag_hours,
         "bootstrapped": bootstrapped,
         "seed_rows_added": seed_rows_added,
         "symbols": results,
         "errors": errors,
         "core_stale": core_stale,
+        "funding_stale": funding_stale,
     }
     output = PROJECT / "reports" / "paper_data_sync_v13.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))
-    if core_stale:
-        raise RuntimeError(f"dados centrais não estão atualizados: {core_stale}")
+    if core_stale or funding_stale:
+        raise RuntimeError(
+            "dados necessários não estão atualizados: "
+            f"core={core_stale}, funding={funding_stale}"
+        )
 
 
 if __name__ == "__main__":

@@ -113,6 +113,22 @@ def build_ledger(
         & (result.asset_orders.reindex(index).abs().sum(axis=1) > 1e-12)
     ]
 
+    # The strategy can rotate beyond BTC/ETH.  The ledger must follow every
+    # asset that was actually held or traded during the forward interval;
+    # otherwise a new position can disappear from the dashboard and its P&L
+    # gets incorrectly folded into the last hard-coded asset.
+    paper_symbols = [
+        symbol
+        for symbol in data.close.columns
+        if (
+            result.open_positions.loc[forward_index, symbol].abs().gt(1e-8).any()
+            or result.asset_orders.loc[forward_after_start, symbol].abs().gt(1e-12).any()
+            or result.asset_gross.loc[forward_after_start, symbol].abs().gt(1e-12).any()
+            or result.asset_fees.loc[forward_after_start, symbol].abs().gt(1e-12).any()
+            or result.asset_funding.loc[forward_after_start, symbol].abs().gt(1e-12).any()
+        )
+    ]
+
     def to_brl(value: float) -> float:
         return PAPER_CAPITAL_BRL * float(value) / base_equity
 
@@ -192,7 +208,7 @@ def build_ledger(
 
     candles: dict[str, list[dict]] = {}
     candle_index = forward_index[-240:]
-    for symbol in ("BTCUSDT", "ETHUSDT"):
+    for symbol in paper_symbols:
         if symbol not in data.close.columns:
             continue
         candles[symbol] = [
@@ -265,7 +281,7 @@ def build_ledger(
         )
 
     asset_summaries = {}
-    for symbol in ("BTCUSDT", "ETHUSDT"):
+    for symbol in paper_symbols:
         if symbol not in data.close.columns:
             continue
         gross_brl = to_brl(float(result.asset_gross.loc[forward_after_start, symbol].sum()))
@@ -313,7 +329,7 @@ def build_ledger(
     hourly_results = [point["net_result_brl"] for point in equity_curve[1:]]
     capital_values = [point["capital_brl"] for point in equity_curve]
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "mode": "PAPER_ONLY",
         "candidate": candidate,
         "base_capital_brl": PAPER_CAPITAL_BRL,
