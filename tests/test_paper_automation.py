@@ -14,6 +14,7 @@ sys.path.insert(0, str(PROJECT / "scripts"))
 
 from paper_once_v13 import resolve_paper_start
 from run_final_candidate import frozen_component_rows
+from sync_paper_data_v13 import public_funding_frame, public_funding_url
 
 
 class PaperAutomationTests(unittest.TestCase):
@@ -56,19 +57,41 @@ class PaperAutomationTests(unittest.TestCase):
         self.assertNotIn("secrets.", source)
         self.assertIn("cancel-in-progress: false", source)
 
-    def test_data_sync_uses_only_official_public_archives(self) -> None:
+    def test_data_sync_uses_only_official_public_market_data(self) -> None:
         source = (PROJECT / "scripts" / "sync_paper_data_v13.py").read_text()
         self.assertIn("https://data.binance.vision/data/futures/um/daily", source)
+        self.assertIn("https://fapi.binance.com/fapi/v1/fundingRate", source)
+        self.assertIn("https://www.binance.com/fapi/v1/fundingRate", source)
         self.assertIn(".CHECKSUM", source)
-        self.assertIn("OFFICIAL_CHECKSUMMED_DAILY_ARCHIVES", source)
+        self.assertIn(
+            "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST", source
+        )
         for forbidden in (
             "/fapi/v1/order",
             "create_order(",
             "apiSecret",
             "X-MBX-APIKEY",
-            "fapi.binance.com",
         ):
             self.assertNotIn(forbidden, source)
+
+    def test_public_funding_response_is_canonicalized_without_credentials(self) -> None:
+        payload = (
+            b'[{"symbol":"BTCUSDT","fundingTime":1767225600000,'
+            b'"fundingRate":"0.0001"},{"symbol":"BTCUSDT",'
+            b'"fundingTime":1767254400000,"fundingRate":"-0.0002"}]'
+        )
+        frame = public_funding_frame(payload)
+        self.assertEqual(len(frame), 2)
+        self.assertEqual(frame["funding_interval_hours"].tolist(), [8.0, 8.0])
+        self.assertEqual(frame["funding_rate"].tolist(), [0.0001, -0.0002])
+        url = public_funding_url(
+            "BTCUSDT",
+            pd.Timestamp("2026-01-01", tz="UTC"),
+            pd.Timestamp("2026-01-02", tz="UTC"),
+        )
+        self.assertIn("symbol=BTCUSDT", url)
+        self.assertNotIn("signature", url)
+        self.assertNotIn("apiKey", url)
 
 
 if __name__ == "__main__":

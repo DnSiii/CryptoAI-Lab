@@ -28,7 +28,7 @@ def main() -> None:
         raise RuntimeError("runner saiu do modo PAPER_ONLY")
     if state.get("real_orders_enabled") is not False:
         raise RuntimeError("runner habilitou ordens reais")
-    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 3:
+    if ledger.get("mode") != "PAPER_ONLY" or ledger.get("schema_version") != 4:
         raise RuntimeError("ledger didático inválido ou fora do modo PAPER_ONLY")
     if ledger.get("paper_start_after_timestamp") != state.get("paper_start_after_timestamp"):
         raise RuntimeError("ledger e estado divergem no corte forward")
@@ -38,6 +38,23 @@ def main() -> None:
         raise RuntimeError("ledger não contém candles BTC e ETH")
     if not {"BTCUSDT", "ETHUSDT"}.issubset(ledger.get("assets", {})):
         raise RuntimeError("ledger não contém atribuição por ativo")
+    reported_assets = set(ledger.get("assets", {}))
+    traded_assets = {
+        adjustment["symbol"]
+        for decision in ledger.get("decisions", [])
+        for adjustment in decision.get("adjustments", [])
+    }
+    current_assets = set(state.get("current_simulated_positions", {}))
+    missing_assets = (traded_assets | current_assets) - reported_assets
+    if missing_assets:
+        raise RuntimeError(
+            f"ativos negociados ou abertos ausentes do ledger: {sorted(missing_assets)}"
+        )
+    missing_candles = current_assets - set(ledger.get("candles", {}))
+    if missing_candles:
+        raise RuntimeError(
+            f"posições abertas sem velas no ledger: {sorted(missing_candles)}"
+        )
     asset_net = sum(
         float(item["net_result_brl"]) for item in ledger["assets"].values()
     )
@@ -61,8 +78,13 @@ def main() -> None:
         raise RuntimeError("sincronização não está limitada a dados públicos")
     if sync.get("core_stale"):
         raise RuntimeError(f"dados centrais atrasados: {sync['core_stale']}")
-    if sync.get("source_method") != "OFFICIAL_CHECKSUMMED_DAILY_ARCHIVES":
-        raise RuntimeError("fonte incremental não usa os arquivos oficiais verificados")
+    if sync.get("funding_stale"):
+        raise RuntimeError(f"funding atrasado: {sync['funding_stale']}")
+    if (
+        sync.get("source_method")
+        != "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST"
+    ):
+        raise RuntimeError("fontes públicas oficiais não estão configuradas")
     lag = int(sync.get("publication_lag_hours", -1))
     maximum_lag = int(sync.get("maximum_publication_lag_hours", -1))
     if lag < 0 or maximum_lag < 0 or lag > maximum_lag:
