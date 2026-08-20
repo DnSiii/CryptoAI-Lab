@@ -1,0 +1,48 @@
+{
+  "name": "CryptoAI V13 + Opportunity Overlay Candidate V1",
+  "research_status": "historical gate passed; separate forward paper proposal only",
+  "frozen_core_config": "candidate_v13_circuit_breaker.json",
+  "opportunity": {
+    "family": "impulse",
+    "equal_weight_rebalance_phases": [0, 2],
+    "spec": {
+      "family": "impulse",
+      "lookback": 48,
+      "rebalance": 3,
+      "top_n": 2,
+      "fast": 24,
+      "slow": 336,
+      "vol_lookback": 168,
+      "vol_target": 0.8,
+      "leverage_cap": 1.0,
+      "trend_lookback": 168,
+      "long_short_balance": 0.8,
+      "threshold": 0.02,
+      "exit_lookback": 24,
+      "volume_multiple": 2.0,
+      "stop_loss": 0.03,
+      "trailing_stop": 0.2,
+      "max_holding": 168,
+      "rebalance_phase": 0,
+      "trend_filter_hours": 336,
+      "cooldown_hours": 24
+    }
+  },
+  "allocation": {
+    "maximum_overlay_gross": 0.075,
+    "maximum_portfolio_gross": 1.425,
+    "gross_drift_guard_cap": 1.575,
+    "frozen_core_is_never_rescaled_by_allocator": true
+  },
+  "shared_circuit_breaker": {
+    "drawdown_threshold": 0.15,
+    "exposure_multiplier": 0.5,
+    "cooldown_hours": 336
+  },
+  "paper": {
+    "must_use_new_forward_boundary": true,
+    "must_keep_core_opportunity_and_combined_ledgers_separate": true,
+    "active": false
+  },
+  "real_orders": false
+}

@@ -1,0 +1,140 @@
+{
+  "name": "CryptoAI Core + Opportunities Lab V1",
+  "research_status": "historical research only; not approved for paper or capital",
+  "objective": {
+    "primary": "maximize terminal compounded wealth after all modeled costs",
+    "no_monthly_return_target_or_ceiling": true,
+    "trading_is_optional": true,
+    "risk_is_a_constraint_not_the_return_target": true
+  },
+  "frozen_core": {
+    "config": "candidate_v13_circuit_breaker.json",
+    "logic_may_be_changed_by_this_lab": false
+  },
+  "opportunity_mechanisms": [
+    "price_volume_impulse",
+    "volatility_expansion",
+    "funding_dislocation",
+    "cross_asset_acceleration"
+  ],
+  "seed_candidates": [
+    {
+      "name": "impulse_11_trend_168",
+      "provenance": "corrected historical impulse prototype; seed only",
+      "spec": {
+        "family": "impulse",
+        "lookback": 24,
+        "rebalance": 1,
+        "top_n": 3,
+        "fast": 12,
+        "slow": 48,
+        "vol_lookback": 24,
+        "vol_target": 0.5,
+        "leverage_cap": 2.0,
+        "trend_lookback": 168,
+        "long_short_balance": 0.5,
+        "threshold": 0.02,
+        "exit_lookback": 24,
+        "volume_multiple": 2.0,
+        "stop_loss": 0.02,
+        "trailing_stop": 0.2,
+        "max_holding": 168,
+        "rebalance_phase": 0,
+        "trend_filter_hours": 168,
+        "cooldown_hours": 0
+      }
+    },
+    {
+      "name": "impulse_11_trend_336",
+      "provenance": "corrected historical impulse prototype; seed only",
+      "spec": {
+        "family": "impulse",
+        "lookback": 24,
+        "rebalance": 1,
+        "top_n": 3,
+        "fast": 12,
+        "slow": 48,
+        "vol_lookback": 24,
+        "vol_target": 0.5,
+        "leverage_cap": 2.0,
+        "trend_lookback": 168,
+        "long_short_balance": 0.5,
+        "threshold": 0.02,
+        "exit_lookback": 24,
+        "volume_multiple": 2.0,
+        "stop_loss": 0.02,
+        "trailing_stop": 0.2,
+        "max_holding": 168,
+        "rebalance_phase": 0,
+        "trend_filter_hours": 336,
+        "cooldown_hours": 0
+      }
+    },
+    {
+      "name": "impulse_18_trend_336",
+      "provenance": "corrected selectivity-screen prototype; seed only",
+      "spec": {
+        "family": "impulse",
+        "lookback": 48,
+        "rebalance": 3,
+        "top_n": 2,
+        "fast": 24,
+        "slow": 336,
+        "vol_lookback": 168,
+        "vol_target": 0.8,
+        "leverage_cap": 1.0,
+        "trend_lookback": 168,
+        "long_short_balance": 0.8,
+        "threshold": 0.02,
+        "exit_lookback": 24,
+        "volume_multiple": 2.0,
+        "stop_loss": 0.03,
+        "trailing_stop": 0.2,
+        "max_holding": 168,
+        "rebalance_phase": 0,
+        "trend_filter_hours": 336,
+        "cooldown_hours": 24
+      }
+    }
+  ],
+  "portfolio_budgets_to_test": {
+    "maximum_overlay_gross": [0.15, 0.3, 0.45, 0.6],
+    "maximum_portfolio_gross": [1.5, 1.65, 1.8, 1.95]
+  },
+  "paired_budget_grid": [
+    {"maximum_overlay_gross": 0.15, "maximum_portfolio_gross": 1.5},
+    {"maximum_overlay_gross": 0.3, "maximum_portfolio_gross": 1.65},
+    {"maximum_overlay_gross": 0.45, "maximum_portfolio_gross": 1.8},
+    {"maximum_overlay_gross": 0.6, "maximum_portfolio_gross": 1.95}
+  ],
+  "refinement_budget_grid": [
+    {"maximum_overlay_gross": 0.05, "maximum_portfolio_gross": 1.4},
+    {"maximum_overlay_gross": 0.075, "maximum_portfolio_gross": 1.425},
+    {"maximum_overlay_gross": 0.1, "maximum_portfolio_gross": 1.45},
+    {"maximum_overlay_gross": 0.125, "maximum_portfolio_gross": 1.475},
+    {"maximum_overlay_gross": 0.15, "maximum_portfolio_gross": 1.5}
+  ],
+  "gross_drift_allowance": 0.15,
+  "exact_finalists_after_screen": 6,
+  "mandatory_scenarios": [
+    "base",
+    "severe_cost",
+    "delay_3h",
+    "delay_6h",
+    "adverse_funding",
+    "severe_cost_and_adverse_funding"
+  ],
+  "risk_constraints": {
+    "no_exact_ruin_in_any_mandatory_scenario": true,
+    "historical_max_drawdown_floor": -0.35,
+    "maximum_drawdown_deterioration_vs_core": 0.05,
+    "synthetic_ruin_probability_ceiling": 0.01
+  },
+  "promotion_rule": {
+    "must_beat_core_terminal_wealth_in_base": true,
+    "must_not_depend_on_one_cost_or_delay_assumption": true,
+    "must_pass_parameter_neighborhood_and_time_slice_checks": true,
+    "must_start_a_new_forward_paper_track_before_capital": true
+  },
+  "real_orders": false
+}
