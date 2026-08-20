@@ -58,12 +58,12 @@ class OpportunityBudgetTest(unittest.TestCase):
                 OpportunityBudget(0.40, 1.50),
             )
 
-    def test_candidate_is_paper_inactive_and_has_no_real_orders(self) -> None:
+    def test_candidate_is_paper_active_and_has_no_real_orders(self) -> None:
         project = Path(__file__).resolve().parents[1]
         candidate = json.loads(
             (project / "config" / "candidate_opportunity_overlay_v1.json").read_text()
         )
-        self.assertFalse(candidate["paper"]["active"])
+        self.assertTrue(candidate["paper"]["active"])
         self.assertFalse(candidate["real_orders"])
         self.assertTrue(
             candidate["allocation"]["frozen_core_is_never_rescaled_by_allocator"]
