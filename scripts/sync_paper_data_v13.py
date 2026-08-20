@@ -544,7 +544,10 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))
-    if core_stale or funding_stale:
+    # Missing funding for a core contract stops the paper.  Non-core contracts
+    # are published in ``funding_stale`` and quarantined causally by the paper
+    # runners, so one retired satellite contract cannot disable the whole lab.
+    if core_stale:
         raise RuntimeError(
             "dados necessários não estão atualizados: "
             f"core={core_stale}, funding={funding_stale}"
