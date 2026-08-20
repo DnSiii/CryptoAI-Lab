@@ -6,13 +6,15 @@ import zipfile
 from pathlib import Path
 
 import pandas as pd
+import numpy as np
 
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
-from paper_once_v13 import resolve_paper_start
+from cryptoai_v13.data import FuturesData
+from paper_once_v13 import quarantine_stale_funding, resolve_paper_start
 from run_final_candidate import frozen_component_rows
 from sync_paper_data_v13 import public_funding_frame, public_funding_url
 
@@ -99,6 +101,26 @@ class PaperAutomationTests(unittest.TestCase):
         self.assertIn("symbol=BTCUSDT", url)
         self.assertNotIn("signature", url)
         self.assertNotIn("apiKey", url)
+
+    def test_stale_non_core_funding_quarantines_contract_causally(self) -> None:
+        index = pd.date_range("2026-01-01", periods=5, freq="h", tz="UTC")
+        values = pd.DataFrame({"OLDUSDT": [1.0] * 5}, index=index)
+        data = FuturesData(
+            frames={name: values.copy() for name in ("open", "high", "low", "close", "volume", "quote_volume", "trades")},
+            funding=values.mul(0.0),
+            symbols=("OLDUSDT",),
+        )
+        targets = values.copy()
+        safe_data, safe_targets = quarantine_stale_funding(
+            data,
+            targets,
+            ["OLDUSDT"],
+            {"OLDUSDT": index[0]},
+            2,
+        )
+        self.assertTrue(safe_targets.loc[index[:3], "OLDUSDT"].eq(1.0).all())
+        self.assertTrue(safe_targets.loc[index[3:], "OLDUSDT"].eq(0.0).all())
+        self.assertTrue(np.isnan(safe_data.close.loc[index[3], "OLDUSDT"]))
 
 
 if __name__ == "__main__":

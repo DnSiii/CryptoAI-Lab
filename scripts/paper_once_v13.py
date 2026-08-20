@@ -13,6 +13,7 @@ sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
 from cryptoai_v13.backtest import exact_fast
+from cryptoai_v13.data import FuturesData
 from run_final_candidate import build_candidate
 
 
@@ -20,6 +21,59 @@ STATE_PATH = PROJECT / "state" / "paper_v13_state.json"
 SNAPSHOT_PATH = PROJECT / "reports" / "paper_v13_snapshot.json"
 LEDGER_PATH = PROJECT / "reports" / "paper_v13_ledger.json"
 PAPER_CAPITAL_BRL = 10_000.0
+SYNC_REPORT_PATH = PROJECT / "reports" / "paper_data_sync_v13.json"
+
+
+def quarantine_stale_funding(
+    data: FuturesData,
+    targets: pd.DataFrame,
+    stale_symbols: list[str],
+    last_funding: dict[str, pd.Timestamp],
+    maximum_lag_hours: int,
+) -> tuple[FuturesData, pd.DataFrame]:
+    """Make a contract untradable once its verified funding feed goes stale."""
+    frames = {name: frame.copy() for name, frame in data.frames.items()}
+    funding = data.funding.copy()
+    safe_targets = targets.copy()
+    for symbol in stale_symbols:
+        if symbol not in safe_targets.columns or symbol not in last_funding:
+            continue
+        cutoff = pd.Timestamp(last_funding[symbol]) + pd.Timedelta(
+            hours=maximum_lag_hours
+        )
+        unavailable = safe_targets.index > cutoff
+        safe_targets.loc[unavailable, symbol] = 0.0
+        funding.loc[unavailable, symbol] = 0.0
+        for frame in frames.values():
+            frame.loc[unavailable, symbol] = np.nan
+    return FuturesData(frames=frames, funding=funding, symbols=data.symbols), safe_targets
+
+
+def apply_funding_quarantine(
+    data: FuturesData, targets: pd.DataFrame
+) -> tuple[FuturesData, pd.DataFrame, list[str]]:
+    if not SYNC_REPORT_PATH.exists():
+        return data, targets, []
+    report = json.loads(SYNC_REPORT_PATH.read_text())
+    stale_symbols = list(report.get("funding_stale", []))
+    last_funding: dict[str, pd.Timestamp] = {}
+    for symbol in stale_symbols:
+        path = PROJECT / "data" / "canonical" / f"{symbol}_funding.csv"
+        if not path.exists():
+            continue
+        frame = pd.read_csv(path, usecols=["timestamp"])
+        if len(frame):
+            last_funding[symbol] = pd.to_datetime(
+                frame["timestamp"], utc=True, format="mixed"
+            ).max()
+    data, targets = quarantine_stale_funding(
+        data,
+        targets,
+        stale_symbols,
+        last_funding,
+        int(report.get("maximum_funding_lag_hours", 12)),
+    )
+    return data, targets, sorted(last_funding)
 
 
 def cap_targets(targets: pd.DataFrame, cap: float) -> pd.DataFrame:
@@ -377,6 +431,7 @@ def main() -> None:
     )
     data, targets, _, _ = build_candidate(base_config)
     targets = cap_targets(targets, finalist["target_cap"])
+    data, targets, quarantined = apply_funding_quarantine(data, targets)
     execution = base_config["execution"]
     guard = finalist["circuit_breaker"]
     result = exact_fast(
@@ -428,6 +483,7 @@ def main() -> None:
         "current_simulated_positions": nonzero_positions,
         "target_for_next_open": next_target,
         "gross_exposure": round(float(result.gross_exposure.iloc[-1]), 8),
+        "funding_quarantined_symbols": quarantined,
         "disclosure": (
             "No exchange order method exists in this runner. The paper ledger "
             "only counts timestamps strictly newer than the model-freeze hour; "

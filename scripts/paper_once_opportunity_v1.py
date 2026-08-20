@@ -21,6 +21,7 @@ from cryptoai_v13.opportunity import (
 from cryptoai_v13.signals import StrategySpec, build_targets
 from paper_once_v13 import (
     PAPER_CAPITAL_BRL,
+    apply_funding_quarantine,
     build_ledger,
     cap_targets,
     resolve_paper_start,
@@ -202,6 +203,7 @@ def main() -> None:
     )
     data, core_targets, _, _ = build_candidate(base_config)
     core_targets = cap_targets(core_targets, finalist["target_cap"])
+    data, core_targets, quarantined = apply_funding_quarantine(data, core_targets)
 
     universe = base_config["point_in_time_universe"]
     signal_data, _ = point_in_time_liquid_view(
@@ -326,6 +328,7 @@ def main() -> None:
         "paper_start_after_timestamp": paper_start.isoformat(),
         "latest_data_timestamp": latest.isoformat(),
         "status": snapshots["combined"]["status"],
+        "funding_quarantined_symbols": quarantined,
         "tracks": snapshots,
     }
     comparison = {
@@ -335,6 +338,7 @@ def main() -> None:
         "paper_start_after_timestamp": paper_start.isoformat(),
         "latest_data_timestamp": latest.isoformat(),
         "status": snapshots["combined"]["status"],
+        "funding_quarantined_symbols": quarantined,
         "tracks": {
             track: {
                 "candidate": ledger["candidate"],
