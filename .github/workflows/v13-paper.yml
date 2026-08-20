@@ -7,7 +7,12 @@ name: CryptoAI V13 plus Opportunities hourly paper
 on:
   push:
     branches: [main]
-    paths: [".github/workflows/v13-paper.yml"]
+    paths:
+      - ".github/workflows/v13-paper.yml"
+      - "config/**"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
