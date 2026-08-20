@@ -35,3 +35,21 @@ credential is required or accepted by this workflow.
 
 Passing this protocol permits a later capital-risk discussion; it does not
 automatically authorize real money.
+
+## Trilha paralela Core + Oportunidades
+
+A V13 oficial acima continua com sua fronteira e histórico originais. O
+candidato de oportunidades não substitui nem reinicia esse paper.
+
+Uma segunda fronteira forward é congelada por
+`scripts/paper_once_opportunity_v1.py`. A partir dela, três carteiras começam
+simultaneamente em R$ 10.000 para comparação justa:
+
+1. V13 sozinha no novo período;
+2. oportunidade isolada no tamanho realmente alocado;
+3. V13 e oportunidade combinadas.
+
+Os três ledgers mantêm posições, decisões, bruto, taxas, funding e líquido
+separados. Antes de o mercado ultrapassar a nova fronteira, todos permanecem em
+R$ 10.000 e nenhum resultado é contado. Essa trilha também é exclusivamente
+paper e não possui credenciais ou métodos de ordens reais.

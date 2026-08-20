@@ -1,8 +1,8 @@
 # GitHub-hosted runners poll Binance's official checksummed daily archives.
-# The compact ledger powers the private didactic dashboard.
-# Ledger v4 reports every traded/open asset and separates executed orders from
-# whole-hour position results.
-name: CryptoAI V13 hourly paper
+# The compact ledgers power the private didactic dashboard.
+# The original V13 keeps its own history. A second shared boundary compares the
+# core, the opportunity overlay, and the combined portfolio fairly.
+name: CryptoAI V13 plus Opportunities hourly paper
 
 on:
   push:
@@ -63,7 +63,10 @@ jobs:
         run: |
           if git ls-remote --exit-code --heads origin paper-results >/dev/null 2>&1; then
             git fetch --no-tags origin paper-results
-            for path in state/paper_v13_state.json reports/paper_v13_snapshot.json; do
+            for path in \
+              state/paper_v13_state.json \
+              reports/paper_v13_snapshot.json \
+              state/paper_opportunity_v1_state.json; do
               if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
                 mkdir -p "$(dirname "$path")"
                 git show "FETCH_HEAD:$path" > "$path"
@@ -80,8 +83,13 @@ jobs:
       - name: Run one paper-only cycle
         run: python scripts/paper_once_v13.py
 
+      - name: Run the separate opportunity comparison cycle
+        run: python scripts/paper_once_opportunity_v1.py
+
       - name: Verify paper safety and freshness
-        run: python scripts/verify_paper_cycle_v13.py
+        run: |
+          python scripts/verify_paper_cycle_v13.py
+          python scripts/verify_opportunity_cycle_v1.py
 
       - name: Save today's canonical market cache
         if: steps.market-cache.outputs.cache-hit != 'true'
@@ -93,7 +101,7 @@ jobs:
       - name: Upload a compact audit artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: paper-v13-${{ github.run_id }}
+          name: paper-v13-opportunities-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
           path: |
@@ -101,6 +109,14 @@ jobs:
             reports/paper_v13_snapshot.json
             reports/paper_v13_ledger.json
             reports/paper_data_sync_v13.json
+            state/paper_opportunity_v1_state.json
+            reports/paper_core_comparison_v1_snapshot.json
+            reports/paper_opportunity_v1_snapshot.json
+            reports/paper_combined_v1_snapshot.json
+            reports/paper_core_comparison_v1_ledger.json
+            reports/paper_opportunity_v1_ledger.json
+            reports/paper_combined_v1_ledger.json
+            reports/paper_comparison_v1.json
 
       - name: Publish durable paper results
         shell: bash
@@ -120,11 +136,27 @@ jobs:
           cp reports/paper_v13_snapshot.json "$results_dir/reports/paper_v13_snapshot.json"
           cp reports/paper_v13_ledger.json "$results_dir/reports/paper_v13_ledger.json"
           cp reports/paper_data_sync_v13.json "$results_dir/reports/paper_data_sync_v13.json"
+          cp state/paper_opportunity_v1_state.json "$results_dir/state/paper_opportunity_v1_state.json"
+          cp reports/paper_core_comparison_v1_snapshot.json "$results_dir/reports/paper_core_comparison_v1_snapshot.json"
+          cp reports/paper_opportunity_v1_snapshot.json "$results_dir/reports/paper_opportunity_v1_snapshot.json"
+          cp reports/paper_combined_v1_snapshot.json "$results_dir/reports/paper_combined_v1_snapshot.json"
+          cp reports/paper_core_comparison_v1_ledger.json "$results_dir/reports/paper_core_comparison_v1_ledger.json"
+          cp reports/paper_opportunity_v1_ledger.json "$results_dir/reports/paper_opportunity_v1_ledger.json"
+          cp reports/paper_combined_v1_ledger.json "$results_dir/reports/paper_combined_v1_ledger.json"
+          cp reports/paper_comparison_v1.json "$results_dir/reports/paper_comparison_v1.json"
           git -C "$results_dir" add \
             state/paper_v13_state.json \
             reports/paper_v13_snapshot.json \
             reports/paper_v13_ledger.json \
-            reports/paper_data_sync_v13.json
+            reports/paper_data_sync_v13.json \
+            state/paper_opportunity_v1_state.json \
+            reports/paper_core_comparison_v1_snapshot.json \
+            reports/paper_opportunity_v1_snapshot.json \
+            reports/paper_combined_v1_snapshot.json \
+            reports/paper_core_comparison_v1_ledger.json \
+            reports/paper_opportunity_v1_ledger.json \
+            reports/paper_combined_v1_ledger.json \
+            reports/paper_comparison_v1.json
           if ! git -C "$results_dir" diff --cached --quiet; then
             git -C "$results_dir" commit -m "Update V13 paper snapshot ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results
