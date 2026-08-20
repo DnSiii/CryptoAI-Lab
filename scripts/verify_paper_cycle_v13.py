@@ -78,8 +78,13 @@ def main() -> None:
         raise RuntimeError("sincronização não está limitada a dados públicos")
     if sync.get("core_stale"):
         raise RuntimeError(f"dados centrais atrasados: {sync['core_stale']}")
-    if sync.get("funding_stale"):
-        raise RuntimeError(f"funding atrasado: {sync['funding_stale']}")
+    funding_stale = set(sync.get("funding_stale", []))
+    quarantined = set(state.get("funding_quarantined_symbols", []))
+    unprotected_stale = funding_stale - quarantined
+    if unprotected_stale:
+        raise RuntimeError(
+            f"funding atrasado sem quarentena: {sorted(unprotected_stale)}"
+        )
     if (
         sync.get("source_method")
         != "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST"

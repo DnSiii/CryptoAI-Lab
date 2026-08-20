@@ -83,6 +83,11 @@ class PaperAutomationTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, source)
 
+    def test_verifier_requires_every_stale_funding_contract_to_be_quarantined(self) -> None:
+        source = (PROJECT / "scripts" / "verify_paper_cycle_v13.py").read_text()
+        self.assertIn("funding_stale - quarantined", source)
+        self.assertIn("funding atrasado sem quarentena", source)
+
     def test_public_funding_response_is_canonicalized_without_credentials(self) -> None:
         payload = (
             b'[{"symbol":"BTCUSDT","fundingTime":1767225600000,'
