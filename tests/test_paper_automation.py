@@ -50,7 +50,14 @@ class PaperAutomationTests(unittest.TestCase):
 
     def test_workflow_is_scheduled_manual_and_has_no_secret_dependency(self) -> None:
         source = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
-        self.assertIn("paths: [\".github/workflows/v13-paper.yml\"]", source)
+        for watched_path in (
+            '".github/workflows/v13-paper.yml"',
+            '"config/**"',
+            '"scripts/**"',
+            '"src/**"',
+            '"tests/**"',
+        ):
+            self.assertIn(watched_path, source)
         self.assertIn('cron: "17 * * * *"', source)
         self.assertIn("workflow_dispatch:", source)
         self.assertIn("paper-results", source)
