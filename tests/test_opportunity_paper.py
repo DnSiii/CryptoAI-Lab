@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import json
+import sys
 import unittest
 from pathlib import Path
 
 import pandas as pd
 
-from paper_once_opportunity_v1 import empty_ledger
-
-
 PROJECT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT / "scripts"))
+
+from paper_once_opportunity_v1 import empty_ledger
 
 
 class OpportunityPaperTests(unittest.TestCase):
