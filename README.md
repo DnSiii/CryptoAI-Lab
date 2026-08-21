@@ -49,3 +49,11 @@ Os ciclos seguintes consultam somente os arquivos diários ainda não incorporad
 O workflow verifica a publicação a cada hora, mas os novos candles entram no
 paper quando o arquivo diário oficial fica disponível. O computador do usuário
 não precisa permanecer ligado.
+
+## Paper V14 Máxima Captura
+
+A V14 preserva V13 e Turbo e acrescenta uma quarta carteira paper, selecionada
+para maximizar patrimônio final sem teto mensal artificial. A configuração,
+resultados por episódios independentes e limitações estão em
+[`docs/V14_MAX_CAPTURE.md`](docs/V14_MAX_CAPTURE.md). A V14 continua
+`PAPER_ONLY`; dinheiro real permanece bloqueado.
