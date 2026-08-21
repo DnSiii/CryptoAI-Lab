@@ -1,40 +1,573 @@
 {
   "schema_version": 4,
   "mode": "PAPER_ONLY",
-  "track": "combined",
   "candidate": "CryptoAI V13 + Opportunity Overlay Candidate V1",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-08-20T15:00:00+00:00",
-  "latest_data_timestamp": "2026-08-19T23:00:00+00:00",
-  "status": "waiting_for_boundary",
+  "latest_data_timestamp": "2026-08-20T23:00:00+00:00",
   "summary": {
-    "decision_events": 0,
-    "position_adjustments": 0,
-    "positioned_hours": 0,
-    "positive_hours": 0,
-    "negative_hours": 0,
-    "gross_result_brl": 0.0,
-    "fees_brl": 0.0,
-    "funding_result_brl": 0.0,
-    "total_cost_brl": 0.0,
-    "net_result_brl": 0.0,
-    "current_capital_brl": 10000.0,
-    "highest_capital_brl": 10000.0,
-    "lowest_capital_brl": 10000.0
+    "decision_events": 3,
+    "position_adjustments": 9,
+    "positioned_hours": 8,
+    "positive_hours": 4,
+    "negative_hours": 4,
+    "gross_result_brl": 10.87,
+    "fees_brl": 0.04,
+    "funding_result_brl": -0.63,
+    "total_cost_brl": 0.67,
+    "net_result_brl": 10.2,
+    "current_capital_brl": 10010.2,
+    "highest_capital_brl": 10047.13,
+    "lowest_capital_brl": 9974.62
   },
-  "assets": {},
+  "assets": {
+    "BTCUSDT": {
+      "status": "open",
+      "direction": "buy",
+      "current_weight": 0.15224714,
+      "position_value_brl": 1524.02,
+      "current_price": 72998.7,
+      "tracked_since": "2026-08-20T15:00:00+00:00",
+      "inherited_at_paper_start": true,
+      "gross_result_brl": 11.91,
+      "fees_brl": 0.01,
+      "funding_result_brl": -0.14,
+      "total_cost_brl": 0.15,
+      "net_result_brl": 11.76
+    },
+    "ETHUSDT": {
+      "status": "open",
+      "direction": "buy",
+      "current_weight": 0.46928276,
+      "position_value_brl": 4697.61,
+      "current_price": 2326.18,
+      "tracked_since": "2026-08-20T15:00:00+00:00",
+      "inherited_at_paper_start": true,
+      "gross_result_brl": 2.17,
+      "fees_brl": 0.03,
+      "funding_result_brl": -0.47,
+      "total_cost_brl": 0.5,
+      "net_result_brl": 1.67
+    },
+    "XMRUSDT": {
+      "status": "open",
+      "direction": "buy",
+      "current_weight": 0.01598676,
+      "position_value_brl": 160.03,
+      "current_price": 411.72,
+      "tracked_since": "2026-08-20T15:00:00+00:00",
+      "inherited_at_paper_start": true,
+      "gross_result_brl": -3.21,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.02,
+      "total_cost_brl": 0.02,
+      "net_result_brl": -3.23
+    }
+  },
   "opening_snapshot": {
     "timestamp": "2026-08-20T15:00:00+00:00",
-    "positions": {},
-    "explanation": "Aguardando o mercado ultrapassar a nova fronteira forward."
+    "positions": {
+      "BTCUSDT": 0.15114365,
+      "ETHUSDT": 0.47250729,
+      "XMRUSDT": 0.01609439
+    },
+    "explanation": "Posi\u00e7\u00f5es j\u00e1 existentes no corte inicial; n\u00e3o contam como novas compras do paper."
   },
-  "equity_curve": [],
-  "candles": {},
-  "decisions": [],
+  "equity_curve": [
+    {
+      "timestamp": "2026-08-20T15:00:00+00:00",
+      "equity_multiple": 1.0,
+      "capital_brl": 10000.0,
+      "hour_result_brl": 0.0,
+      "gross_result_brl": 0.0,
+      "fees_brl": 0.0,
+      "funding_result_brl": 0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": 0.0
+    },
+    {
+      "timestamp": "2026-08-20T16:00:00+00:00",
+      "equity_multiple": 1.0047128643,
+      "capital_brl": 10047.13,
+      "hour_result_brl": 47.13,
+      "gross_result_brl": 47.79,
+      "fees_brl": 0.03,
+      "funding_result_brl": -0.63,
+      "total_cost_brl": 0.66,
+      "net_result_brl": 47.13
+    },
+    {
+      "timestamp": "2026-08-20T17:00:00+00:00",
+      "equity_multiple": 1.0040454252,
+      "capital_brl": 10040.45,
+      "hour_result_brl": -6.67,
+      "gross_result_brl": -6.67,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": -6.67
+    },
+    {
+      "timestamp": "2026-08-20T18:00:00+00:00",
+      "equity_multiple": 0.9974617938,
+      "capital_brl": 9974.62,
+      "hour_result_brl": -65.84,
+      "gross_result_brl": -65.84,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": -65.84
+    },
+    {
+      "timestamp": "2026-08-20T19:00:00+00:00",
+      "equity_multiple": 0.9997253441,
+      "capital_brl": 9997.25,
+      "hour_result_brl": 22.64,
+      "gross_result_brl": 22.65,
+      "fees_brl": 0.01,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.01,
+      "net_result_brl": 22.64
+    },
+    {
+      "timestamp": "2026-08-20T20:00:00+00:00",
+      "equity_multiple": 0.9984618037,
+      "capital_brl": 9984.62,
+      "hour_result_brl": -12.64,
+      "gross_result_brl": -12.64,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": -12.64
+    },
+    {
+      "timestamp": "2026-08-20T21:00:00+00:00",
+      "equity_multiple": 0.9988183039,
+      "capital_brl": 9988.18,
+      "hour_result_brl": 3.57,
+      "gross_result_brl": 3.57,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": 3.57
+    },
+    {
+      "timestamp": "2026-08-20T22:00:00+00:00",
+      "equity_multiple": 0.9980957161,
+      "capital_brl": 9980.96,
+      "hour_result_brl": -7.23,
+      "gross_result_brl": -7.22,
+      "fees_brl": 0.01,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.01,
+      "net_result_brl": -7.23
+    },
+    {
+      "timestamp": "2026-08-20T23:00:00+00:00",
+      "equity_multiple": 1.0010199385,
+      "capital_brl": 10010.2,
+      "hour_result_brl": 29.24,
+      "gross_result_brl": 29.24,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": 29.24
+    }
+  ],
+  "candles": {
+    "BTCUSDT": [
+      {
+        "timestamp": "2026-08-20T15:00:00+00:00",
+        "open": 71793.0,
+        "high": 72849.9,
+        "low": 71760.1,
+        "close": 72429.0
+      },
+      {
+        "timestamp": "2026-08-20T16:00:00+00:00",
+        "open": 72429.1,
+        "high": 72887.9,
+        "low": 72159.8,
+        "close": 72805.9
+      },
+      {
+        "timestamp": "2026-08-20T17:00:00+00:00",
+        "open": 72806.0,
+        "high": 72945.3,
+        "low": 72482.9,
+        "close": 72694.6
+      },
+      {
+        "timestamp": "2026-08-20T18:00:00+00:00",
+        "open": 72694.5,
+        "high": 72780.0,
+        "low": 72352.3,
+        "close": 72398.4
+      },
+      {
+        "timestamp": "2026-08-20T19:00:00+00:00",
+        "open": 72398.4,
+        "high": 72748.1,
+        "low": 72280.1,
+        "close": 72649.7
+      },
+      {
+        "timestamp": "2026-08-20T20:00:00+00:00",
+        "open": 72649.8,
+        "high": 73106.9,
+        "low": 72554.0,
+        "close": 72638.5
+      },
+      {
+        "timestamp": "2026-08-20T21:00:00+00:00",
+        "open": 72638.5,
+        "high": 72819.2,
+        "low": 72514.8,
+        "close": 72706.9
+      },
+      {
+        "timestamp": "2026-08-20T22:00:00+00:00",
+        "open": 72706.9,
+        "high": 72854.3,
+        "low": 72458.7,
+        "close": 72648.5
+      },
+      {
+        "timestamp": "2026-08-20T23:00:00+00:00",
+        "open": 72648.4,
+        "high": 73399.7,
+        "low": 72625.0,
+        "close": 72998.7
+      }
+    ],
+    "ETHUSDT": [
+      {
+        "timestamp": "2026-08-20T15:00:00+00:00",
+        "open": 2280.13,
+        "high": 2338.08,
+        "low": 2280.13,
+        "close": 2325.12
+      },
+      {
+        "timestamp": "2026-08-20T16:00:00+00:00",
+        "open": 2325.12,
+        "high": 2359.68,
+        "low": 2313.09,
+        "close": 2343.94
+      },
+      {
+        "timestamp": "2026-08-20T17:00:00+00:00",
+        "open": 2343.94,
+        "high": 2350.62,
+        "low": 2331.61,
+        "close": 2343.1
+      },
+      {
+        "timestamp": "2026-08-20T18:00:00+00:00",
+        "open": 2343.1,
+        "high": 2346.99,
+        "low": 2308.5,
+        "close": 2315.21
+      },
+      {
+        "timestamp": "2026-08-20T19:00:00+00:00",
+        "open": 2315.2,
+        "high": 2332.02,
+        "low": 2310.74,
+        "close": 2322.72
+      },
+      {
+        "timestamp": "2026-08-20T20:00:00+00:00",
+        "open": 2322.73,
+        "high": 2330.51,
+        "low": 2312.15,
+        "close": 2317.55
+      },
+      {
+        "timestamp": "2026-08-20T21:00:00+00:00",
+        "open": 2317.55,
+        "high": 2324.94,
+        "low": 2312.33,
+        "close": 2317.62
+      },
+      {
+        "timestamp": "2026-08-20T22:00:00+00:00",
+        "open": 2317.61,
+        "high": 2318.46,
+        "low": 2306.02,
+        "close": 2313.33
+      },
+      {
+        "timestamp": "2026-08-20T23:00:00+00:00",
+        "open": 2313.32,
+        "high": 2339.38,
+        "low": 2312.07,
+        "close": 2326.18
+      }
+    ],
+    "XMRUSDT": [
+      {
+        "timestamp": "2026-08-20T15:00:00+00:00",
+        "open": 420.68,
+        "high": 421.0,
+        "low": 419.05,
+        "close": 420.16
+      },
+      {
+        "timestamp": "2026-08-20T16:00:00+00:00",
+        "open": 420.19,
+        "high": 425.84,
+        "low": 418.7,
+        "close": 425.23
+      },
+      {
+        "timestamp": "2026-08-20T17:00:00+00:00",
+        "open": 425.23,
+        "high": 425.23,
+        "low": 418.0,
+        "close": 418.34
+      },
+      {
+        "timestamp": "2026-08-20T18:00:00+00:00",
+        "open": 418.34,
+        "high": 420.4,
+        "low": 408.51,
+        "close": 409.5
+      },
+      {
+        "timestamp": "2026-08-20T19:00:00+00:00",
+        "open": 409.51,
+        "high": 419.63,
+        "low": 407.5,
+        "close": 415.14
+      },
+      {
+        "timestamp": "2026-08-20T20:00:00+00:00",
+        "open": 415.14,
+        "high": 415.83,
+        "low": 407.01,
+        "close": 410.15
+      },
+      {
+        "timestamp": "2026-08-20T21:00:00+00:00",
+        "open": 410.14,
+        "high": 416.0,
+        "low": 409.55,
+        "close": 415.21
+      },
+      {
+        "timestamp": "2026-08-20T22:00:00+00:00",
+        "open": 415.21,
+        "high": 422.94,
+        "low": 413.13,
+        "close": 422.06
+      },
+      {
+        "timestamp": "2026-08-20T23:00:00+00:00",
+        "open": 422.06,
+        "high": 422.87,
+        "low": 408.77,
+        "close": 411.72
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "timestamp": "2026-08-20T16:00:00+00:00",
+      "status": "open_or_rebalanced",
+      "reason": "O rob\u00f4 mudou o tamanho das posi\u00e7\u00f5es na abertura desta hora.",
+      "result_scope": "whole_hour_not_trade_profit",
+      "capital_before_brl": 10000.0,
+      "capital_after_hour_brl": 10047.13,
+      "gross_result_brl": 47.79,
+      "fees_brl": 0.03,
+      "funding_result_brl": -0.63,
+      "total_cost_brl": 0.66,
+      "net_result_brl": 47.13,
+      "adjustments": [
+        {
+          "symbol": "BTCUSDT",
+          "action": "Aumentou compra",
+          "action_code": "increase_long",
+          "order_side": "buy",
+          "order_value_brl": 5.88,
+          "previous_weight": 0.15114365,
+          "new_weight": 0.15173186,
+          "execution_price": 72429.1,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 7.89,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.14,
+          "total_cost_brl": 0.14,
+          "net_result_brl": 7.75
+        },
+        {
+          "symbol": "ETHUSDT",
+          "action": "Reduziu compra",
+          "action_code": "reduce_long",
+          "order_side": "sell",
+          "order_value_brl": 36.79,
+          "previous_weight": 0.47250665,
+          "new_weight": 0.46882701,
+          "execution_price": 2325.12,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 37.95,
+          "fees_brl": 0.03,
+          "funding_result_brl": -0.47,
+          "total_cost_brl": 0.5,
+          "net_result_brl": 37.45
+        },
+        {
+          "symbol": "XMRUSDT",
+          "action": "Aumentou compra",
+          "action_code": "increase_long",
+          "order_side": "buy",
+          "order_value_brl": 0.62,
+          "previous_weight": 0.01609552,
+          "new_weight": 0.01615785,
+          "execution_price": 420.19,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 1.95,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.02,
+          "total_cost_brl": 0.02,
+          "net_result_brl": 1.93
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-08-20T19:00:00+00:00",
+      "status": "open_or_rebalanced",
+      "reason": "O rob\u00f4 mudou o tamanho das posi\u00e7\u00f5es na abertura desta hora.",
+      "result_scope": "whole_hour_not_trade_profit",
+      "capital_before_brl": 9974.62,
+      "capital_after_hour_brl": 9997.25,
+      "gross_result_brl": 22.65,
+      "fees_brl": 0.01,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.01,
+      "net_result_brl": 22.64,
+      "adjustments": [
+        {
+          "symbol": "BTCUSDT",
+          "action": "Reduziu compra",
+          "action_code": "reduce_long",
+          "order_side": "sell",
+          "order_value_brl": 0.59,
+          "previous_weight": 0.15204389,
+          "new_weight": 0.15198454,
+          "execution_price": 72398.4,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 5.26,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.0,
+          "net_result_brl": 5.26
+        },
+        {
+          "symbol": "ETHUSDT",
+          "action": "Aumentou compra",
+          "action_code": "increase_long",
+          "order_side": "buy",
+          "order_value_brl": 5.88,
+          "previous_weight": 0.46798515,
+          "new_weight": 0.46857434,
+          "execution_price": 2315.2,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 15.16,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.0,
+          "net_result_brl": 15.16
+        },
+        {
+          "symbol": "XMRUSDT",
+          "action": "Aumentou compra",
+          "action_code": "increase_long",
+          "order_side": "buy",
+          "order_value_brl": 3.71,
+          "previous_weight": 0.01578624,
+          "new_weight": 0.01615785,
+          "execution_price": 409.51,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 2.23,
+          "fees_brl": 0.01,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.01,
+          "net_result_brl": 2.22
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-08-20T22:00:00+00:00",
+      "status": "open_or_rebalanced",
+      "reason": "O rob\u00f4 mudou o tamanho das posi\u00e7\u00f5es na abertura desta hora.",
+      "result_scope": "whole_hour_not_trade_profit",
+      "capital_before_brl": 9988.18,
+      "capital_after_hour_brl": 9980.96,
+      "gross_result_brl": -7.22,
+      "fees_brl": 0.01,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.01,
+      "net_result_brl": -7.23,
+      "adjustments": [
+        {
+          "symbol": "BTCUSDT",
+          "action": "Reduziu compra",
+          "action_code": "reduce_long",
+          "order_side": "sell",
+          "order_value_brl": 4.51,
+          "previous_weight": 0.15242482,
+          "new_weight": 0.1519732,
+          "execution_price": 72706.9,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": -1.22,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.0,
+          "net_result_brl": -1.22
+        },
+        {
+          "symbol": "ETHUSDT",
+          "action": "Aumentou compra",
+          "action_code": "increase_long",
+          "order_side": "buy",
+          "order_value_brl": 1.61,
+          "previous_weight": 0.4684249,
+          "new_weight": 0.46858567,
+          "execution_price": 2317.61,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": -8.66,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.0,
+          "net_result_brl": -8.66
+        },
+        {
+          "symbol": "XMRUSDT",
+          "action": "Reduziu compra",
+          "action_code": "reduce_long",
+          "order_side": "sell",
+          "order_value_brl": 2.02,
+          "previous_weight": 0.0163605,
+          "new_weight": 0.01615785,
+          "execution_price": 415.21,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 2.66,
+          "fees_brl": 0.01,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.01,
+          "net_result_brl": 2.65
+        }
+      ]
+    }
+  ],
   "explanation": {
     "gross": "Resultado dos movimentos de pre\u00e7o antes de taxas e funding.",
     "cost": "Taxas mais funding pago, descontando funding recebido.",
     "net": "O que sobrou: bruto menos custos.",
-    "open_positions": "Nenhuma posi\u00e7\u00e3o forward \u00e9 contada antes da nova fronteira."
-  }
+    "open_positions": "Aberta significa que o rob\u00f4 ainda mant\u00e9m exposi\u00e7\u00e3o. O resultado pode mudar a cada nova vela."
+  },
+  "track": "combined",
+  "status": "tracking"
 }
