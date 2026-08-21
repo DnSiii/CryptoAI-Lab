@@ -71,7 +71,8 @@ jobs:
             for path in \
               state/paper_v13_state.json \
               reports/paper_v13_snapshot.json \
-              state/paper_opportunity_v1_state.json; do
+              state/paper_opportunity_v1_state.json \
+              state/paper_v14_state.json; do
               if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
                 mkdir -p "$(dirname "$path")"
                 git show "FETCH_HEAD:$path" > "$path"
@@ -91,10 +92,14 @@ jobs:
       - name: Run the separate opportunity comparison cycle
         run: python scripts/paper_once_opportunity_v1.py
 
+      - name: Run the maximum-capture V14 paper cycle
+        run: python scripts/paper_once_v14.py
+
       - name: Verify paper safety and freshness
         run: |
           python scripts/verify_paper_cycle_v13.py
           python scripts/verify_opportunity_cycle_v1.py
+          python scripts/verify_v14_cycle.py
 
       - name: Save today's canonical market cache
         if: steps.market-cache.outputs.cache-hit != 'true'
@@ -122,6 +127,9 @@ jobs:
             reports/paper_opportunity_v1_ledger.json
             reports/paper_combined_v1_ledger.json
             reports/paper_comparison_v1.json
+            state/paper_v14_state.json
+            reports/paper_v14_snapshot.json
+            reports/paper_v14_ledger.json
 
       - name: Publish durable paper results
         shell: bash
@@ -149,6 +157,9 @@ jobs:
           cp reports/paper_opportunity_v1_ledger.json "$results_dir/reports/paper_opportunity_v1_ledger.json"
           cp reports/paper_combined_v1_ledger.json "$results_dir/reports/paper_combined_v1_ledger.json"
           cp reports/paper_comparison_v1.json "$results_dir/reports/paper_comparison_v1.json"
+          cp state/paper_v14_state.json "$results_dir/state/paper_v14_state.json"
+          cp reports/paper_v14_snapshot.json "$results_dir/reports/paper_v14_snapshot.json"
+          cp reports/paper_v14_ledger.json "$results_dir/reports/paper_v14_ledger.json"
           git -C "$results_dir" add \
             state/paper_v13_state.json \
             reports/paper_v13_snapshot.json \
@@ -161,7 +172,10 @@ jobs:
             reports/paper_core_comparison_v1_ledger.json \
             reports/paper_opportunity_v1_ledger.json \
             reports/paper_combined_v1_ledger.json \
-            reports/paper_comparison_v1.json
+            reports/paper_comparison_v1.json \
+            state/paper_v14_state.json \
+            reports/paper_v14_snapshot.json \
+            reports/paper_v14_ledger.json
           if ! git -C "$results_dir" diff --cached --quiet; then
             git -C "$results_dir" commit -m "Update V13 paper snapshot ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results

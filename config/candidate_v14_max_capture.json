@@ -1,0 +1,67 @@
+{
+  "name": "CryptoAI V14 · Máxima Captura",
+  "version": "v14-max-capture-2026-08-21",
+  "mode": "PAPER_ONLY",
+  "research_status": "historical leader selected for a new forward paper; not approved for real capital",
+  "objective": {
+    "primary": "maximize terminal compounded wealth after modeled costs",
+    "no_return_ceiling": true,
+    "monthly_target": null,
+    "risk_is_a_hard_constraint_not_the_optimization_target": true
+  },
+  "frozen_core_config": "candidate_v13_circuit_breaker.json",
+  "opportunity": {
+    "family": "impulse",
+    "spec": {
+      "family": "impulse",
+      "lookback": 48,
+      "rebalance": 3,
+      "top_n": 2,
+      "fast": 24,
+      "slow": 336,
+      "vol_lookback": 168,
+      "vol_target": 0.8,
+      "leverage_cap": 1.0,
+      "trend_lookback": 168,
+      "long_short_balance": 0.8,
+      "threshold": 0.015,
+      "exit_lookback": 24,
+      "volume_multiple": 2.0,
+      "stop_loss": 0.03,
+      "trailing_stop": 0.2,
+      "max_holding": 168,
+      "rebalance_phase": 0,
+      "trend_filter_hours": 336,
+      "cooldown_hours": 24
+    }
+  },
+  "allocation": {
+    "maximum_overlay_gross": 0.225,
+    "maximum_portfolio_gross": 1.575,
+    "gross_drift_guard_cap": 1.725,
+    "frozen_v13_core_is_preserved": true
+  },
+  "circuit_breaker": {
+    "drawdown_threshold": 0.18,
+    "exposure_multiplier": 0.6,
+    "cooldown_hours": 168
+  },
+  "historical_selection": {
+    "tested_configurations": 84,
+    "eligible_under_base_risk_constraint": 29,
+    "terminal_wealth_multiple": 54.0072079201,
+    "maximum_drawdown": -0.3249672803,
+    "independent_episodes": 214,
+    "realized_episode_counts": {
+      "4pct": 48,
+      "8pct": 33,
+      "15pct": 19,
+      "20pct": 15,
+      "30pct": 7,
+      "40pct": 2
+    },
+    "best_realized_episode": 0.6603253702,
+    "disclosure": "researched historical replay; not a pristine holdout and not a profit promise"
+  },
+  "real_orders": false
+}
