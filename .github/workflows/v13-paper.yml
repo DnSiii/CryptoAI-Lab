@@ -1,8 +1,8 @@
 # GitHub-hosted runners poll Binance's official checksummed daily archives.
 # The compact ledgers power the private didactic dashboard.
 # The original V13 keeps its own history. A second shared boundary compares the
-# core, the opportunity overlay, and the combined portfolio fairly.
-name: CryptoAI V13 plus Opportunities hourly paper
+# core, opportunity tracks, V14, and the V15 challenger independently.
+name: CryptoAI multi-engine hourly paper
 
 on:
   push:
@@ -56,8 +56,9 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: data/canonical
-          key: ${{ runner.os }}-paper-v13-market-${{ steps.utc.outputs.date }}
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
           restore-keys: |
+            ${{ runner.os }}-paper-v15-market-v1-
             ${{ runner.os }}-paper-v13-market-
 
       - name: Install the frozen package
@@ -72,7 +73,9 @@ jobs:
               state/paper_v13_state.json \
               reports/paper_v13_snapshot.json \
               state/paper_opportunity_v1_state.json \
-              state/paper_v14_state.json; do
+              state/paper_v14_state.json \
+              state/paper_v15_state.json \
+              state/paper_v15_universe.json; do
               if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
                 mkdir -p "$(dirname "$path")"
                 git show "FETCH_HEAD:$path" > "$path"
@@ -86,6 +89,9 @@ jobs:
       - name: Bootstrap or increment public Binance data
         run: python scripts/sync_paper_data_v13.py
 
+      - name: Discover and synchronize the expanded V15 universe
+        run: python scripts/sync_paper_data_v15.py
+
       - name: Run one paper-only cycle
         run: python scripts/paper_once_v13.py
 
@@ -95,18 +101,22 @@ jobs:
       - name: Run the maximum-capture V14 paper cycle
         run: python scripts/paper_once_v14.py
 
+      - name: Run the V14-derived adaptive V15 paper cycle
+        run: python scripts/paper_once_v15.py
+
       - name: Verify paper safety and freshness
         run: |
           python scripts/verify_paper_cycle_v13.py
           python scripts/verify_opportunity_cycle_v1.py
           python scripts/verify_v14_cycle.py
+          python scripts/verify_v15_cycle.py
 
       - name: Save today's canonical market cache
         if: steps.market-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: data/canonical
-          key: ${{ runner.os }}-paper-v13-market-${{ steps.utc.outputs.date }}
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
 
       - name: Upload a compact audit artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -130,6 +140,11 @@ jobs:
             state/paper_v14_state.json
             reports/paper_v14_snapshot.json
             reports/paper_v14_ledger.json
+            state/paper_v15_universe.json
+            state/paper_v15_state.json
+            reports/paper_data_sync_v15.json
+            reports/paper_v15_snapshot.json
+            reports/paper_v15_ledger.json
 
       - name: Publish durable paper results
         shell: bash
@@ -160,6 +175,11 @@ jobs:
           cp state/paper_v14_state.json "$results_dir/state/paper_v14_state.json"
           cp reports/paper_v14_snapshot.json "$results_dir/reports/paper_v14_snapshot.json"
           cp reports/paper_v14_ledger.json "$results_dir/reports/paper_v14_ledger.json"
+          cp state/paper_v15_universe.json "$results_dir/state/paper_v15_universe.json"
+          cp state/paper_v15_state.json "$results_dir/state/paper_v15_state.json"
+          cp reports/paper_data_sync_v15.json "$results_dir/reports/paper_data_sync_v15.json"
+          cp reports/paper_v15_snapshot.json "$results_dir/reports/paper_v15_snapshot.json"
+          cp reports/paper_v15_ledger.json "$results_dir/reports/paper_v15_ledger.json"
           git -C "$results_dir" add \
             state/paper_v13_state.json \
             reports/paper_v13_snapshot.json \
@@ -175,8 +195,13 @@ jobs:
             reports/paper_comparison_v1.json \
             state/paper_v14_state.json \
             reports/paper_v14_snapshot.json \
-            reports/paper_v14_ledger.json
+            reports/paper_v14_ledger.json \
+            state/paper_v15_universe.json \
+            state/paper_v15_state.json \
+            reports/paper_data_sync_v15.json \
+            reports/paper_v15_snapshot.json \
+            reports/paper_v15_ledger.json
           if ! git -C "$results_dir" diff --cached --quiet; then
-            git -C "$results_dir" commit -m "Update V13 paper snapshot ${{ steps.utc.outputs.date }}"
+            git -C "$results_dir" commit -m "Update CryptoAI paper snapshot ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results
           fi

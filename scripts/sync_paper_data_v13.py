@@ -307,7 +307,9 @@ def available_days(start: pd.Timestamp, now: pd.Timestamp) -> list[str]:
     return [day.strftime("%Y-%m-%d") for day in pd.date_range(first, last, freq="d")]
 
 
-def append_klines(symbol: str, now: pd.Timestamp) -> dict[str, object]:
+def append_klines(
+    symbol: str, now: pd.Timestamp, allow_daily_without_seed: bool = False
+) -> dict[str, object]:
     path = PROJECT / "data" / "canonical" / f"{symbol}_1h.csv"
     current = pd.read_csv(path)
     current["timestamp"] = pd.to_datetime(current["timestamp"], utc=True)
@@ -315,11 +317,9 @@ def append_klines(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     previous_last = current["timestamp"].max()
     frames: list[pd.DataFrame] = []
     archives_found = 0
-    days = (
-        available_days(previous_last, now)
-        if f"{symbol}_1h.csv" in paper_seed_names()
-        else []
-    )
+    days = available_days(previous_last, now) if (
+        allow_daily_without_seed or f"{symbol}_1h.csv" in paper_seed_names()
+    ) else []
     for day in days:
         payload = verified_archive(archive_url("klines", symbol, day))
         if payload is None:
@@ -350,7 +350,9 @@ def append_klines(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     }
 
 
-def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
+def append_funding(
+    symbol: str, now: pd.Timestamp, allow_daily_without_seed: bool = False
+) -> dict[str, object]:
     path = PROJECT / "data" / "canonical" / f"{symbol}_funding.csv"
     current = pd.read_csv(path)
     original_count = len(current)
@@ -364,11 +366,9 @@ def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     archives_found = 0
     public_rest_records = 0
     public_rest_source = None
-    days = (
-        available_days(start, now)
-        if f"{symbol}_funding.csv" in paper_seed_names()
-        else []
-    )
+    days = available_days(start, now) if (
+        allow_daily_without_seed or f"{symbol}_funding.csv" in paper_seed_names()
+    ) else []
     for day in days:
         payload = verified_archive(archive_url("funding", symbol, day))
         if payload is None:
@@ -429,10 +429,12 @@ def append_funding(symbol: str, now: pd.Timestamp) -> dict[str, object]:
     }
 
 
-def sync_symbol(symbol: str, now: pd.Timestamp) -> tuple[str, dict[str, object]]:
+def sync_symbol(
+    symbol: str, now: pd.Timestamp, allow_daily_without_seed: bool = False
+) -> tuple[str, dict[str, object]]:
     return symbol, {
-        "klines": append_klines(symbol, now),
-        "funding": append_funding(symbol, now),
+        "klines": append_klines(symbol, now, allow_daily_without_seed),
+        "funding": append_funding(symbol, now, allow_daily_without_seed),
     }
 
 

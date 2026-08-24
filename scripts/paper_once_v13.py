@@ -39,7 +39,7 @@ def quarantine_stale_funding(
         if symbol not in safe_targets.columns or symbol not in last_funding:
             continue
         cutoff = pd.Timestamp(last_funding[symbol]) + pd.Timedelta(
-            hours=maximum_lag_hours
+            f"{int(maximum_lag_hours)}h"
         )
         unavailable = safe_targets.index > cutoff
         safe_targets.loc[unavailable, symbol] = 0.0
@@ -50,11 +50,13 @@ def quarantine_stale_funding(
 
 
 def apply_funding_quarantine(
-    data: FuturesData, targets: pd.DataFrame
+    data: FuturesData,
+    targets: pd.DataFrame,
+    report_path: Path = SYNC_REPORT_PATH,
 ) -> tuple[FuturesData, pd.DataFrame, list[str]]:
-    if not SYNC_REPORT_PATH.exists():
+    if not report_path.exists():
         return data, targets, []
-    report = json.loads(SYNC_REPORT_PATH.read_text())
+    report = json.loads(report_path.read_text())
     stale_symbols = list(report.get("funding_stale", []))
     last_funding: dict[str, pd.Timestamp] = {}
     for symbol in stale_symbols:
