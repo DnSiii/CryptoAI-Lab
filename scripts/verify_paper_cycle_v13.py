@@ -87,7 +87,7 @@ def main() -> None:
         )
     if (
         sync.get("source_method")
-        != "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST"
+        != "OFFICIAL_ARCHIVES_PLUS_PUBLIC_CLOSED_KLINES_AND_FUNDING_REST"
     ):
         raise RuntimeError("fontes públicas oficiais não estão configuradas")
     lag = int(sync.get("publication_lag_hours", -1))
