@@ -16,7 +16,12 @@ sys.path.insert(0, str(PROJECT / "scripts"))
 from cryptoai_v13.data import FuturesData
 from paper_once_v13 import quarantine_stale_funding, resolve_paper_start
 from run_final_candidate import frozen_component_rows
-from sync_paper_data_v13 import public_funding_frame, public_funding_url
+from sync_paper_data_v13 import (
+    public_funding_frame,
+    public_funding_url,
+    public_klines_frame,
+    public_klines_url,
+)
 
 
 class PaperAutomationTests(unittest.TestCase):
@@ -69,11 +74,13 @@ class PaperAutomationTests(unittest.TestCase):
     def test_data_sync_uses_only_official_public_market_data(self) -> None:
         source = (PROJECT / "scripts" / "sync_paper_data_v13.py").read_text()
         self.assertIn("https://data.binance.vision/data/futures/um/daily", source)
+        self.assertIn("https://fapi.binance.com/fapi/v1/klines", source)
+        self.assertIn("https://www.binance.com/fapi/v1/klines", source)
         self.assertIn("https://fapi.binance.com/fapi/v1/fundingRate", source)
         self.assertIn("https://www.binance.com/fapi/v1/fundingRate", source)
         self.assertIn(".CHECKSUM", source)
         self.assertIn(
-            "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST", source
+            "OFFICIAL_ARCHIVES_PLUS_PUBLIC_CLOSED_KLINES_AND_FUNDING_REST", source
         )
         for forbidden in (
             "/fapi/v1/order",
@@ -104,6 +111,27 @@ class PaperAutomationTests(unittest.TestCase):
             pd.Timestamp("2026-01-02", tz="UTC"),
         )
         self.assertIn("symbol=BTCUSDT", url)
+        self.assertNotIn("signature", url)
+        self.assertNotIn("apiKey", url)
+
+    def test_public_kline_response_keeps_only_closed_hours_without_credentials(self) -> None:
+        payload = (
+            b'[[1767225600000,"100","110","90","105","12",'
+            b'1767229199999,"1250",42,"6","630","0"],'
+            b'[1767229200000,"105","120","100","118","15",'
+            b'1767232799999,"1700",48,"8","900","0"]]'
+        )
+        latest_closed = pd.Timestamp("2026-01-01T00:00:00Z")
+        frame = public_klines_frame(payload, latest_closed)
+        self.assertEqual(frame["timestamp"].tolist(), [latest_closed])
+        self.assertEqual(frame["close"].tolist(), [105])
+        url = public_klines_url(
+            "BTCUSDT",
+            pd.Timestamp("2026-01-01", tz="UTC"),
+            latest_closed,
+        )
+        self.assertIn("symbol=BTCUSDT", url)
+        self.assertIn("interval=1h", url)
         self.assertNotIn("signature", url)
         self.assertNotIn("apiKey", url)
 
