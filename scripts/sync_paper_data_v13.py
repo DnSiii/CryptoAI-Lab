@@ -20,6 +20,8 @@ import pandas as pd
 
 PROJECT = Path(__file__).resolve().parents[1]
 PUBLIC_ARCHIVE = "https://data.binance.vision/data/futures/um/daily"
+PUBLIC_KLINES_REST = "https://fapi.binance.com/fapi/v1/klines"
+PUBLIC_KLINES_REST_FALLBACK = "https://www.binance.com/fapi/v1/klines"
 PUBLIC_FUNDING_REST = "https://fapi.binance.com/fapi/v1/fundingRate"
 PUBLIC_FUNDING_REST_FALLBACK = "https://www.binance.com/fapi/v1/fundingRate"
 PAPER_SEED_ARCHIVE = PROJECT / "data" / "paper_seed_v13.zip"
@@ -228,6 +230,82 @@ def archive_csv(payload: bytes, names: tuple[str, ...] | None = None) -> pd.Data
             return pd.read_csv(stream, names=names, header=None if names else "infer")
 
 
+def public_klines_url(
+    symbol: str,
+    start: pd.Timestamp,
+    end: pd.Timestamp,
+    base_url: str = PUBLIC_KLINES_REST,
+) -> str:
+    query = urllib.parse.urlencode(
+        {
+            "symbol": symbol,
+            "interval": "1h",
+            "startTime": int(start.timestamp() * 1000),
+            # Binance filters by candle open time. Including the final millisecond
+            # lets the target hour through while the parser still rejects any
+            # candle that has not fully closed.
+            "endTime": int((end + pd.Timedelta("1h")).timestamp() * 1000) - 1,
+            "limit": 1500,
+        }
+    )
+    return f"{base_url}?{query}"
+
+
+def request_public_klines(
+    symbol: str, start: pd.Timestamp, end: pd.Timestamp
+) -> tuple[bytes | None, str | None]:
+    errors: list[str] = []
+    for base_url in (PUBLIC_KLINES_REST, PUBLIC_KLINES_REST_FALLBACK):
+        try:
+            payload = request_bytes(
+                public_klines_url(symbol, start, end, base_url),
+                missing_statuses=(400, 404),
+            )
+            return payload, base_url
+        except RuntimeError as exc:
+            errors.append(str(exc))
+    raise RuntimeError(
+        f"candles públicos indisponíveis para {symbol}: {' | '.join(errors)}"
+    )
+
+
+def public_klines_frame(
+    payload: bytes | None,
+    latest_allowed_open: pd.Timestamp,
+) -> pd.DataFrame:
+    if not payload:
+        return pd.DataFrame(columns=CANONICAL_COLUMNS)
+    rows = json.loads(payload.decode())
+    if not isinstance(rows, list):
+        raise RuntimeError("resposta pública de candles não é uma lista")
+    if not rows:
+        return pd.DataFrame(columns=CANONICAL_COLUMNS)
+    if any(
+        not isinstance(row, list) or len(row) < len(KLINE_COLUMNS)
+        for row in rows
+    ):
+        raise RuntimeError("resposta pública de candles sem campos obrigatórios")
+    incoming = pd.DataFrame(rows, columns=KLINE_COLUMNS)
+    incoming["timestamp"] = pd.to_datetime(
+        pd.to_numeric(incoming["open_time"], errors="raise"),
+        unit="ms",
+        utc=True,
+    )
+    for column in CANONICAL_COLUMNS[1:]:
+        incoming[column] = pd.to_numeric(incoming[column], errors="raise")
+    latest_allowed = pd.Timestamp(latest_allowed_open)
+    if latest_allowed.tzinfo is None:
+        latest_allowed = latest_allowed.tz_localize("UTC")
+    else:
+        latest_allowed = latest_allowed.tz_convert("UTC")
+    incoming = incoming.loc[incoming["timestamp"] <= latest_allowed]
+    return (
+        incoming[list(CANONICAL_COLUMNS)]
+        .drop_duplicates("timestamp", keep="last")
+        .sort_values("timestamp")
+    )
+
+
 def public_funding_url(
     symbol: str,
     start: pd.Timestamp,
@@ -317,6 +395,8 @@ def append_klines(
     previous_last = current["timestamp"].max()
     frames: list[pd.DataFrame] = []
     archives_found = 0
+    public_rest_records = 0
+    public_rest_source = None
     days = available_days(previous_last, now) if (
         allow_daily_without_seed or f"{symbol}_1h.csv" in paper_seed_names()
     ) else []
@@ -333,6 +413,34 @@ def append_klines(
         for column in CANONICAL_COLUMNS[1:]:
             incoming[column] = pd.to_numeric(incoming[column], errors="raise")
         frames.append(incoming[list(CANONICAL_COLUMNS)])
+    latest_before_rest = max(
+        [
+            timestamp
+            for timestamp in [
+                previous_last,
+                *(frame["timestamp"].max() for frame in frames if len(frame)),
+            ]
+            if timestamp is not None and pd.notna(timestamp)
+        ]
+    )
+    rest_cursor = latest_before_rest + pd.Timedelta(hours=1)
+    rest_end = latest_closed_hour(now)
+    while rest_cursor <= rest_end:
+        payload, public_rest_source = request_public_klines(
+            symbol, rest_cursor, rest_end
+        )
+        rest_frame = public_klines_frame(payload, rest_end)
+        rest_frame = rest_frame.loc[rest_frame["timestamp"] >= rest_cursor]
+        if rest_frame.empty:
+            break
+        frames.append(rest_frame)
+        public_rest_records += len(rest_frame)
+        next_cursor = pd.Timestamp(rest_frame["timestamp"].max()) + pd.Timedelta(
+            hours=1
+        )
+        if next_cursor <= rest_cursor:
+            raise RuntimeError(f"paginação de candles não avançou para {symbol}")
+        rest_cursor = next_cursor
     if frames:
         combined = pd.concat(
             [current[list(CANONICAL_COLUMNS)], *frames],
@@ -347,6 +455,8 @@ def append_klines(
         "latest": latest.isoformat(),
         "rows_added": int(len(current) - original_count),
         "archives_found": archives_found,
+        "public_rest_records": public_rest_records,
+        "public_rest_source": public_rest_source,
     }
 
 
@@ -522,10 +632,12 @@ def main() -> None:
         "private_api_used": False,
         "source": [
             PUBLIC_ARCHIVE,
+            PUBLIC_KLINES_REST,
+            PUBLIC_KLINES_REST_FALLBACK,
             PUBLIC_FUNDING_REST,
             PUBLIC_FUNDING_REST_FALLBACK,
         ],
-        "source_method": "OFFICIAL_CHECKSUMMED_ARCHIVES_PLUS_PUBLIC_FUNDING_REST",
+        "source_method": "OFFICIAL_ARCHIVES_PLUS_PUBLIC_CLOSED_KLINES_AND_FUNDING_REST",
         "generated_at_utc": now.isoformat(),
         "target_latest_closed_hour": target.isoformat(),
         "expected_latest_closed_hour": (
