@@ -262,4 +262,9 @@ jobs:
             # retry loop while still recovering much faster than an hourly cron.
             sleep 300
           fi
+          active_count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow v13-paper.yml --limit 30 --json status --jq '[.[] | select(.status != "completed")] | length')"
+          if [ "$active_count" -gt 1 ]; then
+            echo "A newer paper refresh is already queued; it will continue the chain."
+            exit 0
+          fi
           gh workflow run v13-paper.yml --repo "$GITHUB_REPOSITORY" --ref main
