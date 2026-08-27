@@ -1,0 +1,79 @@
+name: CryptoAI paper freshness guard
+
+on:
+  schedule:
+    # Lightweight watchdog. It does not run a strategy or touch paper state.
+    - cron: "1,6,11,16,21,26,31,36,41,46,51,56 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: cryptoai-paper-freshness-guard
+  cancel-in-progress: true
+
+jobs:
+  recover-if-stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the last successful paper heartbeat
+        id: heartbeat
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.request
+          from datetime import datetime, timezone
+
+          repository = os.environ["REPOSITORY"]
+          token = os.environ["GH_TOKEN"]
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{repository}/contents/reports/paper_runtime_status.json?ref=paper-results",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              },
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  envelope = json.load(response)
+              payload = json.loads(base64.b64decode(envelope["content"]).decode("utf-8"))
+              heartbeat = datetime.fromisoformat(payload["heartbeat_at_utc"].replace("Z", "+00:00"))
+              age_minutes = (datetime.now(timezone.utc) - heartbeat).total_seconds() / 60
+              stale = age_minutes > 25
+              print(f"heartbeat_age_minutes={age_minutes:.1f}")
+          except Exception as error:
+              # A missing heartbeat is also recoverable: the next normal cycle
+              # will create it, while this guard asks GitHub to start one now.
+              stale = True
+              print(f"heartbeat_check_error={error}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"stale={'true' if stale else 'false'}\n")
+          PY
+
+      - name: Check whether a paper refresh is already running
+        id: active
+        if: steps.heartbeat.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          active_count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow v13-paper.yml --limit 30 --json status --jq '[.[] | select(.status != "completed")] | length')"
+          echo "count=$active_count" >> "$GITHUB_OUTPUT"
+
+      - name: Recover the paper refresh
+        if: steps.heartbeat.outputs.stale == 'true' && steps.active.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run v13-paper.yml --repo "$GITHUB_REPOSITORY" --ref main
