@@ -65,7 +65,7 @@ class PaperAutomationTests(unittest.TestCase):
             '"tests/**"',
         ):
             self.assertIn(watched_path, source)
-        self.assertIn('cron: "17 * * * *"', source)
+        self.assertIn('cron: "3,13,23,33,43,53 * * * *"', source)
         self.assertIn("workflow_dispatch:", source)
         self.assertIn("paper-results", source)
         self.assertNotIn("secrets.", source)
