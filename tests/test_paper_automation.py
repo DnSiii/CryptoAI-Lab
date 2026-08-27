@@ -55,7 +55,7 @@ class PaperAutomationTests(unittest.TestCase):
             timestamps.max(), pd.Timestamp("2026-08-14T03:00:00+00:00")
         )
 
-    def test_workflow_is_scheduled_manual_and_has_no_secret_dependency(self) -> None:
+    def test_workflow_is_recurrent_manual_and_has_no_secret_dependency(self) -> None:
         source = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
         for watched_path in (
             '".github/workflows/v13-paper.yml"',
@@ -65,8 +65,9 @@ class PaperAutomationTests(unittest.TestCase):
             '"tests/**"',
         ):
             self.assertIn(watched_path, source)
-        self.assertIn('cron: "3,13,23,33,43,53 * * * *"', source)
         self.assertIn("workflow_dispatch:", source)
+        self.assertIn("Queue the next paper refresh", source)
+        self.assertIn("gh workflow run v13-paper.yml", source)
         self.assertIn("paper-results", source)
         self.assertNotIn("secrets.", source)
         self.assertIn("cancel-in-progress: false", source)
