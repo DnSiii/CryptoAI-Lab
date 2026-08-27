@@ -2,7 +2,7 @@
 # The compact ledgers power the private didactic dashboard.
 # The original V13 keeps its own history. A second shared boundary compares the
 # core, opportunity tracks, V14, and the V15 challenger independently.
-name: CryptoAI multi-engine hourly paper
+name: CryptoAI multi-engine paper refresh
 
 on:
   push:
@@ -14,7 +14,10 @@ on:
       - "src/**"
       - "tests/**"
   schedule:
-    - cron: "17 * * * *"
+    # The strategies still use only completed 1-hour candles. Running the
+    # publisher every 10 minutes makes a newly closed candle visible quickly
+    # and gives GitHub's best-effort scheduler several chances to recover.
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -111,6 +114,44 @@ jobs:
           python scripts/verify_v14_cycle.py
           python scripts/verify_v15_cycle.py
 
+      - name: Write paper publication heartbeat
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          report_dir = Path("reports")
+          ledgers = {
+              "v13": report_dir / "paper_v13_ledger.json",
+              "v14": report_dir / "paper_v14_ledger.json",
+              "v15": report_dir / "paper_v15_ledger.json",
+          }
+          latest = {
+              name: json.loads(path.read_text(encoding="utf-8"))["latest_data_timestamp"]
+              for name, path in ledgers.items()
+          }
+          (report_dir / "paper_runtime_status.json").write_text(
+              json.dumps(
+                  {
+                      "schema_version": 1,
+                      "status": "completed",
+                      "heartbeat_at_utc": datetime.now(timezone.utc).isoformat(),
+                      "workflow_run_id": os.environ.get("GITHUB_RUN_ID"),
+                      "workflow_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+                      "latest_official_timestamps": latest,
+                      "note": "Operational heartbeat only. It does not alter any candidate, position, or calculation.",
+                  },
+                  ensure_ascii=False,
+                  indent=2,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+
       - name: Save today's canonical market cache
         if: steps.market-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -145,6 +186,7 @@ jobs:
             reports/paper_data_sync_v15.json
             reports/paper_v15_snapshot.json
             reports/paper_v15_ledger.json
+            reports/paper_runtime_status.json
 
       - name: Publish durable paper results
         shell: bash
@@ -180,6 +222,7 @@ jobs:
           cp reports/paper_data_sync_v15.json "$results_dir/reports/paper_data_sync_v15.json"
           cp reports/paper_v15_snapshot.json "$results_dir/reports/paper_v15_snapshot.json"
           cp reports/paper_v15_ledger.json "$results_dir/reports/paper_v15_ledger.json"
+          cp reports/paper_runtime_status.json "$results_dir/reports/paper_runtime_status.json"
           git -C "$results_dir" add \
             state/paper_v13_state.json \
             reports/paper_v13_snapshot.json \
@@ -200,7 +243,8 @@ jobs:
             state/paper_v15_state.json \
             reports/paper_data_sync_v15.json \
             reports/paper_v15_snapshot.json \
-            reports/paper_v15_ledger.json
+            reports/paper_v15_ledger.json \
+            reports/paper_runtime_status.json
           if ! git -C "$results_dir" diff --cached --quiet; then
             git -C "$results_dir" commit -m "Update CryptoAI paper snapshot ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results
