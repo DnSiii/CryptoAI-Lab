@@ -13,14 +13,10 @@ on:
       - "scripts/**"
       - "src/**"
       - "tests/**"
-  schedule:
-    # The strategies still use only completed 1-hour candles. Running the
-    # publisher every 10 minutes makes a newly closed candle visible quickly
-    # and gives GitHub's best-effort scheduler several chances to recover.
-    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -249,3 +245,21 @@ jobs:
             git -C "$results_dir" commit -m "Update CryptoAI paper snapshot ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results
           fi
+
+      - name: Queue the next paper refresh
+        if: always()
+        # GitHub's cron scheduler is best-effort. Each paper cycle queues its
+        # successor, including a deliberately delayed retry after a failure.
+        # This only restarts the same workflow; it does not change any
+        # candidate or paper calculation.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS_RESULT: ${{ job.status }}
+        shell: bash
+        run: |
+          if [ "$PREVIOUS_RESULT" != "success" ]; then
+            # Prevent an infrastructure or test failure from creating a tight
+            # retry loop while still recovering much faster than an hourly cron.
+            sleep 300
+          fi
+          gh workflow run v13-paper.yml --repo "$GITHUB_REPOSITORY" --ref main
