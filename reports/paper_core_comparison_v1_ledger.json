@@ -4,19 +4,19 @@
   "candidate": "N\u00facleo V13 \u2014 mesmo per\u00edodo",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-08-20T15:00:00+00:00",
-  "latest_data_timestamp": "2026-08-28T12:00:00+00:00",
+  "latest_data_timestamp": "2026-08-28T13:00:00+00:00",
   "summary": {
-    "decision_events": 63,
-    "position_adjustments": 126,
-    "positioned_hours": 189,
-    "positive_hours": 95,
+    "decision_events": 64,
+    "position_adjustments": 128,
+    "positioned_hours": 190,
+    "positive_hours": 96,
     "negative_hours": 94,
-    "gross_result_brl": 459.91,
+    "gross_result_brl": 475.84,
     "fees_brl": 1.96,
     "funding_result_brl": -10.79,
     "total_cost_brl": 12.75,
-    "net_result_brl": 447.16,
-    "current_capital_brl": 10447.16,
+    "net_result_brl": 463.09,
+    "current_capital_brl": 10463.09,
     "highest_capital_brl": 10517.04,
     "lowest_capital_brl": 9979.66
   },
@@ -24,30 +24,30 @@
     "BTCUSDT": {
       "status": "open",
       "direction": "buy",
-      "current_weight": 0.13460401,
-      "position_value_brl": 1406.23,
-      "current_price": 79383.7,
+      "current_weight": 0.13424709,
+      "position_value_brl": 1404.64,
+      "current_price": 79279.9,
       "tracked_since": "2026-08-20T15:00:00+00:00",
       "inherited_at_paper_start": true,
-      "gross_result_brl": 135.34,
+      "gross_result_brl": 133.5,
       "fees_brl": 0.48,
       "funding_result_brl": -2.85,
       "total_cost_brl": 3.33,
-      "net_result_brl": 132.01
+      "net_result_brl": 130.17
     },
     "ETHUSDT": {
       "status": "open",
       "direction": "buy",
-      "current_weight": 0.40420837,
-      "position_value_brl": 4222.83,
-      "current_price": 2497.99,
+      "current_weight": 0.40499822,
+      "position_value_brl": 4237.53,
+      "current_price": 2508.51,
       "tracked_since": "2026-08-20T15:00:00+00:00",
       "inherited_at_paper_start": true,
-      "gross_result_brl": 324.57,
+      "gross_result_brl": 342.34,
       "fees_brl": 1.48,
       "funding_result_brl": -7.94,
       "total_cost_brl": 9.42,
-      "net_result_brl": 315.15
+      "net_result_brl": 332.92
     }
   },
   "opening_snapshot": {
@@ -2148,6 +2148,17 @@
       "funding_result_brl": -0.0,
       "total_cost_brl": 0.0,
       "net_result_brl": -13.53
+    },
+    {
+      "timestamp": "2026-08-28T13:00:00+00:00",
+      "equity_multiple": 1.0463086298,
+      "capital_brl": 10463.09,
+      "hour_result_brl": 15.93,
+      "gross_result_brl": 15.93,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": 15.93
     }
   ],
   "candles": {
@@ -3481,6 +3492,13 @@
         "high": 79685.0,
         "low": 79264.2,
         "close": 79383.7
+      },
+      {
+        "timestamp": "2026-08-28T13:00:00+00:00",
+        "open": 79383.7,
+        "high": 79511.2,
+        "low": 78972.8,
+        "close": 79279.9
       }
     ],
     "ETHUSDT": [
@@ -4813,6 +4831,13 @@
         "high": 2507.38,
         "low": 2494.22,
         "close": 2497.99
+      },
+      {
+        "timestamp": "2026-08-28T13:00:00+00:00",
+        "open": 2498.0,
+        "high": 2518.59,
+        "low": 2494.5,
+        "close": 2508.51
       }
     ]
   },
@@ -7775,6 +7800,53 @@
           "funding_result_brl": -0.0,
           "total_cost_brl": 0.01,
           "net_result_brl": 28.56
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-08-28T13:00:00+00:00",
+      "status": "open_or_rebalanced",
+      "reason": "O rob\u00f4 mudou o tamanho das posi\u00e7\u00f5es na abertura desta hora.",
+      "result_scope": "whole_hour_not_trade_profit",
+      "capital_before_brl": 10447.16,
+      "capital_after_hour_brl": 10463.09,
+      "gross_result_brl": 15.93,
+      "fees_brl": 0.0,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.0,
+      "net_result_brl": 15.93,
+      "adjustments": [
+        {
+          "symbol": "BTCUSDT",
+          "action": "Aumentou compra",
+          "action_code": "increase_long",
+          "order_side": "buy",
+          "order_value_brl": 0.25,
+          "previous_weight": 0.1346038,
+          "new_weight": 0.13462764,
+          "execution_price": 79383.7,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": -1.84,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.0,
+          "net_result_brl": -1.84
+        },
+        {
+          "symbol": "ETHUSDT",
+          "action": "Reduziu compra",
+          "action_code": "reduce_long",
+          "order_side": "sell",
+          "order_value_brl": 3.07,
+          "previous_weight": 0.40420933,
+          "new_weight": 0.40391577,
+          "execution_price": 2498.0,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 17.77,
+          "fees_brl": 0.0,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.0,
+          "net_result_brl": 17.77
         }
       ]
     }
