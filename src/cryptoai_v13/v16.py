@@ -209,3 +209,76 @@ def combine_convex_with_core(
     if bool((combined.abs().sum(axis=1) > maximum_portfolio_gross + 1e-10).any()):
         raise AssertionError("V16 exceeded maximum_portfolio_gross")
     return combined, allocated
+
+
+def adaptive_equity_shield(
+    targets: pd.DataFrame,
+    proxy_equity: pd.Series,
+    *,
+    short_hours: int,
+    long_hours: int,
+    peak_hours: int,
+    warning_drawdown: float,
+    hard_drawdown: float,
+    attack_multiplier: float,
+    neutral_multiplier: float,
+    weak_multiplier: float,
+    hard_multiplier: float,
+    shock_return: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Scale a candidate from its own *closed* equity history.
+
+    The shield is deliberately asymmetric: it permits convex exposure while
+    both horizons are positive, but cuts quickly after a loss shock or a
+    rolling drawdown.  Inputs observed at close ``t`` only affect a target
+    that the replay can execute at the following open.
+    """
+
+    if not 0.0 < warning_drawdown < hard_drawdown < 1.0:
+        raise ValueError("drawdown thresholds must be ordered fractions")
+    if rebalance_hours <= 0 or maximum_gross <= 0.0:
+        raise ValueError("rebalance_hours and maximum_gross must be positive")
+    equity = proxy_equity.reindex(targets.index).ffill()
+    short_return = equity.div(equity.shift(short_hours)).sub(1.0)
+    long_return = equity.div(equity.shift(long_hours)).sub(1.0)
+    one_day_return = equity.div(equity.shift(24)).sub(1.0)
+    peak = equity.rolling(
+        peak_hours,
+        min_periods=max(24 * 7, peak_hours // 4),
+    ).max()
+    drawdown = equity.div(peak).sub(1.0)
+
+    factor = pd.Series(neutral_multiplier, index=targets.index, dtype=float)
+    strong = (short_return > 0.0) & (long_return > 0.0)
+    weak = (short_return < 0.0) & (long_return < 0.0)
+    factor.loc[strong] = attack_multiplier
+    factor.loc[weak] = weak_multiplier
+    factor.loc[drawdown <= -warning_drawdown] = np.minimum(
+        factor.loc[drawdown <= -warning_drawdown], weak_multiplier
+    )
+    hard = (drawdown <= -hard_drawdown) | (one_day_return <= -abs(shock_return))
+    factor.loc[hard] = hard_multiplier
+
+    event = pd.Series(
+        np.arange(len(factor)) % rebalance_hours == 0,
+        index=factor.index,
+    )
+    factor = factor.where(event, np.nan).ffill().fillna(0.0)
+    shielded = targets.mul(factor, axis=0)
+    gross = shielded.abs().sum(axis=1)
+    cap = (maximum_gross / gross.replace(0.0, np.nan)).clip(upper=1.0).fillna(0.0)
+    shielded = shielded.mul(cap, axis=0).fillna(0.0)
+    diagnostics = pd.DataFrame(
+        {
+            "short_return": short_return,
+            "long_return": long_return,
+            "one_day_return": one_day_return,
+            "drawdown": drawdown,
+            "risk_factor": factor,
+            "gross": shielded.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return shielded, diagnostics
