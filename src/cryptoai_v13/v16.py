@@ -386,6 +386,56 @@ def rolling_loss_limiter_targets(
     return limited, diagnostics
 
 
+def regime_hedged_targets(
+    targets: pd.DataFrame,
+    regime: pd.Series,
+    *,
+    neutral_net_cap: float,
+    bear_net_target: float,
+    hedge_symbols: tuple[str, ...] = ("BTCUSDT", "ETHUSDT"),
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Add a liquid short hedge only when closed regime evidence requires it."""
+
+    if neutral_net_cap < 0.0:
+        raise ValueError("neutral_net_cap cannot be negative")
+    if bear_net_target > 0.0:
+        raise ValueError("bear_net_target must be zero or negative")
+    if maximum_gross <= 0.0:
+        raise ValueError("maximum_gross must be positive")
+    missing = [symbol for symbol in hedge_symbols if symbol not in targets.columns]
+    if missing:
+        raise ValueError(f"missing hedge symbols: {missing}")
+
+    market_regime = regime.reindex(targets.index).ffill().fillna("neutral")
+    hedged = targets.fillna(0.0).copy()
+    raw_net = hedged.sum(axis=1)
+    desired_net = raw_net.copy()
+    neutral = market_regime.eq("neutral")
+    bear = market_regime.eq("bear")
+    desired_net.loc[neutral] = np.minimum(
+        desired_net.loc[neutral], neutral_net_cap
+    )
+    desired_net.loc[bear] = bear_net_target
+    hedge_amount = (raw_net - desired_net).clip(lower=0.0)
+    per_symbol = hedge_amount / len(hedge_symbols)
+    for symbol in hedge_symbols:
+        hedged[symbol] = hedged[symbol].sub(per_symbol, fill_value=0.0)
+    hedged = _cap_gross(hedged, maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "regime": market_regime,
+            "raw_net": raw_net,
+            "requested_net": desired_net,
+            "hedge_gross": hedge_amount,
+            "net": hedged.sum(axis=1),
+            "gross": hedged.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return hedged, diagnostics
+
+
 def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
     return StrategySpec(
         family="impulse",
