@@ -31,6 +31,7 @@ from cryptoai_v13.v16 import (
     convex_capture_targets,
     drawdown_regime_reentry_targets,
     regime_switch_targets,
+    regime_hedged_targets,
     rolling_loss_limiter_targets,
 )
 from paper_once_v13 import cap_targets
@@ -641,6 +642,55 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # The prior shields could only reduce a long-heavy book.  This family
+    # uses the same causal broad-market regime to add a liquid BTC/ETH hedge,
+    # allowing V16 to preserve bull capture while earning or neutralizing risk
+    # during confirmed bear regimes.
+    hedge_profiles = (
+        {"name": "neutralize", "neutral_net_cap": 1.00, "bear_net_target": 0.00},
+        {"name": "balanced_short", "neutral_net_cap": 0.75, "bear_net_target": -0.35},
+        {"name": "strong_short", "neutral_net_cap": 0.50, "bear_net_target": -0.65},
+    )
+    hedge_sources = (
+        "champion:45-90-180:0.7:0.1:attack",
+        "champion:45-90-180:0.8:0.2:attack",
+    )
+    for source_id in hedge_sources:
+        # Use the balanced regime definition, not its already blended targets.
+        regime_id = f"regime:{source_id}:balanced"
+        source_regime = regime_diagnostics_by_id[regime_id]["regime"]
+        for hedge in hedge_profiles:
+            targets, diagnostics = regime_hedged_targets(
+                targets_by_id[source_id],
+                source_regime,
+                maximum_gross=1.85,
+                **{key: value for key, value in hedge.items() if key != "name"},
+            )
+            candidate_id = f"hedge:{source_id}:{hedge['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "regime_hedged_champion",
+                "name": hedge["name"],
+                "source_candidate_id": source_id,
+                "hedge": hedge,
+                "maximum_portfolio_gross": 1.85,
+                "average_hedge_gross": float(diagnostics["hedge_gross"].mean()),
+                "risk_guard": {
+                    "name": "targets_own_state",
+                    "threshold": 0.99,
+                    "multiplier": 1.0,
+                    "recovery": None,
+                    "cooldown_hours": 1,
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     # Third family: preserve the strongest recent champion allocator, but add
     # a faster causal shield.  It attacks only while short and long closed
     # equity trends agree, and cuts exposure on drawdown or a one-day shock.
@@ -838,6 +888,9 @@ def main() -> None:
     loss_limited = [
         row for row in ranked if row["family"] == "rolling_loss_limited_champion"
     ]
+    regime_hedged = [
+        row for row in ranked if row["family"] == "regime_hedged_champion"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
@@ -847,6 +900,7 @@ def main() -> None:
         *regime_switched[:4],
         *regime_reentry[:4],
         *loss_limited[:6],
+        *regime_hedged[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
