@@ -23,6 +23,7 @@ from cryptoai_v13.opportunity import OpportunityBudget, additive_opportunity_tar
 from cryptoai_v13.signals import StrategySpec, build_targets
 from cryptoai_v13.v16 import (
     ConvexCaptureSpec,
+    adaptive_equity_shield,
     combine_convex_with_core,
     convex_capture_targets,
 )
@@ -345,9 +346,109 @@ def main() -> None:
                 row["score"] = score_row(row)
                 rows.append(row)
 
+    # Third family: preserve the strongest recent champion allocator, but add
+    # a faster causal shield.  It attacks only while short and long closed
+    # equity trends agree, and cuts exposure on drawdown or a one-day shock.
+    # The grid is intentionally small and structural to limit overfitting.
+    shield_profiles = (
+        {
+            "name": "guarded_attack",
+            "short_hours": 48,
+            "long_hours": 24 * 21,
+            "peak_hours": 24 * 120,
+            "warning_drawdown": 0.06,
+            "hard_drawdown": 0.10,
+            "attack_multiplier": 1.45,
+            "neutral_multiplier": 0.70,
+            "weak_multiplier": 0.25,
+            "hard_multiplier": 0.05,
+            "shock_return": 0.045,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "balanced_attack",
+            "short_hours": 72,
+            "long_hours": 24 * 30,
+            "peak_hours": 24 * 180,
+            "warning_drawdown": 0.08,
+            "hard_drawdown": 0.13,
+            "attack_multiplier": 1.55,
+            "neutral_multiplier": 0.80,
+            "weak_multiplier": 0.35,
+            "hard_multiplier": 0.10,
+            "shock_return": 0.055,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.95,
+        },
+        {
+            "name": "convex_attack",
+            "short_hours": 72,
+            "long_hours": 24 * 30,
+            "peak_hours": 24 * 180,
+            "warning_drawdown": 0.10,
+            "hard_drawdown": 0.16,
+            "attack_multiplier": 1.70,
+            "neutral_multiplier": 0.90,
+            "weak_multiplier": 0.45,
+            "hard_multiplier": 0.15,
+            "shock_return": 0.065,
+            "rebalance_hours": 12,
+            "maximum_gross": 2.00,
+        },
+    )
+    shield_windows = ((30, 60, 120), (45, 90, 180))
+    for windows in shield_windows:
+        mixed = multihorizon_two_sleeve_targets(
+            core_targets,
+            v14_targets,
+            core_returns,
+            v14_returns,
+            windows_days=windows,
+            funding_weight_when_leading=0.70,
+            funding_weight_when_lagging=0.10,
+            rebalance_hours=24,
+        )
+        proxy = screen(data, mixed, execution["base_cost_per_side"])
+        for shield in shield_profiles:
+            targets, diagnostics = adaptive_equity_shield(
+                mixed,
+                proxy.equity,
+                **{key: value for key, value in shield.items() if key != "name"},
+            )
+            candidate_id = f"shield:{'-'.join(map(str, windows))}:{shield['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "protected_adaptive_champion",
+                "name": shield["name"],
+                "windows_days": list(windows),
+                "core_weight_when_leading": 0.70,
+                "core_weight_when_lagging": 0.10,
+                "shield": shield,
+                "maximum_portfolio_gross": shield["maximum_gross"],
+                "average_risk_factor": float(diagnostics["risk_factor"].mean()),
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     ranked = sorted(rows, key=lambda item: item["score"], reverse=True)
     exact_rows: list[dict[str, object]] = []
-    for row in ranked[:6]:
+    protected = [
+        row for row in ranked if row["family"] == "protected_adaptive_champion"
+    ]
+    exact_pool = []
+    seen_ids: set[str] = set()
+    for row in [*ranked[:4], *protected[:4]]:
+        candidate_id = str(row["candidate_id"])
+        if candidate_id not in seen_ids:
+            exact_pool.append(row)
+            seen_ids.add(candidate_id)
+    for row in exact_pool:
         targets = targets_by_id[str(row["candidate_id"])]
         exact_base = exact_fast(
             data,
