@@ -24,10 +24,12 @@ from cryptoai_v13.signals import StrategySpec, build_targets
 from cryptoai_v13.v16 import (
     AdaptiveTrendSpec,
     ConvexCaptureSpec,
+    RegimeSwitchSpec,
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
     convex_capture_targets,
+    regime_switch_targets,
 )
 from paper_once_v13 import cap_targets
 from run_final_candidate import build_candidate
@@ -406,6 +408,71 @@ def main() -> None:
                 row["score"] = score_row(row)
                 rows.append(row)
 
+    # A regime allocator addresses the specific failure seen in V14/V15:
+    # attack exposure remained high when the broad market stopped supporting
+    # it.  This family keeps the proven large-day sleeve intact in confirmed
+    # bull regimes, blends toward V13 in neutral markets, and defends after a
+    # broad downtrend or a fast BTC shock.  Only a small structural grid is
+    # tested; recent periods still have no special-case dates or overrides.
+    regime_specs = {
+        "responsive": RegimeSwitchSpec(
+            momentum_hours=24 * 30,
+            bull_momentum=0.05,
+            bear_momentum=-0.06,
+            bull_breadth=0.54,
+            bear_breadth=0.46,
+            shock_return=-0.08,
+            neutral_attack=0.80,
+            bear_attack=0.25,
+            neutral_core=0.45,
+        ),
+        "balanced": RegimeSwitchSpec(),
+        "selective": RegimeSwitchSpec(
+            momentum_hours=24 * 60,
+            bull_momentum=0.12,
+            bear_momentum=-0.10,
+            bull_breadth=0.58,
+            bear_breadth=0.42,
+            shock_return=-0.12,
+            neutral_attack=0.60,
+            bear_attack=0.10,
+            neutral_core=0.70,
+        ),
+    }
+    regime_sources = (
+        "champion:45-90-180:0.7:0.1:attack",
+        "champion:45-90-180:0.8:0.2:attack",
+    )
+    for source_id in regime_sources:
+        for name, regime_spec in regime_specs.items():
+            targets, diagnostics = regime_switch_targets(
+                core_targets,
+                targets_by_id[source_id],
+                signal_data.close,
+                regime_spec,
+            )
+            candidate_id = f"regime:{source_id}:{name}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            counts = diagnostics["regime"].value_counts(normalize=True)
+            row = {
+                "candidate_id": candidate_id,
+                "family": "regime_switched_champion",
+                "name": name,
+                "source_candidate_id": source_id,
+                "regime_spec": regime_spec.to_dict(),
+                "maximum_portfolio_gross": regime_spec.maximum_gross,
+                "regime_share": {
+                    key: float(counts.get(key, 0.0))
+                    for key in ("bull", "neutral", "bear")
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     # Third family: preserve the strongest recent champion allocator, but add
     # a faster causal shield.  It attacks only while short and long closed
     # equity trends agree, and cuts exposure on drawdown or a one-day shock.
@@ -594,9 +661,17 @@ def main() -> None:
         }
     ]
     structural = [row for row in ranked if row["family"] == "adaptive_h6_trend"]
+    regime_switched = [
+        row for row in ranked if row["family"] == "regime_switched_champion"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
-    for row in [*ranked[:4], *protected[:3], *structural[:3]]:
+    for row in [
+        *ranked[:4],
+        *protected[:3],
+        *structural[:3],
+        *regime_switched[:4],
+    ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
             exact_pool.append(row)
