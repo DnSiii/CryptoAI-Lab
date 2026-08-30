@@ -36,7 +36,24 @@ def maximum_drawdown(equity: pd.Series) -> float:
 
 
 def period_metrics(equity: pd.Series, start: str, end: str | None = None) -> dict:
-    selected = equity.loc[start:end].dropna()
+    start_at = pd.Timestamp(start)
+    start_at = (
+        start_at.tz_localize("UTC")
+        if start_at.tzinfo is None
+        else start_at.tz_convert("UTC")
+    )
+    end_at = None
+    if end is not None:
+        end_at = pd.Timestamp(end)
+        end_at = (
+            end_at.tz_localize("UTC")
+            if end_at.tzinfo is None
+            else end_at.tz_convert("UTC")
+        )
+    selected = equity.loc[
+        (equity.index >= start_at)
+        & (True if end_at is None else equity.index <= end_at)
+    ].dropna()
     if len(selected) < 2:
         return {"return": 0.0, "cagr": 0.0, "max_drawdown": 0.0}
     selected = selected / selected.iloc[0]
