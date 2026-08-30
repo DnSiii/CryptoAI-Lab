@@ -20,6 +20,7 @@ from cryptoai_v13.v16 import (
     adaptive_trend_targets,
     combine_convex_with_core,
     drawdown_regime_reentry_targets,
+    regime_hedged_targets,
     regime_switch_targets,
     rolling_loss_limiter_targets,
 )
@@ -196,6 +197,34 @@ class V16ResearchTests(unittest.TestCase):
         )
         pd.testing.assert_frame_equal(limited.iloc[:-1], changed.iloc[:-1])
         self.assertTrue((limited.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_regime_hedge_is_causal_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-01-01", periods=100, freq="h", tz="UTC")
+        targets = pd.DataFrame(
+            {"BTCUSDT": 1.0, "ETHUSDT": 0.6, "SOLUSDT": 0.2}, index=index
+        )
+        regime = pd.Series("bull", index=index)
+        regime.iloc[30:60] = "neutral"
+        regime.iloc[60:] = "bear"
+        hedged, diagnostics = regime_hedged_targets(
+            targets,
+            regime,
+            neutral_net_cap=0.75,
+            bear_net_target=-0.35,
+            maximum_gross=1.85,
+        )
+        changed = regime.copy()
+        changed.iloc[-1] = "bull"
+        changed_targets, _ = regime_hedged_targets(
+            targets,
+            changed,
+            neutral_net_cap=0.75,
+            bear_net_target=-0.35,
+            maximum_gross=1.85,
+        )
+        pd.testing.assert_frame_equal(hedged.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertLess(float(diagnostics.loc[index[-2], "net"]), 0.0)
+        self.assertTrue((hedged.abs().sum(axis=1) <= 1.85 + 1e-12).all())
 
 
 if __name__ == "__main__":
