@@ -338,6 +338,54 @@ def drawdown_regime_reentry_targets(
     return shielded, diagnostics
 
 
+def rolling_loss_limiter_targets(
+    targets: pd.DataFrame,
+    proxy_equity: pd.Series,
+    *,
+    short_hours: int,
+    medium_hours: int,
+    short_loss: float,
+    medium_loss: float,
+    short_multiplier: float,
+    medium_multiplier: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Reduce only while recent closed losses remain outside tolerance."""
+
+    if min(short_hours, medium_hours, rebalance_hours) <= 0:
+        raise ValueError("loss-limiter lookbacks must be positive")
+    if not 0.0 < short_loss < medium_loss < 1.0:
+        raise ValueError("loss thresholds must be ordered positive fractions")
+    if not 0.0 <= short_multiplier <= medium_multiplier <= 1.0:
+        raise ValueError("loss multipliers must be ordered within zero and one")
+    if maximum_gross <= 0.0:
+        raise ValueError("maximum_gross must be positive")
+
+    equity = proxy_equity.reindex(targets.index).ffill()
+    short_return = equity.div(equity.shift(short_hours)).sub(1.0)
+    medium_return = equity.div(equity.shift(medium_hours)).sub(1.0)
+    factor = pd.Series(1.0, index=targets.index)
+    factor.loc[medium_return <= -medium_loss] = medium_multiplier
+    factor.loc[short_return <= -short_loss] = short_multiplier
+    event = pd.Series(
+        np.arange(len(factor)) % rebalance_hours == 0,
+        index=factor.index,
+    )
+    factor = factor.where(event).ffill().fillna(1.0)
+    limited = _cap_gross(targets.mul(factor, axis=0), maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "short_return": short_return,
+            "medium_return": medium_return,
+            "risk_factor": factor,
+            "gross": limited.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return limited, diagnostics
+
+
 def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
     return StrategySpec(
         family="impulse",
