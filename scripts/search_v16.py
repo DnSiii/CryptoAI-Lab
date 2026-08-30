@@ -29,6 +29,7 @@ from cryptoai_v13.v16 import (
     adaptive_trend_targets,
     combine_convex_with_core,
     convex_capture_targets,
+    drawdown_regime_reentry_targets,
     regime_switch_targets,
 )
 from paper_once_v13 import cap_targets
@@ -443,6 +444,7 @@ def main() -> None:
         "champion:45-90-180:0.7:0.1:attack",
         "champion:45-90-180:0.8:0.2:attack",
     )
+    regime_diagnostics_by_id: dict[str, pd.DataFrame] = {}
     for source_id in regime_sources:
         for name, regime_spec in regime_specs.items():
             targets, diagnostics = regime_switch_targets(
@@ -453,6 +455,7 @@ def main() -> None:
             )
             candidate_id = f"regime:{source_id}:{name}"
             targets_by_id[candidate_id] = targets
+            regime_diagnostics_by_id[candidate_id] = diagnostics
             result = screen(data, targets, execution["base_cost_per_side"])
             counts = diagnostics["regime"].value_counts(normalize=True)
             row = {
@@ -465,6 +468,88 @@ def main() -> None:
                 "regime_share": {
                     key: float(counts.get(key, 0.0))
                     for key in ("bull", "neutral", "bear")
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
+    # Re-entry-aware protection keeps the large-day regime allocator intact
+    # until its own closed proxy loses a controlled amount.  It then remains
+    # defensive until both market regime and proxy recovery confirm a return
+    # to attack.  This avoids the permanent low-exposure trap observed in the
+    # equity-recovery-only family.
+    reentry_profiles = (
+        {
+            "name": "fast_reentry",
+            "drawdown_threshold": 0.07,
+            "defensive_multiplier": 0.20,
+            "reentry_return_hours": 24 * 7,
+            "reentry_return": 0.02,
+            "minimum_defensive_hours": 24 * 5,
+            "rebalance_hours": 24,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "balanced_reentry",
+            "drawdown_threshold": 0.08,
+            "defensive_multiplier": 0.25,
+            "reentry_return_hours": 24 * 14,
+            "reentry_return": 0.03,
+            "minimum_defensive_hours": 24 * 7,
+            "rebalance_hours": 24,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "patient_reentry",
+            "drawdown_threshold": 0.10,
+            "defensive_multiplier": 0.35,
+            "reentry_return_hours": 24 * 21,
+            "reentry_return": 0.04,
+            "minimum_defensive_hours": 24 * 10,
+            "rebalance_hours": 24,
+            "maximum_gross": 1.85,
+        },
+    )
+    reentry_sources = (
+        "regime:champion:45-90-180:0.7:0.1:attack:balanced",
+        "regime:champion:45-90-180:0.8:0.2:attack:balanced",
+    )
+    for source_id in reentry_sources:
+        proxy = screen(
+            data,
+            targets_by_id[source_id],
+            execution["base_cost_per_side"],
+        )
+        source_regime = regime_diagnostics_by_id[source_id]["regime"]
+        for shield in reentry_profiles:
+            targets, diagnostics = drawdown_regime_reentry_targets(
+                targets_by_id[source_id],
+                proxy.equity,
+                source_regime,
+                **{key: value for key, value in shield.items() if key != "name"},
+            )
+            candidate_id = f"reentry:{source_id}:{shield['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "regime_reentry_champion",
+                "name": shield["name"],
+                "source_candidate_id": source_id,
+                "reentry_shield": shield,
+                "maximum_portfolio_gross": shield["maximum_gross"],
+                "defensive_share": float(
+                    diagnostics["risk_state"].eq("defensive").mean()
+                ),
+                "risk_guard": {
+                    "name": "targets_own_state",
+                    "threshold": 0.99,
+                    "multiplier": 1.0,
+                    "recovery": None,
+                    "cooldown_hours": 1,
                 },
                 "profile": profile(result.equity, latest),
             }
@@ -664,6 +749,9 @@ def main() -> None:
     regime_switched = [
         row for row in ranked if row["family"] == "regime_switched_champion"
     ]
+    regime_reentry = [
+        row for row in ranked if row["family"] == "regime_reentry_champion"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
@@ -671,6 +759,7 @@ def main() -> None:
         *protected[:3],
         *structural[:3],
         *regime_switched[:4],
+        *regime_reentry[:4],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
