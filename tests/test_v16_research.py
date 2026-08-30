@@ -12,7 +12,11 @@ PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
 
 from cryptoai_v13.data import FuturesData
-from cryptoai_v13.v16 import ConvexCaptureSpec, combine_convex_with_core
+from cryptoai_v13.v16 import (
+    ConvexCaptureSpec,
+    adaptive_equity_shield,
+    combine_convex_with_core,
+)
 
 
 class V16ResearchTests(unittest.TestCase):
@@ -41,6 +45,33 @@ class V16ResearchTests(unittest.TestCase):
         self.assertIn("without_best_day_return", runner)
         self.assertIn("delay_3h", runner)
         self.assertIn("severe_cost", runner)
+
+    def test_adaptive_shield_is_causal_and_caps_gross(self) -> None:
+        index = pd.date_range("2026-01-01", periods=900, freq="h", tz="UTC")
+        base = pd.DataFrame(
+            {"BTCUSDT": 1.2, "ETHUSDT": -0.8}, index=index
+        )
+        equity = pd.Series(np.linspace(1.0, 1.5, len(index)), index=index)
+        kwargs = dict(
+            short_hours=48,
+            long_hours=24 * 21,
+            peak_hours=24 * 120,
+            warning_drawdown=0.06,
+            hard_drawdown=0.10,
+            attack_multiplier=1.45,
+            neutral_multiplier=0.70,
+            weak_multiplier=0.25,
+            hard_multiplier=0.05,
+            shock_return=0.045,
+            rebalance_hours=6,
+            maximum_gross=1.85,
+        )
+        shielded, _ = adaptive_equity_shield(base, equity, **kwargs)
+        changed = equity.copy()
+        changed.iloc[-1] = changed.iloc[-1] * 0.5
+        changed_targets, _ = adaptive_equity_shield(base, changed, **kwargs)
+        pd.testing.assert_frame_equal(shielded.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertTrue((shielded.abs().sum(axis=1) <= 1.85 + 1e-12).all())
 
 
 if __name__ == "__main__":
