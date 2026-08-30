@@ -21,6 +21,7 @@ from cryptoai_v13.v16 import (
     combine_convex_with_core,
     drawdown_regime_reentry_targets,
     regime_switch_targets,
+    rolling_loss_limiter_targets,
 )
 
 
@@ -169,6 +170,32 @@ class V16ResearchTests(unittest.TestCase):
         )
         pd.testing.assert_frame_equal(shielded.iloc[:-1], changed.iloc[:-1])
         self.assertTrue((shielded.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_rolling_loss_limiter_is_causal_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-01-01", periods=900, freq="h", tz="UTC")
+        equity = pd.Series(np.linspace(1.0, 1.3, len(index)), index=index)
+        equity.iloc[500:550] *= np.linspace(1.0, 0.90, 50)
+        targets = pd.DataFrame(
+            {"BTCUSDT": 1.4, "ETHUSDT": 0.8}, index=index
+        )
+        kwargs = dict(
+            short_hours=24,
+            medium_hours=24 * 7,
+            short_loss=0.04,
+            medium_loss=0.09,
+            short_multiplier=0.15,
+            medium_multiplier=0.35,
+            rebalance_hours=3,
+            maximum_gross=1.85,
+        )
+        limited, _ = rolling_loss_limiter_targets(targets, equity, **kwargs)
+        changed_equity = equity.copy()
+        changed_equity.iloc[-1] *= 0.5
+        changed, _ = rolling_loss_limiter_targets(
+            targets, changed_equity, **kwargs
+        )
+        pd.testing.assert_frame_equal(limited.iloc[:-1], changed.iloc[:-1])
+        self.assertTrue((limited.abs().sum(axis=1) <= 1.85 + 1e-12).all())
 
 
 if __name__ == "__main__":
