@@ -620,6 +620,27 @@ def main() -> None:
             "multiplier": 0.20,
             "cooldown_hours": 24 * 14,
         },
+        {
+            "name": "recovery_6pct",
+            "threshold": 0.06,
+            "multiplier": 0.25,
+            "recovery": 0.025,
+            "cooldown_hours": None,
+        },
+        {
+            "name": "recovery_8pct",
+            "threshold": 0.08,
+            "multiplier": 0.35,
+            "recovery": 0.03,
+            "cooldown_hours": None,
+        },
+        {
+            "name": "recovery_10pct",
+            "threshold": 0.10,
+            "multiplier": 0.45,
+            "recovery": 0.04,
+            "cooldown_hours": None,
+        },
     )
     aggressive_champions = [
         row for row in ranked
@@ -640,6 +661,7 @@ def main() -> None:
             "name": "default",
             "threshold": 0.12,
             "multiplier": 0.35,
+            "recovery": None,
             "cooldown_hours": 168,
         })
         exact_base = exact_fast(
@@ -650,6 +672,7 @@ def main() -> None:
             gross_guard_cap=float(row["maximum_portfolio_gross"]) + 0.15,
             drawdown_guard_threshold=risk_guard["threshold"],
             drawdown_guard_multiplier=risk_guard["multiplier"],
+            drawdown_guard_recovery=risk_guard.get("recovery"),
             drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
         )
         severe = exact_fast(
@@ -660,6 +683,7 @@ def main() -> None:
             gross_guard_cap=float(row["maximum_portfolio_gross"]) + 0.15,
             drawdown_guard_threshold=risk_guard["threshold"],
             drawdown_guard_multiplier=risk_guard["multiplier"],
+            drawdown_guard_recovery=risk_guard.get("recovery"),
             drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
         )
         delayed = exact_fast(
@@ -670,6 +694,7 @@ def main() -> None:
             gross_guard_cap=float(row["maximum_portfolio_gross"]) + 0.15,
             drawdown_guard_threshold=risk_guard["threshold"],
             drawdown_guard_multiplier=risk_guard["multiplier"],
+            drawdown_guard_recovery=risk_guard.get("recovery"),
             drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
         )
         checked = {**row, "profile": profile(exact_base.equity, latest)}
