@@ -15,9 +15,11 @@ from cryptoai_v13.data import FuturesData
 from cryptoai_v13.v16 import (
     AdaptiveTrendSpec,
     ConvexCaptureSpec,
+    RegimeSwitchSpec,
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
+    regime_switch_targets,
 )
 
 
@@ -115,6 +117,27 @@ class V16ResearchTests(unittest.TestCase):
             symbols=symbols,
         )
         changed_targets, _ = adaptive_trend_targets(changed, spec)
+        pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertTrue((targets.abs().sum(axis=1) <= spec.maximum_gross + 1e-12).all())
+
+    def test_regime_switch_is_causal_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-01-01", periods=3000, freq="h", tz="UTC")
+        base = np.arange(len(index), dtype=float)
+        close = pd.DataFrame(
+            {
+                "BTCUSDT": 100.0 * np.exp(0.00015 * base),
+                "ETHUSDT": 80.0 * np.exp(0.00010 * base),
+                "SOLUSDT": 60.0 * np.exp(0.00005 * base),
+            },
+            index=index,
+        )
+        core = pd.DataFrame(0.5, index=index, columns=close.columns)
+        attack = pd.DataFrame(1.0, index=index, columns=close.columns)
+        spec = RegimeSwitchSpec()
+        targets, _ = regime_switch_targets(core, attack, close, spec)
+        changed = close.copy()
+        changed.iloc[-1, 0] *= 0.5
+        changed_targets, _ = regime_switch_targets(core, attack, changed, spec)
         pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
         self.assertTrue((targets.abs().sum(axis=1) <= spec.maximum_gross + 1e-12).all())
 
