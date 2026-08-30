@@ -150,10 +150,15 @@ def adaptive_trend_targets(
     """
 
     rule = f"{spec.bar_hours}h"
-    close = data.frames["close"].resample(rule).last()
-    high = data.frames["high"].resample(rule).max()
-    low = data.frames["low"].resample(rule).min()
-    quote_volume = data.frames["quote_volume"].resample(rule).sum(min_count=1)
+    # Label every aggregate at its *ending* timestamp.  A bar stamped 06:00
+    # may use information through 06:00, never from 07:00-11:00.
+    resample_args = {"label": "right", "closed": "right"}
+    close = data.frames["close"].resample(rule, **resample_args).last()
+    high = data.frames["high"].resample(rule, **resample_args).max()
+    low = data.frames["low"].resample(rule, **resample_args).min()
+    quote_volume = data.frames["quote_volume"].resample(
+        rule, **resample_args
+    ).sum(min_count=1)
     previous_close = close.shift(1)
     true_range = pd.DataFrame(
         np.maximum.reduce([
@@ -178,15 +183,15 @@ def adaptive_trend_targets(
         min_periods=selection_bars // 2,
     ).mean()
 
-    month = close.index.to_period("M")
-    month_start = pd.Series(month != pd.Series(month, index=close.index).shift(1).to_numpy(), index=close.index)
+    month = pd.Series(close.index.strftime("%Y-%m"), index=close.index)
+    month_start = month.ne(month.shift(1))
     liquid_rank = liquidity.rank(axis=1, ascending=False, method="first")
     long_score = sharpe.where(liquid_rank <= spec.long_candidates)
     short_score = sharpe.where(liquid_rank <= spec.short_candidates)
     long_members = long_score.rank(axis=1, ascending=False, method="first") <= spec.long_candidates
     short_members = short_score.rank(axis=1, ascending=True, method="first") <= spec.short_candidates
-    long_members = long_members.where(month_start, np.nan).ffill().fillna(False).astype(bool)
-    short_members = short_members.where(month_start, np.nan).ffill().fillna(False).astype(bool)
+    long_members = long_members.astype(float).where(month_start, np.nan).ffill().fillna(0.0).astype(bool)
+    short_members = short_members.astype(float).where(month_start, np.nan).ffill().fillna(0.0).astype(bool)
 
     long_entry_score = momentum.where(
         long_members & (sharpe >= spec.long_sharpe_threshold)
