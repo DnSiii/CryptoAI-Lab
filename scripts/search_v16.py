@@ -33,6 +33,7 @@ from cryptoai_v13.v16 import (
     regime_switch_targets,
     regime_hedged_targets,
     rolling_loss_limiter_targets,
+    three_regime_sleeve_targets,
 )
 from paper_once_v13 import cap_targets
 from run_final_candidate import build_candidate
@@ -691,6 +692,82 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # Replace blunt index hedging with the opportunity engine's own short
+    # signals.  Bull keeps the high-capture sleeve, neutral blends with V13,
+    # and bear can only short assets that independently met V14's causal
+    # impulse criteria.
+    bear_sleeve_profiles = (
+        {
+            "name": "defensive_short",
+            "bull_attack": 1.00,
+            "bull_core": 0.10,
+            "neutral_attack": 0.55,
+            "neutral_core": 0.65,
+            "bear_short": 0.80,
+            "bear_core": 0.35,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "balanced_short",
+            "bull_attack": 1.00,
+            "bull_core": 0.10,
+            "neutral_attack": 0.70,
+            "neutral_core": 0.45,
+            "bear_short": 1.10,
+            "bear_core": 0.15,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "attack_short",
+            "bull_attack": 1.00,
+            "bull_core": 0.05,
+            "neutral_attack": 0.80,
+            "neutral_core": 0.30,
+            "bear_short": 1.40,
+            "bear_core": 0.00,
+            "maximum_gross": 1.85,
+        },
+    )
+    for source_id in hedge_sources:
+        regime_id = f"regime:{source_id}:balanced"
+        source_regime = regime_diagnostics_by_id[regime_id]["regime"]
+        for sleeve in bear_sleeve_profiles:
+            targets, diagnostics = three_regime_sleeve_targets(
+                core_targets,
+                targets_by_id[source_id],
+                v14_raw,
+                source_regime,
+                **{key: value for key, value in sleeve.items() if key != "name"},
+            )
+            candidate_id = f"bear_sleeve:{source_id}:{sleeve['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "three_regime_signal_sleeves",
+                "name": sleeve["name"],
+                "source_candidate_id": source_id,
+                "sleeve": sleeve,
+                "maximum_portfolio_gross": sleeve["maximum_gross"],
+                "average_bear_short_signal_gross": float(
+                    diagnostics.loc[
+                        diagnostics["regime"].eq("bear"), "short_signal_gross"
+                    ].mean()
+                ),
+                "risk_guard": {
+                    "name": "targets_own_state",
+                    "threshold": 0.99,
+                    "multiplier": 1.0,
+                    "recovery": None,
+                    "cooldown_hours": 1,
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     # Third family: preserve the strongest recent champion allocator, but add
     # a faster causal shield.  It attacks only while short and long closed
     # equity trends agree, and cuts exposure on drawdown or a one-day shock.
@@ -891,6 +968,9 @@ def main() -> None:
     regime_hedged = [
         row for row in ranked if row["family"] == "regime_hedged_champion"
     ]
+    three_regime = [
+        row for row in ranked if row["family"] == "three_regime_signal_sleeves"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
@@ -901,6 +981,7 @@ def main() -> None:
         *regime_reentry[:4],
         *loss_limited[:6],
         *regime_hedged[:6],
+        *three_regime[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
