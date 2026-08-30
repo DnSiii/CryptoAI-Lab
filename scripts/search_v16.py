@@ -14,6 +14,10 @@ sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
 from cryptoai_v13.backtest import exact_fast, screen
+from cryptoai_v13.allocator import (
+    convex_equity_overlay,
+    multihorizon_two_sleeve_targets,
+)
 from cryptoai_v13.data import point_in_time_liquid_view
 from cryptoai_v13.opportunity import OpportunityBudget, additive_opportunity_targets
 from cryptoai_v13.signals import StrategySpec, build_targets
@@ -228,6 +232,7 @@ def main() -> None:
         for name, spec in specs.items()
     }
     rows: list[dict[str, object]] = []
+    targets_by_id: dict[str, pd.DataFrame] = {}
     for name, spec in specs.items():
         for core_fraction in (0.15, 0.30, 0.45):
             for maximum_gross in (1.35, 1.60, 1.85):
@@ -238,7 +243,11 @@ def main() -> None:
                     maximum_portfolio_gross=maximum_gross,
                 )
                 result = screen(data, targets, execution["base_cost_per_side"])
+                candidate_id = f"convex:{name}:{core_fraction}:{maximum_gross}"
+                targets_by_id[candidate_id] = targets
                 row = {
+                    "candidate_id": candidate_id,
+                    "family": "multi_speed_convex_capture",
                     "name": name,
                     "spec": spec.to_dict(),
                     "core_fraction": core_fraction,
@@ -253,17 +262,93 @@ def main() -> None:
                 row["score"] = score_row(row)
                 rows.append(row)
 
+    # The second V16 family treats V13 as the defensive champion and V14 as
+    # the aggressive champion.  It allocates only from their already-realized,
+    # closed hourly returns.  This retains V14's large-day engine while moving
+    # capital back to V13 when V14 stops leading across several horizons.
+    core_returns = core_result.equity.pct_change().fillna(0.0)
+    v14_returns = v14_result.equity.pct_change().fillna(0.0)
+    champion_windows = (
+        (21, 45, 90),
+        (30, 60, 120),
+        (45, 90, 180),
+    )
+    champion_weights = (
+        (0.80, 0.20),
+        (0.70, 0.10),
+        (0.90, 0.35),
+    )
+    convex_overlays = (
+        {
+            "name": "measured",
+            "winner": 1.15,
+            "loser": 0.60,
+            "drawdown": 0.35,
+            "threshold": 0.10,
+            "maximum_gross": 1.65,
+        },
+        {
+            "name": "attack",
+            "winner": 1.30,
+            "loser": 0.50,
+            "drawdown": 0.30,
+            "threshold": 0.12,
+            "maximum_gross": 1.85,
+        },
+    )
+    for windows in champion_windows:
+        for core_leading, core_lagging in champion_weights:
+            mixed = multihorizon_two_sleeve_targets(
+                core_targets,
+                v14_targets,
+                core_returns,
+                v14_returns,
+                windows_days=windows,
+                funding_weight_when_leading=core_leading,
+                funding_weight_when_lagging=core_lagging,
+                rebalance_hours=24,
+            )
+            proxy = screen(data, mixed, execution["base_cost_per_side"])
+            for overlay in convex_overlays:
+                targets = convex_equity_overlay(
+                    mixed,
+                    proxy.equity,
+                    short_hours=72,
+                    long_hours=24 * 30,
+                    drawdown_hours=24 * 30,
+                    drawdown_threshold=overlay["threshold"],
+                    winner_multiplier=overlay["winner"],
+                    loser_multiplier=overlay["loser"],
+                    drawdown_multiplier=overlay["drawdown"],
+                    rebalance_hours=24,
+                    maximum_gross=overlay["maximum_gross"],
+                )
+                candidate_id = (
+                    f"champion:{'-'.join(map(str, windows))}:"
+                    f"{core_leading}:{core_lagging}:{overlay['name']}"
+                )
+                targets_by_id[candidate_id] = targets
+                result = screen(data, targets, execution["base_cost_per_side"])
+                row = {
+                    "candidate_id": candidate_id,
+                    "family": "adaptive_v13_v14_champion",
+                    "name": overlay["name"],
+                    "windows_days": list(windows),
+                    "core_weight_when_leading": core_leading,
+                    "core_weight_when_lagging": core_lagging,
+                    "convex_overlay": overlay,
+                    "maximum_portfolio_gross": overlay["maximum_gross"],
+                    "profile": profile(result.equity, latest),
+                }
+                row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+                row["screen_gate_passed"] = all(row["gate"].values())
+                row["score"] = score_row(row)
+                rows.append(row)
+
     ranked = sorted(rows, key=lambda item: item["score"], reverse=True)
     exact_rows: list[dict[str, object]] = []
     for row in ranked[:6]:
-        spec = ConvexCaptureSpec(**row["spec"])
-        opportunity, _, _ = convex_capture_targets(signal_data, spec)
-        targets, _ = combine_convex_with_core(
-            core_targets,
-            opportunity,
-            core_fraction=float(row["core_fraction"]),
-            maximum_portfolio_gross=float(row["maximum_portfolio_gross"]),
-        )
+        targets = targets_by_id[str(row["candidate_id"])]
         exact_base = exact_fast(
             data,
             targets,
