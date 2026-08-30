@@ -70,6 +70,39 @@ class ConvexCaptureSpec:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class AdaptiveTrendSpec:
+    """Intermediate-frequency long/short trend portfolio for V16 research."""
+
+    bar_hours: int = 6
+    momentum_bars: int = 8
+    entry_threshold: float = 0.035
+    atr_bars: int = 14
+    atr_multiplier: float = 2.5
+    selection_days: int = 30
+    long_candidates: int = 12
+    short_candidates: int = 12
+    long_count: int = 5
+    short_count: int = 3
+    long_sharpe_threshold: float = 0.5
+    short_sharpe_threshold: float = 0.8
+    long_fraction: float = 0.70
+    maximum_gross: float = 1.85
+
+    def __post_init__(self) -> None:
+        if self.bar_hours <= 0 or self.momentum_bars <= 1 or self.atr_bars <= 1:
+            raise ValueError("invalid AdaptiveTrend lookback")
+        if not 0.5 <= self.long_fraction < 1.0:
+            raise ValueError("long_fraction must be between 0.5 and 1")
+        if min(self.long_count, self.short_count, self.long_candidates, self.short_candidates) <= 0:
+            raise ValueError("candidate and position counts must be positive")
+        if self.maximum_gross <= 0.0 or self.atr_multiplier <= 0.0:
+            raise ValueError("gross and ATR multiplier must be positive")
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
 def _cap_gross(targets: pd.DataFrame, maximum_gross: float) -> pd.DataFrame:
     gross = targets.abs().sum(axis=1)
     scale = (
@@ -102,6 +135,137 @@ def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
         trend_filter_hours=spec.trend_slow_hours,
         cooldown_hours=spec.cooldown_hours,
     )
+
+
+def adaptive_trend_targets(
+    data: FuturesData,
+    spec: AdaptiveTrendSpec,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build causal H6 trend targets with monthly trailing selection.
+
+    Monthly membership uses only the prior rolling window observed at that
+    month's first available close.  Position changes are decided on completed
+    H6 bars and are therefore executed no earlier than the next H1 open by the
+    replay engine.  Stops are close-confirmed; no ideal intrabar fill is used.
+    """
+
+    rule = f"{spec.bar_hours}h"
+    close = data.frames["close"].resample(rule).last()
+    high = data.frames["high"].resample(rule).max()
+    low = data.frames["low"].resample(rule).min()
+    quote_volume = data.frames["quote_volume"].resample(rule).sum(min_count=1)
+    previous_close = close.shift(1)
+    true_range = pd.DataFrame(
+        np.maximum.reduce([
+            high.sub(low).to_numpy(),
+            high.sub(previous_close).abs().to_numpy(),
+            low.sub(previous_close).abs().to_numpy(),
+        ]),
+        index=close.index,
+        columns=close.columns,
+    )
+    atr = true_range.rolling(spec.atr_bars, min_periods=spec.atr_bars).mean()
+    momentum = close.div(close.shift(spec.momentum_bars)).sub(1.0)
+    returns = close.pct_change()
+    selection_bars = max(4, spec.selection_days * 24 // spec.bar_hours)
+    mean = returns.rolling(selection_bars, min_periods=selection_bars // 2).mean()
+    volatility = returns.rolling(selection_bars, min_periods=selection_bars // 2).std()
+    sharpe = mean.div(volatility.replace(0.0, np.nan)).mul(
+        np.sqrt(365.25 * 24 / spec.bar_hours)
+    )
+    liquidity = quote_volume.rolling(
+        selection_bars,
+        min_periods=selection_bars // 2,
+    ).mean()
+
+    month = close.index.to_period("M")
+    month_start = pd.Series(month != pd.Series(month, index=close.index).shift(1).to_numpy(), index=close.index)
+    liquid_rank = liquidity.rank(axis=1, ascending=False, method="first")
+    long_score = sharpe.where(liquid_rank <= spec.long_candidates)
+    short_score = sharpe.where(liquid_rank <= spec.short_candidates)
+    long_members = long_score.rank(axis=1, ascending=False, method="first") <= spec.long_candidates
+    short_members = short_score.rank(axis=1, ascending=True, method="first") <= spec.short_candidates
+    long_members = long_members.where(month_start, np.nan).ffill().fillna(False).astype(bool)
+    short_members = short_members.where(month_start, np.nan).ffill().fillna(False).astype(bool)
+
+    long_entry_score = momentum.where(
+        long_members & (sharpe >= spec.long_sharpe_threshold)
+        & (momentum >= spec.entry_threshold)
+    )
+    short_entry_score = momentum.where(
+        short_members & (sharpe <= -spec.short_sharpe_threshold)
+        & (momentum <= -spec.entry_threshold)
+    )
+    long_entry = long_entry_score.rank(axis=1, ascending=False, method="first") <= spec.long_count
+    short_entry = short_entry_score.rank(axis=1, ascending=True, method="first") <= spec.short_count
+
+    state = np.zeros(close.shape[1], dtype=np.int8)
+    trail = np.full(close.shape[1], np.nan, dtype=float)
+    raw = np.zeros(close.shape, dtype=float)
+    close_values = close.to_numpy(dtype=float)
+    atr_values = atr.to_numpy(dtype=float)
+    long_values = long_entry.to_numpy(dtype=bool)
+    short_values = short_entry.to_numpy(dtype=bool)
+    long_member_values = long_members.to_numpy(dtype=bool)
+    short_member_values = short_members.to_numpy(dtype=bool)
+    for row in range(len(close)):
+        prices = close_values[row]
+        distances = atr_values[row] * spec.atr_multiplier
+        valid = np.isfinite(prices) & np.isfinite(distances) & (distances > 0.0)
+        for column in range(close.shape[1]):
+            if not valid[column]:
+                state[column] = 0
+                trail[column] = np.nan
+                continue
+            price_now = prices[column]
+            if state[column] > 0:
+                if not long_member_values[row, column]:
+                    state[column] = 0
+                    trail[column] = np.nan
+                else:
+                    trail[column] = max(trail[column], price_now - distances[column])
+                    if price_now <= trail[column]:
+                        state[column] = 0
+                        trail[column] = np.nan
+            elif state[column] < 0:
+                if not short_member_values[row, column]:
+                    state[column] = 0
+                    trail[column] = np.nan
+                else:
+                    trail[column] = min(trail[column], price_now + distances[column])
+                    if price_now >= trail[column]:
+                        state[column] = 0
+                        trail[column] = np.nan
+            if state[column] == 0:
+                if long_values[row, column]:
+                    state[column] = 1
+                    trail[column] = price_now - distances[column]
+                elif short_values[row, column]:
+                    state[column] = -1
+                    trail[column] = price_now + distances[column]
+        long_active = state > 0
+        short_active = state < 0
+        if long_active.any():
+            raw[row, long_active] = (
+                spec.maximum_gross * spec.long_fraction / long_active.sum()
+            )
+        if short_active.any():
+            raw[row, short_active] = -(
+                spec.maximum_gross * (1.0 - spec.long_fraction) / short_active.sum()
+            )
+
+    h6_targets = pd.DataFrame(raw, index=close.index, columns=close.columns)
+    targets = h6_targets.reindex(data.close.index).ffill().fillna(0.0)
+    diagnostics = pd.DataFrame(
+        {
+            "gross": targets.abs().sum(axis=1),
+            "net": targets.sum(axis=1),
+            "long_positions": targets.gt(0.0).sum(axis=1),
+            "short_positions": targets.lt(0.0).sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return targets, diagnostics
 
 
 def convex_capture_targets(
