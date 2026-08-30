@@ -103,12 +103,150 @@ class AdaptiveTrendSpec:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class RegimeSwitchSpec:
+    """Causal market-regime allocation between attack and defense sleeves."""
+
+    momentum_hours: int = 24 * 45
+    fast_ema_hours: int = 24 * 14
+    slow_ema_hours: int = 24 * 90
+    breadth_hours: int = 24 * 30
+    bull_momentum: float = 0.08
+    bear_momentum: float = -0.08
+    bull_breadth: float = 0.55
+    bear_breadth: float = 0.45
+    shock_hours: int = 24 * 7
+    shock_return: float = -0.10
+    bull_attack: float = 1.00
+    neutral_attack: float = 0.70
+    bear_attack: float = 0.20
+    bull_core: float = 0.15
+    neutral_core: float = 0.55
+    bear_core: float = 1.00
+    rebalance_hours: int = 24
+    maximum_gross: float = 1.85
+
+    def __post_init__(self) -> None:
+        if min(
+            self.momentum_hours,
+            self.fast_ema_hours,
+            self.slow_ema_hours,
+            self.breadth_hours,
+            self.shock_hours,
+            self.rebalance_hours,
+        ) <= 0:
+            raise ValueError("regime lookbacks and rebalance must be positive")
+        if self.fast_ema_hours >= self.slow_ema_hours:
+            raise ValueError("fast EMA must be shorter than slow EMA")
+        if not self.bear_momentum < self.bull_momentum:
+            raise ValueError("bear momentum must be below bull momentum")
+        if not 0.0 < self.bear_breadth < self.bull_breadth < 1.0:
+            raise ValueError("invalid regime breadth boundaries")
+        if min(
+            self.bull_attack,
+            self.neutral_attack,
+            self.bear_attack,
+            self.bull_core,
+            self.neutral_core,
+            self.bear_core,
+        ) < 0.0:
+            raise ValueError("regime sleeve weights cannot be negative")
+        if self.maximum_gross <= 0.0:
+            raise ValueError("maximum_gross must be positive")
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
 def _cap_gross(targets: pd.DataFrame, maximum_gross: float) -> pd.DataFrame:
     gross = targets.abs().sum(axis=1)
     scale = (
         maximum_gross / gross.replace(0.0, np.nan)
     ).clip(upper=1.0).fillna(0.0)
     return targets.mul(scale, axis=0).fillna(0.0)
+
+
+def regime_switch_targets(
+    core_targets: pd.DataFrame,
+    attack_targets: pd.DataFrame,
+    close: pd.DataFrame,
+    spec: RegimeSwitchSpec,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Use the convex sleeve only when the closed market regime supports it.
+
+    The regime at close ``t`` is built solely from prices available at ``t``.
+    The replay engine executes the resulting target no earlier than the next
+    hourly open.  A seven-day shock can force the defensive state even while
+    the slower trend has not yet rolled over.
+    """
+
+    if "BTCUSDT" not in close.columns:
+        raise ValueError("BTCUSDT is required for the V16 market regime")
+    aligned_close = close.reindex(core_targets.index)
+    btc = aligned_close["BTCUSDT"]
+    momentum = btc.div(btc.shift(spec.momentum_hours)).sub(1.0)
+    shock = btc.div(btc.shift(spec.shock_hours)).sub(1.0)
+    fast = btc.ewm(
+        span=spec.fast_ema_hours,
+        adjust=False,
+        min_periods=spec.fast_ema_hours,
+    ).mean()
+    slow = btc.ewm(
+        span=spec.slow_ema_hours,
+        adjust=False,
+        min_periods=spec.slow_ema_hours,
+    ).mean()
+    asset_return = aligned_close.div(
+        aligned_close.shift(spec.breadth_hours)
+    ).sub(1.0)
+    breadth = (asset_return > 0.0).where(aligned_close.notna()).mean(axis=1)
+
+    bull = (
+        (momentum >= spec.bull_momentum)
+        & (fast > slow)
+        & (breadth >= spec.bull_breadth)
+    )
+    bear = (
+        (momentum <= spec.bear_momentum)
+        | ((fast < slow) & (breadth <= spec.bear_breadth))
+        | (shock <= spec.shock_return)
+    )
+    regime = pd.Series("neutral", index=core_targets.index, dtype="object")
+    regime.loc[bull] = "bull"
+    regime.loc[bear] = "bear"
+
+    attack_weight = pd.Series(spec.neutral_attack, index=regime.index)
+    core_weight = pd.Series(spec.neutral_core, index=regime.index)
+    attack_weight.loc[regime.eq("bull")] = spec.bull_attack
+    core_weight.loc[regime.eq("bull")] = spec.bull_core
+    attack_weight.loc[regime.eq("bear")] = spec.bear_attack
+    core_weight.loc[regime.eq("bear")] = spec.bear_core
+
+    event = pd.Series(
+        np.arange(len(regime)) % spec.rebalance_hours == 0,
+        index=regime.index,
+    )
+    attack_weight = attack_weight.where(event).ffill().fillna(spec.neutral_attack)
+    core_weight = core_weight.where(event).ffill().fillna(spec.neutral_core)
+    effective_regime = regime.where(event).ffill().fillna("neutral")
+    core = core_targets.fillna(0.0).mul(core_weight, axis=0)
+    attack = attack_targets.reindex_like(core_targets).fillna(0.0).mul(
+        attack_weight, axis=0
+    )
+    targets = _cap_gross(core.add(attack, fill_value=0.0), spec.maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "momentum": momentum,
+            "shock_return": shock,
+            "breadth": breadth,
+            "regime": effective_regime,
+            "attack_weight": attack_weight,
+            "core_weight": core_weight,
+            "gross": targets.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return targets, diagnostics
 
 
 def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
