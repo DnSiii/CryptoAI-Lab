@@ -22,8 +22,10 @@ from cryptoai_v13.data import point_in_time_liquid_view
 from cryptoai_v13.opportunity import OpportunityBudget, additive_opportunity_targets
 from cryptoai_v13.signals import StrategySpec, build_targets
 from cryptoai_v13.v16 import (
+    AdaptiveTrendSpec,
     ConvexCaptureSpec,
     adaptive_equity_shield,
+    adaptive_trend_targets,
     combine_convex_with_core,
     convex_capture_targets,
 )
@@ -183,6 +185,44 @@ def main() -> None:
         benchmarks["v14"]["recent"]["cagr"],
     )
 
+    # Independent alpha family inspired by recent out-of-sample evidence for
+    # intermediate-frequency crypto trend following.  We retain only the
+    # structural ideas (H6, rolling quality selection, asymmetric long/short,
+    # volatility-aware trailing exits) and validate them on our own PIT data.
+    adaptive_trend_specs = {
+        "h6_fast": AdaptiveTrendSpec(
+            momentum_bars=4,
+            entry_threshold=0.025,
+            atr_multiplier=2.0,
+            long_count=4,
+            short_count=2,
+            long_sharpe_threshold=0.4,
+            short_sharpe_threshold=0.7,
+            maximum_gross=1.90,
+        ),
+        "h6_balanced": AdaptiveTrendSpec(),
+        "h6_selective": AdaptiveTrendSpec(
+            momentum_bars=8,
+            entry_threshold=0.045,
+            atr_multiplier=2.5,
+            long_count=3,
+            short_count=2,
+            long_sharpe_threshold=1.0,
+            short_sharpe_threshold=1.3,
+            maximum_gross=1.95,
+        ),
+        "h6_persistent": AdaptiveTrendSpec(
+            momentum_bars=20,
+            entry_threshold=0.065,
+            atr_multiplier=3.0,
+            long_count=5,
+            short_count=3,
+            long_sharpe_threshold=0.5,
+            short_sharpe_threshold=0.9,
+            maximum_gross=1.85,
+        ),
+    }
+
     center = ConvexCaptureSpec()
     specs = {
         "balanced": center,
@@ -234,6 +274,26 @@ def main() -> None:
     }
     rows: list[dict[str, object]] = []
     targets_by_id: dict[str, pd.DataFrame] = {}
+    for name, spec in adaptive_trend_specs.items():
+        targets, diagnostics = adaptive_trend_targets(signal_data, spec)
+        candidate_id = f"adaptive_trend:{name}"
+        targets_by_id[candidate_id] = targets
+        result = screen(data, targets, execution["base_cost_per_side"])
+        row = {
+            "candidate_id": candidate_id,
+            "family": "adaptive_h6_trend",
+            "name": name,
+            "spec": spec.to_dict(),
+            "maximum_portfolio_gross": spec.maximum_gross,
+            "average_gross": float(diagnostics["gross"].mean()),
+            "average_long_positions": float(diagnostics["long_positions"].mean()),
+            "average_short_positions": float(diagnostics["short_positions"].mean()),
+            "profile": profile(result.equity, latest),
+        }
+        row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+        row["screen_gate_passed"] = all(row["gate"].values())
+        row["score"] = score_row(row)
+        rows.append(row)
     for name, spec in specs.items():
         for core_fraction in (0.15, 0.30, 0.45):
             for maximum_gross in (1.35, 1.60, 1.85):
@@ -533,9 +593,10 @@ def main() -> None:
             "braked_convex_champion",
         }
     ]
+    structural = [row for row in ranked if row["family"] == "adaptive_h6_trend"]
     exact_pool = []
     seen_ids: set[str] = set()
-    for row in [*ranked[:4], *protected[:4]]:
+    for row in [*ranked[:4], *protected[:3], *structural[:3]]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
             exact_pool.append(row)
