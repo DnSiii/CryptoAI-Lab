@@ -13,8 +13,10 @@ sys.path.insert(0, str(PROJECT / "src"))
 
 from cryptoai_v13.data import FuturesData
 from cryptoai_v13.v16 import (
+    AdaptiveTrendSpec,
     ConvexCaptureSpec,
     adaptive_equity_shield,
+    adaptive_trend_targets,
     combine_convex_with_core,
 )
 
@@ -72,6 +74,49 @@ class V16ResearchTests(unittest.TestCase):
         changed_targets, _ = adaptive_equity_shield(base, changed, **kwargs)
         pd.testing.assert_frame_equal(shielded.iloc[:-1], changed_targets.iloc[:-1])
         self.assertTrue((shielded.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_adaptive_trend_uses_no_future_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-12-01", periods=1600, freq="h", tz="UTC")
+        symbols = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT")
+        base = np.arange(len(index), dtype=float)
+        close = pd.DataFrame(
+            {
+                symbol: 100.0 * np.exp((0.0002 - rank * 0.00008) * base)
+                for rank, symbol in enumerate(symbols)
+            },
+            index=index,
+        )
+        frames = {
+            "open": close.shift(1).fillna(close.iloc[0]),
+            "high": close * 1.004,
+            "low": close * 0.996,
+            "close": close,
+            "volume": pd.DataFrame(1_000.0, index=index, columns=symbols),
+            "quote_volume": pd.DataFrame(1_000_000.0, index=index, columns=symbols),
+            "trades": pd.DataFrame(100.0, index=index, columns=symbols),
+        }
+        data = FuturesData(
+            frames=frames,
+            funding=pd.DataFrame(0.0, index=index, columns=symbols),
+            symbols=symbols,
+        )
+        spec = AdaptiveTrendSpec(
+            long_candidates=4,
+            short_candidates=4,
+            long_count=2,
+            short_count=2,
+        )
+        targets, _ = adaptive_trend_targets(data, spec)
+        changed_frames = {key: value.copy() for key, value in frames.items()}
+        changed_frames["close"].iloc[-1, 0] *= 0.5
+        changed = FuturesData(
+            frames=changed_frames,
+            funding=data.funding,
+            symbols=symbols,
+        )
+        changed_targets, _ = adaptive_trend_targets(changed, spec)
+        pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertTrue((targets.abs().sum(axis=1) <= spec.maximum_gross + 1e-12).all())
 
 
 if __name__ == "__main__":
