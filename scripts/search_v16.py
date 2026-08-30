@@ -436,10 +436,102 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # Final structural check: do not replace the profitable champion state.
+    # Layer a one-way brake on the already convex champion so healthy periods
+    # remain unchanged and only deteriorating/underwater states are reduced.
+    brake_profiles = (
+        {
+            "name": "early_brake",
+            "warning_drawdown": 0.055,
+            "hard_drawdown": 0.09,
+            "weak_multiplier": 0.35,
+            "hard_multiplier": 0.05,
+            "shock_return": 0.045,
+        },
+        {
+            "name": "balanced_brake",
+            "warning_drawdown": 0.075,
+            "hard_drawdown": 0.12,
+            "weak_multiplier": 0.50,
+            "hard_multiplier": 0.10,
+            "shock_return": 0.055,
+        },
+        {
+            "name": "late_brake",
+            "warning_drawdown": 0.095,
+            "hard_drawdown": 0.15,
+            "weak_multiplier": 0.65,
+            "hard_multiplier": 0.15,
+            "shock_return": 0.065,
+        },
+    )
+    for windows in shield_windows:
+        mixed = multihorizon_two_sleeve_targets(
+            core_targets,
+            v14_targets,
+            core_returns,
+            v14_returns,
+            windows_days=windows,
+            funding_weight_when_leading=0.70,
+            funding_weight_when_lagging=0.10,
+            rebalance_hours=24,
+        )
+        mixed_proxy = screen(data, mixed, execution["base_cost_per_side"])
+        convex = convex_equity_overlay(
+            mixed,
+            mixed_proxy.equity,
+            short_hours=72,
+            long_hours=24 * 30,
+            drawdown_hours=24 * 30,
+            drawdown_threshold=0.12,
+            winner_multiplier=1.30,
+            loser_multiplier=0.50,
+            drawdown_multiplier=0.30,
+            rebalance_hours=24,
+            maximum_gross=1.85,
+        )
+        convex_proxy = screen(data, convex, execution["base_cost_per_side"])
+        for brake in brake_profiles:
+            targets, diagnostics = adaptive_equity_shield(
+                convex,
+                convex_proxy.equity,
+                short_hours=48,
+                long_hours=24 * 21,
+                peak_hours=24 * 180,
+                attack_multiplier=1.0,
+                neutral_multiplier=1.0,
+                rebalance_hours=6,
+                maximum_gross=1.85,
+                **{key: value for key, value in brake.items() if key != "name"},
+            )
+            candidate_id = f"brake:{'-'.join(map(str, windows))}:{brake['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "braked_convex_champion",
+                "name": brake["name"],
+                "windows_days": list(windows),
+                "core_weight_when_leading": 0.70,
+                "core_weight_when_lagging": 0.10,
+                "brake": brake,
+                "maximum_portfolio_gross": 1.85,
+                "average_risk_factor": float(diagnostics["risk_factor"].mean()),
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     ranked = sorted(rows, key=lambda item: item["score"], reverse=True)
     exact_rows: list[dict[str, object]] = []
     protected = [
-        row for row in ranked if row["family"] == "protected_adaptive_champion"
+        row for row in ranked
+        if row["family"] in {
+            "protected_adaptive_champion",
+            "braked_convex_champion",
+        }
     ]
     exact_pool = []
     seen_ids: set[str] = set()
