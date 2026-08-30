@@ -19,6 +19,7 @@ from cryptoai_v13.v16 import (
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
+    drawdown_regime_reentry_targets,
     regime_switch_targets,
 )
 
@@ -140,6 +141,34 @@ class V16ResearchTests(unittest.TestCase):
         changed_targets, _ = regime_switch_targets(core, attack, changed, spec)
         pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
         self.assertTrue((targets.abs().sum(axis=1) <= spec.maximum_gross + 1e-12).all())
+
+    def test_regime_reentry_shield_is_causal_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-01-01", periods=1200, freq="h", tz="UTC")
+        equity = pd.Series(np.linspace(1.0, 1.4, len(index)), index=index)
+        equity.iloc[700:800] *= np.linspace(1.0, 0.85, 100)
+        regime = pd.Series("bull", index=index)
+        targets = pd.DataFrame(
+            {"BTCUSDT": 1.4, "ETHUSDT": 0.8}, index=index
+        )
+        kwargs = dict(
+            drawdown_threshold=0.07,
+            defensive_multiplier=0.20,
+            reentry_return_hours=24 * 7,
+            reentry_return=0.02,
+            minimum_defensive_hours=24 * 5,
+            rebalance_hours=24,
+            maximum_gross=1.85,
+        )
+        shielded, _ = drawdown_regime_reentry_targets(
+            targets, equity, regime, **kwargs
+        )
+        changed_equity = equity.copy()
+        changed_equity.iloc[-1] *= 0.5
+        changed, _ = drawdown_regime_reentry_targets(
+            targets, changed_equity, regime, **kwargs
+        )
+        pd.testing.assert_frame_equal(shielded.iloc[:-1], changed.iloc[:-1])
+        self.assertTrue((shielded.abs().sum(axis=1) <= 1.85 + 1e-12).all())
 
 
 if __name__ == "__main__":
