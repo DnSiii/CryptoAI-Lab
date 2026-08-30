@@ -31,6 +31,7 @@ from cryptoai_v13.v16 import (
     convex_capture_targets,
     drawdown_regime_reentry_targets,
     regime_switch_targets,
+    rolling_loss_limiter_targets,
 )
 from paper_once_v13 import cap_targets
 from run_final_candidate import build_candidate
@@ -558,6 +559,88 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # Fast rolling loss containment is intentionally separate from a
+    # high-water drawdown lock.  It preserves normal and winning exposure,
+    # cuts only while the last day/week remains unusually weak, and restores
+    # the sleeve automatically as those closed windows recover.
+    rolling_limiters = (
+        {
+            "name": "rapid",
+            "short_hours": 24,
+            "medium_hours": 24 * 7,
+            "short_loss": 0.03,
+            "medium_loss": 0.07,
+            "short_multiplier": 0.10,
+            "medium_multiplier": 0.25,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "balanced",
+            "short_hours": 24,
+            "medium_hours": 24 * 7,
+            "short_loss": 0.04,
+            "medium_loss": 0.09,
+            "short_multiplier": 0.15,
+            "medium_multiplier": 0.35,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "tolerant",
+            "short_hours": 24,
+            "medium_hours": 24 * 7,
+            "short_loss": 0.05,
+            "medium_loss": 0.11,
+            "short_multiplier": 0.25,
+            "medium_multiplier": 0.45,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+    )
+    limiter_sources = (
+        "champion:45-90-180:0.7:0.1:attack",
+        "champion:45-90-180:0.8:0.2:attack",
+    )
+    for source_id in limiter_sources:
+        proxy = screen(
+            data,
+            targets_by_id[source_id],
+            execution["base_cost_per_side"],
+        )
+        for limiter in rolling_limiters:
+            targets, diagnostics = rolling_loss_limiter_targets(
+                targets_by_id[source_id],
+                proxy.equity,
+                **{key: value for key, value in limiter.items() if key != "name"},
+            )
+            candidate_id = f"loss_limiter:{source_id}:{limiter['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "rolling_loss_limited_champion",
+                "name": limiter["name"],
+                "source_candidate_id": source_id,
+                "loss_limiter": limiter,
+                "maximum_portfolio_gross": limiter["maximum_gross"],
+                "reduced_exposure_share": float(
+                    diagnostics["risk_factor"].lt(1.0).mean()
+                ),
+                "risk_guard": {
+                    "name": "targets_own_state",
+                    "threshold": 0.99,
+                    "multiplier": 1.0,
+                    "recovery": None,
+                    "cooldown_hours": 1,
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     # Third family: preserve the strongest recent champion allocator, but add
     # a faster causal shield.  It attacks only while short and long closed
     # equity trends agree, and cuts exposure on drawdown or a one-day shock.
@@ -752,6 +835,9 @@ def main() -> None:
     regime_reentry = [
         row for row in ranked if row["family"] == "regime_reentry_champion"
     ]
+    loss_limited = [
+        row for row in ranked if row["family"] == "rolling_loss_limited_champion"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
@@ -760,6 +846,7 @@ def main() -> None:
         *structural[:3],
         *regime_switched[:4],
         *regime_reentry[:4],
+        *loss_limited[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
