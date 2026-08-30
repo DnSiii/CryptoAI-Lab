@@ -601,17 +601,56 @@ def main() -> None:
         if candidate_id not in seen_ids:
             exact_pool.append(row)
             seen_ids.add(candidate_id)
+    risk_guard_specs = (
+        {
+            "name": "guard_5pct",
+            "threshold": 0.05,
+            "multiplier": 0.08,
+            "cooldown_hours": 24 * 30,
+        },
+        {
+            "name": "guard_7pct",
+            "threshold": 0.07,
+            "multiplier": 0.15,
+            "cooldown_hours": 24 * 21,
+        },
+        {
+            "name": "guard_9pct",
+            "threshold": 0.09,
+            "multiplier": 0.20,
+            "cooldown_hours": 24 * 14,
+        },
+    )
+    aggressive_champions = [
+        row for row in ranked
+        if row["family"] == "adaptive_v13_v14_champion"
+        and row["name"] == "attack"
+    ][:2]
+    for row in aggressive_champions:
+        for guard in risk_guard_specs:
+            exact_pool.append({
+                **row,
+                "candidate_id": f"{row['candidate_id']}:{guard['name']}",
+                "target_candidate_id": row["candidate_id"],
+                "risk_guard": guard,
+            })
     for row in exact_pool:
-        targets = targets_by_id[str(row["candidate_id"])]
+        targets = targets_by_id[str(row.get("target_candidate_id", row["candidate_id"]))]
+        risk_guard = row.get("risk_guard", {
+            "name": "default",
+            "threshold": 0.12,
+            "multiplier": 0.35,
+            "cooldown_hours": 168,
+        })
         exact_base = exact_fast(
             data,
             targets,
             cost_per_side=execution["base_cost_per_side"],
             maintenance_equity_fraction=execution["maintenance_equity_fraction"],
             gross_guard_cap=float(row["maximum_portfolio_gross"]) + 0.15,
-            drawdown_guard_threshold=0.12,
-            drawdown_guard_multiplier=0.35,
-            drawdown_guard_cooldown_hours=168,
+            drawdown_guard_threshold=risk_guard["threshold"],
+            drawdown_guard_multiplier=risk_guard["multiplier"],
+            drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
         )
         severe = exact_fast(
             data,
@@ -619,9 +658,9 @@ def main() -> None:
             cost_per_side=execution["severe_cost_per_side"],
             maintenance_equity_fraction=execution["maintenance_equity_fraction"],
             gross_guard_cap=float(row["maximum_portfolio_gross"]) + 0.15,
-            drawdown_guard_threshold=0.12,
-            drawdown_guard_multiplier=0.35,
-            drawdown_guard_cooldown_hours=168,
+            drawdown_guard_threshold=risk_guard["threshold"],
+            drawdown_guard_multiplier=risk_guard["multiplier"],
+            drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
         )
         delayed = exact_fast(
             data,
@@ -629,9 +668,9 @@ def main() -> None:
             cost_per_side=execution["base_cost_per_side"],
             maintenance_equity_fraction=execution["maintenance_equity_fraction"],
             gross_guard_cap=float(row["maximum_portfolio_gross"]) + 0.15,
-            drawdown_guard_threshold=0.12,
-            drawdown_guard_multiplier=0.35,
-            drawdown_guard_cooldown_hours=168,
+            drawdown_guard_threshold=risk_guard["threshold"],
+            drawdown_guard_multiplier=risk_guard["multiplier"],
+            drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
         )
         checked = {**row, "profile": profile(exact_base.equity, latest)}
         checked["gate"] = robustness_gate(checked, benchmark_recent_cagr)
@@ -660,7 +699,7 @@ def main() -> None:
         "data_priority": "2025+ and 2026 receive the largest score weight; 2021-2024 are robustness regimes",
         "anti_overfit_rule": "paper promotion is forbidden unless exact, cost-stress and delay gates pass and recent returns remain positive after deleting the best day",
         "benchmarks": benchmarks,
-        "tested_configurations": len(rows),
+        "tested_configurations": len(rows) + len(aggressive_champions) * len(risk_guard_specs),
         "screen_passed": sum(bool(row["screen_gate_passed"]) for row in rows),
         "promoted": promoted,
         "exact_finalists": exact_ranked,
