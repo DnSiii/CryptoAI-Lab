@@ -23,6 +23,7 @@ from cryptoai_v13.v16 import (
     regime_hedged_targets,
     regime_switch_targets,
     rolling_loss_limiter_targets,
+    three_regime_sleeve_targets,
 )
 
 
@@ -225,6 +226,37 @@ class V16ResearchTests(unittest.TestCase):
         pd.testing.assert_frame_equal(hedged.iloc[:-1], changed_targets.iloc[:-1])
         self.assertLess(float(diagnostics.loc[index[-2], "net"]), 0.0)
         self.assertTrue((hedged.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_three_regime_sleeves_use_only_signal_shorts(self) -> None:
+        index = pd.date_range("2025-01-01", periods=90, freq="h", tz="UTC")
+        core = pd.DataFrame(
+            {"BTCUSDT": 0.6, "ETHUSDT": 0.4}, index=index
+        )
+        attack = pd.DataFrame(
+            {"BTCUSDT": 1.2, "ETHUSDT": 0.8}, index=index
+        )
+        raw = pd.DataFrame(
+            {"BTCUSDT": -1.0, "ETHUSDT": 0.9}, index=index
+        )
+        regime = pd.Series("bull", index=index)
+        regime.iloc[30:60] = "neutral"
+        regime.iloc[60:] = "bear"
+        targets, _ = three_regime_sleeve_targets(
+            core,
+            attack,
+            raw,
+            regime,
+            bull_attack=1.0,
+            bull_core=0.1,
+            neutral_attack=0.7,
+            neutral_core=0.45,
+            bear_short=1.1,
+            bear_core=0.0,
+            maximum_gross=1.85,
+        )
+        self.assertLess(float(targets.loc[index[-1], "BTCUSDT"]), 0.0)
+        self.assertEqual(float(targets.loc[index[-1], "ETHUSDT"]), 0.0)
+        self.assertTrue((targets.abs().sum(axis=1) <= 1.85 + 1e-12).all())
 
 
 if __name__ == "__main__":
