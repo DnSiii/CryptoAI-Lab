@@ -249,6 +249,95 @@ def regime_switch_targets(
     return targets, diagnostics
 
 
+def drawdown_regime_reentry_targets(
+    targets: pd.DataFrame,
+    proxy_equity: pd.Series,
+    regime: pd.Series,
+    *,
+    drawdown_threshold: float,
+    defensive_multiplier: float,
+    reentry_return_hours: int,
+    reentry_return: float,
+    minimum_defensive_hours: int,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Cut after a closed-equity loss and reattack on market confirmation.
+
+    Unlike a fixed cooldown, the defensive state cannot expire merely because
+    time passed.  Unlike equity-only recovery, it need not wait for a reduced
+    sleeve to grind all the way back to its former peak.  Re-entry requires a
+    confirmed bull regime and positive closed proxy performance, after which
+    a new causal high-water cycle starts.
+    """
+
+    if not 0.0 < drawdown_threshold < 1.0:
+        raise ValueError("drawdown_threshold must be a fraction")
+    if not 0.0 <= defensive_multiplier <= 1.0:
+        raise ValueError("defensive_multiplier must be between zero and one")
+    if min(
+        reentry_return_hours,
+        minimum_defensive_hours,
+        rebalance_hours,
+    ) <= 0 or maximum_gross <= 0.0:
+        raise ValueError("reentry, rebalance and gross parameters must be positive")
+
+    equity = proxy_equity.reindex(targets.index).ffill()
+    market_regime = regime.reindex(targets.index).ffill().fillna("neutral")
+    recovery_return = equity.div(equity.shift(reentry_return_hours)).sub(1.0)
+    factors = np.ones(len(targets), dtype=float)
+    states: list[str] = []
+    local_drawdowns = np.zeros(len(targets), dtype=float)
+    defensive = False
+    defensive_since = -1
+    local_peak = np.nan
+    factor = 1.0
+    for row in range(len(targets)):
+        value = float(equity.iloc[row]) if np.isfinite(equity.iloc[row]) else np.nan
+        if np.isfinite(value):
+            if not np.isfinite(local_peak):
+                local_peak = value
+            if not defensive:
+                local_peak = max(local_peak, value)
+            drawdown = value / local_peak - 1.0 if local_peak > 0.0 else 0.0
+        else:
+            drawdown = 0.0
+        local_drawdowns[row] = drawdown
+        if row % rebalance_hours == 0 and np.isfinite(value):
+            if not defensive and drawdown <= -drawdown_threshold:
+                defensive = True
+                defensive_since = row
+                factor = defensive_multiplier
+            elif defensive:
+                elapsed = row - defensive_since
+                confirmed = (
+                    market_regime.iloc[row] == "bull"
+                    and np.isfinite(recovery_return.iloc[row])
+                    and recovery_return.iloc[row] >= reentry_return
+                )
+                if elapsed >= minimum_defensive_hours and confirmed:
+                    defensive = False
+                    local_peak = value
+                    factor = 1.0
+        factors[row] = factor
+        states.append("defensive" if defensive else "attack")
+
+    factor_series = pd.Series(factors, index=targets.index)
+    shielded = _cap_gross(targets.mul(factor_series, axis=0), maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "proxy_drawdown": local_drawdowns,
+            "recovery_return": recovery_return,
+            "regime": market_regime,
+            "risk_state": states,
+            "risk_factor": factor_series,
+            "gross": shielded.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return shielded, diagnostics
+
+
 def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
     return StrategySpec(
         family="impulse",
