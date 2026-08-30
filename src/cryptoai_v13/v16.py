@@ -436,6 +436,63 @@ def regime_hedged_targets(
     return hedged, diagnostics
 
 
+def three_regime_sleeve_targets(
+    core_targets: pd.DataFrame,
+    attack_targets: pd.DataFrame,
+    bear_short_targets: pd.DataFrame,
+    regime: pd.Series,
+    *,
+    bull_attack: float,
+    bull_core: float,
+    neutral_attack: float,
+    neutral_core: float,
+    bear_short: float,
+    bear_core: float,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Select attack, defense or signal-confirmed shorts by closed regime."""
+
+    weights = (
+        bull_attack,
+        bull_core,
+        neutral_attack,
+        neutral_core,
+        bear_short,
+        bear_core,
+    )
+    if min(weights) < 0.0 or maximum_gross <= 0.0:
+        raise ValueError("sleeve weights and maximum_gross must be non-negative")
+    market_regime = regime.reindex(core_targets.index).ffill().fillna("neutral")
+    core = core_targets.fillna(0.0)
+    attack = attack_targets.reindex_like(core).fillna(0.0)
+    short_only = bear_short_targets.reindex_like(core).fillna(0.0).clip(upper=0.0)
+    combined = pd.DataFrame(0.0, index=core.index, columns=core.columns)
+    bull = market_regime.eq("bull")
+    neutral = market_regime.eq("neutral")
+    bear = market_regime.eq("bear")
+    combined.loc[bull] = (
+        attack.loc[bull] * bull_attack + core.loc[bull] * bull_core
+    )
+    combined.loc[neutral] = (
+        attack.loc[neutral] * neutral_attack
+        + core.loc[neutral] * neutral_core
+    )
+    combined.loc[bear] = (
+        short_only.loc[bear] * bear_short + core.loc[bear] * bear_core
+    )
+    combined = _cap_gross(combined, maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "regime": market_regime,
+            "short_signal_gross": short_only.abs().sum(axis=1),
+            "net": combined.sum(axis=1),
+            "gross": combined.abs().sum(axis=1),
+        },
+        index=combined.index,
+    )
+    return combined, diagnostics
+
+
 def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
     return StrategySpec(
         family="impulse",
