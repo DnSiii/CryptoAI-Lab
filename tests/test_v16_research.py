@@ -16,11 +16,13 @@ from cryptoai_v13.v16 import (
     AdaptiveTrendSpec,
     ConvexCaptureSpec,
     CrossSectionalMomentumSpec,
+    FundingCarrySpec,
     RegimeSwitchSpec,
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
     cross_sectional_momentum_targets,
+    funding_carry_targets,
     drawdown_regime_reentry_targets,
     regime_hedged_targets,
     regime_switch_targets,
@@ -392,6 +394,55 @@ class V16ResearchTests(unittest.TestCase):
             reversal.loc[active], -momentum.loc[active]
         )
         self.assertTrue((reversal.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_funding_carry_is_causal_neutral_and_receives_funding(self) -> None:
+        index = pd.date_range("2026-01-01", periods=360, freq="h", tz="UTC")
+        symbols = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "ADAUSDT", "BNBUSDT")
+        base = np.arange(len(index), dtype=float)
+        close = pd.DataFrame(
+            {
+                symbol: 100.0 * np.exp(0.00002 * base + 0.002 * np.sin(base / (12 + rank)))
+                for rank, symbol in enumerate(symbols)
+            },
+            index=index,
+        )
+        funding = pd.DataFrame(
+            {
+                symbol: np.full(len(index), (rank - 2.5) * 0.00002)
+                for rank, symbol in enumerate(symbols)
+            },
+            index=index,
+        )
+        frames = {
+            "open": close.shift(1).fillna(close.iloc[0]),
+            "high": close * 1.004,
+            "low": close * 0.996,
+            "close": close,
+            "volume": pd.DataFrame(1_000.0, index=index, columns=symbols),
+            "quote_volume": pd.DataFrame(1_000_000.0, index=index, columns=symbols),
+            "trades": pd.DataFrame(100.0, index=index, columns=symbols),
+        }
+        data = FuturesData(frames=frames, funding=funding, symbols=symbols)
+        spec = FundingCarrySpec(
+            funding_lookback_hours=48,
+            volatility_hours=72,
+            trend_hours=24,
+            rebalance_hours=8,
+            long_count=2,
+            short_count=2,
+            minimum_absolute_funding=0.0005,
+        )
+        targets, _ = funding_carry_targets(data, spec)
+        active = targets.abs().sum(axis=1) > 0.0
+        self.assertTrue((targets.loc[active].sum(axis=1).abs() < 1e-10).all())
+        self.assertGreater(float(targets.loc[active, "BTCUSDT"].mean()), 0.0)
+        self.assertLess(float(targets.loc[active, "BNBUSDT"].mean()), 0.0)
+        changed_funding = funding.copy()
+        changed_funding.iloc[-1, 0] = 1.0
+        changed = FuturesData(frames=frames, funding=changed_funding, symbols=symbols)
+        changed_targets, _ = funding_carry_targets(changed, spec)
+        pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertTrue((targets.abs().sum(axis=1) <= spec.maximum_gross + 1e-12).all())
 
 
 if __name__ == "__main__":
