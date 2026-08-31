@@ -24,6 +24,7 @@ from cryptoai_v13.v16 import (
     regime_switch_targets,
     rolling_loss_limiter_targets,
     three_regime_sleeve_targets,
+    volatility_managed_targets,
 )
 
 
@@ -257,6 +258,37 @@ class V16ResearchTests(unittest.TestCase):
         self.assertLess(float(targets.loc[index[-1], "BTCUSDT"]), 0.0)
         self.assertEqual(float(targets.loc[index[-1], "ETHUSDT"]), 0.0)
         self.assertTrue((targets.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_volatility_manager_is_causal_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-01-01", periods=1200, freq="h", tz="UTC")
+        returns = np.sin(np.arange(len(index)) / 20.0) * 0.003 + 0.0002
+        equity = pd.Series(np.cumprod(1.0 + returns), index=index)
+        regime = pd.Series("bull", index=index)
+        targets = pd.DataFrame(
+            {"BTCUSDT": 1.4, "ETHUSDT": 0.8}, index=index
+        )
+        kwargs = dict(
+            volatility_hours=24 * 14,
+            annual_volatility_target=0.80,
+            minimum_multiplier=0.20,
+            bull_maximum_multiplier=1.10,
+            neutral_maximum_multiplier=0.80,
+            bear_maximum_multiplier=0.40,
+            one_day_shock=0.05,
+            shock_multiplier=0.15,
+            rebalance_hours=6,
+            maximum_gross=2.00,
+        )
+        managed, _ = volatility_managed_targets(
+            targets, equity, regime, **kwargs
+        )
+        changed_equity = equity.copy()
+        changed_equity.iloc[-1] *= 0.5
+        changed, _ = volatility_managed_targets(
+            targets, changed_equity, regime, **kwargs
+        )
+        pd.testing.assert_frame_equal(managed.iloc[:-1], changed.iloc[:-1])
+        self.assertTrue((managed.abs().sum(axis=1) <= 2.0 + 1e-12).all())
 
 
 if __name__ == "__main__":
