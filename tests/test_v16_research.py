@@ -26,6 +26,7 @@ from cryptoai_v13.v16 import (
     performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
     protected_equity_reentry_targets,
+    trailing_profit_lock_targets,
     regime_hedged_targets,
     regime_switch_targets,
     rolling_loss_limiter_targets,
@@ -267,6 +268,39 @@ class V16ResearchTests(unittest.TestCase):
         pd.testing.assert_frame_equal(guarded.iloc[:-1], changed.iloc[:-1])
         self.assertTrue((guarded.abs().sum(axis=1) <= 1.85 + 1e-12).all())
         self.assertTrue(diagnostics["risk_factor"].lt(1.0).any())
+
+    def test_trailing_profit_lock_is_causal_and_preserves_initial_run(self) -> None:
+        index = pd.date_range("2026-01-01", periods=500, freq="h", tz="UTC")
+        targets = pd.DataFrame(
+            {"BTCUSDT": 1.2, "ETHUSDT": 0.5}, index=index
+        )
+        hourly = np.full(len(index), 0.0008)
+        hourly[300:340] = -0.0015
+        equity = pd.Series(np.cumprod(1.0 + hourly), index=index)
+        kwargs = dict(
+            short_hours=24 * 7,
+            long_hours=24 * 30,
+            short_gain=0.10,
+            long_gain=0.25,
+            profit_pullback=0.02,
+            shock_loss=0.05,
+            lock_multiplier=0.20,
+            shock_multiplier=0.05,
+            rebalance_hours=3,
+            maximum_gross=1.85,
+        )
+        locked, diagnostics = trailing_profit_lock_targets(
+            targets, equity, **kwargs
+        )
+        changed = equity.copy()
+        changed.iloc[-1] *= 0.5
+        changed_targets, _ = trailing_profit_lock_targets(
+            targets, changed, **kwargs
+        )
+        pd.testing.assert_frame_equal(locked.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertTrue((locked.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+        first_lock = diagnostics.index[diagnostics["profit_lock"]][0]
+        self.assertGreater(first_lock, index[300])
 
     def test_regime_hedge_is_causal_and_caps_gross(self) -> None:
         index = pd.date_range("2025-01-01", periods=100, freq="h", tz="UTC")
