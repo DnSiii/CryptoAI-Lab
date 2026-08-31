@@ -192,6 +192,42 @@ class CrossSectionalMomentumSpec:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class FundingCarrySpec:
+    """Market-neutral funding carry with a causal adverse-trend filter."""
+
+    funding_lookback_hours: int = 24 * 7
+    volatility_hours: int = 24 * 14
+    trend_hours: int = 24 * 3
+    rebalance_hours: int = 8
+    long_count: int = 4
+    short_count: int = 4
+    minimum_absolute_funding: float = 0.001
+    maximum_adverse_trend: float = 0.12
+    long_fraction: float = 0.50
+    maximum_gross: float = 1.25
+
+    def __post_init__(self) -> None:
+        if min(
+            self.funding_lookback_hours,
+            self.volatility_hours,
+            self.trend_hours,
+            self.rebalance_hours,
+            self.long_count,
+            self.short_count,
+        ) <= 0:
+            raise ValueError("funding carry parameters must be positive")
+        if self.minimum_absolute_funding < 0.0:
+            raise ValueError("minimum funding cannot be negative")
+        if not 0.0 < self.maximum_adverse_trend < 1.0:
+            raise ValueError("maximum adverse trend must be a fraction")
+        if not 0.0 < self.long_fraction < 1.0 or self.maximum_gross <= 0.0:
+            raise ValueError("funding carry allocation is invalid")
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
 def _cap_gross(targets: pd.DataFrame, maximum_gross: float) -> pd.DataFrame:
     gross = targets.abs().sum(axis=1)
     scale = (
@@ -222,6 +258,64 @@ def cross_sectional_momentum_targets(
     )
     short_mask = (short_rank <= spec.short_count) & (
         oriented_momentum <= -spec.minimum_momentum
+    )
+    inverse_volatility = 1.0 / hourly_volatility.replace(0.0, np.nan)
+    long_raw = inverse_volatility.where(long_mask)
+    short_raw = inverse_volatility.where(short_mask)
+    long_weight = long_raw.div(long_raw.sum(axis=1), axis=0).fillna(0.0).mul(
+        spec.maximum_gross * spec.long_fraction
+    )
+    short_weight = short_raw.div(short_raw.sum(axis=1), axis=0).fillna(0.0).mul(
+        -spec.maximum_gross * (1.0 - spec.long_fraction)
+    )
+    raw = long_weight.add(short_weight, fill_value=0.0)
+    event = pd.Series(
+        np.arange(len(raw)) % spec.rebalance_hours == 0,
+        index=raw.index,
+    )
+    targets = raw.where(event, np.nan).ffill().fillna(0.0)
+    targets = targets.where(close.notna(), 0.0)
+    targets = _cap_gross(targets, spec.maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "gross": targets.abs().sum(axis=1),
+            "net": targets.sum(axis=1),
+            "long_positions": targets.gt(0.0).sum(axis=1),
+            "short_positions": targets.lt(0.0).sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return targets, diagnostics
+
+
+def funding_carry_targets(
+    data: FuturesData,
+    spec: FundingCarrySpec,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Receive extreme funding while avoiding positions fighting a squeeze."""
+
+    close = data.close
+    cumulative_funding = data.funding.reindex_like(close).fillna(0.0).rolling(
+        spec.funding_lookback_hours,
+        min_periods=max(8, spec.funding_lookback_hours // 3),
+    ).sum()
+    trend = close.div(close.shift(spec.trend_hours)).sub(1.0)
+    hourly_volatility = close.pct_change().rolling(
+        spec.volatility_hours,
+        min_periods=max(24, spec.volatility_hours // 3),
+    ).std()
+    # Negative funding pays longs; positive funding pays shorts.
+    long_rank = cumulative_funding.rank(axis=1, ascending=True, method="first")
+    short_rank = cumulative_funding.rank(axis=1, ascending=False, method="first")
+    long_mask = (
+        (long_rank <= spec.long_count)
+        & (cumulative_funding <= -spec.minimum_absolute_funding)
+        & (trend >= -spec.maximum_adverse_trend)
+    )
+    short_mask = (
+        (short_rank <= spec.short_count)
+        & (cumulative_funding >= spec.minimum_absolute_funding)
+        & (trend <= spec.maximum_adverse_trend)
     )
     inverse_volatility = 1.0 / hourly_volatility.replace(0.0, np.nan)
     long_raw = inverse_volatility.where(long_mask)
