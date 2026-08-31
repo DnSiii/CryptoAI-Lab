@@ -832,6 +832,62 @@ def main() -> None:
             "maximum_gross": 1.85,
             "exact_guard": {"threshold": 0.050, "multiplier": 0.05, "cooldown_hours": 72},
         },
+        {
+            "name": "mid_lock_a",
+            "short_hours": 24 * 8,
+            "long_hours": 24 * 52,
+            "short_gain": 0.175,
+            "long_gain": 0.40,
+            "profit_pullback": 0.0275,
+            "shock_loss": 0.055,
+            "lock_multiplier": 0.30,
+            "shock_multiplier": 0.12,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.058, "multiplier": 0.10, "cooldown_hours": 84},
+        },
+        {
+            "name": "mid_lock_b",
+            "short_hours": 24 * 8,
+            "long_hours": 24 * 45,
+            "short_gain": 0.16,
+            "long_gain": 0.37,
+            "profit_pullback": 0.026,
+            "shock_loss": 0.0525,
+            "lock_multiplier": 0.32,
+            "shock_multiplier": 0.12,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.055, "multiplier": 0.08, "cooldown_hours": 84},
+        },
+        {
+            "name": "balanced_relaxed",
+            "short_hours": 24 * 7,
+            "long_hours": 24 * 45,
+            "short_gain": 0.15,
+            "long_gain": 0.35,
+            "profit_pullback": 0.0275,
+            "shock_loss": 0.0525,
+            "lock_multiplier": 0.35,
+            "shock_multiplier": 0.15,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.058, "multiplier": 0.10, "cooldown_hours": 72},
+        },
+        {
+            "name": "late_hardened",
+            "short_hours": 24 * 10,
+            "long_hours": 24 * 60,
+            "short_gain": 0.20,
+            "long_gain": 0.45,
+            "profit_pullback": 0.030,
+            "shock_loss": 0.060,
+            "lock_multiplier": 0.35,
+            "shock_multiplier": 0.15,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.0525, "multiplier": 0.05, "cooldown_hours": 96},
+        },
     )
     for lock in profit_lock_profiles:
         transform = {
@@ -1803,7 +1859,15 @@ def main() -> None:
             exact_pool.append(row)
             seen_ids.add(candidate_id)
     for row in ranked:
-        if row["family"] == "trailing_profit_lock_attack":
+        if (
+            row["family"] == "trailing_profit_lock_attack"
+            and row["name"] in {
+                "mid_lock_a",
+                "mid_lock_b",
+                "balanced_relaxed",
+                "late_hardened",
+            }
+        ):
             exact_pool.append(row)
     for row in exact_pool:
         targets = targets_by_id[str(row.get("target_candidate_id", row["candidate_id"]))]
