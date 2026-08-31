@@ -638,6 +638,138 @@ def drawdown_regime_reentry_targets(
     return shielded, diagnostics
 
 
+def protected_equity_reentry_targets(
+    data: FuturesData,
+    targets: pd.DataFrame,
+    confirmation_equity: pd.Series,
+    *,
+    drawdown_threshold: float,
+    minimum_multiplier: float,
+    recovery_multiplier: float,
+    confirmation_hours: int,
+    confirmation_return: float,
+    restore_drawdown: float,
+    deep_drawdown: float,
+    deep_recovery_multiplier: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+    cost_per_side: float = 0.0007,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Causal V16-only guard driven by the equity it actually protects.
+
+    The earlier research guards either measured the unprotected source equity
+    or re-enabled risk after a fixed timer.  This state machine instead
+    reconstructs the guarded sleeve one closed hour at a time.  A loss in the
+    guarded equity cuts the *next* target, while re-entry needs positive source
+    performance and never resets the original high-water mark.  Consequently,
+    repeated false recoveries cannot silently open a fresh drawdown budget.
+
+    This is a research target transformer, not an order path.  Exact replay is
+    still required after screening because this internal ledger deliberately
+    uses the same fast close-to-next-open approximation as ``screen``.
+    """
+
+    if not 0.0 < restore_drawdown < drawdown_threshold < deep_drawdown < 1.0:
+        raise ValueError("restore < trigger < deep drawdown is required")
+    if not 0.0 <= minimum_multiplier <= deep_recovery_multiplier <= recovery_multiplier <= 1.0:
+        raise ValueError("invalid protected-equity multipliers")
+    if min(confirmation_hours, rebalance_hours) <= 0 or maximum_gross <= 0.0:
+        raise ValueError("confirmation, rebalance and gross must be positive")
+
+    raw = targets.reindex(index=data.close.index, columns=data.symbols).fillna(0.0)
+    index = raw.index
+    confirmation = confirmation_equity.reindex(index).ffill()
+    confirmation_change = confirmation.div(
+        confirmation.shift(confirmation_hours)
+    ).sub(1.0)
+    factors = np.ones(len(index), dtype=float)
+    protected_equity = np.ones(len(index), dtype=float)
+    protected_drawdown = np.zeros(len(index), dtype=float)
+    states: list[str] = ["attack"] * len(index)
+    peak = 1.0
+    factor = 1.0
+    active = False
+
+    opens = data.frames["open"].reindex_like(raw)
+    closes = data.close.reindex_like(raw)
+    funding = data.funding.reindex_like(raw).fillna(0.0)
+    for row in range(1, len(index)):
+        at_open = raw.iloc[row - 1] * factors[row - 1]
+        overnight = (
+            raw.iloc[row - 2] * factors[row - 2]
+            if row >= 2
+            else raw.iloc[0] * 0.0
+        )
+        previous_close = closes.iloc[row - 1]
+        opened = opens.iloc[row]
+        closed = closes.iloc[row]
+        overnight_return = opened.div(previous_close).sub(1.0).replace(
+            [np.inf, -np.inf], np.nan
+        ).fillna(0.0)
+        intraday_return = closed.div(opened).sub(1.0).replace(
+            [np.inf, -np.inf], np.nan
+        ).fillna(0.0)
+        gross_return = float(
+            (overnight * overnight_return).sum()
+            + (at_open * intraday_return).sum()
+        )
+        turnover = float(at_open.sub(overnight).abs().sum())
+        funding_cost = float((overnight * funding.iloc[row]).sum())
+        net_return = gross_return - turnover * cost_per_side - funding_cost
+        protected_equity[row] = max(
+            0.0, protected_equity[row - 1] * (1.0 + net_return)
+        )
+        peak = max(peak, protected_equity[row])
+        drawdown = protected_equity[row] / peak - 1.0 if peak > 0.0 else -1.0
+        protected_drawdown[row] = drawdown
+
+        if row % rebalance_hours == 0:
+            if drawdown <= -deep_drawdown:
+                active = True
+                factor = minimum_multiplier
+            elif drawdown <= -drawdown_threshold:
+                active = True
+                confirmed = (
+                    np.isfinite(confirmation_change.iloc[row])
+                    and confirmation_change.iloc[row] >= confirmation_return
+                )
+                factor = recovery_multiplier if confirmed else minimum_multiplier
+            elif active and drawdown < -restore_drawdown:
+                confirmed = (
+                    np.isfinite(confirmation_change.iloc[row])
+                    and confirmation_change.iloc[row] >= confirmation_return
+                )
+                factor = recovery_multiplier if confirmed else minimum_multiplier
+            else:
+                active = False
+                factor = 1.0
+
+            if active and drawdown <= -deep_drawdown:
+                confirmed = (
+                    np.isfinite(confirmation_change.iloc[row])
+                    and confirmation_change.iloc[row] >= confirmation_return
+                )
+                factor = deep_recovery_multiplier if confirmed else minimum_multiplier
+
+        factors[row] = factor
+        states[row] = "recovery" if active else "attack"
+
+    factor_series = pd.Series(factors, index=index)
+    guarded = _cap_gross(raw.mul(factor_series, axis=0), maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "protected_equity": protected_equity,
+            "protected_drawdown": protected_drawdown,
+            "confirmation_return": confirmation_change,
+            "risk_state": states,
+            "risk_factor": factor_series,
+            "gross": guarded.abs().sum(axis=1),
+        },
+        index=index,
+    )
+    return guarded, diagnostics
+
+
 def rolling_loss_limiter_targets(
     targets: pd.DataFrame,
     proxy_equity: pd.Series,
