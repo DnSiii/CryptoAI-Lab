@@ -26,12 +26,14 @@ from cryptoai_v13.v16 import (
     AdaptiveTrendSpec,
     ConvexCaptureSpec,
     CrossSectionalMomentumSpec,
+    FundingCarrySpec,
     RegimeSwitchSpec,
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
     convex_capture_targets,
     cross_sectional_momentum_targets,
+    funding_carry_targets,
     drawdown_regime_reentry_targets,
     regime_switch_targets,
     regime_hedged_targets,
@@ -361,6 +363,53 @@ def main() -> None:
             "average_short_positions": float(
                 diagnostics["short_positions"].mean()
             ),
+            "profile": profile(result.equity, latest),
+        }
+        row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+        row["screen_gate_passed"] = all(row["gate"].values())
+        row["score"] = score_row(row)
+        rows.append(row)
+    funding_specs = {
+        "carry_3d": FundingCarrySpec(
+            funding_lookback_hours=24 * 3,
+            volatility_hours=24 * 7,
+            trend_hours=24,
+            rebalance_hours=8,
+            long_count=3,
+            short_count=3,
+            minimum_absolute_funding=0.0005,
+            maximum_adverse_trend=0.08,
+            maximum_gross=1.25,
+        ),
+        "carry_7d": FundingCarrySpec(),
+        "carry_14d": FundingCarrySpec(
+            funding_lookback_hours=24 * 14,
+            volatility_hours=24 * 21,
+            trend_hours=24 * 7,
+            rebalance_hours=24,
+            long_count=3,
+            short_count=3,
+            minimum_absolute_funding=0.002,
+            maximum_adverse_trend=0.15,
+            maximum_gross=1.25,
+        ),
+    }
+    funding_targets_by_name: dict[str, pd.DataFrame] = {}
+    for name, carry_spec in funding_specs.items():
+        targets, diagnostics = funding_carry_targets(signal_data, carry_spec)
+        candidate_id = f"funding:{name}"
+        funding_targets_by_name[name] = targets
+        targets_by_id[candidate_id] = targets
+        result = screen(data, targets, execution["base_cost_per_side"])
+        row = {
+            "candidate_id": candidate_id,
+            "family": "market_neutral_funding_carry",
+            "name": name,
+            "spec": carry_spec.to_dict(),
+            "maximum_portfolio_gross": carry_spec.maximum_gross,
+            "average_gross": float(diagnostics["gross"].mean()),
+            "average_long_positions": float(diagnostics["long_positions"].mean()),
+            "average_short_positions": float(diagnostics["short_positions"].mean()),
             "profile": profile(result.equity, latest),
         }
         row["gate"] = robustness_gate(row, benchmark_recent_cagr)
@@ -826,6 +875,46 @@ def main() -> None:
                 row["score"] = score_row(row)
                 rows.append(row)
 
+    carry_ensemble_profiles = (
+        {"name": "carry_25", "attack_weight": 0.90, "carry_weight": 0.35},
+        {"name": "carry_40", "attack_weight": 0.80, "carry_weight": 0.55},
+    )
+    for source_id in hedge_sources:
+        for carry_name, carry_targets in funding_targets_by_name.items():
+            for ensemble in carry_ensemble_profiles:
+                targets = _cap_gross(
+                    targets_by_id[source_id] * ensemble["attack_weight"]
+                    + carry_targets.reindex_like(core_targets).fillna(0.0)
+                    * ensemble["carry_weight"],
+                    1.85,
+                )
+                candidate_id = (
+                    f"carry_ensemble:{source_id}:{carry_name}:{ensemble['name']}"
+                )
+                targets_by_id[candidate_id] = targets
+                result = screen(data, targets, execution["base_cost_per_side"])
+                row = {
+                    "candidate_id": candidate_id,
+                    "family": "attack_funding_carry_ensemble",
+                    "name": ensemble["name"],
+                    "source_candidate_id": source_id,
+                    "carry_name": carry_name,
+                    "ensemble": ensemble,
+                    "maximum_portfolio_gross": 1.85,
+                    "risk_guard": {
+                        "name": "targets_own_state",
+                        "threshold": 0.99,
+                        "multiplier": 1.0,
+                        "recovery": None,
+                        "cooldown_hours": 1,
+                    },
+                    "profile": profile(result.equity, latest),
+                }
+                row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+                row["screen_gate_passed"] = all(row["gate"].values())
+                row["score"] = score_row(row)
+                rows.append(row)
+
     # Volatility management cuts exposure from the attack sleeve only while
     # its own closed realized volatility is elevated.  Stable confirmed bull
     # periods can retain or slightly increase gross; neutral/bear regimes have
@@ -1205,12 +1294,18 @@ def main() -> None:
     reversal_ensemble = [
         row for row in ranked if row["family"] == "attack_reversal_ensemble"
     ]
+    funding_carry = [
+        row for row in ranked if row["family"] == "market_neutral_funding_carry"
+    ]
+    carry_ensemble = [
+        row for row in ranked if row["family"] == "attack_funding_carry_ensemble"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
         *ranked[:2],
-        *cross_sectional_reversal[:3],
-        *reversal_ensemble[:8],
+        *funding_carry[:3],
+        *carry_ensemble[:8],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
