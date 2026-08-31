@@ -25,6 +25,7 @@ from cryptoai_v13.v16 import (
     funding_carry_targets,
     performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
+    protected_equity_reentry_targets,
     regime_hedged_targets,
     regime_switch_targets,
     rolling_loss_limiter_targets,
@@ -204,6 +205,68 @@ class V16ResearchTests(unittest.TestCase):
         )
         pd.testing.assert_frame_equal(limited.iloc[:-1], changed.iloc[:-1])
         self.assertTrue((limited.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
+    def test_protected_equity_reentry_is_causal_and_uses_managed_drawdown(self) -> None:
+        index = pd.date_range("2026-01-01", periods=240, freq="h", tz="UTC")
+        symbols = ("BTCUSDT", "ETHUSDT")
+        hourly = np.zeros(len(index))
+        hourly[50:70] = -0.004
+        hourly[100:] = 0.001
+        close = pd.DataFrame(
+            {
+                "BTCUSDT": 100.0 * np.cumprod(1.0 + hourly),
+                "ETHUSDT": 80.0 * np.cumprod(1.0 + hourly * 0.8),
+            },
+            index=index,
+        )
+        frames = {
+            "open": close.shift(1).fillna(close.iloc[0]),
+            "high": close * 1.002,
+            "low": close * 0.998,
+            "close": close,
+            "volume": pd.DataFrame(1_000.0, index=index, columns=symbols),
+            "quote_volume": pd.DataFrame(1_000_000.0, index=index, columns=symbols),
+            "trades": pd.DataFrame(100.0, index=index, columns=symbols),
+        }
+        data = FuturesData(
+            frames=frames,
+            funding=pd.DataFrame(0.0, index=index, columns=symbols),
+            symbols=symbols,
+        )
+        targets = pd.DataFrame(
+            {"BTCUSDT": 1.0, "ETHUSDT": 0.6}, index=index
+        )
+        confirmation = pd.Series(
+            np.cumprod(1.0 + hourly), index=index
+        )
+        kwargs = dict(
+            drawdown_threshold=0.05,
+            minimum_multiplier=0.05,
+            recovery_multiplier=0.75,
+            confirmation_hours=24,
+            confirmation_return=0.005,
+            restore_drawdown=0.02,
+            deep_drawdown=0.10,
+            deep_recovery_multiplier=0.30,
+            rebalance_hours=3,
+            maximum_gross=1.85,
+        )
+        guarded, diagnostics = protected_equity_reentry_targets(
+            data, targets, confirmation, **kwargs
+        )
+        changed_frames = {key: value.copy() for key, value in frames.items()}
+        changed_frames["close"].iloc[-1, 0] *= 0.5
+        changed_data = FuturesData(
+            frames=changed_frames,
+            funding=data.funding,
+            symbols=symbols,
+        )
+        changed, _ = protected_equity_reentry_targets(
+            changed_data, targets, confirmation, **kwargs
+        )
+        pd.testing.assert_frame_equal(guarded.iloc[:-1], changed.iloc[:-1])
+        self.assertTrue((guarded.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+        self.assertTrue(diagnostics["risk_factor"].lt(1.0).any())
 
     def test_regime_hedge_is_causal_and_caps_gross(self) -> None:
         index = pd.date_range("2025-01-01", periods=100, freq="h", tz="UTC")
