@@ -764,6 +764,7 @@ def main() -> None:
             "minimum_defensive_hours": 24,
             "rebalance_hours": 3,
             "maximum_gross": 1.85,
+            "require_bull_regime": False,
         },
         {
             "name": "fast_5pct",
@@ -774,6 +775,7 @@ def main() -> None:
             "minimum_defensive_hours": 36,
             "rebalance_hours": 3,
             "maximum_gross": 1.85,
+            "require_bull_regime": False,
         },
         {
             "name": "weekly_6pct",
@@ -784,6 +786,7 @@ def main() -> None:
             "minimum_defensive_hours": 72,
             "rebalance_hours": 6,
             "maximum_gross": 1.85,
+            "require_bull_regime": False,
         },
     )
     for source_id in regime_sources:
