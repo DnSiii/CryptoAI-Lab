@@ -203,7 +203,9 @@ class FundingCarrySpec:
     long_count: int = 4
     short_count: int = 4
     minimum_absolute_funding: float = 0.001
+    minimum_trend: float = 0.0
     maximum_adverse_trend: float = 0.12
+    signal_mode: str = "carry"
     long_fraction: float = 0.50
     maximum_gross: float = 1.25
 
@@ -219,10 +221,14 @@ class FundingCarrySpec:
             raise ValueError("funding carry parameters must be positive")
         if self.minimum_absolute_funding < 0.0:
             raise ValueError("minimum funding cannot be negative")
+        if self.minimum_trend < 0.0:
+            raise ValueError("minimum trend cannot be negative")
         if not 0.0 < self.maximum_adverse_trend < 1.0:
             raise ValueError("maximum adverse trend must be a fraction")
         if not 0.0 < self.long_fraction < 1.0 or self.maximum_gross <= 0.0:
             raise ValueError("funding carry allocation is invalid")
+        if self.signal_mode not in {"carry", "confirmed_carry", "pressure_momentum"}:
+            raise ValueError("unsupported funding signal mode")
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -304,19 +310,41 @@ def funding_carry_targets(
         spec.volatility_hours,
         min_periods=max(24, spec.volatility_hours // 3),
     ).std()
-    # Negative funding pays longs; positive funding pays shorts.
-    long_rank = cumulative_funding.rank(axis=1, ascending=True, method="first")
-    short_rank = cumulative_funding.rank(axis=1, ascending=False, method="first")
-    long_mask = (
-        (long_rank <= spec.long_count)
-        & (cumulative_funding <= -spec.minimum_absolute_funding)
-        & (trend >= -spec.maximum_adverse_trend)
-    )
-    short_mask = (
-        (short_rank <= spec.short_count)
-        & (cumulative_funding >= spec.minimum_absolute_funding)
-        & (trend <= spec.maximum_adverse_trend)
-    )
+    if spec.signal_mode == "pressure_momentum":
+        # Crowded positioning can be information: follow it only when price
+        # confirms, accepting the funding payment as an execution cost.
+        long_rank = cumulative_funding.rank(axis=1, ascending=False, method="first")
+        short_rank = cumulative_funding.rank(axis=1, ascending=True, method="first")
+        long_mask = (
+            (long_rank <= spec.long_count)
+            & (cumulative_funding >= spec.minimum_absolute_funding)
+            & (trend >= spec.minimum_trend)
+        )
+        short_mask = (
+            (short_rank <= spec.short_count)
+            & (cumulative_funding <= -spec.minimum_absolute_funding)
+            & (trend <= -spec.minimum_trend)
+        )
+    else:
+        # Negative funding pays longs; positive funding pays shorts.
+        long_rank = cumulative_funding.rank(axis=1, ascending=True, method="first")
+        short_rank = cumulative_funding.rank(axis=1, ascending=False, method="first")
+        if spec.signal_mode == "confirmed_carry":
+            long_trend = trend >= spec.minimum_trend
+            short_trend = trend <= -spec.minimum_trend
+        else:
+            long_trend = trend >= -spec.maximum_adverse_trend
+            short_trend = trend <= spec.maximum_adverse_trend
+        long_mask = (
+            (long_rank <= spec.long_count)
+            & (cumulative_funding <= -spec.minimum_absolute_funding)
+            & long_trend
+        )
+        short_mask = (
+            (short_rank <= spec.short_count)
+            & (cumulative_funding >= spec.minimum_absolute_funding)
+            & short_trend
+        )
     inverse_volatility = 1.0 / hourly_volatility.replace(0.0, np.nan)
     long_raw = inverse_volatility.where(long_mask)
     short_raw = inverse_volatility.where(short_mask)
