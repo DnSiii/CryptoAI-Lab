@@ -22,13 +22,16 @@ from cryptoai_v13.data import point_in_time_liquid_view
 from cryptoai_v13.opportunity import OpportunityBudget, additive_opportunity_targets
 from cryptoai_v13.signals import StrategySpec, build_targets
 from cryptoai_v13.v16 import (
+    _cap_gross,
     AdaptiveTrendSpec,
     ConvexCaptureSpec,
+    CrossSectionalMomentumSpec,
     RegimeSwitchSpec,
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
     convex_capture_targets,
+    cross_sectional_momentum_targets,
     drawdown_regime_reentry_targets,
     regime_switch_targets,
     regime_hedged_targets,
@@ -281,6 +284,55 @@ def main() -> None:
     }
     rows: list[dict[str, object]] = []
     targets_by_id: dict[str, pd.DataFrame] = {}
+    cross_sectional_specs = {
+        "fast_relative": CrossSectionalMomentumSpec(
+            lookback_hours=24 * 3,
+            volatility_hours=24 * 7,
+            rebalance_hours=6,
+            long_count=3,
+            short_count=3,
+            minimum_momentum=0.025,
+            maximum_gross=1.85,
+        ),
+        "balanced_relative": CrossSectionalMomentumSpec(),
+        "persistent_relative": CrossSectionalMomentumSpec(
+            lookback_hours=24 * 14,
+            volatility_hours=24 * 21,
+            rebalance_hours=24,
+            long_count=3,
+            short_count=3,
+            minimum_momentum=0.07,
+            maximum_gross=1.85,
+        ),
+    }
+    cross_sectional_targets: dict[str, pd.DataFrame] = {}
+    for name, cross_spec in cross_sectional_specs.items():
+        targets, diagnostics = cross_sectional_momentum_targets(
+            signal_data, cross_spec
+        )
+        candidate_id = f"cross_sectional:{name}"
+        cross_sectional_targets[name] = targets
+        targets_by_id[candidate_id] = targets
+        result = screen(data, targets, execution["base_cost_per_side"])
+        row = {
+            "candidate_id": candidate_id,
+            "family": "cross_sectional_long_short",
+            "name": name,
+            "spec": cross_spec.to_dict(),
+            "maximum_portfolio_gross": cross_spec.maximum_gross,
+            "average_gross": float(diagnostics["gross"].mean()),
+            "average_long_positions": float(
+                diagnostics["long_positions"].mean()
+            ),
+            "average_short_positions": float(
+                diagnostics["short_positions"].mean()
+            ),
+            "profile": profile(result.equity, latest),
+        }
+        row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+        row["screen_gate_passed"] = all(row["gate"].values())
+        row["score"] = score_row(row)
+        rows.append(row)
     for name, spec in adaptive_trend_specs.items():
         targets, diagnostics = adaptive_trend_targets(signal_data, spec)
         candidate_id = f"adaptive_trend:{name}"
@@ -693,6 +745,49 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # Blend the independent market-neutral sleeve with the strongest attack
+    # candidate.  Gross is capped after combination, so diversification must
+    # improve the return path rather than merely add leverage.
+    ensemble_profiles = (
+        {"name": "relative_30", "attack_weight": 0.85, "relative_weight": 0.45},
+        {"name": "relative_45", "attack_weight": 0.75, "relative_weight": 0.65},
+    )
+    for source_id in hedge_sources:
+        for relative_name, relative_targets in cross_sectional_targets.items():
+            for ensemble in ensemble_profiles:
+                targets = _cap_gross(
+                    targets_by_id[source_id] * ensemble["attack_weight"]
+                    + relative_targets.reindex_like(core_targets).fillna(0.0)
+                    * ensemble["relative_weight"],
+                    1.85,
+                )
+                candidate_id = (
+                    f"ensemble:{source_id}:{relative_name}:{ensemble['name']}"
+                )
+                targets_by_id[candidate_id] = targets
+                result = screen(data, targets, execution["base_cost_per_side"])
+                row = {
+                    "candidate_id": candidate_id,
+                    "family": "attack_relative_ensemble",
+                    "name": ensemble["name"],
+                    "source_candidate_id": source_id,
+                    "relative_name": relative_name,
+                    "ensemble": ensemble,
+                    "maximum_portfolio_gross": 1.85,
+                    "risk_guard": {
+                        "name": "targets_own_state",
+                        "threshold": 0.99,
+                        "multiplier": 1.0,
+                        "recovery": None,
+                        "cooldown_hours": 1,
+                    },
+                    "profile": profile(result.equity, latest),
+                }
+                row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+                row["screen_gate_passed"] = all(row["gate"].values())
+                row["score"] = score_row(row)
+                rows.append(row)
+
     # Volatility management cuts exposure from the attack sleeve only while
     # its own closed realized volatility is elevated.  Stable confirmed bull
     # periods can retain or slightly increase gross; neutral/bear regimes have
@@ -1060,6 +1155,12 @@ def main() -> None:
     volatility_managed = [
         row for row in ranked if row["family"] == "volatility_managed_champion"
     ]
+    cross_sectional = [
+        row for row in ranked if row["family"] == "cross_sectional_long_short"
+    ]
+    relative_ensemble = [
+        row for row in ranked if row["family"] == "attack_relative_ensemble"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
@@ -1072,6 +1173,8 @@ def main() -> None:
         *regime_hedged[:6],
         *three_regime[:6],
         *volatility_managed[:6],
+        *cross_sectional[:3],
+        *relative_ensemble[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
