@@ -23,6 +23,7 @@ from cryptoai_v13.v16 import (
     combine_convex_with_core,
     cross_sectional_momentum_targets,
     funding_carry_targets,
+    performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
     regime_hedged_targets,
     regime_switch_targets,
@@ -459,6 +460,38 @@ class V16ResearchTests(unittest.TestCase):
         changed_targets, _ = funding_carry_targets(changed, spec)
         pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
         self.assertTrue((targets.abs().sum(axis=1) <= spec.maximum_gross + 1e-12).all())
+
+    def test_performance_gated_alpha_is_causal_and_capped(self) -> None:
+        index = pd.date_range("2025-01-01", periods=1200, freq="h", tz="UTC")
+        base = pd.DataFrame({"BTCUSDT": 1.4, "ETHUSDT": 0.4}, index=index)
+        alpha = pd.DataFrame({"BTCUSDT": -0.6, "ETHUSDT": 0.6}, index=index)
+        returns = np.sin(np.arange(len(index)) / 45.0) * 0.002 + 0.0001
+        equity = pd.Series(np.cumprod(1.0 + returns), index=index)
+        kwargs = dict(
+            short_hours=24 * 7,
+            long_hours=24 * 21,
+            peak_hours=24 * 30,
+            warning_drawdown=0.08,
+            hard_drawdown=0.14,
+            strong_base_multiplier=1.10,
+            normal_base_multiplier=0.90,
+            weak_base_multiplier=0.60,
+            hard_base_multiplier=0.20,
+            strong_alpha_multiplier=0.55,
+            normal_alpha_multiplier=0.20,
+            rebalance_hours=6,
+            maximum_gross=1.95,
+        )
+        targets, _ = performance_gated_alpha_targets(
+            base, alpha, equity, **kwargs
+        )
+        changed_equity = equity.copy()
+        changed_equity.iloc[-1] *= 0.5
+        changed, _ = performance_gated_alpha_targets(
+            base, alpha, changed_equity, **kwargs
+        )
+        pd.testing.assert_frame_equal(targets.iloc[:-1], changed.iloc[:-1])
+        self.assertTrue((targets.abs().sum(axis=1) <= 1.95 + 1e-12).all())
 
 
 if __name__ == "__main__":
