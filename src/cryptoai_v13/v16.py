@@ -160,7 +160,7 @@ class RegimeSwitchSpec:
 
 @dataclass(frozen=True)
 class CrossSectionalMomentumSpec:
-    """Market-neutral relative momentum across the PIT liquid universe."""
+    """Market-neutral relative strength or reversal across the PIT universe."""
 
     lookback_hours: int = 24 * 7
     volatility_hours: int = 24 * 14
@@ -168,6 +168,7 @@ class CrossSectionalMomentumSpec:
     long_count: int = 4
     short_count: int = 4
     minimum_momentum: float = 0.04
+    direction: str = "momentum"
     long_fraction: float = 0.50
     maximum_gross: float = 1.85
 
@@ -184,6 +185,8 @@ class CrossSectionalMomentumSpec:
             raise ValueError("long_fraction must be between zero and one")
         if self.minimum_momentum < 0.0 or self.maximum_gross <= 0.0:
             raise ValueError("momentum and gross bounds are invalid")
+        if self.direction not in {"momentum", "reversal"}:
+            raise ValueError("direction must be momentum or reversal")
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -209,14 +212,16 @@ def cross_sectional_momentum_targets(
         spec.volatility_hours,
         min_periods=max(24, spec.volatility_hours // 3),
     ).std()
-    risk_score = momentum.div(hourly_volatility.replace(0.0, np.nan))
+    direction = 1.0 if spec.direction == "momentum" else -1.0
+    oriented_momentum = momentum * direction
+    risk_score = oriented_momentum.div(hourly_volatility.replace(0.0, np.nan))
     long_rank = risk_score.rank(axis=1, ascending=False, method="first")
     short_rank = risk_score.rank(axis=1, ascending=True, method="first")
     long_mask = (long_rank <= spec.long_count) & (
-        momentum >= spec.minimum_momentum
+        oriented_momentum >= spec.minimum_momentum
     )
     short_mask = (short_rank <= spec.short_count) & (
-        momentum <= -spec.minimum_momentum
+        oriented_momentum <= -spec.minimum_momentum
     )
     inverse_volatility = 1.0 / hourly_volatility.replace(0.0, np.nan)
     long_raw = inverse_volatility.where(long_mask)
