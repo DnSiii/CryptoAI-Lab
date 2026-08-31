@@ -750,6 +750,85 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # The first re-entry family stayed defensive for most of the history.
+    # This refinement applies the same causal state machine directly to the
+    # unblended attack sleeve, reacts at intraday cadence, and permits a new
+    # attack cycle after a short but confirmed bull recovery.
+    rapid_reentry_profiles = (
+        {
+            "name": "intraday_4pct",
+            "drawdown_threshold": 0.04,
+            "defensive_multiplier": 0.05,
+            "reentry_return_hours": 24,
+            "reentry_return": 0.005,
+            "minimum_defensive_hours": 24,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "fast_5pct",
+            "drawdown_threshold": 0.05,
+            "defensive_multiplier": 0.10,
+            "reentry_return_hours": 72,
+            "reentry_return": 0.010,
+            "minimum_defensive_hours": 36,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "weekly_6pct",
+            "drawdown_threshold": 0.06,
+            "defensive_multiplier": 0.15,
+            "reentry_return_hours": 24 * 7,
+            "reentry_return": 0.015,
+            "minimum_defensive_hours": 72,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.85,
+        },
+    )
+    for source_id in regime_sources:
+        proxy = screen(
+            data,
+            targets_by_id[source_id],
+            execution["base_cost_per_side"],
+        )
+        source_regime = regime_diagnostics_by_id[
+            f"regime:{source_id}:balanced"
+        ]["regime"]
+        for shield in rapid_reentry_profiles:
+            targets, diagnostics = drawdown_regime_reentry_targets(
+                targets_by_id[source_id],
+                proxy.equity,
+                source_regime,
+                **{key: value for key, value in shield.items() if key != "name"},
+            )
+            candidate_id = f"rapid_reentry:{source_id}:{shield['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "rapid_reentry_attack",
+                "name": shield["name"],
+                "source_candidate_id": source_id,
+                "reentry_shield": shield,
+                "maximum_portfolio_gross": shield["maximum_gross"],
+                "defensive_share": float(
+                    diagnostics["risk_state"].eq("defensive").mean()
+                ),
+                "risk_guard": {
+                    "name": "targets_own_state",
+                    "threshold": 0.99,
+                    "multiplier": 1.0,
+                    "recovery": None,
+                    "cooldown_hours": 1,
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     # Fast rolling loss containment is intentionally separate from a
     # high-water drawdown lock.  It preserves normal and winning exposure,
     # cuts only while the last day/week remains unusually weak, and restores
@@ -1460,11 +1539,14 @@ def main() -> None:
     gated_funding_alpha = [
         row for row in ranked if row["family"] == "performance_gated_funding_alpha"
     ]
+    rapid_reentry_attack = [
+        row for row in ranked if row["family"] == "rapid_reentry_attack"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
         *ranked[:2],
-        *gated_funding_alpha[:10],
+        *rapid_reentry_attack[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
