@@ -770,6 +770,80 @@ def protected_equity_reentry_targets(
     return guarded, diagnostics
 
 
+def trailing_profit_lock_targets(
+    targets: pd.DataFrame,
+    proxy_equity: pd.Series,
+    *,
+    short_hours: int,
+    long_hours: int,
+    short_gain: float,
+    long_gain: float,
+    profit_pullback: float,
+    shock_loss: float,
+    lock_multiplier: float,
+    shock_multiplier: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Preserve convex wins, then brake only after profits start reversing.
+
+    A large trailing return alone does not reduce exposure, so the sleeve can
+    still produce consecutive strong days.  The lock activates only after a
+    strong short/long run has pulled back from its trailing high.  A separate
+    one-day shock brake limits cascades that begin without a prior profit run.
+    All observations are closed at the target timestamp and execute no earlier
+    than the following open in the replay engine.
+    """
+
+    if min(short_hours, long_hours, rebalance_hours) <= 0:
+        raise ValueError("profit-lock lookbacks and rebalance must be positive")
+    if short_hours >= long_hours:
+        raise ValueError("short profit-lock window must be shorter than long")
+    if min(short_gain, long_gain, profit_pullback, shock_loss) <= 0.0:
+        raise ValueError("profit-lock thresholds must be positive")
+    if not 0.0 <= shock_multiplier <= lock_multiplier <= 1.0:
+        raise ValueError("invalid profit-lock multipliers")
+    if maximum_gross <= 0.0:
+        raise ValueError("maximum_gross must be positive")
+
+    equity = proxy_equity.reindex(targets.index).ffill()
+    short_return = equity.div(equity.shift(short_hours)).sub(1.0)
+    long_return = equity.div(equity.shift(long_hours)).sub(1.0)
+    trailing_peak = equity.rolling(
+        long_hours,
+        min_periods=max(24, long_hours // 4),
+    ).max()
+    pullback = equity.div(trailing_peak).sub(1.0)
+    one_day_return = equity.div(equity.shift(24)).sub(1.0)
+    profitable_run = (short_return >= short_gain) | (long_return >= long_gain)
+    lock = profitable_run & (pullback <= -profit_pullback)
+    shock = one_day_return <= -shock_loss
+
+    factor = pd.Series(1.0, index=targets.index)
+    factor.loc[lock] = lock_multiplier
+    factor.loc[shock] = np.minimum(factor.loc[shock], shock_multiplier)
+    event = pd.Series(
+        np.arange(len(factor)) % rebalance_hours == 0,
+        index=factor.index,
+    )
+    factor = factor.where(event).ffill().fillna(1.0)
+    locked = _cap_gross(targets.mul(factor, axis=0), maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "short_return": short_return,
+            "long_return": long_return,
+            "pullback": pullback,
+            "one_day_return": one_day_return,
+            "profit_lock": lock,
+            "shock": shock,
+            "risk_factor": factor,
+            "gross": locked.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return locked, diagnostics
+
+
 def rolling_loss_limiter_targets(
     targets: pd.DataFrame,
     proxy_equity: pd.Series,
