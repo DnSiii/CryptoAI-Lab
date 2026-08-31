@@ -555,6 +555,7 @@ def drawdown_regime_reentry_targets(
     minimum_defensive_hours: int,
     rebalance_hours: int,
     maximum_gross: float,
+    require_bull_regime: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Cut after a closed-equity loss and reattack on market confirmation.
 
@@ -604,8 +605,13 @@ def drawdown_regime_reentry_targets(
                 factor = defensive_multiplier
             elif defensive:
                 elapsed = row - defensive_since
-                confirmed = (
+                market_confirmed = (
                     market_regime.iloc[row] == "bull"
+                    if require_bull_regime
+                    else True
+                )
+                confirmed = (
+                    market_confirmed
                     and np.isfinite(recovery_return.iloc[row])
                     and recovery_return.iloc[row] >= reentry_return
                 )
