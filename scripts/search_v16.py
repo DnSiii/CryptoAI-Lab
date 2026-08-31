@@ -36,6 +36,7 @@ from cryptoai_v13.v16 import (
     funding_carry_targets,
     performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
+    protected_equity_reentry_targets,
     regime_switch_targets,
     regime_hedged_targets,
     rolling_loss_limiter_targets,
@@ -667,6 +668,107 @@ def main() -> None:
             row["screen_gate_passed"] = all(row["gate"].values())
             row["score"] = score_row(row)
             rows.append(row)
+
+    # Combine the two useful observations from the rejected guards: trigger
+    # from the equity that is actually being protected, but re-enter only when
+    # the unguarded opportunity sleeve confirms recovery.  The high-water mark
+    # is never reset by a timer, so repeated false starts share one loss budget.
+    protected_reentry_profiles = (
+        {
+            "name": "tight_confirmed",
+            "drawdown_threshold": 0.045,
+            "minimum_multiplier": 0.05,
+            "recovery_multiplier": 0.70,
+            "confirmation_hours": 24,
+            "confirmation_return": 0.005,
+            "restore_drawdown": 0.018,
+            "deep_drawdown": 0.10,
+            "deep_recovery_multiplier": 0.25,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "balanced_confirmed",
+            "drawdown_threshold": 0.055,
+            "minimum_multiplier": 0.08,
+            "recovery_multiplier": 0.80,
+            "confirmation_hours": 72,
+            "confirmation_return": 0.010,
+            "restore_drawdown": 0.025,
+            "deep_drawdown": 0.11,
+            "deep_recovery_multiplier": 0.30,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "weekly_confirmed",
+            "drawdown_threshold": 0.065,
+            "minimum_multiplier": 0.10,
+            "recovery_multiplier": 0.90,
+            "confirmation_hours": 24 * 7,
+            "confirmation_return": 0.015,
+            "restore_drawdown": 0.030,
+            "deep_drawdown": 0.12,
+            "deep_recovery_multiplier": 0.35,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.85,
+        },
+        {
+            "name": "asymmetric_confirmed",
+            "drawdown_threshold": 0.050,
+            "minimum_multiplier": 0.05,
+            "recovery_multiplier": 0.95,
+            "confirmation_hours": 72,
+            "confirmation_return": 0.020,
+            "restore_drawdown": 0.020,
+            "deep_drawdown": 0.095,
+            "deep_recovery_multiplier": 0.20,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+        },
+    )
+    protected_source_id = "champion:45-90-180:0.7:0.1:attack"
+    protected_source = targets_by_id[protected_source_id]
+    protected_confirmation = screen(
+        data, protected_source, execution["base_cost_per_side"]
+    ).equity
+    for shield in protected_reentry_profiles:
+        targets, diagnostics = protected_equity_reentry_targets(
+            data,
+            protected_source,
+            protected_confirmation,
+            cost_per_side=execution["base_cost_per_side"],
+            **{key: value for key, value in shield.items() if key != "name"},
+        )
+        candidate_id = f"protected_reentry:{protected_source_id}:{shield['name']}"
+        targets_by_id[candidate_id] = targets
+        result = screen(data, targets, execution["base_cost_per_side"])
+        row = {
+            "candidate_id": candidate_id,
+            "family": "protected_equity_reentry_attack",
+            "name": shield["name"],
+            "source_candidate_id": protected_source_id,
+            "protected_reentry": shield,
+            "maximum_portfolio_gross": shield["maximum_gross"],
+            "defensive_share": float(
+                diagnostics["risk_state"].eq("recovery").mean()
+            ),
+            "deep_defensive_share": float(
+                diagnostics["risk_factor"].le(shield["deep_recovery_multiplier"]).mean()
+            ),
+            "risk_guard": {
+                "name": "targets_own_protected_equity_state",
+                "threshold": 0.99,
+                "multiplier": 1.0,
+                "recovery": None,
+                "cooldown_hours": 1,
+            },
+            "profile": profile(result.equity, latest),
+        }
+        row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+        row["screen_gate_passed"] = all(row["gate"].values())
+        row["score"] = score_row(row)
+        rows.append(row)
 
     # Re-entry-aware protection keeps the large-day regime allocator intact
     # until its own closed proxy loses a controlled amount.  It then remains
@@ -1599,45 +1701,9 @@ def main() -> None:
         if candidate_id not in seen_ids:
             exact_pool.append(row)
             seen_ids.add(candidate_id)
-    risk_guard_specs = (
-        {
-            "name": "reset_4pct_24h",
-            "threshold": 0.04,
-            "multiplier": 0.10,
-            "cooldown_hours": 24,
-        },
-        {
-            "name": "reset_5pct_48h",
-            "threshold": 0.05,
-            "multiplier": 0.15,
-            "cooldown_hours": 48,
-        },
-        {
-            "name": "reset_6pct_72h",
-            "threshold": 0.06,
-            "multiplier": 0.20,
-            "cooldown_hours": 72,
-        },
-        {
-            "name": "reset_7pct_120h",
-            "threshold": 0.07,
-            "multiplier": 0.25,
-            "cooldown_hours": 120,
-        },
-    )
-    aggressive_champions = [
-        row for row in ranked
-        if row["family"] == "adaptive_v13_v14_champion"
-        and row["name"] == "attack"
-    ][:1]
-    for row in aggressive_champions:
-        for guard in risk_guard_specs:
-            exact_pool.append({
-                **row,
-                "candidate_id": f"{row['candidate_id']}:{guard['name']}",
-                "target_candidate_id": row["candidate_id"],
-                "risk_guard": guard,
-            })
+    for row in ranked:
+        if row["family"] == "protected_equity_reentry_attack":
+            exact_pool.append(row)
     for row in exact_pool:
         targets = targets_by_id[str(row.get("target_candidate_id", row["candidate_id"]))]
         risk_guard = row.get("risk_guard", {
@@ -1707,7 +1773,7 @@ def main() -> None:
         "data_priority": "2025+ and 2026 receive the largest score weight; 2021-2024 are robustness regimes",
         "anti_overfit_rule": "paper promotion is forbidden unless exact, cost-stress and delay gates pass and recent returns remain positive after deleting the best day",
         "benchmarks": benchmarks,
-        "tested_configurations": len(rows) + len(aggressive_champions) * len(risk_guard_specs),
+        "tested_configurations": len(rows),
         "screen_passed": sum(bool(row["screen_gate_passed"]) for row in rows),
         "promoted": promoted,
         "exact_finalists": exact_ranked,
