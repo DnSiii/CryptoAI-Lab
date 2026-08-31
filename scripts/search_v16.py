@@ -304,6 +304,36 @@ def main() -> None:
             minimum_momentum=0.07,
             maximum_gross=1.85,
         ),
+        "reversal_24h": CrossSectionalMomentumSpec(
+            lookback_hours=24,
+            volatility_hours=24 * 7,
+            rebalance_hours=3,
+            long_count=3,
+            short_count=3,
+            minimum_momentum=0.015,
+            direction="reversal",
+            maximum_gross=1.35,
+        ),
+        "reversal_72h": CrossSectionalMomentumSpec(
+            lookback_hours=72,
+            volatility_hours=24 * 10,
+            rebalance_hours=6,
+            long_count=4,
+            short_count=4,
+            minimum_momentum=0.03,
+            direction="reversal",
+            maximum_gross=1.35,
+        ),
+        "reversal_168h": CrossSectionalMomentumSpec(
+            lookback_hours=168,
+            volatility_hours=24 * 14,
+            rebalance_hours=12,
+            long_count=3,
+            short_count=3,
+            minimum_momentum=0.05,
+            direction="reversal",
+            maximum_gross=1.35,
+        ),
     }
     cross_sectional_targets: dict[str, pd.DataFrame] = {}
     for name, cross_spec in cross_sectional_specs.items():
@@ -316,7 +346,11 @@ def main() -> None:
         result = screen(data, targets, execution["base_cost_per_side"])
         row = {
             "candidate_id": candidate_id,
-            "family": "cross_sectional_long_short",
+            "family": (
+                "cross_sectional_reversal"
+                if cross_spec.direction == "reversal"
+                else "cross_sectional_long_short"
+            ),
             "name": name,
             "spec": cross_spec.to_dict(),
             "maximum_portfolio_gross": cross_spec.maximum_gross,
@@ -768,7 +802,11 @@ def main() -> None:
                 result = screen(data, targets, execution["base_cost_per_side"])
                 row = {
                     "candidate_id": candidate_id,
-                    "family": "attack_relative_ensemble",
+                    "family": (
+                        "attack_reversal_ensemble"
+                        if cross_sectional_specs[relative_name].direction == "reversal"
+                        else "attack_relative_ensemble"
+                    ),
                     "name": ensemble["name"],
                     "source_candidate_id": source_id,
                     "relative_name": relative_name,
@@ -1158,23 +1196,21 @@ def main() -> None:
     cross_sectional = [
         row for row in ranked if row["family"] == "cross_sectional_long_short"
     ]
+    cross_sectional_reversal = [
+        row for row in ranked if row["family"] == "cross_sectional_reversal"
+    ]
     relative_ensemble = [
         row for row in ranked if row["family"] == "attack_relative_ensemble"
+    ]
+    reversal_ensemble = [
+        row for row in ranked if row["family"] == "attack_reversal_ensemble"
     ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
-        *ranked[:4],
-        *protected[:3],
-        *structural[:3],
-        *regime_switched[:4],
-        *regime_reentry[:4],
-        *loss_limited[:6],
-        *regime_hedged[:6],
-        *three_regime[:6],
-        *volatility_managed[:6],
-        *cross_sectional[:3],
-        *relative_ensemble[:6],
+        *ranked[:2],
+        *cross_sectional_reversal[:3],
+        *reversal_ensemble[:8],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
