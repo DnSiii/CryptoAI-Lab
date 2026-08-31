@@ -1594,60 +1594,42 @@ def main() -> None:
     ]
     exact_pool = []
     seen_ids: set[str] = set()
-    for row in [
-        *ranked[:2],
-        *convex_volatility[:6],
-    ]:
+    for row in []:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
             exact_pool.append(row)
             seen_ids.add(candidate_id)
     risk_guard_specs = (
         {
-            "name": "guard_5pct",
+            "name": "reset_4pct_24h",
+            "threshold": 0.04,
+            "multiplier": 0.10,
+            "cooldown_hours": 24,
+        },
+        {
+            "name": "reset_5pct_48h",
             "threshold": 0.05,
-            "multiplier": 0.08,
-            "cooldown_hours": 24 * 30,
-        },
-        {
-            "name": "guard_7pct",
-            "threshold": 0.07,
             "multiplier": 0.15,
-            "cooldown_hours": 24 * 21,
+            "cooldown_hours": 48,
         },
         {
-            "name": "guard_9pct",
-            "threshold": 0.09,
-            "multiplier": 0.20,
-            "cooldown_hours": 24 * 14,
-        },
-        {
-            "name": "recovery_6pct",
+            "name": "reset_6pct_72h",
             "threshold": 0.06,
+            "multiplier": 0.20,
+            "cooldown_hours": 72,
+        },
+        {
+            "name": "reset_7pct_120h",
+            "threshold": 0.07,
             "multiplier": 0.25,
-            "recovery": 0.025,
-            "cooldown_hours": None,
-        },
-        {
-            "name": "recovery_8pct",
-            "threshold": 0.08,
-            "multiplier": 0.35,
-            "recovery": 0.03,
-            "cooldown_hours": None,
-        },
-        {
-            "name": "recovery_10pct",
-            "threshold": 0.10,
-            "multiplier": 0.45,
-            "recovery": 0.04,
-            "cooldown_hours": None,
+            "cooldown_hours": 120,
         },
     )
     aggressive_champions = [
         row for row in ranked
         if row["family"] == "adaptive_v13_v14_champion"
         and row["name"] == "attack"
-    ][:2]
+    ][:1]
     for row in aggressive_champions:
         for guard in risk_guard_specs:
             exact_pool.append({
