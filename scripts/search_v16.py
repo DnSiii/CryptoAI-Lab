@@ -393,6 +393,54 @@ def main() -> None:
             maximum_adverse_trend=0.15,
             maximum_gross=1.25,
         ),
+        "confirmed_carry_3d": FundingCarrySpec(
+            funding_lookback_hours=24 * 3,
+            volatility_hours=24 * 10,
+            trend_hours=24 * 3,
+            rebalance_hours=8,
+            long_count=3,
+            short_count=3,
+            minimum_absolute_funding=0.0005,
+            minimum_trend=0.02,
+            signal_mode="confirmed_carry",
+            maximum_gross=1.35,
+        ),
+        "confirmed_carry_7d": FundingCarrySpec(
+            funding_lookback_hours=24 * 7,
+            volatility_hours=24 * 14,
+            trend_hours=24 * 7,
+            rebalance_hours=8,
+            long_count=3,
+            short_count=3,
+            minimum_absolute_funding=0.001,
+            minimum_trend=0.04,
+            signal_mode="confirmed_carry",
+            maximum_gross=1.35,
+        ),
+        "pressure_3d": FundingCarrySpec(
+            funding_lookback_hours=24 * 3,
+            volatility_hours=24 * 10,
+            trend_hours=24 * 3,
+            rebalance_hours=8,
+            long_count=3,
+            short_count=3,
+            minimum_absolute_funding=0.0005,
+            minimum_trend=0.03,
+            signal_mode="pressure_momentum",
+            maximum_gross=1.50,
+        ),
+        "pressure_7d": FundingCarrySpec(
+            funding_lookback_hours=24 * 7,
+            volatility_hours=24 * 14,
+            trend_hours=24 * 7,
+            rebalance_hours=8,
+            long_count=3,
+            short_count=3,
+            minimum_absolute_funding=0.001,
+            minimum_trend=0.05,
+            signal_mode="pressure_momentum",
+            maximum_gross=1.50,
+        ),
     }
     funding_targets_by_name: dict[str, pd.DataFrame] = {}
     for name, carry_spec in funding_specs.items():
@@ -403,7 +451,11 @@ def main() -> None:
         result = screen(data, targets, execution["base_cost_per_side"])
         row = {
             "candidate_id": candidate_id,
-            "family": "market_neutral_funding_carry",
+            "family": (
+                "market_neutral_funding_carry"
+                if carry_spec.signal_mode == "carry"
+                else "funding_price_confirmation"
+            ),
             "name": name,
             "spec": carry_spec.to_dict(),
             "maximum_portfolio_gross": carry_spec.maximum_gross,
@@ -895,7 +947,11 @@ def main() -> None:
                 result = screen(data, targets, execution["base_cost_per_side"])
                 row = {
                     "candidate_id": candidate_id,
-                    "family": "attack_funding_carry_ensemble",
+                    "family": (
+                        "attack_funding_carry_ensemble"
+                        if funding_specs[carry_name].signal_mode == "carry"
+                        else "attack_funding_signal_ensemble"
+                    ),
                     "name": ensemble["name"],
                     "source_candidate_id": source_id,
                     "carry_name": carry_name,
@@ -1300,12 +1356,18 @@ def main() -> None:
     carry_ensemble = [
         row for row in ranked if row["family"] == "attack_funding_carry_ensemble"
     ]
+    funding_confirmation = [
+        row for row in ranked if row["family"] == "funding_price_confirmation"
+    ]
+    funding_signal_ensemble = [
+        row for row in ranked if row["family"] == "attack_funding_signal_ensemble"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
         *ranked[:2],
-        *funding_carry[:3],
-        *carry_ensemble[:8],
+        *funding_confirmation[:4],
+        *funding_signal_ensemble[:8],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
