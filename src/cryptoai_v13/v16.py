@@ -158,12 +158,93 @@ class RegimeSwitchSpec:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class CrossSectionalMomentumSpec:
+    """Market-neutral relative momentum across the PIT liquid universe."""
+
+    lookback_hours: int = 24 * 7
+    volatility_hours: int = 24 * 14
+    rebalance_hours: int = 12
+    long_count: int = 4
+    short_count: int = 4
+    minimum_momentum: float = 0.04
+    long_fraction: float = 0.50
+    maximum_gross: float = 1.85
+
+    def __post_init__(self) -> None:
+        if min(
+            self.lookback_hours,
+            self.volatility_hours,
+            self.rebalance_hours,
+            self.long_count,
+            self.short_count,
+        ) <= 0:
+            raise ValueError("cross-sectional parameters must be positive")
+        if not 0.0 < self.long_fraction < 1.0:
+            raise ValueError("long_fraction must be between zero and one")
+        if self.minimum_momentum < 0.0 or self.maximum_gross <= 0.0:
+            raise ValueError("momentum and gross bounds are invalid")
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
 def _cap_gross(targets: pd.DataFrame, maximum_gross: float) -> pd.DataFrame:
     gross = targets.abs().sum(axis=1)
     scale = (
         maximum_gross / gross.replace(0.0, np.nan)
     ).clip(upper=1.0).fillna(0.0)
     return targets.mul(scale, axis=0).fillna(0.0)
+
+
+def cross_sectional_momentum_targets(
+    data: FuturesData,
+    spec: CrossSectionalMomentumSpec,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build causal inverse-volatility long/short relative momentum targets."""
+
+    close = data.close
+    momentum = close.div(close.shift(spec.lookback_hours)).sub(1.0)
+    hourly_volatility = close.pct_change().rolling(
+        spec.volatility_hours,
+        min_periods=max(24, spec.volatility_hours // 3),
+    ).std()
+    risk_score = momentum.div(hourly_volatility.replace(0.0, np.nan))
+    long_rank = risk_score.rank(axis=1, ascending=False, method="first")
+    short_rank = risk_score.rank(axis=1, ascending=True, method="first")
+    long_mask = (long_rank <= spec.long_count) & (
+        momentum >= spec.minimum_momentum
+    )
+    short_mask = (short_rank <= spec.short_count) & (
+        momentum <= -spec.minimum_momentum
+    )
+    inverse_volatility = 1.0 / hourly_volatility.replace(0.0, np.nan)
+    long_raw = inverse_volatility.where(long_mask)
+    short_raw = inverse_volatility.where(short_mask)
+    long_weight = long_raw.div(long_raw.sum(axis=1), axis=0).fillna(0.0).mul(
+        spec.maximum_gross * spec.long_fraction
+    )
+    short_weight = short_raw.div(short_raw.sum(axis=1), axis=0).fillna(0.0).mul(
+        -spec.maximum_gross * (1.0 - spec.long_fraction)
+    )
+    raw = long_weight.add(short_weight, fill_value=0.0)
+    event = pd.Series(
+        np.arange(len(raw)) % spec.rebalance_hours == 0,
+        index=raw.index,
+    )
+    targets = raw.where(event, np.nan).ffill().fillna(0.0)
+    targets = targets.where(close.notna(), 0.0)
+    targets = _cap_gross(targets, spec.maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "gross": targets.abs().sum(axis=1),
+            "net": targets.sum(axis=1),
+            "long_positions": targets.gt(0.0).sum(axis=1),
+            "short_positions": targets.lt(0.0).sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return targets, diagnostics
 
 
 def regime_switch_targets(
