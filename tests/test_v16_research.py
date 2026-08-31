@@ -15,10 +15,12 @@ from cryptoai_v13.data import FuturesData
 from cryptoai_v13.v16 import (
     AdaptiveTrendSpec,
     ConvexCaptureSpec,
+    CrossSectionalMomentumSpec,
     RegimeSwitchSpec,
     adaptive_equity_shield,
     adaptive_trend_targets,
     combine_convex_with_core,
+    cross_sectional_momentum_targets,
     drawdown_regime_reentry_targets,
     regime_hedged_targets,
     regime_switch_targets,
@@ -289,6 +291,53 @@ class V16ResearchTests(unittest.TestCase):
         )
         pd.testing.assert_frame_equal(managed.iloc[:-1], changed.iloc[:-1])
         self.assertTrue((managed.abs().sum(axis=1) <= 2.0 + 1e-12).all())
+
+    def test_cross_sectional_momentum_is_causal_market_neutral_and_capped(self) -> None:
+        index = pd.date_range("2025-01-01", periods=1200, freq="h", tz="UTC")
+        base = np.arange(len(index), dtype=float)
+        symbols = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "ADAUSDT", "BNBUSDT")
+        close = pd.DataFrame(
+            {
+                symbol: 100.0 * np.exp((rank - 2.5) * 0.00008 * base)
+                for rank, symbol in enumerate(symbols)
+            },
+            index=index,
+        )
+        frames = {
+            "open": close.shift(1).fillna(close.iloc[0]),
+            "high": close * 1.004,
+            "low": close * 0.996,
+            "close": close,
+            "volume": pd.DataFrame(1_000.0, index=index, columns=symbols),
+            "quote_volume": pd.DataFrame(1_000_000.0, index=index, columns=symbols),
+            "trades": pd.DataFrame(100.0, index=index, columns=symbols),
+        }
+        data = FuturesData(
+            frames=frames,
+            funding=pd.DataFrame(0.0, index=index, columns=symbols),
+            symbols=symbols,
+        )
+        spec = CrossSectionalMomentumSpec(
+            lookback_hours=72,
+            volatility_hours=168,
+            rebalance_hours=6,
+            long_count=2,
+            short_count=2,
+            minimum_momentum=0.01,
+        )
+        targets, _ = cross_sectional_momentum_targets(data, spec)
+        changed_frames = {key: value.copy() for key, value in frames.items()}
+        changed_frames["close"].iloc[-1, 0] *= 0.5
+        changed = FuturesData(
+            frames=changed_frames,
+            funding=data.funding,
+            symbols=symbols,
+        )
+        changed_targets, _ = cross_sectional_momentum_targets(changed, spec)
+        pd.testing.assert_frame_equal(targets.iloc[:-1], changed_targets.iloc[:-1])
+        self.assertTrue((targets.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+        active = targets.abs().sum(axis=1) > 0.0
+        self.assertTrue((targets.loc[active].sum(axis=1).abs() < 1e-10).all())
 
 
 if __name__ == "__main__":
