@@ -1192,6 +1192,45 @@ def main() -> None:
             "rebalance_hours": 6,
             "maximum_gross": 1.95,
         },
+        {
+            "name": "convex_stable",
+            "volatility_hours": 24 * 14,
+            "annual_volatility_target": 0.90,
+            "minimum_multiplier": 0.15,
+            "bull_maximum_multiplier": 1.60,
+            "neutral_maximum_multiplier": 0.80,
+            "bear_maximum_multiplier": 0.25,
+            "one_day_shock": 0.045,
+            "shock_multiplier": 0.10,
+            "rebalance_hours": 3,
+            "maximum_gross": 2.40,
+        },
+        {
+            "name": "convex_attack",
+            "volatility_hours": 24 * 10,
+            "annual_volatility_target": 1.05,
+            "minimum_multiplier": 0.15,
+            "bull_maximum_multiplier": 1.80,
+            "neutral_maximum_multiplier": 0.90,
+            "bear_maximum_multiplier": 0.20,
+            "one_day_shock": 0.040,
+            "shock_multiplier": 0.08,
+            "rebalance_hours": 3,
+            "maximum_gross": 2.50,
+        },
+        {
+            "name": "convex_selective",
+            "volatility_hours": 24 * 7,
+            "annual_volatility_target": 0.75,
+            "minimum_multiplier": 0.10,
+            "bull_maximum_multiplier": 2.00,
+            "neutral_maximum_multiplier": 0.65,
+            "bear_maximum_multiplier": 0.15,
+            "one_day_shock": 0.035,
+            "shock_multiplier": 0.05,
+            "rebalance_hours": 3,
+            "maximum_gross": 2.50,
+        },
     )
     for source_id in hedge_sources:
         proxy = screen(
@@ -1213,7 +1252,11 @@ def main() -> None:
             result = screen(data, targets, execution["base_cost_per_side"])
             row = {
                 "candidate_id": candidate_id,
-                "family": "volatility_managed_champion",
+                "family": (
+                    "convex_volatility_managed_champion"
+                    if vol_spec["name"].startswith("convex_")
+                    else "volatility_managed_champion"
+                ),
                 "name": vol_spec["name"],
                 "source_candidate_id": source_id,
                 "volatility_management": vol_spec,
@@ -1545,11 +1588,15 @@ def main() -> None:
     rapid_reentry_attack = [
         row for row in ranked if row["family"] == "rapid_reentry_attack"
     ]
+    convex_volatility = [
+        row for row in ranked
+        if row["family"] == "convex_volatility_managed_champion"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
         *ranked[:2],
-        *rapid_reentry_attack[:6],
+        *convex_volatility[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
