@@ -37,6 +37,7 @@ from cryptoai_v13.v16 import (
     performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
     protected_equity_reentry_targets,
+    trailing_profit_lock_targets,
     regime_switch_targets,
     regime_hedged_targets,
     rolling_loss_limiter_targets,
@@ -762,6 +763,106 @@ def main() -> None:
                 "multiplier": 1.0,
                 "recovery": None,
                 "cooldown_hours": 1,
+            },
+            "profile": profile(result.equity, latest),
+        }
+        row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+        row["screen_gate_passed"] = all(row["gate"].values())
+        row["score"] = score_row(row)
+        rows.append(row)
+
+    # A permanent high-water lock controlled drawdown but stayed defensive
+    # for almost the entire history.  This alternative keeps full convex
+    # capture during a winning run and brakes only once that run starts giving
+    # profit back; an independent daily shock rule covers abrupt selloffs.
+    profit_lock_profiles = (
+        {
+            "name": "early_lock",
+            "short_hours": 24 * 7,
+            "long_hours": 24 * 30,
+            "short_gain": 0.10,
+            "long_gain": 0.25,
+            "profit_pullback": 0.018,
+            "shock_loss": 0.040,
+            "lock_multiplier": 0.15,
+            "shock_multiplier": 0.05,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.055, "multiplier": 0.05, "cooldown_hours": 72},
+        },
+        {
+            "name": "balanced_lock",
+            "short_hours": 24 * 7,
+            "long_hours": 24 * 45,
+            "short_gain": 0.15,
+            "long_gain": 0.35,
+            "profit_pullback": 0.025,
+            "shock_loss": 0.050,
+            "lock_multiplier": 0.25,
+            "shock_multiplier": 0.10,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.060, "multiplier": 0.10, "cooldown_hours": 72},
+        },
+        {
+            "name": "late_lock",
+            "short_hours": 24 * 10,
+            "long_hours": 24 * 60,
+            "short_gain": 0.20,
+            "long_gain": 0.45,
+            "profit_pullback": 0.030,
+            "shock_loss": 0.060,
+            "lock_multiplier": 0.35,
+            "shock_multiplier": 0.15,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.060, "multiplier": 0.15, "cooldown_hours": 96},
+        },
+        {
+            "name": "fast_lock",
+            "short_hours": 24 * 5,
+            "long_hours": 24 * 21,
+            "short_gain": 0.08,
+            "long_gain": 0.20,
+            "profit_pullback": 0.015,
+            "shock_loss": 0.035,
+            "lock_multiplier": 0.10,
+            "shock_multiplier": 0.03,
+            "rebalance_hours": 3,
+            "maximum_gross": 1.85,
+            "exact_guard": {"threshold": 0.050, "multiplier": 0.05, "cooldown_hours": 72},
+        },
+    )
+    for lock in profit_lock_profiles:
+        transform = {
+            key: value
+            for key, value in lock.items()
+            if key not in {"name", "exact_guard"}
+        }
+        targets, diagnostics = trailing_profit_lock_targets(
+            protected_source,
+            protected_confirmation,
+            **transform,
+        )
+        candidate_id = f"profit_lock:{protected_source_id}:{lock['name']}"
+        targets_by_id[candidate_id] = targets
+        result = screen(data, targets, execution["base_cost_per_side"])
+        exact_guard = lock["exact_guard"]
+        row = {
+            "candidate_id": candidate_id,
+            "family": "trailing_profit_lock_attack",
+            "name": lock["name"],
+            "source_candidate_id": protected_source_id,
+            "profit_lock": lock,
+            "maximum_portfolio_gross": lock["maximum_gross"],
+            "lock_share": float(diagnostics["profit_lock"].mean()),
+            "shock_share": float(diagnostics["shock"].mean()),
+            "risk_guard": {
+                "name": f"exact_{lock['name']}",
+                "threshold": exact_guard["threshold"],
+                "multiplier": exact_guard["multiplier"],
+                "recovery": None,
+                "cooldown_hours": exact_guard["cooldown_hours"],
             },
             "profile": profile(result.equity, latest),
         }
@@ -1702,7 +1803,7 @@ def main() -> None:
             exact_pool.append(row)
             seen_ids.add(candidate_id)
     for row in ranked:
-        if row["family"] == "protected_equity_reentry_attack":
+        if row["family"] == "trailing_profit_lock_attack":
             exact_pool.append(row)
     for row in exact_pool:
         targets = targets_by_id[str(row.get("target_candidate_id", row["candidate_id"]))]
