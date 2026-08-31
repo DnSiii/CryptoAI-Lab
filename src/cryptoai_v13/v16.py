@@ -493,6 +493,76 @@ def three_regime_sleeve_targets(
     return combined, diagnostics
 
 
+def volatility_managed_targets(
+    targets: pd.DataFrame,
+    proxy_equity: pd.Series,
+    regime: pd.Series,
+    *,
+    volatility_hours: int,
+    annual_volatility_target: float,
+    minimum_multiplier: float,
+    bull_maximum_multiplier: float,
+    neutral_maximum_multiplier: float,
+    bear_maximum_multiplier: float,
+    one_day_shock: float,
+    shock_multiplier: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Target closed realized volatility with asymmetric regime ceilings."""
+
+    if volatility_hours < 24 or rebalance_hours <= 0:
+        raise ValueError("volatility and rebalance windows are too short")
+    if annual_volatility_target <= 0.0 or maximum_gross <= 0.0:
+        raise ValueError("volatility target and gross must be positive")
+    multipliers = (
+        minimum_multiplier,
+        bull_maximum_multiplier,
+        neutral_maximum_multiplier,
+        bear_maximum_multiplier,
+        shock_multiplier,
+    )
+    if min(multipliers) < 0.0:
+        raise ValueError("volatility multipliers cannot be negative")
+
+    equity = proxy_equity.reindex(targets.index).ffill()
+    hourly_return = equity.pct_change()
+    realized_volatility = hourly_return.rolling(
+        volatility_hours,
+        min_periods=max(24, volatility_hours // 3),
+    ).std().mul(np.sqrt(365.25 * 24))
+    raw_factor = annual_volatility_target / realized_volatility.replace(0.0, np.nan)
+    raw_factor = raw_factor.replace([np.inf, -np.inf], np.nan).fillna(1.0)
+    market_regime = regime.reindex(targets.index).ffill().fillna("neutral")
+    ceiling = pd.Series(neutral_maximum_multiplier, index=targets.index)
+    ceiling.loc[market_regime.eq("bull")] = bull_maximum_multiplier
+    ceiling.loc[market_regime.eq("bear")] = bear_maximum_multiplier
+    factor = raw_factor.clip(lower=minimum_multiplier).where(
+        raw_factor <= ceiling, ceiling
+    )
+    one_day_return = equity.div(equity.shift(24)).sub(1.0)
+    factor.loc[one_day_return <= -abs(one_day_shock)] = np.minimum(
+        factor.loc[one_day_return <= -abs(one_day_shock)], shock_multiplier
+    )
+    event = pd.Series(
+        np.arange(len(factor)) % rebalance_hours == 0,
+        index=factor.index,
+    )
+    factor = factor.where(event).ffill().fillna(minimum_multiplier)
+    managed = _cap_gross(targets.mul(factor, axis=0), maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "realized_volatility": realized_volatility,
+            "one_day_return": one_day_return,
+            "regime": market_regime,
+            "risk_factor": factor,
+            "gross": managed.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return managed, diagnostics
+
+
 def _impulse_spec(spec: ConvexCaptureSpec, *, slow: bool) -> StrategySpec:
     return StrategySpec(
         family="impulse",
