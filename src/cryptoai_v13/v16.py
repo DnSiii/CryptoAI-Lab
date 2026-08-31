@@ -374,6 +374,92 @@ def funding_carry_targets(
     return targets, diagnostics
 
 
+def performance_gated_alpha_targets(
+    base_targets: pd.DataFrame,
+    alpha_targets: pd.DataFrame,
+    alpha_equity: pd.Series,
+    *,
+    short_hours: int,
+    long_hours: int,
+    peak_hours: int,
+    warning_drawdown: float,
+    hard_drawdown: float,
+    strong_base_multiplier: float,
+    normal_base_multiplier: float,
+    weak_base_multiplier: float,
+    hard_base_multiplier: float,
+    strong_alpha_multiplier: float,
+    normal_alpha_multiplier: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Activate an independent alpha only while its closed curve confirms it."""
+
+    if min(short_hours, long_hours, peak_hours, rebalance_hours) <= 0:
+        raise ValueError("performance gate lookbacks must be positive")
+    if short_hours >= long_hours:
+        raise ValueError("short alpha lookback must be shorter than long lookback")
+    if not 0.0 < warning_drawdown < hard_drawdown < 1.0:
+        raise ValueError("performance gate drawdowns are invalid")
+    if min(
+        strong_base_multiplier,
+        normal_base_multiplier,
+        weak_base_multiplier,
+        hard_base_multiplier,
+        strong_alpha_multiplier,
+        normal_alpha_multiplier,
+    ) < 0.0 or maximum_gross <= 0.0:
+        raise ValueError("performance gate multipliers are invalid")
+
+    equity = alpha_equity.reindex(base_targets.index).ffill()
+    short_return = equity.div(equity.shift(short_hours)).sub(1.0)
+    long_return = equity.div(equity.shift(long_hours)).sub(1.0)
+    peak = equity.rolling(
+        peak_hours,
+        min_periods=max(24 * 7, peak_hours // 4),
+    ).max()
+    drawdown = equity.div(peak).sub(1.0)
+    strong = (
+        (short_return > 0.0)
+        & (long_return > 0.0)
+        & (drawdown > -warning_drawdown)
+    )
+    normal = (long_return > 0.0) & (drawdown > -hard_drawdown) & ~strong
+    hard = drawdown <= -hard_drawdown
+
+    base_factor = pd.Series(weak_base_multiplier, index=base_targets.index)
+    alpha_factor = pd.Series(0.0, index=base_targets.index)
+    base_factor.loc[normal] = normal_base_multiplier
+    alpha_factor.loc[normal] = normal_alpha_multiplier
+    base_factor.loc[strong] = strong_base_multiplier
+    alpha_factor.loc[strong] = strong_alpha_multiplier
+    base_factor.loc[hard] = hard_base_multiplier
+    alpha_factor.loc[hard] = 0.0
+    event = pd.Series(
+        np.arange(len(base_factor)) % rebalance_hours == 0,
+        index=base_factor.index,
+    )
+    base_factor = base_factor.where(event, np.nan).ffill().fillna(0.0)
+    alpha_factor = alpha_factor.where(event, np.nan).ffill().fillna(0.0)
+    combined = (
+        base_targets.mul(base_factor, axis=0)
+        + alpha_targets.reindex_like(base_targets).fillna(0.0).mul(
+            alpha_factor, axis=0
+        )
+    )
+    targets = _cap_gross(combined, maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "base_factor": base_factor,
+            "alpha_factor": alpha_factor,
+            "alpha_drawdown": drawdown,
+            "gross": targets.abs().sum(axis=1),
+        },
+        index=targets.index,
+    )
+    return targets, diagnostics
+
+
 def regime_switch_targets(
     core_targets: pd.DataFrame,
     attack_targets: pd.DataFrame,
