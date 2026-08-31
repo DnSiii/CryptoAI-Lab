@@ -437,6 +437,22 @@ class V16ResearchTests(unittest.TestCase):
         self.assertTrue((targets.loc[active].sum(axis=1).abs() < 1e-10).all())
         self.assertGreater(float(targets.loc[active, "BTCUSDT"].mean()), 0.0)
         self.assertLess(float(targets.loc[active, "BNBUSDT"].mean()), 0.0)
+        pressure, _ = funding_carry_targets(
+            data,
+            FundingCarrySpec(
+                funding_lookback_hours=48,
+                volatility_hours=72,
+                trend_hours=24,
+                rebalance_hours=8,
+                long_count=2,
+                short_count=2,
+                minimum_absolute_funding=0.0005,
+                signal_mode="pressure_momentum",
+            ),
+        )
+        pressure_active = pressure.abs().sum(axis=1) > 0.0
+        self.assertLess(float(pressure.loc[pressure_active, "BTCUSDT"].mean()), 0.0)
+        self.assertGreater(float(pressure.loc[pressure_active, "BNBUSDT"].mean()), 0.0)
         changed_funding = funding.copy()
         changed_funding.iloc[-1, 0] = 1.0
         changed = FuturesData(frames=frames, funding=changed_funding, symbols=symbols)
