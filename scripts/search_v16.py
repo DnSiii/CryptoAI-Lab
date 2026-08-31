@@ -34,6 +34,7 @@ from cryptoai_v13.v16 import (
     convex_capture_targets,
     cross_sectional_momentum_targets,
     funding_carry_targets,
+    performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
     regime_switch_targets,
     regime_hedged_targets,
@@ -927,6 +928,100 @@ def main() -> None:
                 row["score"] = score_row(row)
                 rows.append(row)
 
+    gated_alpha_profiles = (
+        {
+            "name": "fast_gate",
+            "short_hours": 24 * 14,
+            "long_hours": 24 * 60,
+            "peak_hours": 24 * 180,
+            "warning_drawdown": 0.08,
+            "hard_drawdown": 0.14,
+            "strong_base_multiplier": 1.10,
+            "normal_base_multiplier": 0.90,
+            "weak_base_multiplier": 0.60,
+            "hard_base_multiplier": 0.20,
+            "strong_alpha_multiplier": 0.55,
+            "normal_alpha_multiplier": 0.20,
+            "rebalance_hours": 24,
+            "maximum_gross": 1.95,
+        },
+        {
+            "name": "balanced_gate",
+            "short_hours": 24 * 30,
+            "long_hours": 24 * 90,
+            "peak_hours": 24 * 240,
+            "warning_drawdown": 0.10,
+            "hard_drawdown": 0.16,
+            "strong_base_multiplier": 1.15,
+            "normal_base_multiplier": 0.90,
+            "weak_base_multiplier": 0.65,
+            "hard_base_multiplier": 0.25,
+            "strong_alpha_multiplier": 0.65,
+            "normal_alpha_multiplier": 0.25,
+            "rebalance_hours": 24,
+            "maximum_gross": 2.00,
+        },
+        {
+            "name": "convex_gate",
+            "short_hours": 24 * 21,
+            "long_hours": 24 * 120,
+            "peak_hours": 24 * 240,
+            "warning_drawdown": 0.12,
+            "hard_drawdown": 0.18,
+            "strong_base_multiplier": 1.25,
+            "normal_base_multiplier": 0.95,
+            "weak_base_multiplier": 0.70,
+            "hard_base_multiplier": 0.30,
+            "strong_alpha_multiplier": 0.75,
+            "normal_alpha_multiplier": 0.30,
+            "rebalance_hours": 24,
+            "maximum_gross": 2.10,
+        },
+    )
+    gated_alpha_sources = ("confirmed_carry_3d", "pressure_7d")
+    for source_id in hedge_sources:
+        for alpha_name in gated_alpha_sources:
+            alpha_targets = funding_targets_by_name[alpha_name]
+            alpha_proxy = screen(
+                data, alpha_targets, execution["base_cost_per_side"]
+            )
+            for gate_spec in gated_alpha_profiles:
+                targets, diagnostics = performance_gated_alpha_targets(
+                    targets_by_id[source_id],
+                    alpha_targets,
+                    alpha_proxy.equity,
+                    **{key: value for key, value in gate_spec.items() if key != "name"},
+                )
+                candidate_id = (
+                    f"gated_alpha:{source_id}:{alpha_name}:{gate_spec['name']}"
+                )
+                targets_by_id[candidate_id] = targets
+                result = screen(data, targets, execution["base_cost_per_side"])
+                row = {
+                    "candidate_id": candidate_id,
+                    "family": "performance_gated_funding_alpha",
+                    "name": gate_spec["name"],
+                    "source_candidate_id": source_id,
+                    "alpha_name": alpha_name,
+                    "performance_gate": gate_spec,
+                    "maximum_portfolio_gross": gate_spec["maximum_gross"],
+                    "alpha_active_share": float(
+                        diagnostics["alpha_factor"].gt(0.0).mean()
+                    ),
+                    "risk_guard": {
+                        "name": "targets_own_state",
+                        "threshold": 0.99,
+                        "multiplier": 1.0,
+                        "recovery": None,
+                        "cooldown_hours": 1,
+                    },
+                    "profile": profile(result.equity, latest),
+                }
+                row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+                row["screen_gate_passed"] = all(row["gate"].values())
+                row["score"] = score_row(row)
+                rows.append(row)
+
     carry_ensemble_profiles = (
         {"name": "carry_25", "attack_weight": 0.90, "carry_weight": 0.35},
         {"name": "carry_40", "attack_weight": 0.80, "carry_weight": 0.55},
@@ -1362,12 +1457,14 @@ def main() -> None:
     funding_signal_ensemble = [
         row for row in ranked if row["family"] == "attack_funding_signal_ensemble"
     ]
+    gated_funding_alpha = [
+        row for row in ranked if row["family"] == "performance_gated_funding_alpha"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
         *ranked[:2],
-        *funding_confirmation[:4],
-        *funding_signal_ensemble[:8],
+        *gated_funding_alpha[:10],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
