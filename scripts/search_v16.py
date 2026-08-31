@@ -34,6 +34,7 @@ from cryptoai_v13.v16 import (
     regime_hedged_targets,
     rolling_loss_limiter_targets,
     three_regime_sleeve_targets,
+    volatility_managed_targets,
 )
 from paper_once_v13 import cap_targets
 from run_final_candidate import build_candidate
@@ -692,6 +693,91 @@ def main() -> None:
             row["score"] = score_row(row)
             rows.append(row)
 
+    # Volatility management cuts exposure from the attack sleeve only while
+    # its own closed realized volatility is elevated.  Stable confirmed bull
+    # periods can retain or slightly increase gross; neutral/bear regimes have
+    # lower ceilings and one-day shocks force an immediate temporary cut.
+    volatility_profiles = (
+        {
+            "name": "balanced_vol",
+            "volatility_hours": 24 * 14,
+            "annual_volatility_target": 0.80,
+            "minimum_multiplier": 0.20,
+            "bull_maximum_multiplier": 1.10,
+            "neutral_maximum_multiplier": 0.80,
+            "bear_maximum_multiplier": 0.40,
+            "one_day_shock": 0.05,
+            "shock_multiplier": 0.15,
+            "rebalance_hours": 6,
+            "maximum_gross": 2.00,
+        },
+        {
+            "name": "responsive_vol",
+            "volatility_hours": 24 * 7,
+            "annual_volatility_target": 0.65,
+            "minimum_multiplier": 0.15,
+            "bull_maximum_multiplier": 1.20,
+            "neutral_maximum_multiplier": 0.70,
+            "bear_maximum_multiplier": 0.30,
+            "one_day_shock": 0.04,
+            "shock_multiplier": 0.10,
+            "rebalance_hours": 3,
+            "maximum_gross": 2.00,
+        },
+        {
+            "name": "tolerant_vol",
+            "volatility_hours": 24 * 21,
+            "annual_volatility_target": 0.95,
+            "minimum_multiplier": 0.30,
+            "bull_maximum_multiplier": 1.05,
+            "neutral_maximum_multiplier": 0.90,
+            "bear_maximum_multiplier": 0.55,
+            "one_day_shock": 0.06,
+            "shock_multiplier": 0.25,
+            "rebalance_hours": 6,
+            "maximum_gross": 1.95,
+        },
+    )
+    for source_id in hedge_sources:
+        proxy = screen(
+            data,
+            targets_by_id[source_id],
+            execution["base_cost_per_side"],
+        )
+        regime_id = f"regime:{source_id}:balanced"
+        source_regime = regime_diagnostics_by_id[regime_id]["regime"]
+        for vol_spec in volatility_profiles:
+            targets, diagnostics = volatility_managed_targets(
+                targets_by_id[source_id],
+                proxy.equity,
+                source_regime,
+                **{key: value for key, value in vol_spec.items() if key != "name"},
+            )
+            candidate_id = f"volatility:{source_id}:{vol_spec['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "volatility_managed_champion",
+                "name": vol_spec["name"],
+                "source_candidate_id": source_id,
+                "volatility_management": vol_spec,
+                "maximum_portfolio_gross": vol_spec["maximum_gross"],
+                "average_risk_factor": float(diagnostics["risk_factor"].mean()),
+                "risk_guard": {
+                    "name": "targets_own_state",
+                    "threshold": 0.99,
+                    "multiplier": 1.0,
+                    "recovery": None,
+                    "cooldown_hours": 1,
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
+
     # Replace blunt index hedging with the opportunity engine's own short
     # signals.  Bull keeps the high-capture sleeve, neutral blends with V13,
     # and bear can only short assets that independently met V14's causal
@@ -971,6 +1057,9 @@ def main() -> None:
     three_regime = [
         row for row in ranked if row["family"] == "three_regime_signal_sleeves"
     ]
+    volatility_managed = [
+        row for row in ranked if row["family"] == "volatility_managed_champion"
+    ]
     exact_pool = []
     seen_ids: set[str] = set()
     for row in [
@@ -982,6 +1071,7 @@ def main() -> None:
         *loss_limited[:6],
         *regime_hedged[:6],
         *three_regime[:6],
+        *volatility_managed[:6],
     ]:
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
