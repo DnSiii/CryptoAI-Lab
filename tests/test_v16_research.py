@@ -339,6 +339,60 @@ class V16ResearchTests(unittest.TestCase):
         active = targets.abs().sum(axis=1) > 0.0
         self.assertTrue((targets.loc[active].sum(axis=1).abs() < 1e-10).all())
 
+    def test_cross_sectional_reversal_flips_relative_selection(self) -> None:
+        index = pd.date_range("2026-01-01", periods=240, freq="h", tz="UTC")
+        base = np.arange(len(index), dtype=float)
+        symbols = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "ADAUSDT", "BNBUSDT")
+        close = pd.DataFrame(
+            {
+                symbol: 100.0 * np.exp((rank - 2.5) * 0.0005 * base)
+                for rank, symbol in enumerate(symbols)
+            },
+            index=index,
+        )
+        frames = {
+            "open": close.shift(1).fillna(close.iloc[0]),
+            "high": close * 1.004,
+            "low": close * 0.996,
+            "close": close,
+            "volume": pd.DataFrame(1_000.0, index=index, columns=symbols),
+            "quote_volume": pd.DataFrame(1_000_000.0, index=index, columns=symbols),
+            "trades": pd.DataFrame(100.0, index=index, columns=symbols),
+        }
+        data = FuturesData(
+            frames=frames,
+            funding=pd.DataFrame(0.0, index=index, columns=symbols),
+            symbols=symbols,
+        )
+        momentum, _ = cross_sectional_momentum_targets(
+            data,
+            CrossSectionalMomentumSpec(
+                lookback_hours=24,
+                volatility_hours=48,
+                rebalance_hours=3,
+                long_count=2,
+                short_count=2,
+                minimum_momentum=0.005,
+            ),
+        )
+        reversal, _ = cross_sectional_momentum_targets(
+            data,
+            CrossSectionalMomentumSpec(
+                lookback_hours=24,
+                volatility_hours=48,
+                rebalance_hours=3,
+                long_count=2,
+                short_count=2,
+                minimum_momentum=0.005,
+                direction="reversal",
+            ),
+        )
+        active = momentum.abs().sum(axis=1) > 0.0
+        pd.testing.assert_frame_equal(
+            reversal.loc[active], -momentum.loc[active]
+        )
+        self.assertTrue((reversal.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+
 
 if __name__ == "__main__":
     unittest.main()
