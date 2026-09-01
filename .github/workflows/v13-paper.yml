@@ -1,7 +1,7 @@
 # GitHub-hosted runners poll Binance's official checksummed daily archives.
 # The compact ledgers power the private didactic dashboard.
 # The original V13 keeps its own history. A second shared boundary compares the
-# core, opportunity tracks, V14, and the V15 challenger independently.
+# core, opportunity tracks, V14, V15, and the experimental V16 independently.
 name: CryptoAI multi-engine paper refresh
 
 on:
@@ -74,7 +74,8 @@ jobs:
               state/paper_opportunity_v1_state.json \
               state/paper_v14_state.json \
               state/paper_v15_state.json \
-              state/paper_v15_universe.json; do
+              state/paper_v15_universe.json \
+              state/paper_v16_state.json; do
               if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
                 mkdir -p "$(dirname "$path")"
                 git show "FETCH_HEAD:$path" > "$path"
@@ -103,12 +104,16 @@ jobs:
       - name: Run the V14-derived adaptive V15 paper cycle
         run: python scripts/paper_once_v15.py
 
+      - name: Run the frozen experimental V16 paper cycle
+        run: python scripts/paper_once_v16.py
+
       - name: Verify paper safety and freshness
         run: |
           python scripts/verify_paper_cycle_v13.py
           python scripts/verify_opportunity_cycle_v1.py
           python scripts/verify_v14_cycle.py
           python scripts/verify_v15_cycle.py
+          python scripts/verify_v16_cycle.py
 
       - name: Write paper publication heartbeat
         shell: bash
@@ -124,6 +129,7 @@ jobs:
               "v13": report_dir / "paper_v13_ledger.json",
               "v14": report_dir / "paper_v14_ledger.json",
               "v15": report_dir / "paper_v15_ledger.json",
+              "v16": report_dir / "paper_v16_ledger.json",
           }
           latest = {
               name: json.loads(path.read_text(encoding="utf-8"))["latest_data_timestamp"]
@@ -182,6 +188,9 @@ jobs:
             reports/paper_data_sync_v15.json
             reports/paper_v15_snapshot.json
             reports/paper_v15_ledger.json
+            state/paper_v16_state.json
+            reports/paper_v16_snapshot.json
+            reports/paper_v16_ledger.json
             reports/paper_runtime_status.json
 
       - name: Publish durable paper results
@@ -218,6 +227,9 @@ jobs:
           cp reports/paper_data_sync_v15.json "$results_dir/reports/paper_data_sync_v15.json"
           cp reports/paper_v15_snapshot.json "$results_dir/reports/paper_v15_snapshot.json"
           cp reports/paper_v15_ledger.json "$results_dir/reports/paper_v15_ledger.json"
+          cp state/paper_v16_state.json "$results_dir/state/paper_v16_state.json"
+          cp reports/paper_v16_snapshot.json "$results_dir/reports/paper_v16_snapshot.json"
+          cp reports/paper_v16_ledger.json "$results_dir/reports/paper_v16_ledger.json"
           cp reports/paper_runtime_status.json "$results_dir/reports/paper_runtime_status.json"
           git -C "$results_dir" add \
             state/paper_v13_state.json \
@@ -240,6 +252,9 @@ jobs:
             reports/paper_data_sync_v15.json \
             reports/paper_v15_snapshot.json \
             reports/paper_v15_ledger.json \
+            state/paper_v16_state.json \
+            reports/paper_v16_snapshot.json \
+            reports/paper_v16_ledger.json \
             reports/paper_runtime_status.json
           if ! git -C "$results_dir" diff --cached --quiet; then
             git -C "$results_dir" commit -m "Update CryptoAI paper snapshot ${{ steps.utc.outputs.date }}"
