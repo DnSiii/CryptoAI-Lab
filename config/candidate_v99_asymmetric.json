@@ -1,12 +1,12 @@
 {
-  "name": "CryptoAI V99 Experimental · Directional Asymmetric R3",
-  "version": "v99-directional-r3-2026-09-05",
+  "name": "CryptoAI V99 Experimental · Sparse Directional R4",
+  "version": "v99-sparse-r4-2026-09-05",
   "mode": "PAPER_ONLY",
   "real_orders": false,
   "strict_research_gate": "UNVALIDATED",
   "paper_authorization": "USER_REQUESTED_V99_EXPERIMENTAL_FORWARD_TEST",
   "parent_candidate_config": "candidate_v16_experimental_balanced_relaxed.json",
-  "objective": "beat V16 on return and downside by cutting only the losing side during systemic moves, preserving the winning side, and braking side-specific portfolio shocks without overfitting target horizons",
+  "objective": "beat V16 on return and downside using sparse side-aware systemic protection, rare synchronized portfolio shock braking and clean-trend opportunity amplification without horizon-specific fitting",
   "asymmetric_overlay": {
     "market_symbol": "BTCUSDT",
     "stress_short_hours": 6,
@@ -48,16 +48,17 @@
     "confirmed_reentry_step": 0.50,
     "maximum_gross": 1.95
   },
-  "r3_control": {
+  "r4_control": {
     "extreme_breadth": 0.15,
-    "neutral_recovery_hours": 2,
-    "shock_hours": 3,
-    "shock_soft_fraction": 0.66,
-    "shock_hard_fraction": 0.82,
-    "shock_soft_return": -0.004,
-    "shock_hard_return": -0.010,
-    "shock_soft_multiplier": 0.72,
-    "shock_hard_multiplier": 0.42
+    "neutral_recovery_hours": 1,
+    "shock_hours": 2,
+    "minimum_side_positions": 4,
+    "shock_soft_fraction": 0.80,
+    "shock_hard_fraction": 0.93,
+    "shock_soft_return": -0.008,
+    "shock_hard_return": -0.016,
+    "shock_soft_multiplier": 0.78,
+    "shock_hard_multiplier": 0.45
   },
   "circuit_breaker": {
     "drawdown_threshold": 0.058,
@@ -86,5 +87,5 @@
     "historical_results_count_as_paper_profit": false,
     "preserve_existing_tracks": ["v13", "v14", "v15", "v16"]
   },
-  "disclosure": "V99 R3 is an unvalidated experimental paper-only challenger. R3 was designed from structural failure analysis of R2, not by fitting the requested 7/30/90/180/365-day outputs: downside stress cuts longs only, upside stress cuts shorts only, side-specific portfolio shock braking reacts to synchronized failures, clean aligned exposure is preserved/boosted, and additional non-target horizons plus calendar-year checks are reported to detect horizon-specific overfitting. It has no exchange credentials or real-order methods. Historical tuning cannot be counted as forward paper profit."
+  "disclosure": "V99 R4 is an unvalidated experimental paper-only challenger. It preserves the structurally successful side-aware stress insight from R3, removes the overactive continuous shock and extension-growth interventions that failed broad historical tests, and permits only sparse portfolio shock braking plus new-entry suppression during true chop. Requested horizons are not sufficient for approval: non-target horizons, rolling windows, calendar years, severe costs and delayed execution are also mandatory. It has no exchange credentials or real-order methods. Historical research cannot guarantee future results and does not count as forward paper profit."
 }
