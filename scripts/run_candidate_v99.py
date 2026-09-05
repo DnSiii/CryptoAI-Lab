@@ -4,7 +4,6 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 
@@ -13,7 +12,8 @@ sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
 from cryptoai_v13.backtest import exact_fast, screen
-from cryptoai_v13.v99 import V99AsymmetricSpec, asymmetric_v99_targets
+from cryptoai_v13.v99 import V99AsymmetricSpec
+from cryptoai_v13.v99_r2 import V99R2ControlSpec, asymmetric_v99_targets_r2
 from paper_once_v99 import load_execution
 from paper_once_v16 import build_v16
 
@@ -73,6 +73,7 @@ def tail_and_capture(parent_equity: pd.Series, candidate_equity: pd.Series) -> d
             "worst_day_improvement_fraction": 0.0,
             "parent_bottom10_mean": 0.0,
             "candidate_on_parent_bottom10_mean": 0.0,
+            "bottom10_damage_improvement_fraction": 0.0,
             "top_winner_capture": 0.0,
         }
     parent_worst = float(aligned["parent"].min())
@@ -83,6 +84,13 @@ def tail_and_capture(parent_equity: pd.Series, candidate_equity: pd.Series) -> d
         improvement = 0.0
 
     bottom = aligned.nsmallest(min(10, len(aligned)), "parent")
+    parent_bottom_mean = float(bottom["parent"].mean())
+    candidate_bottom_mean = float(bottom["candidate"].mean())
+    bottom_improvement = (
+        1.0 - abs(candidate_bottom_mean) / abs(parent_bottom_mean)
+        if parent_bottom_mean < 0.0
+        else 0.0
+    )
     winners = aligned.loc[aligned["parent"] > 0.0].nlargest(
         min(10, int((aligned["parent"] > 0.0).sum())),
         "parent",
@@ -97,9 +105,26 @@ def tail_and_capture(parent_equity: pd.Series, candidate_equity: pd.Series) -> d
         "parent_worst_day": parent_worst,
         "candidate_worst_day": candidate_worst,
         "worst_day_improvement_fraction": float(improvement),
-        "parent_bottom10_mean": float(bottom["parent"].mean()),
-        "candidate_on_parent_bottom10_mean": float(bottom["candidate"].mean()),
+        "parent_bottom10_mean": parent_bottom_mean,
+        "candidate_on_parent_bottom10_mean": candidate_bottom_mean,
+        "bottom10_damage_improvement_fraction": float(bottom_improvement),
         "top_winner_capture": float(winner_capture),
+    }
+
+
+def control_activity(diagnostics: pd.DataFrame) -> dict[str, float]:
+    rows = max(len(diagnostics), 1)
+    elapsed_days = max(rows / 24.0, 1.0 / 24.0)
+    risk = diagnostics["risk_factor"].astype(float)
+    return {
+        "stress_active_fraction": float((diagnostics["stress_factor"] < 0.999).mean()),
+        "chop_active_fraction": float(diagnostics["chop_active"].astype(bool).mean()),
+        "damage_active_fraction": float((diagnostics["damage_factor"] < 0.999).mean()),
+        "risk_reduced_fraction": float((risk < 0.999).mean()),
+        "risk_factor_changes_per_day": float(risk.ne(risk.shift(1)).sum() / elapsed_days),
+        "chop_growth_blocks_total": float(diagnostics["chop_blocked_count"].sum()),
+        "extension_growth_blocks_total": float(diagnostics["extension_blocked_count"].sum()),
+        "clean_trend_fraction": float(diagnostics["clean_trend"].astype(bool).mean()),
     }
 
 
@@ -129,11 +154,12 @@ def main() -> None:
     data, parent_targets, parent_result, _, quarantined = build_v16(parent)
     execution = load_execution(parent)
     proxy = screen(data, parent_targets, execution["base_cost_per_side"]).equity
-    targets, diagnostics = asymmetric_v99_targets(
+    targets, diagnostics = asymmetric_v99_targets_r2(
         data,
         parent_targets,
         proxy,
         V99AsymmetricSpec(**candidate["asymmetric_overlay"]),
+        V99R2ControlSpec(**candidate["r2_control"]),
     )
     guard = candidate["circuit_breaker"]
     base = run_exact(
@@ -171,6 +197,7 @@ def main() -> None:
     severe_summary = summary(severe.equity)
     delayed_summary = summary(delayed.equity)
     tail = tail_and_capture(parent_result.equity, base.equity)
+    activity = control_activity(diagnostics)
 
     gate_config = candidate["research_gate"]
     parent_drawdown = abs(parent_summary["max_drawdown"])
@@ -212,6 +239,7 @@ def main() -> None:
         "delay_3h": delayed_summary,
         "horizons": horizons,
         "tail_and_winner_capture": tail,
+        "control_activity": activity,
         "drawdown_improvement_fraction": float(drawdown_improvement),
         "funding_quarantined_symbols": quarantined,
         "gate": gate,
@@ -225,6 +253,7 @@ def main() -> None:
                 "v99": base_summary,
                 "parent": parent_summary,
                 "tail": tail,
+                "control_activity": activity,
                 "drawdown_improvement_fraction": drawdown_improvement,
                 "gate": gate,
                 "passed": all(gate.values()),
