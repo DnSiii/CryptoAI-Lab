@@ -15,6 +15,7 @@ on:
       - "scripts/paper_once_v99.py"
       - "scripts/run_candidate_v99.py"
       - "scripts/run_candidate_v99_r5.py"
+      - "scripts/run_v99_r6_breaker_study.py"
       - "tests/test_v99_research.py"
       - "tests/test_v99_r3.py"
       - "tests/test_v99_paper.py"
@@ -31,6 +32,7 @@ on:
       - "scripts/paper_once_v99.py"
       - "scripts/run_candidate_v99.py"
       - "scripts/run_candidate_v99_r5.py"
+      - "scripts/run_v99_r6_breaker_study.py"
       - "tests/test_v99_research.py"
       - "tests/test_v99_r3.py"
       - "tests/test_v99_paper.py"
@@ -80,7 +82,10 @@ jobs:
       - name: Synchronize latest closed public candles
         run: python scripts/sync_paper_data_v13.py
 
-      - name: Run the V99 strict gate
+      - name: Run predeclared R6 breaker robustness study
+        run: python scripts/run_v99_r6_breaker_study.py
+
+      - name: Run the V99 R5 control strict gate
         shell: bash
         run: |
           python scripts/run_candidate_v99_r5.py
@@ -92,11 +97,10 @@ jobs:
               Path("reports/candidate_v99_asymmetric_validation.json").read_text(
                   encoding="utf-8"
               )
-          )
           if not report.get("strict_research_gate_passed"):
               failed = [name for name, passed in report["gate"].items() if not passed]
-              raise SystemExit("V99 strict gate failed: " + ", ".join(failed))
-          print("V99 strict research gate PASSED")
+              raise SystemExit("V99 R5 control strict gate failed: " + ", ".join(failed))
+          print("V99 R5 control strict research gate PASSED")
           PY
 
       - name: Upload complete V99 evidence
@@ -109,3 +113,4 @@ jobs:
           path: |
             reports/candidate_v99_asymmetric_validation.json
             reports/candidate_v99_asymmetric_diagnostics.csv
+            reports/candidate_v99_r6_breaker_study.json
