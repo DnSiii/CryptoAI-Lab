@@ -20,9 +20,9 @@ class V99AsymmetricSpec:
     * portfolio damage control reacts when many active positions fail together;
     * extension guard blocks *new/increased* exposure into exhausted moves;
     * clean-trend confirmation restores risk quickly and may modestly boost
-      gross exposure while the market remains broad and directional.
+      aligned exposure while the market remains broad and directional.
 
-    Every input is derived from data closed at timestamp t.  The returned target
+    Every input is derived from data closed at timestamp t. The returned target
     at t therefore remains eligible only for the existing close-t/open-t+1
     execution convention used by the replay engine.
     """
@@ -118,8 +118,8 @@ class V99AsymmetricSpec:
             <= 1.0
         ):
             raise ValueError("stress multipliers must become more defensive")
-        if not 0.0 < self.clean_trend_boost <= 1.25:
-            raise ValueError("clean trend boost must be positive and modest")
+        if not 1.0 <= self.clean_trend_boost <= 1.25:
+            raise ValueError("clean trend boost must be between one and 1.25")
         if not 0.0 < self.recovery_step <= 1.0:
             raise ValueError("recovery step must be within zero and one")
         if not self.recovery_step <= self.confirmed_reentry_step <= 1.0:
@@ -333,12 +333,12 @@ def _extension_guard(
         long_block = (
             requested.gt(0.0)
             & score.ge(spec.extension_sigma)
-            & not bool(clean_uptrend.iloc[row])
+            & (not bool(clean_uptrend.iloc[row]))
         )
         short_block = (
             requested.lt(0.0)
             & score.le(-spec.extension_sigma)
-            & not bool(clean_downtrend.iloc[row])
+            & (not bool(clean_downtrend.iloc[row]))
         )
         blocked = long_block | short_block
         same_direction = np.sign(previous) == np.sign(requested)
@@ -407,12 +407,26 @@ def asymmetric_v99_targets(
     risk_factor = pd.Series(effective, index=raw.index, name="risk_factor")
 
     opportunity_factor = pd.Series(1.0, index=raw.index, name="opportunity_factor")
-    opportunity_factor.loc[clean & risk_factor.ge(0.999)] = spec.clean_trend_boost
+    boost_ready = clean & risk_factor.ge(0.999)
+    opportunity_factor.loc[boost_ready] = spec.clean_trend_boost
 
-    transformed = extension_guarded.mul(risk_factor, axis=0).mul(
-        opportunity_factor,
-        axis=0,
-    )
+    boosted = extension_guarded.copy()
+    up_rows = clean_up.fillna(False) & risk_factor.ge(0.999)
+    down_rows = clean_down.fillna(False) & risk_factor.ge(0.999)
+    if up_rows.any():
+        up_slice = boosted.loc[up_rows]
+        boosted.loc[up_rows] = up_slice.where(
+            up_slice.le(0.0),
+            up_slice * spec.clean_trend_boost,
+        )
+    if down_rows.any():
+        down_slice = boosted.loc[down_rows]
+        boosted.loc[down_rows] = down_slice.where(
+            down_slice.ge(0.0),
+            down_slice * spec.clean_trend_boost,
+        )
+
+    transformed = boosted.mul(risk_factor, axis=0)
     transformed = _cap_gross(transformed, spec.maximum_gross)
 
     diagnostics = pd.concat(
