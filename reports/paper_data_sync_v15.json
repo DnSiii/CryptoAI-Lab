@@ -2,15 +2,15 @@
   "mode": "PUBLIC_DATA_ONLY",
   "private_api_used": false,
   "candidate": "CryptoAI V15 \u00b7 Captura Total Adaptativa",
-  "generated_at_utc": "2026-09-05T18:53:19.016204+00:00",
+  "generated_at_utc": "2026-09-05T18:59:00.562447+00:00",
   "target_latest_closed_hour": "2026-09-05T17:00:00+00:00",
   "expected_latest_closed_hour": "2026-09-05T17:00:00+00:00",
   "publication_lag_hours": 0,
   "maximum_publication_lag_hours": 48,
   "maximum_funding_lag_hours": 12,
   "discovery_sources": [
-    "https://www.binance.com/fapi/v1/exchangeInfo",
-    "https://www.binance.com/fapi/v1/ticker/24hr"
+    "https://fapi.binance.com/fapi/v1/exchangeInfo",
+    "https://fapi.binance.com/fapi/v1/ticker/24hr"
   ],
   "discovery_errors": [],
   "discovery_top_n": 40,
@@ -23,6 +23,24 @@
   },
   "sync_errors": {},
   "symbols": {
+    "SOLUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
     "BNBUSDT": {
       "klines": {
         "previous_last": "2026-09-05T17:00:00+00:00",
@@ -38,61 +56,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "LTCUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "ETHUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "LINKUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "XRPUSDT": {
@@ -110,10 +74,10 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "AVAXUSDT": {
+    "ETHUSDT": {
       "klines": {
         "previous_last": "2026-09-05T17:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
@@ -128,10 +92,10 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "DOGEUSDT": {
+    "LTCUSDT": {
       "klines": {
         "previous_last": "2026-09-05T17:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
@@ -146,61 +110,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "TRXUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "SOLUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "ADAUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "BTCUSDT": {
@@ -218,7 +128,97 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "AVAXUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "ADAUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "TRXUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "LINKUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "DOGEUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ETCUSDT": {
@@ -236,7 +236,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "BCHUSDT": {
@@ -254,43 +254,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "DOTUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "XLMUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ATOMUSDT": {
@@ -308,10 +272,10 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "SUSHIUSDT": {
+    "DOTUSDT": {
       "klines": {
         "previous_last": "2026-09-05T17:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
@@ -326,43 +290,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "AAVEUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "UNIUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "FILUSDT": {
@@ -380,7 +308,43 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "XLMUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "UNIUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "NEARUSDT": {
@@ -398,7 +362,43 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "SUSHIUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "AAVEUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ALGOUSDT": {
@@ -416,7 +416,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "RUNEUSDT": {
@@ -434,25 +434,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "THETAUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "VETUSDT": {
@@ -470,25 +452,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "SNXUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ZECUSDT": {
@@ -506,25 +470,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "IOTAUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "DASHUSDT": {
@@ -542,7 +488,25 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "SNXUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "KAVAUSDT": {
@@ -560,7 +524,25 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "THETAUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "COMPUSDT": {
@@ -578,10 +560,10 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "ONTUSDT": {
+    "IOTAUSDT": {
       "klines": {
         "previous_last": "2026-09-05T17:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
@@ -596,7 +578,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "XMRUSDT": {
@@ -614,10 +596,10 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "GRTUSDT": {
+    "ONTUSDT": {
       "klines": {
         "previous_last": "2026-09-05T17:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
@@ -632,7 +614,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "CRVUSDT": {
@@ -650,43 +632,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "YFIUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "SANDUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "1INCHUSDT": {
@@ -704,7 +650,61 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "GRTUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "YFIUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "SANDUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "AXSUSDT": {
@@ -722,7 +722,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MANAUSDT": {
@@ -740,25 +740,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "CHZUSDT": {
-      "klines": {
-        "previous_last": "2026-09-05T17:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 0,
-        "public_rest_source": null
-      },
-      "funding": {
-        "previous_last": "2026-09-05T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 0,
-        "archives_found": 0,
-        "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "EGLDUSDT": {
@@ -776,7 +758,25 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "CHZUSDT": {
+      "klines": {
+        "previous_last": "2026-09-05T17:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 0,
+        "public_rest_source": null
+      },
+      "funding": {
+        "previous_last": "2026-09-05T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 0,
+        "archives_found": 0,
+        "public_rest_records": 1,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ENJUSDT": {
@@ -794,7 +794,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ZILUSDT": {
@@ -812,7 +812,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "HYPEUSDT": {
@@ -822,7 +822,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -830,25 +830,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "ENAUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "TRUMPUSDT": {
@@ -858,7 +840,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -866,25 +848,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "1000PEPEUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 3,
-        "archives_found": 0,
-        "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "TUTUSDT": {
@@ -894,7 +858,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -902,7 +866,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "ENAUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "PUMPUSDT": {
@@ -912,7 +894,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -920,25 +902,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "PENGUUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "SUIUSDT": {
@@ -948,7 +912,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T16:00:00+00:00",
@@ -956,17 +920,35 @@
         "rows_added": 3,
         "archives_found": 0,
         "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "PROMUSDT": {
+    "1000PEPEUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 3,
+        "archives_found": 0,
+        "public_rest_records": 4,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "PENGUUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -974,61 +956,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "VELVETUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "LITUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "TAOUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "SPKUSDT": {
@@ -1038,7 +966,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1046,25 +974,79 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "WLDUSDT": {
+    "PROMUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
-        "previous_last": "2026-09-04T16:00:00+00:00",
+        "previous_last": "2026-09-04T20:00:00+00:00",
         "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 3,
+        "rows_added": 5,
         "archives_found": 0,
-        "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "VELVETUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "TAOUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "LITUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "UAIUSDT": {
@@ -1074,7 +1056,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1082,7 +1064,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MORPHOUSDT": {
@@ -1092,7 +1074,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1100,25 +1082,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "XPLUSDT": {
+    "WLDUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
+        "previous_last": "2026-09-04T16:00:00+00:00",
         "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
+        "rows_added": 3,
         "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_records": 4,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ONDOUSDT": {
@@ -1128,7 +1110,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1136,7 +1118,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "XPLUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ASTERUSDT": {
@@ -1146,7 +1146,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1154,7 +1154,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "PAXGUSDT": {
@@ -1164,7 +1164,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1172,7 +1172,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "VIRTUALUSDT": {
@@ -1182,7 +1182,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1190,7 +1190,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "BTWUSDT": {
@@ -1200,7 +1200,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1208,25 +1208,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "ZROUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "GRASSUSDT": {
@@ -1236,7 +1218,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1244,17 +1226,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "SUPERUSDT": {
+    "ZROUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1262,25 +1244,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "PORTALUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "INJUSDT": {
@@ -1290,7 +1254,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T16:00:00+00:00",
@@ -1298,7 +1262,43 @@
         "rows_added": 3,
         "archives_found": 0,
         "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "PORTALUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "SUPERUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ONGUSDT": {
@@ -1308,7 +1308,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T22:00:00+00:00",
@@ -1316,7 +1316,7 @@
         "rows_added": 19,
         "archives_found": 0,
         "public_rest_records": 19,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "TACUSDT": {
@@ -1326,7 +1326,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1334,7 +1334,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "1000SHIBUSDT": {
@@ -1344,7 +1344,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T16:00:00+00:00",
@@ -1352,7 +1352,7 @@
         "rows_added": 3,
         "archives_found": 0,
         "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "STXUSDT": {
@@ -1362,7 +1362,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T16:00:00+00:00",
@@ -1370,79 +1370,7 @@
         "rows_added": 3,
         "archives_found": 0,
         "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "POLUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "BMTUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "BICOUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 3,
-        "archives_found": 0,
-        "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "FARTCOINUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "WIFUSDT": {
@@ -1452,7 +1380,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1460,17 +1388,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "EDENUSDT": {
+    "BMTUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1478,17 +1406,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "BTRUSDT": {
+    "POLUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1496,17 +1424,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "AKEUSDT": {
+    "FARTCOINUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1514,7 +1442,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "STORJUSDT": {
@@ -1524,7 +1452,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-08-26T08:00:00+00:00",
@@ -1532,17 +1460,17 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "ARIAUSDT": {
+    "EDENUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1550,17 +1478,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "BEAMXUSDT": {
+    "BTRUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1568,7 +1496,43 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "BICOUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T16:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 3,
+        "archives_found": 0,
+        "public_rest_records": 4,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "AKEUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MOVRUSDT": {
@@ -1578,7 +1542,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1586,17 +1550,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "HEMIUSDT": {
+    "ARIAUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1604,7 +1568,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "BEAMXUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MAGMAUSDT": {
@@ -1614,7 +1596,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1622,7 +1604,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "SKRUSDT": {
@@ -1632,7 +1614,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T22:00:00+00:00",
@@ -1640,7 +1622,25 @@
         "rows_added": 19,
         "archives_found": 0,
         "public_rest_records": 19,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "HEMIUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "CHIPUSDT": {
@@ -1650,7 +1650,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1658,7 +1658,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "LIGHTUSDT": {
@@ -1668,7 +1668,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1676,25 +1676,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "DEXEUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "CYSUSDT": {
@@ -1704,7 +1686,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1712,7 +1694,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "DEXEUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "BEATUSDT": {
@@ -1722,7 +1722,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1730,25 +1730,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "XAUTUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "4USDT": {
@@ -1758,7 +1740,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1766,17 +1748,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "NILUSDT": {
+    "XAUTUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1784,7 +1766,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "GIGGLEUSDT": {
@@ -1794,7 +1776,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1802,7 +1784,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "NILUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "COTIUSDT": {
@@ -1812,7 +1812,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1820,43 +1820,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "CLOUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "AUCTIONUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "BANKUSDT": {
@@ -1866,7 +1830,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1874,43 +1838,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "ZKCUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "OUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ZKPUSDT": {
@@ -1920,7 +1848,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1928,7 +1856,61 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "OUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "CLOUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "AUCTIONUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "TNSRUSDT": {
@@ -1938,7 +1920,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1946,17 +1928,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "FLOCKUSDT": {
+    "ZKCUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -1964,25 +1946,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "USELESSUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ZORAUSDT": {
@@ -1992,7 +1956,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -2000,17 +1964,17 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "ACEUSDT": {
+    "FLOCKUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -2018,25 +1982,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "ARBUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T16:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 3,
-        "archives_found": 0,
-        "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "0GUSDT": {
@@ -2046,7 +1992,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -2054,25 +2000,25 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "FFUSDT": {
+    "ARBUSDT": {
       "klines": {
         "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
+        "previous_last": "2026-09-04T16:00:00+00:00",
         "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
+        "rows_added": 3,
         "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_records": 4,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "OPUSDT": {
@@ -2082,7 +2028,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T16:00:00+00:00",
@@ -2090,7 +2036,43 @@
         "rows_added": 3,
         "archives_found": 0,
         "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "USELESSUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "ACEUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "TUSDT": {
@@ -2100,7 +2082,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T22:00:00+00:00",
@@ -2108,7 +2090,25 @@
         "rows_added": 19,
         "archives_found": 0,
         "public_rest_records": 19,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "FFUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MUBARAKUSDT": {
@@ -2118,7 +2118,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -2126,7 +2126,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "BULLAUSDT": {
@@ -2136,7 +2136,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T20:00:00+00:00",
@@ -2144,61 +2144,7 @@
         "rows_added": 5,
         "archives_found": 0,
         "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "BRUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "TRIAUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
-      }
-    },
-    "EDGEUSDT": {
-      "klines": {
-        "previous_last": "2026-09-04T23:00:00+00:00",
-        "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 18,
-        "archives_found": 1,
-        "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
-      },
-      "funding": {
-        "previous_last": "2026-09-04T20:00:00+00:00",
-        "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 5,
-        "archives_found": 0,
-        "public_rest_records": 5,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "APTUSDT": {
@@ -2208,7 +2154,7 @@
         "rows_added": 18,
         "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-04T16:00:00+00:00",
@@ -2216,25 +2162,61 @@
         "rows_added": 3,
         "archives_found": 0,
         "public_rest_records": 4,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
-    "NOMUSDT": {
+    "EDGEUSDT": {
       "klines": {
-        "previous_last": "2026-08-31T23:00:00+00:00",
+        "previous_last": "2026-09-04T23:00:00+00:00",
         "latest": "2026-09-05T17:00:00+00:00",
-        "rows_added": 114,
-        "archives_found": 5,
+        "rows_added": 18,
+        "archives_found": 1,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
-        "previous_last": "2026-08-31T20:00:00+00:00",
+        "previous_last": "2026-09-04T20:00:00+00:00",
         "latest": "2026-09-05T16:00:00+00:00",
-        "rows_added": 29,
+        "rows_added": 5,
         "archives_found": 0,
-        "public_rest_records": 29,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "TRIAUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "BRUSDT": {
+      "klines": {
+        "previous_last": "2026-09-04T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 18,
+        "archives_found": 1,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-09-04T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 5,
+        "archives_found": 0,
+        "public_rest_records": 5,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "ZENUSDT": {
@@ -2244,7 +2226,7 @@
         "rows_added": 114,
         "archives_found": 5,
         "public_rest_records": 18,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-08-31T16:00:00+00:00",
@@ -2252,7 +2234,25 @@
         "rows_added": 15,
         "archives_found": 0,
         "public_rest_records": 16,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
+      }
+    },
+    "NOMUSDT": {
+      "klines": {
+        "previous_last": "2026-08-31T23:00:00+00:00",
+        "latest": "2026-09-05T17:00:00+00:00",
+        "rows_added": 114,
+        "archives_found": 5,
+        "public_rest_records": 18,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
+      },
+      "funding": {
+        "previous_last": "2026-08-31T20:00:00+00:00",
+        "latest": "2026-09-05T16:00:00+00:00",
+        "rows_added": 29,
+        "archives_found": 0,
+        "public_rest_records": 29,
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MKRUSDT": {
@@ -2270,7 +2270,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 0,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "FTMUSDT": {
@@ -2288,7 +2288,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "EOSUSDT": {
@@ -2298,7 +2298,7 @@
         "rows_added": 0,
         "archives_found": 1,
         "public_rest_records": 0,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-05T16:00:00+00:00",
@@ -2306,7 +2306,7 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     },
     "MATICUSDT": {
@@ -2316,7 +2316,7 @@
         "rows_added": 0,
         "archives_found": 1,
         "public_rest_records": 0,
-        "public_rest_source": "https://www.binance.com/fapi/v1/klines"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/klines"
       },
       "funding": {
         "previous_last": "2026-09-05T16:00:00+00:00",
@@ -2324,135 +2324,135 @@
         "rows_added": 0,
         "archives_found": 0,
         "public_rest_records": 1,
-        "public_rest_source": "https://www.binance.com/fapi/v1/fundingRate"
+        "public_rest_source": "https://fapi.binance.com/fapi/v1/fundingRate"
       }
     }
   },
   "funding_lag_hours": {
-    "BNBUSDT": 1,
-    "LTCUSDT": 1,
-    "ETHUSDT": 1,
-    "LINKUSDT": 1,
-    "XRPUSDT": 1,
-    "AVAXUSDT": 1,
-    "DOGEUSDT": 1,
-    "TRXUSDT": 1,
     "SOLUSDT": 1,
-    "ADAUSDT": 1,
+    "BNBUSDT": 1,
+    "XRPUSDT": 1,
+    "ETHUSDT": 1,
+    "LTCUSDT": 1,
     "BTCUSDT": 1,
+    "AVAXUSDT": 1,
+    "ADAUSDT": 1,
+    "TRXUSDT": 1,
+    "LINKUSDT": 1,
+    "DOGEUSDT": 1,
     "ETCUSDT": 1,
     "BCHUSDT": 1,
-    "DOTUSDT": 1,
-    "XLMUSDT": 1,
     "ATOMUSDT": 1,
+    "DOTUSDT": 1,
+    "FILUSDT": 1,
+    "XLMUSDT": 1,
+    "UNIUSDT": 1,
+    "NEARUSDT": 1,
     "SUSHIUSDT": 1,
     "AAVEUSDT": 1,
-    "UNIUSDT": 1,
-    "FILUSDT": 1,
-    "NEARUSDT": 1,
     "ALGOUSDT": 1,
     "RUNEUSDT": 1,
-    "THETAUSDT": 1,
     "VETUSDT": 1,
-    "SNXUSDT": 1,
     "ZECUSDT": 1,
-    "IOTAUSDT": 1,
     "DASHUSDT": 1,
+    "SNXUSDT": 1,
     "KAVAUSDT": 1,
+    "THETAUSDT": 1,
     "COMPUSDT": 1,
-    "ONTUSDT": 1,
+    "IOTAUSDT": 1,
     "XMRUSDT": 1,
-    "GRTUSDT": 1,
+    "ONTUSDT": 1,
     "CRVUSDT": 1,
+    "1INCHUSDT": 1,
+    "GRTUSDT": 1,
     "YFIUSDT": 1,
     "SANDUSDT": 1,
-    "1INCHUSDT": 1,
     "AXSUSDT": 1,
     "MANAUSDT": 1,
-    "CHZUSDT": 1,
     "EGLDUSDT": 1,
+    "CHZUSDT": 1,
     "ENJUSDT": 1,
     "ZILUSDT": 1,
     "HYPEUSDT": 1,
-    "ENAUSDT": 1,
     "TRUMPUSDT": 1,
-    "1000PEPEUSDT": 1,
     "TUTUSDT": 1,
+    "ENAUSDT": 1,
     "PUMPUSDT": 1,
-    "PENGUUSDT": 1,
     "SUIUSDT": 1,
+    "1000PEPEUSDT": 1,
+    "PENGUUSDT": 1,
+    "SPKUSDT": 1,
     "PROMUSDT": 1,
     "VELVETUSDT": 1,
-    "LITUSDT": 1,
     "TAOUSDT": 1,
-    "SPKUSDT": 1,
-    "WLDUSDT": 1,
+    "LITUSDT": 1,
     "UAIUSDT": 1,
     "MORPHOUSDT": 1,
-    "XPLUSDT": 1,
+    "WLDUSDT": 1,
     "ONDOUSDT": 1,
+    "XPLUSDT": 1,
     "ASTERUSDT": 1,
     "PAXGUSDT": 1,
     "VIRTUALUSDT": 1,
     "BTWUSDT": 1,
-    "ZROUSDT": 1,
     "GRASSUSDT": 1,
-    "SUPERUSDT": 1,
-    "PORTALUSDT": 1,
+    "ZROUSDT": 1,
     "INJUSDT": 1,
+    "PORTALUSDT": 1,
+    "SUPERUSDT": 1,
     "ONGUSDT": 0,
     "TACUSDT": 1,
     "1000SHIBUSDT": 1,
     "STXUSDT": 1,
-    "POLUSDT": 1,
-    "BMTUSDT": 1,
-    "BICOUSDT": 1,
-    "FARTCOINUSDT": 1,
     "WIFUSDT": 1,
+    "BMTUSDT": 1,
+    "POLUSDT": 1,
+    "FARTCOINUSDT": 1,
+    "STORJUSDT": 249,
     "EDENUSDT": 1,
     "BTRUSDT": 1,
+    "BICOUSDT": 1,
     "AKEUSDT": 1,
-    "STORJUSDT": 249,
+    "MOVRUSDT": 1,
     "ARIAUSDT": 1,
     "BEAMXUSDT": 1,
-    "MOVRUSDT": 1,
-    "HEMIUSDT": 1,
     "MAGMAUSDT": 1,
     "SKRUSDT": 0,
+    "HEMIUSDT": 1,
     "CHIPUSDT": 1,
     "LIGHTUSDT": 1,
-    "DEXEUSDT": 1,
     "CYSUSDT": 1,
+    "DEXEUSDT": 1,
     "BEATUSDT": 1,
-    "XAUTUSDT": 1,
     "4USDT": 1,
-    "NILUSDT": 1,
+    "XAUTUSDT": 1,
     "GIGGLEUSDT": 1,
+    "NILUSDT": 1,
     "COTIUSDT": 1,
+    "BANKUSDT": 1,
+    "ZKPUSDT": 1,
+    "OUSDT": 1,
     "CLOUSDT": 1,
     "AUCTIONUSDT": 1,
-    "BANKUSDT": 1,
-    "ZKCUSDT": 1,
-    "OUSDT": 1,
-    "ZKPUSDT": 1,
     "TNSRUSDT": 1,
-    "FLOCKUSDT": 1,
-    "USELESSUSDT": 1,
+    "ZKCUSDT": 1,
     "ZORAUSDT": 1,
-    "ACEUSDT": 1,
-    "ARBUSDT": 1,
+    "FLOCKUSDT": 1,
     "0GUSDT": 1,
-    "FFUSDT": 1,
+    "ARBUSDT": 1,
     "OPUSDT": 1,
+    "USELESSUSDT": 1,
+    "ACEUSDT": 1,
     "TUSDT": 0,
+    "FFUSDT": 1,
     "MUBARAKUSDT": 1,
     "BULLAUSDT": 1,
-    "BRUSDT": 1,
-    "TRIAUSDT": 1,
-    "EDGEUSDT": 1,
     "APTUSDT": 1,
-    "NOMUSDT": 1,
+    "EDGEUSDT": 1,
+    "TRIAUSDT": 1,
+    "BRUSDT": 1,
     "ZENUSDT": 1,
+    "NOMUSDT": 1,
     "MKRUSDT": 8697,
     "FTMUSDT": 10641
   },
