@@ -128,6 +128,74 @@ def control_activity(diagnostics: pd.DataFrame) -> dict[str, float]:
     }
 
 
+def daily_autopsy(
+    parent_equity: pd.Series,
+    candidate_equity: pd.Series,
+    diagnostics: pd.DataFrame,
+    limit: int = 15,
+) -> dict[str, list[dict[str, object]]]:
+    returns = pd.concat(
+        [
+            daily_returns(parent_equity).rename("parent_return"),
+            daily_returns(candidate_equity).rename("candidate_return"),
+        ],
+        axis=1,
+        join="inner",
+    ).dropna()
+
+    daily = pd.DataFrame(index=returns.index)
+    daily["min_risk_factor"] = diagnostics["risk_factor"].resample("1D").min()
+    daily["mean_risk_factor"] = diagnostics["risk_factor"].resample("1D").mean()
+    daily["stress_hours"] = (
+        diagnostics["stress_factor"].lt(0.999).astype(int).resample("1D").sum()
+    )
+    daily["damage_hours"] = (
+        diagnostics["damage_factor"].lt(0.999).astype(int).resample("1D").sum()
+    )
+    daily["chop_hours"] = diagnostics["chop_active"].astype(int).resample("1D").sum()
+    daily["clean_trend_hours"] = (
+        diagnostics["clean_trend"].astype(int).resample("1D").sum()
+    )
+    daily["boost_hours"] = diagnostics["boost_ready"].astype(int).resample("1D").sum()
+    daily["chop_blocks"] = diagnostics["chop_blocked_count"].resample("1D").sum()
+    daily["extension_blocks"] = (
+        diagnostics["extension_blocked_count"].resample("1D").sum()
+    )
+    daily["max_stress_score"] = diagnostics["stress_score"].resample("1D").max()
+    daily["max_loss_fraction"] = diagnostics["smoothed_loss_fraction"].resample("1D").max()
+
+    combined = returns.join(daily, how="left").fillna(0.0)
+
+    def rows(frame: pd.DataFrame) -> list[dict[str, object]]:
+        output: list[dict[str, object]] = []
+        for timestamp, row in frame.iterrows():
+            output.append(
+                {
+                    "date": timestamp.strftime("%Y-%m-%d"),
+                    "parent_return": float(row["parent_return"]),
+                    "candidate_return": float(row["candidate_return"]),
+                    "min_risk_factor": float(row["min_risk_factor"]),
+                    "mean_risk_factor": float(row["mean_risk_factor"]),
+                    "stress_hours": int(row["stress_hours"]),
+                    "damage_hours": int(row["damage_hours"]),
+                    "chop_hours": int(row["chop_hours"]),
+                    "clean_trend_hours": int(row["clean_trend_hours"]),
+                    "boost_hours": int(row["boost_hours"]),
+                    "chop_blocks": int(row["chop_blocks"]),
+                    "extension_blocks": int(row["extension_blocks"]),
+                    "max_stress_score": int(row["max_stress_score"]),
+                    "max_loss_fraction": float(row["max_loss_fraction"]),
+                }
+            )
+        return output
+
+    return {
+        "candidate_worst_days": rows(combined.nsmallest(limit, "candidate_return")),
+        "parent_worst_days": rows(combined.nsmallest(limit, "parent_return")),
+        "parent_best_days": rows(combined.nlargest(limit, "parent_return")),
+    }
+
+
 def run_exact(data, targets, execution: dict, guard: dict, cost: float):
     return exact_fast(
         data,
@@ -198,6 +266,7 @@ def main() -> None:
     delayed_summary = summary(delayed.equity)
     tail = tail_and_capture(parent_result.equity, base.equity)
     activity = control_activity(diagnostics)
+    autopsy = daily_autopsy(parent_result.equity, base.equity, diagnostics)
 
     gate_config = candidate["research_gate"]
     parent_drawdown = abs(parent_summary["max_drawdown"])
@@ -240,6 +309,7 @@ def main() -> None:
         "horizons": horizons,
         "tail_and_winner_capture": tail,
         "control_activity": activity,
+        "daily_autopsy": autopsy,
         "drawdown_improvement_fraction": float(drawdown_improvement),
         "funding_quarantined_symbols": quarantined,
         "gate": gate,
@@ -254,6 +324,7 @@ def main() -> None:
                 "parent": parent_summary,
                 "tail": tail,
                 "control_activity": activity,
+                "candidate_worst_days": autopsy["candidate_worst_days"][:5],
                 "drawdown_improvement_fraction": drawdown_improvement,
                 "gate": gate,
                 "passed": all(gate.values()),
