@@ -11,9 +11,10 @@ on:
       - "src/cryptoai_v13/v99_r2.py"
       - "src/cryptoai_v13/v99_r3.py"
       - "src/cryptoai_v13/v99_r4.py"
+      - "src/cryptoai_v13/v99_r5.py"
       - "scripts/paper_once_v99.py"
       - "scripts/run_candidate_v99.py"
-      - "scripts/run_candidate_v99_r4.py"
+      - "scripts/run_candidate_v99_r5.py"
       - "tests/test_v99_research.py"
       - "tests/test_v99_r3.py"
       - "tests/test_v99_paper.py"
@@ -26,9 +27,10 @@ on:
       - "src/cryptoai_v13/v99_r2.py"
       - "src/cryptoai_v13/v99_r3.py"
       - "src/cryptoai_v13/v99_r4.py"
+      - "src/cryptoai_v13/v99_r5.py"
       - "scripts/paper_once_v99.py"
       - "scripts/run_candidate_v99.py"
-      - "scripts/run_candidate_v99_r4.py"
+      - "scripts/run_candidate_v99_r5.py"
       - "tests/test_v99_research.py"
       - "tests/test_v99_r3.py"
       - "tests/test_v99_paper.py"
@@ -81,7 +83,7 @@ jobs:
       - name: Run the V99 strict gate
         shell: bash
         run: |
-          python scripts/run_candidate_v99_r4.py
+          python scripts/run_candidate_v99_r5.py
           python - <<'PY'
           import json
           from pathlib import Path
