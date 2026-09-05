@@ -69,7 +69,23 @@ jobs:
         run: python scripts/sync_paper_data_v13.py
 
       - name: Run the V99 strict gate
-        run: python scripts/run_candidate_v99.py
+        shell: bash
+        run: |
+          python scripts/run_candidate_v99.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(
+              Path("reports/candidate_v99_asymmetric_validation.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          if not report.get("strict_research_gate_passed"):
+              failed = [name for name, passed in report["gate"].items() if not passed]
+              raise SystemExit("V99 strict gate failed: " + ", ".join(failed))
+          print("V99 strict research gate PASSED")
+          PY
 
       - name: Upload complete V99 evidence
         if: always()
