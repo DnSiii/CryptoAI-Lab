@@ -19,7 +19,7 @@ def test_v99_is_independent_experimental_and_orderless() -> None:
         assert forbidden not in runner
 
 
-def test_v99_r3_gate_demands_return_risk_tail_and_anti_overfit_evidence() -> None:
+def test_v99_r4_gate_demands_return_risk_tail_and_anti_overfit_evidence() -> None:
     config = json.loads((PROJECT / "config" / "candidate_v99_asymmetric.json").read_text())
     gate = config["research_gate"]
     assert gate["required_horizons_days"] == [7, 30, 90, 180, 365]
@@ -41,9 +41,9 @@ def test_v99_research_workflow_runs_the_strict_runner() -> None:
     workflow = (PROJECT / ".github" / "workflows" / "v99-research.yml").read_text()
     assert "pull_request:" in workflow
     assert "python -m pytest" in workflow
-    assert "python scripts/run_candidate_v99.py" in workflow
-    assert "src/cryptoai_v13/v99_r3.py" in workflow
-    assert "tests/test_v99_r3.py" in workflow
+    assert "python scripts/run_candidate_v99_r4.py" in workflow
+    assert "src/cryptoai_v13/v99_r4.py" in workflow
+    assert "scripts/run_candidate_v99_r4.py" in workflow
 
 
 def test_paper_workflow_runs_and_publishes_v99_without_removing_existing_tracks() -> None:
