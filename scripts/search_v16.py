@@ -1869,6 +1869,56 @@ def main() -> None:
             }
         ):
             exact_pool.append(row)
+
+    # The best profit-lock candidate cleared every recent-return and stress
+    # condition but the fixed-duration execution guard could reset its peak
+    # after 72 hours and then permit another loss episode.  Test a deliberately
+    # small, structural frontier that keeps the high-water mark until equity
+    # has actually recovered.  These variants reuse the identical causal
+    # targets; only the execution-time risk state changes, so no period or
+    # asset-specific information is introduced.
+    persistent_guard_frontier = (
+        {
+            "name": "persistent_high_water_045",
+            "threshold": 0.045,
+            "multiplier": 0.05,
+            "recovery": 0.018,
+            "cooldown_hours": None,
+        },
+        {
+            "name": "persistent_high_water_050",
+            "threshold": 0.050,
+            "multiplier": 0.08,
+            "recovery": 0.022,
+            "cooldown_hours": None,
+        },
+        {
+            "name": "persistent_high_water_055",
+            "threshold": 0.055,
+            "multiplier": 0.10,
+            "recovery": 0.025,
+            "cooldown_hours": None,
+        },
+    )
+    guard_sources = {
+        "balanced_relaxed",
+        "mid_lock_a",
+    }
+    for source in ranked:
+        if (
+            source["family"] != "trailing_profit_lock_attack"
+            or source["name"] not in guard_sources
+        ):
+            continue
+        for guard in persistent_guard_frontier:
+            variant = {
+                **source,
+                "candidate_id": f"{source['candidate_id']}:{guard['name']}",
+                "target_candidate_id": source["candidate_id"],
+                "name": f"{source['name']}:{guard['name']}",
+                "risk_guard": dict(guard),
+            }
+            exact_pool.append(variant)
     for row in exact_pool:
         targets = targets_by_id[str(row.get("target_candidate_id", row["candidate_id"]))]
         risk_guard = row.get("risk_guard", {
