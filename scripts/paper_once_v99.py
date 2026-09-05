@@ -12,7 +12,8 @@ sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
 from cryptoai_v13.backtest import exact_fast, screen
-from cryptoai_v13.v99 import V99AsymmetricSpec, asymmetric_v99_targets
+from cryptoai_v13.v99 import V99AsymmetricSpec
+from cryptoai_v13.v99_r2 import V99R2ControlSpec, asymmetric_v99_targets_r2
 from paper_once_opportunity_v1 import empty_ledger, track_payload, write_json
 from paper_once_v13 import build_ledger
 from paper_once_v16 import build_v16
@@ -56,11 +57,12 @@ def build_v99(candidate: dict):
         parent_targets,
         execution["base_cost_per_side"],
     ).equity
-    targets, diagnostics = asymmetric_v99_targets(
+    targets, diagnostics = asymmetric_v99_targets_r2(
         data,
         parent_targets,
         proxy_equity,
         V99AsymmetricSpec(**candidate["asymmetric_overlay"]),
+        V99R2ControlSpec(**candidate["r2_control"]),
     )
     guard = candidate["circuit_breaker"]
     result = exact_fast(
@@ -121,6 +123,11 @@ def main() -> None:
     ledger["parent_candidate"] = parent["name"]
 
     latest_diagnostics = diagnostics.iloc[-1]
+    opportunity_factor = (
+        float(candidate["asymmetric_overlay"]["clean_trend_boost"])
+        if bool(latest_diagnostics["boost_ready"])
+        else 1.0
+    )
     state = {
         **snapshot,
         "candidate_version": candidate["version"],
@@ -129,11 +136,12 @@ def main() -> None:
         "stress_score": int(latest_diagnostics["stress_score"]),
         "stress_factor": float(latest_diagnostics["stress_factor"]),
         "chop_active": bool(latest_diagnostics["chop_active"]),
+        "chop_blocked_count": int(latest_diagnostics["chop_blocked_count"]),
         "damage_state": str(latest_diagnostics["damage_state"]),
         "smoothed_loss_fraction": float(latest_diagnostics["smoothed_loss_fraction"]),
         "extension_blocked_count": int(latest_diagnostics["extension_blocked_count"]),
         "risk_factor": float(latest_diagnostics["risk_factor"]),
-        "opportunity_factor": float(latest_diagnostics["opportunity_factor"]),
+        "opportunity_factor": opportunity_factor,
         "clean_trend": bool(latest_diagnostics["clean_trend"]),
         "objective": candidate["objective"],
     }
