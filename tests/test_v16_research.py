@@ -61,6 +61,8 @@ class V16ResearchTests(unittest.TestCase):
         self.assertIn("without_best_day_return", runner)
         self.assertIn("delay_3h", runner)
         self.assertIn("severe_cost", runner)
+        self.assertIn("persistent_high_water_045", runner)
+        self.assertIn('"cooldown_hours": None', runner)
 
     def test_adaptive_shield_is_causal_and_caps_gross(self) -> None:
         index = pd.date_range("2026-01-01", periods=900, freq="h", tz="UTC")
