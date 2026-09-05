@@ -3,7 +3,9 @@ name: CryptoAI V16 strict research gate
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+      - "research/v16-*"
     paths:
       - ".github/workflows/v16-research.yml"
       - "src/cryptoai_v13/v16.py"
