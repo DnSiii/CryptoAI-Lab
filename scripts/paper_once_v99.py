@@ -13,7 +13,7 @@ sys.path.insert(0, str(PROJECT / "scripts"))
 
 from cryptoai_v13.backtest import exact_fast, screen
 from cryptoai_v13.v99 import V99AsymmetricSpec
-from cryptoai_v13.v99_r2 import V99R2ControlSpec, asymmetric_v99_targets_r2
+from cryptoai_v13.v99_r3 import V99R3ControlSpec, asymmetric_v99_targets_r3
 from paper_once_opportunity_v1 import empty_ledger, track_payload, write_json
 from paper_once_v13 import build_ledger
 from paper_once_v16 import build_v16
@@ -35,34 +35,22 @@ def load_state(candidate: dict) -> dict | None:
 
 
 def load_execution(parent: dict) -> dict:
-    finalist = json.loads(
-        (PROJECT / "config" / parent["frozen_core_config"]).read_text(encoding="utf-8")
-    )
-    base_config = json.loads(
-        (PROJECT / "config" / finalist["base_candidate_config"]).read_text(encoding="utf-8")
-    )
+    finalist = json.loads((PROJECT / "config" / parent["frozen_core_config"]).read_text(encoding="utf-8"))
+    base_config = json.loads((PROJECT / "config" / finalist["base_candidate_config"]).read_text(encoding="utf-8"))
     return base_config["execution"]
 
 
 def build_v99(candidate: dict):
-    parent = json.loads(
-        (PROJECT / "config" / candidate["parent_candidate_config"]).read_text(
-            encoding="utf-8"
-        )
-    )
+    parent = json.loads((PROJECT / "config" / candidate["parent_candidate_config"]).read_text(encoding="utf-8"))
     data, parent_targets, _, _, quarantined = build_v16(parent)
     execution = load_execution(parent)
-    proxy_equity = screen(
-        data,
-        parent_targets,
-        execution["base_cost_per_side"],
-    ).equity
-    targets, diagnostics = asymmetric_v99_targets_r2(
+    proxy_equity = screen(data, parent_targets, execution["base_cost_per_side"]).equity
+    targets, diagnostics = asymmetric_v99_targets_r3(
         data,
         parent_targets,
         proxy_equity,
         V99AsymmetricSpec(**candidate["asymmetric_overlay"]),
-        V99R2ControlSpec(**candidate["r2_control"]),
+        V99R3ControlSpec(**candidate["r3_control"]),
     )
     guard = candidate["circuit_breaker"]
     result = exact_fast(
@@ -88,25 +76,9 @@ def main() -> None:
     data, targets, result, diagnostics, quarantined, parent = build_v99(candidate)
     latest = data.close.index[-1]
     previous = load_state(candidate)
-    initialized_at = (
-        pd.Timestamp(previous["initialized_at_utc"])
-        if previous
-        else pd.Timestamp.now(tz="UTC")
-    )
-    paper_start = (
-        pd.Timestamp(previous["paper_start_after_timestamp"])
-        if previous
-        else latest
-    )
-    snapshot = track_payload(
-        "v99",
-        candidate["name"],
-        targets,
-        result,
-        initialized_at,
-        paper_start,
-        latest,
-    )
+    initialized_at = pd.Timestamp(previous["initialized_at_utc"]) if previous else pd.Timestamp.now(tz="UTC")
+    paper_start = pd.Timestamp(previous["paper_start_after_timestamp"]) if previous else latest
+    snapshot = track_payload("v99", candidate["name"], targets, result, initialized_at, paper_start, latest)
     snapshot["disclosure"] = candidate["disclosure"]
     snapshot["experimental"] = True
     snapshot["strict_research_gate"] = candidate["strict_research_gate"]
@@ -135,12 +107,18 @@ def main() -> None:
         "funding_quarantined_symbols": quarantined,
         "stress_score": int(latest_diagnostics["stress_score"]),
         "stress_factor": float(latest_diagnostics["stress_factor"]),
+        "long_stress_factor": float(latest_diagnostics["long_stress_factor"]),
+        "short_stress_factor": float(latest_diagnostics["short_stress_factor"]),
         "chop_active": bool(latest_diagnostics["chop_active"]),
         "chop_blocked_count": int(latest_diagnostics["chop_blocked_count"]),
         "damage_state": str(latest_diagnostics["damage_state"]),
+        "long_damage_state": str(latest_diagnostics["long_damage_state"]),
+        "short_damage_state": str(latest_diagnostics["short_damage_state"]),
         "smoothed_loss_fraction": float(latest_diagnostics["smoothed_loss_fraction"]),
         "extension_blocked_count": int(latest_diagnostics["extension_blocked_count"]),
         "risk_factor": float(latest_diagnostics["risk_factor"]),
+        "long_risk_factor": float(latest_diagnostics["long_risk_factor"]),
+        "short_risk_factor": float(latest_diagnostics["short_risk_factor"]),
         "opportunity_factor": opportunity_factor,
         "clean_trend": bool(latest_diagnostics["clean_trend"]),
         "objective": candidate["objective"],
