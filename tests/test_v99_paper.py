@@ -38,6 +38,13 @@ def test_v99_gate_demands_both_tail_improvement_and_winner_capture() -> None:
     assert gate["top_winner_capture_minimum"] >= 0.85
 
 
+def test_v99_research_workflow_runs_the_strict_runner() -> None:
+    workflow = (PROJECT / ".github" / "workflows" / "v99-research.yml").read_text()
+    assert "pull_request:" in workflow
+    assert "python -m pytest" in workflow
+    assert "python scripts/run_candidate_v99.py" in workflow
+
+
 def test_paper_workflow_runs_and_publishes_v99_without_removing_existing_tracks() -> None:
     workflow = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
     for required in (
