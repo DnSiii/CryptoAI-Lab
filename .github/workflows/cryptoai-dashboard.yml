@@ -10,6 +10,7 @@ on:
     paths:
       - "dashboard/**"
       - "scripts/build_cryptoai_dashboard.py"
+      - "scripts/prepare_dashboard_v15_replay.py"
       - "scripts/paper_once_v99.py"
       - "scripts/verify_v99_cycle.py"
       - "src/cryptoai_v13/v99_frozen.py"
@@ -98,6 +99,9 @@ jobs:
         run: |
           python -m pytest tests/test_v99_paper.py
           node --check dashboard/app_v2.js
+
+      - name: Prepare V15 historical replay boundary
+        run: python scripts/prepare_dashboard_v15_replay.py
 
       - name: Build paper plus historical simulator snapshot
         run: python scripts/build_cryptoai_dashboard.py
