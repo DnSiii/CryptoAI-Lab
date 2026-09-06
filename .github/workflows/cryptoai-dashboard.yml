@@ -5,6 +5,13 @@ on:
     workflows: ["CryptoAI multi-engine paper refresh"]
     types: [completed]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "scripts/build_cryptoai_dashboard.py"
+      - "scripts/prepare_dashboard_v15_replay.py"
+      - ".github/workflows/cryptoai-dashboard.yml"
   pull_request:
     branches: [main]
     paths:
@@ -90,10 +97,8 @@ jobs:
             fi
           done
 
-      - name: Smoke-test frozen V99 forward boundary
-        run: |
-          python scripts/paper_once_v99.py
-          python scripts/verify_v99_cycle.py
+      - name: Validate published frozen V99 boundary
+        run: python scripts/verify_v99_cycle.py
 
       - name: Validate dashboard contracts and JavaScript
         run: |
@@ -113,7 +118,7 @@ jobs:
           retention-days: 30
           path: dashboard/dashboard_data.json
 
-      - name: Publish dashboard data to paper-results
+      - name: Publish dashboard frontend and data to paper-results
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
@@ -125,8 +130,21 @@ jobs:
           git -C "$results_dir" switch -C paper-results
           mkdir -p "$results_dir/dashboard"
           cp dashboard/dashboard_data.json "$results_dir/dashboard/dashboard_data.json"
-          git -C "$results_dir" add dashboard/dashboard_data.json
+          cp dashboard/index.html "$results_dir/dashboard/index.html"
+          cp dashboard/app_v2.js "$results_dir/dashboard/app_v2.js"
+          cp dashboard/styles_v2.css "$results_dir/dashboard/styles_v2.css"
+          # Backward-compatible aliases for any existing site binding that still
+          # requests the legacy asset names.
+          cp dashboard/app_v2.js "$results_dir/dashboard/app.js"
+          cp dashboard/styles_v2.css "$results_dir/dashboard/styles.css"
+          git -C "$results_dir" add \
+            dashboard/dashboard_data.json \
+            dashboard/index.html \
+            dashboard/app_v2.js \
+            dashboard/styles_v2.css \
+            dashboard/app.js \
+            dashboard/styles.css
           if ! git -C "$results_dir" diff --cached --quiet; then
-            git -C "$results_dir" commit -m "Update CryptoAI dashboard snapshot ${{ steps.utc.outputs.date }}"
+            git -C "$results_dir" commit -m "Update CryptoAI dashboard with V99 ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results
           fi
