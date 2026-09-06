@@ -87,6 +87,11 @@ def evaluate(equity, parent_equity, required_days, anti_days):
 def broad_score(result):
     tail = result["tail"]
     severe = result["severe_cost"]
+    turnover_penalty = (
+        min(0.5, result["turnover_ratio_to_control"] - 1.0)
+        if result["turnover_ratio_to_control"] > 1.0
+        else 0.0
+    )
     return (
         2.5 * result["full_wealth_ratio_to_parent"]
         + 2.5 * result["full_drawdown_improvement_fraction"]
@@ -97,7 +102,7 @@ def broad_score(result):
         + max(-0.5, min(0.5, tail["bottom10_damage_improvement_fraction"]))
         + min(1.2, tail["top_winner_capture"])
         + min(0.5, max(-0.5, severe["wealth_ratio_to_parent"] - 1.0))
-        - min(0.5, result["turnover_ratio_to_control"] - 1.0) if result["turnover_ratio_to_control"] > 1.0 else 0.0
+        - turnover_penalty
     )
 
 
@@ -190,7 +195,6 @@ def main():
         result = results[str(window)]
         neighbors = [n for n in (window - 1, window + 1) if n in tested]
         result["neighbor_plateau"] = any(results[str(n)]["broad_eligible"] for n in neighbors)
-        # Window=1 is a control and cannot be selected as the new mechanism.
         result["confirmation_eligible"] = bool(
             window > 1 and result["broad_eligible"] and result["neighbor_plateau"]
         )
