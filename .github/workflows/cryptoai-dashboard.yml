@@ -132,16 +132,15 @@ jobs:
           cp dashboard/dashboard_data.json "$results_dir/dashboard/dashboard_data.json"
           cp dashboard/index.html "$results_dir/dashboard/index.html"
           cp dashboard/app_v2.js "$results_dir/dashboard/app_v2.js"
-          cp dashboard/styles_v2.css "$results_dir/dashboard/styles_v2.css"
-          # Backward-compatible aliases for any existing site binding that still
-          # requests the legacy asset names.
+          cp dashboard/nevryn.css "$results_dir/dashboard/nevryn.css"
+          # Keep the legacy asset names synchronized as compatibility aliases.
           cp dashboard/app_v2.js "$results_dir/dashboard/app.js"
-          cp dashboard/styles_v2.css "$results_dir/dashboard/styles.css"
+          cp dashboard/nevryn.css "$results_dir/dashboard/styles.css"
           git -C "$results_dir" add \
             dashboard/dashboard_data.json \
             dashboard/index.html \
             dashboard/app_v2.js \
-            dashboard/styles_v2.css \
+            dashboard/nevryn.css \
             dashboard/app.js \
             dashboard/styles.css
           if ! git -C "$results_dir" diff --cached --quiet; then
