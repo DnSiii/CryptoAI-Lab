@@ -1,12 +1,21 @@
 {
-  "name": "CryptoAI V99 Experimental · Asymmetric Capture R2",
-  "version": "v99-asymmetric-r2-2026-09-05",
+  "name": "CryptoAI V99 Frozen · Core + Alpha",
+  "version": "v99-frozen-r16-2026-09-06",
   "mode": "PAPER_ONLY",
   "real_orders": false,
-  "strict_research_gate": "UNVALIDATED",
-  "paper_authorization": "USER_REQUESTED_V99_EXPERIMENTAL_FORWARD_TEST",
+  "strict_research_gate": "BACKTEST_VALIDATED_FORWARD_PENDING",
+  "paper_authorization": "USER_REQUESTED_V99_FROZEN_FORWARD_TEST",
   "parent_candidate_config": "candidate_v16_experimental_balanced_relaxed.json",
-  "objective": "reduce negative-tail losses while preserving or improving large positive days, without high-frequency exposure churn",
+  "objective": "maximize compounded ROI while preserving V16-like recent behavior and improving robustness through a small consensus-gated persistent alpha sleeve",
+  "frozen_composite": {
+    "architecture": "V16 core + consensus-gated persistent alpha satellite",
+    "maximum_satellite_weight": 0.10,
+    "rebalance_hours": 720,
+    "allocator_windows_days": [45, 60, 90, 120, 180, 240],
+    "routine_persistence_hours": 4,
+    "emergency_side_protection": "immediate",
+    "freeze_gate": "R16_PASS"
+  },
   "asymmetric_overlay": {
     "market_symbol": "BTCUSDT",
     "stress_short_hours": 6,
@@ -38,19 +47,39 @@
     "active_weight_floor": 0.01,
     "extension_hours": 24,
     "extension_volatility_hours": 168,
-    "extension_sigma": 2.75,
+    "extension_sigma": 3.00,
     "confirmation_hours": 24,
     "confirmation_return": 0.025,
     "confirmation_efficiency": 0.45,
     "confirmation_breadth": 0.62,
-    "clean_trend_boost": 1.10,
+    "clean_trend_boost": 1.18,
     "recovery_step": 0.20,
     "confirmed_reentry_step": 0.50,
-    "maximum_gross": 1.85
+    "maximum_gross": 1.95
   },
-  "r2_control": {
+  "r3_control": {
     "extreme_breadth": 0.15,
-    "neutral_recovery_hours": 3
+    "neutral_recovery_hours": 1,
+    "shock_hours": 2,
+    "minimum_side_positions": 4,
+    "shock_soft_fraction": 0.80,
+    "shock_hard_fraction": 0.93,
+    "shock_soft_return": -0.008,
+    "shock_hard_return": -0.016,
+    "shock_soft_multiplier": 0.78,
+    "shock_hard_multiplier": 0.45
+  },
+  "r4_control": {
+    "extreme_breadth": 0.15,
+    "neutral_recovery_hours": 1,
+    "shock_hours": 2,
+    "minimum_side_positions": 4,
+    "shock_soft_fraction": 0.80,
+    "shock_hard_fraction": 0.93,
+    "shock_soft_return": -0.008,
+    "shock_hard_return": -0.016,
+    "shock_soft_multiplier": 0.78,
+    "shock_hard_multiplier": 0.45
   },
   "circuit_breaker": {
     "drawdown_threshold": 0.058,
@@ -60,13 +89,18 @@
   },
   "research_gate": {
     "required_horizons_days": [7, 30, 90, 180, 365],
-    "all_required_horizons_positive": true,
-    "full_return_must_beat_parent": true,
-    "max_drawdown_improvement_fraction": 0.15,
-    "worst_day_loss_improvement_fraction": 0.20,
-    "top_winner_capture_minimum": 0.85,
-    "severe_cost_must_remain_positive": true,
-    "delay_3h_must_remain_positive": true
+    "anti_overfit_horizons_days": [14, 21, 45, 60, 120, 240, 540],
+    "required_horizon_return_margin": 0.0,
+    "required_horizon_drawdown_ratio_max": 1.03,
+    "full_return_margin": 0.0,
+    "max_drawdown_improvement_fraction": 0.0,
+    "worst_day_loss_improvement_fraction": -0.01,
+    "bottom10_damage_improvement_fraction": 0.0,
+    "top_winner_capture_minimum": 0.99,
+    "anti_overfit_parent_beat_fraction_minimum": 0.45,
+    "calendar_year_parent_beat_fraction_minimum": 0.50,
+    "severe_cost_must_beat_parent": true,
+    "delay_3h_must_beat_parent": false
   },
   "paper": {
     "initial_capital_brl": 10000,
@@ -74,5 +108,5 @@
     "historical_results_count_as_paper_profit": false,
     "preserve_existing_tracks": ["v13", "v14", "v15", "v16"]
   },
-  "disclosure": "V99 R2 is an unvalidated experimental paper-only challenger. R2 was created after the first V99 replay showed excessive exposure churn: weak breadth or chop alone no longer cuts existing gross exposure, chop/extension primarily block new or increased risk, systemic cuts require confirmed price damage or simultaneous portfolio damage, and recovery is discrete. The circuit breaker is matched to the frozen V16 parent for a cleaner comparison. It has no exchange credentials or real-order methods. Historical tuning cannot be counted as forward paper profit."
+  "disclosure": "V99 Frozen passed the R16 anti-overfit freeze gate as a V16-core portfolio with a consensus-gated persistent alpha satellite capped at 10%. The strategy and allocation parameters are frozen before the new forward boundary. Historical results remain backtest evidence only, never paper profit. This does not guarantee future returns, and the track has no exchange credentials or real-order methods."
 }
