@@ -8,15 +8,15 @@ on:
       - ".github/workflows/v99-research.yml"
       - "config/candidate_v99_asymmetric.json"
       - "src/cryptoai_v13/v99_r5.py"
-      - "src/cryptoai_v13/v99_r8.py"
-      - "scripts/run_v99_r8_confirmation_study.py"
+      - "src/cryptoai_v13/v99_r9.py"
+      - "scripts/run_v99_r9_lag_envelope_study.py"
 
 permissions:
   contents: read
 
 jobs:
   research:
-    name: R8 asymmetric confirmation robustness
+    name: R9 lag-envelope robustness
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -48,13 +48,13 @@ jobs:
         run: python -m pytest
       - name: Synchronize latest closed public candles
         run: python scripts/sync_paper_data_v13.py
-      - name: Run R8 confirmation robustness study
-        run: python scripts/run_v99_r8_confirmation_study.py
-      - name: Upload complete R8 evidence
+      - name: Run R9 lag-envelope robustness study
+        run: python scripts/run_v99_r9_lag_envelope_study.py
+      - name: Upload R9 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: v99-r8-research-${{ github.run_id }}
+          name: v99-r9-research-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/candidate_v99_r8_confirmation_study.json
+          path: reports/candidate_v99_r9_lag_envelope_study.json
