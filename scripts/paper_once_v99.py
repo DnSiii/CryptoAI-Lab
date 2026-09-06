@@ -122,7 +122,7 @@ def _ledger(candidate: dict, frozen, paper_start: pd.Timestamp, latest: pd.Times
             "note": "Core and alpha sleeves retain independent backtest state; transfer costs are embedded in the composite equity curve.",
         },
         "strict_research_gate": candidate["strict_research_gate"],
-        "real_orders_enabled": false,
+        "real_orders_enabled": False,
     }
 
 
@@ -155,7 +155,7 @@ def main() -> None:
     }
     state = {
         "mode": "PAPER_ONLY",
-        "real_orders_enabled": false,
+        "real_orders_enabled": False,
         "track": "v99",
         "candidate": candidate["name"],
         "candidate_version": candidate["version"],
@@ -177,7 +177,7 @@ def main() -> None:
         "forward_validation": "PENDING_INDEPENDENT_DATA",
         "objective": candidate["objective"],
         "disclosure": candidate["disclosure"],
-        "experimental": true,
+        "experimental": True,
     }
     write_json(STATE_PATH, state)
     write_json(SNAPSHOT_PATH, state)
