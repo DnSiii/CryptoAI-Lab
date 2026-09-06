@@ -71,6 +71,7 @@ jobs:
           git fetch --no-tags origin paper-results
           for path in \
             state/paper_v15_universe.json \
+            state/paper_v99_state.json \
             reports/paper_data_sync_v13.json \
             reports/paper_data_sync_v15.json \
             reports/paper_runtime_status.json \
@@ -92,6 +93,14 @@ jobs:
         run: |
           python scripts/sync_paper_data_v13.py
           python scripts/sync_paper_data_v15.py
+
+      - name: Smoke-test frozen V99 forward boundary
+        run: |
+          python scripts/paper_once_v99.py
+          python scripts/verify_v99_cycle.py
+
+      - name: Run dashboard contract tests
+        run: python -m pytest tests/test_v99_paper.py
 
       - name: Build paper plus historical simulator snapshot
         run: python scripts/build_cryptoai_dashboard.py
