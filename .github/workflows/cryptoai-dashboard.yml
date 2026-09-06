@@ -61,7 +61,7 @@ jobs:
       - name: Install package
         run: python -m pip install -e ".[dev]"
 
-      - name: Restore latest paper snapshots
+      - name: Restore exact published paper snapshot
         shell: bash
         run: |
           if ! git ls-remote --exit-code --heads origin paper-results >/dev/null 2>&1; then
@@ -89,18 +89,15 @@ jobs:
             fi
           done
 
-      - name: Ensure canonical cache reaches published timestamp
-        run: |
-          python scripts/sync_paper_data_v13.py
-          python scripts/sync_paper_data_v15.py
-
       - name: Smoke-test frozen V99 forward boundary
         run: |
           python scripts/paper_once_v99.py
           python scripts/verify_v99_cycle.py
 
-      - name: Run dashboard contract tests
-        run: python -m pytest tests/test_v99_paper.py
+      - name: Validate dashboard contracts and JavaScript
+        run: |
+          python -m pytest tests/test_v99_paper.py
+          node --check dashboard/app_v2.js
 
       - name: Build paper plus historical simulator snapshot
         run: python scripts/build_cryptoai_dashboard.py
