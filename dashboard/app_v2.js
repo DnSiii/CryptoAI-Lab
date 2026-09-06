@@ -60,18 +60,27 @@ function paperEngines() {
   return Object.values(state.data.paper?.engines || {});
 }
 
-function renderOverview() {
-  const engines = paperEngines();
-  document.querySelector("#paper-engine-cards").innerHTML = engines.map(engineCard).join("");
+function bindPaperCards() {
   document.querySelectorAll("[data-paper-engine]").forEach((card) => card.addEventListener("click", () => {
     state.selectedPaperEngine = card.dataset.paperEngine;
     renderOverview();
-    renderPaperDetail();
   }));
+}
+
+function renderOverview() {
+  const engines = paperEngines();
+  const html = engines.map(engineCard).join("");
+  const primary = document.querySelector("#paper-engine-cards");
+  const copy = document.querySelector("#paper-engine-cards-copy");
+  if (primary) primary.innerHTML = html;
+  if (copy) copy.innerHTML = html;
+  bindPaperCards();
+
   const v99 = state.data.paper?.engines?.v99;
   const heroStatus = document.querySelector("#hero-status-value");
-  if (v99) heroStatus.textContent = v99.forwardValidation === "PENDING_INDEPENDENT_DATA" ? "Forward iniciado" : (v99.status || "Tracking");
-  document.querySelector("#hero-status-note").textContent = v99?.paperStart ? `Boundary independente: ${dateTime(v99.paperStart)} UTC` : "Aguardando primeiro boundary independente";
+  if (heroStatus && v99) heroStatus.textContent = v99.forwardValidation === "PENDING_INDEPENDENT_DATA" ? "Forward iniciado" : (v99.status || "Tracking");
+  const heroNote = document.querySelector("#hero-status-note");
+  if (heroNote) heroNote.textContent = v99?.paperStart ? `Boundary independente: ${dateTime(v99.paperStart)} UTC` : "Aguardando primeiro boundary independente";
   renderPaperDetail();
   drawPaperChart();
 }
@@ -79,6 +88,7 @@ function renderOverview() {
 function renderPaperDetail() {
   const engine = state.data.paper?.engines?.[state.selectedPaperEngine];
   const holder = document.querySelector("#paper-detail");
+  if (!holder) return;
   if (!engine) { holder.innerHTML = `<div class="empty">Sem dados de paper.</div>`; return; }
   const positions = engine.positions || [];
   holder.innerHTML = `
@@ -142,7 +152,9 @@ function renderLegend(id, series) {
 function drawPaperChart() {
   const series = paperChartSeries();
   renderLegend("#paper-legend", series);
+  renderLegend("#paper-legend-copy", series);
   drawLineChart(document.querySelector("#paper-chart"), series, { money: true });
+  drawLineChart(document.querySelector("#paper-chart-copy"), series, { money: true });
 }
 
 function rawBacktestEngine(key) { return state.data.backtest?.engines?.[key]; }
@@ -190,7 +202,7 @@ function renderBacktest() {
     const m = btMetrics(points, capital); rows.push({ key, engine, m });
     chartSeries.push({ key, label: engine.label, color: COLORS[key], points: m.normalized.map((p) => ({ time: p.time, value: (p.value - 1) * 100 })) });
   });
-  document.querySelector("#backtest-kpis").innerHTML = rows.map(({ key, engine, m }) => `<article class="kpi-card">
+  document.querySelector("#backtest-kpis").innerHTML = rows.map(({ engine, m }) => `<article class="kpi-card">
     <header><strong>${engine.label} · ${engine.name}</strong><span>${date(bounds.start)} → ${date(bounds.end)}</span></header>
     <div class="kpi-value ${cls(m.roiPct)}">${pct(m.roiPct)}</div>
     <div class="kpi-grid"><div><span>Capital final</span><strong>${brl(m.finalCapital)}</strong></div><div><span>Max DD</span><strong class="negative">${pct(m.maxDdPct)}</strong></div><div><span>Melhor dia</span><strong class="positive">${pct(m.bestDayPct)}</strong></div><div><span>Pior dia</span><strong class="negative">${pct(m.worstDayPct)}</strong></div></div>
@@ -219,7 +231,9 @@ function bindBacktest() {
 function renderArchitecture() {
   const v99 = state.data.v99 || {};
   const paper = state.data.paper?.engines?.v99 || {};
-  document.querySelector("#architecture-live").innerHTML = `<div class="architecture-flow"><div class="flow-node">V16 CORE<br><strong>${(100 - Number(paper.satelliteWeightPct || 0)).toFixed(1).replace(".", ",")}%</strong></div><span class="flow-arrow">+</span><div class="flow-node">V99 ALPHA<br><strong class="accent">${Number(paper.satelliteWeightPct || 0).toFixed(1).replace(".", ",")}%</strong></div><span class="flow-arrow">→</span><div class="flow-node">V99 FROZEN</div></div><div class="note">${v99.disclosure || "Forward paper independente. Histórico não conta como lucro paper."}</div>`;
+  const holder = document.querySelector("#architecture-live");
+  if (!holder) return;
+  holder.innerHTML = `<div class="architecture-flow"><div class="flow-node">V16 CORE<br><strong>${(100 - Number(paper.satelliteWeightPct || 0)).toFixed(1).replace(".", ",")}%</strong></div><span class="flow-arrow">+</span><div class="flow-node">V99 ALPHA<br><strong class="accent">${Number(paper.satelliteWeightPct || 0).toFixed(1).replace(".", ",")}%</strong></div><span class="flow-arrow">→</span><div class="flow-node">V99 FROZEN</div></div><div class="note">${v99.disclosure || "Forward paper independente. Histórico não conta como lucro paper."}</div>`;
 }
 
 function renderRuntime() {
