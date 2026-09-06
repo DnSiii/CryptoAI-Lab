@@ -3,143 +3,134 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#080b10" />
-    <title>CryptoAI · Painel de Pesquisa</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#07090d" />
+    <title>CryptoAI · Research Dashboard</title>
+    <link rel="stylesheet" href="nevryn.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="sidebar" aria-label="Navegação principal">
-        <a class="brand" href="#overview" aria-label="CryptoAI">
-          <span class="brand-mark">C</span>
-          <span class="brand-copy"><strong>CryptoAI</strong><small>LAB V13</small></span>
-        </a>
-        <nav>
-          <button class="nav-item active" data-target="overview"><span>⌁</span>Visão geral</button>
-          <button class="nav-item" data-target="operations"><span>↗</span>Operações</button>
-          <button class="nav-item" data-target="validation"><span>✓</span>Validação</button>
-          <button class="nav-item" data-target="guide"><span>?</span>Como ler</button>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">C</div>
+          <div class="brand-copy"><strong>CryptoAI</strong><small>RESEARCH LAB</small></div>
+        </div>
+        <nav class="nav">
+          <button class="nav-btn active" data-view="overview"><span class="nav-icon">⌂</span>Visão geral</button>
+          <button class="nav-btn" data-view="paper"><span class="nav-icon">◎</span>Paper</button>
+          <button class="nav-btn" data-view="backtest"><span class="nav-icon">↗</span>Backtest</button>
+          <button class="nav-btn" data-view="engines"><span class="nav-icon">◇</span>Engines</button>
         </nav>
-        <div class="sidebar-foot">
-          <span class="status-dot"></span>
-          <div><strong>Motor offline</strong><small>Ordens reais bloqueadas</small></div>
+        <div class="sidebar-bottom">
+          <div class="safe-row"><i class="safe-dot"></i><div class="safe-copy"><strong>Paper only</strong><span>Ordens reais bloqueadas</span></div></div>
         </div>
       </aside>
 
-      <main>
+      <main class="main">
         <header class="topbar">
-          <div>
-            <p class="eyebrow">PAINEL DE DECISÃO</p>
-            <h1>CryptoAI</h1>
-          </div>
-          <div class="research-badge"><span></span>MODO PESQUISA · SEM ORDENS REAIS</div>
+          <div><h1>CryptoAI Dashboard</h1><p>Pesquisa, paper forward e replay histórico no mesmo lugar.</p></div>
+          <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
         </header>
 
-        <section id="overview" class="section-block">
-          <article class="decision-card">
-            <div class="decision-main">
-              <div class="decision-icon">Ⅱ</div>
-              <div>
-                <p class="eyebrow">DECISÃO ATUAL</p>
-                <h2>INICIAR PAPER</h2>
-                <p>O finalista histórico passou pelos portões técnicos. A próxima prova usa somente dados futuros e nenhum dinheiro real.</p>
-              </div>
+        <div id="loading" class="loading">Carregando paper e histórico…</div>
+
+        <section id="overview" class="view active">
+          <article class="hero">
+            <div>
+              <p class="eyebrow">V99 FROZEN · FORWARD CANDIDATE</p>
+              <h2>Preservar o V16. Adicionar alpha <span class="accent">quando existe evidência.</span></h2>
+              <p>O V99 congelado mantém o V16 como núcleo e permite um satélite de até 10% somente quando seis horizontes independentes dão consenso suficiente. O backtest passou pelo gate R16; o forward paper começa do zero.</p>
             </div>
-            <div class="decision-side">
-              <span>Próximo portão</span>
-              <strong>Execução futura simulada</strong>
-              <small>Dinheiro real permanece bloqueado</small>
+            <div class="hero-status">
+              <span>Estado atual</span>
+              <strong id="hero-status-value">Aguardando forward</strong>
+              <small id="hero-status-note">Novo boundary independente.</small>
             </div>
           </article>
 
-          <div class="section-heading">
-            <div><p class="eyebrow">FOCO EM PRAZOS CURTOS</p><h2>Como o patrimônio se comportou</h2></div>
-            <span id="candidate-name" class="muted-pill">Carregando candidato…</span>
+          <div class="section-title">
+            <div><p class="eyebrow">PAPER FORWARD</p><h2>Comparação dos engines</h2><p>Capital simulado desde o boundary de cada robô. O histórico anterior não entra como lucro paper.</p></div>
           </div>
-          <div id="horizon-cards" class="metric-grid" aria-live="polite"></div>
+          <div id="paper-engine-cards" class="engine-grid"></div>
 
-          <div class="two-column overview-grid">
-            <article class="panel monthly-panel">
-              <div class="panel-header">
-                <div><p class="eyebrow">BASE ROBUSTA</p><h3>Últimos 12 meses do replay</h3></div>
-                <span class="legend"><i class="positive"></i>Ganho <i class="negative"></i>Perda</span>
-              </div>
-              <div id="monthly-chart" class="monthly-chart" aria-label="Retornos mensais históricos"></div>
-              <p class="microcopy">O mês é apenas uma janela de medição; o capital não é zerado quando o calendário vira.</p>
+          <div class="grid-2">
+            <article class="panel">
+              <div class="panel-head"><div><p class="eyebrow">PATRIMÔNIO</p><h3>Evolução do paper</h3></div><div id="paper-legend" class="legend"></div></div>
+              <div class="chart-box"><canvas id="paper-chart"></canvas></div>
             </article>
-
-            <article class="panel reality-panel">
-              <div class="panel-header"><div><p class="eyebrow">LEITURA HONESTA</p><h3>O que já sabemos</h3></div></div>
-              <div id="reality-list" class="reality-list"></div>
-            </article>
+            <aside id="paper-detail" class="panel"></aside>
           </div>
         </section>
 
-        <section id="operations" class="section-block">
-          <div class="section-heading operations-title">
-            <div><p class="eyebrow">DOS NOSSOS ÚLTIMOS</p><h2>Operações explicadas no gráfico</h2></div>
-            <div class="filter-row" role="group" aria-label="Filtrar operações">
-              <button class="filter active" data-filter="recent">Recentes</button>
-              <button class="filter" data-filter="wins">Ganhos</button>
-              <button class="filter" data-filter="losses">Perdas</button>
-              <button class="filter" data-filter="highlights">Destaques</button>
-            </div>
+        <section id="paper" class="view">
+          <div class="section-title">
+            <div><p class="eyebrow">EXECUÇÃO FUTURA SIMULADA</p><h2>Paper trading</h2><p>Aqui o foco é simples: quanto cada engine ganhou ou perdeu depois do seu boundary, quais posições estão abertas e qual exposição está sendo usada agora.</p></div>
           </div>
-
-          <div class="operations-stage">
-            <aside class="trades-panel">
-              <div class="trades-head">
-                <div><span class="pulse-dot"></span>REPLAY HISTÓRICO</div>
-                <small>TST · diagnóstico isolado</small>
-              </div>
-              <div id="trade-list" class="trade-list" aria-live="polite"></div>
-            </aside>
-
-            <article class="chart-panel">
-              <div class="chart-topline">
-                <div class="symbol-title"><span class="coin">T</span><div><strong id="chart-symbol">TSTUSDT</strong><small>Perpétuo · 1 hora</small></div></div>
-                <div id="chart-return" class="chart-return">—</div>
-              </div>
-              <div class="chart-wrap">
-                <canvas id="trade-chart" aria-label="Gráfico da operação selecionada"></canvas>
-                <div class="chart-watermark">CRYPTOAI · REPLAY</div>
-                <div id="chart-empty" class="chart-empty">Selecione uma operação</div>
-              </div>
-              <div id="trade-details" class="trade-details"></div>
-              <p class="chart-note">Marcadores mostram entrada e saída. Resultado exibido é o impacto estimado no patrimônio, já com o peso da posição.</p>
+          <div id="paper-engine-cards-copy" class="engine-grid"></div>
+          <div class="grid-2">
+            <article class="panel">
+              <div class="panel-head"><div><p class="eyebrow">COMPARAÇÃO</p><h3>Curva de capital</h3></div><div class="legend" id="paper-legend-copy"></div></div>
+              <div class="chart-box tall"><canvas id="paper-chart-copy"></canvas></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><p class="eyebrow">LEITURA</p><h3>O que importa no paper</h3></div></div>
+              <div class="arch-card" style="padding:0;border:0;background:transparent"><p>Não espero que alguns dias provem nada. O objetivo é observar se o V99 mantém retorno competitivo com cauda melhor e se o comportamento histórico aparece novamente em dados que nunca participaram do desenvolvimento.</p></div>
+              <div class="note">Uma semana ruim não altera parâmetros. Uma semana ótima também não promove o candidato. O forward precisa permanecer congelado.</div>
             </article>
           </div>
         </section>
 
-        <section id="validation" class="section-block">
-          <div class="section-heading">
-            <div><p class="eyebrow">NÃO BASTA PARECER BOM</p><h2>Portões de validação</h2></div>
-            <span class="muted-pill">Candidato agressivo</span>
+        <section id="backtest" class="view">
+          <div class="section-title">
+            <div><p class="eyebrow">HISTORICAL REPLAY</p><h2>Backtest Simulator</h2><p>Escolha capital, engines e período. O simulador recalcula ROI, capital final, drawdown e melhores/piores dias diretamente da curva histórica.</p></div>
           </div>
-          <div class="panel table-panel">
-            <div class="validation-table" role="table" aria-label="Cenários de validação">
-              <div class="validation-row validation-head" role="row">
-                <span>Cenário</span><span>Mediana 30d</span><span>30d positivos</span><span>Pior queda</span><span>Estado</span>
-              </div>
-              <div id="validation-rows"></div>
-            </div>
+
+          <div class="controls">
+            <div class="control-group"><label>Capital inicial</label><input id="bt-capital" type="number" min="1" step="100" value="10000" /></div>
+            <div class="control-group"><label>Período</label><div class="preset-row">
+              <button class="preset" data-days="7">7D</button><button class="preset" data-days="30">30D</button><button class="preset" data-days="90">3M</button><button class="preset" data-days="180">6M</button><button class="preset active" data-days="365">1A</button><button class="preset" data-days="all">Tudo</button>
+            </div></div>
+            <div class="control-group"><label>De</label><input id="bt-start" type="date" /></div>
+            <div class="control-group"><label>Até</label><input id="bt-end" type="date" /></div>
+            <div class="control-group"><label>Engines</label><div class="engine-toggles"><button class="engine-toggle active" data-engine="v14">V14</button><button class="engine-toggle active" data-engine="v15">V15</button><button class="engine-toggle active" data-engine="v16">V16</button><button class="engine-toggle active" data-engine="v99">V99</button></div></div>
           </div>
-          <div class="gate-grid">
-            <article><span class="gate-number done">01</span><div><strong>Motor causal</strong><small>Sem olhar o futuro; execução alinhada à próxima abertura.</small></div></article>
-            <article><span class="gate-number done">02</span><div><strong>Custos e atrasos</strong><small>Testes severos rodados, inclusive funding desfavorável.</small></div></article>
-            <article><span class="gate-number done">03</span><div><strong>Universo e ruína</strong><small>48 contratos, encerrados incluídos, e 180 mil trajetórias simuladas.</small></div></article>
-            <article><span class="gate-number current">04</span><div><strong>Paper trading</strong><small>Próxima etapa: provar a estratégia apenas em dados futuros.</small></div></article>
-          </div>
+
+          <div id="backtest-kpis" class="backtest-kpis"></div>
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">ROI ACUMULADO</p><h3>Comparação no período escolhido</h3></div><div id="backtest-legend" class="legend"></div></div>
+            <div class="chart-box tall"><canvas id="backtest-chart"></canvas></div>
+            <div class="note">Backtest é replay histórico causal com custos modelados. Serve como evidência e comparação — não como promessa do próximo período.</div>
+          </article>
         </section>
 
-        <section id="guide" class="section-block guide-section">
-          <div class="section-heading"><div><p class="eyebrow">SEM PEGADINHAS</p><h2>Como ler este painel</h2></div></div>
-          <div id="disclosures" class="disclosure-grid"></div>
+        <section id="engines" class="view">
+          <div class="section-title">
+            <div><p class="eyebrow">ARQUITETURA</p><h2>Como os engines trabalham</h2><p>Separação clara entre os controles existentes e o novo V99 Frozen.</p></div>
+          </div>
+          <div class="arch-grid">
+            <article class="arch-card"><span class="num">01 · V14</span><h3>Maximum Capture</h3><p>Controle agressivo. Busca capturar movimentos maiores e serve como referência de retorno explosivo.</p></article>
+            <article class="arch-card"><span class="num">02 · V15</span><h3>Adaptive Capture</h3><p>Derivado do V14, com adaptação de direção e universo. Continua como controle independente.</p></article>
+            <article class="arch-card"><span class="num">03 · V16</span><h3>Balanced Relaxed</h3><p>Base do V99. O V99 não reescreve o V16: mantém esse motor como núcleo e adiciona um sleeve separado.</p></article>
+            <article class="arch-card"><span class="num">04 · V99</span><h3>Frozen Core + Alpha</h3><p>Satélite persistente com proteção imediata e alocação limitada a 10%, ativada por consenso em 45/60/90/120/180/240 dias.</p></article>
+          </div>
+          <article class="panel" style="margin-top:12px">
+            <div class="panel-head"><div><p class="eyebrow">V99 AGORA</p><h3>Core + satélite</h3></div></div>
+            <div id="architecture-live"></div>
+          </article>
         </section>
 
-        <footer><span>CryptoAI Research Lab · V13</span><span id="generated-at">Snapshot local</span></footer>
+        <footer class="footer"><span>CryptoAI Research Lab · Paper only</span><span id="footer-generated">Snapshot</span></footer>
       </main>
     </div>
-    <script src="app.js" defer></script>
+    <script src="app_v2.js" defer></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const observer = new MutationObserver(() => {
+          const sourceCards = document.querySelector('#paper-engine-cards');
+          const copy = document.querySelector('#paper-engine-cards-copy');
+          if (sourceCards && copy && sourceCards.children.length && !copy.children.length) copy.innerHTML = sourceCards.innerHTML;
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    </script>
   </body>
 </html>
