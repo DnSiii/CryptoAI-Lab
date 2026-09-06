@@ -23,6 +23,8 @@ from run_final_candidate import build_candidate
 DASHBOARD = PROJECT / "dashboard"
 REPORTS = PROJECT / "reports"
 CONFIG = PROJECT / "config"
+STATE = PROJECT / "state"
+CANONICAL = PROJECT / "data" / "canonical"
 
 ENGINE_META = {
     "v14": {
@@ -58,6 +60,41 @@ def load_json(path: Path, default=None):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def prepare_v15_runtime_from_published_state() -> None:
+    """Recreate V15's ephemeral runtime config without rediscovering symbols.
+
+    The dynamic universe state is a published paper artifact.  The dashboard
+    must replay exactly that known universe instead of performing a fresh
+    discovery that could leak today's membership into historical simulation.
+    """
+    runtime_path = CONFIG / "research_v15_runtime.json"
+    universe_state = load_json(STATE / "paper_v15_universe.json", {}) or {}
+    symbols = {}
+    for symbol, item in universe_state.get("symbols", {}).items():
+        price = CANONICAL / f"{symbol}_1h.csv"
+        funding = CANONICAL / f"{symbol}_funding.csv"
+        if price.exists() and price.stat().st_size and funding.exists():
+            start_month = item.get("start_month")
+            if start_month:
+                symbols[str(symbol)] = str(start_month)
+    if not symbols:
+        raise RuntimeError(
+            "V15 published universe has no symbols available in the canonical cache"
+        )
+    sync = load_json(REPORTS / "paper_data_sync_v15.json", {}) or {}
+    latest_raw = sync.get("expected_latest_closed_hour")
+    latest = pd.Timestamp(latest_raw) if latest_raw else pd.Timestamp.now(tz="UTC")
+    payload = {
+        "cutoff_month": latest.strftime("%Y-%m"),
+        "interval": "1h",
+        "market": "Binance USD-M perpetual futures",
+        "source": "published V15 paper universe + canonical market cache",
+        "universe_rule": "frozen published discovery state; no dashboard rediscovery",
+        "symbols": symbols,
+    }
+    runtime_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
 def pct(value: float) -> float:
     return round(float(value) * 100.0, 6)
 
@@ -65,7 +102,12 @@ def pct(value: float) -> float:
 def summary(equity: pd.Series) -> dict:
     equity = equity.dropna()
     if len(equity) < 2:
-        return {"returnPct": 0.0, "maxDrawdownPct": 0.0, "bestDayPct": 0.0, "worstDayPct": 0.0}
+        return {
+            "returnPct": 0.0,
+            "maxDrawdownPct": 0.0,
+            "bestDayPct": 0.0,
+            "worstDayPct": 0.0,
+        }
     daily = equity.resample("1D").last().dropna()
     daily_returns = daily.pct_change(fill_method=None).dropna()
     drawdown = equity.div(equity.cummax()).sub(1.0)
@@ -100,7 +142,9 @@ def build_v14_history():
         lookback_hours=universe["quote_volume_lookback_hours"],
         minimum_history_hours=universe["minimum_history_hours"],
     )
-    raw = build_targets(signal_data, StrategySpec(**candidate["opportunity"]["spec"]))
+    raw = build_targets(
+        signal_data, StrategySpec(**candidate["opportunity"]["spec"])
+    )
     allocation = candidate["allocation"]
     targets, _ = additive_opportunity_targets(
         core_targets,
@@ -142,7 +186,10 @@ def paper_payload(engine: str) -> dict:
     compact_curve = [
         {
             "time": row.get("timestamp"),
-            "capital": row.get("capital_brl", base * float(row.get("equity_multiple", 1.0))),
+            "capital": row.get(
+                "capital_brl",
+                base * float(row.get("equity_multiple", 1.0)),
+            ),
         }
         for row in curve
         if row.get("timestamp")
@@ -153,8 +200,12 @@ def paper_payload(engine: str) -> dict:
             {
                 "symbol": symbol,
                 "direction": item.get("direction", "none"),
-                "weightPct": round(float(item.get("current_weight", 0.0)) * 100.0, 4),
-                "valueBrl": round(float(item.get("position_value_brl", 0.0)), 2),
+                "weightPct": round(
+                    float(item.get("current_weight", 0.0)) * 100.0, 4
+                ),
+                "valueBrl": round(
+                    float(item.get("position_value_brl", 0.0)), 2
+                ),
             }
             for symbol, item in assets.items()
             if abs(float(item.get("current_weight", 0.0))) > 1e-8
@@ -165,29 +216,60 @@ def paper_payload(engine: str) -> dict:
     return {
         **meta,
         "track": engine,
-        "candidate": snapshot.get("candidate", ledger.get("candidate", meta["name"])),
+        "candidate": snapshot.get(
+            "candidate", ledger.get("candidate", meta["name"])
+        ),
         "status": snapshot.get("status", "pending"),
-        "paperStart": snapshot.get("paper_start_after_timestamp", ledger.get("paper_start_after_timestamp")),
-        "latest": snapshot.get("latest_data_timestamp", ledger.get("latest_data_timestamp")),
+        "paperStart": snapshot.get(
+            "paper_start_after_timestamp",
+            ledger.get("paper_start_after_timestamp"),
+        ),
+        "latest": snapshot.get(
+            "latest_data_timestamp", ledger.get("latest_data_timestamp")
+        ),
         "baseCapitalBrl": round(base, 2),
         "currentCapitalBrl": round(current, 2),
         "roiPct": round((current / base - 1.0) * 100.0, 4) if base else 0.0,
-        "grossExposurePct": round(float(snapshot.get("gross_exposure", 0.0)) * 100.0, 4),
-        "newForwardHours": int(snapshot.get("new_forward_hours", ledger_summary.get("new_forward_hours", max(0, len(compact_curve) - 1)))),
+        "grossExposurePct": round(
+            float(snapshot.get("gross_exposure", 0.0)) * 100.0, 4
+        ),
+        "newForwardHours": int(
+            snapshot.get(
+                "new_forward_hours",
+                ledger_summary.get(
+                    "new_forward_hours", max(0, len(compact_curve) - 1)
+                ),
+            )
+        ),
         "positions": positions,
         "curve": compact_curve,
         "strictResearchGate": snapshot.get("strict_research_gate"),
         "forwardValidation": snapshot.get("forward_validation"),
-        "satelliteWeightPct": round(float(snapshot.get("satellite_realized_weight", 0.0)) * 100.0, 3) if engine == "v99" else None,
-        "satelliteTargetPct": round(float(snapshot.get("satellite_target_weight", 0.0)) * 100.0, 3) if engine == "v99" else None,
-        "consensusPct": round(float(snapshot.get("consensus_vote_fraction", 0.0)) * 100.0, 2) if engine == "v99" else None,
+        "satelliteWeightPct": round(
+            float(snapshot.get("satellite_realized_weight", 0.0)) * 100.0, 3
+        )
+        if engine == "v99"
+        else None,
+        "satelliteTargetPct": round(
+            float(snapshot.get("satellite_target_weight", 0.0)) * 100.0, 3
+        )
+        if engine == "v99"
+        else None,
+        "consensusPct": round(
+            float(snapshot.get("consensus_vote_fraction", 0.0)) * 100.0, 2
+        )
+        if engine == "v99"
+        else None,
     }
 
 
 def main() -> None:
+    prepare_v15_runtime_from_published_state()
     v14_equity = build_v14_history()
     _, _, _, v15_result, _, _, _ = build_v15()
-    v16_candidate = load_json(CONFIG / "candidate_v16_experimental_balanced_relaxed.json")
+    v16_candidate = load_json(
+        CONFIG / "candidate_v16_experimental_balanced_relaxed.json"
+    )
     _, _, v16_result, _, _ = build_v16(v16_candidate)
     v99_candidate = load_json(CONFIG / "candidate_v99_asymmetric.json")
     _, v99_frozen, _, _ = build_v99(v99_candidate)
@@ -243,7 +325,12 @@ def main() -> None:
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(json.dumps({"generatedAt": payload["generatedAt"], "engines": list(backtest)}, indent=2))
+    print(
+        json.dumps(
+            {"generatedAt": payload["generatedAt"], "engines": list(backtest)},
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
