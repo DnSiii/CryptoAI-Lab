@@ -37,13 +37,13 @@ def test_v99_r5_gate_demands_return_risk_tail_and_anti_overfit_evidence() -> Non
     assert gate["delay_3h_must_beat_parent"] is True
 
 
-def test_v99_research_workflow_runs_the_strict_runner() -> None:
+def test_v99_research_workflow_runs_current_orderless_research_runner() -> None:
     workflow = (PROJECT / ".github" / "workflows" / "v99-research.yml").read_text()
     assert "pull_request:" in workflow
     assert "python -m pytest" in workflow
-    assert "python scripts/run_candidate_v99_r5.py" in workflow
-    assert "src/cryptoai_v13/v99_r5.py" in workflow
-    assert "scripts/run_candidate_v99_r5.py" in workflow
+    assert "python scripts/run_v99_r9_lag_envelope_study.py" in workflow
+    assert "src/cryptoai_v13/v99_r9.py" in workflow
+    assert "scripts/run_v99_r9_lag_envelope_study.py" in workflow
 
 
 def test_paper_workflow_runs_and_publishes_v99_without_removing_existing_tracks() -> None:
