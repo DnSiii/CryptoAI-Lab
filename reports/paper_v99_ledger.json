@@ -6,40 +6,40 @@
   "candidate_version": "v99-frozen-r16-2026-09-06",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-06T22:00:00+00:00",
-  "latest_data_timestamp": "2026-09-07T17:00:00+00:00",
+  "latest_data_timestamp": "2026-09-07T18:00:00+00:00",
   "summary": {
-    "new_forward_hours": 19,
-    "net_result_brl": -217.37,
-    "current_capital_brl": 9782.63,
+    "new_forward_hours": 20,
+    "net_result_brl": -277.99,
+    "current_capital_brl": 9722.01,
     "highest_capital_brl": 10052.49,
     "lowest_capital_brl": 9643.65,
-    "forward_return_pct": -2.173713
+    "forward_return_pct": -2.779932
   },
   "assets": {
     "BTCUSDT": {
       "direction": "buy",
-      "current_weight": 0.24662877,
-      "position_value_brl": 2412.68
+      "current_weight": 0.24818262,
+      "position_value_brl": 2412.83
     },
     "ETHUSDT": {
       "direction": "buy",
-      "current_weight": 0.7155507,
-      "position_value_brl": 6999.97
+      "current_weight": 0.71896759,
+      "position_value_brl": 6989.81
     },
     "LTCUSDT": {
       "direction": "buy",
-      "current_weight": 0.00461029,
-      "position_value_brl": 45.1
+      "current_weight": 0.00462979,
+      "position_value_brl": 45.01
     },
     "UNIUSDT": {
       "direction": "buy",
-      "current_weight": 0.18894966,
-      "position_value_brl": 1848.42
+      "current_weight": 0.18952175,
+      "position_value_brl": 1842.53
     },
     "XMRUSDT": {
       "direction": "sell",
-      "current_weight": -0.67132421,
-      "position_value_brl": 6567.32
+      "current_weight": -0.68010148,
+      "position_value_brl": 6611.95
     }
   },
   "equity_curve": [
@@ -162,13 +162,19 @@
       "equity_multiple": 0.9782628677,
       "capital_brl": 9782.63,
       "hour_result_brl": 63.6
+    },
+    {
+      "timestamp": "2026-09-07T18:00:00+00:00",
+      "equity_multiple": 0.9722006768,
+      "capital_brl": 9722.01,
+      "hour_result_brl": -60.62
     }
   ],
   "composite": {
     "architecture": "V16 core + consensus-gated persistent alpha satellite",
-    "satellite_realized_weight": 0.03344653,
+    "satellite_realized_weight": 0.03359424,
     "satellite_target_weight": 0.0,
-    "consensus_vote_fraction": 0.33333333,
+    "consensus_vote_fraction": 0.5,
     "maximum_satellite_weight": 0.1,
     "rebalance_hours": 720,
     "note": "Core and alpha sleeves retain independent backtest state; transfer costs are embedded in the composite equity curve."
