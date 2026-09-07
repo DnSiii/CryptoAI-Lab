@@ -6,35 +6,30 @@
   "candidate_version": "v99-frozen-r16-2026-09-06",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-06T22:00:00+00:00",
-  "latest_data_timestamp": "2026-09-07T14:00:00+00:00",
+  "latest_data_timestamp": "2026-09-07T15:00:00+00:00",
   "summary": {
-    "new_forward_hours": 16,
-    "net_result_brl": -205.5,
-    "current_capital_brl": 9794.5,
+    "new_forward_hours": 17,
+    "net_result_brl": -356.35,
+    "current_capital_brl": 9643.65,
     "highest_capital_brl": 10052.49,
-    "lowest_capital_brl": 9794.5,
-    "forward_return_pct": -2.054963
+    "lowest_capital_brl": 9643.65,
+    "forward_return_pct": -3.563527
   },
   "assets": {
     "BTCUSDT": {
       "direction": "buy",
-      "current_weight": 0.3227427,
-      "position_value_brl": 3161.1
+      "current_weight": 0.32130408,
+      "position_value_brl": 3098.54
     },
     "ETHUSDT": {
       "direction": "buy",
-      "current_weight": 0.93302729,
-      "position_value_brl": 9138.54
-    },
-    "LTCUSDT": {
-      "direction": "buy",
-      "current_weight": 0.13184872,
-      "position_value_brl": 1291.39
+      "current_weight": 0.92649498,
+      "position_value_brl": 8934.79
     },
     "UNIUSDT": {
       "direction": "buy",
-      "current_weight": 0.06986934,
-      "position_value_brl": 684.34
+      "current_weight": 0.19995618,
+      "position_value_brl": 1928.31
     }
   },
   "equity_curve": [
@@ -139,13 +134,19 @@
       "equity_multiple": 0.9794503662,
       "capital_brl": 9794.5,
       "hour_result_brl": -56.9
+    },
+    {
+      "timestamp": "2026-09-07T15:00:00+00:00",
+      "equity_multiple": 0.964364734,
+      "capital_brl": 9643.65,
+      "hour_result_brl": -150.86
     }
   ],
   "composite": {
     "architecture": "V16 core + consensus-gated persistent alpha satellite",
-    "satellite_realized_weight": 0.03340718,
+    "satellite_realized_weight": 0.03351599,
     "satellite_target_weight": 0.0,
-    "consensus_vote_fraction": 0.16666667,
+    "consensus_vote_fraction": 0.33333333,
     "maximum_satellite_weight": 0.1,
     "rebalance_hours": 720,
     "note": "Core and alpha sleeves retain independent backtest state; transfer costs are embedded in the composite equity curve."
