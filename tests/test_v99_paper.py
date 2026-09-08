@@ -60,6 +60,8 @@ def test_dashboard_has_backtest_and_official_paper_views() -> None:
     html = (PROJECT / "dashboard" / "index.html").read_text()
     app = (PROJECT / "dashboard" / "app_v2.js").read_text()
     paper = (PROJECT / "dashboard" / "paper_classic.js").read_text()
+    builder = (PROJECT / "scripts" / "build_cryptoai_dashboard.py").read_text()
+    augment = (PROJECT / "scripts" / "augment_dashboard_v13.py").read_text()
     workflow = (PROJECT / ".github" / "workflows" / "cryptoai-dashboard.yml").read_text()
     assert 'data-view="backtest"' in html
     assert 'data-view="paper"' in html
@@ -75,3 +77,7 @@ def test_dashboard_has_backtest_and_official_paper_views() -> None:
     assert "paper-results/reports/" in paper
     assert "build_cryptoai_dashboard.py" in workflow
     assert "augment_dashboard_v13.py" in workflow
+    for source in (app, paper, builder, augment):
+        assert "America/Sao_Paulo" in source
+    assert "Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())" not in app
+    assert "Desde 00:00 UTC" not in paper
