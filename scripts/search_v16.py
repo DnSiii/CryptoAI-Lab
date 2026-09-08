@@ -44,6 +44,9 @@ from cryptoai_v13.v16 import (
     three_regime_sleeve_targets,
     volatility_managed_targets,
 )
+from cryptoai_v13.v99 import V99AsymmetricSpec
+from cryptoai_v13.v99_frozen import build_frozen_v99
+from cryptoai_v13.v99_r4 import V99R4ControlSpec
 from paper_once_v13 import cap_targets
 from run_final_candidate import build_candidate
 
@@ -1869,6 +1872,54 @@ def main() -> None:
             }
         ):
             exact_pool.append(row)
+
+    # A permanent peak guard solved drawdown by remaining defensive for too
+    # much of the history.  A short cooldown forgot losses too quickly.  This
+    # predeclared middle path retains the maximum *closed* equity from a broad
+    # rolling window, so loss episodes share a budget without creating a
+    # lifetime lock.  Only two established profit-lock sources and three
+    # structural horizons are checked to constrain researcher degrees of
+    # freedom.
+    rolling_peak_frontier = (
+        {
+            "name": "rolling_peak_90d",
+            "threshold": 0.055,
+            "multiplier": 0.15,
+            "recovery": 0.025,
+            "cooldown_hours": None,
+            "peak_lookback_hours": 24 * 90,
+        },
+        {
+            "name": "rolling_peak_180d",
+            "threshold": 0.060,
+            "multiplier": 0.20,
+            "recovery": 0.030,
+            "cooldown_hours": None,
+            "peak_lookback_hours": 24 * 180,
+        },
+        {
+            "name": "rolling_peak_365d",
+            "threshold": 0.065,
+            "multiplier": 0.25,
+            "recovery": 0.030,
+            "cooldown_hours": None,
+            "peak_lookback_hours": 24 * 365,
+        },
+    )
+    for source in ranked:
+        if (
+            source["family"] != "trailing_profit_lock_attack"
+            or source["name"] not in {"balanced_relaxed", "mid_lock_a"}
+        ):
+            continue
+        for guard in rolling_peak_frontier:
+            exact_pool.append({
+                **source,
+                "candidate_id": f"{source['candidate_id']}:{guard['name']}",
+                "target_candidate_id": source["candidate_id"],
+                "name": f"{source['name']}:{guard['name']}",
+                "risk_guard": dict(guard),
+            })
     for row in exact_pool:
         targets = targets_by_id[str(row.get("target_candidate_id", row["candidate_id"]))]
         risk_guard = row.get("risk_guard", {
@@ -1888,6 +1939,7 @@ def main() -> None:
             drawdown_guard_multiplier=risk_guard["multiplier"],
             drawdown_guard_recovery=risk_guard.get("recovery"),
             drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
+            drawdown_guard_peak_lookback_hours=risk_guard.get("peak_lookback_hours"),
         )
         severe = exact_fast(
             data,
@@ -1899,6 +1951,7 @@ def main() -> None:
             drawdown_guard_multiplier=risk_guard["multiplier"],
             drawdown_guard_recovery=risk_guard.get("recovery"),
             drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
+            drawdown_guard_peak_lookback_hours=risk_guard.get("peak_lookback_hours"),
         )
         delayed = exact_fast(
             data,
@@ -1910,6 +1963,7 @@ def main() -> None:
             drawdown_guard_multiplier=risk_guard["multiplier"],
             drawdown_guard_recovery=risk_guard.get("recovery"),
             drawdown_guard_cooldown_hours=risk_guard["cooldown_hours"],
+            drawdown_guard_peak_lookback_hours=risk_guard.get("peak_lookback_hours"),
         )
         checked = {**row, "profile": profile(exact_base.equity, latest)}
         checked["gate"] = robustness_gate(checked, benchmark_recent_cagr)
@@ -1928,6 +1982,57 @@ def main() -> None:
         checked["exact_gate_passed"] = all(checked["exact_gate"].values())
         checked["score"] = score_row(checked)
         exact_rows.append(checked)
+
+    # V99 Frozen now exists as a distinct forward candidate, so a V16 revision
+    # must also clear that fair contemporary benchmark rather than comparing
+    # only with V13/V14.  Rebuild it on the identical data and execution model.
+    v99_config = json.loads(
+        (PROJECT / "config" / "candidate_v99_asymmetric.json").read_text()
+    )
+    v16_parent = next(
+        row for row in exact_rows
+        if row["candidate_id"].endswith(":balanced_relaxed")
+    )
+    v16_parent_targets = targets_by_id[str(v16_parent["candidate_id"])]
+    parent_guard = v16_parent["risk_guard"]
+    v16_parent_result = exact_fast(
+        data,
+        v16_parent_targets,
+        cost_per_side=execution["base_cost_per_side"],
+        maintenance_equity_fraction=execution["maintenance_equity_fraction"],
+        gross_guard_cap=float(v16_parent["maximum_portfolio_gross"]) + 0.15,
+        drawdown_guard_threshold=parent_guard["threshold"],
+        drawdown_guard_multiplier=parent_guard["multiplier"],
+        drawdown_guard_recovery=parent_guard.get("recovery"),
+        drawdown_guard_cooldown_hours=parent_guard["cooldown_hours"],
+    )
+    v99_result = build_frozen_v99(
+        data,
+        v16_parent_targets,
+        v16_parent_result,
+        execution,
+        V99AsymmetricSpec(**v99_config["asymmetric_overlay"]),
+        V99R4ControlSpec(**v99_config["r4_control"]),
+    )
+    benchmarks["v99_frozen"] = profile(v99_result.equity, latest)
+    for checked in exact_rows:
+        candidate_profile = checked["profile"]
+        v99_profile = benchmarks["v99_frozen"]
+        checked["exact_gate"].update({
+            "full_wealth_beats_v99_frozen": (
+                candidate_profile["full"]["return"]
+                > v99_profile["full"]["return"]
+            ),
+            "recent_cagr_beats_v99_frozen": (
+                candidate_profile["recent"]["cagr"]
+                > v99_profile["recent"]["cagr"]
+            ),
+            "full_drawdown_no_worse_than_v99_frozen": (
+                candidate_profile["full"]["max_drawdown"]
+                >= v99_profile["full"]["max_drawdown"]
+            ),
+        })
+        checked["exact_gate_passed"] = all(checked["exact_gate"].values())
 
     exact_ranked = sorted(exact_rows, key=lambda item: item["score"], reverse=True)
     promoted = next((row for row in exact_ranked if row["exact_gate_passed"]), None)
