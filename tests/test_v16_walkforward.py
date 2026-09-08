@@ -7,7 +7,7 @@ from cryptoai_v13.data import FuturesData
 from cryptoai_v13.v16_walkforward import (
     ForecastSpec,feature_panel,forward_labels,purged_train_rows,
     walkforward_forecasts,forecasts_to_targets)
-from cryptoai_v13.v16_relative import RelativeSpec,balance_sides,relative_targets
+from cryptoai_v13.v16_relative import RelativeSpec,balance_sides,relative_targets,worthwhile_rebalance
 
 
 class WalkforwardTests(unittest.TestCase):
@@ -67,6 +67,13 @@ class WalkforwardTests(unittest.TestCase):
 
 
 class RelativeTests(unittest.TestCase):
+    def test_rebalance_requires_incremental_forecast_to_cover_costs(self):
+        spec=RelativeSpec(trading_cost_hurdle=2)
+        # A profitable existing portfolio does not justify a useless adjustment.
+        self.assertFalse(worthwhile_rebalance([.2,-.2],[.2,-.2],[.2,-.2],spec))
+        self.assertFalse(worthwhile_rebalance([.1,-.1],[.2,-.2],[.001,-.001],spec))
+        self.assertTrue(worthwhile_rebalance([.1,-.1],[.2,-.2],[.02,-.02],spec))
+
     def test_neutral_sizing_preserves_constraint_after_cap(self):
         long=np.array([1.,4.,0,0]); short=np.array([0.,0.,3.,1.]); beta=np.array([1.,2.,.5,1.])
         for mode in ('beta','dollar'):
@@ -97,6 +104,19 @@ class RelativeTests(unittest.TestCase):
         b,_=relative_targets(d,pred,spec)
         pd.testing.assert_frame_equal(a.iloc[:cut],b.iloc[:cut])
         self.assertEqual(b.iloc[cut].abs().sum(),0)
+
+    def test_cost_gate_cannot_rewrite_past_with_future_forecasts(self):
+        d=sample(1600,10); names=('BTCUSDT',*d.symbols[1:])
+        frames={k:v.set_axis(names,axis=1) for k,v in d.frames.items()}
+        for k in ('open','high','low','close'): frames[k]=frames[k].mul(frames[k].BTCUSDT,axis=0)
+        d=FuturesData(frames,d.funding.set_axis(names,axis=1),names)
+        f=pd.DataFrame(np.tile(np.linspace(-.03,.03,10),(1600,1)),index=d.close.index,columns=names)
+        spec=RelativeSpec(trading_cost_hurdle=2,retain_rank_buffer=True)
+        original,diag=relative_targets(d,f,spec)
+        self.assertGreater(diag.cost_gate_skipped.sum(),0)
+        f.iloc[1300:]*=-100
+        changed,_=relative_targets(d,f,spec)
+        pd.testing.assert_frame_equal(original.iloc[:1300],changed.iloc[:1300])
 
 
 if __name__=='__main__': unittest.main()

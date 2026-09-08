@@ -24,6 +24,11 @@ class RelativeSpec:
     annual_volatility_target: float = .35
     basket_loss_limit: float = .04
     cooldown_hours: int = 24
+    # Require forecast improvement to exceed stressed round-trip turnover costs.
+    # Zero preserves the prior, fully recorded experiment for reproduction.
+    trading_cost_hurdle: float = 0.
+    assumed_cost_per_side: float = .0012
+    maximum_beta_drift: float = .10
 
     def __post_init__(self):
         if self.balance not in {"dollar", "beta"}:
@@ -36,6 +41,8 @@ class RelativeSpec:
             raise ValueError("invalid costs/exit limit")
         if not 0<self.annual_volatility_target<=1:
             raise ValueError("invalid volatility budget")
+        if self.trading_cost_hurdle<0 or self.assumed_cost_per_side<0 or self.maximum_beta_drift<=0:
+            raise ValueError("invalid execution hurdle")
 
     def to_dict(self): return asdict(self)
 
@@ -60,6 +67,14 @@ def balance_sides(long,short,beta,spec):
     return weight
 
 
+def worthwhile_rebalance(current,proposal,forecasts,spec):
+    """Expected improvement, not total portfolio forecast, must pay turnover."""
+    delta=np.asarray(proposal)-np.asarray(current)
+    improvement=float(delta@np.asarray(forecasts))
+    hurdle=float(np.abs(delta).sum()*2*spec.assumed_cost_per_side*spec.trading_cost_hurdle)
+    return bool(np.isfinite(improvement) and improvement>hurdle)
+
+
 def relative_targets(data:FuturesData,forecasts:pd.DataFrame,spec:RelativeSpec):
     if not forecasts.index.equals(data.close.index) or not forecasts.columns.equals(data.close.columns):
         raise ValueError("forecasts must align exactly with market data")
@@ -78,7 +93,7 @@ def relative_targets(data:FuturesData,forecasts:pd.DataFrame,spec:RelativeSpec):
     av=usable.to_numpy(); r=ret.to_numpy()
     n,m=x.shape; output=np.zeros((n,m)); current=np.zeros(m)
     starts=np.ones(m); until=-1
-    raw_beta=np.zeros(n); events=np.zeros(n,dtype=bool)
+    raw_beta=np.zeros(n); events=np.zeros(n,dtype=bool); skipped=np.zeros(n,dtype=bool)
     clock=(data.close.index.asi8//(3600*10**9))%spec.rebalance_hours==0
     for i in range(n):
         # Exit the whole relative basket if one held leg becomes unavailable.
@@ -116,11 +131,26 @@ def relative_targets(data:FuturesData,forecasts:pd.DataFrame,spec:RelativeSpec):
                         risk=float(np.std(portfolio,ddof=1)*np.sqrt(365*24))
                         if risk>spec.annual_volatility_target:
                             proposal*=spec.annual_volatility_target/risk
-            current=proposal
-            starts=np.where(np.isfinite(cv[i])&(cv[i]>0),cv[i],1)
+            # The held quantities drift while the requested target remains fixed.
+            # This mark uses only observed closes; the native executor separately
+            # accounts for actual fees/funding and next-open fill prices.
+            change=True
+            if spec.trading_cost_hurdle>0 and np.any(held) and np.any(proposal):
+                ratio=np.where(held,cv[i]/starts,1.)
+                marked=current*ratio/max(1+float(np.nansum(current*(ratio-1))),.01)
+                beta_risk=abs(float(marked@np.nan_to_num(bv[i])))
+                forced=(beta_risk>spec.maximum_beta_drift or
+                        np.abs(marked).max()>spec.maximum_asset_weight*1.25 or
+                        np.abs(marked).sum()>spec.maximum_gross*1.10 or
+                        not np.isfinite(x[i,held]).all())
+                if not forced and not worthwhile_rebalance(marked,proposal,np.nan_to_num(x[i]),spec):
+                    change=False; skipped[i]=True
+            if change:
+                current=proposal
+                starts=np.where(np.isfinite(cv[i])&(cv[i]>0),cv[i],1)
         output[i]=current
         raw_beta[i]=float(current@np.nan_to_num(bv[i]))
     target=pd.DataFrame(output,index=data.close.index,columns=data.close.columns)
     diag=pd.DataFrame({"net_dollars":target.sum(axis=1),"estimated_beta":raw_beta,
-        "gross":target.abs().sum(axis=1),"rebalance":events},index=target.index)
+        "gross":target.abs().sum(axis=1),"rebalance":events,"cost_gate_skipped":skipped},index=target.index)
     return target,diag

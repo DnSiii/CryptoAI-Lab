@@ -18,17 +18,21 @@ def main():
     p.add_argument('--market-root',type=Path,required=True)
     p.add_argument('--forecast-batch',type=Path,required=True)
     p.add_argument('--output-dir',type=Path,required=True)
+    p.add_argument('--cost-aware',action='store_true')
     a=p.parse_args(); out=a.output_dir
     if out.resolve().is_relative_to(a.market_root.resolve()): raise ValueError('protected market input')
     if (out/'protocol.json').exists(): raise ValueError('refusing to overwrite earlier evidence')
     out.mkdir(parents=True,exist_ok=True)
     models=[f'{m}_{h}_relative' for m in ('ridge','boosting') for h in (12,24)]
+    modes=('beta_buffer','cost1','cost2','cost4') if a.cost_aware else ('dollar','beta','beta_buffer')
     menu={f'{n}_{mode}':RelativeSpec(balance='dollar' if mode=='dollar' else 'beta',
-          retain_rank_buffer=mode=='beta_buffer',rebalance_hours=int(n.split('_')[1]))
-          for n in models for mode in ('dollar','beta','beta_buffer')}
+          retain_rank_buffer=mode=='beta_buffer' or mode.startswith('cost'),
+          trading_cost_hurdle=float(mode[4:]) if mode.startswith('cost') else 0.,
+          rebalance_hours=int(n.split('_')[1])) for n in models for mode in modes}
     end=pd.Timestamp('2026-08-31T23:00Z')
     protocol={'registered_at':pd.Timestamp.now(tz='UTC').isoformat(),
-        'hypothesis':'Relative forecasts require a balanced book; directional signs alone are not market-neutral.',
+        'hypothesis':('Additional forecast benefit must exceed stressed turnover costs; keep all four parent models.'
+            if a.cost_aware else 'Relative forecasts require a balanced book; directional signs alone are not market-neutral.'),
         'models':models,'menu':{k:v.to_dict() for k,v in menu.items()},
         'end':end.isoformat(),'code_sha256':hashlib.sha256((PROJECT/'src/cryptoai_v13/v16_relative.py').read_bytes()).hexdigest(),
         'forecast_protocol':json.loads((a.forecast_batch/'protocol.json').read_text()),
@@ -49,7 +53,7 @@ def main():
         targets[name]=target
         diag.to_csv(out/f'{name}_diagnostics.csv',index_label='timestamp')
     # Equal model weighting is fixed independently of which model earned most.
-    for mode in ('dollar','beta','beta_buffer'):
+    for mode in modes:
         targets[f'equal_models_{mode}']=sum(targets[f'{n}_{mode}'] for n in models)/len(models)
     for name,target in targets.items():
         started=time.monotonic(); scenarios={}
