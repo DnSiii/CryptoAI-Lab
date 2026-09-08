@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [research/v99-r36-safe-core-router]
-    paths: ["scripts/run_v99_r36_safe_core_router.py", "scripts/run_v99_r35_surgical_envelope.py", "scripts/run_v99_r25_trisleeve_meta.py", ".github/workflows/v99-r36-safe-core-router.yml"]
+    paths: ["scripts/run_v99_r36_safe_core_router.py", "scripts/run_v99_r36_safe_core_router_corrected.py", "scripts/run_v99_r35_surgical_envelope.py", "scripts/run_v99_r25_trisleeve_meta.py", ".github/workflows/v99-r36-safe-core-router.yml"]
 permissions:
   contents: write
 concurrency:
@@ -51,12 +51,12 @@ jobs:
           done
       - name: Prepare frozen V15 replay inputs
         run: python scripts/prepare_dashboard_v15_replay.py
-      - name: Run V99 R36 safe-core router laboratory
-        run: python scripts/run_v99_r36_safe_core_router.py
+      - name: Run corrected V99 R36 safe-core router laboratory
+        run: python scripts/run_v99_r36_safe_core_router_corrected.py
       - name: Upload V99 R36 evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v99-r36-safe-core-router-${{ github.run_id }}
+          name: v99-r36-safe-core-router-corrected-${{ github.run_id }}
           retention-days: 60
           path: reports/candidate_v99_r36_safe_core_router.json
       - name: Persist V99 R36 report on research branch
@@ -69,6 +69,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Report unchanged"
           else
-            git commit -m "Persist V99 R36 research report"
+            git commit -m "Persist corrected V99 R36 research report"
             git push origin HEAD:research/v99-r36-safe-core-router
           fi
