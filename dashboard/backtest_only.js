@@ -22,8 +22,9 @@ function applyViewBranding(view){
   }
 }
 
-/* Readability pass only: wider daily spacing, staggered data labels and
-   proportional integer axes with an explicit zero on percentage charts. */
+/* Readability pass only: wider daily spacing, staggered data labels,
+   proportional integer axes with an explicit zero on percentage charts,
+   and newest-to-oldest chronology from left to right on every chart. */
 function chartNiceIntegerStep(minValue,maxValue,targetTicks=10){
   const span=Math.max(Math.abs(maxValue-minValue),1);
   const raw=span/Math.max(2,targetTicks);
@@ -101,7 +102,8 @@ drawLineChart=function(canvas,series,options={}){
   const minT=Math.min(...all.map(p=>p.time)),maxT=Math.max(...all.map(p=>p.time));
   const values=all.map(p=>p.value);
   const axis=chartIntegerAxis(values,{includeZero:!options.money,targetTicks:10,extraRoom:true});
-  const x=t=>pad.left+((t-minT)/Math.max(maxT-minT,1))*(width-pad.left-pad.right);
+  /* newest timestamp maps to the left; oldest maps to the right */
+  const x=t=>pad.left+((maxT-t)/Math.max(maxT-minT,1))*(width-pad.left-pad.right);
   const y=v=>pad.top+((axis.max-v)/Math.max(axis.max-axis.min,1e-9))*(height-pad.top-pad.bottom);
   ctx.clearRect(0,0,width,height);
   ctx.font="10px Inter,system-ui";
@@ -137,12 +139,13 @@ drawLineChart=function(canvas,series,options={}){
 drawBars=function(canvas,rows,keys){
   if(!rows.length||!keys.length)return;
   const size=canvasSize(canvas);if(!size)return;
+  const orderedRows=[...rows].sort((a,b)=>b.time-a.time);
   const{ctx,width,height}=size,pad={left:68,right:26,top:58,bottom:50};
-  const vals=rows.flatMap(r=>keys.map(k=>r.values[k])).filter(Number.isFinite);
+  const vals=orderedRows.flatMap(r=>keys.map(k=>r.values[k])).filter(Number.isFinite);
   if(!vals.length)return;
   const axis=chartIntegerAxis(vals,{includeZero:true,targetTicks:10,extraRoom:true});
   const y=v=>pad.top+((axis.max-v)/Math.max(axis.max-axis.min,1e-9))*(height-pad.top-pad.bottom);
-  const plotW=width-pad.left-pad.right,groupW=plotW/rows.length;
+  const plotW=width-pad.left-pad.right,groupW=plotW/orderedRows.length;
   const barW=Math.max(5,Math.min(16,(groupW*.72)/keys.length));
   ctx.clearRect(0,0,width,height);
   ctx.font="10px Inter,system-ui";ctx.textAlign="right";
@@ -155,7 +158,7 @@ drawBars=function(canvas,rows,keys){
     ctx.fillText(chartAxisLabel(v),pad.left-8,yy+3);
   });
   const zy=y(0);
-  rows.forEach((r,idx)=>{
+  orderedRows.forEach((r,idx)=>{
     const center=pad.left+groupW*idx+groupW/2,total=barW*keys.length;
     keys.forEach((k,ki)=>{
       const v=r.values[k];if(!Number.isFinite(v))return;
