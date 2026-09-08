@@ -61,7 +61,8 @@ def test_dashboard_has_separate_paper_and_backtest_overviews() -> None:
     app = (PROJECT / "dashboard" / "app_v2.js").read_text()
     workflow = (PROJECT / ".github" / "workflows" / "cryptoai-dashboard.yml").read_text()
     assert "Visão Geral · Paper" in html
-    assert "Visão Geral · Backtest" in html
+    assert 'data-view="backtest"' in html
+    assert ">Backtest<" in html
     assert "RESULTADO % DE CADA DIA · NÃO ACUMULADO" in html
     for engine in ("V13", "V14", "V15", "V16", "V99"):
         assert engine in html
