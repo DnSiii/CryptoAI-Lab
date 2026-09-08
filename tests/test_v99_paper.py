@@ -56,18 +56,22 @@ def test_paper_workflow_runs_and_publishes_v99_without_removing_existing_tracks(
         assert required in workflow
 
 
-def test_dashboard_is_backtest_only() -> None:
+def test_dashboard_has_backtest_and_official_paper_views() -> None:
     html = (PROJECT / "dashboard" / "index.html").read_text()
     app = (PROJECT / "dashboard" / "app_v2.js").read_text()
+    paper = (PROJECT / "dashboard" / "paper_classic.js").read_text()
     workflow = (PROJECT / ".github" / "workflows" / "cryptoai-dashboard.yml").read_text()
-    assert "Visão Geral · Backtest" in html
     assert 'data-view="backtest"' in html
-    assert "Visão Geral · Paper" not in html
-    assert 'id="paper"' not in html
+    assert 'data-view="paper"' in html
+    assert 'id="backtest"' in html
+    assert 'id="paper"' in html
+    assert "CryptoAI Paper Dashboard" in html
+    assert "OPERAÇÕES SIMPLES" in html
     assert "RESULTADO % DE CADA DIA · NÃO ACUMULADO" in html
     for engine in ("V13", "V14", "V15", "V16", "V99"):
         assert engine in html
-    assert "backtest_only.js" in html
+    assert "paper_classic.js" in html
     assert "paper-results/dashboard/dashboard_data.json" in app
+    assert "paper-results/reports/" in paper
     assert "build_cryptoai_dashboard.py" in workflow
     assert "augment_dashboard_v13.py" in workflow
