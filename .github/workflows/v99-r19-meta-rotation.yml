@@ -1,0 +1,67 @@
+name: CryptoAI V99 R19 meta-engine rotation research
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["research/v99-r19-meta-rotation"]
+    paths:
+      - ".github/workflows/v99-r19-meta-rotation.yml"
+      - "scripts/run_v99_r19_meta_rotation.py"
+
+permissions:
+  contents: read
+
+jobs:
+  r19:
+    name: V99 R19 V15 growth V16 defense rotation
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Resolve UTC cache date
+        id: utc
+        shell: bash
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+      - name: Restore canonical market cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: data/canonical
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-paper-v15-market-v1-
+            ${{ runner.os }}-paper-v13-market-
+      - name: Install package
+        run: python -m pip install -e "."
+      - name: Restore published V15 universe and sync boundary
+        shell: bash
+        run: |
+          git fetch --no-tags origin paper-results
+          for path in state/paper_v15_universe.json reports/paper_data_sync_v15.json; do
+            if ! git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
+              echo "Missing required published file: $path"
+              exit 1
+            fi
+            mkdir -p "$(dirname "$path")"
+            git show "FETCH_HEAD:$path" > "$path"
+          done
+      - name: Prepare frozen V15 replay inputs
+        run: python scripts/prepare_dashboard_v15_replay.py
+      - name: Run V99 R19 meta-engine laboratory
+        run: python scripts/run_v99_r19_meta_rotation.py
+      - name: Upload V99 R19 evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r19-meta-rotation-${{ github.run_id }}
+          retention-days: 60
+          path: reports/candidate_v99_r19_meta_rotation.json
