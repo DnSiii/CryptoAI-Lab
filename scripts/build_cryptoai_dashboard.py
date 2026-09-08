@@ -25,6 +25,7 @@ REPORTS = PROJECT / "reports"
 CONFIG = PROJECT / "config"
 STATE = PROJECT / "state"
 CANONICAL = PROJECT / "data" / "canonical"
+DASHBOARD_TIMEZONE = "America/Sao_Paulo"
 
 ENGINE_META = {
     "v14": {
@@ -63,7 +64,7 @@ def load_json(path: Path, default=None):
 def prepare_v15_runtime_from_published_state() -> None:
     """Recreate V15's ephemeral runtime config without rediscovering symbols.
 
-    The dynamic universe state is a published paper artifact.  The dashboard
+    The dynamic universe state is a published paper artifact. The dashboard
     must replay exactly that known universe instead of performing a fresh
     discovery that could leak today's membership into historical simulation.
     """
@@ -99,6 +100,21 @@ def pct(value: float) -> float:
     return round(float(value) * 100.0, 6)
 
 
+def dashboard_local_equity(equity: pd.Series) -> pd.Series:
+    series = equity.dropna().copy()
+    if not isinstance(series.index, pd.DatetimeIndex):
+        raise TypeError("equity index must be a DatetimeIndex")
+    if series.index.tz is None:
+        series.index = series.index.tz_localize("UTC")
+    return series.tz_convert(DASHBOARD_TIMEZONE)
+
+
+def daily_close(equity: pd.Series) -> pd.Series:
+    """Close each calendar day using America/Sao_Paulo, not UTC."""
+    local = dashboard_local_equity(equity)
+    return local.resample("1D").last().dropna()
+
+
 def summary(equity: pd.Series) -> dict:
     equity = equity.dropna()
     if len(equity) < 2:
@@ -108,7 +124,7 @@ def summary(equity: pd.Series) -> dict:
             "bestDayPct": 0.0,
             "worstDayPct": 0.0,
         }
-    daily = equity.resample("1D").last().dropna()
+    daily = daily_close(equity)
     daily_returns = daily.pct_change(fill_method=None).dropna()
     drawdown = equity.div(equity.cummax()).sub(1.0)
     return {
@@ -120,7 +136,7 @@ def summary(equity: pd.Series) -> dict:
 
 
 def daily_curve(equity: pd.Series) -> list[dict]:
-    daily = equity.resample("1D").last().dropna()
+    daily = daily_close(equity)
     if not len(daily):
         return []
     return [
@@ -203,9 +219,7 @@ def paper_payload(engine: str) -> dict:
                 "weightPct": round(
                     float(item.get("current_weight", 0.0)) * 100.0, 4
                 ),
-                "valueBrl": round(
-                    float(item.get("position_value_brl", 0.0)), 2
-                ),
+                "valueBrl": round(float(item.get("position_value_brl", 0.0)), 2),
             }
             for symbol, item in assets.items()
             if abs(float(item.get("current_weight", 0.0))) > 1e-8
@@ -221,8 +235,7 @@ def paper_payload(engine: str) -> dict:
         ),
         "status": snapshot.get("status", "pending"),
         "paperStart": snapshot.get(
-            "paper_start_after_timestamp",
-            ledger.get("paper_start_after_timestamp"),
+            "paper_start_after_timestamp", ledger.get("paper_start_after_timestamp")
         ),
         "latest": snapshot.get(
             "latest_data_timestamp", ledger.get("latest_data_timestamp")
@@ -236,9 +249,7 @@ def paper_payload(engine: str) -> dict:
         "newForwardHours": int(
             snapshot.get(
                 "new_forward_hours",
-                ledger_summary.get(
-                    "new_forward_hours", max(0, len(compact_curve) - 1)
-                ),
+                ledger_summary.get("new_forward_hours", max(0, len(compact_curve) - 1)),
             )
         ),
         "positions": positions,
@@ -298,21 +309,24 @@ def main() -> None:
         if point.get("time")
     ]
     payload = {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "generatedAt": pd.Timestamp.now(tz="UTC").isoformat(),
+        "timezone": DASHBOARD_TIMEZONE,
         "mode": "PAPER_ONLY",
         "realOrders": False,
         "runtime": runtime,
         "paper": {
             "baseCapitalBrl": 10000,
+            "timezone": DASHBOARD_TIMEZONE,
             "engines": papers,
         },
         "backtest": {
             "availableFrom": min(all_times).isoformat() if all_times else None,
             "through": max(all_times).isoformat() if all_times else None,
+            "timezone": DASHBOARD_TIMEZONE,
             "presetsDays": [7, 30, 90, 180, 365],
             "engines": backtest,
-            "disclosure": "Backtest usa replay histórico causal e custos modelados. Não é lucro real nem garantia de retorno futuro.",
+            "disclosure": "Backtest usa replay histórico causal e custos modelados. Fechamentos diários usam America/Sao_Paulo. Não é lucro real nem garantia de retorno futuro.",
         },
         "v99": {
             "architecture": v99_candidate["frozen_composite"],
@@ -327,7 +341,11 @@ def main() -> None:
     )
     print(
         json.dumps(
-            {"generatedAt": payload["generatedAt"], "engines": list(backtest)},
+            {
+                "generatedAt": payload["generatedAt"],
+                "timezone": DASHBOARD_TIMEZONE,
+                "engines": list(backtest),
+            },
             indent=2,
         )
     )
