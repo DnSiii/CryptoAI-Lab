@@ -59,7 +59,8 @@ def main():
         verdict=json.loads((reports/folder/'verdict.json').read_text())
         count=verdict.get('tested',verdict.get('tested_count'))
         lines.append(f'- [{folder}]({folder}/results.json): {count} avaliações; inclui controles repetidos, quando aplicável.')
-    lines+=['','Reprodução: `python -m unittest discover -s tests -q`; em seguida, '
+    lines+=['','Reprodução: instalar `requirements-v16-research.txt` em ambiente isolado e executar '
+        '`python -m unittest discover -s tests -q`; em seguida, '
         '`scripts/research_v16_relative.py --market-root <insumo> --forecast-batch reports/v16_forecast_batch_20260905_a '
         '--output-dir <nova_pasta> --cost-aware`. Nunca substituir uma pasta de evidência existente.','',
         'Dependências de pesquisa utilizadas: Python 3.11+, NumPy 2.3.5, pandas 2.2.3, '

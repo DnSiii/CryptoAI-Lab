@@ -1,4 +1,5 @@
 from dataclasses import replace
+from importlib.util import find_spec
 import unittest
 import numpy as np
 import pandas as pd
@@ -40,6 +41,8 @@ class WalkforwardTests(unittest.TestCase):
         self.assertFalse(np.isinf(broken).any())
         self.assertTrue(np.isnan(broken[1000,:,names.index('volume_surge')]).all())
 
+    @unittest.skipUnless(find_spec('sklearn') and find_spec('threadpoolctl'),
+                         'install requirements-v16-research.txt for model training tests')
     def test_fitted_models_cannot_change_predictions_before_future_mutation(self):
         d=sample(24*140,20); cutoff=24*130
         changed=FuturesData({k:v.copy() for k,v in d.frames.items()},d.funding.copy(),d.symbols)
