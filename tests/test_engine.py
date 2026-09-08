@@ -142,6 +142,7 @@ class EngineTests(unittest.TestCase):
             "drawdown_guard_multiplier": 0.35,
             "drawdown_guard_recovery": 0.02,
             "drawdown_guard_cooldown_hours": 3,
+            "drawdown_guard_peak_lookback_hours": 4,
         }
         reference = exact(data, targets, **kwargs)
         fast = exact_fast(data, targets, **kwargs)
@@ -152,6 +153,33 @@ class EngineTests(unittest.TestCase):
         pd.testing.assert_series_equal(fast.funding, reference.funding)
         pd.testing.assert_series_equal(fast.gross_exposure, reference.gross_exposure)
         self.assertEqual(fast.ruin, reference.ruin)
+
+    def test_rolling_peak_guard_is_causal_and_rejects_invalid_window(self):
+        data = market(
+            [100, 100, 100, 95, 90, 92, 94, 96],
+            [100, 100, 95, 90, 92, 94, 96, 98],
+        )
+        targets = pd.DataFrame(
+            {"BTCUSDT": [1.0] * len(data.close)}, index=data.close.index
+        )
+        kwargs = {
+            "cost_per_side": 0.0,
+            "drawdown_guard_threshold": 0.05,
+            "drawdown_guard_multiplier": 0.20,
+            "drawdown_guard_recovery": 0.02,
+            "drawdown_guard_peak_lookback_hours": 4,
+        }
+        result = exact_fast(data, targets, **kwargs)
+        changed = market(
+            [100, 100, 100, 95, 90, 92, 94, 96],
+            [100, 100, 95, 90, 92, 94, 96, 40],
+        )
+        changed_result = exact_fast(changed, targets, **kwargs)
+        pd.testing.assert_series_equal(
+            result.equity.iloc[:-1], changed_result.equity.iloc[:-1]
+        )
+        with self.assertRaises(ValueError):
+            exact_fast(data, targets, **{**kwargs, "drawdown_guard_peak_lookback_hours": 0})
 
     def test_drawdown_guard_uses_only_previous_close_equity(self):
         data = market(
