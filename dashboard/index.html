@@ -1,136 +1,149 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#07090d" />
-    <title>Performer · Crypto AI Dashboard</title>
-    <link rel="stylesheet" href="nevryn.css" />
-  </head>
-  <body>
-    <div class="app">
-      <aside class="sidebar">
-        <div class="brand">
-          <div class="brand-mark">P</div>
-          <div class="brand-copy"><strong>Performer</strong><small>CRYPTO AI</small></div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050812" />
+  <meta name="color-scheme" content="dark" />
+  <title>Performer · Crypto AI Dashboard</title>
+  <link rel="stylesheet" href="nevryn.css" />
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><span>P</span></div>
+        <div class="brand-copy"><strong>PERFORMER</strong><small>CRYPTO AI</small></div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="overview"><span>⌂</span>Visão geral</button>
+        <button class="nav-btn" data-view="paper"><span>◎</span>Paper</button>
+        <button class="nav-btn" data-view="backtest"><span>↗</span>Backtest</button>
+        <button class="nav-btn" data-view="engines"><span>◇</span>Engines</button>
+      </nav>
+      <div class="sidebar-status">
+        <div class="status-dot"></div>
+        <div><strong>Paper only</strong><small>Ordens reais bloqueadas</small></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="top-kicker">CRYPTOAI LAB</p>
+          <h1>Performer Crypto AI Dashboard</h1>
+          <p>Performance histórica, paper forward e comparação diária dos engines.</p>
         </div>
-        <nav class="nav">
-          <button class="nav-btn active" data-view="overview"><span class="nav-icon">⌂</span>Visão geral</button>
-          <button class="nav-btn" data-view="paper"><span class="nav-icon">◎</span>Paper</button>
-          <button class="nav-btn" data-view="backtest"><span class="nav-icon">↗</span>Backtest</button>
-          <button class="nav-btn" data-view="engines"><span class="nav-icon">◇</span>Engines</button>
-        </nav>
-        <div class="sidebar-bottom">
-          <div class="safe-row"><i class="safe-dot"></i><div class="safe-copy"><strong>Paper only</strong><span>Ordens reais bloqueadas</span></div></div>
+        <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
+      </header>
+
+      <div id="loading" class="loading"><span class="loader"></span>Carregando snapshots do CryptoAI…</div>
+
+      <section id="overview" class="view active">
+        <article class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">PERFORMANCE LAB · 5 ENGINES</p>
+            <h2>Uma visão clara de <span class="accent">valor, percentual e consistência diária.</span></h2>
+            <p>V13, V14, V15, V16 e V99 lado a lado. O paper continua separado do histórico e nenhum resultado passado é apresentado como promessa futura.</p>
+            <div class="hero-badges"><span>V13 CORE</span><span>V14</span><span>V15</span><span>V16</span><span class="lime">V99 FROZEN</span></div>
+          </div>
+          <div class="hero-metric">
+            <span>Engine em destaque</span>
+            <strong id="overview-leader">—</strong>
+            <small id="overview-leader-note">Calculando recorte de 1 ano…</small>
+          </div>
+        </article>
+
+        <div class="section-title compact">
+          <div><p class="eyebrow">PAPER FORWARD</p><h2>Estado atual dos engines</h2><p>Capital simulado desde o boundary independente de cada versão.</p></div>
         </div>
-      </aside>
+        <div id="paper-engine-cards" class="engine-grid five"></div>
 
-      <main class="main">
-        <header class="topbar">
-          <div><h1>Performer Crypto AI Dashboard</h1><p>Pesquisa, paper forward e replay histórico no mesmo lugar.</p></div>
-          <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
-        </header>
+        <div class="section-title split-title">
+          <div><p class="eyebrow">PANORAMA HISTÓRICO</p><h2>Evolução lado a lado</h2><p>O mesmo recorte de mercado visto em patrimônio e em retorno percentual.</p></div>
+          <div id="overview-range" class="range-tabs">
+            <button data-days="30">30D</button><button data-days="90">3M</button><button data-days="180">6M</button><button class="active" data-days="365">1A</button><button data-days="all">Tudo</button>
+          </div>
+        </div>
 
-        <div id="loading" class="loading">Carregando paper e histórico…</div>
-
-        <section id="overview" class="view active">
-          <article class="hero">
-            <div>
-              <p class="eyebrow">V99 FROZEN · FORWARD CANDIDATE</p>
-              <h2>Preservar o V16. Adicionar alpha <span class="accent">quando existe evidência.</span></h2>
-              <p>O V99 congelado mantém o V16 como núcleo e permite um satélite de até 10% somente quando seis horizontes independentes dão consenso suficiente. O backtest passou pelo gate R16; o forward paper começa do zero.</p>
-            </div>
-            <div class="hero-status">
-              <span>Estado atual</span>
-              <strong id="hero-status-value">Aguardando forward</strong>
-              <small id="hero-status-note">Novo boundary independente.</small>
-            </div>
+        <div class="grid-2 charts-grid">
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO POR VALOR</p><h3>R$ 10.000 normalizados no início do recorte</h3></div><div id="overview-money-legend" class="legend"></div></div>
+            <div class="chart-box tall"><canvas id="overview-money-chart"></canvas></div>
           </article>
-
-          <div class="section-title">
-            <div><p class="eyebrow">PAPER FORWARD</p><h2>Comparação dos engines</h2><p>Capital simulado desde o boundary de cada robô. O histórico anterior não entra como lucro paper.</p></div>
-          </div>
-          <div id="paper-engine-cards" class="engine-grid"></div>
-
-          <div class="grid-2">
-            <article class="panel">
-              <div class="panel-head"><div><p class="eyebrow">PATRIMÔNIO</p><h3>Evolução do paper</h3></div><div id="paper-legend" class="legend"></div></div>
-              <div class="chart-box"><canvas id="paper-chart"></canvas></div>
-            </article>
-            <aside id="paper-detail" class="panel"></aside>
-          </div>
-        </section>
-
-        <section id="paper" class="view">
-          <div class="section-title">
-            <div><p class="eyebrow">EXECUÇÃO FUTURA SIMULADA</p><h2>Paper trading</h2><p>Aqui o foco é simples: quanto cada engine ganhou ou perdeu depois do seu boundary, quais posições estão abertas e qual exposição está sendo usada agora.</p></div>
-          </div>
-          <div id="paper-engine-cards-copy" class="engine-grid"></div>
-          <div class="grid-2">
-            <article class="panel">
-              <div class="panel-head"><div><p class="eyebrow">COMPARAÇÃO</p><h3>Curva de capital</h3></div><div class="legend" id="paper-legend-copy"></div></div>
-              <div class="chart-box tall"><canvas id="paper-chart-copy"></canvas></div>
-            </article>
-            <article class="panel">
-              <div class="panel-head"><div><p class="eyebrow">LEITURA</p><h3>O que importa no paper</h3></div></div>
-              <div class="arch-card" style="padding:0;border:0;background:transparent"><p>Não espero que alguns dias provem nada. O objetivo é observar se o V99 mantém retorno competitivo com cauda melhor e se o comportamento histórico aparece novamente em dados que nunca participaram do desenvolvimento.</p></div>
-              <div class="note">Uma semana ruim não altera parâmetros. Uma semana ótima também não promove o candidato. O forward precisa permanecer congelado.</div>
-            </article>
-          </div>
-        </section>
-
-        <section id="backtest" class="view">
-          <div class="section-title">
-            <div><p class="eyebrow">HISTORICAL REPLAY</p><h2>Backtest Simulator</h2><p>Escolha capital, engines e período. O simulador recalcula ROI, capital final, drawdown e melhores/piores dias diretamente da curva histórica.</p></div>
-          </div>
-
-          <div class="controls">
-            <div class="control-group"><label>Capital inicial</label><input id="bt-capital" type="number" min="1" step="100" value="10000" /></div>
-            <div class="control-group"><label>Período</label><div class="preset-row">
-              <button class="preset" data-days="7">7D</button><button class="preset" data-days="30">30D</button><button class="preset" data-days="90">3M</button><button class="preset" data-days="180">6M</button><button class="preset active" data-days="365">1A</button><button class="preset" data-days="all">Tudo</button>
-            </div></div>
-            <div class="control-group"><label>De</label><input id="bt-start" type="date" /></div>
-            <div class="control-group"><label>Até</label><input id="bt-end" type="date" /></div>
-            <div class="control-group"><label>Engines</label><div class="engine-toggles"><button class="engine-toggle active" data-engine="v14">V14</button><button class="engine-toggle active" data-engine="v15">V15</button><button class="engine-toggle active" data-engine="v16">V16</button><button class="engine-toggle active" data-engine="v99">V99</button></div></div>
-          </div>
-
-          <div id="backtest-kpis" class="backtest-kpis"></div>
-          <article class="panel">
-            <div class="panel-head"><div><p class="eyebrow">ROI ACUMULADO</p><h3>Comparação no período escolhido</h3></div><div id="backtest-legend" class="legend"></div></div>
-            <div class="chart-box tall"><canvas id="backtest-chart"></canvas></div>
-            <div class="note">Backtest é replay histórico causal com custos modelados. Serve como evidência e comparação — não como promessa do próximo período.</div>
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO POR %</p><h3>Retorno acumulado no recorte</h3></div><div id="overview-pct-legend" class="legend"></div></div>
+            <div class="chart-box tall"><canvas id="overview-pct-chart"></canvas></div>
           </article>
-        </section>
+        </div>
 
-        <section id="engines" class="view">
-          <div class="section-title">
-            <div><p class="eyebrow">ARQUITETURA</p><h2>Como os engines trabalham</h2><p>Separação clara entre os controles existentes e o novo V99 Frozen.</p></div>
+        <div class="section-title split-title daily-heading">
+          <div><p class="eyebrow">RESULTADO DIÁRIO</p><h2>Resultado % de cada dia · não acumulado</h2><p>Cada barra representa somente o ganho ou a perda daquele dia. Zero é a linha de referência.</p></div>
+          <div id="daily-range" class="range-tabs"><button data-days="7">7D</button><button class="active" data-days="30">30D</button><button data-days="90">3M</button><button data-days="180">6M</button><button data-days="365">1A</button></div>
+        </div>
+
+        <article class="panel daily-panel">
+          <div class="panel-head"><div><p class="eyebrow">NÃO ACUMULADO</p><h3>Variação diária por engine</h3></div><div id="daily-legend" class="legend"></div></div>
+          <div class="chart-box daily-chart"><canvas id="daily-result-chart"></canvas></div>
+        </article>
+
+        <article class="panel table-panel">
+          <div class="panel-head"><div><p class="eyebrow">TABELA DIÁRIA</p><h3>Resultado de cada engine por dia</h3></div><small>Mais recente primeiro</small></div>
+          <div class="table-scroll">
+            <table class="daily-table">
+              <thead><tr><th>Data</th><th>V13</th><th>V14</th><th>V15</th><th>V16</th><th>V99</th><th>Melhor do dia</th></tr></thead>
+              <tbody id="daily-table-body"></tbody>
+            </table>
           </div>
-          <div class="arch-grid">
-            <article class="arch-card"><span class="num">01 · V14</span><h3>Maximum Capture</h3><p>Controle agressivo. Busca capturar movimentos maiores e serve como referência de retorno explosivo.</p></article>
-            <article class="arch-card"><span class="num">02 · V15</span><h3>Adaptive Capture</h3><p>Derivado do V14, com adaptação de direção e universo. Continua como controle independente.</p></article>
-            <article class="arch-card"><span class="num">03 · V16</span><h3>Balanced Relaxed</h3><p>Base do V99. O V99 não reescreve o V16: mantém esse motor como núcleo e adiciona um sleeve separado.</p></article>
-            <article class="arch-card"><span class="num">04 · V99</span><h3>Frozen Core + Alpha</h3><p>Satélite persistente com proteção imediata e alocação limitada a 10%, ativada por consenso em 45/60/90/120/180/240 dias.</p></article>
-          </div>
-          <article class="panel" style="margin-top:12px">
-            <div class="panel-head"><div><p class="eyebrow">V99 AGORA</p><h3>Core + satélite</h3></div></div>
-            <div id="architecture-live"></div>
+        </article>
+      </section>
+
+      <section id="paper" class="view">
+        <div class="section-title"><div><p class="eyebrow">EXECUÇÃO FUTURA SIMULADA</p><h2>Paper trading</h2><p>Somente dados posteriores ao boundary de cada engine contam aqui.</p></div></div>
+        <div id="paper-engine-cards-copy" class="engine-grid five"></div>
+        <div class="grid-2">
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><p class="eyebrow">PATRIMÔNIO PAPER</p><h3>Curva de capital</h3></div><div id="paper-legend" class="legend"></div></div>
+            <div class="chart-box tall"><canvas id="paper-chart"></canvas></div>
           </article>
-        </section>
+          <aside id="paper-detail" class="panel"></aside>
+        </div>
+      </section>
 
-        <footer class="footer"><span>Performer Crypto AI · Paper only</span><span id="footer-generated">Snapshot</span></footer>
-      </main>
-    </div>
-    <script src="app_v2.js" defer></script>
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        const observer = new MutationObserver(() => {
-          const sourceCards = document.querySelector('#paper-engine-cards');
-          const copy = document.querySelector('#paper-engine-cards-copy');
-          if (sourceCards && copy && sourceCards.children.length && !copy.children.length) copy.innerHTML = sourceCards.innerHTML;
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-      });
-    </script>
-  </body>
+      <section id="backtest" class="view">
+        <div class="section-title"><div><p class="eyebrow">HISTORICAL REPLAY</p><h2>Backtest Simulator</h2><p>Explore o histórico disponível dos cinco engines com o mesmo capital e janela.</p></div></div>
+        <div class="controls">
+          <div class="control-group"><label>Capital inicial</label><input id="bt-capital" type="number" min="1" step="100" value="10000" /></div>
+          <div class="control-group wide"><label>Período</label><div class="preset-row"><button class="preset" data-days="7">7D</button><button class="preset" data-days="30">30D</button><button class="preset" data-days="90">3M</button><button class="preset" data-days="180">6M</button><button class="preset active" data-days="365">1A</button><button class="preset" data-days="all">Tudo</button></div></div>
+          <div class="control-group"><label>De</label><input id="bt-start" type="date" /></div>
+          <div class="control-group"><label>Até</label><input id="bt-end" type="date" /></div>
+          <div class="control-group full"><label>Engines</label><div class="engine-toggles"><button class="engine-toggle active" data-engine="v13">V13</button><button class="engine-toggle active" data-engine="v14">V14</button><button class="engine-toggle active" data-engine="v15">V15</button><button class="engine-toggle active" data-engine="v16">V16</button><button class="engine-toggle active" data-engine="v99">V99</button></div></div>
+        </div>
+        <div id="backtest-kpis" class="backtest-kpis"></div>
+        <article class="panel chart-panel">
+          <div class="panel-head"><div><p class="eyebrow">ROI ACUMULADO</p><h3>Comparação no período escolhido</h3></div><div id="backtest-legend" class="legend"></div></div>
+          <div class="chart-box xl"><canvas id="backtest-chart"></canvas></div>
+          <div class="note">Replay histórico com custos modelados. Resultados passados não são garantia de desempenho futuro.</div>
+        </article>
+      </section>
+
+      <section id="engines" class="view">
+        <div class="section-title"><div><p class="eyebrow">ARQUITETURA</p><h2>Engines do CryptoAI</h2><p>Do núcleo V13 ao candidato V99 Frozen.</p></div></div>
+        <div class="arch-grid five-arch">
+          <article class="arch-card v13"><span class="num">01 · V13</span><h3>PIT Carry Core</h3><p>Núcleo causal point-in-time com carry, controle de exposição e circuit breaker.</p></article>
+          <article class="arch-card v14"><span class="num">02 · V14</span><h3>Maximum Capture</h3><p>Adiciona overlay de oportunidade ao núcleo para capturar movimentos maiores.</p></article>
+          <article class="arch-card v15"><span class="num">03 · V15</span><h3>Adaptive Capture</h3><p>Derivado do V14, com adaptação de direção e universo dinâmico.</p></article>
+          <article class="arch-card v16"><span class="num">04 · V16</span><h3>Balanced Relaxed</h3><p>Allocator multi-horizonte, convex overlay e proteção de lucro.</p></article>
+          <article class="arch-card v99"><span class="num">05 · V99</span><h3>Frozen Core + Alpha</h3><p>V16 como núcleo e satélite alpha limitado, ativado por consenso multihorizonte.</p></article>
+        </div>
+        <article class="panel architecture-panel"><div class="panel-head"><div><p class="eyebrow">V99 AGORA</p><h3>Core + satélite</h3></div></div><div id="architecture-live"></div></article>
+      </section>
+
+      <footer class="footer"><span>Performer Crypto AI · Paper only</span><span id="footer-generated">Snapshot</span></footer>
+    </main>
+  </div>
+  <script src="app_v2.js" defer></script>
+</body>
 </html>
