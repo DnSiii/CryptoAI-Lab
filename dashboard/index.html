@@ -26,7 +26,7 @@
       </nav>
       <div class="sidebar-status">
         <div class="status-dot"></div>
-        <div><strong>Simulação</strong><small>Sem ordens reais</small></div>
+        <div><strong>Simulação</strong><small>America/Sao_Paulo</small></div>
       </div>
     </aside>
 
@@ -35,7 +35,7 @@
         <div>
           <p class="top-kicker">BACKTEST · CRYPTOAI</p>
           <h1 id="page-title">Backtest CryptoAI</h1>
-          <p id="page-subtitle">Análise histórica comparativa dos engines V13, V14, V15, V16 e V99.</p>
+          <p id="page-subtitle">Análise histórica comparativa dos engines V13, V14, V15, V16 e V99 · calendário America/Sao_Paulo.</p>
         </div>
         <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
       </header>
@@ -47,7 +47,7 @@
           <div class="hero-copy">
             <p class="eyebrow">HISTORICAL REPLAY · ANÁLISE</p>
             <h2>Mesmo mercado. Mesmo capital.<br><span class="accent">Cinco engines comparados dia a dia.</span></h2>
-            <p>V13, V14, V15, V16 e V99 no mesmo recorte. Patrimônio, ROI, drawdown, resultado diário e consistência em uma única visão.</p>
+            <p>V13, V14, V15, V16 e V99 no mesmo recorte. Patrimônio, ROI, drawdown, resultado diário e consistência em uma única visão. Todo fechamento diário segue America/Sao_Paulo.</p>
           </div>
           <div class="hero-score">
             <span>Melhor ROI no recorte</span>
@@ -71,29 +71,29 @@
           <article class="panel chart-panel">
             <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO POR VALOR</p><h3>Patrimônio · fechamento diário</h3></div><div id="bt-money-legend" class="legend"></div></div>
             <div class="chart-scroll"><div id="bt-money-stage" class="chart-stage"><canvas id="bt-money-chart"></canvas></div></div>
-            <div class="chart-foot">Cada ponto possui rótulo de capital. A rolagem horizontal fica somente dentro do gráfico quando o período for longo.</div>
+            <div class="chart-foot">Cada ponto possui rótulo de capital. Fechamentos diários: America/Sao_Paulo.</div>
           </article>
           <article class="panel chart-panel">
             <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO POR %</p><h3>ROI acumulado · fechamento diário</h3></div><div id="bt-pct-legend" class="legend"></div></div>
             <div class="chart-scroll"><div id="bt-pct-stage" class="chart-stage"><canvas id="bt-pct-chart"></canvas></div></div>
-            <div class="chart-foot">O primeiro dia do recorte é 0%. Todos os engines usam a mesma janela.</div>
+            <div class="chart-foot">O primeiro dia do recorte é 0%. Todos os engines usam o mesmo calendário de São Paulo.</div>
           </article>
         </div>
 
         <article class="panel chart-panel daily-block">
           <div class="panel-head"><div><p class="eyebrow">RESULTADO % DE CADA DIA · NÃO ACUMULADO</p><h3>Retorno diário dos engines</h3></div><div id="bt-daily-legend" class="legend"></div></div>
           <div class="chart-scroll"><div id="bt-daily-stage" class="chart-stage daily-stage"><canvas id="bt-daily-chart"></canvas></div></div>
-          <div class="chart-foot">Cada barra mostra somente o ganho ou a perda daquele dia. Não é resultado acumulado.</div>
+          <div class="chart-foot">Cada barra mostra somente o ganho ou a perda daquele dia, de 00:00 a 23:59 em America/Sao_Paulo.</div>
         </article>
 
         <article class="panel chart-panel drawdown-block">
           <div class="panel-head"><div><p class="eyebrow">RISCO AO LONGO DO TEMPO</p><h3>Drawdown diário</h3></div><div id="bt-dd-legend" class="legend"></div></div>
           <div class="chart-scroll"><div id="bt-dd-stage" class="chart-stage"><canvas id="bt-dd-chart"></canvas></div></div>
-          <div class="chart-foot">Mostra quanto cada engine estava abaixo do seu próprio pico em cada dia.</div>
+          <div class="chart-foot">Mostra quanto cada engine estava abaixo do seu próprio pico em cada fechamento diário de São Paulo.</div>
         </article>
 
         <article class="panel table-panel full-table">
-          <div class="panel-head"><div><p class="eyebrow">DIA A DIA</p><h3>Tabela completa de resultados do backtest</h3></div><small>Mais recente primeiro</small></div>
+          <div class="panel-head"><div><p class="eyebrow">DIA A DIA · AMERICA/SAO_PAULO</p><h3>Tabela completa de resultados do backtest</h3></div><small>Mais recente primeiro</small></div>
           <div class="table-scroll"><table class="daily-table"><thead><tr><th>Data</th><th>V13</th><th>V14</th><th>V15</th><th>V16</th><th>V99</th><th>Melhor do dia</th></tr></thead><tbody id="bt-daily-table"></tbody></table></div>
         </article>
       </section>
@@ -103,7 +103,7 @@
           <div>
             <p class="pc-kicker">PAPER TRADING · SIMULAÇÃO APENAS</p>
             <h2>CryptoAI Paper Dashboard</h2>
-            <p>Uma leitura simples do paper oficial: o que aconteceu na última hora, nas últimas 24 horas, hoje e desde o boundary. V13, V14, V15, V16 e V99 usam exatamente os snapshots oficiais do CryptoAI; nenhuma ordem real é enviada.</p>
+            <p>Uma leitura simples do paper oficial: o que aconteceu na última hora, nas últimas 24 horas, hoje e desde o boundary. V13, V14, V15, V16 e V99 usam exatamente os snapshots oficiais do CryptoAI. O calendário diário inteiro usa America/Sao_Paulo.</p>
           </div>
           <div class="pc-live"><span>Status</span><strong id="pc-live-status">CARREGANDO PAPER</strong><small id="pc-live-note">Aguardando snapshot oficial</small></div>
         </article>
@@ -118,13 +118,13 @@
 
         <div class="pc-section-head"><div><p class="pc-kicker">% POR HORA E POR DIA</p><h3>O que realmente mudou em cada período</h3><p>Resultado não acumulado: cada barra pertence somente àquela hora ou àquele dia.</p></div></div>
         <div class="pc-chart-stack">
-          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Resultado % por hora · últimas 24h</h3><p>Cada hora isolada.</p></div><div id="pc-hourly-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-hourly-stage" class="pc-chart-stage pc-bars"><canvas id="pc-hourly-chart"></canvas></div></div><div class="pc-foot">Os rótulos são o resultado daquela hora, não o total acumulado.</div></article>
-          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Resultado % de cada dia · não acumulado</h3><p>Quanto cada engine ganhou ou perdeu naquele dia.</p></div><div id="pc-daily-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-daily-stage" class="pc-chart-stage pc-bars"><canvas id="pc-daily-chart"></canvas></div></div><div class="pc-foot">Dias positivos e negativos permanecem visíveis.</div></article>
-          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Evolução do patrimônio</h3><p>Fechamento diário em R$.</p></div><div id="pc-value-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-value-stage" class="pc-chart-stage"><canvas id="pc-value-chart"></canvas></div></div><div class="pc-foot">Curva do paper forward, sem misturar resultados históricos de backtest.</div></article>
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Resultado % por hora · últimas 24h</h3><p>Horas exibidas no horário de São Paulo.</p></div><div id="pc-hourly-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-hourly-stage" class="pc-chart-stage pc-bars"><canvas id="pc-hourly-chart"></canvas></div></div><div class="pc-foot">Os rótulos são o resultado daquela hora, não o total acumulado.</div></article>
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Resultado % de cada dia · não acumulado</h3><p>Dia = 00:00–23:59 em America/Sao_Paulo.</p></div><div id="pc-daily-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-daily-stage" class="pc-chart-stage pc-bars"><canvas id="pc-daily-chart"></canvas></div></div><div class="pc-foot">Dias positivos e negativos permanecem visíveis.</div></article>
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Evolução do patrimônio</h3><p>Fechamento diário em R$ no calendário de São Paulo.</p></div><div id="pc-value-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-value-stage" class="pc-chart-stage"><canvas id="pc-value-chart"></canvas></div></div><div class="pc-foot">Curva do paper forward, sem misturar resultados históricos de backtest.</div></article>
           <article class="pc-panel"><div class="pc-panel-head"><div><h3>Evolução % do paper</h3><p>Retorno acumulado desde o boundary de cada engine.</p></div><div id="pc-pct-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-pct-stage" class="pc-chart-stage"><canvas id="pc-pct-chart"></canvas></div></div><div class="pc-foot">Cada engine começa seu próprio paper em 0%.</div></article>
         </div>
 
-        <div class="pc-section-head"><div><p class="pc-kicker">OPERAÇÕES SIMPLES</p><h3>O que o robô fez, sem linguagem confusa</h3><p>Comprou mais, diminuiu, encerrou ou montou posição para ganhar com queda. Preços só aparecem quando o ledger oficial publica o dado.</p></div></div>
+        <div class="pc-section-head"><div><p class="pc-kicker">OPERAÇÕES SIMPLES</p><h3>O que o robô fez, sem linguagem confusa</h3><p>Comprou mais, diminuiu, encerrou ou montou posição para ganhar com queda. Horários exibidos em São Paulo.</p></div></div>
         <article class="pc-panel">
           <div class="pc-operations-layout">
             <div class="pc-engine-filter">
@@ -138,11 +138,11 @@
           </div>
         </article>
 
-        <div class="pc-section-head"><div><p class="pc-kicker">HISTÓRICO DIÁRIO</p><h3>Resultado diário de todos os engines</h3><p>Mais recente primeiro, com o melhor engine de cada dia.</p></div></div>
+        <div class="pc-section-head"><div><p class="pc-kicker">HISTÓRICO DIÁRIO · AMERICA/SAO_PAULO</p><h3>Resultado diário de todos os engines</h3><p>Mais recente primeiro, com o melhor engine de cada dia.</p></div></div>
         <article class="pc-panel"><div class="pc-table-wrap"><table class="pc-table"><thead><tr><th>Data</th><th>V13</th><th>V14</th><th>V15</th><th>V16</th><th>V99</th><th>Melhor do dia</th></tr></thead><tbody id="pc-daily-table"></tbody></table></div></article>
       </section>
 
-      <footer class="footer"><span>Backtest CryptoAI · Historical Replay</span><span id="footer-generated">Snapshot</span></footer>
+      <footer class="footer"><span>Backtest CryptoAI · Historical Replay · America/Sao_Paulo</span><span id="footer-generated">Snapshot</span></footer>
     </main>
   </div>
   <script src="app_v2.js" defer></script>
