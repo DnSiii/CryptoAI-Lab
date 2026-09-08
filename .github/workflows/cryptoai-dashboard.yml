@@ -10,6 +10,7 @@ on:
     paths:
       - "dashboard/**"
       - "scripts/build_cryptoai_dashboard.py"
+      - "scripts/build_performer_dashboard.py"
       - "scripts/prepare_dashboard_v15_replay.py"
       - ".github/workflows/cryptoai-dashboard.yml"
   pull_request:
@@ -17,6 +18,7 @@ on:
     paths:
       - "dashboard/**"
       - "scripts/build_cryptoai_dashboard.py"
+      - "scripts/build_performer_dashboard.py"
       - "scripts/prepare_dashboard_v15_replay.py"
       - "scripts/paper_once_v99.py"
       - "scripts/verify_v99_cycle.py"
@@ -83,6 +85,8 @@ jobs:
             reports/paper_data_sync_v13.json \
             reports/paper_data_sync_v15.json \
             reports/paper_runtime_status.json \
+            reports/paper_v13_snapshot.json \
+            reports/paper_v13_ledger.json \
             reports/paper_v14_snapshot.json \
             reports/paper_v14_ledger.json \
             reports/paper_v15_snapshot.json \
@@ -103,13 +107,14 @@ jobs:
       - name: Validate dashboard contracts and JavaScript
         run: |
           python -m pytest tests/test_v99_paper.py
+          python -m py_compile scripts/build_performer_dashboard.py
           node --check dashboard/app_v2.js
 
       - name: Prepare V15 historical replay boundary
         run: python scripts/prepare_dashboard_v15_replay.py
 
-      - name: Build paper plus historical simulator snapshot
-        run: python scripts/build_cryptoai_dashboard.py
+      - name: Build Performer paper plus historical snapshot
+        run: python scripts/build_performer_dashboard.py
 
       - name: Upload dashboard snapshot
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -133,7 +138,6 @@ jobs:
           cp dashboard/index.html "$results_dir/dashboard/index.html"
           cp dashboard/app_v2.js "$results_dir/dashboard/app_v2.js"
           cp dashboard/nevryn.css "$results_dir/dashboard/nevryn.css"
-          # Keep the legacy asset names synchronized as compatibility aliases.
           cp dashboard/app_v2.js "$results_dir/dashboard/app.js"
           cp dashboard/nevryn.css "$results_dir/dashboard/styles.css"
           git -C "$results_dir" add \
@@ -144,6 +148,6 @@ jobs:
             dashboard/app.js \
             dashboard/styles.css
           if ! git -C "$results_dir" diff --cached --quiet; then
-            git -C "$results_dir" commit -m "Update CryptoAI dashboard with V99 ${{ steps.utc.outputs.date }}"
+            git -C "$results_dir" commit -m "Update Performer dashboard ${{ steps.utc.outputs.date }}"
             git -C "$results_dir" push origin HEAD:paper-results
           fi
