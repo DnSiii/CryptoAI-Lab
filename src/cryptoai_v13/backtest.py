@@ -61,7 +61,8 @@ def exact(data: FuturesData, targets: pd.DataFrame, cost_per_side: float = 0.000
           drawdown_guard_threshold: float | None = None,
           drawdown_guard_multiplier: float = 1.0,
           drawdown_guard_recovery: float | None = None,
-          drawdown_guard_cooldown_hours: int | None = None) -> BacktestResult:
+          drawdown_guard_cooldown_hours: int | None = None,
+          drawdown_guard_peak_lookback_hours: int | None = None) -> BacktestResult:
     """Stateful cross-margin replay with drift and conservative intrabar ruin.
 
     If all held assets touch their adverse hourly extrema, the portfolio must
@@ -98,6 +99,11 @@ def exact(data: FuturesData, targets: pd.DataFrame, cost_per_side: float = 0.000
             continue
         previous = index[i - 1]
         if drawdown_guard_threshold is not None:
+            if drawdown_guard_peak_lookback_hours is not None:
+                if drawdown_guard_peak_lookback_hours < 1:
+                    raise ValueError("drawdown guard peak lookback must be positive")
+                start = max(0, i - drawdown_guard_peak_lookback_hours)
+                peak_equity = float(equity.iloc[start:i].max())
             if (
                 drawdown_guard_cooldown_hours is not None
                 and drawdown_guard_active
@@ -211,7 +217,8 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
                drawdown_guard_threshold: float | None = None,
                drawdown_guard_multiplier: float = 1.0,
                drawdown_guard_recovery: float | None = None,
-               drawdown_guard_cooldown_hours: int | None = None) -> BacktestResult:
+               drawdown_guard_cooldown_hours: int | None = None,
+               drawdown_guard_peak_lookback_hours: int | None = None) -> BacktestResult:
     """Array implementation of :func:`exact` with identical execution rules.
 
     The state transition remains sequential and causal; only repeated pandas
@@ -251,6 +258,11 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
         equity_values[0] = current_equity
     for i in range(1, size):
         if drawdown_guard_threshold is not None:
+            if drawdown_guard_peak_lookback_hours is not None:
+                if drawdown_guard_peak_lookback_hours < 1:
+                    raise ValueError("drawdown guard peak lookback must be positive")
+                start = max(0, i - drawdown_guard_peak_lookback_hours)
+                peak_equity = float(np.nanmax(equity_values[start:i]))
             if (
                 drawdown_guard_cooldown_hours is not None
                 and drawdown_guard_active
