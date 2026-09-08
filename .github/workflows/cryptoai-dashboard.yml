@@ -96,6 +96,9 @@ jobs:
           python scripts/verify_v99_cycle.py
           python -m pytest tests/test_v99_paper.py
           node --check dashboard/app_v2.js
+          node --check dashboard/layout_fix.js
+          node --check dashboard/backtest_only.js
+          node --check dashboard/paper_classic.js
       - name: Prepare V15 historical replay boundary
         run: python scripts/prepare_dashboard_v15_replay.py
       - name: Build five-engine dashboard snapshot
@@ -134,6 +137,11 @@ jobs:
           cp dashboard/index.html "$results_dir/dashboard/index.html"
           cp dashboard/app_v2.js "$results_dir/dashboard/app_v2.js"
           cp dashboard/nevryn.css "$results_dir/dashboard/nevryn.css"
+          cp dashboard/layout_fix.css "$results_dir/dashboard/layout_fix.css"
+          cp dashboard/layout_fix.js "$results_dir/dashboard/layout_fix.js"
+          cp dashboard/backtest_only.js "$results_dir/dashboard/backtest_only.js"
+          cp dashboard/paper_classic.css "$results_dir/dashboard/paper_classic.css"
+          cp dashboard/paper_classic.js "$results_dir/dashboard/paper_classic.js"
           cp dashboard/app_v2.js "$results_dir/dashboard/app.js"
           cp dashboard/nevryn.css "$results_dir/dashboard/styles.css"
           git -C "$results_dir" add dashboard
