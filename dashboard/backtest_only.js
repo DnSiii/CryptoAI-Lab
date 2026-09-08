@@ -14,19 +14,23 @@ function applyBacktestBranding(){
   if(footer)footer.textContent="Backtest CryptoAI · Historical Replay";
 }
 
+function applyViewBranding(view){
+  if(view==="paper"){
+    if(typeof pcApplyPaperBranding==="function")pcApplyPaperBranding();
+  }else{
+    applyBacktestBranding();
+  }
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
   applyBacktestBranding();
-  const timer=setInterval(()=>{
+  document.querySelectorAll(".nav-btn").forEach(button=>{
+    button.addEventListener("click",()=>setTimeout(()=>applyViewBranding(button.dataset.view),0));
+  });
+  setTimeout(()=>{
     try{
-      if(typeof setView==="function"){
-        setView("backtest");
-        applyBacktestBranding();
-        const cards=document.querySelector("#backtest-kpis");
-        if(cards&&cards.children.length){
-          clearInterval(timer);
-        }
-      }
+      if(typeof setView==="function")setView("backtest");
+      applyBacktestBranding();
     }catch(_e){}
-  },80);
-  setTimeout(()=>clearInterval(timer),12000);
+  },180);
 });
