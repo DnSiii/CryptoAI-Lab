@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [research/v99-r37-crash-shield]
-    paths: ["scripts/run_v99_r37_crash_shield.py", "scripts/run_v99_r36_safe_core_router.py", "scripts/run_v99_r35_surgical_envelope.py", "scripts/run_v99_r25_trisleeve_meta.py", ".github/workflows/v99-r37-crash-shield.yml"]
+    paths: ["scripts/run_v99_r37_crash_shield.py", "scripts/run_v99_r37_crash_shield_fixed.py", "scripts/run_v99_r36_safe_core_router.py", "scripts/run_v99_r35_surgical_envelope.py", "scripts/run_v99_r25_trisleeve_meta.py", ".github/workflows/v99-r37-crash-shield.yml"]
 permissions:
   contents: write
 concurrency:
@@ -51,8 +51,8 @@ jobs:
           done
       - name: Prepare frozen V15 replay inputs
         run: python scripts/prepare_dashboard_v15_replay.py
-      - name: Run V99 R37 crash-shield laboratory
-        run: python scripts/run_v99_r37_crash_shield.py
+      - name: Run fixed V99 R37 crash-shield laboratory
+        run: python scripts/run_v99_r37_crash_shield_fixed.py
       - name: Upload V99 R37 evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
