@@ -43,8 +43,20 @@ jobs:
           done
       - name: Prepare frozen V15 replay inputs
         run: python scripts/prepare_dashboard_v15_replay.py
-      - name: Run V99 R25 tri-sleeve meta laboratory
-        run: python scripts/run_v99_r25_trisleeve_meta.py
+      - name: Fix product unpacking and run V99 R25 tri-sleeve meta laboratory
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/run_v99_r25_trisleeve_meta.py')
+          s=p.read_text()
+          old="for ak,(ae,asev,ap),hk,(he,hsev,hp),strong_core,stress_core in itertools.product(attacks.items(),hedges.items(),(.65,.75,.85),(.40,.55,.70)):"
+          new="for (ak,(ae,asev,ap)),(hk,(he,hsev,hp)),strong_core,stress_core in itertools.product(attacks.items(),hedges.items(),(.65,.75,.85),(.40,.55,.70)):"
+          if old not in s:
+              raise SystemExit('expected R25 loop not found')
+          p.write_text(s.replace(old,new))
+          PY
+          python scripts/run_v99_r25_trisleeve_meta.py
       - name: Upload V99 R25 evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
