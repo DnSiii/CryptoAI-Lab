@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050812" />
   <meta name="color-scheme" content="dark" />
-  <title>Performer · Crypto AI Backtest Dashboard</title>
+  <title>Backtest CryptoAI</title>
   <link rel="stylesheet" href="nevryn.css" />
   <link rel="stylesheet" href="layout_fix.css" />
+  <link rel="stylesheet" href="paper_classic.css" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -15,30 +16,31 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark"><span>P</span></div>
-        <div class="brand-copy"><strong>PERFORMER</strong><small>CRYPTO AI</small></div>
+        <div class="brand-mark"><span>C</span></div>
+        <div class="brand-copy"><strong>BACKTEST</strong><small>CRYPTOAI</small></div>
       </div>
-      <div class="nav-caption">PAINEL</div>
+      <div class="nav-caption">PAINÉIS</div>
       <nav class="nav">
         <button class="nav-btn active" data-view="backtest"><span class="nav-symbol">↗</span><div><strong>Visão Geral</strong><small>Backtest</small></div></button>
+        <button class="nav-btn" data-view="paper"><span class="nav-symbol">◉</span><div><strong>Paper</strong><small>Ao vivo</small></div></button>
       </nav>
       <div class="sidebar-status">
         <div class="status-dot"></div>
-        <div><strong>Historical replay</strong><small>Sem ordens reais</small></div>
+        <div><strong>Simulação</strong><small>Sem ordens reais</small></div>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <div>
-          <p class="top-kicker">PERFORMER · CRYPTOAI LAB</p>
-          <h1 id="page-title">Visão Geral · Backtest</h1>
-          <p id="page-subtitle">Comparação histórica dos engines no mesmo recorte de mercado.</p>
+          <p class="top-kicker">BACKTEST · CRYPTOAI</p>
+          <h1 id="page-title">Backtest CryptoAI</h1>
+          <p id="page-subtitle">Análise histórica comparativa dos engines V13, V14, V15, V16 e V99.</p>
         </div>
         <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
       </header>
 
-      <div id="loading" class="loading"><span class="loader"></span>Carregando histórico do CryptoAI…</div>
+      <div id="loading" class="loading"><span class="loader"></span>Carregando dados do CryptoAI…</div>
 
       <section id="backtest" class="view active">
         <article class="hero hero-backtest">
@@ -96,11 +98,56 @@
         </article>
       </section>
 
-      <footer class="footer"><span>Performer Crypto AI · Historical Backtest</span><span id="footer-generated">Snapshot</span></footer>
+      <section id="paper" class="view paper-classic">
+        <article class="pc-hero">
+          <div>
+            <p class="pc-kicker">PAPER TRADING · SIMULAÇÃO APENAS</p>
+            <h2>CryptoAI Paper Dashboard</h2>
+            <p>Uma leitura simples do paper oficial: o que aconteceu na última hora, nas últimas 24 horas, hoje e desde o boundary. V13, V14, V15, V16 e V99 usam exatamente os snapshots oficiais do CryptoAI; nenhuma ordem real é enviada.</p>
+          </div>
+          <div class="pc-live"><span>Status</span><strong id="pc-live-status">CARREGANDO PAPER</strong><small id="pc-live-note">Aguardando snapshot oficial</small></div>
+        </article>
+
+        <div class="pc-section-head"><div><p class="pc-kicker">BATEU O OLHO, ENTENDEU</p><h3>Resumo agora</h3><p>Quem está melhor em cada janela do paper.</p></div></div>
+        <div id="pc-summary" class="pc-summary-grid"></div>
+
+        <div class="pc-section-head"><div><p class="pc-kicker">CINCO ENGINES</p><h3>Resultado de cada um</h3><p>Capital, última hora, 24h, hoje e total do paper.</p></div></div>
+        <div id="pc-engine-cards" class="pc-engine-grid"></div>
+
+        <article class="pc-analysis"><div class="pc-analysis-icon">AI</div><div><h4>Análise automática em português simples</h4><p id="pc-analysis-text">Aguardando dados do paper.</p></div></article>
+
+        <div class="pc-section-head"><div><p class="pc-kicker">% POR HORA E POR DIA</p><h3>O que realmente mudou em cada período</h3><p>Resultado não acumulado: cada barra pertence somente àquela hora ou àquele dia.</p></div></div>
+        <div class="pc-chart-stack">
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Resultado % por hora · últimas 24h</h3><p>Cada hora isolada.</p></div><div id="pc-hourly-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-hourly-stage" class="pc-chart-stage pc-bars"><canvas id="pc-hourly-chart"></canvas></div></div><div class="pc-foot">Os rótulos são o resultado daquela hora, não o total acumulado.</div></article>
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Resultado % de cada dia · não acumulado</h3><p>Quanto cada engine ganhou ou perdeu naquele dia.</p></div><div id="pc-daily-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-daily-stage" class="pc-chart-stage pc-bars"><canvas id="pc-daily-chart"></canvas></div></div><div class="pc-foot">Dias positivos e negativos permanecem visíveis.</div></article>
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Evolução do patrimônio</h3><p>Fechamento diário em R$.</p></div><div id="pc-value-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-value-stage" class="pc-chart-stage"><canvas id="pc-value-chart"></canvas></div></div><div class="pc-foot">Curva do paper forward, sem misturar resultados históricos de backtest.</div></article>
+          <article class="pc-panel"><div class="pc-panel-head"><div><h3>Evolução % do paper</h3><p>Retorno acumulado desde o boundary de cada engine.</p></div><div id="pc-pct-legend" class="legend"></div></div><div class="pc-chart-scroll"><div id="pc-pct-stage" class="pc-chart-stage"><canvas id="pc-pct-chart"></canvas></div></div><div class="pc-foot">Cada engine começa seu próprio paper em 0%.</div></article>
+        </div>
+
+        <div class="pc-section-head"><div><p class="pc-kicker">OPERAÇÕES SIMPLES</p><h3>O que o robô fez, sem linguagem confusa</h3><p>Comprou mais, diminuiu, encerrou ou montou posição para ganhar com queda. Preços só aparecem quando o ledger oficial publica o dado.</p></div></div>
+        <article class="pc-panel">
+          <div class="pc-operations-layout">
+            <div class="pc-engine-filter">
+              <button class="pc-filter-btn active" data-pc-engine="v13">V13</button>
+              <button class="pc-filter-btn" data-pc-engine="v14">V14</button>
+              <button class="pc-filter-btn" data-pc-engine="v15">V15</button>
+              <button class="pc-filter-btn" data-pc-engine="v16">V16</button>
+              <button class="pc-filter-btn" data-pc-engine="v99">V99</button>
+            </div>
+            <div id="pc-operations" class="pc-ops-body"><div class="pc-empty">Carregando operações…</div></div>
+          </div>
+        </article>
+
+        <div class="pc-section-head"><div><p class="pc-kicker">HISTÓRICO DIÁRIO</p><h3>Resultado diário de todos os engines</h3><p>Mais recente primeiro, com o melhor engine de cada dia.</p></div></div>
+        <article class="pc-panel"><div class="pc-table-wrap"><table class="pc-table"><thead><tr><th>Data</th><th>V13</th><th>V14</th><th>V15</th><th>V16</th><th>V99</th><th>Melhor do dia</th></tr></thead><tbody id="pc-daily-table"></tbody></table></div></article>
+      </section>
+
+      <footer class="footer"><span>Backtest CryptoAI · Historical Replay</span><span id="footer-generated">Snapshot</span></footer>
     </main>
   </div>
   <script src="app_v2.js" defer></script>
   <script src="layout_fix.js" defer></script>
+  <script src="paper_classic.js" defer></script>
   <script src="backtest_only.js" defer></script>
 </body>
 </html>
