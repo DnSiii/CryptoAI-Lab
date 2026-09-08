@@ -1,5 +1,5 @@
 from __future__ import annotations
-import itertools, json, sys
+import gc, itertools, json, sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -16,10 +16,15 @@ REPORT = PROJECT / 'reports' / 'candidate_v99_r28_direction_gate.json'
 H = (7, 30, 90, 180, 365)
 
 
-def direction_factor(raw, close, p):
-    r24 = close.pct_change(24, fill_method=None)
-    r72 = close.pct_change(72, fill_method=None)
-    ema = close.ewm(span=336, adjust=False, min_periods=336).mean()
+def features(close):
+    return (
+        close.pct_change(24, fill_method=None),
+        close.pct_change(72, fill_method=None),
+        close.ewm(span=336, adjust=False, min_periods=336).mean(),
+    )
+
+
+def direction_factor(raw, close, r24, r72, ema, p):
     long = raw > 0
     short = raw < 0
     adverse = (
@@ -38,15 +43,17 @@ def direction_factor(raw, close, p):
     return factor, adverse, aligned
 
 
-def build_targets(raw, close, p):
-    factor, adverse, aligned = direction_factor(raw, close, p)
-    return cap(raw * factor, p['gross_cap']), adverse, aligned
+def build_targets(raw, close, feat, p):
+    r24, r72, ema = feat
+    factor, adverse, aligned = direction_factor(raw, close, r24, r72, ema, p)
+    targets = cap(raw * factor, p['gross_cap'])
+    return targets, adverse, aligned
 
 
-def slice_eval(data, targets, raw, ex, guard, candidate_gross, base_gross, cost, start, end):
+def slice_eval(data, raw, ex, guard, candidate_gross, base_gross, cost, p, start, end):
     d = sdata(data, start, end)
-    t = targets.reindex(index=d.close.index, columns=d.close.columns).fillna(0.0)
     r = raw.reindex(index=d.close.index, columns=d.close.columns).fillna(0.0)
+    t, _, _ = build_targets(r, d.close, features(d.close), p)
     a = run(d, t, ex, cost, candidate_gross, guard).equity
     b = run(d, r, ex, cost, base_gross, guard).equity
     return stats(a), stats(b)
@@ -68,24 +75,41 @@ def main():
     v15 = stats(core)
     v15_sev = stats(core_sev)
     base_screen_stats = stats(screen(data, raw, cost_per_side=base_cost).equity)
+    feat = features(data.close)
 
     adverse_presets = ((0.025, 0.05), (0.035, 0.07), (0.05, 0.10))
     boost_presets = ((0.015, 0.03), (0.025, 0.05), (0.04, 0.08))
-    screened, target_cache = [], {}
+    screened = []
 
-    for (a24, a72), (b24, b72), cut_scale, boost_scale, cooldown, gross in itertools.product(
-        adverse_presets, boost_presets, (0.0, 0.25, 0.50), (1.10, 1.20, 1.30), (6, 12, 24), (base_gross, 1.90, 2.10)
-    ):
-        p = {'adverse24': a24, 'adverse72': a72, 'boost24': b24, 'boost72': b72, 'cut_scale': cut_scale, 'boost_scale': boost_scale, 'cooldown': cooldown, 'gross_cap': gross}
+    grid = itertools.product(
+        adverse_presets, boost_presets, (0.0, 0.25, 0.50),
+        (1.10, 1.20, 1.30), (6, 12, 24), (base_gross, 1.90, 2.10)
+    )
+    for i, ((a24, a72), (b24, b72), cut_scale, boost_scale, cooldown, gross) in enumerate(grid, 1):
+        p = {
+            'adverse24': a24, 'adverse72': a72,
+            'boost24': b24, 'boost72': b72,
+            'cut_scale': cut_scale, 'boost_scale': boost_scale,
+            'cooldown': cooldown, 'gross_cap': gross,
+        }
         key = f"a{a24:.3f}_{a72:.3f}_b{b24:.3f}_{b72:.3f}_c{cut_scale:.2f}_x{boost_scale:.2f}_p{cooldown}_g{gross:.3f}"
-        targets, adverse, aligned = build_targets(raw, data.close, p)
+        targets, adverse, aligned = build_targets(raw, data.close, feat, p)
         s = stats(screen(data, targets, cost_per_side=base_cost).equity)
         wealth = (1+s['return']) / max(1e-12, 1+base_screen_stats['return'])
         dd = abs(s['max_drawdown']) / max(1e-12, abs(base_screen_stats['max_drawdown']))
         worst = abs(s['worst_day']) / max(1e-12, abs(base_screen_stats['worst_day']))
         score = 4*np.log(max(wealth,1e-12)) + 4*max(0,1-dd) - 5*max(0,dd-1) - 2*max(0,worst-1)
-        screened.append({'key': key, 'params': p, 'screen': s, 'screen_wealth_ratio': float(wealth), 'screen_dd_ratio': float(dd), 'screen_worst_ratio': float(worst), 'adverse_fraction': float(adverse.to_numpy(dtype=float).mean()), 'aligned_fraction': float(aligned.to_numpy(dtype=float).mean()), 'screen_score': float(score)})
-        target_cache[key] = targets
+        screened.append({
+            'key': key, 'params': p, 'screen': s,
+            'screen_wealth_ratio': float(wealth), 'screen_dd_ratio': float(dd),
+            'screen_worst_ratio': float(worst),
+            'adverse_fraction': float(adverse.to_numpy(dtype=float).mean()),
+            'aligned_fraction': float(aligned.to_numpy(dtype=float).mean()),
+            'screen_score': float(score),
+        })
+        del targets, adverse, aligned
+        if i % 24 == 0:
+            gc.collect()
 
     screened.sort(key=lambda z: z['screen_score'], reverse=True)
     split = int(len(core)*0.60)
@@ -94,7 +118,8 @@ def main():
     exact_rows = []
 
     for row in screened[:36]:
-        p, targets = row['params'], target_cache[row['key']]
+        p = row['params']
+        targets, _, _ = build_targets(raw, data.close, feat, p)
         eq = run(data, targets, ex, base_cost, p['gross_cap'], guard).equity
         s, hold = stats(eq), stats(eq.loc[hold_start:])
         wealth = (1+s['return']) / max(1e-12, 1+v15['return'])
@@ -102,26 +127,74 @@ def main():
         dd = abs(s['max_drawdown']) / max(1e-12, abs(v15['max_drawdown']))
         worst = abs(s['worst_day']) / max(1e-12, abs(v15['worst_day']))
         exact_score = 5*np.log(max(wealth,1e-12)) + 4*np.log(max(hold_wealth,1e-12)) + 5*max(0,1-dd) - 7*max(0,dd-1) - 3*max(0,worst-1)
-        exact_rows.append({**row, 'summary': s, 'holdout': hold, 'wealth_ratio_to_v15': float(wealth), 'holdout_wealth_ratio_to_v15': float(hold_wealth), 'drawdown_ratio_to_v15': float(dd), 'worst_day_ratio_to_v15': float(worst), 'exact_score': float(exact_score)})
+        exact_rows.append({
+            **row, 'summary': s, 'holdout': hold,
+            'wealth_ratio_to_v15': float(wealth),
+            'holdout_wealth_ratio_to_v15': float(hold_wealth),
+            'drawdown_ratio_to_v15': float(dd),
+            'worst_day_ratio_to_v15': float(worst),
+            'exact_score': float(exact_score),
+        })
+        del targets, eq
+        gc.collect()
 
     exact_rows.sort(key=lambda z: z['exact_score'], reverse=True)
     finalists, end = [], data.close.index[-1]
     for row in exact_rows[:8]:
-        p, targets = row['params'], target_cache[row['key']]
+        p = row['params']
         iso, iso_v15, rw, dw, ww, pw = {}, {}, {}, {}, {}, {}
         for days in H:
-            a, b = slice_eval(data, targets, raw, ex, guard, p['gross_cap'], base_gross, base_cost, end-pd.Timedelta(days=days), end)
+            a, b = slice_eval(data, raw, ex, guard, p['gross_cap'], base_gross, base_cost, p, end-pd.Timedelta(days=days), end)
             k = str(days); iso[k], iso_v15[k] = a, b
-            rw[k] = a['return'] >= b['return']; dw[k] = abs(a['max_drawdown']) <= abs(b['max_drawdown']); ww[k] = abs(a['worst_day']) <= abs(b['worst_day']); pw[k] = a['positive_days'] >= b['positive_days']
+            rw[k] = a['return'] >= b['return']
+            dw[k] = abs(a['max_drawdown']) <= abs(b['max_drawdown'])
+            ww[k] = abs(a['worst_day']) <= abs(b['worst_day'])
+            pw[k] = a['positive_days'] >= b['positive_days']
+        targets, _, _ = build_targets(raw, data.close, feat, p)
         sev = stats(run(data, targets, ex, severe_cost, p['gross_cap'], guard).equity)
         severe_ratio = (1+sev['return']) / max(1e-12, 1+v15_sev['return'])
-        gate = bool(all(rw.values()) and all(dw.values()) and all(ww.values()) and row['wealth_ratio_to_v15'] >= 1.50 and row['holdout_wealth_ratio_to_v15'] >= 1.25 and row['drawdown_ratio_to_v15'] <= 0.70 and row['worst_day_ratio_to_v15'] <= 0.75 and severe_ratio >= 1.25)
-        finalists.append({**row, 'isolated': iso, 'isolated_v15': iso_v15, 'isolated_return_wins_vs_v15': rw, 'isolated_drawdown_wins_vs_v15': dw, 'isolated_worst_day_wins_vs_v15': ww, 'isolated_positive_days_wins_vs_v15': pw, 'severe_cost': sev, 'severe_wealth_ratio_to_v15': float(severe_ratio), 'superior_gate_passed': gate})
+        gate = bool(
+            all(rw.values()) and all(dw.values()) and all(ww.values())
+            and row['wealth_ratio_to_v15'] >= 1.50
+            and row['holdout_wealth_ratio_to_v15'] >= 1.25
+            and row['drawdown_ratio_to_v15'] <= 0.70
+            and row['worst_day_ratio_to_v15'] <= 0.75
+            and severe_ratio >= 1.25
+        )
+        finalists.append({
+            **row, 'isolated': iso, 'isolated_v15': iso_v15,
+            'isolated_return_wins_vs_v15': rw,
+            'isolated_drawdown_wins_vs_v15': dw,
+            'isolated_worst_day_wins_vs_v15': ww,
+            'isolated_positive_days_wins_vs_v15': pw,
+            'severe_cost': sev,
+            'severe_wealth_ratio_to_v15': float(severe_ratio),
+            'superior_gate_passed': gate,
+        })
+        del targets
+        gc.collect()
 
-    finalists.sort(key=lambda z: (z['superior_gate_passed'], sum(z['isolated_return_wins_vs_v15'].values()), sum(z['isolated_drawdown_wins_vs_v15'].values()), z['holdout_wealth_ratio_to_v15'], z['wealth_ratio_to_v15'], -z['drawdown_ratio_to_v15']), reverse=True)
+    finalists.sort(key=lambda z: (
+        z['superior_gate_passed'],
+        sum(z['isolated_return_wins_vs_v15'].values()),
+        sum(z['isolated_drawdown_wins_vs_v15'].values()),
+        z['holdout_wealth_ratio_to_v15'], z['wealth_ratio_to_v15'],
+        -z['drawdown_ratio_to_v15'],
+    ), reverse=True)
     selected = finalists[0] if finalists else None
-    out = {'study':'V99 R28 direction-aware position gate','status':'RESEARCH_ONLY_DO_NOT_REWRITE_FROZEN_V99_PAPER','objective':'cut only positions moving materially against their requested direction while selectively boosting aligned positions, preserving the rest of V15','screen_grid_size':len(screened),'exact_screen_size':len(exact_rows),'v15':{'summary':v15,'severe_cost':v15_sev},'selected':selected,'finalists':finalists,'top_exact':exact_rows[:20],'top_screen':screened[:40],'disclosure':'Historical research only. Direction gates use only information available at close t for orders executed at open t+1. Screen replay is ranking-only; proof gates use exact stateful replay, isolated horizons, holdout, and severe costs. Any winner requires fresh forward validation.','funding_quarantined_symbols':quarantined,'v15_metadata':metadata}
+    out = {
+        'study':'V99 R28 direction-aware position gate',
+        'status':'RESEARCH_ONLY_DO_NOT_REWRITE_FROZEN_V99_PAPER',
+        'objective':'cut only positions moving materially against their requested direction while selectively boosting aligned positions, preserving the rest of V15',
+        'engineering_revision':'memory-safe replay; research logic and parameter grid unchanged from the original R28 run',
+        'screen_grid_size':len(screened), 'exact_screen_size':len(exact_rows),
+        'v15':{'summary':v15,'severe_cost':v15_sev}, 'selected':selected,
+        'finalists':finalists, 'top_exact':exact_rows[:20], 'top_screen':screened[:40],
+        'disclosure':'Historical research only. Direction gates use only information available at close t for orders executed at open t+1. Screen replay is ranking-only; proof gates use exact stateful replay, isolated horizons, holdout, and severe costs. Any winner requires fresh forward validation.',
+        'funding_quarantined_symbols':quarantined, 'v15_metadata':metadata,
+    }
     REPORT.write_text(json.dumps(out, indent=2)+'\n')
     print(json.dumps({'study':out['study'],'screen_grid_size':len(screened),'exact_screen_size':len(exact_rows),'v15':out['v15'],'selected':selected}, indent=2), flush=True)
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()
