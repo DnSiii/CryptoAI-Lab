@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050812" />
   <meta name="color-scheme" content="dark" />
-  <title>Performer · Crypto AI Dashboard</title>
+  <title>Performer · Crypto AI Backtest Dashboard</title>
   <link rel="stylesheet" href="nevryn.css" />
   <link rel="stylesheet" href="layout_fix.css" />
 </head>
@@ -18,14 +18,13 @@
         <div class="brand-mark"><span>P</span></div>
         <div class="brand-copy"><strong>PERFORMER</strong><small>CRYPTO AI</small></div>
       </div>
-      <div class="nav-caption">PAINÉIS</div>
+      <div class="nav-caption">PAINEL</div>
       <nav class="nav">
-        <button class="nav-btn active" data-view="paper"><span class="nav-symbol">◉</span><div><strong>Visão Geral</strong><small>Paper</small></div></button>
-        <button class="nav-btn" data-view="backtest"><span class="nav-symbol">↗</span><div><strong>Visão Geral</strong><small>Backtest</small></div></button>
+        <button class="nav-btn active" data-view="backtest"><span class="nav-symbol">↗</span><div><strong>Visão Geral</strong><small>Backtest</small></div></button>
       </nav>
       <div class="sidebar-status">
         <div class="status-dot"></div>
-        <div><strong>Paper only</strong><small>Ordens reais bloqueadas</small></div>
+        <div><strong>Historical replay</strong><small>Sem ordens reais</small></div>
       </div>
     </aside>
 
@@ -33,70 +32,20 @@
       <header class="topbar">
         <div>
           <p class="top-kicker">PERFORMER · CRYPTOAI LAB</p>
-          <h1 id="page-title">Visão Geral · Paper</h1>
-          <p id="page-subtitle">O que os engines estão fazendo depois do boundary independente.</p>
+          <h1 id="page-title">Visão Geral · Backtest</h1>
+          <p id="page-subtitle">Comparação histórica dos engines no mesmo recorte de mercado.</p>
         </div>
         <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
       </header>
 
-      <div id="loading" class="loading"><span class="loader"></span>Carregando snapshots do CryptoAI…</div>
+      <div id="loading" class="loading"><span class="loader"></span>Carregando histórico do CryptoAI…</div>
 
-      <section id="paper" class="view active">
-        <article class="hero hero-paper">
-          <div class="hero-copy">
-            <p class="eyebrow">PAPER FORWARD · DADOS NOVOS</p>
-            <h2>O passado ficou para trás.<br><span class="accent">Aqui vale só o que aconteceu depois do boundary.</span></h2>
-            <p>V13, V14, V15, V16 e V99 lado a lado, com capital, retorno, exposição, posições e comportamento diário.</p>
-          </div>
-          <div class="hero-score">
-            <span>Melhor ROI paper</span>
-            <strong id="paper-leader">—</strong>
-            <small id="paper-leader-note">Aguardando dados novos</small>
-          </div>
-        </article>
-
-        <div class="section-title compact">
-          <div><p class="eyebrow">AGORA</p><h2>Estado dos cinco engines</h2></div>
-          <span class="section-hint">Clique em um engine para ver posições e detalhes.</span>
-        </div>
-        <div id="paper-engine-cards" class="engine-grid five"></div>
-
-        <div id="paper-insights" class="insight-grid"></div>
-
-        <div class="grid-2 visual-grid">
-          <article class="panel chart-panel">
-            <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO DO PATRIMÔNIO</p><h3>Capital paper · dia a dia</h3></div><div id="paper-money-legend" class="legend"></div></div>
-            <div class="chart-scroll"><div id="paper-money-stage" class="chart-stage"><canvas id="paper-money-chart"></canvas></div></div>
-            <div class="chart-foot">Rótulos mostram o fechamento de cada dia. Arraste horizontalmente quando houver muitos dias.</div>
-          </article>
-          <article class="panel chart-panel">
-            <div class="panel-head"><div><p class="eyebrow">ROI PAPER</p><h3>Evolução percentual · dia a dia</h3></div><div id="paper-pct-legend" class="legend"></div></div>
-            <div class="chart-scroll"><div id="paper-pct-stage" class="chart-stage"><canvas id="paper-pct-chart"></canvas></div></div>
-            <div class="chart-foot">Cada ponto é o fechamento daquele dia em relação ao capital inicial do paper.</div>
-          </article>
-        </div>
-
-        <article class="panel chart-panel daily-block">
-          <div class="panel-head"><div><p class="eyebrow">RESULTADO % DE CADA DIA · NÃO ACUMULADO</p><h3>Quanto cada engine ganhou ou perdeu em cada dia</h3></div><div id="paper-daily-legend" class="legend"></div></div>
-          <div class="chart-scroll"><div id="paper-daily-stage" class="chart-stage daily-stage"><canvas id="paper-daily-chart"></canvas></div></div>
-          <div class="chart-foot">A linha central é 0%. Os números sobre as barras são resultados daquele dia, não acumulados.</div>
-        </article>
-
-        <div class="grid-2 lower-grid">
-          <article class="panel table-panel">
-            <div class="panel-head"><div><p class="eyebrow">DIA A DIA</p><h3>Tabela de resultados do paper</h3></div><small>Mais recente primeiro</small></div>
-            <div class="table-scroll"><table class="daily-table"><thead><tr><th>Data</th><th>V13</th><th>V14</th><th>V15</th><th>V16</th><th>V99</th><th>Melhor do dia</th></tr></thead><tbody id="paper-daily-table"></tbody></table></div>
-          </article>
-          <aside id="paper-detail" class="panel detail-panel"></aside>
-        </div>
-      </section>
-
-      <section id="backtest" class="view">
+      <section id="backtest" class="view active">
         <article class="hero hero-backtest">
           <div class="hero-copy">
             <p class="eyebrow">HISTORICAL REPLAY · ANÁLISE</p>
             <h2>Mesmo mercado. Mesmo capital.<br><span class="accent">Cinco engines comparados dia a dia.</span></h2>
-            <p>Use o mesmo recorte para todos. Patrimônio, ROI, drawdown, resultado diário e consistência aparecem no mesmo painel.</p>
+            <p>V13, V14, V15, V16 e V99 no mesmo recorte. Patrimônio, ROI, drawdown, resultado diário e consistência em uma única visão.</p>
           </div>
           <div class="hero-score">
             <span>Melhor ROI no recorte</span>
@@ -120,7 +69,7 @@
           <article class="panel chart-panel">
             <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO POR VALOR</p><h3>Patrimônio · fechamento diário</h3></div><div id="bt-money-legend" class="legend"></div></div>
             <div class="chart-scroll"><div id="bt-money-stage" class="chart-stage"><canvas id="bt-money-chart"></canvas></div></div>
-            <div class="chart-foot">Cada ponto possui rótulo de capital. Use a barra horizontal para navegar dia a dia.</div>
+            <div class="chart-foot">Cada ponto possui rótulo de capital. A rolagem horizontal fica somente dentro do gráfico quando o período for longo.</div>
           </article>
           <article class="panel chart-panel">
             <div class="panel-head"><div><p class="eyebrow">EVOLUÇÃO POR %</p><h3>ROI acumulado · fechamento diário</h3></div><div id="bt-pct-legend" class="legend"></div></div>
@@ -132,7 +81,7 @@
         <article class="panel chart-panel daily-block">
           <div class="panel-head"><div><p class="eyebrow">RESULTADO % DE CADA DIA · NÃO ACUMULADO</p><h3>Retorno diário dos engines</h3></div><div id="bt-daily-legend" class="legend"></div></div>
           <div class="chart-scroll"><div id="bt-daily-stage" class="chart-stage daily-stage"><canvas id="bt-daily-chart"></canvas></div></div>
-          <div class="chart-foot">Rótulos mostram o retorno daquele dia. Não é a curva acumulada.</div>
+          <div class="chart-foot">Cada barra mostra somente o ganho ou a perda daquele dia. Não é resultado acumulado.</div>
         </article>
 
         <article class="panel chart-panel drawdown-block">
@@ -147,10 +96,11 @@
         </article>
       </section>
 
-      <footer class="footer"><span>Performer Crypto AI · Paper only</span><span id="footer-generated">Snapshot</span></footer>
+      <footer class="footer"><span>Performer Crypto AI · Historical Backtest</span><span id="footer-generated">Snapshot</span></footer>
     </main>
   </div>
   <script src="app_v2.js" defer></script>
   <script src="layout_fix.js" defer></script>
+  <script src="backtest_only.js" defer></script>
 </body>
 </html>
