@@ -68,7 +68,9 @@ def feature_panel(data: FuturesData):
         features[f"market_{horizon}"]=broadcast(close.pct_change(horizon,fill_method=None).where(eligible).median(axis=1))
         features[f"breadth_{horizon}"]=broadcast(close.pct_change(horizon,fill_method=None).where(eligible).gt(0).sum(axis=1)/eligible.sum(axis=1).replace(0,np.nan))
     x=np.stack([v.to_numpy(dtype=float) for v in features.values()],axis=2)
-    return np.clip(x,-100,100),list(features),eligible
+    # Undefined ratios are unavailable observations, never extreme convictions.
+    x=np.where(np.isfinite(x),np.clip(x,-100,100),np.nan)
+    return x,list(features),eligible
 
 
 def forward_labels(data: FuturesData, hours: int):
