@@ -33,6 +33,7 @@ from cryptoai_v13.v16 import (
     combine_convex_with_core,
     convex_capture_targets,
     cross_sectional_momentum_targets,
+    downside_aware_two_sleeve_targets,
     funding_carry_targets,
     performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
@@ -602,6 +603,110 @@ def main() -> None:
                 row["screen_gate_passed"] = all(row["gate"].values())
                 row["score"] = score_row(row)
                 rows.append(row)
+
+    # Allocate smoothly between the same frozen V13 and V14 sleeves, but make
+    # the decision from compounded return, downside semideviation and rolling
+    # drawdown.  The weights deliberately favor the shortest generic window;
+    # there are no calendar exceptions or hindsight-selected regime dates.
+    downside_profiles = (
+        {
+            "name": "responsive",
+            "windows_days": (14, 45, 120),
+            "window_weights": (0.55, 0.30, 0.15),
+            "downside_penalty": 4.0,
+            "drawdown_penalty": 2.0,
+            "temperature": 0.0025,
+            "minimum_core_weight": 0.10,
+            "maximum_core_weight": 0.85,
+        },
+        {
+            "name": "balanced",
+            "windows_days": (21, 60, 180),
+            "window_weights": (0.50, 0.30, 0.20),
+            "downside_penalty": 3.0,
+            "drawdown_penalty": 1.5,
+            "temperature": 0.0030,
+            "minimum_core_weight": 0.10,
+            "maximum_core_weight": 0.80,
+        },
+        {
+            "name": "return_tilt",
+            "windows_days": (21, 45, 90),
+            "window_weights": (0.60, 0.30, 0.10),
+            "downside_penalty": 2.0,
+            "drawdown_penalty": 1.0,
+            "temperature": 0.0035,
+            "minimum_core_weight": 0.05,
+            "maximum_core_weight": 0.75,
+        },
+    )
+    downside_overlays = (
+        {
+            "name": "measured",
+            "winner": 1.15,
+            "loser": 0.60,
+            "drawdown": 0.35,
+            "threshold": 0.10,
+            "maximum_gross": 1.65,
+        },
+        {
+            "name": "attack",
+            "winner": 1.30,
+            "loser": 0.50,
+            "drawdown": 0.30,
+            "threshold": 0.12,
+            "maximum_gross": 1.85,
+        },
+    )
+    for allocation in downside_profiles:
+        mixed, diagnostics = downside_aware_two_sleeve_targets(
+            core_targets,
+            v14_targets,
+            core_returns,
+            v14_returns,
+            rebalance_hours=24,
+            maximum_gross=1.85,
+            **{key: value for key, value in allocation.items() if key != "name"},
+        )
+        proxy = screen(data, mixed, execution["base_cost_per_side"])
+        for overlay in downside_overlays:
+            targets = convex_equity_overlay(
+                mixed,
+                proxy.equity,
+                short_hours=72,
+                long_hours=24 * 30,
+                drawdown_hours=24 * 30,
+                drawdown_threshold=overlay["threshold"],
+                winner_multiplier=overlay["winner"],
+                loser_multiplier=overlay["loser"],
+                drawdown_multiplier=overlay["drawdown"],
+                rebalance_hours=24,
+                maximum_gross=overlay["maximum_gross"],
+            )
+            candidate_id = f"downside_allocator:{allocation['name']}:{overlay['name']}"
+            targets_by_id[candidate_id] = targets
+            result = screen(data, targets, execution["base_cost_per_side"])
+            row = {
+                "candidate_id": candidate_id,
+                "family": "downside_aware_v13_v14_allocator",
+                "name": f"{allocation['name']}_{overlay['name']}",
+                "allocation": allocation,
+                "convex_overlay": overlay,
+                "maximum_portfolio_gross": overlay["maximum_gross"],
+                "average_core_weight": float(diagnostics["core_weight"].mean()),
+                "risk_guard": {
+                    "name": "downside_allocator_exact_guard",
+                    "threshold": 0.12,
+                    "multiplier": 0.30,
+                    "recovery": None,
+                    "cooldown_hours": 168,
+                },
+                "profile": profile(result.equity, latest),
+            }
+            row["gate"] = robustness_gate(row, benchmark_recent_cagr)
+            row["screen_gate_passed"] = all(row["gate"].values())
+            row["score"] = score_row(row)
+            rows.append(row)
 
     # A regime allocator addresses the specific failure seen in V14/V15:
     # attack exposure remained high when the broad market stopped supporting
@@ -1853,7 +1958,9 @@ def main() -> None:
     ]
     exact_pool = []
     seen_ids: set[str] = set()
-    for row in []:
+    for row in ranked:
+        if row["family"] != "downside_aware_v13_v14_allocator":
+            continue
         candidate_id = str(row["candidate_id"])
         if candidate_id not in seen_ids:
             exact_pool.append(row)

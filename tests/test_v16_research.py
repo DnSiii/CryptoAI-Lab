@@ -22,6 +22,7 @@ from cryptoai_v13.v16 import (
     adaptive_trend_targets,
     combine_convex_with_core,
     cross_sectional_momentum_targets,
+    downside_aware_two_sleeve_targets,
     funding_carry_targets,
     performance_gated_alpha_targets,
     drawdown_regime_reentry_targets,
@@ -36,6 +37,52 @@ from cryptoai_v13.v16 import (
 
 
 class V16ResearchTests(unittest.TestCase):
+    def test_downside_allocator_is_causal_recent_weighted_and_caps_gross(self) -> None:
+        index = pd.date_range("2025-01-01", periods=24 * 240, freq="h", tz="UTC")
+        core_targets = pd.DataFrame(
+            {"BTCUSDT": 1.1, "ETHUSDT": 0.5}, index=index
+        )
+        attack_targets = pd.DataFrame(
+            {"BTCUSDT": 1.5, "ETHUSDT": -0.9}, index=index
+        )
+        core_returns = pd.Series(0.0001, index=index)
+        attack_returns = pd.Series(0.00025, index=index)
+        attack_returns.iloc[3000:3024] = -0.01
+        kwargs = dict(
+            windows_days=(14, 45, 120),
+            window_weights=(0.55, 0.30, 0.15),
+            downside_penalty=4.0,
+            drawdown_penalty=2.0,
+            temperature=0.0025,
+            minimum_core_weight=0.10,
+            maximum_core_weight=0.85,
+            rebalance_hours=24,
+            maximum_gross=1.85,
+        )
+        targets, diagnostics = downside_aware_two_sleeve_targets(
+            core_targets,
+            attack_targets,
+            core_returns,
+            attack_returns,
+            **kwargs,
+        )
+        changed_returns = attack_returns.copy()
+        changed_returns.iloc[-1] = -0.50
+        changed, _ = downside_aware_two_sleeve_targets(
+            core_targets,
+            attack_targets,
+            core_returns,
+            changed_returns,
+            **kwargs,
+        )
+        pd.testing.assert_frame_equal(targets.iloc[:-1], changed.iloc[:-1])
+        self.assertTrue((targets.abs().sum(axis=1) <= 1.85 + 1e-12).all())
+        self.assertTrue(diagnostics["core_weight"].between(0.10, 0.85).all())
+        self.assertGreater(
+            diagnostics["core_weight"].iloc[3024],
+            diagnostics["core_weight"].iloc[2976],
+        )
+
     def test_configuration_rejects_invalid_weights(self) -> None:
         with self.assertRaises(ValueError):
             ConvexCaptureSpec(fast_weight=0.8, slow_weight=0.3, trend_weight=0.2)

@@ -460,6 +460,107 @@ def performance_gated_alpha_targets(
     return targets, diagnostics
 
 
+def downside_aware_two_sleeve_targets(
+    core_targets: pd.DataFrame,
+    attack_targets: pd.DataFrame,
+    core_returns: pd.Series,
+    attack_returns: pd.Series,
+    *,
+    windows_days: tuple[int, ...],
+    window_weights: tuple[float, ...],
+    downside_penalty: float,
+    drawdown_penalty: float,
+    temperature: float,
+    minimum_core_weight: float,
+    maximum_core_weight: float,
+    rebalance_hours: int,
+    maximum_gross: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Allocate between frozen sleeves using only closed downside-aware evidence.
+
+    Shorter windows can receive more weight without date-specific rules.  Each
+    sleeve's utility rewards compounded log return and penalizes both downside
+    semideviation and drawdown from its rolling high-water mark.  A bounded
+    logistic transform avoids brittle all-or-nothing switching.
+    """
+
+    if not windows_days or len(windows_days) != len(window_weights):
+        raise ValueError("windows and weights must be non-empty and aligned")
+    if any(window <= 0 for window in windows_days):
+        raise ValueError("downside-aware windows must be positive")
+    if any(weight < 0.0 for weight in window_weights) or not np.isclose(
+        sum(window_weights), 1.0
+    ):
+        raise ValueError("window weights must be non-negative and sum to one")
+    if min(downside_penalty, drawdown_penalty) < 0.0 or temperature <= 0.0:
+        raise ValueError("penalties must be non-negative and temperature positive")
+    if not 0.0 <= minimum_core_weight < maximum_core_weight <= 1.0:
+        raise ValueError("invalid core-weight bounds")
+    if rebalance_hours <= 0 or maximum_gross <= 0.0:
+        raise ValueError("rebalance and gross must be positive")
+
+    index = core_targets.index
+    core = core_returns.reindex(index).fillna(0.0).clip(lower=-0.999999)
+    attack = attack_returns.reindex(index).fillna(0.0).clip(lower=-0.999999)
+
+    def utility(returns: pd.Series) -> pd.Series:
+        log_returns = np.log1p(returns)
+        cumulative_equity = np.exp(log_returns.cumsum())
+        components: list[pd.Series] = []
+        for days, weight in zip(windows_days, window_weights, strict=True):
+            hours = int(days * 24)
+            minimum = max(24, hours // 3)
+            compounded = log_returns.rolling(hours, min_periods=minimum).sum()
+            downside = returns.clip(upper=0.0).pow(2).rolling(
+                hours, min_periods=minimum
+            ).mean().pow(0.5)
+            rolling_peak = cumulative_equity.rolling(
+                hours, min_periods=minimum
+            ).max()
+            drawdown = cumulative_equity.div(rolling_peak).sub(1.0).clip(upper=0.0)
+            # Normalize return by sqrt(horizon) so the longest window does not
+            # dominate solely because it contains more observations.
+            component = (
+                compounded.div(np.sqrt(hours))
+                - downside_penalty * downside
+                - drawdown_penalty * drawdown.abs().div(np.sqrt(hours))
+            )
+            components.append(component.mul(weight))
+        return sum(components, pd.Series(0.0, index=index))
+
+    core_utility = utility(core)
+    attack_utility = utility(attack)
+    relative = (core_utility - attack_utility).clip(-50.0 * temperature, 50.0 * temperature)
+    preference = 1.0 / (1.0 + np.exp(-relative / temperature))
+    core_weight = minimum_core_weight + (
+        maximum_core_weight - minimum_core_weight
+    ) * preference
+    event = pd.Series(
+        np.arange(len(index)) % rebalance_hours == 0,
+        index=index,
+    )
+    core_weight = core_weight.where(event).ffill().fillna(0.5)
+    attack_weight = 1.0 - core_weight
+    combined = core_targets.fillna(0.0).mul(core_weight, axis=0).add(
+        attack_targets.reindex_like(core_targets).fillna(0.0).mul(
+            attack_weight, axis=0
+        ),
+        fill_value=0.0,
+    )
+    targets = _cap_gross(combined, maximum_gross)
+    diagnostics = pd.DataFrame(
+        {
+            "core_utility": core_utility,
+            "attack_utility": attack_utility,
+            "core_weight": core_weight,
+            "attack_weight": attack_weight,
+            "gross": targets.abs().sum(axis=1),
+        },
+        index=index,
+    )
+    return targets, diagnostics
+
+
 def regime_switch_targets(
     core_targets: pd.DataFrame,
     attack_targets: pd.DataFrame,
