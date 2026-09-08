@@ -7,8 +7,8 @@ let pcSelectedEngine="v13";
 const pcNum=v=>Number(v||0);
 const pcPct=(v,d=2)=>`${pcNum(v)>=0?"+":""}${pcNum(v).toFixed(d).replace(".",",")}%`;
 const pcBrl=(v,d=2)=>pcNum(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:d,maximumFractionDigits:d});
-const pcTime=v=>v?new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"UTC"}).format(new Date(v)):"—";
-const pcDate=v=>v?new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:"UTC"}).format(new Date(v)):"—";
+const pcTime=v=>v?new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:DASHBOARD_TIMEZONE}).format(new Date(v)):"—";
+const pcDate=v=>v?new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:DASHBOARD_TIMEZONE}).format(new Date(v)):"—";
 const pcEsc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 const pcTone=v=>pcNum(v)>0?"pc-positive":pcNum(v)<0?"pc-negative":"pc-neutral";
 
@@ -26,8 +26,8 @@ function pcReturnFrom(e,targetMs){
 }
 function pcStats(e){
   const curve=pcRawCurve(e); if(!curve.length)return{hour:0,day24:0,today:0,total:pcNum(e?.roiPct),capital:pcNum(e?.currentCapitalBrl),latest:0};
-  const latest=curve[curve.length-1].time,d=new Date(latest),startToday=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
-  return{hour:pcReturnFrom(e,latest-3600000),day24:pcReturnFrom(e,latest-86400000),today:pcReturnFrom(e,startToday),total:pcNum(e?.roiPct),capital:pcNum(e?.currentCapitalBrl||curve.at(-1).capital),latest};
+  const latest=curve[curve.length-1].time,startToday=localDayStartMs(latest);
+  return{hour:pcReturnFrom(e,latest-3600000),day24:pcReturnFrom(e,latest-86400000),today:pcReturnFrom(e,startToday-1),total:pcNum(e?.roiPct),capital:pcNum(e?.currentCapitalBrl||curve.at(-1).capital),latest};
 }
 function pcLeader(metric){
   const rows=pcPaperEngines().map(e=>({e,s:pcStats(e)}));
@@ -38,7 +38,7 @@ function pcSummary(){
   const cards=[
     ["hour","Melhor · última hora","Mudança desde a hora anterior"],
     ["day24","Melhor · últimas 24h","Janela móvel de 24 horas"],
-    ["today","Melhor · hoje","Desde 00:00 UTC"],
+    ["today","Melhor · hoje","Desde 00:00 de São Paulo"],
     ["total","Melhor · total do paper","Somente depois do boundary"]
   ];
   n.innerHTML=cards.map(([m,title,note],i)=>{const x=pcLeader(m);return `<article class="pc-summary-card ${i===0?"featured":""}"><span>${title}</span><strong class="${x?pcTone(x.s[m]):"pc-neutral"}">${x?`${pcEsc(x.e.label)} · ${pcPct(x.s[m])}`:"—"}</strong><small>${note}</small></article>`}).join("");
@@ -54,7 +54,7 @@ function pcAnalysis(){
   if(!h||!d||!t){n.textContent="Aguardando dados suficientes do paper.";return}
   const exposure=[...engines].sort((a,b)=>pcNum(b.grossExposurePct)-pcNum(a.grossExposurePct))[0];
   const positioned=engines.filter(e=>(e.positions||[]).length>0).length;
-  n.innerHTML=`Na última hora, <strong>${pcEsc(h.e.label)}</strong> teve o melhor resultado (${pcPct(h.s.hour)}). Nas últimas 24 horas, <strong>${pcEsc(d.e.label)}</strong> lidera com ${pcPct(d.s.day24)}. No total acumulado desde o início de cada paper, <strong>${pcEsc(t.e.label)}</strong> está à frente com ${pcPct(t.s.total)}. Agora, ${positioned} de ${engines.length} engines têm posição simulada aberta; a maior exposição é do ${pcEsc(exposure.label)} (${pcNum(exposure.grossExposurePct).toFixed(1).replace(".",",")}% bruto). <strong>Esses números são do paper forward, não do backtest.</strong>`;
+  n.innerHTML=`Na última hora, <strong>${pcEsc(h.e.label)}</strong> teve o melhor resultado (${pcPct(h.s.hour)}). Nas últimas 24 horas, <strong>${pcEsc(d.e.label)}</strong> lidera com ${pcPct(d.s.day24)}. No total acumulado desde o início de cada paper, <strong>${pcEsc(t.e.label)}</strong> está à frente com ${pcPct(t.s.total)}. Agora, ${positioned} de ${engines.length} engines têm posição simulada aberta; a maior exposição é do ${pcEsc(exposure.label)} (${pcNum(exposure.grossExposurePct).toFixed(1).replace(".",",")}% bruto). <strong>Calendário diário: America/Sao_Paulo. Esses números são do paper forward, não do backtest.</strong>`;
 }
 function pcHourlyRows(){
   const engines=pcPaperEngines(),latest=Math.max(0,...engines.flatMap(e=>pcRawCurve(e).map(p=>p.time))),cut=latest-24*3600000,maps={},times=new Set;
@@ -114,17 +114,17 @@ async function pcRenderOperations(){
   const ledger=await pcLoadLedger(pcSelectedEngine),hours=pcAdjustmentHours(ledger).slice(0,12);
   const assets=pcAssetCards(ledger,e);
   const ops=hours.flatMap(h=>(h.adjustments||[]).map(a=>({h,a}))).slice(0,18);
-  n.innerHTML=`<div class="pc-current-assets">${assets}</div><div class="pc-ops-list">${ops.length?ops.map(({h,a})=>{const[label,tone,goal]=pcActionInfo(a),result=Number.isFinite(Number(a.net_result_brl))?Number(a.net_result_brl):Number(h.net_result_brl);return `<article class="pc-op"><div class="pc-op-top"><div><span class="pc-action ${tone}">${label}</span><h4>${pcEsc(a.symbol?.replace("USDT","/USDT")||"Operação")}</h4><time>${pcTime(h.timestamp)} UTC</time></div><strong class="${pcTone(result)}">${Number.isFinite(result)?pcBrl(result):"—"}</strong></div><div class="pc-op-grid"><div class="pc-op-metric"><span>Valor movimentado</span><strong>${Number.isFinite(Number(a.order_value_brl))?pcBrl(a.order_value_brl):"—"}</strong></div><div class="pc-op-metric"><span>Preço do ajuste</span><strong>${Number.isFinite(Number(a.execution_price))?pcNum(a.execution_price).toLocaleString("pt-BR",{maximumFractionDigits:8}):"—"}</strong></div><div class="pc-op-metric"><span>Antes</span><strong>${Number.isFinite(Number(a.previous_weight))?pcPct(pcNum(a.previous_weight)*100,1):"—"}</strong></div><div class="pc-op-metric"><span>Depois</span><strong>${Number.isFinite(Number(a.new_weight))?pcPct(pcNum(a.new_weight)*100,1):"—"}</strong></div></div><div class="pc-op-note">Objetivo: ${goal}. ${a.result_scope==="whole_asset_hour_not_order_profit"?"O resultado mostrado é da posição inteira dessa moeda naquela hora, não apenas do pequeno ajuste.":""}</div></article>`}).join(""):`<div class="pc-empty">O ledger atual deste engine não publica ajustes detalhados nesse formato. As posições atuais acima continuam vindo do paper oficial; nenhum preço de entrada foi inventado.</div>`}</div>`;
+  n.innerHTML=`<div class="pc-current-assets">${assets}</div><div class="pc-ops-list">${ops.length?ops.map(({h,a})=>{const[label,tone,goal]=pcActionInfo(a),result=Number.isFinite(Number(a.net_result_brl))?Number(a.net_result_brl):Number(h.net_result_brl);return `<article class="pc-op"><div class="pc-op-top"><div><span class="pc-action ${tone}">${label}</span><h4>${pcEsc(a.symbol?.replace("USDT","/USDT")||"Operação")}</h4><time>${pcTime(h.timestamp)} · São Paulo</time></div><strong class="${pcTone(result)}">${Number.isFinite(result)?pcBrl(result):"—"}</strong></div><div class="pc-op-grid"><div class="pc-op-metric"><span>Valor movimentado</span><strong>${Number.isFinite(Number(a.order_value_brl))?pcBrl(a.order_value_brl):"—"}</strong></div><div class="pc-op-metric"><span>Preço do ajuste</span><strong>${Number.isFinite(Number(a.execution_price))?pcNum(a.execution_price).toLocaleString("pt-BR",{maximumFractionDigits:8}):"—"}</strong></div><div class="pc-op-metric"><span>Antes</span><strong>${Number.isFinite(Number(a.previous_weight))?pcPct(pcNum(a.previous_weight)*100,1):"—"}</strong></div><div class="pc-op-metric"><span>Depois</span><strong>${Number.isFinite(Number(a.new_weight))?pcPct(pcNum(a.new_weight)*100,1):"—"}</strong></div></div><div class="pc-op-note">Objetivo: ${goal}. ${a.result_scope==="whole_asset_hour_not_order_profit"?"O resultado mostrado é da posição inteira dessa moeda naquela hora, não apenas do pequeno ajuste.":""}</div></article>`}).join(""):`<div class="pc-empty">O ledger atual deste engine não publica ajustes detalhados nesse formato. As posições atuais acima continuam vindo do paper oficial; nenhum preço de entrada foi inventado.</div>`}</div>`;
 }
 function pcSyncFilters(){document.querySelectorAll("[data-pc-engine]").forEach(b=>b.classList.toggle("active",b.dataset.pcEngine===pcSelectedEngine))}
 function pcBindFilters(){document.querySelectorAll("[data-pc-engine]").forEach(b=>b.addEventListener("click",()=>{pcSelectedEngine=b.dataset.pcEngine;pcSyncFilters();pcEngineCards();pcRenderOperations()}));pcSyncFilters()}
 function renderPaperClassic(){
   if(!state?.data?.paper)return;pcSummary();pcEngineCards();pcAnalysis();pcRenderCharts();pcRenderTable();pcRenderOperations();
-  const status=document.querySelector("#pc-live-status"),note=document.querySelector("#pc-live-note");if(status)status.textContent="PAPER ATUALIZADO";if(note)note.textContent=`Snapshot ${pcTime(state.data.generatedAt)} UTC`;
+  const status=document.querySelector("#pc-live-status"),note=document.querySelector("#pc-live-note");if(status)status.textContent="PAPER ATUALIZADO";if(note)note.textContent=`Snapshot ${pcTime(state.data.generatedAt)} · São Paulo`;
 }
 function pcApplyPaperBranding(){
   document.title="CryptoAI Paper Dashboard · Backtest CryptoAI";const k=document.querySelector("#page-title"),s=document.querySelector("#page-subtitle"),kick=document.querySelector(".top-kicker"),foot=document.querySelector(".footer span:first-child");
-  if(k)k.textContent="CryptoAI Paper Dashboard";if(s)s.textContent="Última hora, últimas 24h, total, histórico por hora/dia e operações simples.";if(kick)kick.textContent="CRYPTOAI · PAPER TRADING";if(foot)foot.textContent="CryptoAI Paper Dashboard · PAPER ONLY";
+  if(k)k.textContent="CryptoAI Paper Dashboard";if(s)s.textContent="Última hora, últimas 24h, total, histórico por hora/dia e operações simples · America/Sao_Paulo.";if(kick)kick.textContent="CRYPTOAI · PAPER TRADING";if(foot)foot.textContent="CryptoAI Paper Dashboard · PAPER ONLY";
 }
 function pcActivateFromNav(button){
   if(button.dataset.view==="paper"){setTimeout(()=>{pcApplyPaperBranding();renderPaperClassic()},0)}else if(button.dataset.view==="backtest"){setTimeout(()=>{if(typeof applyBacktestBranding==="function")applyBacktestBranding()},0)}
@@ -133,7 +133,7 @@ function pcWaitForData(){
   let tries=0;const timer=setInterval(()=>{tries++;try{if(state?.data?.paper){clearInterval(timer);if(document.querySelector("#paper")?.classList.contains("active"))renderPaperClassic()}}catch(_e){}if(tries>200)clearInterval(timer)},100);
 }
 async function pcRefreshOfficialSnapshot(){
-  try{if(typeof loadData!=="function")return;state.data=await loadData();const rt=document.querySelector("#runtime-text"),fg=document.querySelector("#footer-generated");if(rt)rt.textContent=`Snapshot ${pcTime(state.data.generatedAt)} UTC`;if(fg)fg.textContent=`Atualizado ${pcTime(state.data.generatedAt)} UTC`;pcLedgerCache.clear();if(document.querySelector("#paper")?.classList.contains("active"))renderPaperClassic()}catch(e){console.warn("paper refresh",e)}
+  try{if(typeof loadData!=="function")return;state.data=await loadData();const rt=document.querySelector("#runtime-text"),fg=document.querySelector("#footer-generated");if(rt)rt.textContent=`Snapshot ${pcTime(state.data.generatedAt)} · São Paulo`;if(fg)fg.textContent=`Atualizado ${pcTime(state.data.generatedAt)} · São Paulo`;pcLedgerCache.clear();if(document.querySelector("#paper")?.classList.contains("active"))renderPaperClassic()}catch(e){console.warn("paper refresh",e)}
 }
 document.addEventListener("DOMContentLoaded",()=>{
   pcBindFilters();document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>pcActivateFromNav(b)));pcWaitForData();setInterval(pcRefreshOfficialSnapshot,300000);
