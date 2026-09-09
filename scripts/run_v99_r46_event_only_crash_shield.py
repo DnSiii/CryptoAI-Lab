@@ -11,6 +11,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
+from run_v99_r25_trisleeve_meta import cap
 import run_v99_r37_crash_shield as r37
 
 REPORT = PROJECT / "reports" / "candidate_v99_r46_event_only_crash_shield.json"
@@ -65,7 +66,6 @@ def combine_event_only(
     v16_cap = 0.0
     cash_cap = 0.0
     in_event = False
-    event_choose16 = 1.0
 
     equity = pd.Series(index=aligned.index, dtype=float)
     realized_safe = pd.Series(index=aligned.index, dtype=float)
@@ -111,9 +111,9 @@ def combine_event_only(
             elif mode == "v16":
                 desired = np.array([1.0 - sw, 0.0, sw, 0.0], dtype=float)
             else:
-                event_choose16 = float(choose16.iloc[i])
+                c16 = float(choose16.iloc[i])
                 desired = np.array(
-                    [1.0 - sw, sw * (1.0 - event_choose16), sw * event_choose16, 0.0],
+                    [1.0 - sw, sw * (1.0 - c16), sw * c16, 0.0],
                     dtype=float,
                 )
             rebalance(desired)
@@ -145,8 +145,9 @@ def combine_event_only(
 
 
 def main() -> None:
-    # Keep the R37 signal family, timing, grid and scoring untouched. Only replace
-    # the capital-routing execution so attribution is clean.
+    # Inherit the correction used by the valid R37 workflow so the comparison is
+    # against the same cap implementation, then change only routing execution.
+    r37.r36.cap = cap
     r37.REPORT = REPORT
     r37.combine_shield = combine_event_only
     r37.main()
@@ -154,7 +155,7 @@ def main() -> None:
     report = json.loads(REPORT.read_text())
     report["study"] = "V99 R46 event-only crash shield"
     report["status"] = "RESEARCH_ONLY_DO_NOT_REWRITE_FROZEN_V99_PAPER"
-    report["parent"] = "R37 crash shield; identical causal signals/grid, event-only routing execution"
+    report["parent"] = "R37 crash shield; identical causal signals/grid and fixed cap, event-only routing execution"
     report["objective"] = (
         "retain R37 crash-tail protection while eliminating hourly sleeve-maintenance turnover: "
         "trade only when protection enters or exits, preserve next-interval causal timing, and "
@@ -163,7 +164,7 @@ def main() -> None:
     report["execution_change"] = (
         "R37 rebalanced toward the target safe weight every interval; R46 rebalances only on "
         "state transitions. Signal presets, safe-weight grid, destinations, benchmark engines, "
-        "cost assumptions and validation horizons are unchanged."
+        "cost assumptions, fixed cap correction and validation horizons are unchanged."
     )
     report["grid_policy"] = (
         "same predeclared R37 27-combination grid; no parameter retuning after observing R37. "
