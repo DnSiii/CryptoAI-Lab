@@ -1,0 +1,1978 @@
+{
+  "study": "V99 R56 aggressive-parent drawdown-continuation audit",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "verify on the fixed aggressive R30 parent whether dominant-side gross, total gross and net exposure causally predict further drawdown deepening before designing a side-specific brake; thresholds are learned only on the first 60% and evaluated unchanged on the last 40%",
+  "parent_fixed": {
+    "dd_trigger": 0.1,
+    "hedge_size": 0.25,
+    "cooldown": 48,
+    "market_level": 3,
+    "min_net": 0.1,
+    "gross_cap": 1.9
+  },
+  "parent_summary": {
+    "return": 228.65933847494472,
+    "max_drawdown": -0.3125757899196945,
+    "best_day": 0.21657980284126932,
+    "worst_day": -0.1138048446839558,
+    "positive_days": 0.49385749385749383
+  },
+  "parent_diagnostics": {
+    "parent": "R30 aggressive fixed finalist",
+    "hedge_active_fraction": 0.37646677582207666,
+    "params": {
+      "dd_trigger": 0.1,
+      "hedge_size": 0.25,
+      "cooldown": 48,
+      "market_level": 3,
+      "min_net": 0.1,
+      "gross_cap": 1.9
+    }
+  },
+  "train_end": "2023-12-28T08:00:00+00:00",
+  "cohorts": {
+    "early_dd_5_to_12": {
+      "depth_range": [
+        0.05,
+        0.12
+      ],
+      "rows": 24515,
+      "train_rows": 12384,
+      "holdout_rows": 12131,
+      "event_rates": {
+        "deepen_7d_5pp": {
+          "train": 0.20373062015503876,
+          "holdout": 0.19685104278295276
+        },
+        "deepen_14d_8pp": {
+          "train": 0.15584625322997417,
+          "holdout": 0.12999752699694997
+        }
+      },
+      "feature_rankings": {
+        "deepen_7d_5pp": [
+          {
+            "feature": "gross",
+            "train": {
+              "n": 12384,
+              "events": 2523,
+              "event_rate": 0.20373062015503876,
+              "event_median": 0.889114641732998,
+              "normal_median": 0.6428332340895719,
+              "auc": 0.6733840775201781
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 2388,
+              "event_rate": 0.19685104278295276,
+              "event_median": 1.2229160921121842,
+              "normal_median": 0.8590325255555386,
+              "auc": 0.6784710871749008
+            },
+            "stable_auc": 0.6733840775201781,
+            "mean_auc": 0.6759275823475395
+          },
+          {
+            "feature": "dominant_side_gross",
+            "train": {
+              "n": 12384,
+              "events": 2523,
+              "event_rate": 0.20373062015503876,
+              "event_median": 0.7975164813721329,
+              "normal_median": 0.5169126084956812,
+              "auc": 0.6839072019019182
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 2388,
+              "event_rate": 0.19685104278295276,
+              "event_median": 1.0191905688729404,
+              "normal_median": 0.7521896215587754,
+              "auc": 0.6442253090351686
+            },
+            "stable_auc": 0.6442253090351686,
+            "mean_auc": 0.6640662554685435
+          },
+          {
+            "feature": "net_abs",
+            "train": {
+              "n": 12384,
+              "events": 2523,
+              "event_rate": 0.20373062015503876,
+              "event_median": 0.7412933009594854,
+              "normal_median": 0.4219595470036009,
+              "auc": 0.6696130514588773
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 2388,
+              "event_rate": 0.19685104278295276,
+              "event_median": 0.9170986813371274,
+              "normal_median": 0.6744967427749312,
+              "auc": 0.593491594962049
+            },
+            "stable_auc": 0.593491594962049,
+            "mean_auc": 0.6315523232104632
+          },
+          {
+            "feature": "cross_section_vol_1h",
+            "train": {
+              "n": 12384,
+              "events": 2523,
+              "event_rate": 0.20373062015503876,
+              "event_median": 0.005853371656313294,
+              "normal_median": 0.00648046775624013,
+              "auc": 0.43423447192230424
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 2388,
+              "event_rate": 0.19685104278295276,
+              "event_median": 0.005108454868406212,
+              "normal_median": 0.004820397897344607,
+              "auc": 0.5343601496483066
+            },
+            "stable_auc": 0.43423447192230424,
+            "mean_auc": 0.4842973107853054
+          }
+        ],
+        "deepen_14d_8pp": [
+          {
+            "feature": "gross",
+            "train": {
+              "n": 12384,
+              "events": 1930,
+              "event_rate": 0.15584625322997417,
+              "event_median": 0.8936340959772257,
+              "normal_median": 0.6679633855631473,
+              "auc": 0.6356724896933122
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 1577,
+              "event_rate": 0.12999752699694997,
+              "event_median": 0.9863762612326556,
+              "normal_median": 0.9140260626414891,
+              "auc": 0.5490437859273484
+            },
+            "stable_auc": 0.5490437859273484,
+            "mean_auc": 0.5923581378103303
+          },
+          {
+            "feature": "dominant_side_gross",
+            "train": {
+              "n": 12384,
+              "events": 1930,
+              "event_rate": 0.15584625322997417,
+              "event_median": 0.7826474985445365,
+              "normal_median": 0.5353525182933498,
+              "auc": 0.6401118494941074
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 1577,
+              "event_rate": 0.12999752699694997,
+              "event_median": 0.7661083146077724,
+              "normal_median": 0.7858839754341586,
+              "auc": 0.5081522643639997
+            },
+            "stable_auc": 0.5081522643639997,
+            "mean_auc": 0.5741320569290536
+          },
+          {
+            "feature": "net_abs",
+            "train": {
+              "n": 12384,
+              "events": 1930,
+              "event_rate": 0.15584625322997417,
+              "event_median": 0.670700482871255,
+              "normal_median": 0.4560143182505888,
+              "auc": 0.6222879459085994
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 1577,
+              "event_rate": 0.12999752699694997,
+              "event_median": 0.6959260836552411,
+              "normal_median": 0.6945917324465073,
+              "auc": 0.4718435094015991
+            },
+            "stable_auc": 0.4718435094015991,
+            "mean_auc": 0.5470657276550992
+          },
+          {
+            "feature": "cross_section_vol_1h",
+            "train": {
+              "n": 12384,
+              "events": 1930,
+              "event_rate": 0.15584625322997417,
+              "event_median": 0.005215042412023033,
+              "normal_median": 0.00657561645692529,
+              "auc": 0.3596019968061411
+            },
+            "holdout": {
+              "n": 12131,
+              "events": 1577,
+              "event_rate": 0.12999752699694997,
+              "event_median": 0.005510603913289107,
+              "normal_median": 0.004798208391348875,
+              "auc": 0.5707977777481369
+            },
+            "stable_auc": 0.3596019968061411,
+            "mean_auc": 0.465199887277139
+          }
+        ]
+      },
+      "threshold_stability": {
+        "deepen_7d_5pp:gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.0568445538758693,
+            "train": {
+              "coverage": 0.20025839793281655,
+              "event_capture": 0.3071739992072929,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.3125,
+              "lift": 1.5338882282996433
+            },
+            "holdout": {
+              "coverage": 0.40458329898606876,
+              "event_capture": 0.6092964824120602,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.29645476772616136,
+              "lift": 1.5059852543073968
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.2918864458195518,
+            "train": {
+              "coverage": 0.1000484496124031,
+              "event_capture": 0.14704716607213636,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.2994350282485876,
+              "lift": 1.4697595679074549
+            },
+            "holdout": {
+              "coverage": 0.25809908498887146,
+              "event_capture": 0.4648241206030151,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.35451932290003196,
+              "lift": 1.8009522219850451
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.4245899560438986,
+            "train": {
+              "coverage": 0.05006459948320414,
+              "event_capture": 0.08164883075703527,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.33225806451612905,
+              "lift": 1.630869548540524
+            },
+            "holdout": {
+              "coverage": 0.13997197263209957,
+              "event_capture": 0.24874371859296482,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.3498233215547703,
+              "lift": 1.777096613811105
+            }
+          }
+        ],
+        "deepen_7d_5pp:dominant_side_gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.96775793388587,
+            "train": {
+              "coverage": 0.20001614987080105,
+              "event_capture": 0.3214427269124059,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.3274121921679451,
+              "lift": 1.6070838635782132
+            },
+            "holdout": {
+              "coverage": 0.3647679498804715,
+              "event_capture": 0.533500837520938,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.287909604519774,
+              "lift": 1.462575968354011
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.173758685301347,
+            "train": {
+              "coverage": 0.1000484496124031,
+              "event_capture": 0.1573523583036068,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.32041969330104925,
+              "lift": 1.5727615861435569
+            },
+            "holdout": {
+              "coverage": 0.22306487511334597,
+              "event_capture": 0.36515912897822445,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.3222468588322247,
+              "lift": 1.6370086450978718
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.35601710683583,
+            "train": {
+              "coverage": 0.05006459948320414,
+              "event_capture": 0.06500198176773682,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.2645161290322581,
+              "lift": 1.2983621648575046
+            },
+            "holdout": {
+              "coverage": 0.10724589893660869,
+              "event_capture": 0.20854271356783918,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.382782475019216,
+              "lift": 1.9445285613308665
+            }
+          }
+        ],
+        "deepen_7d_5pp:net_abs": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.9172006389355686,
+            "train": {
+              "coverage": 0.20017764857881137,
+              "event_capture": 0.3032104637336504,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.3085921742638161,
+              "lift": 1.5147068910357109
+            },
+            "holdout": {
+              "coverage": 0.3632841480504493,
+              "event_capture": 0.49958123953098826,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.27070569548445655,
+              "lift": 1.375180398627279
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.169540500871042,
+            "train": {
+              "coverage": 0.10012919896640828,
+              "event_capture": 0.1466508125247721,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.29838709677419356,
+              "lift": 1.4646158566990142
+            },
+            "holdout": {
+              "coverage": 0.18003462204270052,
+              "event_capture": 0.29564489112227804,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.3232600732600733,
+              "lift": 1.6421557574195766
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.35,
+            "train": {
+              "coverage": 0.05184108527131783,
+              "event_capture": 0.06143479984145858,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.24143302180685358,
+              "lift": 1.1850600642315001
+            },
+            "holdout": {
+              "coverage": 0.08902810980133542,
+              "event_capture": 0.1804857621440536,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.3990740740740741,
+              "lift": 2.027289611638439
+            }
+          }
+        ],
+        "deepen_7d_5pp:cross_section_vol_1h": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.009777163042696655,
+            "train": {
+              "coverage": 0.20001614987080105,
+              "event_capture": 0.12405866032500991,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.1263625353249899,
+              "lift": 0.6202432173859195
+            },
+            "holdout": {
+              "coverage": 0.12068254884181023,
+              "event_capture": 0.17127303182579565,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.27937158469945356,
+              "lift": 1.4192029706821907
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 0.012415873542089974,
+            "train": {
+              "coverage": 0.1000484496124031,
+              "event_capture": 0.0558858501783591,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.11380145278450363,
+              "lift": 0.5585878681265529
+            },
+            "holdout": {
+              "coverage": 0.061165608770917486,
+              "event_capture": 0.08919597989949749,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.28706199460916443,
+              "lift": 1.4582701242059355
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 0.015340436557806607,
+            "train": {
+              "coverage": 0.05006459948320414,
+              "event_capture": 0.025762980578676178,
+              "base_rate": 0.20373062015503876,
+              "gated_rate": 0.10483870967741936,
+              "lift": 0.5145947604618158
+            },
+            "holdout": {
+              "coverage": 0.032066606215481,
+              "event_capture": 0.04983249581239531,
+              "base_rate": 0.19685104278295276,
+              "gated_rate": 0.3059125964010283,
+              "lift": 1.55403086555313
+            }
+          }
+        ],
+        "deepen_14d_8pp:gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.0568445538758693,
+            "train": {
+              "coverage": 0.20025839793281655,
+              "event_capture": 0.3305699481865285,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.25725806451612904,
+              "lift": 1.6507170315895034
+            },
+            "holdout": {
+              "coverage": 0.40458329898606876,
+              "event_capture": 0.45212428662016485,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.14527302363488181,
+              "lift": 1.1175060556212753
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.2918864458195518,
+            "train": {
+              "coverage": 0.1000484496124031,
+              "event_capture": 0.22746113989637307,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.354317998385795,
+              "lift": 2.2735098922329975
+            },
+            "holdout": {
+              "coverage": 0.25809908498887146,
+              "event_capture": 0.3062777425491439,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.154263813478122,
+              "lift": 1.186667293153518
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.4245899560438986,
+            "train": {
+              "coverage": 0.05006459948320414,
+              "event_capture": 0.09740932642487046,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.3032258064516129,
+              "lift": 1.9456727394283804
+            },
+            "holdout": {
+              "coverage": 0.13997197263209957,
+              "event_capture": 0.13189600507292326,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.12249705535924617,
+              "lift": 0.9423029667488999
+            }
+          }
+        ],
+        "deepen_14d_8pp:dominant_side_gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.96775793388587,
+            "train": {
+              "coverage": 0.20001614987080105,
+              "event_capture": 0.31295336787564765,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.24384335890189746,
+              "lift": 1.5646404956689626
+            },
+            "holdout": {
+              "coverage": 0.3647679498804715,
+              "event_capture": 0.36715282181357006,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.13084745762711864,
+              "lift": 1.0065380522983995
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.173758685301347,
+            "train": {
+              "coverage": 0.1000484496124031,
+              "event_capture": 0.1316062176165803,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.2050040355125101,
+              "lift": 1.3154248579206864
+            },
+            "holdout": {
+              "coverage": 0.22306487511334597,
+              "event_capture": 0.2219403931515536,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.1293422025129342,
+              "lift": 0.9949589465341819
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.35601710683583,
+            "train": {
+              "coverage": 0.05006459948320414,
+              "event_capture": 0.06424870466321243,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.2,
+              "lift": 1.283316062176166
+            },
+            "holdout": {
+              "coverage": 0.10724589893660869,
+              "event_capture": 0.1109701965757768,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.1345119139123751,
+              "lift": 1.0347267138053406
+            }
+          }
+        ],
+        "deepen_14d_8pp:net_abs": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.9172006389355686,
+            "train": {
+              "coverage": 0.20017764857881137,
+              "event_capture": 0.2911917098445596,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.22670431625655507,
+              "lift": 1.4546664520835118
+            },
+            "holdout": {
+              "coverage": 0.3632841480504493,
+              "event_capture": 0.3772986683576411,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.13501248014522352,
+              "lift": 1.038577296538812
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.169540500871042,
+            "train": {
+              "coverage": 0.10012919896640828,
+              "event_capture": 0.12072538860103627,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.1879032258064516,
+              "lift": 1.2056961390606717
+            },
+            "holdout": {
+              "coverage": 0.18003462204270052,
+              "event_capture": 0.18706404565630944,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.13507326007326007,
+              "lift": 1.0390448433409751
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.35,
+            "train": {
+              "coverage": 0.05184108527131783,
+              "event_capture": 0.05544041450777202,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.16666666666666666,
+              "lift": 1.0694300518134714
+            },
+            "holdout": {
+              "coverage": 0.08902810980133542,
+              "event_capture": 0.10653138871274571,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.15555555555555556,
+              "lift": 1.1966039596984428
+            }
+          }
+        ],
+        "deepen_14d_8pp:cross_section_vol_1h": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.009777163042696655,
+            "train": {
+              "coverage": 0.20001614987080105,
+              "event_capture": 0.08652849740932643,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.06742026645135245,
+              "lift": 0.4326075542660874
+            },
+            "holdout": {
+              "coverage": 0.12068254884181023,
+              "event_capture": 0.2010145846544071,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.21653005464480873,
+              "lift": 1.6656474907394894
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 0.012415873542089974,
+            "train": {
+              "coverage": 0.1000484496124031,
+              "event_capture": 0.032642487046632127,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.05084745762711865,
+              "lift": 0.3262667954685167
+            },
+            "holdout": {
+              "coverage": 0.061165608770917486,
+              "event_capture": 0.10399492707672796,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.2210242587601078,
+              "lift": 1.7002189492827315
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 0.015340436557806607,
+            "train": {
+              "coverage": 0.05006459948320414,
+              "event_capture": 0.016580310880829015,
+              "base_rate": 0.15584625322997417,
+              "gated_rate": 0.05161290322580645,
+              "lift": 0.3311783386261073
+            },
+            "holdout": {
+              "coverage": 0.032066606215481,
+              "event_capture": 0.05580215599239061,
+              "base_rate": 0.12999752699694997,
+              "gated_rate": 0.2262210796915167,
+              "lift": 1.7401952553822377
+            }
+          }
+        ]
+      }
+    },
+    "mid_dd_8_to_18": {
+      "depth_range": [
+        0.08,
+        0.18
+      ],
+      "rows": 24298,
+      "train_rows": 13702,
+      "holdout_rows": 10596,
+      "event_rates": {
+        "deepen_7d_5pp": {
+          "train": 0.18552036199095023,
+          "holdout": 0.15024537561343904
+        },
+        "deepen_14d_8pp": {
+          "train": 0.1442125237191651,
+          "holdout": 0.07682144205360514
+        }
+      },
+      "feature_rankings": {
+        "deepen_7d_5pp": [
+          {
+            "feature": "gross",
+            "train": {
+              "n": 13702,
+              "events": 2542,
+              "event_rate": 0.18552036199095023,
+              "event_median": 0.9533236312196669,
+              "normal_median": 0.7241809038879173,
+              "auc": 0.6442821001441024
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 1592,
+              "event_rate": 0.15024537561343904,
+              "event_median": 1.1723670778058743,
+              "normal_median": 0.9354476720405709,
+              "auc": 0.5993820934414409
+            },
+            "stable_auc": 0.5993820934414409,
+            "mean_auc": 0.6218320967927716
+          },
+          {
+            "feature": "dominant_side_gross",
+            "train": {
+              "n": 13702,
+              "events": 2542,
+              "event_rate": 0.18552036199095023,
+              "event_median": 0.8456825375437075,
+              "normal_median": 0.581768251696047,
+              "auc": 0.6371767214030101
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 1592,
+              "event_rate": 0.15024537561343904,
+              "event_median": 0.9275468019669566,
+              "normal_median": 0.7908899421901966,
+              "auc": 0.560640413305979
+            },
+            "stable_auc": 0.560640413305979,
+            "mean_auc": 0.5989085673544945
+          },
+          {
+            "feature": "net_abs",
+            "train": {
+              "n": 13702,
+              "events": 2542,
+              "event_rate": 0.18552036199095023,
+              "event_median": 0.677199560696447,
+              "normal_median": 0.4637010140309251,
+              "auc": 0.6094439051180314
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 1592,
+              "event_rate": 0.15024537561343904,
+              "event_median": 0.7410221858686074,
+              "normal_median": 0.6821400476255504,
+              "auc": 0.5146356993206816
+            },
+            "stable_auc": 0.5146356993206816,
+            "mean_auc": 0.5620398022193565
+          },
+          {
+            "feature": "cross_section_vol_1h",
+            "train": {
+              "n": 13702,
+              "events": 2542,
+              "event_rate": 0.18552036199095023,
+              "event_median": 0.005142845323011696,
+              "normal_median": 0.006097239666599044,
+              "auc": 0.39990891376135407
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 1592,
+              "event_rate": 0.15024537561343904,
+              "event_median": 0.0050855039712715405,
+              "normal_median": 0.00474248762991818,
+              "auc": 0.5464099986828858
+            },
+            "stable_auc": 0.39990891376135407,
+            "mean_auc": 0.4731594562221199
+          }
+        ],
+        "deepen_14d_8pp": [
+          {
+            "feature": "gross",
+            "train": {
+              "n": 13702,
+              "events": 1976,
+              "event_rate": 0.1442125237191651,
+              "event_median": 0.9887196042001892,
+              "normal_median": 0.7349176809170215,
+              "auc": 0.6579153448753281
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 814,
+              "event_rate": 0.07682144205360514,
+              "event_median": 0.8632200684172877,
+              "normal_median": 0.9894465449044757,
+              "auc": 0.44532296696986945
+            },
+            "stable_auc": 0.44532296696986945,
+            "mean_auc": 0.5516191559225988
+          },
+          {
+            "feature": "dominant_side_gross",
+            "train": {
+              "n": 13702,
+              "events": 1976,
+              "event_rate": 0.1442125237191651,
+              "event_median": 0.884364545187292,
+              "normal_median": 0.589174299962469,
+              "auc": 0.6383402596465448
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 814,
+              "event_rate": 0.07682144205360514,
+              "event_median": 0.682478920162502,
+              "normal_median": 0.8262729003079897,
+              "auc": 0.37238061233665404
+            },
+            "stable_auc": 0.37238061233665404,
+            "mean_auc": 0.5053604359915994
+          },
+          {
+            "feature": "net_abs",
+            "train": {
+              "n": 13702,
+              "events": 1976,
+              "event_rate": 0.1442125237191651,
+              "event_median": 0.6487252646583535,
+              "normal_median": 0.47289058060751166,
+              "auc": 0.603964916538976
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 814,
+              "event_rate": 0.07682144205360514,
+              "event_median": 0.3779095410866169,
+              "normal_median": 0.7118702928680393,
+              "auc": 0.332947003898752
+            },
+            "stable_auc": 0.332947003898752,
+            "mean_auc": 0.468455960218864
+          },
+          {
+            "feature": "cross_section_vol_1h",
+            "train": {
+              "n": 13702,
+              "events": 1976,
+              "event_rate": 0.1442125237191651,
+              "event_median": 0.004548953445351675,
+              "normal_median": 0.006192331517728153,
+              "auc": 0.328338449592276
+            },
+            "holdout": {
+              "n": 10596,
+              "events": 814,
+              "event_rate": 0.07682144205360514,
+              "event_median": 0.007465768176780827,
+              "normal_median": 0.004694383424024151,
+              "auc": 0.6920875076671438
+            },
+            "stable_auc": 0.328338449592276,
+            "mean_auc": 0.5102129786297098
+          }
+        ]
+      },
+      "threshold_stability": {
+        "deepen_7d_5pp:gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.1713151418824785,
+            "train": {
+              "coverage": 0.20004378922784996,
+              "event_capture": 0.3430369787568843,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.31813206858810655,
+              "lift": 1.7148094428773548
+            },
+            "holdout": {
+              "coverage": 0.3523027557568894,
+              "event_capture": 0.5025125628140703,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.21430484864720065,
+              "lift": 1.4263656886091318
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.35,
+            "train": {
+              "coverage": 0.10159100861188147,
+              "event_capture": 0.15027537372147914,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.2744252873563218,
+              "lift": 1.4792192318474908
+            },
+            "holdout": {
+              "coverage": 0.23820309550773877,
+              "event_capture": 0.31972361809045224,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.20166402535657688,
+              "lift": 1.3422311637426436
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.478498293932613,
+            "train": {
+              "coverage": 0.05006568384177492,
+              "event_capture": 0.07317073170731707,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.27113702623906705,
+              "lift": 1.4614947024105809
+            },
+            "holdout": {
+              "coverage": 0.1385428463571159,
+              "event_capture": 0.2198492462311558,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.23841961852861035,
+              "lift": 1.5868682650308763
+            }
+          }
+        ],
+        "deepen_7d_5pp:dominant_side_gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.0232432476516393,
+            "train": {
+              "coverage": 0.20018975332068312,
+              "event_capture": 0.3296616837136113,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.3055049216186657,
+              "lift": 1.6467460409201249
+            },
+            "holdout": {
+              "coverage": 0.3419214798036995,
+              "event_capture": 0.4258793969849246,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.18713773116202043,
+              "lift": 1.2455473614276182
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.231072700329272,
+            "train": {
+              "coverage": 0.10005838563713326,
+              "event_capture": 0.10621557828481511,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.19693654266958424,
+              "lift": 1.061535998292149
+            },
+            "holdout": {
+              "coverage": 0.2015855039637599,
+              "event_capture": 0.2506281407035176,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.18679775280898878,
+              "lift": 1.2432845406809327
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.3959810759669928,
+            "train": {
+              "coverage": 0.050138665888191505,
+              "event_capture": 0.034225019669551535,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.12663755458515283,
+              "lift": 0.6826073064224091
+            },
+            "holdout": {
+              "coverage": 0.08267270668176671,
+              "event_capture": 0.09798994974874371,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.1780821917808219,
+              "lift": 1.185275693536174
+            }
+          }
+        ],
+        "deepen_7d_5pp:net_abs": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.9464955480497298,
+            "train": {
+              "coverage": 0.20004378922784996,
+              "event_capture": 0.23524783634933125,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.21816855162349508,
+              "lift": 1.1759817050924979
+            },
+            "holdout": {
+              "coverage": 0.3205926764816912,
+              "event_capture": 0.3743718592964824,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.17544892552251987,
+              "lift": 1.167749255550641
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.2066441041069178,
+            "train": {
+              "coverage": 0.10020434972996643,
+              "event_capture": 0.0959874114870181,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.17771303714493808,
+              "lift": 0.9579166148544223
+            },
+            "holdout": {
+              "coverage": 0.15722914307285768,
+              "event_capture": 0.15389447236180903,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.14705882352941177,
+              "lift": 0.9787910138929944
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.383392966101661,
+            "train": {
+              "coverage": 0.05028462998102467,
+              "event_capture": 0.036585365853658534,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.13497822931785197,
+              "lift": 0.7275655775425679
+            },
+            "holdout": {
+              "coverage": 0.07191392978482446,
+              "event_capture": 0.08919597989949749,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.18635170603674542,
+              "lift": 1.240315751988288
+            }
+          }
+        ],
+        "deepen_7d_5pp:cross_section_vol_1h": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.009234609470654067,
+            "train": {
+              "coverage": 0.20004378922784996,
+              "event_capture": 0.13729346970889064,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.1273257935060197,
+              "lift": 0.686317082069033
+            },
+            "holdout": {
+              "coverage": 0.13910909777274444,
+              "event_capture": 0.21922110552763818,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.2367706919945726,
+              "lift": 1.5758933746070924
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 0.01157177649478493,
+            "train": {
+              "coverage": 0.10005838563713326,
+              "event_capture": 0.06215578284815106,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.11524434719183078,
+              "lift": 0.6211951397413318
+            },
+            "holdout": {
+              "coverage": 0.07597206493016233,
+              "event_capture": 0.12185929648241206,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.24099378881987576,
+              "lift": 1.6040013733262586
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 0.01399094664398728,
+            "train": {
+              "coverage": 0.05006568384177492,
+              "event_capture": 0.029504327301337528,
+              "base_rate": 0.18552036199095023,
+              "gated_rate": 0.10932944606413994,
+              "lift": 0.5893123800042664
+            },
+            "holdout": {
+              "coverage": 0.041430728576821445,
+              "event_capture": 0.06658291457286432,
+              "base_rate": 0.15024537561343904,
+              "gated_rate": 0.24145785876993167,
+              "lift": 1.6070901203053995
+            }
+          }
+        ],
+        "deepen_14d_8pp:gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.1713151418824785,
+            "train": {
+              "coverage": 0.20004378922784996,
+              "event_capture": 0.4048582995951417,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.2918642831083546,
+              "lift": 2.023848384185564
+            },
+            "holdout": {
+              "coverage": 0.3523027557568894,
+              "event_capture": 0.3144963144963145,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.06857755156710421,
+              "lift": 0.8926876368612238
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.35,
+            "train": {
+              "coverage": 0.10159100861188147,
+              "event_capture": 0.16649797570850203,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.23635057471264367,
+              "lift": 1.6389046430732002
+            },
+            "holdout": {
+              "coverage": 0.23820309550773877,
+              "event_capture": 0.15356265356265356,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.04952456418383518,
+              "lift": 0.6446711082210289
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.478498293932613,
+            "train": {
+              "coverage": 0.05006568384177492,
+              "event_capture": 0.10576923076923077,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.30466472303207,
+              "lift": 2.112609329446064
+            },
+            "holdout": {
+              "coverage": 0.1385428463571159,
+              "event_capture": 0.060196560196560195,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.03337874659400545,
+              "lift": 0.4344977873588228
+            }
+          }
+        ],
+        "deepen_14d_8pp:dominant_side_gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.0232432476516393,
+            "train": {
+              "coverage": 0.20018975332068312,
+              "event_capture": 0.33451417004048584,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.24097703244622676,
+              "lift": 1.670985474988967
+            },
+            "holdout": {
+              "coverage": 0.3419214798036995,
+              "event_capture": 0.14987714987714987,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.03367375103505382,
+              "lift": 0.438337918878907
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.231072700329272,
+            "train": {
+              "coverage": 0.10005838563713326,
+              "event_capture": 0.12904858299595143,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.18599562363238512,
+              "lift": 1.2897328112403545
+            },
+            "holdout": {
+              "coverage": 0.2015855039637599,
+              "event_capture": 0.05405405405405406,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.020599250936329586,
+              "lift": 0.2681445490434254
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.3959810759669928,
+            "train": {
+              "coverage": 0.050138665888191505,
+              "event_capture": 0.06831983805668017,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.1965065502183406,
+              "lift": 1.3626177890140196
+            },
+            "holdout": {
+              "coverage": 0.08267270668176671,
+              "event_capture": 0.029484029484029485,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.0273972602739726,
+              "lift": 0.3566355895123018
+            }
+          }
+        ],
+        "deepen_14d_8pp:net_abs": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.9464955480497298,
+            "train": {
+              "coverage": 0.20004378922784996,
+              "event_capture": 0.25,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.18022619481940896,
+              "lift": 1.2497263772345857
+            },
+            "holdout": {
+              "coverage": 0.3205926764816912,
+              "event_capture": 0.11425061425061425,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.02737709743891669,
+              "lift": 0.3563731258756281
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.2066441041069178,
+            "train": {
+              "coverage": 0.10020434972996643,
+              "event_capture": 0.1062753036437247,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.1529497450837582,
+              "lift": 1.0605857323571126
+            },
+            "holdout": {
+              "coverage": 0.15722914307285768,
+              "event_capture": 0.045454545454545456,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.02220888355342137,
+              "lift": 0.28909745716468405
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.383392966101661,
+            "train": {
+              "coverage": 0.05028462998102467,
+              "event_capture": 0.06781376518218624,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.19448476052249636,
+              "lift": 1.3485982736230997
+            },
+            "holdout": {
+              "coverage": 0.07191392978482446,
+              "event_capture": 0.029484029484029485,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.031496062992125984,
+              "lift": 0.40999052022674065
+            }
+          }
+        ],
+        "deepen_14d_8pp:cross_section_vol_1h": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.009234609470654067,
+            "train": {
+              "coverage": 0.20004378922784996,
+              "event_capture": 0.08097165991902834,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.058372856621670924,
+              "lift": 0.40476967683711285
+            },
+            "holdout": {
+              "coverage": 0.13910909777274444,
+              "event_capture": 0.36117936117936117,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.1994572591587517,
+              "lift": 2.5963748378945124
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 0.01157177649478493,
+            "train": {
+              "coverage": 0.10005838563713326,
+              "event_capture": 0.03643724696356275,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.0525164113785558,
+              "lift": 0.36415985258551187
+            },
+            "holdout": {
+              "coverage": 0.07597206493016233,
+              "event_capture": 0.2076167076167076,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.20993788819875778,
+              "lift": 2.7328032719337068
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 0.01399094664398728,
+            "train": {
+              "coverage": 0.05006568384177492,
+              "event_capture": 0.015182186234817813,
+              "base_rate": 0.1442125237191651,
+              "gated_rate": 0.043731778425655975,
+              "lift": 0.30324535829369337
+            },
+            "holdout": {
+              "coverage": 0.041430728576821445,
+              "event_capture": 0.11425061425061425,
+              "base_rate": 0.07682144205360514,
+              "gated_rate": 0.21184510250569477,
+              "lift": 2.757629860135555
+            }
+          }
+        ]
+      }
+    },
+    "deep_dd_12_to_24": {
+      "depth_range": [
+        0.12,
+        0.24
+      ],
+      "rows": 15577,
+      "train_rows": 10377,
+      "holdout_rows": 5200,
+      "event_rates": {
+        "deepen_7d_5pp": {
+          "train": 0.16257107063698564,
+          "holdout": 0.11961538461538461
+        },
+        "deepen_14d_8pp": {
+          "train": 0.12749349522983522,
+          "holdout": 0.05923076923076923
+        }
+      },
+      "feature_rankings": {
+        "deepen_7d_5pp": [
+          {
+            "feature": "gross",
+            "train": {
+              "n": 10377,
+              "events": 1687,
+              "event_rate": 0.16257107063698564,
+              "event_median": 1.2106286752359265,
+              "normal_median": 0.8718034558199982,
+              "auc": 0.6613598676128221
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 622,
+              "event_rate": 0.11961538461538461,
+              "event_median": 1.160577399799906,
+              "normal_median": 1.0417758164231334,
+              "auc": 0.5418506867037797
+            },
+            "stable_auc": 0.5418506867037797,
+            "mean_auc": 0.6016052771583009
+          },
+          {
+            "feature": "dominant_side_gross",
+            "train": {
+              "n": 10377,
+              "events": 1687,
+              "event_rate": 0.16257107063698564,
+              "event_median": 1.000786800322162,
+              "normal_median": 0.7331506145516301,
+              "auc": 0.627564131860576
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 622,
+              "event_rate": 0.11961538461538461,
+              "event_median": 0.8801241213702152,
+              "normal_median": 0.8564503354050539,
+              "auc": 0.5239870469560136
+            },
+            "stable_auc": 0.5239870469560136,
+            "mean_auc": 0.5757755894082948
+          },
+          {
+            "feature": "net_abs",
+            "train": {
+              "n": 10377,
+              "events": 1687,
+              "event_rate": 0.16257107063698564,
+              "event_median": 0.8376555065753031,
+              "normal_median": 0.6043664700209836,
+              "auc": 0.5794899805798488
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 622,
+              "event_rate": 0.11961538461538461,
+              "event_median": 0.8097397206689405,
+              "normal_median": 0.7372330461784955,
+              "auc": 0.4928627266712461
+            },
+            "stable_auc": 0.4928627266712461,
+            "mean_auc": 0.5361763536255475
+          },
+          {
+            "feature": "cross_section_vol_1h",
+            "train": {
+              "n": 10377,
+              "events": 1687,
+              "event_rate": 0.16257107063698564,
+              "event_median": 0.004595439039146805,
+              "normal_median": 0.005386205685997611,
+              "auc": 0.42744591927847353
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 622,
+              "event_rate": 0.11961538461538461,
+              "event_median": 0.0063289218762991525,
+              "normal_median": 0.004515661792077592,
+              "auc": 0.6419433639705624
+            },
+            "stable_auc": 0.42744591927847353,
+            "mean_auc": 0.534694641624518
+          }
+        ],
+        "deepen_14d_8pp": [
+          {
+            "feature": "dominant_side_gross",
+            "train": {
+              "n": 10377,
+              "events": 1323,
+              "event_rate": 0.12749349522983522,
+              "event_median": 0.9870422982336081,
+              "normal_median": 0.7328564371471152,
+              "auc": 0.647474730019146
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 308,
+              "event_rate": 0.05923076923076923,
+              "event_median": 0.8335558628320378,
+              "normal_median": 0.8654692555808374,
+              "auc": 0.5438198861645305
+            },
+            "stable_auc": 0.5438198861645305,
+            "mean_auc": 0.5956473080918383
+          },
+          {
+            "feature": "net_abs",
+            "train": {
+              "n": 10377,
+              "events": 1323,
+              "event_rate": 0.12749349522983522,
+              "event_median": 0.7919868086931074,
+              "normal_median": 0.6101056729469709,
+              "auc": 0.5705869761693549
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 308,
+              "event_rate": 0.05923076923076923,
+              "event_median": 0.8095604581344842,
+              "normal_median": 0.7372330461784955,
+              "auc": 0.529455724161366
+            },
+            "stable_auc": 0.529455724161366,
+            "mean_auc": 0.5500213501653605
+          },
+          {
+            "feature": "gross",
+            "train": {
+              "n": 10377,
+              "events": 1323,
+              "event_rate": 0.12749349522983522,
+              "event_median": 1.2211402732150098,
+              "normal_median": 0.8682350368962098,
+              "auc": 0.7073881561558674
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 308,
+              "event_rate": 0.05923076923076923,
+              "event_median": 1.1,
+              "normal_median": 1.0625345843651968,
+              "auc": 0.5139649547100488
+            },
+            "stable_auc": 0.5139649547100488,
+            "mean_auc": 0.6106765554329581
+          },
+          {
+            "feature": "cross_section_vol_1h",
+            "train": {
+              "n": 10377,
+              "events": 1323,
+              "event_rate": 0.12749349522983522,
+              "event_median": 0.004696937220984813,
+              "normal_median": 0.0053555033316387765,
+              "auc": 0.4319373921917391
+            },
+            "holdout": {
+              "n": 5200,
+              "events": 308,
+              "event_rate": 0.05923076923076923,
+              "event_median": 0.010128733169272156,
+              "normal_median": 0.0045102417089995985,
+              "auc": 0.8147651612492168
+            },
+            "stable_auc": 0.4319373921917391,
+            "mean_auc": 0.623351276720478
+          }
+        ]
+      },
+      "threshold_stability": {
+        "deepen_7d_5pp:gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.3341577415926846,
+            "train": {
+              "coverage": 0.20025055411005108,
+              "event_capture": 0.31713100177830467,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.25745909528392685,
+              "lift": 1.5836710324607641
+            },
+            "holdout": {
+              "coverage": 0.29365384615384615,
+              "event_capture": 0.21864951768488747,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.08906352324819908,
+              "lift": 0.7445825094704747
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.5215474462179042,
+            "train": {
+              "coverage": 0.10012527705502554,
+              "event_capture": 0.14107883817427386,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.22906641000962463,
+              "lift": 1.4090231989744368
+            },
+            "holdout": {
+              "coverage": 0.11442307692307692,
+              "event_capture": 0.04983922829581994,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.052100840336134456,
+              "lift": 0.4355697262827961
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.575,
+            "train": {
+              "coverage": 0.07092608653753493,
+              "event_capture": 0.10906935388263189,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.25,
+              "lift": 1.5377889745109663
+            },
+            "holdout": {
+              "coverage": 0.08730769230769231,
+              "event_capture": 0.027331189710610933,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.037444933920704845,
+              "lift": 0.313044463645764
+            }
+          }
+        ],
+        "deepen_7d_5pp:dominant_side_gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.1713703283810726,
+            "train": {
+              "coverage": 0.20073238893707238,
+              "event_capture": 0.2080616478956728,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.1685069611137782,
+              "lift": 1.036512587716465
+            },
+            "holdout": {
+              "coverage": 0.25403846153846155,
+              "event_capture": 0.24758842443729903,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.1165783497350492,
+              "lift": 0.9746099977849773
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.3473552004886094,
+            "train": {
+              "coverage": 0.10002891008962128,
+              "event_capture": 0.10669828097213989,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.17341040462427745,
+              "lift": 1.0666744331867974
+            },
+            "holdout": {
+              "coverage": 0.1503846153846154,
+              "event_capture": 0.07234726688102894,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.05754475703324808,
+              "lift": 0.4810815700528779
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.536913717343424,
+            "train": {
+              "coverage": 0.0501108220102149,
+              "event_capture": 0.02963841138114997,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.09615384615384616,
+              "lift": 0.5914572978888332
+            },
+            "holdout": {
+              "coverage": 0.06192307692307692,
+              "event_capture": 0.04662379421221865,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.09006211180124224,
+              "lift": 0.7529308382097423
+            }
+          }
+        ],
+        "deepen_7d_5pp:net_abs": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.103534639908327,
+            "train": {
+              "coverage": 0.20053965500626386,
+              "event_capture": 0.21932424422050978,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.17779913503123498,
+              "lift": 1.0936701981144785
+            },
+            "holdout": {
+              "coverage": 0.24153846153846154,
+              "event_capture": 0.23633440514469453,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.11703821656050956,
+              "lift": 0.9784545435926845
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.3175829117048738,
+            "train": {
+              "coverage": 0.10041437795123831,
+              "event_capture": 0.1007705986959099,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.16314779270633398,
+              "lift": 1.0035475073584041
+            },
+            "holdout": {
+              "coverage": 0.15403846153846154,
+              "event_capture": 0.12540192926045016,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.09737827715355805,
+              "lift": 0.8140949215409998
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.4988274346868484,
+            "train": {
+              "coverage": 0.05030355594102342,
+              "event_capture": 0.032009484291641965,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.10344827586206896,
+              "lift": 0.6363264722114342
+            },
+            "holdout": {
+              "coverage": 0.07788461538461539,
+              "event_capture": 0.0594855305466238,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.09135802469135802,
+              "lift": 0.7637648366480092
+            }
+          }
+        ],
+        "deepen_7d_5pp:cross_section_vol_1h": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.00849735554348955,
+            "train": {
+              "coverage": 0.20005782017924256,
+              "event_capture": 0.16004742145820983,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.13005780346820808,
+              "lift": 0.800005824890098
+            },
+            "holdout": {
+              "coverage": 0.1823076923076923,
+              "event_capture": 0.36977491961414793,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.24261603375527427,
+              "lift": 2.0283012468286596
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 0.010789448499315667,
+            "train": {
+              "coverage": 0.10002891008962128,
+              "event_capture": 0.07646710136336693,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.12427745664739884,
+              "lift": 0.7644500104505381
+            },
+            "holdout": {
+              "coverage": 0.10788461538461538,
+              "event_capture": 0.24437299035369775,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.2709447415329768,
+              "lift": 2.2651328874139542
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 0.013194179721243504,
+            "train": {
+              "coverage": 0.05001445504481064,
+              "event_capture": 0.033787788974510964,
+              "base_rate": 0.16257107063698564,
+              "gated_rate": 0.10982658959537572,
+              "lift": 0.6755604743516384
+            },
+            "holdout": {
+              "coverage": 0.05903846153846154,
+              "event_capture": 0.14630225080385853,
+              "base_rate": 0.11961538461538461,
+              "gated_rate": 0.2964169381107492,
+              "lift": 2.478083726970894
+            }
+          }
+        ],
+        "deepen_14d_8pp:gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.3341577415926846,
+            "train": {
+              "coverage": 0.20025055411005108,
+              "event_capture": 0.34089191232048377,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.21703561116458134,
+              "lift": 1.7023269365494031
+            },
+            "holdout": {
+              "coverage": 0.29365384615384615,
+              "event_capture": 0.1461038961038961,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.029469548133595286,
+              "lift": 0.4975378256321282
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.5215474462179042,
+            "train": {
+              "coverage": 0.10012527705502554,
+              "event_capture": 0.1912320483749055,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.2435033686236766,
+              "lift": 1.909927782470062
+            },
+            "holdout": {
+              "coverage": 0.11442307692307692,
+              "event_capture": 0.06818181818181818,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.03529411764705882,
+              "lift": 0.5958747135217723
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.575,
+            "train": {
+              "coverage": 0.07092608653753493,
+              "event_capture": 0.1368102796674225,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.24592391304347827,
+              "lift": 1.9289134131913634
+            },
+            "holdout": {
+              "coverage": 0.08730769230769231,
+              "event_capture": 0.03896103896103896,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.02643171806167401,
+              "lift": 0.4462497854568339
+            }
+          }
+        ],
+        "deepen_14d_8pp:dominant_side_gross": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.1713703283810726,
+            "train": {
+              "coverage": 0.20073238893707238,
+              "event_capture": 0.20861678004535147,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.13250120019203074,
+              "lift": 1.0392781212340914
+            },
+            "holdout": {
+              "coverage": 0.25403846153846155,
+              "event_capture": 0.23376623376623376,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.05450416351249054,
+              "lift": 0.9202001631978921
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.3473552004886094,
+            "train": {
+              "coverage": 0.10002891008962128,
+              "event_capture": 0.1330309901738473,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.16955684007707128,
+              "lift": 1.3299254191079128
+            },
+            "holdout": {
+              "coverage": 0.1503846153846154,
+              "event_capture": 0.12337662337662338,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.04859335038363171,
+              "lift": 0.8204072142691068
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.536913717343424,
+            "train": {
+              "coverage": 0.0501108220102149,
+              "event_capture": 0.04308390022675737,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.10961538461538461,
+              "lift": 0.8597723704866561
+            },
+            "holdout": {
+              "coverage": 0.06192307692307692,
+              "event_capture": 0.06168831168831169,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.059006211180124224,
+              "lift": 0.9962087601839155
+            }
+          }
+        ],
+        "deepen_14d_8pp:net_abs": [
+          {
+            "quantile": 0.8,
+            "threshold": 1.103534639908327,
+            "train": {
+              "coverage": 0.20053965500626386,
+              "event_capture": 0.21919879062736206,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.13935607880826525,
+              "lift": 1.093044618135577
+            },
+            "holdout": {
+              "coverage": 0.24153846153846154,
+              "event_capture": 0.2435064935064935,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.059713375796178345,
+              "lift": 1.0081479030523617
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 1.3175829117048738,
+            "train": {
+              "coverage": 0.10041437795123831,
+              "event_capture": 0.11715797430083144,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.14875239923224567,
+              "lift": 1.1667450089440765
+            },
+            "holdout": {
+              "coverage": 0.15403846153846154,
+              "event_capture": 0.12987012987012986,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.049937578027465665,
+              "lift": 0.8431019666974723
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 1.4988274346868484,
+            "train": {
+              "coverage": 0.05030355594102342,
+              "event_capture": 0.04610733182161754,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.11685823754789272,
+              "lift": 0.9165819584538796
+            },
+            "holdout": {
+              "coverage": 0.07788461538461539,
+              "event_capture": 0.08441558441558442,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.06419753086419754,
+              "lift": 1.0838544171877507
+            }
+          }
+        ],
+        "deepen_14d_8pp:cross_section_vol_1h": [
+          {
+            "quantile": 0.8,
+            "threshold": 0.00849735554348955,
+            "train": {
+              "coverage": 0.20005782017924256,
+              "event_capture": 0.1254724111866969,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.07996146435452794,
+              "lift": 0.627180737420209
+            },
+            "holdout": {
+              "coverage": 0.1823076923076923,
+              "event_capture": 0.6298701298701299,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.20464135021097046,
+              "lift": 3.45498383473067
+            }
+          },
+          {
+            "quantile": 0.9,
+            "threshold": 0.010789448499315667,
+            "train": {
+              "coverage": 0.10002891008962128,
+              "event_capture": 0.05971277399848828,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.07610789980732177,
+              "lift": 0.5969551597132109
+            },
+            "holdout": {
+              "coverage": 0.10788461538461538,
+              "event_capture": 0.4383116883116883,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.24064171122994651,
+              "lift": 4.062782137648448
+            }
+          },
+          {
+            "quantile": 0.95,
+            "threshold": 0.013194179721243504,
+            "train": {
+              "coverage": 0.05001445504481064,
+              "event_capture": 0.027210884353741496,
+              "base_rate": 0.12749349522983522,
+              "gated_rate": 0.06936416184971098,
+              "lift": 0.5440603987259643
+            },
+            "holdout": {
+              "coverage": 0.05903846153846154,
+              "event_capture": 0.2532467532467532,
+              "base_rate": 0.05923076923076923,
+              "gated_rate": 0.254071661237785,
+              "lift": 4.289521553365201
+            }
+          }
+        ]
+      }
+    }
+  },
+  "disclosure": "Diagnostic only. Exposure features use target weights and market history available through t; future data is used only to label continuation outcomes. No candidate is promoted by this report.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
