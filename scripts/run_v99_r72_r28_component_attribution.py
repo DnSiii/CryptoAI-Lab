@@ -11,7 +11,6 @@ PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
 sys.path.insert(0, str(PROJECT / "scripts"))
 
-import run_v99_r28_direction_gate as r28
 import run_v99_r55_low_hedge_amplitude_frontier as r55
 
 r36 = r55.r36
@@ -38,10 +37,39 @@ VARIANTS = (
 )
 
 
+def features(close: pd.DataFrame):
+    """Exact historical R28 feature logic, copied locally for attribution only."""
+    return (
+        close.pct_change(24, fill_method=None),
+        close.pct_change(72, fill_method=None),
+        close.ewm(span=336, adjust=False, min_periods=336).mean(),
+    )
+
+
+def direction_factor(raw: pd.DataFrame, close: pd.DataFrame, r24: pd.DataFrame, r72: pd.DataFrame, ema: pd.DataFrame, p: dict):
+    """Exact historical R28 direction-factor logic; no threshold changes."""
+    long = raw > 0
+    short = raw < 0
+    adverse = (
+        (long & ((r24 <= -p["adverse24"]) | (r72 <= -p["adverse72"])))
+        | (short & ((r24 >= p["adverse24"]) | (r72 >= p["adverse72"])))
+    ).fillna(False)
+    if p["cooldown"] > 1:
+        adverse = adverse.astype(float).rolling(int(p["cooldown"]), min_periods=1).max().gt(0)
+    aligned = (
+        (long & (r24 >= p["boost24"]) & (r72 >= p["boost72"]) & (close >= ema))
+        | (short & (r24 <= -p["boost24"]) & (r72 <= -p["boost72"]) & (close <= ema))
+    ).fillna(False)
+    factor = pd.DataFrame(1.0, index=raw.index, columns=raw.columns)
+    factor = factor.mask(aligned, p["boost_scale"])
+    factor = factor.mask(adverse, p["cut_scale"])
+    return factor, adverse, aligned
+
+
 def build_targets(raw: pd.DataFrame, close: pd.DataFrame, shadow_eq: pd.Series, variant: dict):
     p = {**BASE_RULE, "cut_scale": variant["cut_scale"], "boost_scale": variant["boost_scale"], "gross_cap": variant["gross_cap"]}
-    feat = r28.features(close)
-    factor, adverse, aligned = r28.direction_factor(raw, close, *feat, p)
+    feat = features(close)
+    factor, adverse, aligned = direction_factor(raw, close, *feat, p)
     adjusted = raw * factor
 
     # Preserve the current R55 h0.15 direct-hedge logic independently of the
@@ -128,6 +156,7 @@ def main():
         "objective": "separate the historical R28 aligned-position boost, adverse-position cut and extra gross-cap effects when layered on the current h0.15 hedge parent, without refitting any R28 threshold",
         "historical_r28_rule_fixed": BASE_RULE,
         "variant_policy": "six predeclared attribution variants: parent, boost-only, cut-only, both at gross 1.9, plus boost-only/both at the old R28 gross cap 2.1",
+        "engineering_fix": "R28 feature and direction-factor helpers copied verbatim into this diagnostic branch because the original helper module is not present in this branch ancestry; research logic unchanged",
         "parent": parent,
         "ranked_variants": rows,
         "disclosure": "Diagnostic historical research only. R28 thresholds were historically selected on overlapping data and therefore R72 cannot promote a candidate. Its purpose is causal component attribution only. Any useful component must be rebuilt with a fresh train/holdout protocol before promotion. Frozen V99 and paper remain untouched.",
