@@ -1,0 +1,632 @@
+{
+  "study": "V99 R72 R28 component attribution on current R55 h0.15 parent",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "separate the historical R28 aligned-position boost, adverse-position cut and extra gross-cap effects when layered on the current h0.15 hedge parent, without refitting any R28 threshold",
+  "historical_r28_rule_fixed": {
+    "adverse24": 0.05,
+    "adverse72": 0.1,
+    "boost24": 0.04,
+    "boost72": 0.08,
+    "cooldown": 6
+  },
+  "variant_policy": "six predeclared attribution variants: parent, boost-only, cut-only, both at gross 1.9, plus boost-only/both at the old R28 gross cap 2.1",
+  "engineering_fix": "R28 feature and direction-factor helpers copied verbatim into this diagnostic branch because the original helper module is not present in this branch ancestry; research logic unchanged",
+  "parent": {
+    "variant": {
+      "name": "parent_h15",
+      "cut_scale": 1.0,
+      "boost_scale": 1.0,
+      "gross_cap": 1.9
+    },
+    "summary": {
+      "return": 222.71464074991826,
+      "max_drawdown": -0.3142330893856765,
+      "best_day": 0.21657980284126888,
+      "worst_day": -0.11521914374325226,
+      "positive_days": 0.48853398853398855
+    },
+    "holdout_after_2024_01_05": {
+      "return": 9.188343186077415,
+      "max_drawdown": -0.29224243176659004,
+      "best_day": 0.21657980284126888,
+      "worst_day": -0.08453935150691394,
+      "positive_days": 0.5025588536335721
+    },
+    "severe_cost": {
+      "return": 89.7265843118439,
+      "max_drawdown": -0.3879289547874262,
+      "best_day": 0.2163799418266692,
+      "worst_day": -0.11604055163118354,
+      "positive_days": 0.47706797706797704
+    },
+    "diagnostics": {
+      "adverse_fraction": 0.0021281378499329066,
+      "aligned_fraction": 0.0030293816522713062,
+      "h15_stress_fraction": 0.7043593941874744,
+      "gross_cap": 1.9
+    },
+    "severe_diagnostics": {
+      "adverse_fraction": 0.0021281378499329066,
+      "aligned_fraction": 0.0030293816522713062,
+      "h15_stress_fraction": 0.6956099058534588,
+      "gross_cap": 1.9
+    },
+    "isolated": {
+      "7": {
+        "return": 0.08868208431123104,
+        "max_drawdown": -0.03926858950740675,
+        "best_day": 0.07601824218740338,
+        "worst_day": -0.026396475580824585,
+        "positive_days": 0.5714285714285714
+      },
+      "30": {
+        "return": 0.45647542069477565,
+        "max_drawdown": -0.10293668584419735,
+        "best_day": 0.21657980284126932,
+        "worst_day": -0.04705039789556342,
+        "positive_days": 0.5666666666666667
+      },
+      "90": {
+        "return": 0.17731089532695243,
+        "max_drawdown": -0.2279620487826045,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.047050397895563534,
+        "positive_days": 0.43333333333333335
+      },
+      "180": {
+        "return": 0.6317792065747481,
+        "max_drawdown": -0.2922424317665925,
+        "best_day": 0.21657980284126777,
+        "worst_day": -0.05667525492626313,
+        "positive_days": 0.5
+      },
+      "365": {
+        "return": 1.6537695597954172,
+        "max_drawdown": -0.29224243176659237,
+        "best_day": 0.216579802841268,
+        "worst_day": -0.0845393515069145,
+        "positive_days": 0.4931506849315068
+      }
+    },
+    "vs_parent": {
+      "full_wealth_ratio": 1.0,
+      "full_dd_ratio": 1.0,
+      "full_worst_ratio": 1.0,
+      "severe_wealth_ratio": 1.0,
+      "holdout_wealth_ratio": 1.0,
+      "one_year_wealth_ratio": 1.0
+    }
+  },
+  "ranked_variants": [
+    {
+      "variant": {
+        "name": "boost_only_g21",
+        "cut_scale": 1.0,
+        "boost_scale": 1.3,
+        "gross_cap": 2.1
+      },
+      "summary": {
+        "return": 274.8418974590282,
+        "max_drawdown": -0.3205786775204834,
+        "best_day": 0.2466178340842753,
+        "worst_day": -0.1270386682769149,
+        "positive_days": 0.47542997542997545
+      },
+      "holdout_after_2024_01_05": {
+        "return": 10.657806471719645,
+        "max_drawdown": -0.3100631580190214,
+        "best_day": 0.2466178340842753,
+        "worst_day": -0.0915439207642551,
+        "positive_days": 0.49948822927328557
+      },
+      "severe_cost": {
+        "return": 79.53322130491,
+        "max_drawdown": -0.45006793750226104,
+        "best_day": 0.2459109476016108,
+        "worst_day": -0.1392021188442103,
+        "positive_days": 0.46355446355446356
+      },
+      "diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.7043593941874744,
+        "gross_cap": 2.1
+      },
+      "severe_diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.6956099058534588,
+        "gross_cap": 2.1
+      },
+      "isolated": {
+        "7": {
+          "return": 0.08868208431123104,
+          "max_drawdown": -0.03926858950740675,
+          "best_day": 0.07601824218740338,
+          "worst_day": -0.026396475580824585,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.4681387553897305,
+          "max_drawdown": -0.11944268733174623,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.21746788439552645,
+          "max_drawdown": -0.24112780049655913,
+          "best_day": 0.24661783408427485,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.43333333333333335
+        },
+        "180": {
+          "return": 0.7369154984868111,
+          "max_drawdown": -0.31006315801902107,
+          "best_day": 0.24661783408427462,
+          "worst_day": -0.06288306909867425,
+          "positive_days": 0.49444444444444446
+        },
+        "365": {
+          "return": 2.0843860023738863,
+          "max_drawdown": -0.31006315801901807,
+          "best_day": 0.2466178340842753,
+          "worst_day": -0.08365641653636968,
+          "positive_days": 0.4986301369863014
+        }
+      },
+      "vs_parent": {
+        "full_wealth_ratio": 1.233007801967601,
+        "full_dd_ratio": 1.020193889024267,
+        "full_worst_ratio": 1.1025829922846901,
+        "severe_wealth_ratio": 0.8876474510282737,
+        "holdout_wealth_ratio": 1.1442298574757752,
+        "one_year_wealth_ratio": 1.16226595146101
+      }
+    },
+    {
+      "variant": {
+        "name": "boost_only_g19",
+        "cut_scale": 1.0,
+        "boost_scale": 1.3,
+        "gross_cap": 1.9
+      },
+      "summary": {
+        "return": 273.15315029439614,
+        "max_drawdown": -0.32057867752047975,
+        "best_day": 0.2371072288834959,
+        "worst_day": -0.1270386682769148,
+        "positive_days": 0.47542997542997545
+      },
+      "holdout_after_2024_01_05": {
+        "return": 10.571063485461167,
+        "max_drawdown": -0.31006315801902096,
+        "best_day": 0.2371072288834959,
+        "worst_day": -0.09154392076425533,
+        "positive_days": 0.49948822927328557
+      },
+      "severe_cost": {
+        "return": 79.04266455580549,
+        "max_drawdown": -0.4506118860770286,
+        "best_day": 0.2364344677051644,
+        "worst_day": -0.13920211884421063,
+        "positive_days": 0.46355446355446356
+      },
+      "diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.7043593941874744,
+        "gross_cap": 1.9
+      },
+      "severe_diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.6956099058534588,
+        "gross_cap": 1.9
+      },
+      "isolated": {
+        "7": {
+          "return": 0.08868208431123104,
+          "max_drawdown": -0.03926858950740675,
+          "best_day": 0.07601824218740338,
+          "worst_day": -0.026396475580824585,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.4681387553897305,
+          "max_drawdown": -0.11944268733174623,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.20757799169865732,
+          "max_drawdown": -0.24112780049655913,
+          "best_day": 0.23710722888349434,
+          "worst_day": -0.06288306909867447,
+          "positive_days": 0.43333333333333335
+        },
+        "180": {
+          "return": 0.7228059616984253,
+          "max_drawdown": -0.31006315801902107,
+          "best_day": 0.23710722888349478,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.49444444444444446
+        },
+        "365": {
+          "return": 2.059330518783573,
+          "max_drawdown": -0.31006315801901807,
+          "best_day": 0.23710722888349522,
+          "worst_day": -0.08365641653636968,
+          "positive_days": 0.4986301369863014
+        }
+      },
+      "vs_parent": {
+        "full_wealth_ratio": 1.225459135689117,
+        "full_dd_ratio": 1.0201938890242552,
+        "full_worst_ratio": 1.102582992284689,
+        "severe_wealth_ratio": 0.8822404718851112,
+        "holdout_wealth_ratio": 1.1357159131892287,
+        "one_year_wealth_ratio": 1.152824482250607
+      }
+    },
+    {
+      "variant": {
+        "name": "both_g21",
+        "cut_scale": 0.5,
+        "boost_scale": 1.3,
+        "gross_cap": 2.1
+      },
+      "summary": {
+        "return": 134.98435104193507,
+        "max_drawdown": -0.3411206987397013,
+        "best_day": 0.2466178340842755,
+        "worst_day": -0.12682520507609218,
+        "positive_days": 0.4631449631449631
+      },
+      "holdout_after_2024_01_05": {
+        "return": 8.259037473591148,
+        "max_drawdown": -0.32891615086320825,
+        "best_day": 0.24661783408427573,
+        "worst_day": -0.11041640441875811,
+        "positive_days": 0.49027635619242577
+      },
+      "severe_cost": {
+        "return": 43.102024134128,
+        "max_drawdown": -0.44629530013022234,
+        "best_day": 0.24591094760161014,
+        "worst_day": -0.12757770492626774,
+        "positive_days": 0.45413595413595415
+      },
+      "diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.7043593941874744,
+        "gross_cap": 2.1
+      },
+      "severe_diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.6956099058534588,
+        "gross_cap": 2.1
+      },
+      "isolated": {
+        "7": {
+          "return": 0.08035568745553845,
+          "max_drawdown": -0.04078510918015821,
+          "best_day": 0.06947687518481849,
+          "worst_day": -0.026078428645752383,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.44677446955138955,
+          "max_drawdown": -0.11944268733174812,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.20554325321986733,
+          "max_drawdown": -0.23746427895141198,
+          "best_day": 0.24661783408427485,
+          "worst_day": -0.06288306909867536,
+          "positive_days": 0.4222222222222222
+        },
+        "180": {
+          "return": 0.655912910835005,
+          "max_drawdown": -0.30963078015056733,
+          "best_day": 0.2466178340842753,
+          "worst_day": -0.06288306909867492,
+          "positive_days": 0.49444444444444446
+        },
+        "365": {
+          "return": 1.74903970768331,
+          "max_drawdown": -0.3096307801505618,
+          "best_day": 0.2466178340842755,
+          "worst_day": -0.08314275131490056,
+          "positive_days": 0.4986301369863014
+        }
+      },
+      "vs_parent": {
+        "full_wealth_ratio": 0.6078473477913615,
+        "full_dd_ratio": 1.0855658116928102,
+        "full_worst_ratio": 1.1007303209846986,
+        "severe_wealth_ratio": 0.4860981427730296,
+        "holdout_wealth_ratio": 0.908787356735668,
+        "one_year_wealth_ratio": 1.0358999324324292
+      }
+    },
+    {
+      "variant": {
+        "name": "both_g19",
+        "cut_scale": 0.5,
+        "boost_scale": 1.3,
+        "gross_cap": 1.9
+      },
+      "summary": {
+        "return": 133.99465438587973,
+        "max_drawdown": -0.3411206987397053,
+        "best_day": 0.23710722888349478,
+        "worst_day": -0.12682520507609207,
+        "positive_days": 0.4631449631449631
+      },
+      "holdout_after_2024_01_05": {
+        "return": 8.19014316124473,
+        "max_drawdown": -0.32891615086320847,
+        "best_day": 0.237107228883495,
+        "worst_day": -0.11041640441875811,
+        "positive_days": 0.49027635619242577
+      },
+      "severe_cost": {
+        "return": 42.833382879777524,
+        "max_drawdown": -0.4468429802945064,
+        "best_day": 0.23643446770516463,
+        "worst_day": -0.12757770492626697,
+        "positive_days": 0.45413595413595415
+      },
+      "diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.7043593941874744,
+        "gross_cap": 1.9
+      },
+      "severe_diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.6956099058534588,
+        "gross_cap": 1.9
+      },
+      "isolated": {
+        "7": {
+          "return": 0.08035568745553845,
+          "max_drawdown": -0.04078510918015821,
+          "best_day": 0.06947687518481849,
+          "worst_day": -0.026078428645752383,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.44677446955138955,
+          "max_drawdown": -0.11944268733174812,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.19575022823038912,
+          "max_drawdown": -0.23746427895141198,
+          "best_day": 0.237107228883495,
+          "worst_day": -0.06288306909867458,
+          "positive_days": 0.4222222222222222
+        },
+        "180": {
+          "return": 0.6424613847508942,
+          "max_drawdown": -0.30963078015056733,
+          "best_day": 0.237107228883495,
+          "worst_day": -0.06288306909867492,
+          "positive_days": 0.49444444444444446
+        },
+        "365": {
+          "return": 1.7267083525183038,
+          "max_drawdown": -0.3096307801505618,
+          "best_day": 0.23710722888349478,
+          "worst_day": -0.08314275131490056,
+          "positive_days": 0.4986301369863014
+        }
+      },
+      "vs_parent": {
+        "full_wealth_ratio": 0.6034234233993871,
+        "full_dd_ratio": 1.0855658116928228,
+        "full_worst_ratio": 1.1007303209846977,
+        "severe_wealth_ratio": 0.48313714455637563,
+        "holdout_wealth_ratio": 0.9020252845235185,
+        "one_year_wealth_ratio": 1.0274849760235059
+      }
+    },
+    {
+      "variant": {
+        "name": "parent_h15",
+        "cut_scale": 1.0,
+        "boost_scale": 1.0,
+        "gross_cap": 1.9
+      },
+      "summary": {
+        "return": 222.71464074991826,
+        "max_drawdown": -0.3142330893856765,
+        "best_day": 0.21657980284126888,
+        "worst_day": -0.11521914374325226,
+        "positive_days": 0.48853398853398855
+      },
+      "holdout_after_2024_01_05": {
+        "return": 9.188343186077415,
+        "max_drawdown": -0.29224243176659004,
+        "best_day": 0.21657980284126888,
+        "worst_day": -0.08453935150691394,
+        "positive_days": 0.5025588536335721
+      },
+      "severe_cost": {
+        "return": 89.7265843118439,
+        "max_drawdown": -0.3879289547874262,
+        "best_day": 0.2163799418266692,
+        "worst_day": -0.11604055163118354,
+        "positive_days": 0.47706797706797704
+      },
+      "diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.7043593941874744,
+        "gross_cap": 1.9
+      },
+      "severe_diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.6956099058534588,
+        "gross_cap": 1.9
+      },
+      "isolated": {
+        "7": {
+          "return": 0.08868208431123104,
+          "max_drawdown": -0.03926858950740675,
+          "best_day": 0.07601824218740338,
+          "worst_day": -0.026396475580824585,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.45647542069477565,
+          "max_drawdown": -0.10293668584419735,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.04705039789556342,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.17731089532695243,
+          "max_drawdown": -0.2279620487826045,
+          "best_day": 0.2165798028412691,
+          "worst_day": -0.047050397895563534,
+          "positive_days": 0.43333333333333335
+        },
+        "180": {
+          "return": 0.6317792065747481,
+          "max_drawdown": -0.2922424317665925,
+          "best_day": 0.21657980284126777,
+          "worst_day": -0.05667525492626313,
+          "positive_days": 0.5
+        },
+        "365": {
+          "return": 1.6537695597954172,
+          "max_drawdown": -0.29224243176659237,
+          "best_day": 0.216579802841268,
+          "worst_day": -0.0845393515069145,
+          "positive_days": 0.4931506849315068
+        }
+      },
+      "vs_parent": {
+        "full_wealth_ratio": 1.0,
+        "full_dd_ratio": 1.0,
+        "full_worst_ratio": 1.0,
+        "severe_wealth_ratio": 1.0,
+        "holdout_wealth_ratio": 1.0,
+        "one_year_wealth_ratio": 1.0
+      }
+    },
+    {
+      "variant": {
+        "name": "cut_only_g19",
+        "cut_scale": 0.5,
+        "boost_scale": 1.0,
+        "gross_cap": 1.9
+      },
+      "summary": {
+        "return": 119.9083155710539,
+        "max_drawdown": -0.3334626703695248,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.09601409319916265,
+        "positive_days": 0.47665847665847666
+      },
+      "holdout_after_2024_01_05": {
+        "return": 6.947700425805397,
+        "max_drawdown": -0.28897877889498136,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.09391432769171693,
+        "positive_days": 0.49641760491299897
+      },
+      "severe_cost": {
+        "return": 47.57332833864605,
+        "max_drawdown": -0.3956316571134858,
+        "best_day": 0.21637994182666942,
+        "worst_day": -0.09658532539848574,
+        "positive_days": 0.46478296478296477
+      },
+      "diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.7043593941874744,
+        "gross_cap": 1.9
+      },
+      "severe_diagnostics": {
+        "adverse_fraction": 0.0021281378499329066,
+        "aligned_fraction": 0.0030293816522713062,
+        "h15_stress_fraction": 0.6956099058534588,
+        "gross_cap": 1.9
+      },
+      "isolated": {
+        "7": {
+          "return": 0.08035568745553845,
+          "max_drawdown": -0.04078510918015821,
+          "best_day": 0.06947687518481849,
+          "worst_day": -0.026078428645752383,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.43527570420911,
+          "max_drawdown": -0.10293668584419735,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.0470503978955632,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.15711613840380956,
+          "max_drawdown": -0.22999727215045607,
+          "best_day": 0.21657980284126865,
+          "worst_day": -0.04705039789556409,
+          "positive_days": 0.4222222222222222
+        },
+        "180": {
+          "return": 0.5619423354896422,
+          "max_drawdown": -0.28897877889498125,
+          "best_day": 0.216579802841268,
+          "worst_day": -0.05284062851919613,
+          "positive_days": 0.49444444444444446
+        },
+        "365": {
+          "return": 1.4127316405359052,
+          "max_drawdown": -0.2889787788949799,
+          "best_day": 0.21657980284126865,
+          "worst_day": -0.07405781996787086,
+          "positive_days": 0.4958904109589041
+        }
+      },
+      "vs_parent": {
+        "full_wealth_ratio": 0.5404577687260644,
+        "full_dd_ratio": 1.0611952771156024,
+        "full_worst_ratio": 0.8333171908751115,
+        "severe_wealth_ratio": 0.5353814287958931,
+        "holdout_wealth_ratio": 0.7800778085946395,
+        "one_year_wealth_ratio": 0.9091714959312089
+      }
+    }
+  ],
+  "disclosure": "Diagnostic historical research only. R28 thresholds were historically selected on overlapping data and therefore R72 cannot promote a candidate. Its purpose is causal component attribution only. Any useful component must be rebuilt with a fresh train/holdout protocol before promotion. Frozen V99 and paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
