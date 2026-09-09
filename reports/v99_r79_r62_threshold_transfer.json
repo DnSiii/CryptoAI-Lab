@@ -1,0 +1,257 @@
+{
+  "study": "V99 R79 transfer of frozen R62 concentrated-damage thresholds to R73",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "test whether two R62 train-derived worst-asset 168h loss-share thresholds retain predictive value for further drawdown deepening on the newer R73 architecture, with zero threshold refitting",
+  "thresholds_refit": false,
+  "parent_r73_summary": {
+    "return": 256.46161173564064,
+    "max_drawdown": -0.3230116295874319,
+    "best_day": 0.21657980284126843,
+    "worst_day": -0.11521914374325193,
+    "positive_days": 0.4893529893529894
+  },
+  "parent_diagnostics": {
+    "gate_fraction": 0.17096466093600765,
+    "vol24_fraction": 0.1618399508800655,
+    "btc24_fraction": 0.18196547960158274,
+    "btc72_fraction": 0.18031109291854278,
+    "gross_fraction": 0.17096466093600765,
+    "mean_votes": 0.6950811843361987,
+    "raw_hourly_gate_fraction": 0.17096466093600765,
+    "daily_trigger_fraction": 0.006532269068085687,
+    "persistent_gate_fraction": 0.23209169054441262,
+    "decision_count": 2443,
+    "persistence_hours": 72,
+    "raw_gate_fraction": 0.0041930843372784375,
+    "daily_held_gate_fraction": 0.004090383035364586,
+    "threshold": -0.027861955338492006,
+    "boost_scale": 1.1,
+    "portfolio_persistent_gate_fraction": 0.23209169054441262,
+    "effective_recovery_fraction": 0.0011367083165232039,
+    "effective_recovery_rows_any_symbol": 0.10192386410151454,
+    "h15_active_fraction": 0.7043593941874744,
+    "h25_active_fraction": 0.7043593941874744
+  },
+  "frame_rows": 58296,
+  "current_split_timestamp": "2023-12-28T08:00:00+00:00",
+  "results": {
+    "mid_dd_8_to_18": {
+      "spec": {
+        "lo": 0.08,
+        "hi": 0.18,
+        "feature": "worst_loss_share_168h",
+        "threshold": 0.7337173889408508,
+        "label": "deepen_14d_8pp",
+        "source": "R62 train q80; old train lift 1.4540 / holdout lift 1.4757"
+      },
+      "full": {
+        "rows": 24980,
+        "selected": 6102,
+        "coverage": 0.244275420336269,
+        "base_rate": 0.09435548438751001,
+        "gated_rate": 0.12979351032448377,
+        "lift": 1.3755799269858313,
+        "event_capture": 0.3360203648705982
+      },
+      "chronological_60pct": {
+        "rows": 13452,
+        "selected": 2678,
+        "coverage": 0.19907820398453763,
+        "base_rate": 0.10979779958370503,
+        "gated_rate": 0.15160567587752055,
+        "lift": 1.3807715314180138,
+        "event_capture": 0.27488151658767773
+      },
+      "chronological_40pct": {
+        "rows": 11528,
+        "selected": 3424,
+        "coverage": 0.2970159611380985,
+        "base_rate": 0.07633587786259542,
+        "gated_rate": 0.11273364485981309,
+        "lift": 1.4768107476635515,
+        "event_capture": 0.43863636363636366
+      },
+      "folds": [
+        {
+          "rows": 4996,
+          "selected": 740,
+          "coverage": 0.14811849479583666,
+          "base_rate": 0.028823058446757407,
+          "gated_rate": 0.03648648648648649,
+          "lift": 1.2658783783783785,
+          "event_capture": 0.1875,
+          "fold": 1,
+          "start": "2020-02-16T16:00:00+00:00",
+          "end": "2021-09-15T11:00:00+00:00"
+        },
+        {
+          "rows": 4996,
+          "selected": 1123,
+          "coverage": 0.22477982385908726,
+          "base_rate": 0.08366693354683746,
+          "gated_rate": 0.22350845948352627,
+          "lift": 2.671407329138032,
+          "event_capture": 0.6004784688995215,
+          "fold": 2,
+          "start": "2021-09-15T12:00:00+00:00",
+          "end": "2022-12-06T01:00:00+00:00"
+        },
+        {
+          "rows": 4996,
+          "selected": 1325,
+          "coverage": 0.26521216973578865,
+          "base_rate": 0.21617293835068055,
+          "gated_rate": 0.11396226415094339,
+          "lift": 0.5271809923130677,
+          "event_capture": 0.1398148148148148,
+          "fold": 3,
+          "start": "2022-12-06T02:00:00+00:00",
+          "end": "2024-07-06T16:00:00+00:00"
+        },
+        {
+          "rows": 4996,
+          "selected": 1394,
+          "coverage": 0.2790232185748599,
+          "base_rate": 0.026821457165732587,
+          "gated_rate": 0.007890961262553802,
+          "lift": 0.29420330199790146,
+          "event_capture": 0.08208955223880597,
+          "fold": 4,
+          "start": "2024-07-06T17:00:00+00:00",
+          "end": "2025-05-01T01:00:00+00:00"
+        },
+        {
+          "rows": 4996,
+          "selected": 1520,
+          "coverage": 0.3042433947157726,
+          "base_rate": 0.11629303442754203,
+          "gated_rate": 0.23157894736842105,
+          "lift": 1.9913397952713108,
+          "event_capture": 0.6058519793459552,
+          "fold": 5,
+          "start": "2025-05-01T02:00:00+00:00",
+          "end": "2026-08-20T22:00:00+00:00"
+        }
+      ],
+      "positive_lift_folds": 3,
+      "fold_count": 5,
+      "transfer_pass": false
+    },
+    "deep_dd_12_to_24": {
+      "spec": {
+        "lo": 0.12,
+        "hi": 0.24,
+        "feature": "worst_loss_share_168h",
+        "threshold": 0.7295387859445592,
+        "label": "deepen_14d_8pp",
+        "source": "R62 train q80; old train lift 1.1150 / holdout lift 1.6135"
+      },
+      "full": {
+        "rows": 18089,
+        "selected": 3680,
+        "coverage": 0.203438553817237,
+        "base_rate": 0.06606224777489082,
+        "gated_rate": 0.058423913043478264,
+        "lift": 0.884376705475714,
+        "event_capture": 0.1799163179916318
+      },
+      "chronological_60pct": {
+        "rows": 9465,
+        "selected": 1730,
+        "coverage": 0.18277865821447437,
+        "base_rate": 0.10406761753829899,
+        "gated_rate": 0.08208092485549133,
+        "lift": 0.7887268566063202,
+        "event_capture": 0.14416243654822336
+      },
+      "chronological_40pct": {
+        "rows": 8624,
+        "selected": 1950,
+        "coverage": 0.22611317254174398,
+        "base_rate": 0.024350649350649352,
+        "gated_rate": 0.03743589743589744,
+        "lift": 1.5373675213675215,
+        "event_capture": 0.3476190476190476
+      },
+      "folds": [
+        {
+          "rows": 3618,
+          "selected": 476,
+          "coverage": 0.13156440022111665,
+          "base_rate": 0.0732448866777225,
+          "gated_rate": 0.10294117647058823,
+          "lift": 1.4054384017758046,
+          "event_capture": 0.18490566037735848,
+          "fold": 1,
+          "start": "2020-05-12T10:00:00+00:00",
+          "end": "2021-10-11T19:00:00+00:00"
+        },
+        {
+          "rows": 3618,
+          "selected": 875,
+          "coverage": 0.24184632393587618,
+          "base_rate": 0.06357103372028745,
+          "gated_rate": 0.02057142857142857,
+          "lift": 0.3235975155279503,
+          "event_capture": 0.0782608695652174,
+          "fold": 2,
+          "start": "2021-10-11T20:00:00+00:00",
+          "end": "2023-05-01T16:00:00+00:00"
+        },
+        {
+          "rows": 3618,
+          "selected": 752,
+          "coverage": 0.20784964068546158,
+          "base_rate": 0.13875069098949697,
+          "gated_rate": 0.09973404255319149,
+          "lift": 0.7188003305925235,
+          "event_capture": 0.14940239043824702,
+          "fold": 3,
+          "start": "2023-05-01T17:00:00+00:00",
+          "end": "2024-08-17T08:00:00+00:00"
+        },
+        {
+          "rows": 3618,
+          "selected": 842,
+          "coverage": 0.23272526257600884,
+          "base_rate": 0.003316749585406302,
+          "gated_rate": 0.0011876484560570072,
+          "lift": 0.3580760095011877,
+          "event_capture": 0.08333333333333333,
+          "fold": 4,
+          "start": "2024-08-17T09:00:00+00:00",
+          "end": "2025-04-09T23:00:00+00:00"
+        },
+        {
+          "rows": 3617,
+          "selected": 735,
+          "coverage": 0.20320707768869228,
+          "base_rate": 0.05142383190489356,
+          "gated_rate": 0.09795918367346938,
+          "lift": 1.9049374588545094,
+          "event_capture": 0.3870967741935484,
+          "fold": 5,
+          "start": "2025-04-10T00:00:00+00:00",
+          "end": "2026-08-20T07:00:00+00:00"
+        }
+      ],
+      "positive_lift_folds": 2,
+      "fold_count": 5,
+      "transfer_pass": false
+    }
+  },
+  "disclosure": "Diagnostic historical research only. Thresholds were frozen in the older R62 h0.15 parent and are transferred unchanged. Future equity is used only for continuation labels. A future guard may use a shadow R73 path so the realized-damage signal stays causal and independent of the guarded portfolio. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
