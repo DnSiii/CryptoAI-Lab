@@ -1,0 +1,2101 @@
+{
+  "study": "V99 R76 R73 max-drawdown attribution",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "attribute the R73 parent's largest drawdowns and worst days to specific positions/exposure states, and measure whether the h15-gross-low stronger-hedge router was active early enough before each trough",
+  "parent_summary": {
+    "return": 256.46161173564064,
+    "max_drawdown": -0.3230116295874319,
+    "worst_day": -0.11521914374325193,
+    "best_day": 0.21657980284126843,
+    "positive_days": 0.4893529893529894
+  },
+  "parent_diagnostics": {
+    "gate_fraction": 0.17096466093600765,
+    "vol24_fraction": 0.1618399508800655,
+    "btc24_fraction": 0.18196547960158274,
+    "btc72_fraction": 0.18031109291854278,
+    "gross_fraction": 0.17096466093600765,
+    "mean_votes": 0.6950811843361987,
+    "raw_hourly_gate_fraction": 0.17096466093600765,
+    "daily_trigger_fraction": 0.006532269068085687,
+    "persistent_gate_fraction": 0.23209169054441262,
+    "decision_count": 2443,
+    "persistence_hours": 72,
+    "raw_gate_fraction": 0.0041930843372784375,
+    "daily_held_gate_fraction": 0.004090383035364586,
+    "threshold": -0.027861955338492006,
+    "boost_scale": 1.1,
+    "portfolio_persistent_gate_fraction": 0.23209169054441262,
+    "effective_recovery_fraction": 0.0011367083165232039,
+    "effective_recovery_rows_any_symbol": 0.10192386410151454,
+    "h15_active_fraction": 0.7043593941874744,
+    "h25_active_fraction": 0.7043593941874744
+  },
+  "persistent_gate_diagnostics": {
+    "gate_fraction": 0.17096466093600765,
+    "vol24_fraction": 0.1618399508800655,
+    "btc24_fraction": 0.18196547960158274,
+    "btc72_fraction": 0.18031109291854278,
+    "gross_fraction": 0.17096466093600765,
+    "mean_votes": 0.6950811843361987,
+    "raw_hourly_gate_fraction": 0.17096466093600765,
+    "daily_trigger_fraction": 0.006532269068085687,
+    "persistent_gate_fraction": 0.23209169054441262,
+    "decision_count": 2443,
+    "persistence_hours": 72
+  },
+  "drawdown_episodes": [
+    {
+      "peak": "2020-04-30T03:00:00+00:00",
+      "trough": "2020-07-22T07:00:00+00:00",
+      "recovery_or_end": "2020-08-01T17:00:00+00:00",
+      "drawdown": -0.3230116295874319,
+      "hours_peak_to_trough": 1996,
+      "btc_return_peak_to_trough": -0.0004932285840471007,
+      "gross_mean": 1.0665740663307475,
+      "dominant_mean": 0.8487087945438494,
+      "net_mean": 0.20342160144349766,
+      "persistent_h25_fraction": 0.09614421632448673,
+      "raw_gross_low_fraction": 0.04807210816224337,
+      "turnover_sum": 101.46444083874758,
+      "fees_sum": 0.10531811798438137,
+      "funding_sum": -0.006253678429714597,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.2977273180462492,
+          "mean_weight": 0.20450351122191548,
+          "mean_abs_weight": 0.3243898081522344,
+          "max_abs_weight": 1.2337519642114232,
+          "mean_directional_24h": 0.006339098814264699,
+          "adverse_24h_fraction": 0.4131196795192789
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.09132884937814116,
+          "mean_weight": -0.07705389443806823,
+          "mean_abs_weight": 0.30871408844353415,
+          "max_abs_weight": 0.8699561829858592,
+          "mean_directional_24h": 0.002558856986404745,
+          "adverse_24h_fraction": 0.4401602403605408
+        },
+        {
+          "symbol": "ONTUSDT",
+          "net_pnl_contribution": -0.07485237891473479,
+          "mean_weight": -0.003362460763406735,
+          "mean_abs_weight": 0.020831813353662337,
+          "max_abs_weight": 0.2598452524768251,
+          "mean_directional_24h": 0.0033258032918284906,
+          "adverse_24h_fraction": 0.07160741111667501
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": -0.06184995446375097,
+          "mean_weight": 0.010445585955799037,
+          "mean_abs_weight": 0.029046990895797015,
+          "max_abs_weight": 0.28994177241338853,
+          "mean_directional_24h": 0.0017646059100469018,
+          "adverse_24h_fraction": 0.12919379068602904
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.05290434505812159,
+          "mean_weight": -0.024016195602351433,
+          "mean_abs_weight": 0.03998877755059343,
+          "max_abs_weight": 0.5346912340651448,
+          "mean_directional_24h": 0.00324079504476129,
+          "adverse_24h_fraction": 0.06960440660991488
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.0421374045477108,
+          "mean_weight": -0.025855079308465263,
+          "mean_abs_weight": 0.025855079308465263,
+          "max_abs_weight": 0.4111570395519729,
+          "mean_directional_24h": 0.0006417255882349562,
+          "adverse_24h_fraction": 0.0756134201301953
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.03945065645029115,
+          "mean_weight": 0.04521914046870884,
+          "mean_abs_weight": 0.09164915357634792,
+          "max_abs_weight": 0.40356164402342737,
+          "mean_directional_24h": 0.001545994081324748,
+          "adverse_24h_fraction": 0.16825237856785177
+        },
+        {
+          "symbol": "IOTAUSDT",
+          "net_pnl_contribution": -0.022133540803919077,
+          "mean_weight": 0.005084769410498213,
+          "mean_abs_weight": 0.016653938451049486,
+          "max_abs_weight": 0.36158125067243113,
+          "mean_directional_24h": 0.003818261454919538,
+          "adverse_24h_fraction": 0.03355032548823235
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.019524588013404016,
+          "mean_weight": 0.0014714864192458689,
+          "mean_abs_weight": 0.0014714864192458689,
+          "max_abs_weight": 0.225,
+          "mean_directional_24h": 0.0006838172312482961,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -0.018031723473635942,
+          "mean_weight": 0.0008039690802312961,
+          "mean_abs_weight": 0.0008039690802312961,
+          "max_abs_weight": 0.15301382696372542,
+          "mean_directional_24h": 0.00024098703067900644,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "XMRUSDT",
+          "net_pnl_contribution": -0.01494808229978913,
+          "mean_weight": 0.00222400745690742,
+          "mean_abs_weight": 0.00222400745690742,
+          "max_abs_weight": 0.1380923799357703,
+          "mean_directional_24h": 0.0011312496046783273,
+          "adverse_24h_fraction": 0.00200300450676014
+        },
+        {
+          "symbol": "THETAUSDT",
+          "net_pnl_contribution": -0.005892585079150762,
+          "mean_weight": 0.00016993018686854906,
+          "mean_abs_weight": 0.0008543492132732712,
+          "max_abs_weight": 0.10320796805332119,
+          "mean_directional_24h": 0.0008415618513903804,
+          "adverse_24h_fraction": 0.000500751126690035
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2020-04-30T09:00:00+00:00",
+          "hours_to_trough": 1990,
+          "gross": 0.7404947646018477,
+          "dominant": 0.6557283922553441,
+          "net": 0.5709620199088404,
+          "btc_r24": 0.08416039653881424,
+          "btc_r72": 0.12196647859061072,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2020-05-10T00:00:00+00:00",
+          "hours_to_trough": 1759,
+          "gross": 0.4676582739394029,
+          "dominant": 0.2379624621727523,
+          "net": -0.008266650406101708,
+          "btc_r24": -0.11968139492977359,
+          "btc_r72": -0.05329350183335224,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2020-05-12T10:00:00+00:00",
+          "hours_to_trough": 1701,
+          "gross": 1.048749688441026,
+          "dominant": 0.6141381883848533,
+          "net": -0.1795266883286808,
+          "btc_r24": -0.002593491268844783,
+          "btc_r72": -0.08961212615365788,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2020-06-18T19:00:00+00:00",
+          "hours_to_trough": 804,
+          "gross": 1.027280612596911,
+          "dominant": 0.868628042678141,
+          "net": 0.709975472759371,
+          "btc_r24": 0.010534119680081222,
+          "btc_r72": -0.00219821083274907,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        }
+      }
+    },
+    {
+      "peak": "2023-01-29T19:00:00+00:00",
+      "trough": "2023-06-08T15:00:00+00:00",
+      "recovery_or_end": "2023-11-02T02:00:00+00:00",
+      "drawdown": -0.3154943328643708,
+      "hours_peak_to_trough": 3116,
+      "btc_return_peak_to_trough": 0.11756065716461772,
+      "gross_mean": 0.9372320418904715,
+      "dominant_mean": 0.8147795664947303,
+      "net_mean": 0.2689805311346766,
+      "persistent_h25_fraction": 0.07699711260827719,
+      "raw_gross_low_fraction": 0.04266923323708694,
+      "turnover_sum": 98.02602358506236,
+      "fees_sum": 1.7604978929814652,
+      "funding_sum": -0.6288849351659768,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -5.3468789754604416,
+          "mean_weight": 0.040923730487071534,
+          "mean_abs_weight": 0.3002181615729163,
+          "max_abs_weight": 1.0799214291887314,
+          "mean_directional_24h": 0.0051420764747805315,
+          "adverse_24h_fraction": 0.45075393006095604
+        },
+        {
+          "symbol": "ONTUSDT",
+          "net_pnl_contribution": -0.9827897511402919,
+          "mean_weight": 0.0034045220806031827,
+          "mean_abs_weight": 0.0034045220806031827,
+          "max_abs_weight": 0.46015443885061286,
+          "mean_directional_24h": -0.00016104572544116017,
+          "adverse_24h_fraction": 0.007699711260827719
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.8486939515568352,
+          "mean_weight": 0.044510006816185534,
+          "mean_abs_weight": 0.3691555145899741,
+          "max_abs_weight": 1.0514518348843518,
+          "mean_directional_24h": 0.0030906574655912076,
+          "adverse_24h_fraction": 0.46166185434712864
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.7206672734911612,
+          "mean_weight": 0.011778642494643143,
+          "mean_abs_weight": 0.01997698196668015,
+          "max_abs_weight": 0.23598352141423068,
+          "mean_directional_24h": 0.002511166466911182,
+          "adverse_24h_fraction": 0.04234841193455245
+        },
+        {
+          "symbol": "CHZUSDT",
+          "net_pnl_contribution": -0.5588457067629061,
+          "mean_weight": 0.00025444341879825115,
+          "mean_abs_weight": 0.0013852353985460413,
+          "max_abs_weight": 0.22662071135675424,
+          "mean_directional_24h": 0.0007019002612215751,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.44756142033252194,
+          "mean_weight": -0.00027504090865152685,
+          "mean_abs_weight": 0.0022936082847995042,
+          "max_abs_weight": 0.22740385702458007,
+          "mean_directional_24h": 0.0007445501508027505,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.4058153005675823,
+          "mean_weight": 0.0017668481841587804,
+          "mean_abs_weight": 0.002062248397912677,
+          "max_abs_weight": 0.2279436074405734,
+          "mean_directional_24h": 0.0015624848532087591,
+          "adverse_24h_fraction": 0.0016041065126724415
+        },
+        {
+          "symbol": "SANDUSDT",
+          "net_pnl_contribution": -0.3991992466799393,
+          "mean_weight": 0.0059352333582548995,
+          "mean_abs_weight": 0.0059352333582548995,
+          "max_abs_weight": 0.23208678067280472,
+          "mean_directional_24h": 0.0019101925993720635,
+          "adverse_24h_fraction": 0.003529034327879371
+        },
+        {
+          "symbol": "FTMUSDT",
+          "net_pnl_contribution": -0.3740212024164101,
+          "mean_weight": 0.004120573435840836,
+          "mean_abs_weight": 0.004120573435840836,
+          "max_abs_weight": 0.22782771408692457,
+          "mean_directional_24h": 0.0025104443526135427,
+          "adverse_24h_fraction": 0.017965992941931345
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.3625591356083742,
+          "mean_weight": 0.0009401231980149497,
+          "mean_abs_weight": 0.0009401231980149497,
+          "max_abs_weight": 0.22856031997141674,
+          "mean_directional_24h": 0.0004085803531424747,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -0.35532810094664696,
+          "mean_weight": 0.009832570386217519,
+          "mean_abs_weight": 0.009832570386217519,
+          "max_abs_weight": 0.23273950115014547,
+          "mean_directional_24h": 0.0012650826966595868,
+          "adverse_24h_fraction": 0.013795316008982997
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": -0.35109359418405484,
+          "mean_weight": -0.0009178025583815257,
+          "mean_abs_weight": 0.0014946229408940022,
+          "max_abs_weight": 0.22827532135343218,
+          "mean_directional_24h": 0.0007459259508855326,
+          "adverse_24h_fraction": 0.0006416426050689766
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2023-01-30T19:00:00+00:00",
+          "hours_to_trough": 3092,
+          "gross": 0.7313898055987006,
+          "dominant": 0.7313898055987006,
+          "net": 0.7313898055987006,
+          "btc_r24": -0.04657147878777723,
+          "btc_r72": -0.019916805396034687,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2023-02-09T16:00:00+00:00",
+          "hours_to_trough": 2855,
+          "gross": 0.8283414222328654,
+          "dominant": 0.8283414222328654,
+          "net": 0.8283414222328654,
+          "btc_r24": -0.019810260565036653,
+          "btc_r72": -0.02148531771397255,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2023-02-14T14:00:00+00:00",
+          "hours_to_trough": 2737,
+          "gross": 0.84371602993131,
+          "dominant": 0.84371602993131,
+          "net": -0.84371602993131,
+          "btc_r24": 0.026644878062291433,
+          "btc_r72": 0.022919196379291407,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2023-04-26T19:00:00+00:00",
+          "hours_to_trough": 1028,
+          "gross": 1.1819057085672169,
+          "dominant": 1.1819057085672169,
+          "net": 1.1819057085672169,
+          "btc_r24": 0.00999416584227486,
+          "btc_r72": 0.015247711568372457,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        }
+      }
+    },
+    {
+      "peak": "2023-11-09T14:00:00+00:00",
+      "trough": "2024-02-07T04:00:00+00:00",
+      "recovery_or_end": "2024-02-27T02:00:00+00:00",
+      "drawdown": -0.29562699582380025,
+      "hours_peak_to_trough": 2150,
+      "btc_return_peak_to_trough": 0.13142891800097045,
+      "gross_mean": 1.101071868260638,
+      "dominant_mean": 0.9247300272580148,
+      "net_mean": 0.6034718496287101,
+      "persistent_h25_fraction": 0.06694560669456066,
+      "raw_gross_low_fraction": 0.028358902835890282,
+      "turnover_sum": 89.6862159320687,
+      "fees_sum": 1.706944448916836,
+      "funding_sum": 0.41462713976420834,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -1.918705811143032,
+          "mean_weight": -0.014375296845153417,
+          "mean_abs_weight": 0.014648796783265038,
+          "max_abs_weight": 0.5695606769499898,
+          "mean_directional_24h": -0.00010297164283067218,
+          "adverse_24h_fraction": 0.02185030218503022
+        },
+        {
+          "symbol": "IOTAUSDT",
+          "net_pnl_contribution": -1.9161651571417226,
+          "mean_weight": -0.027599872415298623,
+          "mean_abs_weight": 0.027599872415298623,
+          "max_abs_weight": 0.41697181417223694,
+          "mean_directional_24h": 0.000625420522947899,
+          "adverse_24h_fraction": 0.04370060437006044
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -1.552796860298217,
+          "mean_weight": 0.06343629678610445,
+          "mean_abs_weight": 0.08401764537249413,
+          "max_abs_weight": 0.6155791606840763,
+          "mean_directional_24h": 0.0010551626656082576,
+          "adverse_24h_fraction": 0.09437470943747095
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -1.2699613440104593,
+          "mean_weight": 0.015287632101979838,
+          "mean_abs_weight": 0.01693846307659122,
+          "max_abs_weight": 0.23252817167372308,
+          "mean_directional_24h": 0.003930384542462584,
+          "adverse_24h_fraction": 0.03579730357973036
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -1.040614397506316,
+          "mean_weight": -0.0008170204827746598,
+          "mean_abs_weight": 0.004911724550704754,
+          "max_abs_weight": 0.5737503370524816,
+          "mean_directional_24h": 0.000876212076574515,
+          "adverse_24h_fraction": 0.010227801022780102
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -0.7408540434981995,
+          "mean_weight": -0.005906457230179914,
+          "mean_abs_weight": 0.013634622693027067,
+          "max_abs_weight": 0.45069402055364305,
+          "mean_directional_24h": 0.001776488911270181,
+          "adverse_24h_fraction": 0.0199907019990702
+        },
+        {
+          "symbol": "RUNEUSDT",
+          "net_pnl_contribution": -0.5675578544844374,
+          "mean_weight": 0.0017767578343257347,
+          "mean_abs_weight": 0.0038245234194672234,
+          "max_abs_weight": 0.22552514440573387,
+          "mean_directional_24h": 0.0040779253264325264,
+          "adverse_24h_fraction": 0.005113900511390051
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.48309767411932825,
+          "mean_weight": 0.2681586719207227,
+          "mean_abs_weight": 0.486825015331446,
+          "max_abs_weight": 0.9487263634864253,
+          "mean_directional_24h": 0.004461277588663013,
+          "adverse_24h_fraction": 0.46675964667596465
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.3556054765357924,
+          "mean_weight": -2.3946043149053223e-05,
+          "mean_abs_weight": 0.002340371306767816,
+          "max_abs_weight": 0.2309160658271753,
+          "mean_directional_24h": 0.001289092629736145,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "YFIUSDT",
+          "net_pnl_contribution": -0.2379673160964157,
+          "mean_weight": -0.0020368729946696872,
+          "mean_abs_weight": 0.0020368729946696872,
+          "max_abs_weight": 0.5490306884187889,
+          "mean_directional_24h": 1.7058616757528522e-06,
+          "adverse_24h_fraction": 0.001394700139470014
+        },
+        {
+          "symbol": "FTMUSDT",
+          "net_pnl_contribution": -0.19782575189518972,
+          "mean_weight": 0.0005221133731405048,
+          "mean_abs_weight": 0.0005221133731405048,
+          "max_abs_weight": 0.22564690284844907,
+          "mean_directional_24h": 0.00026450393534616833,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "SUSHIUSDT",
+          "net_pnl_contribution": -0.12653536593384096,
+          "mean_weight": 9.419572459333061e-05,
+          "mean_abs_weight": 9.419572459333061e-05,
+          "max_abs_weight": 0.10245292447009884,
+          "mean_directional_24h": 9.813238933295418e-05,
+          "adverse_24h_fraction": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2023-11-09T16:00:00+00:00",
+          "hours_to_trough": 2148,
+          "gross": 1.2000000000000002,
+          "dominant": 0.6787410983493667,
+          "net": 0.1574821966987332,
+          "btc_r24": 0.026544400181818695,
+          "btc_r72": 0.03945100214121733,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2023-11-13T21:00:00+00:00",
+          "hours_to_trough": 2047,
+          "gross": 1.3539842710810075,
+          "dominant": 1.3539842710810075,
+          "net": 1.3539842710810075,
+          "btc_r24": -0.01853554662924073,
+          "btc_r72": -0.020902119715797807,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2023-11-14T18:00:00+00:00",
+          "hours_to_trough": 2026,
+          "gross": 1.1954363873855383,
+          "dominant": 0.9704363873855382,
+          "net": 0.7454363873855382,
+          "btc_r24": -0.04166530692164605,
+          "btc_r72": -0.05118912675313059,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2023-12-26T04:00:00+00:00",
+          "hours_to_trough": 1032,
+          "gross": 1.35,
+          "dominant": 0.9638752114612533,
+          "net": 0.5777504229225066,
+          "btc_r24": 0.00805404603371862,
+          "btc_r72": -0.0011531958687102106,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        }
+      }
+    },
+    {
+      "peak": "2026-06-06T04:00:00+00:00",
+      "trough": "2026-08-18T02:00:00+00:00",
+      "recovery_or_end": "2026-08-21T08:00:00+00:00",
+      "drawdown": -0.2932822855600232,
+      "hours_peak_to_trough": 1750,
+      "btc_return_peak_to_trough": 0.06668398026250077,
+      "gross_mean": 0.9440758560991749,
+      "dominant_mean": 0.7633305528934768,
+      "net_mean": 0.059281791183613874,
+      "persistent_h25_fraction": 0.0548258138206739,
+      "raw_gross_low_fraction": 0.027984009137635636,
+      "turnover_sum": 57.32990190771397,
+      "fees_sum": 7.667360119444542,
+      "funding_sum": -0.15306945906399413,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -25.422871607692223,
+          "mean_weight": -0.1845771984615694,
+          "mean_abs_weight": 0.2823333856857592,
+          "max_abs_weight": 1.3327752623889657,
+          "mean_directional_24h": 0.0018538406173007238,
+          "adverse_24h_fraction": 0.47058823529411764
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -24.953962001224564,
+          "mean_weight": 0.12165348981971381,
+          "mean_abs_weight": 0.4923836596407479,
+          "max_abs_weight": 1.0574700858608503,
+          "mean_directional_24h": 0.0008741056430743662,
+          "adverse_24h_fraction": 0.4477441462021702
+        },
+        {
+          "symbol": "ZECUSDT",
+          "net_pnl_contribution": -11.033145902509395,
+          "mean_weight": 0.00572776921090145,
+          "mean_abs_weight": 0.00572776921090145,
+          "max_abs_weight": 0.5628243622347389,
+          "mean_directional_24h": 0.0006088583143992172,
+          "adverse_24h_fraction": 0.005139920045688178
+        },
+        {
+          "symbol": "UNIUSDT",
+          "net_pnl_contribution": -3.3453941657424138,
+          "mean_weight": 0.006450709009321867,
+          "mean_abs_weight": 0.006450709009321867,
+          "max_abs_weight": 0.23201562931781883,
+          "mean_directional_24h": 0.001171826018870624,
+          "adverse_24h_fraction": 0.011422044545973729
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -1.5647638692256454,
+          "mean_weight": 0.005263733396891352,
+          "mean_abs_weight": 0.005263733396891352,
+          "max_abs_weight": 0.22708809589041928,
+          "mean_directional_24h": 0.0006460232919699334,
+          "adverse_24h_fraction": 0.011422044545973729
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -1.5587790981599454,
+          "mean_weight": -0.006300302846058602,
+          "mean_abs_weight": 0.006300302846058602,
+          "max_abs_weight": 0.22761616828136355,
+          "mean_directional_24h": 0.0005441634971810369,
+          "adverse_24h_fraction": 0.0074243289548829245
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -1.315048400258602,
+          "mean_weight": 0.007063917038821375,
+          "mean_abs_weight": 0.007063917038821375,
+          "max_abs_weight": 0.22950323445625567,
+          "mean_directional_24h": 0.0006449771445547573,
+          "adverse_24h_fraction": 0.01599086236436322
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -1.2772584006188596,
+          "mean_weight": -0.0024125297124898224,
+          "mean_abs_weight": 0.0024125297124898224,
+          "max_abs_weight": 0.2261887035815431,
+          "mean_directional_24h": 0.0001849128849881051,
+          "adverse_24h_fraction": 0.002284408909194746
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": -0.3766473115870008,
+          "mean_weight": 0.010764111711621548,
+          "mean_abs_weight": 0.032387249126450496,
+          "max_abs_weight": 0.2368326978354187,
+          "mean_directional_24h": 0.0012161975041373994,
+          "adverse_24h_fraction": 0.07938320959451742
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "mean_directional_24h": 0.0,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "mean_directional_24h": 0.0,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "mean_directional_24h": NaN,
+          "adverse_24h_fraction": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2026-06-07T07:00:00+00:00",
+          "hours_to_trough": 1723,
+          "gross": 0.8072113712111201,
+          "dominant": 0.8072113712111201,
+          "net": -0.8072113712111201,
+          "btc_r24": 0.0228092732783165,
+          "btc_r72": -0.01881164286040171,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2026-06-07T23:00:00+00:00",
+          "hours_to_trough": 1707,
+          "gross": 1.4158233153130508,
+          "dominant": 0.8011562738185318,
+          "net": -0.18648923232401293,
+          "btc_r24": 0.040243419441673645,
+          "btc_r72": -0.0086902185318245,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2026-06-15T13:00:00+00:00",
+          "hours_to_trough": 1525,
+          "gross": 1.35,
+          "dominant": 0.7081455474768747,
+          "net": -0.06629109495374952,
+          "btc_r24": 0.033028193661287286,
+          "btc_r72": 0.05079880949932192,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2026-07-17T17:00:00+00:00",
+          "hours_to_trough": 753,
+          "gross": 0.9221326552056631,
+          "dominant": 0.4904983710724421,
+          "net": 0.05886408693922107,
+          "btc_r24": -0.0005277489788525491,
+          "btc_r72": -0.00906691435427065,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        }
+      }
+    },
+    {
+      "peak": "2022-11-09T21:00:00+00:00",
+      "trough": "2023-01-08T00:00:00+00:00",
+      "recovery_or_end": "2023-01-14T00:00:00+00:00",
+      "drawdown": -0.25791388284194594,
+      "hours_peak_to_trough": 1419,
+      "btc_return_peak_to_trough": 0.07754524958921927,
+      "gross_mean": 0.7810997784970712,
+      "dominant_mean": 0.6652792150372715,
+      "net_mean": -0.22616361816660316,
+      "persistent_h25_fraction": 0.4225352112676056,
+      "raw_gross_low_fraction": 0.25985915492957745,
+      "turnover_sum": 44.61648717501491,
+      "fees_sum": 0.6872267654160609,
+      "funding_sum": -0.192748328230041,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -2.214475081146799,
+          "mean_weight": -0.1615949800635476,
+          "mean_abs_weight": 0.28499013259998957,
+          "max_abs_weight": 0.8906587451040668,
+          "mean_directional_24h": 0.00414874431887651,
+          "adverse_24h_fraction": 0.44084507042253523
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.2150669455210021,
+          "mean_weight": -0.15975557934423246,
+          "mean_abs_weight": 0.23240287021777467,
+          "max_abs_weight": 0.9193032137496925,
+          "mean_directional_24h": 0.0013279396994394321,
+          "adverse_24h_fraction": 0.4830985915492958
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": -0.9572763457557363,
+          "mean_weight": 0.032902727540665956,
+          "mean_abs_weight": 0.032902727540665956,
+          "max_abs_weight": 0.321331679799924,
+          "mean_directional_24h": 0.0009632168038818882,
+          "adverse_24h_fraction": 0.11338028169014085
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.9035086029252373,
+          "mean_weight": 0.01374264558937771,
+          "mean_abs_weight": 0.04060100071665447,
+          "max_abs_weight": 0.6002551650730104,
+          "mean_directional_24h": 0.0013783812047748088,
+          "adverse_24h_fraction": 0.07535211267605633
+        },
+        {
+          "symbol": "CRVUSDT",
+          "net_pnl_contribution": -0.8471529167596175,
+          "mean_weight": -0.0009443351967821319,
+          "mean_abs_weight": 0.002186056860098221,
+          "max_abs_weight": 0.2343596102455034,
+          "mean_directional_24h": 0.002548996258567803,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.46176164861464586,
+          "mean_weight": -0.0019239715502634759,
+          "mean_abs_weight": 0.0019239715502634759,
+          "max_abs_weight": 0.23013060380908565,
+          "mean_directional_24h": 0.0012932029883903887,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": -0.23956730499049278,
+          "mean_weight": 0.011212578346069844,
+          "mean_abs_weight": 0.011212578346069844,
+          "max_abs_weight": 0.2264707768192575,
+          "mean_directional_24h": 0.0013921778360606145,
+          "adverse_24h_fraction": 0.018309859154929577
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.18368126278089592,
+          "mean_weight": 0.0013124064262798375,
+          "mean_abs_weight": 0.0013124064262798375,
+          "max_abs_weight": 0.22570598618667434,
+          "mean_directional_24h": 0.0006635162412752078,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "MKRUSDT",
+          "net_pnl_contribution": -0.17827709095571403,
+          "mean_weight": 0.0012639277147815668,
+          "mean_abs_weight": 0.0012639277147815668,
+          "max_abs_weight": 0.23451342820330362,
+          "mean_directional_24h": 0.0016617353544101866,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.061382014886488596,
+          "mean_weight": 0.00011189037745604397,
+          "mean_abs_weight": 0.00011189037745604397,
+          "max_abs_weight": 0.0796243582845761,
+          "mean_directional_24h": 0.00043112860758221243,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.05731156492613889,
+          "mean_weight": 0.000892064862457373,
+          "mean_abs_weight": 0.000892064862457373,
+          "max_abs_weight": 0.08494803898050927,
+          "mean_directional_24h": 0.0011271116983947013,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.05141197778546704,
+          "mean_weight": 0.007918776757066443,
+          "mean_abs_weight": 0.007918776757066443,
+          "max_abs_weight": 0.11842457847112983,
+          "mean_directional_24h": 0.0005457334051339186,
+          "adverse_24h_fraction": 0.029577464788732393
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2022-11-10T05:00:00+00:00",
+          "hours_to_trough": 1411,
+          "gross": 0.6576098628165679,
+          "dominant": 0.6576098628165679,
+          "net": -0.6576098628165679,
+          "btc_r24": -0.09228660625904206,
+          "btc_r72": -0.19961058144219135,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2022-11-10T13:00:00+00:00",
+          "hours_to_trough": 1403,
+          "gross": 0.42515567911035373,
+          "dominant": 0.42515567911035373,
+          "net": -0.42515567911035373,
+          "btc_r24": 0.004496223741199623,
+          "btc_r72": -0.14790371171449535,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2022-11-24T01:00:00+00:00",
+          "hours_to_trough": 1079,
+          "gross": 0.23573650890037776,
+          "dominant": 0.23573650890037776,
+          "net": -0.23573650890037776,
+          "btc_r24": 0.032172325756361086,
+          "btc_r72": 0.032904846244515396,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": true
+        },
+        "20pct": {
+          "timestamp": "2022-12-12T21:00:00+00:00",
+          "hours_to_trough": 627,
+          "gross": 0.4406911110351507,
+          "dominant": 0.4406911110351507,
+          "net": -0.4406911110351507,
+          "btc_r24": 0.003642167294156229,
+          "btc_r72": 0.003642167294156229,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": false
+        }
+      }
+    },
+    {
+      "peak": "2021-09-07T05:00:00+00:00",
+      "trough": "2021-09-30T09:00:00+00:00",
+      "recovery_or_end": "2021-11-09T21:00:00+00:00",
+      "drawdown": -0.23305313714043718,
+      "hours_peak_to_trough": 556,
+      "btc_return_peak_to_trough": -0.1813408651690811,
+      "gross_mean": 0.5172326605469634,
+      "dominant_mean": 0.42113748769202214,
+      "net_mean": 0.02841240848856498,
+      "persistent_h25_fraction": 0.4919210053859964,
+      "raw_gross_low_fraction": 0.3123877917414722,
+      "turnover_sum": 15.424429113202727,
+      "fees_sum": 0.12550904148285158,
+      "funding_sum": 0.009499475851554896,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.241450530812839,
+          "mean_weight": 0.06136845119673355,
+          "mean_abs_weight": 0.14009198874962073,
+          "max_abs_weight": 0.5013332309933733,
+          "mean_directional_24h": 0.0023314765117160587,
+          "adverse_24h_fraction": 0.4578096947935368
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.37998353864232925,
+          "mean_weight": 0.0021824427013888135,
+          "mean_abs_weight": 0.0021824427013888135,
+          "max_abs_weight": 0.16090639737359225,
+          "mean_directional_24h": 0.004711960601364852,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": -0.33782613744903867,
+          "mean_weight": 0.018413499627875553,
+          "mean_abs_weight": 0.018413499627875553,
+          "max_abs_weight": 0.225,
+          "mean_directional_24h": 0.003714219071917637,
+          "adverse_24h_fraction": 0.06463195691202872
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.33407727326820486,
+          "mean_weight": -0.16479028824979094,
+          "mean_abs_weight": 0.20019680615855726,
+          "max_abs_weight": 0.46687999326165064,
+          "mean_directional_24h": 0.005121907383347681,
+          "adverse_24h_fraction": 0.5134649910233393
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.24602681013148053,
+          "mean_weight": 0.007278169880417136,
+          "mean_abs_weight": 0.007425417146749521,
+          "max_abs_weight": 0.22862072708974704,
+          "mean_directional_24h": 0.006684669806534347,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.18732277335950093,
+          "mean_weight": 0.06658880160017719,
+          "mean_abs_weight": 0.06658880160017719,
+          "max_abs_weight": 0.5859983992270392,
+          "mean_directional_24h": 0.0022133266319804886,
+          "adverse_24h_fraction": 0.0933572710951526
+        },
+        {
+          "symbol": "DOTUSDT",
+          "net_pnl_contribution": -0.1618707457802891,
+          "mean_weight": 0.0017004807881819265,
+          "mean_abs_weight": 0.0017004807881819265,
+          "max_abs_weight": 0.12814986364663597,
+          "mean_directional_24h": -0.0003028121145722909,
+          "adverse_24h_fraction": 0.00718132854578097
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.07346268669458463,
+          "mean_weight": -0.0009878615925784972,
+          "mean_abs_weight": 0.0009878615925784972,
+          "max_abs_weight": 0.225,
+          "mean_directional_24h": 0.0017371517868967911,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "SANDUSDT",
+          "net_pnl_contribution": -0.05827641972281791,
+          "mean_weight": 0.004785140927759901,
+          "mean_abs_weight": 0.004785140927759901,
+          "max_abs_weight": 0.11752107280365888,
+          "mean_directional_24h": 0.002155212970122824,
+          "adverse_24h_fraction": 0.005385996409335727
+        },
+        {
+          "symbol": "UNIUSDT",
+          "net_pnl_contribution": -0.05529077721090625,
+          "mean_weight": 0.007884546184925222,
+          "mean_abs_weight": 0.007884546184925222,
+          "max_abs_weight": 0.22499999999999998,
+          "mean_directional_24h": 0.011029159364411139,
+          "adverse_24h_fraction": 0.003590664272890485
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.05519146998760877,
+          "mean_weight": -0.00023269740484305773,
+          "mean_abs_weight": 0.00023269740484305773,
+          "max_abs_weight": 0.12961245449758316,
+          "mean_directional_24h": 0.00034206833702205935,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -0.04086064429562835,
+          "mean_weight": 0.002848339206293301,
+          "mean_abs_weight": 0.002848339206293301,
+          "max_abs_weight": 0.10351250978779981,
+          "mean_directional_24h": 0.006540869146248657,
+          "adverse_24h_fraction": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2021-09-07T14:00:00+00:00",
+          "hours_to_trough": 547,
+          "gross": 0.7475785468064542,
+          "dominant": 0.5225785468064542,
+          "net": 0.29757854680645424,
+          "btc_r24": -0.08494986329340426,
+          "btc_r72": -0.053577398462156145,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2021-09-07T14:00:00+00:00",
+          "hours_to_trough": 547,
+          "gross": 0.7475785468064542,
+          "dominant": 0.5225785468064542,
+          "net": 0.29757854680645424,
+          "btc_r24": -0.08494986329340426,
+          "btc_r72": -0.053577398462156145,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2021-09-07T15:00:00+00:00",
+          "hours_to_trough": 546,
+          "gross": 0.8366582105725537,
+          "dominant": 0.45113073621740424,
+          "net": -0.06560326186225472,
+          "btc_r24": -0.09660395600854044,
+          "btc_r72": -0.0655783912298511,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2021-09-21T06:00:00+00:00",
+          "hours_to_trough": 219,
+          "gross": 0.3127207768529292,
+          "dominant": 0.3127207768529292,
+          "net": -0.3127207768529292,
+          "btc_r24": -0.060653146950285675,
+          "btc_r72": -0.11771632502583163,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": true
+        }
+      }
+    },
+    {
+      "peak": "2025-06-11T15:00:00+00:00",
+      "trough": "2025-07-04T19:00:00+00:00",
+      "recovery_or_end": "2025-07-14T04:00:00+00:00",
+      "drawdown": -0.22636000860210292,
+      "hours_peak_to_trough": 556,
+      "btc_return_peak_to_trough": -0.020650021696561716,
+      "gross_mean": 1.0448347784534724,
+      "dominant_mean": 0.9343654101628116,
+      "net_mean": 0.3536762696946969,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.010771992818671455,
+      "turnover_sum": 32.449543248449444,
+      "fees_sum": 1.5288056868673365,
+      "funding_sum": 0.08728952186969538,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -12.063040586978182,
+          "mean_weight": 0.024949020959203354,
+          "mean_abs_weight": 0.22012127336186874,
+          "max_abs_weight": 0.6672979244078229,
+          "mean_directional_24h": -0.0010802948319901902,
+          "adverse_24h_fraction": 0.5026929982046678
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -3.4057891232373767,
+          "mean_weight": 0.37555727726926186,
+          "mean_abs_weight": 0.6161616821679103,
+          "max_abs_weight": 1.1218569611280427,
+          "mean_directional_24h": 0.005531925147525965,
+          "adverse_24h_fraction": 0.34290843806104127
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -1.0925367970103954,
+          "mean_weight": 0.00912246942932488,
+          "mean_abs_weight": 0.00912246942932488,
+          "max_abs_weight": 0.2261889021586696,
+          "mean_directional_24h": -0.001531617105757633,
+          "adverse_24h_fraction": 0.05206463195691203
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": -0.43631116043744284,
+          "mean_weight": 0.0036320959213919455,
+          "mean_abs_weight": 0.0036320959213919455,
+          "max_abs_weight": 0.22622933155225097,
+          "mean_directional_24h": 0.0012654945622977633,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.3941173048031154,
+          "mean_weight": 0.00153380530443868,
+          "mean_abs_weight": 0.00153380530443868,
+          "max_abs_weight": 0.12243219568608817,
+          "mean_directional_24h": 0.00023187689644612488,
+          "adverse_24h_fraction": 0.005385996409335727
+        },
+        {
+          "symbol": "TRXUSDT",
+          "net_pnl_contribution": -0.25566230308131355,
+          "mean_weight": -0.0237836006079822,
+          "mean_abs_weight": 0.0237836006079822,
+          "max_abs_weight": 0.14348563402112965,
+          "mean_directional_24h": 0.002027005497873683,
+          "adverse_24h_fraction": 0.06822262118491922
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.2503618343365616,
+          "mean_weight": -0.004615879037063638,
+          "mean_abs_weight": 0.004615879037063638,
+          "max_abs_weight": 0.13607325755958263,
+          "mean_directional_24h": 0.0009083146066186387,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.20815027183797008,
+          "mean_weight": 0.001317237370724199,
+          "mean_abs_weight": 0.001317237370724199,
+          "max_abs_weight": 0.11472013893193046,
+          "mean_directional_24h": 0.0005673726688713599,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "XLMUSDT",
+          "net_pnl_contribution": -0.10893266525902662,
+          "mean_weight": -0.0007325547704915959,
+          "mean_abs_weight": 0.0007325547704915959,
+          "max_abs_weight": 0.05272122885867719,
+          "mean_directional_24h": 0.0009039913599890708,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "mean_directional_24h": 0.0,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "mean_directional_24h": 0.0,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "mean_directional_24h": 0.0,
+          "adverse_24h_fraction": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2025-06-12T11:00:00+00:00",
+          "hours_to_trough": 536,
+          "gross": 1.2173052193950809,
+          "dominant": 1.1574940125410005,
+          "net": 1.0976828056869201,
+          "btc_r24": -0.02140291080319534,
+          "btc_r72": -0.00784529268512335,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2025-06-13T00:00:00+00:00",
+          "hours_to_trough": 523,
+          "gross": 0.5430940082431329,
+          "dominant": 0.519801245317466,
+          "net": -0.49650848239179907,
+          "btc_r24": -0.04545981559526657,
+          "btc_r72": -0.05585484729750023,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "12pct": {
+          "timestamp": "2025-06-14T03:00:00+00:00",
+          "hours_to_trough": 496,
+          "gross": 1.2994565550346224,
+          "dominant": 1.0744565550346223,
+          "net": 0.8494565550346223,
+          "btc_r24": 0.00916688332682547,
+          "btc_r72": -0.040803690542301596,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2025-07-02T02:00:00+00:00",
+          "hours_to_trough": 65,
+          "gross": 0.8575215137330858,
+          "dominant": 0.8575215137330858,
+          "net": -0.8575215137330858,
+          "btc_r24": -0.011062110170845352,
+          "btc_r72": -0.012925608985177028,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        }
+      }
+    },
+    {
+      "peak": "2026-02-05T23:00:00+00:00",
+      "trough": "2026-04-09T13:00:00+00:00",
+      "recovery_or_end": "2026-06-02T14:00:00+00:00",
+      "drawdown": -0.21789612721804552,
+      "hours_peak_to_trough": 1502,
+      "btc_return_peak_to_trough": 0.1256137850515604,
+      "gross_mean": 0.6992515844816235,
+      "dominant_mean": 0.521710978726526,
+      "net_mean": 0.0045806959545749495,
+      "persistent_h25_fraction": 0.5429141716566867,
+      "raw_gross_low_fraction": 0.4125083166999335,
+      "turnover_sum": 46.30737790687164,
+      "fees_sum": 5.298593503382302,
+      "funding_sum": -5.9037113858355,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -18.89065694169458,
+          "mean_weight": -0.08414318450989244,
+          "mean_abs_weight": 0.28345143609805895,
+          "max_abs_weight": 0.9616616847239299,
+          "mean_directional_24h": 0.00474559550317723,
+          "adverse_24h_fraction": 0.4291417165668663
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": -13.692318839640322,
+          "mean_weight": 0.06956168978093183,
+          "mean_abs_weight": 0.06956168978093183,
+          "max_abs_weight": 0.48141927639443116,
+          "mean_directional_24h": 0.0019085398658119797,
+          "adverse_24h_fraction": 0.09048569527611444
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -11.906896787275576,
+          "mean_weight": -0.060346467514326735,
+          "mean_abs_weight": 0.217795271100724,
+          "max_abs_weight": 0.9440297844680093,
+          "mean_directional_24h": -4.098483211330145e-06,
+          "adverse_24h_fraction": 0.5342648037258816
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -3.58982861024267,
+          "mean_weight": 0.002641171424483551,
+          "mean_abs_weight": 0.005269695342835543,
+          "max_abs_weight": 0.225,
+          "mean_directional_24h": 0.0014831905135463171,
+          "adverse_24h_fraction": 0.0053226879574184965
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -2.6285666031573376,
+          "mean_weight": 0.0025658182653489616,
+          "mean_abs_weight": 0.0025658182653489616,
+          "max_abs_weight": 0.360225197076712,
+          "mean_directional_24h": 0.0014254881590120042,
+          "adverse_24h_fraction": 0.0013306719893546241
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -1.467148005700708,
+          "mean_weight": -0.0028415579000075214,
+          "mean_abs_weight": 0.0028415579000075214,
+          "max_abs_weight": 0.22710963862037084,
+          "mean_directional_24h": 0.001037801864140885,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -1.233141502610618,
+          "mean_weight": -0.0030429564463986046,
+          "mean_abs_weight": 0.0030429564463986046,
+          "max_abs_weight": 0.1726887313944882,
+          "mean_directional_24h": 0.0009988027397892564,
+          "adverse_24h_fraction": 0.005988023952095809
+        },
+        {
+          "symbol": "UNIUSDT",
+          "net_pnl_contribution": -1.06876649448729,
+          "mean_weight": -0.0015073972906556239,
+          "mean_abs_weight": 0.0015073972906556239,
+          "max_abs_weight": 0.23041436417385633,
+          "mean_directional_24h": 0.00043737451277065756,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.7364673349289507,
+          "mean_weight": 0.00029895834430948917,
+          "mean_abs_weight": 0.00029895834430948917,
+          "max_abs_weight": 0.15081329065780147,
+          "mean_directional_24h": 0.0001803358531086187,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "NEARUSDT",
+          "net_pnl_contribution": -0.6956074572417029,
+          "mean_weight": 0.005860747396414882,
+          "mean_abs_weight": 0.005860747396414882,
+          "max_abs_weight": 0.22589754479531524,
+          "mean_directional_24h": 0.0030976225347837455,
+          "adverse_24h_fraction": 0.012641383898868928
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.6097521703329848,
+          "mean_weight": -0.0011353566014137113,
+          "mean_abs_weight": 0.0011353566014137113,
+          "max_abs_weight": 0.1323599682854637,
+          "mean_directional_24h": 0.0005824587698776426,
+          "adverse_24h_fraction": 0.0
+        },
+        {
+          "symbol": "ZECUSDT",
+          "net_pnl_contribution": -0.5760081063466314,
+          "mean_weight": 0.0070835417702280875,
+          "mean_abs_weight": 0.0070835417702280875,
+          "max_abs_weight": 0.230221764627363,
+          "mean_directional_24h": 0.006432960021074626,
+          "adverse_24h_fraction": 0.013972055888223553
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2026-02-06T14:00:00+00:00",
+          "hours_to_trough": 1487,
+          "gross": 0.38277282182776046,
+          "dominant": 0.36830898627026165,
+          "net": -0.35384515071276285,
+          "btc_r24": -0.017536095032833265,
+          "btc_r72": -0.1168335180037452,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": false
+        },
+        "8pct": {
+          "timestamp": "2026-02-14T08:00:00+00:00",
+          "hours_to_trough": 1301,
+          "gross": 0.4507754161027857,
+          "dominant": 0.3132572798908688,
+          "net": -0.1757391436789519,
+          "btc_r24": 0.04551017653322931,
+          "btc_r72": 0.04117980053860859,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": true
+        },
+        "12pct": {
+          "timestamp": "2026-03-05T01:00:00+00:00",
+          "hours_to_trough": 852,
+          "gross": 0.6857128440232491,
+          "dominant": 0.6857128440232491,
+          "net": 0.6857128440232491,
+          "btc_r24": 0.060398169584032324,
+          "btc_r72": 0.09034285714285728,
+          "raw_gross_low_gate": false,
+          "persistent_h25_gate": false
+        },
+        "20pct": {
+          "timestamp": "2026-03-26T02:00:00+00:00",
+          "hours_to_trough": 347,
+          "gross": 0.5445221776572631,
+          "dominant": 0.4445335926667001,
+          "net": 0.3445450076761371,
+          "btc_r24": 0.005035460992907748,
+          "btc_r72": 0.037675887197872404,
+          "raw_gross_low_gate": true,
+          "persistent_h25_gate": true
+        }
+      }
+    }
+  ],
+  "worst_days": [
+    {
+      "date": "2021-09-07",
+      "return": -0.11521914374325193,
+      "btc_return": -0.10770509959884766,
+      "gross_mean": 0.8439458772228864,
+      "dominant_mean": 0.6840900535762121,
+      "net_mean": 0.5187672914410166,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.8671483641325668
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.24406160815171749
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.23558185183678226
+        },
+        {
+          "symbol": "DOTUSDT",
+          "net_pnl_contribution": -0.09836792025497312
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.07346268669458464
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.05519146998760877
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2021-05-19",
+      "return": -0.11380484468395491,
+      "btc_return": -0.13945132344417988,
+      "gross_mean": 0.34557556537213524,
+      "dominant_mean": 0.2573506341738934,
+      "net_mean": -0.10728078889588005,
+      "persistent_h25_fraction": 1.0,
+      "raw_gross_low_fraction": 0.625,
+      "top_losses": [
+        {
+          "symbol": "SUSHIUSDT",
+          "net_pnl_contribution": -1.0119765090713784
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.3905497134929151
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.09272605784718296
+        },
+        {
+          "symbol": "MATICUSDT",
+          "net_pnl_contribution": -0.07083904989802738
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-04-19",
+      "return": -0.10749974253570582,
+      "btc_return": -0.049867354750151915,
+      "gross_mean": 1.0899221691973133,
+      "dominant_mean": 1.0899221691973133,
+      "net_mean": 1.0899221691973133,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.8734780154818202
+        },
+        {
+          "symbol": "ONTUSDT",
+          "net_pnl_contribution": -0.9103076317693004
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -0.2975652212635075
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.058560849057237116
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2022-11-10",
+      "return": -0.08958673609759504,
+      "btc_return": 0.08314498796026593,
+      "gross_mean": 0.6008865039790505,
+      "dominant_mean": 0.5449494047647937,
+      "net_mean": -0.48901230555053693,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.20833333333333334,
+      "top_losses": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.0008636478635058
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.7580152877576474
+        },
+        {
+          "symbol": "CRVUSDT",
+          "net_pnl_contribution": -0.4226881465592335
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.39453788384940036
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-10-12",
+      "return": -0.08453935150691438,
+      "btc_return": 0.048299873997155185,
+      "gross_mean": 1.0680601561582097,
+      "dominant_mean": 0.9836851561582097,
+      "net_mean": -0.8993101561582094,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -8.413545482832175
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.696590298584202
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.008006638690870607
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-04-09",
+      "return": -0.08340742427365866,
+      "btc_return": 0.07966637906241014,
+      "gross_mean": 0.9453066432618051,
+      "dominant_mean": 0.7554810734061178,
+      "net_mean": -0.5650486342126587,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -3.7507421359720396
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.754606547385537
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -0.6229984051245756
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.2066520750542542
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.10225199166077166
+        },
+        {
+          "symbol": "ALGOUSDT",
+          "net_pnl_contribution": -0.06753568389245122
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2021-04-07",
+      "return": -0.08311180428938247,
+      "btc_return": -0.02953803158209667,
+      "gross_mean": 0.892146834430446,
+      "dominant_mean": 0.892146834430446,
+      "net_mean": 0.892146834430446,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.43354834242060647
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -0.19432118856467678
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.037147785462376404
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.016920451098120244
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2020-05-21",
+      "return": -0.07672502966126138,
+      "btc_return": -0.051503565760325554,
+      "gross_mean": 1.2653080994461523,
+      "dominant_mean": 1.051140915587263,
+      "net_mean": 0.8299426150775577,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.05429291458732477
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.03335183627477442
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.02746777501262543
+        },
+        {
+          "symbol": "ZECUSDT",
+          "net_pnl_contribution": -0.01891404445608249
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.008251153442827716
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": -0.006123540264761239
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2024-03-05",
+      "return": -0.07457675265441055,
+      "btc_return": -0.06411135400349122,
+      "gross_mean": 1.0372442707712726,
+      "dominant_mean": 1.0372442707712726,
+      "net_mean": 1.0372442707712726,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.2898778036303573
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.7234021470409575
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.438832958686592
+        },
+        {
+          "symbol": "FTMUSDT",
+          "net_pnl_contribution": -0.3056489207347087
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2022-04-06",
+      "return": -0.06937714553835361,
+      "btc_return": -0.04046909737661186,
+      "gross_mean": 0.709378127454471,
+      "dominant_mean": 0.709378127454471,
+      "net_mean": 0.709378127454471,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.6871973170649408
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.44173050078731896
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.04234747063867636
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-06-06",
+      "return": -0.06786775298406522,
+      "btc_return": 0.0600602822517835,
+      "gross_mean": 1.378125,
+      "dominant_mean": 1.2840430850744016,
+      "net_mean": -1.189961170148803,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.2395434030197547
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.19919079897470673
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.1440635612369329
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -0.04706301003847345
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-03-19",
+      "return": -0.0652942274352819,
+      "btc_return": 0.045021120766968625,
+      "gross_mean": 1.0575643020194923,
+      "dominant_mean": 0.6146641500469978,
+      "net_mean": 0.02051119753339398,
+      "persistent_h25_fraction": 1.0,
+      "raw_gross_low_fraction": 0.3333333333333333,
+      "top_losses": [
+        {
+          "symbol": "TRXUSDT",
+          "net_pnl_contribution": -1.357059390452912
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.2542926055801051
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": -0.9291773046235785
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.20986608120160732
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.12539148347294304
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2026-02-06",
+      "return": -0.06472525609291246,
+      "btc_return": 0.11163024500318297,
+      "gross_mean": 0.4783844131803073,
+      "dominant_mean": 0.4647001934489488,
+      "net_mean": -0.45101597371759033,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.5833333333333334,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -8.686698291632931
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -3.043309577921826
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.7586114397337183
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-08-29",
+      "return": -0.062033966361866866,
+      "btc_return": 0.06016916717697485,
+      "gross_mean": 1.3901613974610927,
+      "dominant_mean": 1.0635222292711743,
+      "net_mean": -0.7368830610812559,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.1344749827956297
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.5614223547764687
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.018007777894453722
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-07-14",
+      "return": -0.06194796450369311,
+      "btc_return": -0.03636843679023816,
+      "gross_mean": 1.516688516585716,
+      "dominant_mean": 1.476970550746998,
+      "net_mean": 1.4372525849082798,
+      "persistent_h25_fraction": 0.0,
+      "raw_gross_low_fraction": 0.0,
+      "top_losses": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.0987369907189117
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.22385157442898912
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.20993147152964292
+        },
+        {
+          "symbol": "COMPUSDT",
+          "net_pnl_contribution": -0.14427275898829298
+        },
+        {
+          "symbol": "KAVAUSDT",
+          "net_pnl_contribution": -0.10012188201575845
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.053921375548987134
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0
+        }
+      ]
+    }
+  ],
+  "disclosure": "Diagnostic only. Asset contribution uses modeled asset gross PnL less allocated fees/funding from the exact R73 replay. No future data is used in exposure/gate snapshots. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
