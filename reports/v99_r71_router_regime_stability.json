@@ -1,0 +1,784 @@
+{
+  "study": "V99 R71 R66-router regime temporal stability audit",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "stress-test the exact frozen R66 h0.25-vs-h0.15 regime thresholds across five contiguous chronological folds and calendar years without any refitting",
+  "thresholds": {
+    "market_abs_median_24h_q80": 0.051253990575389194,
+    "btc24_q20": -0.019039657268342308,
+    "h15_gross_q20": 0.4478403629219058,
+    "btc72_q20": -0.03338695841687384
+  },
+  "label": "h0.25 forward-72h wealth advantage over h0.15 > 0.20 percentage points",
+  "daily_sample_rows": 2440,
+  "results": {
+    "market_vol24_high": {
+      "full": {
+        "rows": 2440,
+        "selected": 417,
+        "coverage": 0.1709016393442623,
+        "base_rate": 0.24262295081967214,
+        "selected_rate": 0.33573141486810554,
+        "lift": 1.3837578585780026,
+        "selected_mean_advantage": 0.0004455010057008906
+      },
+      "folds": [
+        {
+          "name": "fold_1",
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 125,
+          "coverage": 0.25614754098360654,
+          "base_rate": 0.2520491803278688,
+          "selected_rate": 0.376,
+          "lift": 1.4917723577235773,
+          "selected_mean_advantage": 0.0011067222431028556
+        },
+        {
+          "name": "fold_2",
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 122,
+          "coverage": 0.25,
+          "base_rate": 0.32991803278688525,
+          "selected_rate": 0.3770491803278688,
+          "lift": 1.1428571428571428,
+          "selected_mean_advantage": 0.00020720316512254957
+        },
+        {
+          "name": "fold_3",
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00",
+          "rows": 488,
+          "selected": 45,
+          "coverage": 0.09221311475409837,
+          "base_rate": 0.2028688524590164,
+          "selected_rate": 0.24444444444444444,
+          "lift": 1.2049382716049382,
+          "selected_mean_advantage": -0.0006292396454225092
+        },
+        {
+          "name": "fold_4",
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 80,
+          "coverage": 0.16393442622950818,
+          "base_rate": 0.22950819672131148,
+          "selected_rate": 0.2875,
+          "lift": 1.2526785714285713,
+          "selected_mean_advantage": 0.0002759243135459388
+        },
+        {
+          "name": "fold_5",
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 45,
+          "coverage": 0.09221311475409837,
+          "base_rate": 0.1987704918032787,
+          "selected_rate": 0.28888888888888886,
+          "lift": 1.4533791523482245,
+          "selected_mean_advantage": 0.0006310375956622489
+        }
+      ],
+      "years": [
+        {
+          "year": 2020,
+          "rows": 366,
+          "selected": 73,
+          "coverage": 0.1994535519125683,
+          "base_rate": 0.18032786885245902,
+          "selected_rate": 0.2876712328767123,
+          "lift": 1.5952677459526774,
+          "selected_mean_advantage": 0.00021473939817206108
+        },
+        {
+          "year": 2021,
+          "rows": 365,
+          "selected": 119,
+          "coverage": 0.32602739726027397,
+          "base_rate": 0.40273972602739727,
+          "selected_rate": 0.4789915966386555,
+          "lift": 1.189332876007546,
+          "selected_mean_advantage": 0.0017540125649761647
+        },
+        {
+          "year": 2022,
+          "rows": 365,
+          "selected": 67,
+          "coverage": 0.18356164383561643,
+          "base_rate": 0.3178082191780822,
+          "selected_rate": 0.29850746268656714,
+          "lift": 0.9392691713844569,
+          "selected_mean_advantage": -0.0008555836088494979
+        },
+        {
+          "year": 2023,
+          "rows": 365,
+          "selected": 33,
+          "coverage": 0.09041095890410959,
+          "base_rate": 0.14794520547945206,
+          "selected_rate": 0.18181818181818182,
+          "lift": 1.228956228956229,
+          "selected_mean_advantage": -0.0009629117277882613
+        },
+        {
+          "year": 2024,
+          "rows": 366,
+          "selected": 58,
+          "coverage": 0.15846994535519127,
+          "base_rate": 0.22131147540983606,
+          "selected_rate": 0.25862068965517243,
+          "lift": 1.1685823754789273,
+          "selected_mean_advantage": 0.0001536229899408006
+        },
+        {
+          "year": 2025,
+          "rows": 365,
+          "selected": 53,
+          "coverage": 0.14520547945205478,
+          "base_rate": 0.2273972602739726,
+          "selected_rate": 0.32075471698113206,
+          "lift": 1.4105478517844963,
+          "selected_mean_advantage": 0.0005049483942060858
+        },
+        {
+          "year": 2026,
+          "rows": 248,
+          "selected": 14,
+          "coverage": 0.056451612903225805,
+          "base_rate": 0.1814516129032258,
+          "selected_rate": 0.2857142857142857,
+          "lift": 1.5746031746031746,
+          "selected_mean_advantage": 0.0010570170413562372
+        }
+      ],
+      "positive_lift_folds": 5,
+      "fold_count": 5,
+      "positive_lift_years": 6,
+      "year_count": 7,
+      "stable_4_of_5_folds": true,
+      "all_fold_mean_advantage_positive": false
+    },
+    "btc24_down": {
+      "full": {
+        "rows": 2440,
+        "selected": 448,
+        "coverage": 0.18360655737704917,
+        "base_rate": 0.24262295081967214,
+        "selected_rate": 0.33035714285714285,
+        "lift": 1.3616071428571428,
+        "selected_mean_advantage": 0.0002976031204614587
+      },
+      "folds": [
+        {
+          "name": "fold_1",
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 96,
+          "coverage": 0.19672131147540983,
+          "base_rate": 0.2520491803278688,
+          "selected_rate": 0.3541666666666667,
+          "lift": 1.4051490514905152,
+          "selected_mean_advantage": 0.0006191835132531472
+        },
+        {
+          "name": "fold_2",
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 132,
+          "coverage": 0.27049180327868855,
+          "base_rate": 0.32991803278688525,
+          "selected_rate": 0.3560606060606061,
+          "lift": 1.0792396009787315,
+          "selected_mean_advantage": 0.00013012706639732629
+        },
+        {
+          "name": "fold_3",
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00",
+          "rows": 488,
+          "selected": 64,
+          "coverage": 0.13114754098360656,
+          "base_rate": 0.2028688524590164,
+          "selected_rate": 0.3125,
+          "lift": 1.5404040404040404,
+          "selected_mean_advantage": 0.00025334974313287115
+        },
+        {
+          "name": "fold_4",
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 85,
+          "coverage": 0.17418032786885246,
+          "base_rate": 0.22950819672131148,
+          "selected_rate": 0.3058823529411765,
+          "lift": 1.3327731092436976,
+          "selected_mean_advantage": 0.0011150915964222123
+        },
+        {
+          "name": "fold_5",
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 71,
+          "coverage": 0.14549180327868852,
+          "base_rate": 0.1987704918032787,
+          "selected_rate": 0.29577464788732394,
+          "lift": 1.488020908958908,
+          "selected_mean_advantage": -0.0007646388919212323
+        }
+      ],
+      "years": [
+        {
+          "year": 2020,
+          "rows": 366,
+          "selected": 60,
+          "coverage": 0.16393442622950818,
+          "base_rate": 0.18032786885245902,
+          "selected_rate": 0.2833333333333333,
+          "lift": 1.571212121212121,
+          "selected_mean_advantage": -0.0006807824837139691
+        },
+        {
+          "year": 2021,
+          "rows": 365,
+          "selected": 105,
+          "coverage": 0.2876712328767123,
+          "base_rate": 0.40273972602739727,
+          "selected_rate": 0.44761904761904764,
+          "lift": 1.1114350502105603,
+          "selected_mean_advantage": 0.0015543162583738345
+        },
+        {
+          "year": 2022,
+          "rows": 365,
+          "selected": 80,
+          "coverage": 0.2191780821917808,
+          "base_rate": 0.3178082191780822,
+          "selected_rate": 0.3375,
+          "lift": 1.0619612068965516,
+          "selected_mean_advantage": -0.00010697458300143459
+        },
+        {
+          "year": 2023,
+          "rows": 365,
+          "selected": 47,
+          "coverage": 0.12876712328767123,
+          "base_rate": 0.14794520547945206,
+          "selected_rate": 0.2127659574468085,
+          "lift": 1.438140267927502,
+          "selected_mean_advantage": -0.00044607484827759083
+        },
+        {
+          "year": 2024,
+          "rows": 366,
+          "selected": 61,
+          "coverage": 0.16666666666666666,
+          "base_rate": 0.22131147540983606,
+          "selected_rate": 0.29508196721311475,
+          "lift": 1.3333333333333333,
+          "selected_mean_advantage": 0.0006869487592458652
+        },
+        {
+          "year": 2025,
+          "rows": 365,
+          "selected": 56,
+          "coverage": 0.15342465753424658,
+          "base_rate": 0.2273972602739726,
+          "selected_rate": 0.35714285714285715,
+          "lift": 1.5705679862306368,
+          "selected_mean_advantage": 0.001029979858831076
+        },
+        {
+          "year": 2026,
+          "rows": 248,
+          "selected": 39,
+          "coverage": 0.15725806451612903,
+          "base_rate": 0.1814516129032258,
+          "selected_rate": 0.23076923076923078,
+          "lift": 1.2717948717948717,
+          "selected_mean_advantage": -0.0015151108215142944
+        }
+      ],
+      "positive_lift_folds": 5,
+      "fold_count": 5,
+      "positive_lift_years": 7,
+      "year_count": 7,
+      "stable_4_of_5_folds": true,
+      "all_fold_mean_advantage_positive": false
+    },
+    "btc72_down": {
+      "full": {
+        "rows": 2440,
+        "selected": 458,
+        "coverage": 0.18770491803278688,
+        "base_rate": 0.24262295081967214,
+        "selected_rate": 0.3384279475982533,
+        "lift": 1.3948719461819898,
+        "selected_mean_advantage": 7.085106444450636e-05
+      },
+      "folds": [
+        {
+          "name": "fold_1",
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 88,
+          "coverage": 0.18032786885245902,
+          "base_rate": 0.2520491803278688,
+          "selected_rate": 0.38636363636363635,
+          "lift": 1.532889874353289,
+          "selected_mean_advantage": 0.0005874068083584496
+        },
+        {
+          "name": "fold_2",
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 152,
+          "coverage": 0.3114754098360656,
+          "base_rate": 0.32991803278688525,
+          "selected_rate": 0.3355263157894737,
+          "lift": 1.0169990192873488,
+          "selected_mean_advantage": -0.0004731510009135403
+        },
+        {
+          "name": "fold_3",
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00",
+          "rows": 488,
+          "selected": 53,
+          "coverage": 0.10860655737704918,
+          "base_rate": 0.2028688524590164,
+          "selected_rate": 0.2830188679245283,
+          "lift": 1.3950829045168667,
+          "selected_mean_advantage": 0.0003440768746495229
+        },
+        {
+          "name": "fold_4",
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 84,
+          "coverage": 0.1721311475409836,
+          "base_rate": 0.22950819672131148,
+          "selected_rate": 0.38095238095238093,
+          "lift": 1.6598639455782311,
+          "selected_mean_advantage": 0.0012962854859469468
+        },
+        {
+          "name": "fold_5",
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 81,
+          "coverage": 0.16598360655737704,
+          "base_rate": 0.1987704918032787,
+          "selected_rate": 0.2839506172839506,
+          "lift": 1.4285350642738959,
+          "selected_mean_advantage": -0.0009191001809514786
+        }
+      ],
+      "years": [
+        {
+          "year": 2020,
+          "rows": 366,
+          "selected": 57,
+          "coverage": 0.1557377049180328,
+          "base_rate": 0.18032786885245902,
+          "selected_rate": 0.2631578947368421,
+          "lift": 1.4593301435406698,
+          "selected_mean_advantage": -0.0010473054125168173
+        },
+        {
+          "year": 2021,
+          "rows": 365,
+          "selected": 107,
+          "coverage": 0.29315068493150687,
+          "base_rate": 0.40273972602739727,
+          "selected_rate": 0.4672897196261682,
+          "lift": 1.1602771949901456,
+          "selected_mean_advantage": 0.0013470181128540054
+        },
+        {
+          "year": 2022,
+          "rows": 365,
+          "selected": 95,
+          "coverage": 0.2602739726027397,
+          "base_rate": 0.3178082191780822,
+          "selected_rate": 0.29473684210526313,
+          "lift": 0.9274047186932848,
+          "selected_mean_advantage": -0.0010364437936274161
+        },
+        {
+          "year": 2023,
+          "rows": 365,
+          "selected": 34,
+          "coverage": 0.09315068493150686,
+          "base_rate": 0.14794520547945206,
+          "selected_rate": 0.20588235294117646,
+          "lift": 1.3916122004357299,
+          "selected_mean_advantage": 0.00035401624075866736
+        },
+        {
+          "year": 2024,
+          "rows": 366,
+          "selected": 65,
+          "coverage": 0.17759562841530055,
+          "base_rate": 0.22131147540983606,
+          "selected_rate": 0.3076923076923077,
+          "lift": 1.3903133903133904,
+          "selected_mean_advantage": 0.000996351256835661
+        },
+        {
+          "year": 2025,
+          "rows": 365,
+          "selected": 59,
+          "coverage": 0.16164383561643836,
+          "base_rate": 0.2273972602739726,
+          "selected_rate": 0.4406779661016949,
+          "lift": 1.937921176230345,
+          "selected_mean_advantage": 0.0007137551027395838
+        },
+        {
+          "year": 2026,
+          "rows": 248,
+          "selected": 41,
+          "coverage": 0.16532258064516128,
+          "base_rate": 0.1814516129032258,
+          "selected_rate": 0.21951219512195122,
+          "lift": 1.2097560975609756,
+          "selected_mean_advantage": -0.0017666711364263325
+        }
+      ],
+      "positive_lift_folds": 5,
+      "fold_count": 5,
+      "positive_lift_years": 6,
+      "year_count": 7,
+      "stable_4_of_5_folds": true,
+      "all_fold_mean_advantage_positive": false
+    },
+    "h15_gross_low": {
+      "full": {
+        "rows": 2440,
+        "selected": 383,
+        "coverage": 0.1569672131147541,
+        "base_rate": 0.24262295081967214,
+        "selected_rate": 0.34986945169712796,
+        "lift": 1.4420294968597842,
+        "selected_mean_advantage": 0.001014063958699177
+      },
+      "folds": [
+        {
+          "name": "fold_1",
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 125,
+          "coverage": 0.25614754098360654,
+          "base_rate": 0.2520491803278688,
+          "selected_rate": 0.344,
+          "lift": 1.3648130081300813,
+          "selected_mean_advantage": 0.0017587804002774118
+        },
+        {
+          "name": "fold_2",
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 142,
+          "coverage": 0.29098360655737704,
+          "base_rate": 0.32991803278688525,
+          "selected_rate": 0.4014084507042254,
+          "lift": 1.2166914530662234,
+          "selected_mean_advantage": 0.0006385593254235076
+        },
+        {
+          "name": "fold_3",
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00",
+          "rows": 488,
+          "selected": 27,
+          "coverage": 0.055327868852459015,
+          "base_rate": 0.2028688524590164,
+          "selected_rate": 0.3333333333333333,
+          "lift": 1.643097643097643,
+          "selected_mean_advantage": 0.0002724654254361056
+        },
+        {
+          "name": "fold_4",
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 43,
+          "coverage": 0.08811475409836066,
+          "base_rate": 0.22950819672131148,
+          "selected_rate": 0.3023255813953488,
+          "lift": 1.3172757475083055,
+          "selected_mean_advantage": 0.0013394332161442263
+        },
+        {
+          "name": "fold_5",
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 46,
+          "coverage": 0.0942622950819672,
+          "base_rate": 0.1987704918032787,
+          "selected_rate": 0.2608695652173913,
+          "lift": 1.3124159569699685,
+          "selected_mean_advantage": 0.0002806810251302964
+        }
+      ],
+      "years": [
+        {
+          "year": 2020,
+          "rows": 366,
+          "selected": 94,
+          "coverage": 0.2568306010928962,
+          "base_rate": 0.18032786885245902,
+          "selected_rate": 0.22340425531914893,
+          "lift": 1.2388781431334621,
+          "selected_mean_advantage": 0.0006346608943197267
+        },
+        {
+          "year": 2021,
+          "rows": 365,
+          "selected": 91,
+          "coverage": 0.2493150684931507,
+          "base_rate": 0.40273972602739727,
+          "selected_rate": 0.5384615384615384,
+          "lift": 1.336996336996337,
+          "selected_mean_advantage": 0.002291450837425203
+        },
+        {
+          "year": 2022,
+          "rows": 365,
+          "selected": 105,
+          "coverage": 0.2876712328767123,
+          "base_rate": 0.3178082191780822,
+          "selected_rate": 0.3619047619047619,
+          "lift": 1.1387520525451558,
+          "selected_mean_advantage": 0.0004908535326685295
+        },
+        {
+          "year": 2023,
+          "rows": 365,
+          "selected": 4,
+          "coverage": 0.010958904109589041,
+          "base_rate": 0.14794520547945206,
+          "selected_rate": 0.25,
+          "lift": 1.6898148148148149,
+          "selected_mean_advantage": -0.00046005761758849406
+        },
+        {
+          "year": 2024,
+          "rows": 366,
+          "selected": 28,
+          "coverage": 0.07650273224043716,
+          "base_rate": 0.22131147540983606,
+          "selected_rate": 0.25,
+          "lift": 1.1296296296296298,
+          "selected_mean_advantage": 0.0006153739546300321
+        },
+        {
+          "year": 2025,
+          "rows": 365,
+          "selected": 35,
+          "coverage": 0.0958904109589041,
+          "base_rate": 0.2273972602739726,
+          "selected_rate": 0.3142857142857143,
+          "lift": 1.3820998278829604,
+          "selected_mean_advantage": 0.0014470859775135832
+        },
+        {
+          "year": 2026,
+          "rows": 248,
+          "selected": 26,
+          "coverage": 0.10483870967741936,
+          "base_rate": 0.1814516129032258,
+          "selected_rate": 0.2692307692307692,
+          "lift": 1.4837606837606836,
+          "selected_mean_advantage": 0.00010109521182996358
+        }
+      ],
+      "positive_lift_folds": 5,
+      "fold_count": 5,
+      "positive_lift_years": 7,
+      "year_count": 7,
+      "stable_4_of_5_folds": true,
+      "all_fold_mean_advantage_positive": true
+    },
+    "two_of_four": {
+      "full": {
+        "rows": 2440,
+        "selected": 427,
+        "coverage": 0.175,
+        "base_rate": 0.24262295081967214,
+        "selected_rate": 0.34894613583138173,
+        "lift": 1.4382239382239381,
+        "selected_mean_advantage": 0.00019335074456997608
+      },
+      "folds": [
+        {
+          "name": "fold_1",
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 107,
+          "coverage": 0.2192622950819672,
+          "base_rate": 0.2520491803278688,
+          "selected_rate": 0.3644859813084112,
+          "lift": 1.446090722589469,
+          "selected_mean_advantage": 0.0007759339990969933
+        },
+        {
+          "name": "fold_2",
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00",
+          "rows": 488,
+          "selected": 156,
+          "coverage": 0.319672131147541,
+          "base_rate": 0.32991803278688525,
+          "selected_rate": 0.36538461538461536,
+          "lift": 1.1075011944577162,
+          "selected_mean_advantage": -0.00020576573348956415
+        },
+        {
+          "name": "fold_3",
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00",
+          "rows": 488,
+          "selected": 38,
+          "coverage": 0.0778688524590164,
+          "base_rate": 0.2028688524590164,
+          "selected_rate": 0.2894736842105263,
+          "lift": 1.4269005847953218,
+          "selected_mean_advantage": -0.0004252873900505409
+        },
+        {
+          "name": "fold_4",
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 65,
+          "coverage": 0.13319672131147542,
+          "base_rate": 0.22950819672131148,
+          "selected_rate": 0.3384615384615385,
+          "lift": 1.4747252747252748,
+          "selected_mean_advantage": 0.0008885272669252696
+        },
+        {
+          "name": "fold_5",
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00",
+          "rows": 488,
+          "selected": 61,
+          "coverage": 0.125,
+          "base_rate": 0.1987704918032787,
+          "selected_rate": 0.32786885245901637,
+          "lift": 1.6494845360824741,
+          "selected_mean_advantage": -0.00016324700124341728
+        }
+      ],
+      "years": [
+        {
+          "year": 2020,
+          "rows": 366,
+          "selected": 71,
+          "coverage": 0.19398907103825136,
+          "base_rate": 0.18032786885245902,
+          "selected_rate": 0.2535211267605634,
+          "lift": 1.405889884763124,
+          "selected_mean_advantage": -0.0005230602994055482
+        },
+        {
+          "year": 2021,
+          "rows": 365,
+          "selected": 116,
+          "coverage": 0.3178082191780822,
+          "base_rate": 0.40273972602739727,
+          "selected_rate": 0.46551724137931033,
+          "lift": 1.1558761435608726,
+          "selected_mean_advantage": 0.001258471544705872
+        },
+        {
+          "year": 2022,
+          "rows": 365,
+          "selected": 90,
+          "coverage": 0.2465753424657534,
+          "base_rate": 0.3178082191780822,
+          "selected_rate": 0.35555555555555557,
+          "lift": 1.1187739463601531,
+          "selected_mean_advantage": -0.0004733361513756399
+        },
+        {
+          "year": 2023,
+          "rows": 365,
+          "selected": 24,
+          "coverage": 0.06575342465753424,
+          "base_rate": 0.14794520547945206,
+          "selected_rate": 0.125,
+          "lift": 0.8449074074074074,
+          "selected_mean_advantage": -0.001311691735299746
+        },
+        {
+          "year": 2024,
+          "rows": 366,
+          "selected": 47,
+          "coverage": 0.1284153005464481,
+          "base_rate": 0.22131147540983606,
+          "selected_rate": 0.2765957446808511,
+          "lift": 1.2498029944838456,
+          "selected_mean_advantage": 0.0006530630645822566
+        },
+        {
+          "year": 2025,
+          "rows": 365,
+          "selected": 51,
+          "coverage": 0.13972602739726028,
+          "base_rate": 0.2273972602739726,
+          "selected_rate": 0.4117647058823529,
+          "lift": 1.8107725017717928,
+          "selected_mean_advantage": 0.0005420057949575933
+        },
+        {
+          "year": 2026,
+          "rows": 248,
+          "selected": 28,
+          "coverage": 0.11290322580645161,
+          "base_rate": 0.1814516129032258,
+          "selected_rate": 0.2857142857142857,
+          "lift": 1.5746031746031746,
+          "selected_mean_advantage": -0.00037643051085390185
+        }
+      ],
+      "positive_lift_folds": 5,
+      "fold_count": 5,
+      "positive_lift_years": 6,
+      "year_count": 7,
+      "stable_4_of_5_folds": true,
+      "all_fold_mean_advantage_positive": false
+    }
+  },
+  "disclosure": "Historical diagnostic only. All thresholds are frozen from R66 first-60% training. No fold/year is used to fit or alter a threshold. Future returns appear only in labels, never features. Frozen V99 and paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
