@@ -1,0 +1,2109 @@
+{
+  "study": "V99 R52 narrow maintenance-band sweep",
+  "status": "RESEARCH_ONLY_DO_NOT_REWRITE_FROZEN_V99_PAPER",
+  "objective": "find whether 1pp/2pp/3pp maintenance bands recover meaningful R37 tail protection while preserving most of R46 turnover reduction",
+  "bands_predeclared": [
+    0.01,
+    0.02,
+    0.03
+  ],
+  "runs": [
+    {
+      "band": 0.01,
+      "report": "reports/candidate_v99_r52_band_1pp.json",
+      "selected": {
+        "params": {
+          "name": "deep",
+          "r6_trigger": -0.045,
+          "dd_trigger": -0.09,
+          "r24_trigger": -0.07,
+          "btc24_trigger": -0.055,
+          "btc72_trigger": -0.11,
+          "cooldown": 24,
+          "safe_weight": 0.2,
+          "mode": "adaptive"
+        },
+        "summary": {
+          "return": 229.77398193626078,
+          "max_drawdown": -0.31113321205396927,
+          "best_day": 0.2165798028412691,
+          "worst_day": -0.10776390508834421,
+          "positive_days": 0.47911547911547914
+        },
+        "holdout": {
+          "return": 10.01564855776529,
+          "max_drawdown": -0.26783433491846376,
+          "best_day": 0.2165798028412691,
+          "worst_day": -0.07566287625193091,
+          "positive_days": 0.4851586489252815
+        },
+        "wealth_ratio_to_r30": 0.9306121961341647,
+        "holdout_wealth_ratio_to_r30": 0.9704035339020795,
+        "return_ratio_to_full_envelope": 1.28906030618019,
+        "drawdown_ratio_to_full_envelope": 1.0417428584248147,
+        "worst_day_ratio_to_full_envelope": 1.1376331416238645,
+        "signal": {
+          "instant_fraction": 0.023860690407968344,
+          "active_fraction": 0.11717151043798608,
+          "mean_r6": 0.0006294024507506584,
+          "p05_r6": -0.014791075424624378,
+          "minimum_drawdown": -0.3097049287319853
+        },
+        "routing": {
+          "transfer_cost_multiple": 3.057511725894273,
+          "route_changes": 369,
+          "event_entries": 178,
+          "event_exits": 178,
+          "band_rebalances": 13,
+          "band_absolute": 0.01,
+          "average_safe_weight": 0.023441206264533315,
+          "maximum_safe_weight": 0.22164010820093807,
+          "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 1 percentage point(s)"
+        },
+        "score": -0.5787762793340883,
+        "isolated": {
+          "7": {
+            "return": 0.08868208431123104,
+            "max_drawdown": -0.03926858950740697,
+            "best_day": 0.07601824218740338,
+            "worst_day": -0.026396475580824585,
+            "positive_days": 0.5714285714285714
+          },
+          "30": {
+            "return": 0.43782921682217535,
+            "max_drawdown": -0.10214917283231673,
+            "best_day": 0.21657980284126932,
+            "worst_day": -0.04793067774447901,
+            "positive_days": 0.5666666666666667
+          },
+          "90": {
+            "return": 0.17130364892808614,
+            "max_drawdown": -0.22194044892740905,
+            "best_day": 0.2165798028412682,
+            "worst_day": -0.04793067774447901,
+            "positive_days": 0.4222222222222222
+          },
+          "180": {
+            "return": 0.6010763785345372,
+            "max_drawdown": -0.267834334918465,
+            "best_day": 0.2165798028412682,
+            "worst_day": -0.050461852165655796,
+            "positive_days": 0.49444444444444446
+          },
+          "365": {
+            "return": 1.4879237268307994,
+            "max_drawdown": -0.26783433491845965,
+            "best_day": 0.21657980284126865,
+            "worst_day": -0.07566287625193091,
+            "positive_days": 0.4904109589041096
+          }
+        },
+        "isolated_benchmarks": {
+          "7": {
+            "v13": {
+              "return": 0.03657086874171389,
+              "max_drawdown": -0.02809803424029733,
+              "best_day": 0.048554962938345936,
+              "worst_day": -0.015404096501948628,
+              "positive_days": 0.42857142857142855
+            },
+            "v14": {
+              "return": 0.0588337749638983,
+              "max_drawdown": -0.04115391950256342,
+              "best_day": 0.06739075978594333,
+              "worst_day": -0.033319705598030436,
+              "positive_days": 0.5714285714285714
+            },
+            "v15": {
+              "return": 0.08868208431123104,
+              "max_drawdown": -0.03926858950740675,
+              "best_day": 0.07601824218740338,
+              "worst_day": -0.026396475580824585,
+              "positive_days": 0.5714285714285714
+            },
+            "v16": {
+              "return": 0.04107950289001305,
+              "max_drawdown": -0.04648283222711436,
+              "best_day": 0.05365296572571987,
+              "worst_day": -0.036203339063760165,
+              "positive_days": 0.5714285714285714
+            }
+          },
+          "30": {
+            "v13": {
+              "return": 0.31326332740249807,
+              "max_drawdown": -0.07090671473019183,
+              "best_day": 0.2071246388989576,
+              "worst_day": -0.03364970119551425,
+              "positive_days": 0.5666666666666667
+            },
+            "v14": {
+              "return": 0.3810130571765944,
+              "max_drawdown": -0.06851892746798971,
+              "best_day": 0.21988978756334276,
+              "worst_day": -0.03331970559803066,
+              "positive_days": 0.5666666666666667
+            },
+            "v15": {
+              "return": 0.46729036983653494,
+              "max_drawdown": -0.1035617963345733,
+              "best_day": 0.21657980284126932,
+              "worst_day": -0.04635689978805402,
+              "positive_days": 0.5666666666666667
+            },
+            "v16": {
+              "return": 0.15604169638661913,
+              "max_drawdown": -0.08609437683242704,
+              "best_day": 0.11488903535427197,
+              "worst_day": -0.037281724764302915,
+              "positive_days": 0.6
+            }
+          },
+          "90": {
+            "v13": {
+              "return": 0.10612715368525039,
+              "max_drawdown": -0.210745433882624,
+              "best_day": 0.20712463889895782,
+              "worst_day": -0.03364970119551414,
+              "positive_days": 0.4444444444444444
+            },
+            "v14": {
+              "return": 0.01008995987299599,
+              "max_drawdown": -0.30331877968506726,
+              "best_day": 0.21988978756334188,
+              "worst_day": -0.03736111120043406,
+              "positive_days": 0.43333333333333335
+            },
+            "v15": {
+              "return": 0.1699877674363568,
+              "max_drawdown": -0.23994361213472293,
+              "best_day": 0.21657980284126843,
+              "worst_day": -0.04635689978805524,
+              "positive_days": 0.45555555555555555
+            },
+            "v16": {
+              "return": 0.01395832523318874,
+              "max_drawdown": -0.13680440634855806,
+              "best_day": 0.11488903535427242,
+              "worst_day": -0.04378856987337498,
+              "positive_days": 0.4222222222222222
+            }
+          },
+          "180": {
+            "v13": {
+              "return": 0.037744321966326266,
+              "max_drawdown": -0.2822523027971062,
+              "best_day": 0.10127931358015796,
+              "worst_day": -0.05131004682388407,
+              "positive_days": 0.5055555555555555
+            },
+            "v14": {
+              "return": 0.39606447143217904,
+              "max_drawdown": -0.3361968667134235,
+              "best_day": 0.21988978756334232,
+              "worst_day": -0.061068496277513096,
+              "positive_days": 0.48333333333333334
+            },
+            "v15": {
+              "return": 0.6288859227226276,
+              "max_drawdown": -0.30886482676159166,
+              "best_day": 0.2165798028412691,
+              "worst_day": -0.06251263362216208,
+              "positive_days": 0.5055555555555555
+            },
+            "v16": {
+              "return": 0.42844306004713895,
+              "max_drawdown": -0.1766736059271703,
+              "best_day": 0.12017389509816256,
+              "worst_day": -0.054735842156341086,
+              "positive_days": 0.4777777777777778
+            }
+          },
+          "365": {
+            "v13": {
+              "return": 0.08578459585857279,
+              "max_drawdown": -0.2863086979150171,
+              "best_day": 0.10127931358015752,
+              "worst_day": -0.08807472271131656,
+              "positive_days": 0.4849315068493151
+            },
+            "v14": {
+              "return": 1.0350077240196494,
+              "max_drawdown": -0.3361968667134254,
+              "best_day": 0.21988978756334254,
+              "worst_day": -0.09291841287536406,
+              "positive_days": 0.473972602739726
+            },
+            "v15": {
+              "return": 1.5800838316318755,
+              "max_drawdown": -0.30886482676159366,
+              "best_day": 0.21657980284126865,
+              "worst_day": -0.09001448485612862,
+              "positive_days": 0.4931506849315068
+            },
+            "v16": {
+              "return": 0.9552172281813516,
+              "max_drawdown": -0.19182098697026584,
+              "best_day": 0.12922177325711215,
+              "worst_day": -0.055957725491297516,
+              "positive_days": 0.4684931506849315
+            }
+          }
+        },
+        "isolated_envelope": {
+          "7": {
+            "return": 0.08868208431123104,
+            "max_drawdown_abs": 0.02809803424029733,
+            "worst_day_abs": 0.015404096501948628,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v13",
+            "best_worst_day_engine": "v13"
+          },
+          "30": {
+            "return": 0.46729036983653494,
+            "max_drawdown_abs": 0.06851892746798971,
+            "worst_day_abs": 0.03331970559803066,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v14",
+            "best_worst_day_engine": "v14"
+          },
+          "90": {
+            "return": 0.1699877674363568,
+            "max_drawdown_abs": 0.13680440634855806,
+            "worst_day_abs": 0.03364970119551414,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "180": {
+            "return": 0.6288859227226276,
+            "max_drawdown_abs": 0.1766736059271703,
+            "worst_day_abs": 0.05131004682388407,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "365": {
+            "return": 1.5800838316318755,
+            "max_drawdown_abs": 0.19182098697026584,
+            "worst_day_abs": 0.055957725491297516,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v16"
+          }
+        },
+        "envelope_wins": {
+          "7": {
+            "return": true,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "30": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "90": {
+            "return": true,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "180": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": true
+          },
+          "365": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          }
+        },
+        "material_envelope_wins": {
+          "7": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "30": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "90": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "180": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "365": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          }
+        },
+        "alternative_horizons": {
+          "14": {
+            "candidate": {
+              "return": 0.07399772614619349,
+              "max_drawdown": -0.10309496861232192,
+              "best_day": 0.055112499603529486,
+              "worst_day": -0.049312302188398216,
+              "positive_days": 0.5714285714285714
+            },
+            "envelope": {
+              "return": 0.08699077386598164,
+              "max_drawdown_abs": 0.05792925021138717,
+              "worst_day_abs": 0.029993085263404384,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v13",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "21": {
+            "candidate": {
+              "return": 0.47609313256695174,
+              "max_drawdown": -0.1021491728323154,
+              "best_day": 0.21548332392952396,
+              "worst_day": -0.04793067774447879,
+              "positive_days": 0.6190476190476191
+            },
+            "envelope": {
+              "return": 0.5063383140761417,
+              "max_drawdown_abs": 0.05792925021138973,
+              "worst_day_abs": 0.03331970559803077,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v13",
+              "best_worst_day_engine": "v14"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "45": {
+            "candidate": {
+              "return": 0.3826794940973939,
+              "max_drawdown": -0.11195002514371422,
+              "best_day": 0.21657980284126865,
+              "worst_day": -0.048696336031669785,
+              "positive_days": 0.5111111111111111
+            },
+            "envelope": {
+              "return": 0.36332139582886325,
+              "max_drawdown_abs": 0.08609437683242482,
+              "worst_day_abs": 0.02997756229956594,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": true,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "60": {
+            "candidate": {
+              "return": 0.26086667154377596,
+              "max_drawdown": -0.12854204182066198,
+              "best_day": 0.20913583248725187,
+              "worst_day": -0.048696336031669896,
+              "positive_days": 0.5
+            },
+            "envelope": {
+              "return": 0.2869283225616772,
+              "max_drawdown_abs": 0.08609437683242827,
+              "worst_day_abs": 0.02997756229956594,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "120": {
+            "candidate": {
+              "return": 0.4454065661046225,
+              "max_drawdown": -0.2678343349184673,
+              "best_day": 0.21657980284126843,
+              "worst_day": -0.04869633603167012,
+              "positive_days": 0.48333333333333334
+            },
+            "envelope": {
+              "return": 0.5148284208587419,
+              "max_drawdown_abs": 0.17667360592716796,
+              "worst_day_abs": 0.043242576732967164,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v16"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "240": {
+            "candidate": {
+              "return": 0.7516801449135786,
+              "max_drawdown": -0.2678343349184561,
+              "best_day": 0.21657980284126888,
+              "worst_day": -0.050408700833718734,
+              "positive_days": 0.4875
+            },
+            "envelope": {
+              "return": 0.811999186870511,
+              "max_drawdown_abs": 0.19182098697026473,
+              "worst_day_abs": 0.05131004682388329,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": true
+          },
+          "540": {
+            "candidate": {
+              "return": 3.369039977199786,
+              "max_drawdown": -0.2678343349184613,
+              "best_day": 0.21657980284126754,
+              "worst_day": -0.07566287625193102,
+              "positive_days": 0.4962962962962963
+            },
+            "envelope": {
+              "return": 3.338391676677574,
+              "max_drawdown_abs": 0.1918209869702614,
+              "worst_day_abs": 0.05595772549129785,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v16"
+            },
+            "return_win": true,
+            "drawdown_win": false,
+            "worst_day_win": false
+          }
+        },
+        "all_envelope_dimensions_won": false,
+        "all_material_envelope_dimensions_won": false,
+        "all_alternative_envelopes_won": false,
+        "severe_cost": {
+          "return": 74.89736177453116,
+          "max_drawdown": -0.415546768236299,
+          "best_day": 0.21637994182666986,
+          "worst_day": -0.10872819283162449,
+          "positive_days": 0.4692874692874693
+        },
+        "severe_routing": {
+          "transfer_cost_multiple": 2.568757493607693,
+          "route_changes": 373,
+          "event_entries": 180,
+          "event_exits": 180,
+          "band_rebalances": 13,
+          "band_absolute": 0.01,
+          "average_safe_weight": 0.02355518030872989,
+          "maximum_safe_weight": 0.22165526199551563,
+          "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 5 percentage points"
+        },
+        "full_return_pass": true,
+        "full_risk_pass": false,
+        "severe_return_pass": false,
+        "severe_risk_pass": false,
+        "dominant_gate_passed": false
+      },
+      "full_envelope": {
+        "return": 178.02496945243948,
+        "max_drawdown_abs": 0.2986660379169036,
+        "worst_day_abs": 0.0947264114814037,
+        "best_return_engine": "v14",
+        "best_drawdown_engine": "v13",
+        "best_worst_day_engine": "v16"
+      },
+      "severe_envelope": {
+        "return": 78.31266153652471,
+        "max_drawdown_abs": 0.32607939993125845,
+        "worst_day_abs": 0.09532467752339202,
+        "best_return_engine": "v15",
+        "best_drawdown_engine": "v13",
+        "best_worst_day_engine": "v13"
+      }
+    },
+    {
+      "band": 0.02,
+      "report": "reports/candidate_v99_r52_band_2pp.json",
+      "selected": {
+        "params": {
+          "name": "deep",
+          "r6_trigger": -0.045,
+          "dd_trigger": -0.09,
+          "r24_trigger": -0.07,
+          "btc24_trigger": -0.055,
+          "btc72_trigger": -0.11,
+          "cooldown": 24,
+          "safe_weight": 0.2,
+          "mode": "adaptive"
+        },
+        "summary": {
+          "return": 227.81351249798675,
+          "max_drawdown": -0.31113321205396505,
+          "best_day": 0.21657980284126865,
+          "worst_day": -0.10853713527988273,
+          "positive_days": 0.4787059787059787
+        },
+        "holdout": {
+          "return": 10.015648557765303,
+          "max_drawdown": -0.26783433491846165,
+          "best_day": 0.21657980284126888,
+          "worst_day": -0.07566287625193047,
+          "positive_days": 0.4851586489252815
+        },
+        "wealth_ratio_to_r30": 0.9227064662329922,
+        "holdout_wealth_ratio_to_r30": 0.9704035339020806,
+        "return_ratio_to_full_envelope": 1.2781094905243053,
+        "drawdown_ratio_to_full_envelope": 1.0417428584248005,
+        "worst_day_ratio_to_full_envelope": 1.1457959145975913,
+        "signal": {
+          "instant_fraction": 0.023860690407968344,
+          "active_fraction": 0.11717151043798608,
+          "mean_r6": 0.0006294024507506584,
+          "p05_r6": -0.014791075424624378,
+          "minimum_drawdown": -0.3097049287319853
+        },
+        "routing": {
+          "transfer_cost_multiple": 3.028902428842304,
+          "route_changes": 360,
+          "event_entries": 178,
+          "event_exits": 178,
+          "band_rebalances": 4,
+          "band_absolute": 0.02,
+          "average_safe_weight": 0.023430346499609542,
+          "maximum_safe_weight": 0.2254337401567278,
+          "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 2 percentage point(s)"
+        },
+        "score": -0.7364499324127893,
+        "isolated": {
+          "7": {
+            "return": 0.08868208431123104,
+            "max_drawdown": -0.03926858950740697,
+            "best_day": 0.07601824218740338,
+            "worst_day": -0.026396475580824585,
+            "positive_days": 0.5714285714285714
+          },
+          "30": {
+            "return": 0.43782921682217535,
+            "max_drawdown": -0.10214917283231673,
+            "best_day": 0.21657980284126932,
+            "worst_day": -0.04793067774447901,
+            "positive_days": 0.5666666666666667
+          },
+          "90": {
+            "return": 0.17130364892808614,
+            "max_drawdown": -0.22194044892740905,
+            "best_day": 0.2165798028412682,
+            "worst_day": -0.04793067774447901,
+            "positive_days": 0.4222222222222222
+          },
+          "180": {
+            "return": 0.6010763785345372,
+            "max_drawdown": -0.267834334918465,
+            "best_day": 0.2165798028412682,
+            "worst_day": -0.050461852165655796,
+            "positive_days": 0.49444444444444446
+          },
+          "365": {
+            "return": 1.4879237268307994,
+            "max_drawdown": -0.26783433491845965,
+            "best_day": 0.21657980284126865,
+            "worst_day": -0.07566287625193091,
+            "positive_days": 0.4904109589041096
+          }
+        },
+        "isolated_benchmarks": {
+          "7": {
+            "v13": {
+              "return": 0.03657086874171389,
+              "max_drawdown": -0.02809803424029733,
+              "best_day": 0.048554962938345936,
+              "worst_day": -0.015404096501948628,
+              "positive_days": 0.42857142857142855
+            },
+            "v14": {
+              "return": 0.0588337749638983,
+              "max_drawdown": -0.04115391950256342,
+              "best_day": 0.06739075978594333,
+              "worst_day": -0.033319705598030436,
+              "positive_days": 0.5714285714285714
+            },
+            "v15": {
+              "return": 0.08868208431123104,
+              "max_drawdown": -0.03926858950740675,
+              "best_day": 0.07601824218740338,
+              "worst_day": -0.026396475580824585,
+              "positive_days": 0.5714285714285714
+            },
+            "v16": {
+              "return": 0.04107950289001305,
+              "max_drawdown": -0.04648283222711436,
+              "best_day": 0.05365296572571987,
+              "worst_day": -0.036203339063760165,
+              "positive_days": 0.5714285714285714
+            }
+          },
+          "30": {
+            "v13": {
+              "return": 0.31326332740249807,
+              "max_drawdown": -0.07090671473019183,
+              "best_day": 0.2071246388989576,
+              "worst_day": -0.03364970119551425,
+              "positive_days": 0.5666666666666667
+            },
+            "v14": {
+              "return": 0.3810130571765944,
+              "max_drawdown": -0.06851892746798971,
+              "best_day": 0.21988978756334276,
+              "worst_day": -0.03331970559803066,
+              "positive_days": 0.5666666666666667
+            },
+            "v15": {
+              "return": 0.46729036983653494,
+              "max_drawdown": -0.1035617963345733,
+              "best_day": 0.21657980284126932,
+              "worst_day": -0.04635689978805402,
+              "positive_days": 0.5666666666666667
+            },
+            "v16": {
+              "return": 0.15604169638661913,
+              "max_drawdown": -0.08609437683242704,
+              "best_day": 0.11488903535427197,
+              "worst_day": -0.037281724764302915,
+              "positive_days": 0.6
+            }
+          },
+          "90": {
+            "v13": {
+              "return": 0.10612715368525039,
+              "max_drawdown": -0.210745433882624,
+              "best_day": 0.20712463889895782,
+              "worst_day": -0.03364970119551414,
+              "positive_days": 0.4444444444444444
+            },
+            "v14": {
+              "return": 0.01008995987299599,
+              "max_drawdown": -0.30331877968506726,
+              "best_day": 0.21988978756334188,
+              "worst_day": -0.03736111120043406,
+              "positive_days": 0.43333333333333335
+            },
+            "v15": {
+              "return": 0.1699877674363568,
+              "max_drawdown": -0.23994361213472293,
+              "best_day": 0.21657980284126843,
+              "worst_day": -0.04635689978805524,
+              "positive_days": 0.45555555555555555
+            },
+            "v16": {
+              "return": 0.01395832523318874,
+              "max_drawdown": -0.13680440634855806,
+              "best_day": 0.11488903535427242,
+              "worst_day": -0.04378856987337498,
+              "positive_days": 0.4222222222222222
+            }
+          },
+          "180": {
+            "v13": {
+              "return": 0.037744321966326266,
+              "max_drawdown": -0.2822523027971062,
+              "best_day": 0.10127931358015796,
+              "worst_day": -0.05131004682388407,
+              "positive_days": 0.5055555555555555
+            },
+            "v14": {
+              "return": 0.39606447143217904,
+              "max_drawdown": -0.3361968667134235,
+              "best_day": 0.21988978756334232,
+              "worst_day": -0.061068496277513096,
+              "positive_days": 0.48333333333333334
+            },
+            "v15": {
+              "return": 0.6288859227226276,
+              "max_drawdown": -0.30886482676159166,
+              "best_day": 0.2165798028412691,
+              "worst_day": -0.06251263362216208,
+              "positive_days": 0.5055555555555555
+            },
+            "v16": {
+              "return": 0.42844306004713895,
+              "max_drawdown": -0.1766736059271703,
+              "best_day": 0.12017389509816256,
+              "worst_day": -0.054735842156341086,
+              "positive_days": 0.4777777777777778
+            }
+          },
+          "365": {
+            "v13": {
+              "return": 0.08578459585857279,
+              "max_drawdown": -0.2863086979150171,
+              "best_day": 0.10127931358015752,
+              "worst_day": -0.08807472271131656,
+              "positive_days": 0.4849315068493151
+            },
+            "v14": {
+              "return": 1.0350077240196494,
+              "max_drawdown": -0.3361968667134254,
+              "best_day": 0.21988978756334254,
+              "worst_day": -0.09291841287536406,
+              "positive_days": 0.473972602739726
+            },
+            "v15": {
+              "return": 1.5800838316318755,
+              "max_drawdown": -0.30886482676159366,
+              "best_day": 0.21657980284126865,
+              "worst_day": -0.09001448485612862,
+              "positive_days": 0.4931506849315068
+            },
+            "v16": {
+              "return": 0.9552172281813516,
+              "max_drawdown": -0.19182098697026584,
+              "best_day": 0.12922177325711215,
+              "worst_day": -0.055957725491297516,
+              "positive_days": 0.4684931506849315
+            }
+          }
+        },
+        "isolated_envelope": {
+          "7": {
+            "return": 0.08868208431123104,
+            "max_drawdown_abs": 0.02809803424029733,
+            "worst_day_abs": 0.015404096501948628,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v13",
+            "best_worst_day_engine": "v13"
+          },
+          "30": {
+            "return": 0.46729036983653494,
+            "max_drawdown_abs": 0.06851892746798971,
+            "worst_day_abs": 0.03331970559803066,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v14",
+            "best_worst_day_engine": "v14"
+          },
+          "90": {
+            "return": 0.1699877674363568,
+            "max_drawdown_abs": 0.13680440634855806,
+            "worst_day_abs": 0.03364970119551414,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "180": {
+            "return": 0.6288859227226276,
+            "max_drawdown_abs": 0.1766736059271703,
+            "worst_day_abs": 0.05131004682388407,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "365": {
+            "return": 1.5800838316318755,
+            "max_drawdown_abs": 0.19182098697026584,
+            "worst_day_abs": 0.055957725491297516,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v16"
+          }
+        },
+        "envelope_wins": {
+          "7": {
+            "return": true,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "30": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "90": {
+            "return": true,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "180": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": true
+          },
+          "365": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          }
+        },
+        "material_envelope_wins": {
+          "7": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "30": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "90": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "180": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "365": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          }
+        },
+        "alternative_horizons": {
+          "14": {
+            "candidate": {
+              "return": 0.07399772614619349,
+              "max_drawdown": -0.10309496861232192,
+              "best_day": 0.055112499603529486,
+              "worst_day": -0.049312302188398216,
+              "positive_days": 0.5714285714285714
+            },
+            "envelope": {
+              "return": 0.08699077386598164,
+              "max_drawdown_abs": 0.05792925021138717,
+              "worst_day_abs": 0.029993085263404384,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v13",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "21": {
+            "candidate": {
+              "return": 0.47609313256695174,
+              "max_drawdown": -0.1021491728323154,
+              "best_day": 0.21548332392952396,
+              "worst_day": -0.04793067774447879,
+              "positive_days": 0.6190476190476191
+            },
+            "envelope": {
+              "return": 0.5063383140761417,
+              "max_drawdown_abs": 0.05792925021138973,
+              "worst_day_abs": 0.03331970559803077,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v13",
+              "best_worst_day_engine": "v14"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "45": {
+            "candidate": {
+              "return": 0.3826794940973939,
+              "max_drawdown": -0.11195002514371422,
+              "best_day": 0.21657980284126865,
+              "worst_day": -0.048696336031669785,
+              "positive_days": 0.5111111111111111
+            },
+            "envelope": {
+              "return": 0.36332139582886325,
+              "max_drawdown_abs": 0.08609437683242482,
+              "worst_day_abs": 0.02997756229956594,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": true,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "60": {
+            "candidate": {
+              "return": 0.26086667154377596,
+              "max_drawdown": -0.12854204182066198,
+              "best_day": 0.20913583248725187,
+              "worst_day": -0.048696336031669896,
+              "positive_days": 0.5
+            },
+            "envelope": {
+              "return": 0.2869283225616772,
+              "max_drawdown_abs": 0.08609437683242827,
+              "worst_day_abs": 0.02997756229956594,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "120": {
+            "candidate": {
+              "return": 0.4454065661046225,
+              "max_drawdown": -0.2678343349184673,
+              "best_day": 0.21657980284126843,
+              "worst_day": -0.04869633603167012,
+              "positive_days": 0.48333333333333334
+            },
+            "envelope": {
+              "return": 0.5148284208587419,
+              "max_drawdown_abs": 0.17667360592716796,
+              "worst_day_abs": 0.043242576732967164,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v16"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "240": {
+            "candidate": {
+              "return": 0.7516801449135786,
+              "max_drawdown": -0.2678343349184561,
+              "best_day": 0.21657980284126888,
+              "worst_day": -0.050408700833718734,
+              "positive_days": 0.4875
+            },
+            "envelope": {
+              "return": 0.811999186870511,
+              "max_drawdown_abs": 0.19182098697026473,
+              "worst_day_abs": 0.05131004682388329,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": true
+          },
+          "540": {
+            "candidate": {
+              "return": 3.369039977199786,
+              "max_drawdown": -0.2678343349184613,
+              "best_day": 0.21657980284126754,
+              "worst_day": -0.07566287625193102,
+              "positive_days": 0.4962962962962963
+            },
+            "envelope": {
+              "return": 3.338391676677574,
+              "max_drawdown_abs": 0.1918209869702614,
+              "worst_day_abs": 0.05595772549129785,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v16"
+            },
+            "return_win": true,
+            "drawdown_win": false,
+            "worst_day_win": false
+          }
+        },
+        "all_envelope_dimensions_won": false,
+        "all_material_envelope_dimensions_won": false,
+        "all_alternative_envelopes_won": false,
+        "severe_cost": {
+          "return": 74.18192251167068,
+          "max_drawdown": -0.4155467682362922,
+          "best_day": 0.21637994182666875,
+          "worst_day": -0.10990749336070138,
+          "positive_days": 0.4688779688779689
+        },
+        "severe_routing": {
+          "transfer_cost_multiple": 2.540868957916166,
+          "route_changes": 364,
+          "event_entries": 180,
+          "event_exits": 180,
+          "band_rebalances": 4,
+          "band_absolute": 0.02,
+          "average_safe_weight": 0.023544340263003016,
+          "maximum_safe_weight": 0.22523205468856675,
+          "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 5 percentage points"
+        },
+        "full_return_pass": true,
+        "full_risk_pass": false,
+        "severe_return_pass": false,
+        "severe_risk_pass": false,
+        "dominant_gate_passed": false
+      },
+      "full_envelope": {
+        "return": 178.02496945243948,
+        "max_drawdown_abs": 0.2986660379169036,
+        "worst_day_abs": 0.0947264114814037,
+        "best_return_engine": "v14",
+        "best_drawdown_engine": "v13",
+        "best_worst_day_engine": "v16"
+      },
+      "severe_envelope": {
+        "return": 78.31266153652471,
+        "max_drawdown_abs": 0.32607939993125845,
+        "worst_day_abs": 0.09532467752339202,
+        "best_return_engine": "v15",
+        "best_drawdown_engine": "v13",
+        "best_worst_day_engine": "v13"
+      }
+    },
+    {
+      "band": 0.03,
+      "report": "reports/candidate_v99_r52_band_3pp.json",
+      "selected": {
+        "params": {
+          "name": "deep",
+          "r6_trigger": -0.045,
+          "dd_trigger": -0.09,
+          "r24_trigger": -0.07,
+          "btc24_trigger": -0.055,
+          "btc72_trigger": -0.11,
+          "cooldown": 24,
+          "safe_weight": 0.2,
+          "mode": "adaptive"
+        },
+        "summary": {
+          "return": 228.49765773405682,
+          "max_drawdown": -0.31113321205397027,
+          "best_day": 0.21657980284126954,
+          "worst_day": -0.10776390508834421,
+          "positive_days": 0.4782964782964783
+        },
+        "holdout": {
+          "return": 10.015648557765378,
+          "max_drawdown": -0.26783433491846054,
+          "best_day": 0.21657980284126954,
+          "worst_day": -0.0756628762519308,
+          "positive_days": 0.4851586489252815
+        },
+        "wealth_ratio_to_r30": 0.9254653296684282,
+        "holdout_wealth_ratio_to_r30": 0.9704035339020871,
+        "return_ratio_to_full_envelope": 1.2819309978713676,
+        "drawdown_ratio_to_full_envelope": 1.041742858424818,
+        "worst_day_ratio_to_full_envelope": 1.1376331416238645,
+        "signal": {
+          "instant_fraction": 0.023860690407968344,
+          "active_fraction": 0.11717151043798608,
+          "mean_r6": 0.0006294024507506584,
+          "p05_r6": -0.014791075424624378,
+          "minimum_drawdown": -0.3097049287319853
+        },
+        "routing": {
+          "transfer_cost_multiple": 3.036734864342682,
+          "route_changes": 357,
+          "event_entries": 178,
+          "event_exits": 178,
+          "band_rebalances": 1,
+          "band_absolute": 0.03,
+          "average_safe_weight": 0.023493314369045334,
+          "maximum_safe_weight": 0.2314948093985588,
+          "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 3 percentage point(s)"
+        },
+        "score": -0.6175981034278744,
+        "isolated": {
+          "7": {
+            "return": 0.08868208431123104,
+            "max_drawdown": -0.03926858950740697,
+            "best_day": 0.07601824218740338,
+            "worst_day": -0.026396475580824585,
+            "positive_days": 0.5714285714285714
+          },
+          "30": {
+            "return": 0.43782921682217535,
+            "max_drawdown": -0.10214917283231673,
+            "best_day": 0.21657980284126932,
+            "worst_day": -0.04793067774447901,
+            "positive_days": 0.5666666666666667
+          },
+          "90": {
+            "return": 0.17130364892808614,
+            "max_drawdown": -0.22194044892740905,
+            "best_day": 0.2165798028412682,
+            "worst_day": -0.04793067774447901,
+            "positive_days": 0.4222222222222222
+          },
+          "180": {
+            "return": 0.6010763785345372,
+            "max_drawdown": -0.267834334918465,
+            "best_day": 0.2165798028412682,
+            "worst_day": -0.050461852165655796,
+            "positive_days": 0.49444444444444446
+          },
+          "365": {
+            "return": 1.4879237268307994,
+            "max_drawdown": -0.26783433491845965,
+            "best_day": 0.21657980284126865,
+            "worst_day": -0.07566287625193091,
+            "positive_days": 0.4904109589041096
+          }
+        },
+        "isolated_benchmarks": {
+          "7": {
+            "v13": {
+              "return": 0.03657086874171389,
+              "max_drawdown": -0.02809803424029733,
+              "best_day": 0.048554962938345936,
+              "worst_day": -0.015404096501948628,
+              "positive_days": 0.42857142857142855
+            },
+            "v14": {
+              "return": 0.0588337749638983,
+              "max_drawdown": -0.04115391950256342,
+              "best_day": 0.06739075978594333,
+              "worst_day": -0.033319705598030436,
+              "positive_days": 0.5714285714285714
+            },
+            "v15": {
+              "return": 0.08868208431123104,
+              "max_drawdown": -0.03926858950740675,
+              "best_day": 0.07601824218740338,
+              "worst_day": -0.026396475580824585,
+              "positive_days": 0.5714285714285714
+            },
+            "v16": {
+              "return": 0.04107950289001305,
+              "max_drawdown": -0.04648283222711436,
+              "best_day": 0.05365296572571987,
+              "worst_day": -0.036203339063760165,
+              "positive_days": 0.5714285714285714
+            }
+          },
+          "30": {
+            "v13": {
+              "return": 0.31326332740249807,
+              "max_drawdown": -0.07090671473019183,
+              "best_day": 0.2071246388989576,
+              "worst_day": -0.03364970119551425,
+              "positive_days": 0.5666666666666667
+            },
+            "v14": {
+              "return": 0.3810130571765944,
+              "max_drawdown": -0.06851892746798971,
+              "best_day": 0.21988978756334276,
+              "worst_day": -0.03331970559803066,
+              "positive_days": 0.5666666666666667
+            },
+            "v15": {
+              "return": 0.46729036983653494,
+              "max_drawdown": -0.1035617963345733,
+              "best_day": 0.21657980284126932,
+              "worst_day": -0.04635689978805402,
+              "positive_days": 0.5666666666666667
+            },
+            "v16": {
+              "return": 0.15604169638661913,
+              "max_drawdown": -0.08609437683242704,
+              "best_day": 0.11488903535427197,
+              "worst_day": -0.037281724764302915,
+              "positive_days": 0.6
+            }
+          },
+          "90": {
+            "v13": {
+              "return": 0.10612715368525039,
+              "max_drawdown": -0.210745433882624,
+              "best_day": 0.20712463889895782,
+              "worst_day": -0.03364970119551414,
+              "positive_days": 0.4444444444444444
+            },
+            "v14": {
+              "return": 0.01008995987299599,
+              "max_drawdown": -0.30331877968506726,
+              "best_day": 0.21988978756334188,
+              "worst_day": -0.03736111120043406,
+              "positive_days": 0.43333333333333335
+            },
+            "v15": {
+              "return": 0.1699877674363568,
+              "max_drawdown": -0.23994361213472293,
+              "best_day": 0.21657980284126843,
+              "worst_day": -0.04635689978805524,
+              "positive_days": 0.45555555555555555
+            },
+            "v16": {
+              "return": 0.01395832523318874,
+              "max_drawdown": -0.13680440634855806,
+              "best_day": 0.11488903535427242,
+              "worst_day": -0.04378856987337498,
+              "positive_days": 0.4222222222222222
+            }
+          },
+          "180": {
+            "v13": {
+              "return": 0.037744321966326266,
+              "max_drawdown": -0.2822523027971062,
+              "best_day": 0.10127931358015796,
+              "worst_day": -0.05131004682388407,
+              "positive_days": 0.5055555555555555
+            },
+            "v14": {
+              "return": 0.39606447143217904,
+              "max_drawdown": -0.3361968667134235,
+              "best_day": 0.21988978756334232,
+              "worst_day": -0.061068496277513096,
+              "positive_days": 0.48333333333333334
+            },
+            "v15": {
+              "return": 0.6288859227226276,
+              "max_drawdown": -0.30886482676159166,
+              "best_day": 0.2165798028412691,
+              "worst_day": -0.06251263362216208,
+              "positive_days": 0.5055555555555555
+            },
+            "v16": {
+              "return": 0.42844306004713895,
+              "max_drawdown": -0.1766736059271703,
+              "best_day": 0.12017389509816256,
+              "worst_day": -0.054735842156341086,
+              "positive_days": 0.4777777777777778
+            }
+          },
+          "365": {
+            "v13": {
+              "return": 0.08578459585857279,
+              "max_drawdown": -0.2863086979150171,
+              "best_day": 0.10127931358015752,
+              "worst_day": -0.08807472271131656,
+              "positive_days": 0.4849315068493151
+            },
+            "v14": {
+              "return": 1.0350077240196494,
+              "max_drawdown": -0.3361968667134254,
+              "best_day": 0.21988978756334254,
+              "worst_day": -0.09291841287536406,
+              "positive_days": 0.473972602739726
+            },
+            "v15": {
+              "return": 1.5800838316318755,
+              "max_drawdown": -0.30886482676159366,
+              "best_day": 0.21657980284126865,
+              "worst_day": -0.09001448485612862,
+              "positive_days": 0.4931506849315068
+            },
+            "v16": {
+              "return": 0.9552172281813516,
+              "max_drawdown": -0.19182098697026584,
+              "best_day": 0.12922177325711215,
+              "worst_day": -0.055957725491297516,
+              "positive_days": 0.4684931506849315
+            }
+          }
+        },
+        "isolated_envelope": {
+          "7": {
+            "return": 0.08868208431123104,
+            "max_drawdown_abs": 0.02809803424029733,
+            "worst_day_abs": 0.015404096501948628,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v13",
+            "best_worst_day_engine": "v13"
+          },
+          "30": {
+            "return": 0.46729036983653494,
+            "max_drawdown_abs": 0.06851892746798971,
+            "worst_day_abs": 0.03331970559803066,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v14",
+            "best_worst_day_engine": "v14"
+          },
+          "90": {
+            "return": 0.1699877674363568,
+            "max_drawdown_abs": 0.13680440634855806,
+            "worst_day_abs": 0.03364970119551414,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "180": {
+            "return": 0.6288859227226276,
+            "max_drawdown_abs": 0.1766736059271703,
+            "worst_day_abs": 0.05131004682388407,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "365": {
+            "return": 1.5800838316318755,
+            "max_drawdown_abs": 0.19182098697026584,
+            "worst_day_abs": 0.055957725491297516,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v16"
+          }
+        },
+        "envelope_wins": {
+          "7": {
+            "return": true,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "30": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "90": {
+            "return": true,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "180": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": true
+          },
+          "365": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          }
+        },
+        "material_envelope_wins": {
+          "7": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "30": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "90": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "180": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          },
+          "365": {
+            "return": false,
+            "drawdown": false,
+            "worst_day": false
+          }
+        },
+        "alternative_horizons": {
+          "14": {
+            "candidate": {
+              "return": 0.07399772614619349,
+              "max_drawdown": -0.10309496861232192,
+              "best_day": 0.055112499603529486,
+              "worst_day": -0.049312302188398216,
+              "positive_days": 0.5714285714285714
+            },
+            "envelope": {
+              "return": 0.08699077386598164,
+              "max_drawdown_abs": 0.05792925021138717,
+              "worst_day_abs": 0.029993085263404384,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v13",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "21": {
+            "candidate": {
+              "return": 0.47609313256695174,
+              "max_drawdown": -0.1021491728323154,
+              "best_day": 0.21548332392952396,
+              "worst_day": -0.04793067774447879,
+              "positive_days": 0.6190476190476191
+            },
+            "envelope": {
+              "return": 0.5063383140761417,
+              "max_drawdown_abs": 0.05792925021138973,
+              "worst_day_abs": 0.03331970559803077,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v13",
+              "best_worst_day_engine": "v14"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "45": {
+            "candidate": {
+              "return": 0.3826794940973939,
+              "max_drawdown": -0.11195002514371422,
+              "best_day": 0.21657980284126865,
+              "worst_day": -0.048696336031669785,
+              "positive_days": 0.5111111111111111
+            },
+            "envelope": {
+              "return": 0.36332139582886325,
+              "max_drawdown_abs": 0.08609437683242482,
+              "worst_day_abs": 0.02997756229956594,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": true,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "60": {
+            "candidate": {
+              "return": 0.26086667154377596,
+              "max_drawdown": -0.12854204182066198,
+              "best_day": 0.20913583248725187,
+              "worst_day": -0.048696336031669896,
+              "positive_days": 0.5
+            },
+            "envelope": {
+              "return": 0.2869283225616772,
+              "max_drawdown_abs": 0.08609437683242827,
+              "worst_day_abs": 0.02997756229956594,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "120": {
+            "candidate": {
+              "return": 0.4454065661046225,
+              "max_drawdown": -0.2678343349184673,
+              "best_day": 0.21657980284126843,
+              "worst_day": -0.04869633603167012,
+              "positive_days": 0.48333333333333334
+            },
+            "envelope": {
+              "return": 0.5148284208587419,
+              "max_drawdown_abs": 0.17667360592716796,
+              "worst_day_abs": 0.043242576732967164,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v16"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": false
+          },
+          "240": {
+            "candidate": {
+              "return": 0.7516801449135786,
+              "max_drawdown": -0.2678343349184561,
+              "best_day": 0.21657980284126888,
+              "worst_day": -0.050408700833718734,
+              "positive_days": 0.4875
+            },
+            "envelope": {
+              "return": 0.811999186870511,
+              "max_drawdown_abs": 0.19182098697026473,
+              "worst_day_abs": 0.05131004682388329,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v13"
+            },
+            "return_win": false,
+            "drawdown_win": false,
+            "worst_day_win": true
+          },
+          "540": {
+            "candidate": {
+              "return": 3.369039977199786,
+              "max_drawdown": -0.2678343349184613,
+              "best_day": 0.21657980284126754,
+              "worst_day": -0.07566287625193102,
+              "positive_days": 0.4962962962962963
+            },
+            "envelope": {
+              "return": 3.338391676677574,
+              "max_drawdown_abs": 0.1918209869702614,
+              "worst_day_abs": 0.05595772549129785,
+              "best_return_engine": "v15",
+              "best_drawdown_engine": "v16",
+              "best_worst_day_engine": "v16"
+            },
+            "return_win": true,
+            "drawdown_win": false,
+            "worst_day_win": false
+          }
+        },
+        "all_envelope_dimensions_won": false,
+        "all_material_envelope_dimensions_won": false,
+        "all_alternative_envelopes_won": false,
+        "severe_cost": {
+          "return": 74.66903104890719,
+          "max_drawdown": -0.41554676823629355,
+          "best_day": 0.21637994182666898,
+          "worst_day": -0.10872819283162438,
+          "positive_days": 0.4688779688779689
+        },
+        "severe_routing": {
+          "transfer_cost_multiple": 2.5547669356455898,
+          "route_changes": 361,
+          "event_entries": 180,
+          "event_exits": 180,
+          "band_rebalances": 1,
+          "band_absolute": 0.03,
+          "average_safe_weight": 0.023610221948341354,
+          "maximum_safe_weight": 0.23122768600029678,
+          "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 5 percentage points"
+        },
+        "full_return_pass": true,
+        "full_risk_pass": false,
+        "severe_return_pass": false,
+        "severe_risk_pass": false,
+        "dominant_gate_passed": false
+      },
+      "full_envelope": {
+        "return": 178.02496945243948,
+        "max_drawdown_abs": 0.2986660379169036,
+        "worst_day_abs": 0.0947264114814037,
+        "best_return_engine": "v14",
+        "best_drawdown_engine": "v13",
+        "best_worst_day_engine": "v16"
+      },
+      "severe_envelope": {
+        "return": 78.31266153652471,
+        "max_drawdown_abs": 0.32607939993125845,
+        "worst_day_abs": 0.09532467752339202,
+        "best_return_engine": "v15",
+        "best_drawdown_engine": "v13",
+        "best_worst_day_engine": "v13"
+      }
+    }
+  ],
+  "best_by_existing_r37_score": {
+    "band": 0.01,
+    "report": "reports/candidate_v99_r52_band_1pp.json",
+    "selected": {
+      "params": {
+        "name": "deep",
+        "r6_trigger": -0.045,
+        "dd_trigger": -0.09,
+        "r24_trigger": -0.07,
+        "btc24_trigger": -0.055,
+        "btc72_trigger": -0.11,
+        "cooldown": 24,
+        "safe_weight": 0.2,
+        "mode": "adaptive"
+      },
+      "summary": {
+        "return": 229.77398193626078,
+        "max_drawdown": -0.31113321205396927,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.10776390508834421,
+        "positive_days": 0.47911547911547914
+      },
+      "holdout": {
+        "return": 10.01564855776529,
+        "max_drawdown": -0.26783433491846376,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.07566287625193091,
+        "positive_days": 0.4851586489252815
+      },
+      "wealth_ratio_to_r30": 0.9306121961341647,
+      "holdout_wealth_ratio_to_r30": 0.9704035339020795,
+      "return_ratio_to_full_envelope": 1.28906030618019,
+      "drawdown_ratio_to_full_envelope": 1.0417428584248147,
+      "worst_day_ratio_to_full_envelope": 1.1376331416238645,
+      "signal": {
+        "instant_fraction": 0.023860690407968344,
+        "active_fraction": 0.11717151043798608,
+        "mean_r6": 0.0006294024507506584,
+        "p05_r6": -0.014791075424624378,
+        "minimum_drawdown": -0.3097049287319853
+      },
+      "routing": {
+        "transfer_cost_multiple": 3.057511725894273,
+        "route_changes": 369,
+        "event_entries": 178,
+        "event_exits": 178,
+        "band_rebalances": 13,
+        "band_absolute": 0.01,
+        "average_safe_weight": 0.023441206264533315,
+        "maximum_safe_weight": 0.22164010820093807,
+        "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 1 percentage point(s)"
+      },
+      "score": -0.5787762793340883,
+      "isolated": {
+        "7": {
+          "return": 0.08868208431123104,
+          "max_drawdown": -0.03926858950740697,
+          "best_day": 0.07601824218740338,
+          "worst_day": -0.026396475580824585,
+          "positive_days": 0.5714285714285714
+        },
+        "30": {
+          "return": 0.43782921682217535,
+          "max_drawdown": -0.10214917283231673,
+          "best_day": 0.21657980284126932,
+          "worst_day": -0.04793067774447901,
+          "positive_days": 0.5666666666666667
+        },
+        "90": {
+          "return": 0.17130364892808614,
+          "max_drawdown": -0.22194044892740905,
+          "best_day": 0.2165798028412682,
+          "worst_day": -0.04793067774447901,
+          "positive_days": 0.4222222222222222
+        },
+        "180": {
+          "return": 0.6010763785345372,
+          "max_drawdown": -0.267834334918465,
+          "best_day": 0.2165798028412682,
+          "worst_day": -0.050461852165655796,
+          "positive_days": 0.49444444444444446
+        },
+        "365": {
+          "return": 1.4879237268307994,
+          "max_drawdown": -0.26783433491845965,
+          "best_day": 0.21657980284126865,
+          "worst_day": -0.07566287625193091,
+          "positive_days": 0.4904109589041096
+        }
+      },
+      "isolated_benchmarks": {
+        "7": {
+          "v13": {
+            "return": 0.03657086874171389,
+            "max_drawdown": -0.02809803424029733,
+            "best_day": 0.048554962938345936,
+            "worst_day": -0.015404096501948628,
+            "positive_days": 0.42857142857142855
+          },
+          "v14": {
+            "return": 0.0588337749638983,
+            "max_drawdown": -0.04115391950256342,
+            "best_day": 0.06739075978594333,
+            "worst_day": -0.033319705598030436,
+            "positive_days": 0.5714285714285714
+          },
+          "v15": {
+            "return": 0.08868208431123104,
+            "max_drawdown": -0.03926858950740675,
+            "best_day": 0.07601824218740338,
+            "worst_day": -0.026396475580824585,
+            "positive_days": 0.5714285714285714
+          },
+          "v16": {
+            "return": 0.04107950289001305,
+            "max_drawdown": -0.04648283222711436,
+            "best_day": 0.05365296572571987,
+            "worst_day": -0.036203339063760165,
+            "positive_days": 0.5714285714285714
+          }
+        },
+        "30": {
+          "v13": {
+            "return": 0.31326332740249807,
+            "max_drawdown": -0.07090671473019183,
+            "best_day": 0.2071246388989576,
+            "worst_day": -0.03364970119551425,
+            "positive_days": 0.5666666666666667
+          },
+          "v14": {
+            "return": 0.3810130571765944,
+            "max_drawdown": -0.06851892746798971,
+            "best_day": 0.21988978756334276,
+            "worst_day": -0.03331970559803066,
+            "positive_days": 0.5666666666666667
+          },
+          "v15": {
+            "return": 0.46729036983653494,
+            "max_drawdown": -0.1035617963345733,
+            "best_day": 0.21657980284126932,
+            "worst_day": -0.04635689978805402,
+            "positive_days": 0.5666666666666667
+          },
+          "v16": {
+            "return": 0.15604169638661913,
+            "max_drawdown": -0.08609437683242704,
+            "best_day": 0.11488903535427197,
+            "worst_day": -0.037281724764302915,
+            "positive_days": 0.6
+          }
+        },
+        "90": {
+          "v13": {
+            "return": 0.10612715368525039,
+            "max_drawdown": -0.210745433882624,
+            "best_day": 0.20712463889895782,
+            "worst_day": -0.03364970119551414,
+            "positive_days": 0.4444444444444444
+          },
+          "v14": {
+            "return": 0.01008995987299599,
+            "max_drawdown": -0.30331877968506726,
+            "best_day": 0.21988978756334188,
+            "worst_day": -0.03736111120043406,
+            "positive_days": 0.43333333333333335
+          },
+          "v15": {
+            "return": 0.1699877674363568,
+            "max_drawdown": -0.23994361213472293,
+            "best_day": 0.21657980284126843,
+            "worst_day": -0.04635689978805524,
+            "positive_days": 0.45555555555555555
+          },
+          "v16": {
+            "return": 0.01395832523318874,
+            "max_drawdown": -0.13680440634855806,
+            "best_day": 0.11488903535427242,
+            "worst_day": -0.04378856987337498,
+            "positive_days": 0.4222222222222222
+          }
+        },
+        "180": {
+          "v13": {
+            "return": 0.037744321966326266,
+            "max_drawdown": -0.2822523027971062,
+            "best_day": 0.10127931358015796,
+            "worst_day": -0.05131004682388407,
+            "positive_days": 0.5055555555555555
+          },
+          "v14": {
+            "return": 0.39606447143217904,
+            "max_drawdown": -0.3361968667134235,
+            "best_day": 0.21988978756334232,
+            "worst_day": -0.061068496277513096,
+            "positive_days": 0.48333333333333334
+          },
+          "v15": {
+            "return": 0.6288859227226276,
+            "max_drawdown": -0.30886482676159166,
+            "best_day": 0.2165798028412691,
+            "worst_day": -0.06251263362216208,
+            "positive_days": 0.5055555555555555
+          },
+          "v16": {
+            "return": 0.42844306004713895,
+            "max_drawdown": -0.1766736059271703,
+            "best_day": 0.12017389509816256,
+            "worst_day": -0.054735842156341086,
+            "positive_days": 0.4777777777777778
+          }
+        },
+        "365": {
+          "v13": {
+            "return": 0.08578459585857279,
+            "max_drawdown": -0.2863086979150171,
+            "best_day": 0.10127931358015752,
+            "worst_day": -0.08807472271131656,
+            "positive_days": 0.4849315068493151
+          },
+          "v14": {
+            "return": 1.0350077240196494,
+            "max_drawdown": -0.3361968667134254,
+            "best_day": 0.21988978756334254,
+            "worst_day": -0.09291841287536406,
+            "positive_days": 0.473972602739726
+          },
+          "v15": {
+            "return": 1.5800838316318755,
+            "max_drawdown": -0.30886482676159366,
+            "best_day": 0.21657980284126865,
+            "worst_day": -0.09001448485612862,
+            "positive_days": 0.4931506849315068
+          },
+          "v16": {
+            "return": 0.9552172281813516,
+            "max_drawdown": -0.19182098697026584,
+            "best_day": 0.12922177325711215,
+            "worst_day": -0.055957725491297516,
+            "positive_days": 0.4684931506849315
+          }
+        }
+      },
+      "isolated_envelope": {
+        "7": {
+          "return": 0.08868208431123104,
+          "max_drawdown_abs": 0.02809803424029733,
+          "worst_day_abs": 0.015404096501948628,
+          "best_return_engine": "v15",
+          "best_drawdown_engine": "v13",
+          "best_worst_day_engine": "v13"
+        },
+        "30": {
+          "return": 0.46729036983653494,
+          "max_drawdown_abs": 0.06851892746798971,
+          "worst_day_abs": 0.03331970559803066,
+          "best_return_engine": "v15",
+          "best_drawdown_engine": "v14",
+          "best_worst_day_engine": "v14"
+        },
+        "90": {
+          "return": 0.1699877674363568,
+          "max_drawdown_abs": 0.13680440634855806,
+          "worst_day_abs": 0.03364970119551414,
+          "best_return_engine": "v15",
+          "best_drawdown_engine": "v16",
+          "best_worst_day_engine": "v13"
+        },
+        "180": {
+          "return": 0.6288859227226276,
+          "max_drawdown_abs": 0.1766736059271703,
+          "worst_day_abs": 0.05131004682388407,
+          "best_return_engine": "v15",
+          "best_drawdown_engine": "v16",
+          "best_worst_day_engine": "v13"
+        },
+        "365": {
+          "return": 1.5800838316318755,
+          "max_drawdown_abs": 0.19182098697026584,
+          "worst_day_abs": 0.055957725491297516,
+          "best_return_engine": "v15",
+          "best_drawdown_engine": "v16",
+          "best_worst_day_engine": "v16"
+        }
+      },
+      "envelope_wins": {
+        "7": {
+          "return": true,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "30": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "90": {
+          "return": true,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "180": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": true
+        },
+        "365": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        }
+      },
+      "material_envelope_wins": {
+        "7": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "30": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "90": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "180": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        },
+        "365": {
+          "return": false,
+          "drawdown": false,
+          "worst_day": false
+        }
+      },
+      "alternative_horizons": {
+        "14": {
+          "candidate": {
+            "return": 0.07399772614619349,
+            "max_drawdown": -0.10309496861232192,
+            "best_day": 0.055112499603529486,
+            "worst_day": -0.049312302188398216,
+            "positive_days": 0.5714285714285714
+          },
+          "envelope": {
+            "return": 0.08699077386598164,
+            "max_drawdown_abs": 0.05792925021138717,
+            "worst_day_abs": 0.029993085263404384,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v13",
+            "best_worst_day_engine": "v13"
+          },
+          "return_win": false,
+          "drawdown_win": false,
+          "worst_day_win": false
+        },
+        "21": {
+          "candidate": {
+            "return": 0.47609313256695174,
+            "max_drawdown": -0.1021491728323154,
+            "best_day": 0.21548332392952396,
+            "worst_day": -0.04793067774447879,
+            "positive_days": 0.6190476190476191
+          },
+          "envelope": {
+            "return": 0.5063383140761417,
+            "max_drawdown_abs": 0.05792925021138973,
+            "worst_day_abs": 0.03331970559803077,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v13",
+            "best_worst_day_engine": "v14"
+          },
+          "return_win": false,
+          "drawdown_win": false,
+          "worst_day_win": false
+        },
+        "45": {
+          "candidate": {
+            "return": 0.3826794940973939,
+            "max_drawdown": -0.11195002514371422,
+            "best_day": 0.21657980284126865,
+            "worst_day": -0.048696336031669785,
+            "positive_days": 0.5111111111111111
+          },
+          "envelope": {
+            "return": 0.36332139582886325,
+            "max_drawdown_abs": 0.08609437683242482,
+            "worst_day_abs": 0.02997756229956594,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "return_win": true,
+          "drawdown_win": false,
+          "worst_day_win": false
+        },
+        "60": {
+          "candidate": {
+            "return": 0.26086667154377596,
+            "max_drawdown": -0.12854204182066198,
+            "best_day": 0.20913583248725187,
+            "worst_day": -0.048696336031669896,
+            "positive_days": 0.5
+          },
+          "envelope": {
+            "return": 0.2869283225616772,
+            "max_drawdown_abs": 0.08609437683242827,
+            "worst_day_abs": 0.02997756229956594,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "return_win": false,
+          "drawdown_win": false,
+          "worst_day_win": false
+        },
+        "120": {
+          "candidate": {
+            "return": 0.4454065661046225,
+            "max_drawdown": -0.2678343349184673,
+            "best_day": 0.21657980284126843,
+            "worst_day": -0.04869633603167012,
+            "positive_days": 0.48333333333333334
+          },
+          "envelope": {
+            "return": 0.5148284208587419,
+            "max_drawdown_abs": 0.17667360592716796,
+            "worst_day_abs": 0.043242576732967164,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v16"
+          },
+          "return_win": false,
+          "drawdown_win": false,
+          "worst_day_win": false
+        },
+        "240": {
+          "candidate": {
+            "return": 0.7516801449135786,
+            "max_drawdown": -0.2678343349184561,
+            "best_day": 0.21657980284126888,
+            "worst_day": -0.050408700833718734,
+            "positive_days": 0.4875
+          },
+          "envelope": {
+            "return": 0.811999186870511,
+            "max_drawdown_abs": 0.19182098697026473,
+            "worst_day_abs": 0.05131004682388329,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v13"
+          },
+          "return_win": false,
+          "drawdown_win": false,
+          "worst_day_win": true
+        },
+        "540": {
+          "candidate": {
+            "return": 3.369039977199786,
+            "max_drawdown": -0.2678343349184613,
+            "best_day": 0.21657980284126754,
+            "worst_day": -0.07566287625193102,
+            "positive_days": 0.4962962962962963
+          },
+          "envelope": {
+            "return": 3.338391676677574,
+            "max_drawdown_abs": 0.1918209869702614,
+            "worst_day_abs": 0.05595772549129785,
+            "best_return_engine": "v15",
+            "best_drawdown_engine": "v16",
+            "best_worst_day_engine": "v16"
+          },
+          "return_win": true,
+          "drawdown_win": false,
+          "worst_day_win": false
+        }
+      },
+      "all_envelope_dimensions_won": false,
+      "all_material_envelope_dimensions_won": false,
+      "all_alternative_envelopes_won": false,
+      "severe_cost": {
+        "return": 74.89736177453116,
+        "max_drawdown": -0.415546768236299,
+        "best_day": 0.21637994182666986,
+        "worst_day": -0.10872819283162449,
+        "positive_days": 0.4692874692874693
+      },
+      "severe_routing": {
+        "transfer_cost_multiple": 2.568757493607693,
+        "route_changes": 373,
+        "event_entries": 180,
+        "event_exits": 180,
+        "band_rebalances": 13,
+        "band_absolute": 0.01,
+        "average_safe_weight": 0.02355518030872989,
+        "maximum_safe_weight": 0.22165526199551563,
+        "execution_policy": "entry/exit rebalance plus maintenance only when realized safe allocation deviates by more than 5 percentage points"
+      },
+      "full_return_pass": true,
+      "full_risk_pass": false,
+      "severe_return_pass": false,
+      "severe_risk_pass": false,
+      "dominant_gate_passed": false
+    },
+    "full_envelope": {
+      "return": 178.02496945243948,
+      "max_drawdown_abs": 0.2986660379169036,
+      "worst_day_abs": 0.0947264114814037,
+      "best_return_engine": "v14",
+      "best_drawdown_engine": "v13",
+      "best_worst_day_engine": "v16"
+    },
+    "severe_envelope": {
+      "return": 78.31266153652471,
+      "max_drawdown_abs": 0.32607939993125845,
+      "worst_day_abs": 0.09532467752339202,
+      "best_return_engine": "v15",
+      "best_drawdown_engine": "v13",
+      "best_worst_day_engine": "v13"
+    }
+  },
+  "disclosure": "No detector or portfolio parameter was retuned. R52 changes only execution-band width. Frozen V99 and paper are untouched."
+}
