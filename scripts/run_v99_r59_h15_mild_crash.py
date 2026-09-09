@@ -149,7 +149,7 @@ def main():
         p = row["params"]
         isolated_stats, isolated_parent, isolated_bench, wins, material = {}, {}, {}, {}, {}
         for days in HORIZONS:
-            start = common_end - pd.Timedelta(days=days)
+            start = common_end - pd.Timedelta(days=int(days))
             c, par = isolated(data, raw, ex, guard, gross, base_cost, p, start, common_end)
             bench = {
                 name: r36.exact_benchmark(item, float(item["execution"]["base_cost_per_side"]), start, common_end)
@@ -171,7 +171,7 @@ def main():
 
         alternative = {}
         for days in ALT_HORIZONS:
-            start = common_end - pd.Timedelta(days=days)
+            start = common_end - pd.Timedelta(days=int(days))
             if start < earliest:
                 continue
             c, par = isolated(data, raw, ex, guard, gross, base_cost, p, start, common_end)
@@ -233,8 +233,8 @@ def main():
         z["requested_horizon_dimension_wins"],
         z["alternative_dimension_wins"],
         z["full_return_pass"], z["severe_return_pass"],
-        z["full_dd_pass"], z["full_worst_pass"],
-        z["severe_dd_pass"], z["severe_worst_pass"],
+        z["full_drawdown_pass"], z["full_worst_day_pass"],
+        z["severe_drawdown_pass"], z["severe_worst_day_pass"],
         z["score"],
     ), reverse=True)
     selected = finalists[0] if finalists else None
