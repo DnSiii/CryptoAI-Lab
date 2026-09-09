@@ -1,0 +1,3616 @@
+{
+  "study": "V99 R60 hedge-0.15 max-drawdown forensics",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "attribute the hedge-0.15 parent's largest drawdowns and worst days, and measure how early the fixed R57 q90 continuation rules and exact R37 medium/deep crash signals appeared before each trough",
+  "parent_fixed": {
+    "dd_trigger": 0.06,
+    "cooldown": 72,
+    "market_level": 1,
+    "min_net": 0.1,
+    "gross_cap": 1.9,
+    "hedge_size": 0.15
+  },
+  "parent_summary": {
+    "return": 222.71464074991826,
+    "max_drawdown": -0.3142330893856765,
+    "worst_day": -0.11521914374325226,
+    "best_day": 0.21657980284126888,
+    "positive_days": 0.48853398853398855
+  },
+  "parent_hedge_active_fraction": 0.7043593941874744,
+  "q90_rules": [
+    {
+      "name": "early_dominant_q90",
+      "lo": 0.05,
+      "hi": 0.12,
+      "feature": "dominant",
+      "threshold": 1.201942535993832
+    },
+    {
+      "name": "mid_gross_q90",
+      "lo": 0.08,
+      "hi": 0.18,
+      "feature": "gross",
+      "threshold": 1.35
+    },
+    {
+      "name": "deep_gross_q90",
+      "lo": 0.12,
+      "hi": 0.24,
+      "feature": "gross",
+      "threshold": 1.425
+    }
+  ],
+  "medium_crash_diagnostics": {
+    "instant_fraction": 0.045674716878155275,
+    "active_fraction": 0.13627370719061263,
+    "mean_r6": 0.0006332479096368756,
+    "p05_r6": -0.01687508710392538,
+    "minimum_drawdown": -0.3142330893856765
+  },
+  "deep_crash_diagnostics": {
+    "instant_fraction": 0.024969300040933277,
+    "active_fraction": 0.1211113385182153,
+    "mean_r6": 0.0006332479096368756,
+    "p05_r6": -0.01687508710392538,
+    "minimum_drawdown": -0.3142330893856765
+  },
+  "drawdown_episodes": [
+    {
+      "peak": "2023-01-29T19:00:00+00:00",
+      "trough": "2023-06-08T15:00:00+00:00",
+      "recovery_or_end": "2023-11-02T01:00:00+00:00",
+      "drawdown": -0.3142330893856765,
+      "hours_peak_to_trough": 3116,
+      "hours_to_recovery_or_end": 3514,
+      "equity_peak": 27.852174225197196,
+      "equity_trough": 19.10009947230537,
+      "btc_return_peak_to_trough": 0.11756065716461772,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.8336320501813254,
+        "short_gross": 0.0,
+        "gross": 0.8336320501813254,
+        "dominant": 0.8336320501813254,
+        "net": 0.8336320501813254,
+        "net_abs": 0.8336320501813254
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.6065867206895142,
+        "short_gross": 0.3325692951050461,
+        "gross": 0.9391560157945604,
+        "dominant": 0.8182600006716704,
+        "net": 0.2740174255844681,
+        "net_abs": 0.6973639855487805
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.575,
+        "short_gross": 1.425,
+        "gross": 1.725,
+        "dominant": 1.575,
+        "net": 1.575,
+        "net_abs": 1.575
+      },
+      "turnover_sum": 97.5196994607862,
+      "fees_sum": 1.5578632282176363,
+      "funding_sum": -0.5578275078065065,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -4.7586412734416506,
+          "mean_weight": 0.040923586149415124,
+          "mean_abs_weight": 0.30021814181602924,
+          "max_abs_weight": 1.0799214291887314,
+          "long_fraction": 0.6544754571703562,
+          "short_fraction": 0.3455245428296439
+        },
+        {
+          "symbol": "ONTUSDT",
+          "net_pnl_contribution": -0.8755538720445168,
+          "mean_weight": 0.0034045220806031827,
+          "mean_abs_weight": 0.0034045220806031827,
+          "max_abs_weight": 0.46015443885061286,
+          "long_fraction": 0.007699711260827719,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.7044890859379733,
+          "mean_weight": 0.04882748659476922,
+          "mean_abs_weight": 0.371606846976581,
+          "max_abs_weight": 1.0514518348843518,
+          "long_fraction": 0.6262431825473211,
+          "short_fraction": 0.37375681745267886
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.6404506934335252,
+          "mean_weight": 0.011778642494643143,
+          "mean_abs_weight": 0.01997698196668015,
+          "max_abs_weight": 0.23598352141423068,
+          "long_fraction": 0.0901507860121912,
+          "short_fraction": 0.02085338466474174
+        },
+        {
+          "symbol": "CHZUSDT",
+          "net_pnl_contribution": -0.4974565400495301,
+          "mean_weight": 0.00025444341879825115,
+          "mean_abs_weight": 0.0013852353985460413,
+          "max_abs_weight": 0.22662071135675424,
+          "long_fraction": 0.0038498556304138597,
+          "short_fraction": 0.006737247353224254
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.3978941965812556,
+          "mean_weight": -0.00027504090865152685,
+          "mean_abs_weight": 0.0022936082847995042,
+          "max_abs_weight": 0.22740385702458007,
+          "long_fraction": 0.004491498235482836,
+          "short_fraction": 0.008341353865896696
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.3610173619671099,
+          "mean_weight": 0.0017668481841587804,
+          "mean_abs_weight": 0.002062248397912677,
+          "max_abs_weight": 0.2279436074405734,
+          "long_fraction": 0.012832852101379532,
+          "short_fraction": 0.005774783445620789
+        },
+        {
+          "symbol": "SANDUSDT",
+          "net_pnl_contribution": -0.3551273097062262,
+          "mean_weight": 0.0059352333582548995,
+          "mean_abs_weight": 0.0059352333582548995,
+          "max_abs_weight": 0.23208678067280472,
+          "long_fraction": 0.026948989412897015,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "FTMUSDT",
+          "net_pnl_contribution": -0.3323372419955746,
+          "mean_weight": 0.004120573435840836,
+          "mean_abs_weight": 0.004120573435840836,
+          "max_abs_weight": 0.22782771408692457,
+          "long_fraction": 0.05165222970805262,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.3236784468624779,
+          "mean_weight": 0.0009401231980149497,
+          "mean_abs_weight": 0.0009401231980149497,
+          "max_abs_weight": 0.22856031997141674,
+          "long_fraction": 0.004170676932948348,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "KAVAUSDT",
+          "net_pnl_contribution": 0.9804761282459882,
+          "mean_weight": 0.02127152951051728,
+          "mean_abs_weight": 0.02127152951051728
+        },
+        {
+          "symbol": "SUSHIUSDT",
+          "net_pnl_contribution": 0.5474488553273114,
+          "mean_weight": -0.012131498326353978,
+          "mean_abs_weight": 0.012131498326353978
+        },
+        {
+          "symbol": "TRXUSDT",
+          "net_pnl_contribution": 0.5452784503199439,
+          "mean_weight": 0.02290315446770065,
+          "mean_abs_weight": 0.02298425024313278
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": 0.16795711827877047,
+          "mean_weight": -0.0021306626316548874,
+          "mean_abs_weight": 0.00997136064680942
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": 0.05596938789306322,
+          "mean_weight": 0.005669140219706082,
+          "mean_abs_weight": 0.005669140219706082
+        },
+        {
+          "symbol": "NEARUSDT",
+          "net_pnl_contribution": 0.016633709530121915,
+          "mean_weight": 0.0002022320530773292,
+          "mean_abs_weight": 0.0002022320530773292
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2023-01-30T19:00:00+00:00",
+          "dd": -0.05144575596431289,
+          "hours_to_trough": 3092,
+          "target_exposure": {
+            "long_gross": 0.7313898055987006,
+            "short_gross": 0.0,
+            "gross": 0.7313898055987006,
+            "dominant": 0.7313898055987006,
+            "net": 0.7313898055987006,
+            "net_abs": 0.7313898055987006
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.7313898055987006,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.7313898055987006,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.7313898055987006,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2023-02-09T16:00:00+00:00",
+          "dd": -0.08090340728114176,
+          "hours_to_trough": 2855,
+          "target_exposure": {
+            "long_gross": 0.8283414222328654,
+            "short_gross": 0.0,
+            "gross": 0.8283414222328654,
+            "dominant": 0.8283414222328654,
+            "net": 0.8283414222328654,
+            "net_abs": 0.8283414222328654
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.8283414222328654,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.8283414222328654,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.8283414222328654,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2023-02-14T14:00:00+00:00",
+          "dd": -0.1346615244539301,
+          "hours_to_trough": 2737,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.84371602993131,
+            "gross": 0.84371602993131,
+            "dominant": 0.84371602993131,
+            "net": -0.84371602993131,
+            "net_abs": 0.84371602993131
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.84371602993131,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.84371602993131,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.84371602993131,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2023-04-26T19:00:00+00:00",
+          "dd": -0.2252222468622953,
+          "hours_to_trough": 1028,
+          "target_exposure": {
+            "long_gross": 1.1819057085672169,
+            "short_gross": 0.0,
+            "gross": 1.1819057085672169,
+            "dominant": 1.1819057085672169,
+            "net": 1.1819057085672169,
+            "net_abs": 1.1819057085672169
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 1.1819057085672169,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.1819057085672169,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.1819057085672169,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": "2023-02-15T19:00:00+00:00",
+      "q90_hours_before_trough": 2708,
+      "first_medium_crash": "2023-01-30T19:00:00+00:00",
+      "medium_hours_before_trough": 3092,
+      "first_deep_crash": "2023-02-16T23:00:00+00:00",
+      "deep_hours_before_trough": 2680,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": "2023-02-15T19:00:00+00:00",
+          "hours_before_trough": 2708,
+          "active_fraction_peak_to_trough": 0.061597690086621755
+        },
+        "mid_gross_q90": {
+          "first_activation": "2023-03-18T19:00:00+00:00",
+          "hours_before_trough": 1964,
+          "active_fraction_peak_to_trough": 0.02791145332050048
+        },
+        "deep_gross_q90": {
+          "first_activation": "2023-04-25T21:00:00+00:00",
+          "hours_before_trough": 1050,
+          "active_fraction_peak_to_trough": 0.02085338466474174
+        }
+      }
+    },
+    {
+      "peak": "2020-04-30T03:00:00+00:00",
+      "trough": "2020-07-22T07:00:00+00:00",
+      "recovery_or_end": "2020-08-01T08:00:00+00:00",
+      "drawdown": -0.30966168405375605,
+      "hours_peak_to_trough": 1996,
+      "hours_to_recovery_or_end": 241,
+      "equity_peak": 1.8226452110962077,
+      "equity_trough": 1.2582418255956422,
+      "btc_return_peak_to_trough": -0.0004932285840471007,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.699190798341934,
+        "short_gross": 0.052871286086415656,
+        "gross": 0.7520620844283497,
+        "dominant": 0.699190798341934,
+        "net": 0.6463195122555183,
+        "net_abs": 0.6463195122555183
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.6387597566180644,
+        "short_gross": 0.43293454976645457,
+        "gross": 1.071694306384519,
+        "dominant": 0.8545567722048979,
+        "net": 0.2058252068516098,
+        "net_abs": 0.6374192380252768
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.575,
+        "short_gross": 1.575,
+        "gross": 1.725,
+        "dominant": 1.575,
+        "net": 1.575,
+        "net_abs": 1.575
+      },
+      "turnover_sum": 100.94791176666068,
+      "fees_sum": 0.10437173069593489,
+      "funding_sum": -0.005679067636402428,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.27183845975183507,
+          "mean_weight": 0.20716425716086598,
+          "mean_abs_weight": 0.3270505665815281,
+          "max_abs_weight": 1.2337519642114232,
+          "long_fraction": 0.8152228342513771,
+          "short_fraction": 0.18477716574862293
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.11028468505593712,
+          "mean_weight": -0.07502239509728612,
+          "mean_abs_weight": 0.31237465818993687,
+          "max_abs_weight": 0.8699561829858592,
+          "long_fraction": 0.3970956434651978,
+          "short_fraction": 0.6029043565348022
+        },
+        {
+          "symbol": "ONTUSDT",
+          "net_pnl_contribution": -0.06976941200281847,
+          "mean_weight": -0.002964330023121185,
+          "mean_abs_weight": 0.02043368261337679,
+          "max_abs_weight": 0.2282888201596064,
+          "long_fraction": 0.06309464196294441,
+          "short_fraction": 0.1041562343515273
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": -0.06165044585979627,
+          "mean_weight": 0.010445426611582615,
+          "mean_abs_weight": 0.029047150240013437,
+          "max_abs_weight": 0.28994177241338853,
+          "long_fraction": 0.1557336004006009,
+          "short_fraction": 0.09213820731096645
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.045964336567312636,
+          "mean_weight": -0.022971080076967614,
+          "mean_abs_weight": 0.038943662025209616,
+          "max_abs_weight": 0.5346912340651448,
+          "long_fraction": 0.04056084126189284,
+          "short_fraction": 0.1517275913870806
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.04100055576881149,
+          "mean_weight": -0.025855079308465263,
+          "mean_abs_weight": 0.025855079308465263,
+          "max_abs_weight": 0.4111570395519729,
+          "long_fraction": 0.0,
+          "short_fraction": 0.12018027040560841
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.038703958544466226,
+          "mean_weight": 0.04521973095836845,
+          "mean_abs_weight": 0.09164952946488332,
+          "max_abs_weight": 0.40356164402342737,
+          "long_fraction": 0.27240861291937907,
+          "short_fraction": 0.12018027040560841
+        },
+        {
+          "symbol": "IOTAUSDT",
+          "net_pnl_contribution": -0.021774888396634398,
+          "mean_weight": 0.005085200854022931,
+          "mean_abs_weight": 0.016654369894574205,
+          "max_abs_weight": 0.36158125067243113,
+          "long_fraction": 0.09764646970455683,
+          "short_fraction": 0.028042063094641963
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.01930820625402242,
+          "mean_weight": 0.0014714864192458689,
+          "mean_abs_weight": 0.0014714864192458689,
+          "max_abs_weight": 0.225,
+          "long_fraction": 0.008512769153730596,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -0.01793500581138866,
+          "mean_weight": 0.0008039690802312961,
+          "mean_abs_weight": 0.0008039690802312961,
+          "max_abs_weight": 0.15301382696372542,
+          "long_fraction": 0.005508262393590386,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "VETUSDT",
+          "net_pnl_contribution": 0.09330611910346244,
+          "mean_weight": 0.03941774986337558,
+          "mean_abs_weight": 0.048692852988252884
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.08524973240556574,
+          "mean_weight": 0.024381261169268108,
+          "mean_abs_weight": 0.02511316161837942
+        },
+        {
+          "symbol": "XLMUSDT",
+          "net_pnl_contribution": 0.0004784948785790503,
+          "mean_weight": -0.0009310132168094539,
+          "mean_abs_weight": 0.0009707853941931192
+        },
+        {
+          "symbol": "DASHUSDT",
+          "net_pnl_contribution": 0.00021532178637293344,
+          "mean_weight": -0.010728129523639246,
+          "mean_abs_weight": 0.010728129523639246
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ICPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ORCAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2020-04-30T09:00:00+00:00",
+          "dd": -0.05888462916321413,
+          "hours_to_trough": 1990,
+          "target_exposure": {
+            "long_gross": 0.6557283922553441,
+            "short_gross": 0.0847663723465036,
+            "gross": 0.7404947646018477,
+            "dominant": 0.6557283922553441,
+            "net": 0.5709620199088404,
+            "net_abs": 0.5709620199088404
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.6557283922553441,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.7404947646018477,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.7404947646018477,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2020-05-10T00:00:00+00:00",
+          "dd": -0.11894522464348689,
+          "hours_to_trough": 1759,
+          "target_exposure": {
+            "long_gross": 0.2296958117666506,
+            "short_gross": 0.2379624621727523,
+            "gross": 0.4676582739394029,
+            "dominant": 0.2379624621727523,
+            "net": -0.008266650406101708,
+            "net_abs": 0.008266650406101708
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.2379624621727523,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.4676582739394029,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.4676582739394029,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2020-05-10T07:00:00+00:00",
+          "dd": -0.12258761132117935,
+          "hours_to_trough": 1752,
+          "target_exposure": {
+            "long_gross": 0.1259974635381955,
+            "short_gross": 0.30968953511108643,
+            "gross": 0.43568699864928195,
+            "dominant": 0.30968953511108643,
+            "net": -0.1836920715728909,
+            "net_abs": 0.1836920715728909
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.30968953511108643,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.43568699864928195,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.43568699864928195,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2020-05-27T05:00:00+00:00",
+          "dd": -0.20032767107924843,
+          "hours_to_trough": 1346,
+          "target_exposure": {
+            "long_gross": 0.0219811142138957,
+            "short_gross": 0.22924026093248523,
+            "gross": 0.25122137514638093,
+            "dominant": 0.22924026093248523,
+            "net": -0.20725914671858953,
+            "net_abs": 0.20725914671858953
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.22924026093248523,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.25122137514638093,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.25122137514638093,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": "2020-05-17T15:00:00+00:00",
+      "q90_hours_before_trough": 1576,
+      "first_medium_crash": "2020-04-30T09:00:00+00:00",
+      "medium_hours_before_trough": 1990,
+      "first_deep_crash": "2020-04-30T09:00:00+00:00",
+      "deep_hours_before_trough": 1990,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": "2020-05-17T15:00:00+00:00",
+          "hours_before_trough": 1576,
+          "active_fraction_peak_to_trough": 0.04757135703555333
+        },
+        "mid_gross_q90": {
+          "first_activation": "2020-05-17T15:00:00+00:00",
+          "hours_before_trough": 1576,
+          "active_fraction_peak_to_trough": 0.06159238858287431
+        },
+        "deep_gross_q90": {
+          "first_activation": "2020-05-29T15:00:00+00:00",
+          "hours_before_trough": 1288,
+          "active_fraction_peak_to_trough": 0.100150225338007
+        }
+      }
+    },
+    {
+      "peak": "2023-11-09T14:00:00+00:00",
+      "trough": "2024-02-07T04:00:00+00:00",
+      "recovery_or_end": "2024-02-27T13:00:00+00:00",
+      "drawdown": -0.2967458314081054,
+      "hours_peak_to_trough": 2150,
+      "hours_to_recovery_or_end": 489,
+      "equity_peak": 29.49853656103748,
+      "equity_trough": 20.74496880391002,
+      "btc_return_peak_to_trough": 0.13142891800097045,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 1.2146941278999162,
+        "short_gross": 0.09522682895170292,
+        "gross": 1.3099209568516192,
+        "dominant": 1.2146941278999162,
+        "net": 1.1194672989482135,
+        "net_abs": 1.1194672989482135
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.8536479712514239,
+        "short_gross": 0.24915334152043575,
+        "gross": 1.1028013127718597,
+        "dominant": 0.9266640196205528,
+        "net": 0.6044946297309882,
+        "net_abs": 0.7505267264692459
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.5750000000000002,
+        "short_gross": 1.2386849768668708,
+        "gross": 1.5793513428319588,
+        "dominant": 1.5750000000000002,
+        "net": 1.5750000000000002,
+        "net_abs": 1.5750000000000002
+      },
+      "turnover_sum": 89.88952233344652,
+      "fees_sum": 1.522326213176311,
+      "funding_sum": 0.3694444675486078,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -1.7080109791391511,
+          "mean_weight": -0.014375296845153417,
+          "mean_abs_weight": 0.014648796783265038,
+          "max_abs_weight": 0.5695606769499898,
+          "long_fraction": 0.001394700139470014,
+          "short_fraction": 0.029753602975360297
+        },
+        {
+          "symbol": "IOTAUSDT",
+          "net_pnl_contribution": -1.7057493166668585,
+          "mean_weight": -0.027599872415298623,
+          "mean_abs_weight": 0.027599872415298623,
+          "max_abs_weight": 0.41697181417223694,
+          "long_fraction": 0.0,
+          "short_fraction": 0.09669920966992096
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -1.3822828233277553,
+          "mean_weight": 0.06343629678610445,
+          "mean_abs_weight": 0.08401764537249413,
+          "max_abs_weight": 0.6155791606840763,
+          "long_fraction": 0.18410041841004185,
+          "short_fraction": 0.018596001859600187
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -1.1305057325906422,
+          "mean_weight": 0.015287632101979838,
+          "mean_abs_weight": 0.01693846307659122,
+          "max_abs_weight": 0.23252817167372308,
+          "long_fraction": 0.08507670850767085,
+          "short_fraction": 0.007438400743840074
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -0.9263435830906364,
+          "mean_weight": -0.0008170204827746598,
+          "mean_abs_weight": 0.004911724550704754,
+          "max_abs_weight": 0.5737503370524816,
+          "long_fraction": 0.0199907019990702,
+          "short_fraction": 0.00790330079033008
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -0.6595001864724279,
+          "mean_weight": -0.005906457230179914,
+          "mean_abs_weight": 0.013634622693027067,
+          "max_abs_weight": 0.45069402055364305,
+          "long_fraction": 0.017201301720130173,
+          "short_fraction": 0.029753602975360297
+        },
+        {
+          "symbol": "RUNEUSDT",
+          "net_pnl_contribution": -0.5052338097514709,
+          "mean_weight": 0.0017767578343257347,
+          "mean_abs_weight": 0.0038245234194672234,
+          "max_abs_weight": 0.22552514440573387,
+          "long_fraction": 0.026499302649930265,
+          "short_fraction": 0.01208740120874012
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.4631244808704974,
+          "mean_weight": 0.2691795681296679,
+          "mean_abs_weight": 0.48855501327633283,
+          "max_abs_weight": 0.9487263634864253,
+          "long_fraction": 0.799163179916318,
+          "short_fraction": 0.200836820083682
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.3165561153970292,
+          "mean_weight": -2.3946043149053223e-05,
+          "mean_abs_weight": 0.002340371306767816,
+          "max_abs_weight": 0.2309160658271753,
+          "long_fraction": 0.008833100883310088,
+          "short_fraction": 0.009762900976290097
+        },
+        {
+          "symbol": "YFIUSDT",
+          "net_pnl_contribution": -0.21183590845895234,
+          "mean_weight": -0.0020368729946696872,
+          "mean_abs_weight": 0.0020368729946696872,
+          "max_abs_weight": 0.5490306884187889,
+          "long_fraction": 0.0,
+          "short_fraction": 0.003719200371920037
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.649499046872337,
+          "mean_weight": 0.006578383003195596,
+          "mean_abs_weight": 0.006578383003195596
+        },
+        {
+          "symbol": "DOTUSDT",
+          "net_pnl_contribution": 0.5108170580985039,
+          "mean_weight": 0.013581946615705495,
+          "mean_abs_weight": 0.013581946615705495
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.2781449201999952,
+          "mean_weight": 0.008719535549108866,
+          "mean_abs_weight": 0.008719535549108866
+        },
+        {
+          "symbol": "NEARUSDT",
+          "net_pnl_contribution": 0.24500268415007348,
+          "mean_weight": -0.0011545663269157682,
+          "mean_abs_weight": 0.0028567976330115337
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": 0.22199821719238155,
+          "mean_weight": -0.00792947585609956,
+          "mean_abs_weight": 0.00792947585609956
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": 0.1081024863741025,
+          "mean_weight": 0.009766171484060124,
+          "mean_abs_weight": 0.009766171484060124
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": 0.008553920814212634,
+          "mean_weight": 0.004628426841240049,
+          "mean_abs_weight": 0.00616050776188671
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2023-11-09T16:00:00+00:00",
+          "dd": -0.05023655708001051,
+          "hours_to_trough": 2148,
+          "target_exposure": {
+            "long_gross": 0.6787410983493667,
+            "short_gross": 0.5212589016506335,
+            "gross": 1.2000000000000002,
+            "dominant": 0.6787410983493667,
+            "net": 0.1574821966987332,
+            "net_abs": 0.1574821966987332
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.6787410983493667,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.2000000000000002,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.2000000000000002,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2023-11-13T21:00:00+00:00",
+          "dd": -0.09019399772071202,
+          "hours_to_trough": 2047,
+          "target_exposure": {
+            "long_gross": 1.3539842710810075,
+            "short_gross": 0.0,
+            "gross": 1.3539842710810075,
+            "dominant": 1.3539842710810075,
+            "net": 1.3539842710810075,
+            "net_abs": 1.3539842710810075
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": true,
+              "value": 1.3539842710810075,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": true,
+              "value": 1.3539842710810075,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.3539842710810075,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2023-11-14T18:00:00+00:00",
+          "dd": -0.12633441818897928,
+          "hours_to_trough": 2026,
+          "target_exposure": {
+            "long_gross": 0.9704363873855382,
+            "short_gross": 0.225,
+            "gross": 1.1954363873855383,
+            "dominant": 0.9704363873855382,
+            "net": 0.7454363873855382,
+            "net_abs": 0.7454363873855382
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.9704363873855382,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.1954363873855383,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.1954363873855383,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2023-12-26T04:00:00+00:00",
+          "dd": -0.20261349751943503,
+          "hours_to_trough": 1032,
+          "target_exposure": {
+            "long_gross": 0.9638752114612533,
+            "short_gross": 0.3861247885387468,
+            "gross": 1.35,
+            "dominant": 0.9638752114612533,
+            "net": 0.5777504229225066,
+            "net_abs": 0.5777504229225066
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.9638752114612533,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.35,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.35,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": "2023-11-12T16:00:00+00:00",
+      "q90_hours_before_trough": 2076,
+      "first_medium_crash": "2023-11-09T20:00:00+00:00",
+      "medium_hours_before_trough": 2144,
+      "first_deep_crash": "2023-11-14T20:00:00+00:00",
+      "deep_hours_before_trough": 2024,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": "2023-11-12T16:00:00+00:00",
+          "hours_before_trough": 2076,
+          "active_fraction_peak_to_trough": 0.034402603440260346
+        },
+        "mid_gross_q90": {
+          "first_activation": "2023-11-13T21:00:00+00:00",
+          "hours_before_trough": 2047,
+          "active_fraction_peak_to_trough": 0.037192003719200374
+        },
+        "deep_gross_q90": {
+          "first_activation": "2023-12-21T18:00:00+00:00",
+          "hours_before_trough": 1138,
+          "active_fraction_peak_to_trough": 0.06229660622966062
+        }
+      }
+    },
+    {
+      "peak": "2026-06-06T04:00:00+00:00",
+      "trough": "2026-08-18T02:00:00+00:00",
+      "recovery_or_end": "2026-08-21T08:00:00+00:00",
+      "drawdown": -0.29224243176659004,
+      "hours_peak_to_trough": 1750,
+      "hours_to_recovery_or_end": 78,
+      "equity_peak": 207.27998627825926,
+      "equity_trough": 146.70397903175535,
+      "btc_return_peak_to_trough": 0.06668398026250077,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.08891507464434227,
+        "short_gross": 1.0843015038832091,
+        "gross": 1.1732165785275515,
+        "dominant": 1.0843015038832091,
+        "net": -0.995386429238867,
+        "net_abs": 0.995386429238867
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.5012219418595554,
+        "short_gross": 0.4415403791168325,
+        "gross": 0.9427623209763879,
+        "dominant": 0.7633305528934768,
+        "net": 0.05968156274272295,
+        "net_abs": 0.5838987848105658
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.575,
+        "short_gross": 1.3489797056091977,
+        "gross": 1.5750000000000002,
+        "dominant": 1.575,
+        "net": 1.575,
+        "net_abs": 1.575
+      },
+      "turnover_sum": 56.92725252343134,
+      "fees_sum": 6.608605307916395,
+      "funding_sum": -0.13180991048318413,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -21.82153749175852,
+          "mean_weight": -0.18417615582254263,
+          "mean_abs_weight": 0.28101714823162094,
+          "max_abs_weight": 1.3327752623889657,
+          "long_fraction": 0.34665905197030267,
+          "short_fraction": 0.6533409480296973
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -21.66872859580778,
+          "mean_weight": 0.12165308571428661,
+          "mean_abs_weight": 0.49238364542281154,
+          "max_abs_weight": 1.0574700858608503,
+          "long_fraction": 0.6145059965733867,
+          "short_fraction": 0.3854940034266134
+        },
+        {
+          "symbol": "ZECUSDT",
+          "net_pnl_contribution": -9.573971856262233,
+          "mean_weight": 0.00572776921090145,
+          "mean_abs_weight": 0.00572776921090145,
+          "max_abs_weight": 0.5628243622347389,
+          "long_fraction": 0.01770416904625928,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "UNIUSDT",
+          "net_pnl_contribution": -2.906894153697758,
+          "mean_weight": 0.006450709009321867,
+          "mean_abs_weight": 0.006450709009321867,
+          "max_abs_weight": 0.23201562931781883,
+          "long_fraction": 0.03083952027412907,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -1.3596612889291873,
+          "mean_weight": 0.005263733396891352,
+          "mean_abs_weight": 0.005263733396891352,
+          "max_abs_weight": 0.22708809589041928,
+          "long_fraction": 0.023415191319246145,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -1.3544609761528168,
+          "mean_weight": -0.006300302846058602,
+          "mean_abs_weight": 0.006300302846058602,
+          "max_abs_weight": 0.22761616828136355,
+          "long_fraction": 0.0,
+          "short_fraction": 0.027984009137635636
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -1.1409986114014024,
+          "mean_weight": 0.007063917038821375,
+          "mean_abs_weight": 0.007063917038821375,
+          "max_abs_weight": 0.22950323445625567,
+          "long_fraction": 0.03141062250142775,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -1.1098408120456393,
+          "mean_weight": -0.0024125297124898224,
+          "mean_abs_weight": 0.0024125297124898224,
+          "max_abs_weight": 0.2261887035815431,
+          "long_fraction": 0.0,
+          "short_fraction": 0.011422044545973729
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": -0.3235762495493537,
+          "mean_weight": 0.010764111711621548,
+          "mean_abs_weight": 0.032387249126450496,
+          "max_abs_weight": 0.2368326978354187,
+          "long_fraction": 0.09594517418617933,
+          "short_fraction": 0.047972587093089665
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "long_fraction": 0.0,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 2.569554681822718,
+          "mean_weight": 0.02070489138543324,
+          "mean_abs_weight": 0.02070489138543324
+        },
+        {
+          "symbol": "TRXUSDT",
+          "net_pnl_contribution": 2.5345281262001738,
+          "mean_weight": 0.04392611382705717,
+          "mean_abs_weight": 0.04392611382705717
+        },
+        {
+          "symbol": "XLMUSDT",
+          "net_pnl_contribution": 0.3130618315316722,
+          "mean_weight": 0.01123806743746023,
+          "mean_abs_weight": 0.01123806743746023
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "DOODUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ICPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ORCAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2026-06-07T07:00:00+00:00",
+          "dd": -0.051515127913182246,
+          "hours_to_trough": 1723,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.8072113712111201,
+            "gross": 0.8072113712111201,
+            "dominant": 0.8072113712111201,
+            "net": -0.8072113712111201,
+            "net_abs": 0.8072113712111201
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.8072113712111201,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.8072113712111201,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.8072113712111201,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2026-06-07T23:00:00+00:00",
+          "dd": -0.08367990363466582,
+          "hours_to_trough": 1707,
+          "target_exposure": {
+            "long_gross": 0.6146670414945189,
+            "short_gross": 0.8011562738185318,
+            "gross": 1.4158233153130508,
+            "dominant": 0.8011562738185318,
+            "net": -0.18648923232401293,
+            "net_abs": 0.18648923232401293
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.8011562738185318,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": true,
+              "value": 1.4158233153130508,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.4158233153130508,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2026-06-15T13:00:00+00:00",
+          "dd": -0.1276749554013803,
+          "hours_to_trough": 1525,
+          "target_exposure": {
+            "long_gross": 0.6418544525231252,
+            "short_gross": 0.7081455474768747,
+            "gross": 1.35,
+            "dominant": 0.7081455474768747,
+            "net": -0.06629109495374952,
+            "net_abs": 0.06629109495374952
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.7081455474768747,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": true,
+              "value": 1.35,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.35,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2026-07-24T13:00:00+00:00",
+          "dd": -0.2018893629057964,
+          "hours_to_trough": 589,
+          "target_exposure": {
+            "long_gross": 0.8773703168748174,
+            "short_gross": 0.225,
+            "gross": 1.1023703168748173,
+            "dominant": 0.8773703168748174,
+            "net": 0.6523703168748174,
+            "net_abs": 0.6523703168748174
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.8773703168748174,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.1023703168748173,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.1023703168748173,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": "2026-06-07T23:00:00+00:00",
+      "q90_hours_before_trough": 1707,
+      "first_medium_crash": "2026-06-06T09:00:00+00:00",
+      "medium_hours_before_trough": 1745,
+      "first_deep_crash": null,
+      "deep_hours_before_trough": null,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "mid_gross_q90": {
+          "first_activation": "2026-06-07T23:00:00+00:00",
+          "hours_before_trough": 1707,
+          "active_fraction_peak_to_trough": 0.03712164477441462
+        },
+        "deep_gross_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        }
+      }
+    },
+    {
+      "peak": "2022-11-09T21:00:00+00:00",
+      "trough": "2023-01-08T00:00:00+00:00",
+      "recovery_or_end": "2023-01-14T00:00:00+00:00",
+      "drawdown": -0.26093199780661047,
+      "hours_peak_to_trough": 1419,
+      "hours_to_recovery_or_end": 144,
+      "equity_peak": 24.213351727743724,
+      "equity_trough": 17.895313487829412,
+      "btc_return_peak_to_trough": 0.07754524958921927,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.8925693306580049,
+        "short_gross": 0.15116144743120574,
+        "gross": 1.0437307780892107,
+        "dominant": 1.003518981498161,
+        "net": 0.7414078832267992,
+        "net_abs": 0.9633071849071116
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.27570751678495237,
+        "short_gross": 0.5223640926980344,
+        "gross": 0.7980716094829867,
+        "dominant": 0.685992770177646,
+        "net": -0.24665657591308204,
+        "net_abs": 0.5739139308723051
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.575,
+        "short_gross": 1.3068962211195978,
+        "gross": 1.5750000000000002,
+        "dominant": 1.575,
+        "net": 1.575,
+        "net_abs": 1.575
+      },
+      "turnover_sum": 43.507126172657564,
+      "fees_sum": 0.5952741745935994,
+      "funding_sum": -0.17053553241035918,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.9737088737836839,
+          "mean_weight": -0.16152390895114765,
+          "mean_abs_weight": 0.2850173055042758,
+          "max_abs_weight": 0.8906587451040668,
+          "long_fraction": 0.2091549295774648,
+          "short_fraction": 0.7908450704225352
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.15622955390232,
+          "mean_weight": -0.18028667855305272,
+          "mean_abs_weight": 0.2494075750954802,
+          "max_abs_weight": 0.9193032137496925,
+          "long_fraction": 0.12112676056338029,
+          "short_fraction": 0.8788732394366198
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": -0.8785379612485676,
+          "mean_weight": 0.032966644012547106,
+          "mean_abs_weight": 0.032966644012547106,
+          "max_abs_weight": 0.321331679799924,
+          "long_fraction": 0.18591549295774648,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.7988379479801637,
+          "mean_weight": 0.01357367033809976,
+          "mean_abs_weight": 0.04043203141199751,
+          "max_abs_weight": 0.6002551650730104,
+          "long_fraction": 0.05070422535211268,
+          "short_fraction": 0.12535211267605634
+        },
+        {
+          "symbol": "CRVUSDT",
+          "net_pnl_contribution": -0.7576185829337003,
+          "mean_weight": -0.0009445167626197384,
+          "mean_abs_weight": 0.0021863397963611387,
+          "max_abs_weight": 0.2345258057338621,
+          "long_fraction": 0.004225352112676056,
+          "short_fraction": 0.01056338028169014
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.4119747095879325,
+          "mean_weight": -0.0019239715502634759,
+          "mean_abs_weight": 0.0019239715502634759,
+          "max_abs_weight": 0.23013060380908565,
+          "long_fraction": 0.0,
+          "short_fraction": 0.011971830985915493
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": -0.21050789252868202,
+          "mean_weight": 0.011265767763833107,
+          "mean_abs_weight": 0.011265767763833107,
+          "max_abs_weight": 0.2264707768192575,
+          "long_fraction": 0.07323943661971831,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.16383692924579024,
+          "mean_weight": 0.0013125415304782917,
+          "mean_abs_weight": 0.0013125415304782917,
+          "max_abs_weight": 0.22576969739827843,
+          "long_fraction": 0.006338028169014085,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "MKRUSDT",
+          "net_pnl_contribution": -0.15905533296888055,
+          "mean_weight": 0.0012639277147815668,
+          "mean_abs_weight": 0.0012639277147815668,
+          "max_abs_weight": 0.23451342820330362,
+          "long_fraction": 0.005633802816901409,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.054714575924215775,
+          "mean_weight": 0.00011186476172704587,
+          "mean_abs_weight": 0.00011186476172704587,
+          "max_abs_weight": 0.0796243582845761,
+          "long_fraction": 0.0014084507042253522,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": 0.48689654842577124,
+          "mean_weight": 0.03446973230499791,
+          "mean_abs_weight": 0.03775298496840451
+        },
+        {
+          "symbol": "ALGOUSDT",
+          "net_pnl_contribution": 0.40065838947356763,
+          "mean_weight": -0.012012646135056298,
+          "mean_abs_weight": 0.012012646135056298
+        },
+        {
+          "symbol": "FTMUSDT",
+          "net_pnl_contribution": 0.28287440649995227,
+          "mean_weight": 0.028384571867853592,
+          "mean_abs_weight": 0.028384571867853592
+        },
+        {
+          "symbol": "SUSHIUSDT",
+          "net_pnl_contribution": 0.09252331752605658,
+          "mean_weight": -0.009665208765935148,
+          "mean_abs_weight": 0.01499899652969038
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ICPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ORCAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2022-11-10T05:00:00+00:00",
+          "dd": -0.05872567981846266,
+          "hours_to_trough": 1411,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.6576098628165679,
+            "gross": 0.6576098628165679,
+            "dominant": 0.6576098628165679,
+            "net": -0.6576098628165679,
+            "net_abs": 0.6576098628165679
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.6576098628165679,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.6576098628165679,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.6576098628165679,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2022-11-10T13:00:00+00:00",
+          "dd": -0.10280826616657479,
+          "hours_to_trough": 1403,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.42515567911035373,
+            "gross": 0.42515567911035373,
+            "dominant": 0.42515567911035373,
+            "net": -0.42515567911035373,
+            "net_abs": 0.42515567911035373
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.42515567911035373,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.42515567911035373,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.42515567911035373,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2022-11-24T01:00:00+00:00",
+          "dd": -0.12258097753418162,
+          "hours_to_trough": 1079,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.33573650890037776,
+            "gross": 0.33573650890037776,
+            "dominant": 0.33573650890037776,
+            "net": -0.33573650890037776,
+            "net_abs": 0.33573650890037776
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.33573650890037776,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.33573650890037776,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.33573650890037776,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2022-12-12T20:00:00+00:00",
+          "dd": -0.202413866255707,
+          "hours_to_trough": 628,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.9211611028246582,
+            "gross": 0.9211611028246582,
+            "dominant": 0.9211611028246582,
+            "net": -0.9211611028246582,
+            "net_abs": 0.9211611028246582
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.9211611028246582,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.9211611028246582,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.9211611028246582,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": "2023-01-03T02:00:00+00:00",
+      "q90_hours_before_trough": 118,
+      "first_medium_crash": "2022-11-10T03:00:00+00:00",
+      "medium_hours_before_trough": 1413,
+      "first_deep_crash": "2022-11-09T21:00:00+00:00",
+      "deep_hours_before_trough": 1419,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "mid_gross_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "deep_gross_q90": {
+          "first_activation": "2023-01-03T02:00:00+00:00",
+          "hours_before_trough": 118,
+          "active_fraction_peak_to_trough": 0.011267605633802818
+        }
+      }
+    },
+    {
+      "peak": "2022-01-22T18:00:00+00:00",
+      "trough": "2022-04-26T07:00:00+00:00",
+      "recovery_or_end": "2022-05-12T04:00:00+00:00",
+      "drawdown": -0.23408731732422683,
+      "hours_peak_to_trough": 2245,
+      "hours_to_recovery_or_end": 381,
+      "equity_peak": 16.49761677224086,
+      "equity_trough": 12.635733919783828,
+      "btc_return_peak_to_trough": 0.18015849584562882,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.37306753387661135,
+        "short_gross": 0.8262988848183748,
+        "gross": 1.1993664186949862,
+        "dominant": 0.8434888081139942,
+        "net": -0.45323135094176337,
+        "net_abs": 0.4876111975330025
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.346643259165676,
+        "short_gross": 0.3206357825024195,
+        "gross": 0.6672790416680954,
+        "dominant": 0.6005109803423893,
+        "net": 0.026007476663256594,
+        "net_abs": 0.5337429190166832
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.1681127372167575,
+        "short_gross": 1.1694248503267484,
+        "gross": 1.4834163102921258,
+        "dominant": 1.1694248503267484,
+        "net": 1.1681127372167575,
+        "net_abs": 1.1694248503267484
+      },
+      "turnover_sum": 49.55460747624218,
+      "fees_sum": 0.4921164978749592,
+      "funding_sum": -0.08896943478567634,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.8053118887314437,
+          "mean_weight": -0.01759939136007518,
+          "mean_abs_weight": 0.23595294224035485,
+          "max_abs_weight": 0.5946895326408377,
+          "long_fraction": 0.41006233303650935,
+          "short_fraction": 0.5899376669634907
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.04915677455453,
+          "mean_weight": -0.07165064746431371,
+          "mean_abs_weight": 0.25611060916221295,
+          "max_abs_weight": 0.9865439500663307,
+          "long_fraction": 0.6665182546749777,
+          "short_fraction": 0.3334817453250223
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.6666545330747006,
+          "mean_weight": 0.0008922483819226465,
+          "mean_abs_weight": 0.005354816966695308,
+          "max_abs_weight": 0.24391894719600063,
+          "long_fraction": 0.017364203027604632,
+          "short_fraction": 0.012466607301869992
+        },
+        {
+          "symbol": "UNIUSDT",
+          "net_pnl_contribution": -0.22923548540524152,
+          "mean_weight": 0.0006988421457103983,
+          "mean_abs_weight": 0.0006988421457103983,
+          "max_abs_weight": 0.22500000000000003,
+          "long_fraction": 0.003116651825467498,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.16959615281363732,
+          "mean_weight": -0.008105769686146435,
+          "mean_abs_weight": 0.009506524788584941,
+          "max_abs_weight": 0.24040441497560092,
+          "long_fraction": 0.003116651825467498,
+          "short_fraction": 0.07479964381121995
+        },
+        {
+          "symbol": "MATICUSDT",
+          "net_pnl_contribution": -0.16037749314926172,
+          "mean_weight": 0.0008023896570642895,
+          "mean_abs_weight": 0.0008023896570642895,
+          "max_abs_weight": 0.2296799708697698,
+          "long_fraction": 0.003561887800534283,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": -0.15896212302115187,
+          "mean_weight": 0.0018839439983030699,
+          "mean_abs_weight": 0.0018839439983030699,
+          "max_abs_weight": 0.22499999999999998,
+          "long_fraction": 0.016028495102404273,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "CHZUSDT",
+          "net_pnl_contribution": -0.10095472333068396,
+          "mean_weight": 0.00030051489968990324,
+          "mean_abs_weight": 0.00030051489968990324,
+          "max_abs_weight": 0.225,
+          "long_fraction": 0.0013357079252003562,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.09909650248913382,
+          "mean_weight": 0.000500870431029127,
+          "mean_abs_weight": 0.000500870431029127,
+          "max_abs_weight": 0.22561584082981267,
+          "long_fraction": 0.002226179875333927,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "EGLDUSDT",
+          "net_pnl_contribution": -0.09357546866578788,
+          "mean_weight": 0.005114367626761261,
+          "mean_abs_weight": 0.005114367626761261,
+          "max_abs_weight": 0.23806768534241837,
+          "long_fraction": 0.022707034728406055,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": 0.5298193581161309,
+          "mean_weight": 0.008304320325191355,
+          "mean_abs_weight": 0.008304320325191355
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": 0.31983666707170094,
+          "mean_weight": -0.010145137019648257,
+          "mean_abs_weight": 0.010145137019648257
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": 0.15637682788264018,
+          "mean_weight": 0.021144044135059784,
+          "mean_abs_weight": 0.021144044135059784
+        },
+        {
+          "symbol": "RUNEUSDT",
+          "net_pnl_contribution": 0.07302585454271339,
+          "mean_weight": 0.0053045630469452645,
+          "mean_abs_weight": 0.0053045630469452645
+        },
+        {
+          "symbol": "THETAUSDT",
+          "net_pnl_contribution": 0.05845811151313807,
+          "mean_weight": 0.0013541114886919817,
+          "mean_abs_weight": 0.0013541114886919817
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": 0.045800942360006536,
+          "mean_weight": 0.08107408716841395,
+          "mean_abs_weight": 0.08107408716841395
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2022-01-23T07:00:00+00:00",
+          "dd": -0.053864615577378316,
+          "hours_to_trough": 2232,
+          "target_exposure": {
+            "long_gross": 0.008540522248757787,
+            "short_gross": 0.6527584991290855,
+            "gross": 0.6612990213778432,
+            "dominant": 0.6527584991290855,
+            "net": -0.6442179768803277,
+            "net_abs": 0.6442179768803277
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.6527584991290855,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.6612990213778432,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.6612990213778432,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2022-01-30T06:00:00+00:00",
+          "dd": -0.08001755684483902,
+          "hours_to_trough": 2065,
+          "target_exposure": {
+            "long_gross": 0.0429715638840442,
+            "short_gross": 0.30175306202137275,
+            "gross": 0.34472462590541697,
+            "dominant": 0.30175306202137275,
+            "net": -0.25878149813732854,
+            "net_abs": 0.25878149813732854
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.30175306202137275,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.34472462590541697,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.34472462590541697,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2022-02-04T17:00:00+00:00",
+          "dd": -0.1221055563831338,
+          "hours_to_trough": 1934,
+          "target_exposure": {
+            "long_gross": 0.038545437772397426,
+            "short_gross": 0.3116184733162221,
+            "gross": 0.35016391108861955,
+            "dominant": 0.3116184733162221,
+            "net": -0.27307303554382467,
+            "net_abs": 0.27307303554382467
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.3116184733162221,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.35016391108861955,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.35016391108861955,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2022-03-11T11:00:00+00:00",
+          "dd": -0.20154418582139244,
+          "hours_to_trough": 1100,
+          "target_exposure": {
+            "long_gross": 0.05563186136766332,
+            "short_gross": 0.29155176980501774,
+            "gross": 0.34718363117268103,
+            "dominant": 0.29155176980501774,
+            "net": -0.23591990843735441,
+            "net_abs": 0.23591990843735441
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.29155176980501774,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.34718363117268103,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.34718363117268103,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": "2022-04-20T12:00:00+00:00",
+      "q90_hours_before_trough": 139,
+      "first_medium_crash": "2022-01-22T18:00:00+00:00",
+      "medium_hours_before_trough": 2245,
+      "first_deep_crash": "2022-01-22T18:00:00+00:00",
+      "deep_hours_before_trough": 2245,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "mid_gross_q90": {
+          "first_activation": "2022-04-20T12:00:00+00:00",
+          "hours_before_trough": 139,
+          "active_fraction_peak_to_trough": 0.0013357079252003562
+        },
+        "deep_gross_q90": {
+          "first_activation": "2022-04-20T12:00:00+00:00",
+          "hours_before_trough": 139,
+          "active_fraction_peak_to_trough": 0.0013357079252003562
+        }
+      }
+    },
+    {
+      "peak": "2021-09-07T05:00:00+00:00",
+      "trough": "2021-09-30T09:00:00+00:00",
+      "recovery_or_end": "2021-11-09T09:00:00+00:00",
+      "drawdown": -0.2326197659224496,
+      "hours_peak_to_trough": 556,
+      "hours_to_recovery_or_end": 960,
+      "equity_peak": 12.650235092702117,
+      "equity_trough": 9.707540366573793,
+      "btc_return_peak_to_trough": -0.1813408651690811,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.743930682085494,
+        "short_gross": 0.0,
+        "gross": 0.743930682085494,
+        "dominant": 0.743930682085494,
+        "net": 0.743930682085494,
+        "net_abs": 0.743930682085494
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.27102720238131894,
+        "short_gross": 0.27367403985325667,
+        "gross": 0.5447012422345756,
+        "dominant": 0.4572071978831379,
+        "net": -0.0026468374719377285,
+        "net_abs": 0.3697131535317002
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.2320658444320158,
+        "short_gross": 0.6402569489178414,
+        "gross": 1.2320658444320158,
+        "dominant": 1.2320658444320158,
+        "net": 1.2320658444320158,
+        "net_abs": 1.2320658444320158
+      },
+      "turnover_sum": 14.838481446824094,
+      "fees_sum": 0.11009762196490991,
+      "funding_sum": 0.007547306589760634,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.127200239722024,
+          "mean_weight": 0.06074755968446063,
+          "mean_abs_weight": 0.13969892053705102,
+          "max_abs_weight": 0.5013332309933733,
+          "long_fraction": 0.4506283662477558,
+          "short_fraction": 0.5493716337522442
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.34629525661320854,
+          "mean_weight": 0.0021824427013888135,
+          "mean_abs_weight": 0.0021824427013888135,
+          "max_abs_weight": 0.16090639737359225,
+          "long_fraction": 0.019748653500897665,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.33814735207135105,
+          "mean_weight": -0.18825840168728764,
+          "mean_abs_weight": 0.2211552609331156,
+          "max_abs_weight": 0.46687999326165064,
+          "long_fraction": 0.17953321364452424,
+          "short_fraction": 0.8204667863554758
+        },
+        {
+          "symbol": "AXSUSDT",
+          "net_pnl_contribution": -0.2880181810917607,
+          "mean_weight": 0.018601989922672302,
+          "mean_abs_weight": 0.018601989922672302,
+          "max_abs_weight": 0.225,
+          "long_fraction": 0.14183123877917414,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.2239956512077384,
+          "mean_weight": 0.007278169880417136,
+          "mean_abs_weight": 0.007425417146749521,
+          "max_abs_weight": 0.22862072708974704,
+          "long_fraction": 0.04308797127468582,
+          "short_fraction": 0.0017953321364452424
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.15573251343482794,
+          "mean_weight": 0.06601671558074924,
+          "mean_abs_weight": 0.06601671558074924,
+          "max_abs_weight": 0.5859983992270392,
+          "long_fraction": 0.19748653500897667,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "DOTUSDT",
+          "net_pnl_contribution": -0.14751973637710697,
+          "mean_weight": 0.0017004807881819265,
+          "mean_abs_weight": 0.0017004807881819265,
+          "max_abs_weight": 0.12814986364663597,
+          "long_fraction": 0.01436265709156194,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.06694968953469023,
+          "mean_weight": -0.0009878615925784972,
+          "mean_abs_weight": 0.0009878615925784972,
+          "max_abs_weight": 0.225,
+          "long_fraction": 0.0,
+          "short_fraction": 0.012567324955116697
+        },
+        {
+          "symbol": "SANDUSDT",
+          "net_pnl_contribution": -0.053109794688785454,
+          "mean_weight": 0.004785140927759901,
+          "mean_abs_weight": 0.004785140927759901,
+          "max_abs_weight": 0.11752107280365888,
+          "long_fraction": 0.04308797127468582,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "UNIUSDT",
+          "net_pnl_contribution": -0.050508606274359547,
+          "mean_weight": 0.007884546184925222,
+          "mean_abs_weight": 0.007884546184925222,
+          "max_abs_weight": 0.22499999999999998,
+          "long_fraction": 0.05026929982046679,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "THETAUSDT",
+          "net_pnl_contribution": 0.012820045335015962,
+          "mean_weight": 0.0019947280844126074,
+          "mean_abs_weight": 0.0019947280844126074
+        },
+        {
+          "symbol": "JUPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "TIAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "DOODUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ICPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ORCAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2021-09-07T14:00:00+00:00",
+          "dd": -0.11448053661393387,
+          "hours_to_trough": 547,
+          "target_exposure": {
+            "long_gross": 0.5225785468064542,
+            "short_gross": 0.225,
+            "gross": 0.7475785468064542,
+            "dominant": 0.5225785468064542,
+            "net": 0.29757854680645424,
+            "net_abs": 0.29757854680645424
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.5225785468064542,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.7475785468064542,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.7475785468064542,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2021-09-07T14:00:00+00:00",
+          "dd": -0.11448053661393387,
+          "hours_to_trough": 547,
+          "target_exposure": {
+            "long_gross": 0.5225785468064542,
+            "short_gross": 0.225,
+            "gross": 0.7475785468064542,
+            "dominant": 0.5225785468064542,
+            "net": 0.29757854680645424,
+            "net_abs": 0.29757854680645424
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.5225785468064542,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.7475785468064542,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.7475785468064542,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2021-09-07T15:00:00+00:00",
+          "dd": -0.1207730204550006,
+          "hours_to_trough": 546,
+          "target_exposure": {
+            "long_gross": 0.3855274743551495,
+            "short_gross": 0.45113073621740424,
+            "gross": 0.8366582105725537,
+            "dominant": 0.45113073621740424,
+            "net": -0.06560326186225472,
+            "net_abs": 0.06560326186225472
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.45113073621740424,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.8366582105725537,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.8366582105725537,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2021-09-21T07:00:00+00:00",
+          "dd": -0.2001571506238884,
+          "hours_to_trough": 218,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.4127207768529292,
+            "gross": 0.4127207768529292,
+            "dominant": 0.4127207768529292,
+            "net": -0.4127207768529292,
+            "net_abs": 0.4127207768529292
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.4127207768529292,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.4127207768529292,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.4127207768529292,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": null,
+      "q90_hours_before_trough": null,
+      "first_medium_crash": "2021-09-07T09:00:00+00:00",
+      "medium_hours_before_trough": 552,
+      "first_deep_crash": "2021-09-07T14:00:00+00:00",
+      "deep_hours_before_trough": 547,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "mid_gross_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "deep_gross_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        }
+      }
+    },
+    {
+      "peak": "2025-06-11T15:00:00+00:00",
+      "trough": "2025-07-04T19:00:00+00:00",
+      "recovery_or_end": "2025-07-14T04:00:00+00:00",
+      "drawdown": -0.22636000860210292,
+      "hours_peak_to_trough": 556,
+      "hours_to_recovery_or_end": 225,
+      "equity_peak": 69.07633266240596,
+      "equity_trough": 53.440213406742025,
+      "btc_return_peak_to_trough": -0.020650021696561716,
+      "target_exposure_pre_peak_7d": {
+        "long_gross": 0.7336941968183573,
+        "short_gross": 0.07847193978758955,
+        "gross": 0.8121661366059468,
+        "dominant": 0.7894401905491835,
+        "net": 0.6552222570307678,
+        "net_abs": 0.7667142444924199
+      },
+      "target_exposure_peak_to_trough_mean": {
+        "long_gross": 0.6992555240740845,
+        "short_gross": 0.3455792543793878,
+        "gross": 1.0448347784534724,
+        "dominant": 0.9343654101628116,
+        "net": 0.3536762696946969,
+        "net_abs": 0.8238960418721509
+      },
+      "target_exposure_peak_to_trough_max": {
+        "long_gross": 1.361303258557522,
+        "short_gross": 1.3014520006977757,
+        "gross": 1.361303258557522,
+        "dominant": 1.361303258557522,
+        "net": 1.361303258557522,
+        "net_abs": 1.361303258557522
+      },
+      "turnover_sum": 32.449543248449444,
+      "fees_sum": 1.3317138363519185,
+      "funding_sum": 0.07603625826419624,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -10.507887428827724,
+          "mean_weight": 0.024949020959203354,
+          "mean_abs_weight": 0.22012127336186874,
+          "max_abs_weight": 0.6672979244078229,
+          "long_fraction": 0.49371633752244165,
+          "short_fraction": 0.5062836624775583
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -2.966718751815881,
+          "mean_weight": 0.37555727726926186,
+          "mean_abs_weight": 0.6161616821679103,
+          "max_abs_weight": 1.1218569611280427,
+          "long_fraction": 0.6929982046678635,
+          "short_fraction": 0.30700179533213645
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.9516882242135499,
+          "mean_weight": 0.00912246942932488,
+          "mean_abs_weight": 0.00912246942932488,
+          "max_abs_weight": 0.2261889021586696,
+          "long_fraction": 0.06104129263913824,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": -0.3800624332448111,
+          "mean_weight": 0.0036320959213919455,
+          "mean_abs_weight": 0.0036320959213919455,
+          "max_abs_weight": 0.22622933155225097,
+          "long_fraction": 0.01615798922800718,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.3433081603898953,
+          "mean_weight": 0.00153380530443868,
+          "mean_abs_weight": 0.00153380530443868,
+          "max_abs_weight": 0.12243219568608817,
+          "long_fraction": 0.012567324955116697,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "TRXUSDT",
+          "net_pnl_contribution": -0.22270261640943767,
+          "mean_weight": -0.0237836006079822,
+          "mean_abs_weight": 0.0237836006079822,
+          "max_abs_weight": 0.14348563402112965,
+          "long_fraction": 0.0,
+          "short_fraction": 0.18850987432675045
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.218085477928614,
+          "mean_weight": -0.004615879037063638,
+          "mean_abs_weight": 0.004615879037063638,
+          "max_abs_weight": 0.13607325755958263,
+          "long_fraction": 0.0,
+          "short_fraction": 0.03949730700179533
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.1813157809577745,
+          "mean_weight": 0.001317237370724199,
+          "mean_abs_weight": 0.001317237370724199,
+          "max_abs_weight": 0.11472013893193046,
+          "long_fraction": 0.012567324955116697,
+          "short_fraction": 0.0
+        },
+        {
+          "symbol": "XLMUSDT",
+          "net_pnl_contribution": -0.0948891927877333,
+          "mean_weight": -0.0007325547704915959,
+          "mean_abs_weight": 0.0007325547704915959,
+          "max_abs_weight": 0.05272122885867719,
+          "long_fraction": 0.0,
+          "short_fraction": 0.01436265709156194
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0,
+          "max_abs_weight": 0.0,
+          "long_fraction": 0.0,
+          "short_fraction": 0.0
+        }
+      ],
+      "top_gain_contributors": [
+        {
+          "symbol": "ALGOUSDT",
+          "net_pnl_contribution": 0.6121275656137052,
+          "mean_weight": -0.04337229122736662,
+          "mean_abs_weight": 0.04337229122736662
+        },
+        {
+          "symbol": "JUPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "TIAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "DOODUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ICPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "ORCAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "IOSTUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "SOPHUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "VVVUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        },
+        {
+          "symbol": "FORMUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0,
+          "mean_abs_weight": 0.0
+        }
+      ],
+      "crossings": {
+        "5pct": {
+          "timestamp": "2025-06-12T11:00:00+00:00",
+          "dd": -0.05465861322043519,
+          "hours_to_trough": 536,
+          "target_exposure": {
+            "long_gross": 1.1574940125410005,
+            "short_gross": 0.059811206854080395,
+            "gross": 1.2173052193950809,
+            "dominant": 1.1574940125410005,
+            "net": 1.0976828056869201,
+            "net_abs": 1.0976828056869201
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 1.1574940125410005,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.2173052193950809,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.2173052193950809,
+              "threshold": 1.425
+            }
+          }
+        },
+        "8pct": {
+          "timestamp": "2025-06-13T00:00:00+00:00",
+          "dd": -0.10539992080708693,
+          "hours_to_trough": 523,
+          "target_exposure": {
+            "long_gross": 0.02329276292566696,
+            "short_gross": 0.519801245317466,
+            "gross": 0.5430940082431329,
+            "dominant": 0.519801245317466,
+            "net": -0.49650848239179907,
+            "net_abs": 0.49650848239179907
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.519801245317466,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.5430940082431329,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.5430940082431329,
+              "threshold": 1.425
+            }
+          }
+        },
+        "12pct": {
+          "timestamp": "2025-06-14T03:00:00+00:00",
+          "dd": -0.12107577856528573,
+          "hours_to_trough": 496,
+          "target_exposure": {
+            "long_gross": 1.0744565550346223,
+            "short_gross": 0.22500000000000003,
+            "gross": 1.2994565550346224,
+            "dominant": 1.0744565550346223,
+            "net": 0.8494565550346223,
+            "net_abs": 0.8494565550346223
+          },
+          "medium_crash_active": true,
+          "deep_crash_active": true,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 1.0744565550346223,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 1.2994565550346224,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 1.2994565550346224,
+              "threshold": 1.425
+            }
+          }
+        },
+        "20pct": {
+          "timestamp": "2025-07-02T02:00:00+00:00",
+          "dd": -0.20026844079309059,
+          "hours_to_trough": 65,
+          "target_exposure": {
+            "long_gross": 0.0,
+            "short_gross": 0.8575215137330858,
+            "gross": 0.8575215137330858,
+            "dominant": 0.8575215137330858,
+            "net": -0.8575215137330858,
+            "net_abs": 0.8575215137330858
+          },
+          "medium_crash_active": false,
+          "deep_crash_active": false,
+          "q90_rules": {
+            "early_dominant_q90": {
+              "active": false,
+              "value": 0.8575215137330858,
+              "threshold": 1.201942535993832
+            },
+            "mid_gross_q90": {
+              "active": false,
+              "value": 0.8575215137330858,
+              "threshold": 1.35
+            },
+            "deep_gross_q90": {
+              "active": false,
+              "value": 0.8575215137330858,
+              "threshold": 1.425
+            }
+          }
+        }
+      },
+      "first_q90_any": null,
+      "q90_hours_before_trough": null,
+      "first_medium_crash": "2025-06-11T22:00:00+00:00",
+      "medium_hours_before_trough": 549,
+      "first_deep_crash": "2025-06-13T00:00:00+00:00",
+      "deep_hours_before_trough": 523,
+      "q90_rule_timing": {
+        "early_dominant_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "mid_gross_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        },
+        "deep_gross_q90": {
+          "first_activation": null,
+          "hours_before_trough": null,
+          "active_fraction_peak_to_trough": 0.0
+        }
+      }
+    }
+  ],
+  "worst_days": [
+    {
+      "date": "2021-09-07",
+      "return": -0.11521914374325226,
+      "btc_return": -0.10770509959884766,
+      "gross_mean": 0.8490493046870017,
+      "net_exposure_mean": 0.5552877958109713,
+      "turnover": 1.856799068256779,
+      "fees": 0.014710558019952627,
+      "funding": 0.015657302629954385,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.7902694057535673,
+          "mean_weight": 0.4606284718674374
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.22242378584690708,
+          "mean_weight": -0.00890975112700102
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.21469582110509208,
+          "mean_weight": 0.06624182321351436
+        },
+        {
+          "symbol": "DOTUSDT",
+          "net_pnl_contribution": -0.08964689446525637,
+          "mean_weight": 0.06565439192217921
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.06694968953469024,
+          "mean_weight": -0.022926621127759287
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": -0.05029834800346293,
+          "mean_weight": -0.005400518937399298
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-04-19",
+      "return": -0.1074997425357066,
+      "btc_return": -0.049867354750151915,
+      "gross_mean": 1.109733745433007,
+      "net_exposure_mean": 1.1082757238216399,
+      "turnover": 0.5461120920835199,
+      "fees": 0.009146137244856835,
+      "funding": 0.007118819852413109,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.6690557962597532,
+          "mean_weight": 0.8006976299494794
+        },
+        {
+          "symbol": "ONTUSDT",
+          "net_pnl_contribution": -0.8109805488127351,
+          "mean_weight": 0.17147620032508845
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "net_pnl_contribution": -0.26509676292488776,
+          "mean_weight": 0.0975357524361138
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.05217105498178856,
+          "mean_weight": 0.03856614111095814
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2021-05-19",
+      "return": -0.10597858287576534,
+      "btc_return": -0.13945132344417988,
+      "gross_mean": 0.44538993629452023,
+      "net_exposure_mean": -0.18902253973402883,
+      "turnover": 2.0809994397384584,
+      "fees": 0.014032433761102046,
+      "funding": 0.0018255020999730321,
+      "top_loss_contributors": [
+        {
+          "symbol": "SUSHIUSDT",
+          "net_pnl_contribution": -0.9767490913054587,
+          "mean_weight": -0.003910107358746961
+        },
+        {
+          "symbol": "ETCUSDT",
+          "net_pnl_contribution": -0.3717445451982565,
+          "mean_weight": 0.10048547564000303
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.08830970353460052,
+          "mean_weight": 0.01268242545830342
+        },
+        {
+          "symbol": "MATICUSDT",
+          "net_pnl_contribution": -0.0674465541636139,
+          "mean_weight": 0.006133415112503693
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2022-11-10",
+      "return": -0.08958673609759504,
+      "btc_return": 0.08314498796026593,
+      "gross_mean": 0.6156580941859588,
+      "net_exposure_mean": -0.5140412909423812,
+      "turnover": 0.9818532165237228,
+      "fees": 0.015340263403393364,
+      "funding": 0.039358874763910194,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.8929509670253903,
+          "mean_weight": -0.34417716671900295
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "net_pnl_contribution": -0.6762864109093207,
+          "mean_weight": -0.09939327630793408
+        },
+        {
+          "symbol": "CRVUSDT",
+          "net_pnl_contribution": -0.3771140954374149,
+          "mean_weight": -0.03243504578272253
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.35199898174293454,
+          "mean_weight": -0.08524842338382348
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-10-12",
+      "return": -0.08453935150691394,
+      "btc_return": 0.048299873997155185,
+      "gross_mean": 1.0779980762519987,
+      "net_exposure_mean": -0.9190330038162425,
+      "turnover": 0.608849269722695,
+      "fees": 0.03659121036983404,
+      "funding": 0.01023059020938744,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -7.328880987630814,
+          "mean_weight": -0.8096130287349528
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.6067866877143575,
+          "mean_weight": -0.18498088716872851
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.0069744321458874575,
+          "mean_weight": 0.06480297709238776
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-04-09",
+      "return": -0.08340742427365933,
+      "btc_return": 0.07966637906241014,
+      "gross_mean": 0.9326110667324262,
+      "net_exposure_mean": -0.6021281804423689,
+      "turnover": 1.64590023085884,
+      "fees": 0.054543099944434764,
+      "funding": 0.001514163474623918,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -3.2653523147680614,
+          "mean_weight": -0.5166317302112361
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.6569516503447697,
+          "mean_weight": -0.09064092030304317
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -0.5423751381786565,
+          "mean_weight": -0.08826037192868262
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.1799088839401522,
+          "mean_weight": -0.06748214704112866
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.08901939017799604,
+          "mean_weight": 0.009568296730042924
+        },
+        {
+          "symbol": "ALGOUSDT",
+          "net_pnl_contribution": -0.058795777937559524,
+          "mean_weight": 0.009181141854867196
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2021-04-07",
+      "return": -0.08311180428938303,
+      "btc_return": -0.02953803158209667,
+      "gross_mean": 0.9010737181347207,
+      "net_exposure_mean": 0.9012909660403613,
+      "turnover": 0.8546670048976562,
+      "fees": 0.004560312606100221,
+      "funding": 0.01362257601880831,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.4151067670490634,
+          "mean_weight": 0.7482002600900909
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -0.18605546939436407,
+          "mean_weight": 0.07660835112383095
+        },
+        {
+          "symbol": "BCHUSDT",
+          "net_pnl_contribution": -0.03556765328688371,
+          "mean_weight": 0.01847810690370848
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.01620071642561683,
+          "mean_weight": 0.05800424792273107
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2020-05-21",
+      "return": -0.07672502966126171,
+      "btc_return": -0.051503565760325554,
+      "gross_mean": 1.2707634430070067,
+      "net_exposure_mean": 0.8491499114611232,
+      "turnover": 2.35616856313972,
+      "fees": 0.0026051655496509038,
+      "funding": 0.00011671515669954351,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.05282812515348014,
+          "mean_weight": 0.4349470895395302
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.032452024250573176,
+          "mean_weight": 0.12122249722376895
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.026726711341324406,
+          "mean_weight": 0.34232478306166786
+        },
+        {
+          "symbol": "ZECUSDT",
+          "net_pnl_contribution": -0.018403755172828475,
+          "mean_weight": 0.1037833111416838
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.008028542399159296,
+          "mean_weight": -0.04738079357183777
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": -0.005958330915701195,
+          "mean_weight": 0.03671959894572788
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2024-03-05",
+      "return": -0.07457675265441044,
+      "btc_return": -0.06411135400349122,
+      "gross_mean": 1.0562188904552892,
+      "net_exposure_mean": 1.0558192917207132,
+      "turnover": 2.0810523452743253,
+      "fees": 0.04708468128929,
+      "funding": 0.0827676657058597,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.1464112754445173,
+          "mean_weight": 0.558975729324592
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.6429418164375089,
+          "mean_weight": 0.310048612609661
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.39002380726225483,
+          "mean_weight": 0.09516391758001504
+        },
+        {
+          "symbol": "FTMUSDT",
+          "net_pnl_contribution": -0.271653150454655,
+          "mean_weight": 0.09163103220644504
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2022-04-06",
+      "return": -0.06937714553835372,
+      "btc_return": -0.04046909737661186,
+      "gross_mean": 0.7228810668824824,
+      "net_exposure_mean": 0.7234711939300126,
+      "turnover": 0.4201533511139359,
+      "fees": 0.004248267818284762,
+      "funding": 0.0010293655458898027,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.6108791730450258,
+          "mean_weight": 0.589940708950077
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.392673190550629,
+          "mean_weight": 0.11229768501404898
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.0376444831810344,
+          "mean_weight": 0.021232799965886676
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-06-06",
+      "return": -0.06786775298406544,
+      "btc_return": 0.0600602822517835,
+      "gross_mean": 1.3830247101712503,
+      "net_exposure_mean": -1.210302993038369,
+      "turnover": 2.895522377698751,
+      "fees": 0.040879182446460105,
+      "funding": 0.0001730029862331468,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -1.103428013394093,
+          "mean_weight": -0.9156040680789266
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.17731747598638942,
+          "mean_weight": -0.13773088921377438
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.12824381041509497,
+          "mean_weight": -0.12774090772244448
+        },
+        {
+          "symbol": "FILUSDT",
+          "net_pnl_contribution": -0.04189497805771582,
+          "mean_weight": -0.060083678469937896
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-03-19",
+      "return": -0.06685034212284746,
+      "btc_return": 0.045021120766968625,
+      "gross_mean": 1.0448349916583795,
+      "net_exposure_mean": 0.044695731431011805,
+      "turnover": 1.8095016863479199,
+      "fees": 0.06285473012582662,
+      "funding": 0.0032325290049293946,
+      "top_loss_contributors": [
+        {
+          "symbol": "TRXUSDT",
+          "net_pnl_contribution": -1.1785926935280044,
+          "mean_weight": 0.4523701825253747
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.0891903424433804,
+          "mean_weight": -0.35207942446474627
+        },
+        {
+          "symbol": "EOSUSDT",
+          "net_pnl_contribution": -0.807066018382937,
+          "mean_weight": 0.06801428093234023
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.1868501133482719,
+          "mean_weight": -0.1395029516638837
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.18210630445385173,
+          "mean_weight": 0.015893644101926882
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2026-02-06",
+      "return": -0.06472525609291102,
+      "btc_return": 0.11163024500318297,
+      "gross_mean": 0.49859978683081163,
+      "net_exposure_mean": -0.46808148607094663,
+      "turnover": 0.6319685061292981,
+      "fees": 0.06962955534714341,
+      "funding": 0.039177968964085694,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -7.519902586245339,
+          "mean_weight": -0.37667977972021643
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": -2.634532799165232,
+          "mean_weight": -0.07706825368341001
+        },
+        {
+          "symbol": "SOLUSDT",
+          "net_pnl_contribution": -0.6567148916756634,
+          "mean_weight": -0.027340960050446266
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-08-29",
+      "return": -0.0620339663618662,
+      "btc_return": 0.06016916717697485,
+      "gross_mean": 1.4050577835943663,
+      "net_exposure_mean": -0.7779388368826105,
+      "turnover": 1.1967200603445907,
+      "fees": 0.018586906435521834,
+      "funding": 0.0011056879206951975,
+      "top_loss_contributors": [
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -1.009897252054135,
+          "mean_weight": -0.8889471985222359
+        },
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.499772054852492,
+          "mean_weight": -0.11494558182255371
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "net_pnl_contribution": -0.01603032740871478,
+          "mean_weight": 0.027118766352676935
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "XRPUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LINKUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2023-07-14",
+      "return": -0.061947964503692665,
+      "btc_return": -0.03636843679023816,
+      "gross_mean": 1.525801462328076,
+      "net_exposure_mean": 1.4577582621753626,
+      "turnover": 1.2046518694050365,
+      "fees": 0.021574154049374246,
+      "funding": -0.001282183240471661,
+      "top_loss_contributors": [
+        {
+          "symbol": "BTCUSDT",
+          "net_pnl_contribution": -0.9780836814249473,
+          "mean_weight": 0.9446985062143737
+        },
+        {
+          "symbol": "ETHUSDT",
+          "net_pnl_contribution": -0.19927022923567775,
+          "mean_weight": 0.22279178162621197
+        },
+        {
+          "symbol": "BNBUSDT",
+          "net_pnl_contribution": -0.1868787055092414,
+          "mean_weight": 0.13415721627188382
+        },
+        {
+          "symbol": "COMPUSDT",
+          "net_pnl_contribution": -0.12843003597091412,
+          "mean_weight": 0.13151976098199122
+        },
+        {
+          "symbol": "KAVAUSDT",
+          "net_pnl_contribution": -0.08912740699582028,
+          "mean_weight": -0.0331163067576471
+        },
+        {
+          "symbol": "ATOMUSDT",
+          "net_pnl_contribution": -0.048000220207333286,
+          "mean_weight": 0.05558301767688074
+        },
+        {
+          "symbol": "LTCUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        },
+        {
+          "symbol": "ADAUSDT",
+          "net_pnl_contribution": 0.0,
+          "mean_weight": 0.0
+        }
+      ]
+    }
+  ],
+  "disclosure": "Diagnostic only. PnL attribution uses realized modeled asset gross PnL less fees/funding. Signal timing uses only information available through each timestamp; no historical loss is edited by this report.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
