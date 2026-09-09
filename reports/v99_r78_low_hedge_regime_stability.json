@@ -1,0 +1,801 @@
+{
+  "study": "V99 R78 temporal stability of R77 h0.10 opportunity regimes",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "stress-test the fixed R77 train-only simple causal gates that predicted material h0.10-vs-h0.15 72h advantage, across five contiguous chronological folds and calendar years without refitting",
+  "label": "h0.10 forward-72h wealth advantage over h0.15 > 0.20 percentage points",
+  "threshold_source": "R77 first-60% chronological training split ending 2024-01-05",
+  "daily_rows": 2440,
+  "results": {
+    "btc24_down": {
+      "spec": {
+        "feature": "btc_r24",
+        "direction": "low",
+        "threshold": -0.019039657268342308
+      },
+      "full": {
+        "rows": 2439,
+        "selected": 448,
+        "coverage": 0.1836818368183682,
+        "base_rate": 0.13202132021320212,
+        "selected_rate": 0.20089285714285715,
+        "lift": 1.5216698092280392,
+        "selected_mean_advantage": -5.07538958439071e-05
+      },
+      "folds": [
+        {
+          "rows": 487,
+          "selected": 96,
+          "coverage": 0.1971252566735113,
+          "base_rate": 0.15195071868583163,
+          "selected_rate": 0.22916666666666666,
+          "lift": 1.5081644144144144,
+          "selected_mean_advantage": -0.00040898038962708036,
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 132,
+          "coverage": 0.27049180327868855,
+          "base_rate": 0.22336065573770492,
+          "selected_rate": 0.25,
+          "lift": 1.1192660550458715,
+          "selected_mean_advantage": 0.00016477649345281596,
+          "fold": 2,
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 64,
+          "coverage": 0.13114754098360656,
+          "base_rate": 0.08401639344262295,
+          "selected_rate": 0.1875,
+          "lift": 2.231707317073171,
+          "selected_mean_advantage": 0.00041015265968498416,
+          "fold": 3,
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 85,
+          "coverage": 0.17418032786885246,
+          "base_rate": 0.10860655737704918,
+          "selected_rate": 0.1411764705882353,
+          "lift": 1.299889012208657,
+          "selected_mean_advantage": -0.00025112447392716284,
+          "fold": 4,
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 71,
+          "coverage": 0.14549180327868852,
+          "base_rate": 0.09221311475409837,
+          "selected_rate": 0.15492957746478872,
+          "lift": 1.680125195618153,
+          "selected_mean_advantage": -0.0001426804930376411,
+          "fold": 5,
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00"
+        }
+      ],
+      "years": [
+        {
+          "rows": 365,
+          "selected": 60,
+          "coverage": 0.1643835616438356,
+          "base_rate": 0.14246575342465753,
+          "selected_rate": 0.21666666666666667,
+          "lift": 1.5208333333333335,
+          "selected_mean_advantage": 0.0002089120786877341,
+          "year": 2020
+        },
+        {
+          "rows": 365,
+          "selected": 105,
+          "coverage": 0.2876712328767123,
+          "base_rate": 0.22465753424657534,
+          "selected_rate": 0.22857142857142856,
+          "lift": 1.0174216027874565,
+          "selected_mean_advantage": -0.0005439795059315858,
+          "year": 2021
+        },
+        {
+          "rows": 365,
+          "selected": 80,
+          "coverage": 0.2191780821917808,
+          "base_rate": 0.1643835616438356,
+          "selected_rate": 0.2625,
+          "lift": 1.5968750000000003,
+          "selected_mean_advantage": 0.0003102190423821996,
+          "year": 2022
+        },
+        {
+          "rows": 365,
+          "selected": 47,
+          "coverage": 0.12876712328767123,
+          "base_rate": 0.0821917808219178,
+          "selected_rate": 0.19148936170212766,
+          "lift": 2.3297872340425534,
+          "selected_mean_advantage": 0.0006064627651571802,
+          "year": 2023
+        },
+        {
+          "rows": 366,
+          "selected": 61,
+          "coverage": 0.16666666666666666,
+          "base_rate": 0.11475409836065574,
+          "selected_rate": 0.13114754098360656,
+          "lift": 1.1428571428571428,
+          "selected_mean_advantage": -0.00029390937899383287,
+          "year": 2024
+        },
+        {
+          "rows": 365,
+          "selected": 56,
+          "coverage": 0.15342465753424658,
+          "base_rate": 0.07397260273972603,
+          "selected_rate": 0.125,
+          "lift": 1.6898148148148149,
+          "selected_mean_advantage": -0.0002499625919332925,
+          "year": 2025
+        },
+        {
+          "rows": 248,
+          "selected": 39,
+          "coverage": 0.15725806451612903,
+          "base_rate": 0.11693548387096774,
+          "selected_rate": 0.20512820512820512,
+          "lift": 1.7541998231653404,
+          "selected_mean_advantage": 1.1550819933508326e-05,
+          "year": 2026
+        }
+      ],
+      "positive_lift_folds": 5,
+      "positive_advantage_folds": 2,
+      "positive_lift_years": 7,
+      "year_count": 7
+    },
+    "btc72_down": {
+      "spec": {
+        "feature": "btc_r72",
+        "direction": "low",
+        "threshold": -0.03338695841687384
+      },
+      "full": {
+        "rows": 2437,
+        "selected": 458,
+        "coverage": 0.18793598686910135,
+        "base_rate": 0.13212966762412803,
+        "selected_rate": 0.17248908296943233,
+        "lift": 1.3054530906723807,
+        "selected_mean_advantage": -0.00018705752213185345
+      },
+      "folds": [
+        {
+          "rows": 485,
+          "selected": 88,
+          "coverage": 0.18144329896907216,
+          "base_rate": 0.15257731958762888,
+          "selected_rate": 0.14772727272727273,
+          "lift": 0.9682125307125307,
+          "selected_mean_advantage": -0.0004701709018945157,
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 152,
+          "coverage": 0.3114754098360656,
+          "base_rate": 0.22336065573770492,
+          "selected_rate": 0.26973684210526316,
+          "lift": 1.2076291646547561,
+          "selected_mean_advantage": 0.00028614177287271755,
+          "fold": 2,
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 53,
+          "coverage": 0.10860655737704918,
+          "base_rate": 0.08401639344262295,
+          "selected_rate": 0.05660377358490566,
+          "lift": 0.6737229636447308,
+          "selected_mean_advantage": -0.00017721825305506218,
+          "fold": 3,
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 84,
+          "coverage": 0.1721311475409836,
+          "base_rate": 0.10860655737704918,
+          "selected_rate": 0.14285714285714285,
+          "lift": 1.3153638814016173,
+          "selected_mean_advantage": -0.0004986643564273352,
+          "fold": 4,
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 81,
+          "coverage": 0.16598360655737704,
+          "base_rate": 0.09221311475409837,
+          "selected_rate": 0.12345679012345678,
+          "lift": 1.3388203017832645,
+          "selected_mean_advantage": -0.0004507466900556804,
+          "fold": 5,
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00"
+        }
+      ],
+      "years": [
+        {
+          "rows": 363,
+          "selected": 57,
+          "coverage": 0.15702479338842976,
+          "base_rate": 0.14325068870523416,
+          "selected_rate": 0.15789473684210525,
+          "lift": 1.1022267206477732,
+          "selected_mean_advantage": 0.0002810449603252611,
+          "year": 2020
+        },
+        {
+          "rows": 365,
+          "selected": 107,
+          "coverage": 0.29315068493150687,
+          "base_rate": 0.22465753424657534,
+          "selected_rate": 0.21495327102803738,
+          "lift": 0.9568041942101664,
+          "selected_mean_advantage": -0.000684084980634181,
+          "year": 2021
+        },
+        {
+          "rows": 365,
+          "selected": 95,
+          "coverage": 0.2602739726027397,
+          "base_rate": 0.1643835616438356,
+          "selected_rate": 0.2631578947368421,
+          "lift": 1.6008771929824561,
+          "selected_mean_advantage": 0.0005974750768949225,
+          "year": 2022
+        },
+        {
+          "rows": 365,
+          "selected": 34,
+          "coverage": 0.09315068493150686,
+          "base_rate": 0.0821917808219178,
+          "selected_rate": 0.0,
+          "lift": 0.0,
+          "selected_mean_advantage": -0.00020166645346125778,
+          "year": 2023
+        },
+        {
+          "rows": 366,
+          "selected": 65,
+          "coverage": 0.17759562841530055,
+          "base_rate": 0.11475409836065574,
+          "selected_rate": 0.15384615384615385,
+          "lift": 1.3406593406593408,
+          "selected_mean_advantage": -0.00034327849856217687,
+          "year": 2024
+        },
+        {
+          "rows": 365,
+          "selected": 59,
+          "coverage": 0.16164383561643836,
+          "base_rate": 0.07397260273972603,
+          "selected_rate": 0.0847457627118644,
+          "lift": 1.145637162586315,
+          "selected_mean_advantage": -0.0004554083817772914,
+          "year": 2025
+        },
+        {
+          "rows": 248,
+          "selected": 41,
+          "coverage": 0.16532258064516128,
+          "base_rate": 0.11693548387096774,
+          "selected_rate": 0.17073170731707318,
+          "lift": 1.4600504625735915,
+          "selected_mean_advantage": -0.0007125875830001119,
+          "year": 2026
+        }
+      ],
+      "positive_lift_folds": 3,
+      "positive_advantage_folds": 1,
+      "positive_lift_years": 5,
+      "year_count": 7
+    },
+    "stress_age_high": {
+      "spec": {
+        "feature": "stress_age_hours",
+        "direction": "high",
+        "threshold": 284.0
+      },
+      "full": {
+        "rows": 2440,
+        "selected": 415,
+        "coverage": 0.17008196721311475,
+        "base_rate": 0.1319672131147541,
+        "selected_rate": 0.18313253012048192,
+        "lift": 1.3877123400434035,
+        "selected_mean_advantage": -8.753844786465606e-05
+      },
+      "folds": [
+        {
+          "rows": 488,
+          "selected": 90,
+          "coverage": 0.18442622950819673,
+          "base_rate": 0.15163934426229508,
+          "selected_rate": 0.17777777777777778,
+          "lift": 1.1723723723723725,
+          "selected_mean_advantage": -0.00024323478778412886,
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 194,
+          "coverage": 0.3975409836065574,
+          "base_rate": 0.22336065573770492,
+          "selected_rate": 0.23195876288659795,
+          "lift": 1.0384942778776127,
+          "selected_mean_advantage": -0.00015954134031982,
+          "fold": 2,
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 10,
+          "coverage": 0.020491803278688523,
+          "base_rate": 0.08401639344262295,
+          "selected_rate": 0.0,
+          "lift": 0.0,
+          "selected_mean_advantage": -0.0005815969336419146,
+          "fold": 3,
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 53,
+          "coverage": 0.10860655737704918,
+          "base_rate": 0.10860655737704918,
+          "selected_rate": 0.1509433962264151,
+          "lift": 1.389818440726237,
+          "selected_mean_advantage": 0.0003126333758073384,
+          "fold": 4,
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 68,
+          "coverage": 0.13934426229508196,
+          "base_rate": 0.09221311475409837,
+          "selected_rate": 0.10294117647058823,
+          "lift": 1.1163398692810456,
+          "selected_mean_advantage": 8.470728643256807e-05,
+          "fold": 5,
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00"
+        }
+      ],
+      "years": [
+        {
+          "rows": 366,
+          "selected": 61,
+          "coverage": 0.16666666666666666,
+          "base_rate": 0.14207650273224043,
+          "selected_rate": 0.16393442622950818,
+          "lift": 1.1538461538461537,
+          "selected_mean_advantage": 0.00015304350213832024,
+          "year": 2020
+        },
+        {
+          "rows": 365,
+          "selected": 137,
+          "coverage": 0.37534246575342467,
+          "base_rate": 0.22465753424657534,
+          "selected_rate": 0.24817518248175183,
+          "lift": 1.1046822147053588,
+          "selected_mean_advantage": -0.0006093121424200142,
+          "year": 2021
+        },
+        {
+          "rows": 365,
+          "selected": 89,
+          "coverage": 0.24383561643835616,
+          "base_rate": 0.1643835616438356,
+          "selected_rate": 0.19101123595505617,
+          "lift": 1.1619850187265919,
+          "selected_mean_advantage": 0.0002339862683122931,
+          "year": 2022
+        },
+        {
+          "rows": 365,
+          "selected": 7,
+          "coverage": 0.019178082191780823,
+          "base_rate": 0.0821917808219178,
+          "selected_rate": 0.0,
+          "lift": 0.0,
+          "selected_mean_advantage": -0.0007632554653893564,
+          "year": 2023
+        },
+        {
+          "rows": 366,
+          "selected": 30,
+          "coverage": 0.08196721311475409,
+          "base_rate": 0.11475409836065574,
+          "selected_rate": 0.16666666666666666,
+          "lift": 1.4523809523809523,
+          "selected_mean_advantage": 0.000306998986967566,
+          "year": 2024
+        },
+        {
+          "rows": 365,
+          "selected": 78,
+          "coverage": 0.2136986301369863,
+          "base_rate": 0.07397260273972603,
+          "selected_rate": 0.1282051282051282,
+          "lift": 1.7331433998100663,
+          "selected_mean_advantage": 0.0002530109741873968,
+          "year": 2025
+        },
+        {
+          "rows": 248,
+          "selected": 13,
+          "coverage": 0.05241935483870968,
+          "base_rate": 0.11693548387096774,
+          "selected_rate": 0.0,
+          "lift": 0.0,
+          "selected_mean_advantage": -0.0005088585538800283,
+          "year": 2026
+        }
+      ],
+      "positive_lift_folds": 4,
+      "positive_advantage_folds": 2,
+      "positive_lift_years": 5,
+      "year_count": 7
+    },
+    "cross_vol24_high": {
+      "spec": {
+        "feature": "cross_vol_24h",
+        "direction": "high",
+        "threshold": 0.04973417292341461
+      },
+      "full": {
+        "rows": 2439,
+        "selected": 462,
+        "coverage": 0.18942189421894218,
+        "base_rate": 0.13202132021320212,
+        "selected_rate": 0.16233766233766234,
+        "lift": 1.2296321690731629,
+        "selected_mean_advantage": 4.995624846378645e-05
+      },
+      "folds": [
+        {
+          "rows": 487,
+          "selected": 171,
+          "coverage": 0.351129363449692,
+          "base_rate": 0.15195071868583163,
+          "selected_rate": 0.18128654970760233,
+          "lift": 1.1930614825351666,
+          "selected_mean_advantage": -0.0003480473161551532,
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 98,
+          "coverage": 0.20081967213114754,
+          "base_rate": 0.22336065573770492,
+          "selected_rate": 0.20408163265306123,
+          "lift": 0.9136865755476503,
+          "selected_mean_advantage": 0.0003309656160355077,
+          "fold": 2,
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 24,
+          "coverage": 0.04918032786885246,
+          "base_rate": 0.08401639344262295,
+          "selected_rate": 0.125,
+          "lift": 1.4878048780487805,
+          "selected_mean_advantage": 0.000278912423419662,
+          "fold": 3,
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 31,
+          "coverage": 0.06352459016393443,
+          "base_rate": 0.10860655737704918,
+          "selected_rate": 0.16129032258064516,
+          "lift": 1.4850882531953744,
+          "selected_mean_advantage": 0.000682627293836176,
+          "fold": 4,
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 138,
+          "coverage": 0.2827868852459016,
+          "base_rate": 0.09221311475409837,
+          "selected_rate": 0.11594202898550725,
+          "lift": 1.2573268921095007,
+          "selected_mean_advantage": 0.00016163697978498144,
+          "fold": 5,
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00"
+        }
+      ],
+      "years": [
+        {
+          "rows": 365,
+          "selected": 65,
+          "coverage": 0.1780821917808219,
+          "base_rate": 0.14246575342465753,
+          "selected_rate": 0.16923076923076924,
+          "lift": 1.1878698224852071,
+          "selected_mean_advantage": 0.00043136048276122443,
+          "year": 2020
+        },
+        {
+          "rows": 365,
+          "selected": 185,
+          "coverage": 0.5068493150684932,
+          "base_rate": 0.22465753424657534,
+          "selected_rate": 0.1891891891891892,
+          "lift": 0.8421226104152935,
+          "selected_mean_advantage": -0.00032677689107577483,
+          "year": 2021
+        },
+        {
+          "rows": 365,
+          "selected": 22,
+          "coverage": 0.06027397260273973,
+          "base_rate": 0.1643835616438356,
+          "selected_rate": 0.2727272727272727,
+          "lift": 1.659090909090909,
+          "selected_mean_advantage": 0.00029091036274390844,
+          "year": 2022
+        },
+        {
+          "rows": 365,
+          "selected": 21,
+          "coverage": 0.057534246575342465,
+          "base_rate": 0.0821917808219178,
+          "selected_rate": 0.09523809523809523,
+          "lift": 1.1587301587301588,
+          "selected_mean_advantage": 0.00026798585524729593,
+          "year": 2023
+        },
+        {
+          "rows": 366,
+          "selected": 27,
+          "coverage": 0.07377049180327869,
+          "base_rate": 0.11475409836065574,
+          "selected_rate": 0.18518518518518517,
+          "lift": 1.6137566137566137,
+          "selected_mean_advantage": 0.0009876845029522837,
+          "year": 2024
+        },
+        {
+          "rows": 365,
+          "selected": 21,
+          "coverage": 0.057534246575342465,
+          "base_rate": 0.07397260273972603,
+          "selected_rate": 0.19047619047619047,
+          "lift": 2.5749559082892413,
+          "selected_mean_advantage": -0.0006397369558234064,
+          "year": 2025
+        },
+        {
+          "rows": 248,
+          "selected": 121,
+          "coverage": 0.4879032258064516,
+          "base_rate": 0.11693548387096774,
+          "selected_rate": 0.09917355371900827,
+          "lift": 0.8481048731832431,
+          "selected_mean_advantage": 0.0002498706100151138,
+          "year": 2026
+        }
+      ],
+      "positive_lift_folds": 4,
+      "positive_advantage_folds": 4,
+      "positive_lift_years": 5,
+      "year_count": 7
+    },
+    "market_vol24_high": {
+      "spec": {
+        "feature": "market_abs_median_24h",
+        "direction": "high",
+        "threshold": 0.051253990575389194
+      },
+      "full": {
+        "rows": 2439,
+        "selected": 417,
+        "coverage": 0.17097170971709716,
+        "base_rate": 0.13202132021320212,
+        "selected_rate": 0.17266187050359713,
+        "lift": 1.3078332365163772,
+        "selected_mean_advantage": -0.00019840804540282794
+      },
+      "folds": [
+        {
+          "rows": 487,
+          "selected": 125,
+          "coverage": 0.25667351129363447,
+          "base_rate": 0.15195071868583163,
+          "selected_rate": 0.16,
+          "lift": 1.0529729729729729,
+          "selected_mean_advantage": -0.0005721293711136575,
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-05-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 122,
+          "coverage": 0.25,
+          "base_rate": 0.22336065573770492,
+          "selected_rate": 0.1885245901639344,
+          "lift": 0.8440366972477064,
+          "selected_mean_advantage": -0.0001165069297956474,
+          "fold": 2,
+          "start": "2021-05-03T00:00:00+00:00",
+          "end": "2022-09-02T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 45,
+          "coverage": 0.09221311475409837,
+          "base_rate": 0.08401639344262295,
+          "selected_rate": 0.24444444444444444,
+          "lift": 2.9094850948509485,
+          "selected_mean_advantage": 0.0003664384007869022,
+          "fold": 3,
+          "start": "2022-09-03T00:00:00+00:00",
+          "end": "2024-01-03T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 80,
+          "coverage": 0.16393442622950818,
+          "base_rate": 0.10860655737704918,
+          "selected_rate": 0.1625,
+          "lift": 1.4962264150943396,
+          "selected_mean_advantage": -3.291205316830331e-05,
+          "fold": 4,
+          "start": "2024-01-04T00:00:00+00:00",
+          "end": "2025-05-05T00:00:00+00:00"
+        },
+        {
+          "rows": 488,
+          "selected": 45,
+          "coverage": 0.09221311475409837,
+          "base_rate": 0.09221311475409837,
+          "selected_rate": 0.1111111111111111,
+          "lift": 1.2049382716049382,
+          "selected_mean_advantage": -0.0002413978197922094,
+          "fold": 5,
+          "start": "2025-05-06T00:00:00+00:00",
+          "end": "2026-09-05T00:00:00+00:00"
+        }
+      ],
+      "years": [
+        {
+          "rows": 365,
+          "selected": 73,
+          "coverage": 0.2,
+          "base_rate": 0.14246575342465753,
+          "selected_rate": 0.136986301369863,
+          "lift": 0.9615384615384615,
+          "selected_mean_advantage": -0.00011127206898800953,
+          "year": 2020
+        },
+        {
+          "rows": 365,
+          "selected": 119,
+          "coverage": 0.32602739726027397,
+          "base_rate": 0.22465753424657534,
+          "selected_rate": 0.16806722689075632,
+          "lift": 0.7481041196966592,
+          "selected_mean_advantage": -0.0009533692264558367,
+          "year": 2021
+        },
+        {
+          "rows": 365,
+          "selected": 67,
+          "coverage": 0.18356164383561643,
+          "base_rate": 0.1643835616438356,
+          "selected_rate": 0.23880597014925373,
+          "lift": 1.4527363184079602,
+          "selected_mean_advantage": 0.0005454712929115902,
+          "year": 2022
+        },
+        {
+          "rows": 365,
+          "selected": 33,
+          "coverage": 0.09041095890410959,
+          "base_rate": 0.0821917808219178,
+          "selected_rate": 0.24242424242424243,
+          "lift": 2.94949494949495,
+          "selected_mean_advantage": 0.00047839192637658037,
+          "year": 2023
+        },
+        {
+          "rows": 366,
+          "selected": 58,
+          "coverage": 0.15846994535519127,
+          "base_rate": 0.11475409836065574,
+          "selected_rate": 0.1724137931034483,
+          "lift": 1.5024630541871922,
+          "selected_mean_advantage": -4.717775714402733e-05,
+          "year": 2024
+        },
+        {
+          "rows": 365,
+          "selected": 53,
+          "coverage": 0.14520547945205478,
+          "base_rate": 0.07397260273972603,
+          "selected_rate": 0.11320754716981132,
+          "lift": 1.530398322851153,
+          "selected_mean_advantage": -6.256990245057314e-05,
+          "year": 2025
+        },
+        {
+          "rows": 248,
+          "selected": 14,
+          "coverage": 0.056451612903225805,
+          "base_rate": 0.11693548387096774,
+          "selected_rate": 0.14285714285714285,
+          "lift": 1.2216748768472907,
+          "selected_mean_advantage": -0.0005316679571342663,
+          "year": 2026
+        }
+      ],
+      "positive_lift_folds": 4,
+      "positive_advantage_folds": 1,
+      "positive_lift_years": 5,
+      "year_count": 7
+    }
+  },
+  "ranking": [
+    "btc24_down",
+    "cross_vol24_high",
+    "stress_age_high",
+    "market_vol24_high",
+    "btc72_down"
+  ],
+  "disclosure": "Diagnostic historical research only. Thresholds are frozen from R77 training. Future relative returns are labels only. No threshold is fitted or selected on these folds. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
