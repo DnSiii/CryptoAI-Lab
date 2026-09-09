@@ -1,0 +1,3764 @@
+{
+  "study": "V99 R63 medium-entry event severity audit",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "classify discrete entries into the validated R37 medium crash state and identify causal event-time features that separate truly dangerous warnings from benign warnings, using a chronological 60/40 event split",
+  "parent_fixed": {
+    "dd_trigger": 0.06,
+    "cooldown": 72,
+    "market_level": 1,
+    "min_net": 0.1,
+    "gross_cap": 1.9,
+    "hedge_size": 0.15
+  },
+  "medium_fixed": {
+    "name": "medium",
+    "r6_trigger": -0.035,
+    "dd_trigger": -0.07,
+    "r24_trigger": -0.055,
+    "btc24_trigger": -0.045,
+    "btc72_trigger": -0.09,
+    "cooldown": 12
+  },
+  "parent_summary": {
+    "return": 222.71464074991826,
+    "max_drawdown": -0.3142330893856765,
+    "best_day": 0.21657980284126888,
+    "worst_day": -0.11521914374325226,
+    "positive_days": 0.48853398853398855
+  },
+  "event_count": 344,
+  "train_events": 206,
+  "holdout_events": 138,
+  "train_end": "2023-03-15T15:00:00+00:00",
+  "event_rates": {
+    "deepen_7d_5pp": {
+      "train": 0.18932038834951456,
+      "holdout": 0.2391304347826087
+    },
+    "deepen_14d_8pp": {
+      "train": 0.10679611650485436,
+      "holdout": 0.16666666666666666
+    },
+    "hit_20pct_dd_14d": {
+      "train": 0.11650485436893204,
+      "holdout": 0.18840579710144928
+    }
+  },
+  "feature_rankings": {
+    "deepen_7d_5pp": [
+      {
+        "feature": "dominant_side_gross",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.729859608652236,
+          "normal_median": 0.4795546900244261,
+          "auc": 0.6635958851527713
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.9461832687875149,
+          "normal_median": 0.8371530623787473,
+          "auc": 0.6467532467532467
+        },
+        "stable_auc": 0.6467532467532467,
+        "mean_auc": 0.655174565953009
+      },
+      {
+        "feature": "core_net_abs",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.44257062756359034,
+          "normal_median": 0.3378578241783321,
+          "auc": 0.6513127590971902
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.7913144136200865,
+          "normal_median": 0.6352276635594167,
+          "auc": 0.6339105339105339
+        },
+        "stable_auc": 0.6339105339105339,
+        "mean_auc": 0.642611646503862
+      },
+      {
+        "feature": "net_abs",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.6733972792129382,
+          "normal_median": 0.36892754355584567,
+          "auc": 0.6929218486104713
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.8557347198314795,
+          "normal_median": 0.6457031897749362,
+          "auc": 0.6334776334776335
+        },
+        "stable_auc": 0.6334776334776335,
+        "mean_auc": 0.6631997410440524
+      },
+      {
+        "feature": "gross",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.7350661545604813,
+          "normal_median": 0.5957949050909459,
+          "auc": 0.6120067557193306
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 1.2569634804237244,
+          "normal_median": 0.997546007004111,
+          "auc": 0.6264069264069264
+        },
+        "stable_auc": 0.6120067557193306,
+        "mean_auc": 0.6192068410631285
+      },
+      {
+        "feature": "core_gross",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.4866729754041507,
+          "normal_median": 0.3738278385073265,
+          "auc": 0.6236757254721327
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.842451747563756,
+          "normal_median": 0.75944735049518,
+          "auc": 0.6109668109668109
+        },
+        "stable_auc": 0.6109668109668109,
+        "mean_auc": 0.6173212682194718
+      },
+      {
+        "feature": "btc_abs_weight",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.26158003800322627,
+          "normal_median": 0.09814597305944481,
+          "auc": 0.5641025641025641
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.2878577137415503,
+          "normal_median": 0.18276839443940515,
+          "auc": 0.5873015873015873
+        },
+        "stable_auc": 0.5641025641025641,
+        "mean_auc": 0.5757020757020757
+      },
+      {
+        "feature": "breadth_negative_24h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.30935251798561153,
+          "normal_median": 0.2805755395683453,
+          "auc": 0.549823430062951
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.31654676258992803,
+          "normal_median": 0.30935251798561153,
+          "auc": 0.5705627705627706
+        },
+        "stable_auc": 0.549823430062951,
+        "mean_auc": 0.5601931003128608
+      },
+      {
+        "feature": "eth_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.04686207578060764,
+          "normal_median": 0.023745066491966726,
+          "auc": 0.5588054659910947
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.042064674659403334,
+          "normal_median": 0.035247827590045966,
+          "auc": 0.5454545454545454
+        },
+        "stable_auc": 0.5454545454545454,
+        "mean_auc": 0.55213000572282
+      },
+      {
+        "feature": "btc_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.038064897181498525,
+          "normal_median": 0.029552654923330368,
+          "auc": 0.5416858590511285
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.03527004648722343,
+          "normal_median": 0.02382655888979268,
+          "auc": 0.5633477633477634
+        },
+        "stable_auc": 0.5416858590511285,
+        "mean_auc": 0.552516811199446
+      },
+      {
+        "feature": "market_median_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.05740558370348475,
+          "normal_median": 0.052202379541917976,
+          "auc": 0.535544296023338
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.04912998976458538,
+          "normal_median": 0.04132178749769089,
+          "auc": 0.6147186147186147
+        },
+        "stable_auc": 0.535544296023338,
+        "mean_auc": 0.5751314553709763
+      },
+      {
+        "feature": "dd_worsen_6h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.014417097157873315,
+          "normal_median": 0.010475182794028925,
+          "auc": 0.5596499309074159
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.02927745507268331,
+          "normal_median": 0.028439826646308397,
+          "auc": 0.5339105339105339
+        },
+        "stable_auc": 0.5339105339105339,
+        "mean_auc": 0.5467802324089749
+      },
+      {
+        "feature": "eth_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.047287085894256786,
+          "normal_median": 0.047669095379741955,
+          "auc": 0.5308613542146476
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.04760672532080634,
+          "normal_median": 0.038455818813930676,
+          "auc": 0.6145743145743146
+        },
+        "stable_auc": 0.5308613542146476,
+        "mean_auc": 0.5727178343944811
+      },
+      {
+        "feature": "btc_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.046989881956155055,
+          "normal_median": 0.04712061239097676,
+          "auc": 0.5208045447566406
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.03872670313954274,
+          "normal_median": 0.03073735007074918,
+          "auc": 0.6034632034632035
+        },
+        "stable_auc": 0.5208045447566406,
+        "mean_auc": 0.562133874109922
+      },
+      {
+        "feature": "eth_abs_weight",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.16691204488561914,
+          "normal_median": 0.19010844414424413,
+          "auc": 0.5155842161830185
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.5066852378387321,
+          "normal_median": 0.39831179009862516,
+          "auc": 0.5229437229437229
+        },
+        "stable_auc": 0.5155842161830185,
+        "mean_auc": 0.5192639695633707
+      },
+      {
+        "feature": "component_count",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.5075234147090435
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.5021645021645021
+        },
+        "stable_auc": 0.5021645021645021,
+        "mean_auc": 0.5048439584367728
+      },
+      {
+        "feature": "fast_loss_component",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.538768616612928
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.49956709956709955
+        },
+        "stable_auc": 0.49956709956709955,
+        "mean_auc": 0.5191678580900138
+      },
+      {
+        "feature": "equity_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.012932602035924279,
+          "normal_median": 0.01067723579404356,
+          "auc": 0.5513588208198986
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.02927745507268331,
+          "normal_median": 0.026309088467307506,
+          "auc": 0.49812409812409814
+        },
+        "stable_auc": 0.49812409812409814,
+        "mean_auc": 0.5247414594719984
+      },
+      {
+        "feature": "equity_loss_3h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.007453032205157251,
+          "normal_median": 0.007454422209321687,
+          "auc": 0.4875633348687241
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.01620084029897695,
+          "normal_median": 0.013618172793262717,
+          "auc": 0.5292929292929293
+        },
+        "stable_auc": 0.4875633348687241,
+        "mean_auc": 0.5084281320808267
+      },
+      {
+        "feature": "parent_hedge_active",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.4846460924305236
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.5108225108225108
+        },
+        "stable_auc": 0.4846460924305236,
+        "mean_auc": 0.4977343016265172
+      },
+      {
+        "feature": "market_conflict_component",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.48303393213572854
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 1.0,
+          "normal_median": 0.0,
+          "auc": 0.5489177489177489
+        },
+        "stable_auc": 0.48303393213572854,
+        "mean_auc": 0.5159758405267387
+      },
+      {
+        "feature": "fast_loss_excess",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.5453707968678029
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.4793650793650794
+        },
+        "stable_auc": 0.4793650793650794,
+        "mean_auc": 0.5123679381164411
+      },
+      {
+        "feature": "dd_worsen_24h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.018691013192832284,
+          "normal_median": 0.0075461229526527784,
+          "auc": 0.534162444342085
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.013092913733586897,
+          "normal_median": 0.01600111482880351,
+          "auc": 0.4649350649350649
+        },
+        "stable_auc": 0.4649350649350649,
+        "mean_auc": 0.49954875463857495
+      },
+      {
+        "feature": "btc_loss_3h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.009877066168228366,
+          "normal_median": 0.012105071546156698,
+          "auc": 0.4604636880085982
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.011294885539807065,
+          "normal_median": 0.005998375918652932,
+          "auc": 0.5448773448773448
+        },
+        "stable_auc": 0.4604636880085982,
+        "mean_auc": 0.5026705164429716
+      },
+      {
+        "feature": "top1_share",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.6284909645969161,
+          "normal_median": 0.6151729462148956,
+          "auc": 0.5318593582066636
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.6218214554623117,
+          "normal_median": 0.6355806813792868,
+          "auc": 0.45541125541125543
+        },
+        "stable_auc": 0.45541125541125543,
+        "mean_auc": 0.4936353068089595
+      },
+      {
+        "feature": "breadth_negative_6h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.2446043165467626,
+          "normal_median": 0.22302158273381295,
+          "auc": 0.45332412098879166
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.30935251798561153,
+          "normal_median": 0.28776978417266186,
+          "auc": 0.5229437229437229
+        },
+        "stable_auc": 0.45332412098879166,
+        "mean_auc": 0.48813392196625727
+      },
+      {
+        "feature": "equity_loss_12h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.014123155740289106,
+          "normal_median": 0.009798810238926592,
+          "auc": 0.4557039766620605
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.011946594208324113,
+          "normal_median": 0.012571891268083446,
+          "auc": 0.4522366522366522
+        },
+        "stable_auc": 0.4522366522366522,
+        "mean_auc": 0.4539703144493563
+      },
+      {
+        "feature": "drawdown_accel_component",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.4867188699524029
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.44935064935064933
+        },
+        "stable_auc": 0.44935064935064933,
+        "mean_auc": 0.4680347596515261
+      },
+      {
+        "feature": "equity_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.010160566998674958,
+          "normal_median": 0.004980302961701599,
+          "auc": 0.4959312144940887
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.010647296620833635,
+          "normal_median": 0.015350268991646487,
+          "auc": 0.4432900432900433
+        },
+        "stable_auc": 0.4432900432900433,
+        "mean_auc": 0.469610628892066
+      },
+      {
+        "feature": "btc_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.008682527967359688,
+          "normal_median": 0.017808825686194796,
+          "auc": 0.4354368186703516
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.016119571347997685,
+          "normal_median": 0.007980150804613895,
+          "auc": 0.5874458874458874
+        },
+        "stable_auc": 0.4354368186703516,
+        "mean_auc": 0.5114413530581196
+      },
+      {
+        "feature": "market_median_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.01776093980149218,
+          "normal_median": 0.02252405979114047,
+          "auc": 0.43474589282972514
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.029696009392165712,
+          "normal_median": 0.012284021454982141,
+          "auc": 0.5792207792207792
+        },
+        "stable_auc": 0.43474589282972514,
+        "mean_auc": 0.5069833360252521
+      },
+      {
+        "feature": "eth_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.006309292939881472,
+          "normal_median": 0.022054340622929103,
+          "auc": 0.4111776447105788
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.021858629681766883,
+          "normal_median": 0.002158213200234238,
+          "auc": 0.5642135642135642
+        },
+        "stable_auc": 0.4111776447105788,
+        "mean_auc": 0.4876956044620715
+      },
+      {
+        "feature": "cross_section_vol_1h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.006746138376805731,
+          "normal_median": 0.009169351950917755,
+          "auc": 0.391524643021649
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.007718572310767381,
+          "normal_median": 0.006990431485288472,
+          "auc": 0.529004329004329
+        },
+        "stable_auc": 0.391524643021649,
+        "mean_auc": 0.460264486012989
+      },
+      {
+        "feature": "equity_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.0,
+          "normal_median": 0.00805989468819579,
+          "auc": 0.38960540457546444
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.4121212121212121
+        },
+        "stable_auc": 0.38960540457546444,
+        "mean_auc": 0.4008633083483383
+      },
+      {
+        "feature": "dd_depth",
+        "train": {
+          "n": 206,
+          "events": 39,
+          "event_rate": 0.18932038834951456,
+          "event_median": 0.058449759942600155,
+          "normal_median": 0.09737618447600616,
+          "auc": 0.34147090434515587
+        },
+        "holdout": {
+          "n": 138,
+          "events": 33,
+          "event_rate": 0.2391304347826087,
+          "event_median": 0.07702050999331111,
+          "normal_median": 0.11435971581629956,
+          "auc": 0.38037518037518037
+        },
+        "stable_auc": 0.34147090434515587,
+        "mean_auc": 0.36092304236016814
+      }
+    ],
+    "deepen_14d_8pp": [
+      {
+        "feature": "net_abs",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.7438657350106519,
+          "normal_median": 0.4099523397506603,
+          "auc": 0.6608201581027668
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.9607132457097184,
+          "normal_median": 0.6511502748475566,
+          "auc": 0.6629489603024574
+        },
+        "stable_auc": 0.6608201581027668,
+        "mean_auc": 0.6618845592026121
+      },
+      {
+        "feature": "dominant_side_gross",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.8576160587974873,
+          "normal_median": 0.5009048649923712,
+          "auc": 0.6400691699604744
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 1.0570431660517123,
+          "normal_median": 0.8203440252085948,
+          "auc": 0.6905482041587901
+        },
+        "stable_auc": 0.6400691699604744,
+        "mean_auc": 0.6653086870596323
+      },
+      {
+        "feature": "core_net_abs",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.43759024519007916,
+          "normal_median": 0.3466101372985544,
+          "auc": 0.6348814229249012
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.8468768862838462,
+          "normal_median": 0.6352276635594167,
+          "auc": 0.6911153119092628
+        },
+        "stable_auc": 0.6348814229249012,
+        "mean_auc": 0.6629983674170821
+      },
+      {
+        "feature": "gross",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.8665400278573461,
+          "normal_median": 0.6200447481898009,
+          "auc": 0.60350790513834
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 1.3252267799686266,
+          "normal_median": 0.997546007004111,
+          "auc": 0.6576559546313799
+        },
+        "stable_auc": 0.60350790513834,
+        "mean_auc": 0.63058192988486
+      },
+      {
+        "feature": "core_gross",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.5598734252800396,
+          "normal_median": 0.38876674889044815,
+          "auc": 0.6398221343873518
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.8468768862838462,
+          "normal_median": 0.75944735049518,
+          "auc": 0.5905482041587902
+        },
+        "stable_auc": 0.5905482041587902,
+        "mean_auc": 0.615185169273071
+      },
+      {
+        "feature": "btc_abs_weight",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.26418086616910186,
+          "normal_median": 0.09873019896247032,
+          "auc": 0.5884387351778656
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.30964269891926927,
+          "normal_median": 0.18363150071501202,
+          "auc": 0.598109640831758
+        },
+        "stable_auc": 0.5884387351778656,
+        "mean_auc": 0.5932741880048118
+      },
+      {
+        "feature": "market_median_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.06128890545753224,
+          "normal_median": 0.054334309797228086,
+          "auc": 0.5553359683794467
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.04576058005327022,
+          "normal_median": 0.041623651948258955,
+          "auc": 0.5591682419659736
+        },
+        "stable_auc": 0.5553359683794467,
+        "mean_auc": 0.5572521051727102
+      },
+      {
+        "feature": "equity_loss_3h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.01259535071239587,
+          "normal_median": 0.007362461021587718,
+          "auc": 0.5957262845849802
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.01620084029897695,
+          "normal_median": 0.013655090466640485,
+          "auc": 0.5444234404536862
+        },
+        "stable_auc": 0.5444234404536862,
+        "mean_auc": 0.5700748625193333
+      },
+      {
+        "feature": "btc_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.03983007102121927,
+          "normal_median": 0.02857199752430939,
+          "auc": 0.5321146245059288
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.026036575777104165,
+          "normal_median": 0.024189709636938006,
+          "auc": 0.5444234404536862
+        },
+        "stable_auc": 0.5321146245059288,
+        "mean_auc": 0.5382690324798075
+      },
+      {
+        "feature": "dd_worsen_6h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.022219617059241914,
+          "normal_median": 0.010120609860333418,
+          "auc": 0.6371047430830039
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.03127870735654881,
+          "normal_median": 0.027867962464459217,
+          "auc": 0.5243856332703214
+        },
+        "stable_auc": 0.5243856332703214,
+        "mean_auc": 0.5807451881766627
+      },
+      {
+        "feature": "fast_loss_component",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.5886857707509882
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 1.0,
+          "normal_median": 0.0,
+          "auc": 0.5217391304347826
+        },
+        "stable_auc": 0.5217391304347826,
+        "mean_auc": 0.5552124505928854
+      },
+      {
+        "feature": "breadth_negative_24h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.3129496402877698,
+          "normal_median": 0.2805755395683453,
+          "auc": 0.5716403162055336
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.30935251798561153,
+          "normal_median": 0.31654676258992803,
+          "auc": 0.5215500945179584
+        },
+        "stable_auc": 0.5215500945179584,
+        "mean_auc": 0.546595205361746
+      },
+      {
+        "feature": "eth_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.03837482826851296,
+          "normal_median": 0.04835696181438892,
+          "auc": 0.5195158102766798
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.04375209380234513,
+          "normal_median": 0.04065972050762923,
+          "auc": 0.5561436672967864
+        },
+        "stable_auc": 0.5195158102766798,
+        "mean_auc": 0.5378297387867331
+      },
+      {
+        "feature": "btc_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.045728969545361986,
+          "normal_median": 0.047331886540773915,
+          "auc": 0.5002470355731226
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.02985397684319424,
+          "normal_median": 0.03872670313954274,
+          "auc": 0.5153119092627599
+        },
+        "stable_auc": 0.5002470355731226,
+        "mean_auc": 0.5077794724179412
+      },
+      {
+        "feature": "fast_loss_excess",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.6057312252964426
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.0002746775026465642,
+          "normal_median": 0.0,
+          "auc": 0.4998109640831758
+        },
+        "stable_auc": 0.4998109640831758,
+        "mean_auc": 0.5527710946898092
+      },
+      {
+        "feature": "component_count",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.5030879446640316
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.4996219281663516
+        },
+        "stable_auc": 0.4996219281663516,
+        "mean_auc": 0.5013549364151916
+      },
+      {
+        "feature": "eth_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.025644300170354295,
+          "normal_median": 0.027865209458724782,
+          "auc": 0.5187747035573123
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.02383978240761364,
+          "normal_median": 0.03840520133435399,
+          "auc": 0.49262759924385635
+        },
+        "stable_auc": 0.49262759924385635,
+        "mean_auc": 0.5057011514005842
+      },
+      {
+        "feature": "equity_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.02370328468333882,
+          "normal_median": 0.010095414694857308,
+          "auc": 0.633893280632411
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.03527467750264657,
+          "normal_median": 0.025809675633937212,
+          "auc": 0.4782608695652174
+        },
+        "stable_auc": 0.4782608695652174,
+        "mean_auc": 0.5560770750988142
+      },
+      {
+        "feature": "dd_worsen_24h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.015089627638960323,
+          "normal_median": 0.009056416784773147,
+          "auc": 0.5175395256916996
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.013092913733586897,
+          "normal_median": 0.01600111482880351,
+          "auc": 0.47561436672967866
+        },
+        "stable_auc": 0.47561436672967866,
+        "mean_auc": 0.49657694621068915
+      },
+      {
+        "feature": "btc_loss_3h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.009273967924966264,
+          "normal_median": 0.011509439958006407,
+          "auc": 0.4686264822134387
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.009413000569701735,
+          "normal_median": 0.006476626866986801,
+          "auc": 0.5049149338374291
+        },
+        "stable_auc": 0.4686264822134387,
+        "mean_auc": 0.48677070802543393
+      },
+      {
+        "feature": "parent_hedge_active",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.46714426877470355
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.5043478260869565
+        },
+        "stable_auc": 0.46714426877470355,
+        "mean_auc": 0.48574604743083005
+      },
+      {
+        "feature": "eth_abs_weight",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.17487348253288257,
+          "normal_median": 0.1904712030795639,
+          "auc": 0.5400197628458498
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.32135121485023055,
+          "normal_median": 0.41428062592916104,
+          "auc": 0.46540642722117204
+        },
+        "stable_auc": 0.46540642722117204,
+        "mean_auc": 0.5027130950335109
+      },
+      {
+        "feature": "market_median_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.022000343803031508,
+          "normal_median": 0.021263074553346473,
+          "auc": 0.4624505928853755
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.029696009392165712,
+          "normal_median": 0.01729329564753951,
+          "auc": 0.5482041587901701
+        },
+        "stable_auc": 0.4624505928853755,
+        "mean_auc": 0.5053273758377728
+      },
+      {
+        "feature": "drawdown_accel_component",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.4592391304347826
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.46956521739130436
+        },
+        "stable_auc": 0.4592391304347826,
+        "mean_auc": 0.4644021739130435
+      },
+      {
+        "feature": "equity_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.01222278962270279,
+          "normal_median": 0.005357277155710549,
+          "auc": 0.5077816205533597
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.010647296620833635,
+          "normal_median": 0.015350268991646487,
+          "auc": 0.45406427221172024
+        },
+        "stable_auc": 0.45406427221172024,
+        "mean_auc": 0.48092294638253996
+      },
+      {
+        "feature": "eth_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.014357297032190519,
+          "normal_median": 0.01994971094780973,
+          "auc": 0.45306324110671936
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.010697450611728554,
+          "normal_median": 0.009821424004174073,
+          "auc": 0.5088846880907373
+        },
+        "stable_auc": 0.45306324110671936,
+        "mean_auc": 0.4809739645987283
+      },
+      {
+        "feature": "cross_section_vol_1h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.007538804880920248,
+          "normal_median": 0.00894216644276506,
+          "auc": 0.45133399209486164
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.006849679105058104,
+          "normal_median": 0.00741383926776144,
+          "auc": 0.4775047258979206
+        },
+        "stable_auc": 0.45133399209486164,
+        "mean_auc": 0.4644193589963911
+      },
+      {
+        "feature": "btc_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.01750547680285941,
+          "normal_median": 0.017249519539379476,
+          "auc": 0.44676383399209485
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.012146959175337035,
+          "normal_median": 0.0121163069740019,
+          "auc": 0.530812854442344
+        },
+        "stable_auc": 0.44676383399209485,
+        "mean_auc": 0.48878834421721945
+      },
+      {
+        "feature": "breadth_negative_6h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.2194244604316547,
+          "normal_median": 0.22661870503597123,
+          "auc": 0.4437994071146245
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.30935251798561153,
+          "normal_median": 0.302158273381295,
+          "auc": 0.49640831758034026
+        },
+        "stable_auc": 0.4437994071146245,
+        "mean_auc": 0.47010386234748236
+      },
+      {
+        "feature": "equity_loss_12h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.01741233341501336,
+          "normal_median": 0.009800134126908777,
+          "auc": 0.48888339920948615
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.011448714609050503,
+          "normal_median": 0.014784470337079858,
+          "auc": 0.44234404536862004
+        },
+        "stable_auc": 0.44234404536862004,
+        "mean_auc": 0.46561372228905307
+      },
+      {
+        "feature": "market_conflict_component",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.44219367588932806
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.5043478260869565
+        },
+        "stable_auc": 0.44219367588932806,
+        "mean_auc": 0.4732707509881423
+      },
+      {
+        "feature": "top1_share",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.6263400354968209,
+          "normal_median": 0.6190433812544682,
+          "auc": 0.5232213438735178
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.6045384835936801,
+          "normal_median": 0.6362289043433944,
+          "auc": 0.4226843100189036
+        },
+        "stable_auc": 0.4226843100189036,
+        "mean_auc": 0.4729528269462107
+      },
+      {
+        "feature": "equity_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.0,
+          "normal_median": 0.00671717744580419,
+          "auc": 0.36820652173913043
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.41776937618147447
+        },
+        "stable_auc": 0.36820652173913043,
+        "mean_auc": 0.3929879489603024
+      },
+      {
+        "feature": "dd_depth",
+        "train": {
+          "n": 206,
+          "events": 22,
+          "event_rate": 0.10679611650485436,
+          "event_median": 0.04901667353071992,
+          "normal_median": 0.09230570076332334,
+          "auc": 0.3159584980237154
+        },
+        "holdout": {
+          "n": 138,
+          "events": 23,
+          "event_rate": 0.16666666666666666,
+          "event_median": 0.06990864500817351,
+          "normal_median": 0.10650002777806411,
+          "auc": 0.34291115311909265
+        },
+        "stable_auc": 0.3159584980237154,
+        "mean_auc": 0.329434825571404
+      }
+    ],
+    "hit_20pct_dd_14d": [
+      {
+        "feature": "dd_depth",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.1846384743614854,
+          "normal_median": 0.07801151209770268,
+          "auc": 0.918040293040293
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.19495011847330723,
+          "normal_median": 0.08005863647640538,
+          "auc": 0.9649725274725275
+        },
+        "stable_auc": 0.918040293040293,
+        "mean_auc": 0.9415064102564102
+      },
+      {
+        "feature": "gross",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.9527938264888685,
+          "normal_median": 0.6063616550277023,
+          "auc": 0.7251602564102564
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 1.2674616880879859,
+          "normal_median": 1.0136817935795466,
+          "auc": 0.6540178571428571
+        },
+        "stable_auc": 0.6540178571428571,
+        "mean_auc": 0.6895890567765568
+      },
+      {
+        "feature": "dominant_side_gross",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.9032347200074482,
+          "normal_median": 0.4982170488294663,
+          "auc": 0.6904761904761905
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.9586075615669195,
+          "normal_median": 0.8010152965782504,
+          "auc": 0.6404532967032966
+        },
+        "stable_auc": 0.6404532967032966,
+        "mean_auc": 0.6654647435897436
+      },
+      {
+        "feature": "equity_loss_12h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.022329013873867876,
+          "normal_median": 0.007646422991240576,
+          "auc": 0.6142399267399268
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.022137542236407515,
+          "normal_median": 0.011956603261996601,
+          "auc": 0.5995879120879121
+        },
+        "stable_auc": 0.5995879120879121,
+        "mean_auc": 0.6069139194139195
+      },
+      {
+        "feature": "core_gross",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.6320086999181516,
+          "normal_median": 0.38469600041517027,
+          "auc": 0.7129120879120879
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.9135399066300703,
+          "normal_median": 0.7512429923481581,
+          "auc": 0.5992445054945055
+        },
+        "stable_auc": 0.5992445054945055,
+        "mean_auc": 0.6560782967032968
+      },
+      {
+        "feature": "core_net_abs",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.5935720538680986,
+          "normal_median": 0.3420775392255485,
+          "auc": 0.6929945054945055
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.8376244504137541,
+          "normal_median": 0.6571696794951036,
+          "auc": 0.5906593406593407
+        },
+        "stable_auc": 0.5906593406593407,
+        "mean_auc": 0.6418269230769231
+      },
+      {
+        "feature": "equity_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.018611236789105035,
+          "normal_median": 0.009252835399017612,
+          "auc": 0.5821886446886447
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.03774317803709465,
+          "normal_median": 0.022752014864449777,
+          "auc": 0.6205357142857143
+        },
+        "stable_auc": 0.5821886446886447,
+        "mean_auc": 0.6013621794871795
+      },
+      {
+        "feature": "equity_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.0197833798292385,
+          "normal_median": 0.004268981931844662,
+          "auc": 0.6073717948717948
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.0241823709169548,
+          "normal_median": 0.01494270772415801,
+          "auc": 0.5731456043956044
+        },
+        "stable_auc": 0.5731456043956044,
+        "mean_auc": 0.5902586996336996
+      },
+      {
+        "feature": "btc_abs_weight",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.2803854627005739,
+          "normal_median": 0.09664889647236999,
+          "auc": 0.6939102564102564
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.462964323890505,
+          "normal_median": 0.18306384150980237,
+          "auc": 0.5728021978021978
+        },
+        "stable_auc": 0.5728021978021978,
+        "mean_auc": 0.6333562271062271
+      },
+      {
+        "feature": "net_abs",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.7738258614670834,
+          "normal_median": 0.39440100994571414,
+          "auc": 0.6362179487179487
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.9439939893466123,
+          "normal_median": 0.6797886469059534,
+          "auc": 0.5693681318681318
+        },
+        "stable_auc": 0.5693681318681318,
+        "mean_auc": 0.6027930402930403
+      },
+      {
+        "feature": "equity_loss_3h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.012787740370805045,
+          "normal_median": 0.007398829186069211,
+          "auc": 0.5720009157509157
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.019973556632334466,
+          "normal_median": 0.013636631629951601,
+          "auc": 0.5676510989010989
+        },
+        "stable_auc": 0.5676510989010989,
+        "mean_auc": 0.5698260073260073
+      },
+      {
+        "feature": "fast_loss_excess",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.5473901098901099
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.0027431780370946457,
+          "normal_median": 0.0,
+          "auc": 0.6466346153846154
+        },
+        "stable_auc": 0.5473901098901099,
+        "mean_auc": 0.5970123626373627
+      },
+      {
+        "feature": "equity_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.01750550328102668,
+          "normal_median": 0.0,
+          "auc": 0.6664377289377289
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.003640492072210899,
+          "normal_median": 0.0,
+          "auc": 0.5470467032967034
+        },
+        "stable_auc": 0.5470467032967034,
+        "mean_auc": 0.6067422161172161
+      },
+      {
+        "feature": "fast_loss_component",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.5446428571428571
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 1.0,
+          "normal_median": 0.0,
+          "auc": 0.5800137362637363
+        },
+        "stable_auc": 0.5446428571428571,
+        "mean_auc": 0.5623282967032968
+      },
+      {
+        "feature": "dd_worsen_6h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.01594023717955556,
+          "normal_median": 0.010298390122868595,
+          "auc": 0.5414377289377289
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.03084197877849726,
+          "normal_median": 0.027618466393600993,
+          "auc": 0.5518543956043956
+        },
+        "stable_auc": 0.5414377289377289,
+        "mean_auc": 0.5466460622710623
+      },
+      {
+        "feature": "drawdown_accel_component",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.529532967032967
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.5573489010989011
+        },
+        "stable_auc": 0.529532967032967,
+        "mean_auc": 0.5434409340659341
+      },
+      {
+        "feature": "dd_worsen_24h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.01617744206244054,
+          "normal_median": 0.007556289989381404,
+          "auc": 0.5501373626373627
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.019906470480552163,
+          "normal_median": 0.013958959977060148,
+          "auc": 0.529532967032967
+        },
+        "stable_auc": 0.529532967032967,
+        "mean_auc": 0.5398351648351649
+      },
+      {
+        "feature": "component_count",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.5010302197802198
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.611092032967033
+        },
+        "stable_auc": 0.5010302197802198,
+        "mean_auc": 0.5560611263736264
+      },
+      {
+        "feature": "market_median_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.019840901543269174,
+          "normal_median": 0.022302320334545128,
+          "auc": 0.47435897435897434
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.012287839809174167,
+          "normal_median": 0.017950401245865277,
+          "auc": 0.479739010989011
+        },
+        "stable_auc": 0.47435897435897434,
+        "mean_auc": 0.4770489926739927
+      },
+      {
+        "feature": "eth_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.019319459477668777,
+          "normal_median": 0.01947611472674643,
+          "auc": 0.4739010989010989
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.003801118137354731,
+          "normal_median": 0.01268390882907905,
+          "auc": 0.47802197802197804
+        },
+        "stable_auc": 0.4739010989010989,
+        "mean_auc": 0.47596153846153844
+      },
+      {
+        "feature": "eth_abs_weight",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.19710463765105887,
+          "normal_median": 0.18219590616923348,
+          "auc": 0.5821886446886447
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.3403934865500783,
+          "normal_median": 0.4170707314550709,
+          "auc": 0.4642857142857143
+        },
+        "stable_auc": 0.4642857142857143,
+        "mean_auc": 0.5232371794871795
+      },
+      {
+        "feature": "btc_loss_3h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.010118634892063494,
+          "normal_median": 0.011631291642459629,
+          "auc": 0.4584478021978022
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.009328984426492881,
+          "normal_median": 0.006706779990375278,
+          "auc": 0.5228365384615384
+        },
+        "stable_auc": 0.4584478021978022,
+        "mean_auc": 0.4906421703296703
+      },
+      {
+        "feature": "top1_share",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.5648543393596077,
+          "normal_median": 0.6263400354968209,
+          "auc": 0.4548992673992674
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.6170582596699693,
+          "normal_median": 0.6354121448247607,
+          "auc": 0.45879120879120877
+        },
+        "stable_auc": 0.4548992673992674,
+        "mean_auc": 0.4568452380952381
+      },
+      {
+        "feature": "btc_loss_6h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.014038880470608639,
+          "normal_median": 0.017769108086801377,
+          "auc": 0.4520375457875458
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.012372797440523498,
+          "normal_median": 0.01190973680077867,
+          "auc": 0.49828296703296704
+        },
+        "stable_auc": 0.4520375457875458,
+        "mean_auc": 0.4751602564102564
+      },
+      {
+        "feature": "breadth_negative_24h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.2517985611510791,
+          "normal_median": 0.28776978417266186,
+          "auc": 0.430746336996337
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.30935251798561153,
+          "normal_median": 0.31654676258992803,
+          "auc": 0.4369848901098901
+        },
+        "stable_auc": 0.430746336996337,
+        "mean_auc": 0.4338656135531136
+      },
+      {
+        "feature": "btc_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.03820406037467888,
+          "normal_median": 0.04706336626493951,
+          "auc": 0.4506639194139194
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.02115900177232688,
+          "normal_median": 0.03894855492689209,
+          "auc": 0.4251373626373626
+        },
+        "stable_auc": 0.4251373626373626,
+        "mean_auc": 0.437900641025641
+      },
+      {
+        "feature": "market_conflict_component",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.41369047619047616
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.0,
+          "normal_median": 0.0,
+          "auc": 0.47046703296703296
+        },
+        "stable_auc": 0.41369047619047616,
+        "mean_auc": 0.44207875457875456
+      },
+      {
+        "feature": "breadth_negative_6h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.1474820143884892,
+          "normal_median": 0.24820143884892087,
+          "auc": 0.4094551282051282
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.3057553956834532,
+          "normal_median": 0.3057553956834532,
+          "auc": 0.4922733516483517
+        },
+        "stable_auc": 0.4094551282051282,
+        "mean_auc": 0.45086423992673996
+      },
+      {
+        "feature": "parent_hedge_active",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.4024725274725275
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 1.0,
+          "normal_median": 1.0,
+          "auc": 0.4426510989010989
+        },
+        "stable_auc": 0.4024725274725275,
+        "mean_auc": 0.4225618131868132
+      },
+      {
+        "feature": "eth_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.004118664137361394,
+          "normal_median": 0.034209529033433106,
+          "auc": 0.39869505494505497
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.010271547927132363,
+          "normal_median": 0.04085590663528649,
+          "auc": 0.4258241758241758
+        },
+        "stable_auc": 0.39869505494505497,
+        "mean_auc": 0.4122596153846154
+      },
+      {
+        "feature": "eth_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.03936527742401075,
+          "normal_median": 0.05078849809967345,
+          "auc": 0.45821886446886445
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.026885238941811385,
+          "normal_median": 0.042869135496243826,
+          "auc": 0.39749313186813184
+        },
+        "stable_auc": 0.39749313186813184,
+        "mean_auc": 0.4278559981684982
+      },
+      {
+        "feature": "btc_loss_72h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.0049971716567020485,
+          "normal_median": 0.03228397281898987,
+          "auc": 0.39251373626373626
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.013378735757835436,
+          "normal_median": 0.02564322485413556,
+          "auc": 0.4409340659340659
+        },
+        "stable_auc": 0.39251373626373626,
+        "mean_auc": 0.4167239010989011
+      },
+      {
+        "feature": "cross_section_vol_1h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.007779692640162341,
+          "normal_median": 0.009033856111898629,
+          "auc": 0.4194139194139194
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.005517563518743227,
+          "normal_median": 0.007790977265661416,
+          "auc": 0.38186813186813184
+        },
+        "stable_auc": 0.38186813186813184,
+        "mean_auc": 0.40064102564102566
+      },
+      {
+        "feature": "market_median_loss_24h",
+        "train": {
+          "n": 206,
+          "events": 24,
+          "event_rate": 0.11650485436893204,
+          "event_median": 0.041155985454865374,
+          "normal_median": 0.05654021738023096,
+          "auc": 0.4393315018315018
+        },
+        "holdout": {
+          "n": 138,
+          "events": 26,
+          "event_rate": 0.18840579710144928,
+          "event_median": 0.02982618689780303,
+          "normal_median": 0.046255412552737046,
+          "auc": 0.37706043956043955
+        },
+        "stable_auc": 0.37706043956043955,
+        "mean_auc": 0.4081959706959707
+      }
+    ]
+  },
+  "threshold_stability": {
+    "deepen_7d_5pp:dominant_side_gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.7983260596488476,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.46153846153846156,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.2903225806451613,
+          "lift": 1.533498759305211
+        },
+        "holdout": {
+          "coverage": 0.5652173913043478,
+          "event_capture": 0.6666666666666666,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.28205128205128205,
+          "lift": 1.1794871794871795
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.9402306763453886,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.23076923076923078,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.21428571428571427,
+          "lift": 1.1318681318681318
+        },
+        "holdout": {
+          "coverage": 0.42028985507246375,
+          "event_capture": 0.5151515151515151,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.29310344827586204,
+          "lift": 1.2257053291536049
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.1318297363087373,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.1282051282051282,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.23809523809523808,
+          "lift": 1.2576312576312576
+        },
+        "holdout": {
+          "coverage": 0.2391304347826087,
+          "event_capture": 0.3939393939393939,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.3939393939393939,
+          "lift": 1.6473829201101928
+        }
+      }
+    ],
+    "deepen_7d_5pp:core_net_abs": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.526435278686176,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.38461538461538464,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.24193548387096775,
+          "lift": 1.2779156327543424
+        },
+        "holdout": {
+          "coverage": 0.6594202898550725,
+          "event_capture": 0.8484848484848485,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.3076923076923077,
+          "lift": 1.2867132867132867
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.6394893988807664,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.3076923076923077,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.2857142857142857,
+          "lift": 1.5091575091575091
+        },
+        "holdout": {
+          "coverage": 0.5434782608695652,
+          "event_capture": 0.7575757575757576,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.3333333333333333,
+          "lift": 1.3939393939393938
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.815626188870844,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.07692307692307693,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.14285714285714285,
+          "lift": 0.7545787545787546
+        },
+        "holdout": {
+          "coverage": 0.39855072463768115,
+          "event_capture": 0.45454545454545453,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.2727272727272727,
+          "lift": 1.140495867768595
+        }
+      }
+    ],
+    "deepen_7d_5pp:net_abs": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.7422719355798884,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.4358974358974359,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.27419354838709675,
+          "lift": 1.4483043837882545
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "event_capture": 0.6363636363636364,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.31343283582089554,
+          "lift": 1.310719131614654
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.8989138080248144,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.28205128205128205,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.2619047619047619,
+          "lift": 1.3833943833943834
+        },
+        "holdout": {
+          "coverage": 0.3695652173913043,
+          "event_capture": 0.48484848484848486,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.3137254901960784,
+          "lift": 1.3119429590017824
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.069419969588691,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.07692307692307693,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.14285714285714285,
+          "lift": 0.7545787545787546
+        },
+        "holdout": {
+          "coverage": 0.2246376811594203,
+          "event_capture": 0.3939393939393939,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.41935483870967744,
+          "lift": 1.7536656891495601
+        }
+      }
+    ],
+    "deepen_7d_5pp:gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.8665400278573461,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.4358974358974359,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.27419354838709675,
+          "lift": 1.4483043837882545
+        },
+        "holdout": {
+          "coverage": 0.6739130434782609,
+          "event_capture": 0.7575757575757576,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.26881720430107525,
+          "lift": 1.1241446725317692
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 1.0026615834699293,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.20512820512820512,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.19047619047619047,
+          "lift": 1.006105006105006
+        },
+        "holdout": {
+          "coverage": 0.5289855072463768,
+          "event_capture": 0.6666666666666666,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.3013698630136986,
+          "lift": 1.2602739726027397
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.2000000000000002,
+        "train": {
+          "coverage": 0.10679611650485436,
+          "event_capture": 0.1282051282051282,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.22727272727272727,
+          "lift": 1.2004662004662003
+        },
+        "holdout": {
+          "coverage": 0.38405797101449274,
+          "event_capture": 0.5757575757575758,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.3584905660377358,
+          "lift": 1.4991423670668953
+        }
+      }
+    ],
+    "deepen_7d_5pp:core_gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.6075003351099787,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.38461538461538464,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.24193548387096775,
+          "lift": 1.2779156327543424
+        },
+        "holdout": {
+          "coverage": 0.717391304347826,
+          "event_capture": 0.8787878787878788,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.29292929292929293,
+          "lift": 1.2249770431588614
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.7152306763453886,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.20512820512820512,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.19047619047619047,
+          "lift": 1.006105006105006
+        },
+        "holdout": {
+          "coverage": 0.5797101449275363,
+          "event_capture": 0.696969696969697,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.2875,
+          "lift": 1.2022727272727272
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.9126406738593036,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.07692307692307693,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.14285714285714285,
+          "lift": 0.7545787545787546
+        },
+        "holdout": {
+          "coverage": 0.37681159420289856,
+          "event_capture": 0.45454545454545453,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.28846153846153844,
+          "lift": 1.2062937062937062
+        }
+      }
+    ],
+    "deepen_7d_5pp:btc_abs_weight": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.29369572348357936,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.41025641025641024,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.25806451612903225,
+          "lift": 1.3631100082712986
+        },
+        "holdout": {
+          "coverage": 0.427536231884058,
+          "event_capture": 0.48484848484848486,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.2711864406779661,
+          "lift": 1.1340523882896765
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.3999673898734972,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.3076923076923077,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.2857142857142857,
+          "lift": 1.5091575091575091
+        },
+        "holdout": {
+          "coverage": 0.34782608695652173,
+          "event_capture": 0.3939393939393939,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.2708333333333333,
+          "lift": 1.1325757575757576
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.5784708223111686,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.1282051282051282,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.23809523809523808,
+          "lift": 1.2576312576312576
+        },
+        "holdout": {
+          "coverage": 0.2971014492753623,
+          "event_capture": 0.36363636363636365,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.2926829268292683,
+          "lift": 1.2239467849223946
+        }
+      }
+    ],
+    "deepen_14d_8pp:net_abs": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.7422719355798884,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.1774193548387097,
+          "lift": 1.6612903225806452
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "event_capture": 0.7391304347826086,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2537313432835821,
+          "lift": 1.5223880597014927
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.8989138080248144,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.3181818181818182,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.16666666666666666,
+          "lift": 1.5606060606060606
+        },
+        "holdout": {
+          "coverage": 0.3695652173913043,
+          "event_capture": 0.5652173913043478,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2549019607843137,
+          "lift": 1.5294117647058822
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.069419969588691,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.09090909090909091,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.09523809523809523,
+          "lift": 0.8917748917748918
+        },
+        "holdout": {
+          "coverage": 0.2246376811594203,
+          "event_capture": 0.43478260869565216,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.3225806451612903,
+          "lift": 1.935483870967742
+        }
+      }
+    ],
+    "deepen_14d_8pp:dominant_side_gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.7983260596488476,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5454545454545454,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.1935483870967742,
+          "lift": 1.812316715542522
+        },
+        "holdout": {
+          "coverage": 0.5652173913043478,
+          "event_capture": 0.7391304347826086,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.21794871794871795,
+          "lift": 1.3076923076923077
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.9402306763453886,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.2727272727272727,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.3376623376623376
+        },
+        "holdout": {
+          "coverage": 0.42028985507246375,
+          "event_capture": 0.6086956521739131,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2413793103448276,
+          "lift": 1.4482758620689657
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.1318297363087373,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.13636363636363635,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.3376623376623376
+        },
+        "holdout": {
+          "coverage": 0.2391304347826087,
+          "event_capture": 0.4782608695652174,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.3333333333333333,
+          "lift": 2.0
+        }
+      }
+    ],
+    "deepen_14d_8pp:core_net_abs": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.526435278686176,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.4090909090909091,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.14516129032258066,
+          "lift": 1.3592375366568916
+        },
+        "holdout": {
+          "coverage": 0.6594202898550725,
+          "event_capture": 0.9565217391304348,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.24175824175824176,
+          "lift": 1.4505494505494507
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.6394893988807664,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.3181818181818182,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.16666666666666666,
+          "lift": 1.5606060606060606
+        },
+        "holdout": {
+          "coverage": 0.5434782608695652,
+          "event_capture": 0.8695652173913043,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.26666666666666666,
+          "lift": 1.6
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.815626188870844,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.09090909090909091,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.09523809523809523,
+          "lift": 0.8917748917748918
+        },
+        "holdout": {
+          "coverage": 0.39855072463768115,
+          "event_capture": 0.6521739130434783,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2727272727272727,
+          "lift": 1.6363636363636362
+        }
+      }
+    ],
+    "deepen_14d_8pp:gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.8665400278573461,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.1774193548387097,
+          "lift": 1.6612903225806452
+        },
+        "holdout": {
+          "coverage": 0.6739130434782609,
+          "event_capture": 0.8260869565217391,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.20430107526881722,
+          "lift": 1.2258064516129035
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 1.0026615834699293,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.22727272727272727,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.11904761904761904,
+          "lift": 1.1147186147186148
+        },
+        "holdout": {
+          "coverage": 0.5289855072463768,
+          "event_capture": 0.7391304347826086,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2328767123287671,
+          "lift": 1.3972602739726028
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.2000000000000002,
+        "train": {
+          "coverage": 0.10679611650485436,
+          "event_capture": 0.13636363636363635,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.13636363636363635,
+          "lift": 1.2768595041322315
+        },
+        "holdout": {
+          "coverage": 0.38405797101449274,
+          "event_capture": 0.6521739130434783,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2830188679245283,
+          "lift": 1.6981132075471699
+        }
+      }
+    ],
+    "deepen_14d_8pp:core_gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.6075003351099787,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.1774193548387097,
+          "lift": 1.6612903225806452
+        },
+        "holdout": {
+          "coverage": 0.717391304347826,
+          "event_capture": 0.9130434782608695,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.21212121212121213,
+          "lift": 1.272727272727273
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.7152306763453886,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.22727272727272727,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.11904761904761904,
+          "lift": 1.1147186147186148
+        },
+        "holdout": {
+          "coverage": 0.5797101449275363,
+          "event_capture": 0.6956521739130435,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2,
+          "lift": 1.2000000000000002
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.9126406738593036,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.13636363636363635,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.3376623376623376
+        },
+        "holdout": {
+          "coverage": 0.37681159420289856,
+          "event_capture": 0.4782608695652174,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.21153846153846154,
+          "lift": 1.2692307692307694
+        }
+      }
+    ],
+    "deepen_14d_8pp:btc_abs_weight": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.29369572348357936,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.4090909090909091,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.14516129032258066,
+          "lift": 1.3592375366568916
+        },
+        "holdout": {
+          "coverage": 0.427536231884058,
+          "event_capture": 0.5217391304347826,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.2033898305084746,
+          "lift": 1.2203389830508475
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.3999673898734972,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.2727272727272727,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.3376623376623376
+        },
+        "holdout": {
+          "coverage": 0.34782608695652173,
+          "event_capture": 0.43478260869565216,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.20833333333333334,
+          "lift": 1.2500000000000002
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.5784708223111686,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.09090909090909091,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.09523809523809523,
+          "lift": 0.8917748917748918
+        },
+        "holdout": {
+          "coverage": 0.2971014492753623,
+          "event_capture": 0.391304347826087,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.21951219512195122,
+          "lift": 1.3170731707317074
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:dd_depth": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.11412194082936811,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.875,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.3387096774193548,
+          "lift": 2.9072580645161286
+        },
+        "holdout": {
+          "coverage": 0.43478260869565216,
+          "event_capture": 1.0,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.43333333333333335,
+          "lift": 2.3
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.13089188607086433,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.75,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.42857142857142855,
+          "lift": 3.6785714285714284
+        },
+        "holdout": {
+          "coverage": 0.3333333333333333,
+          "event_capture": 0.9615384615384616,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.5434782608695652,
+          "lift": 2.8846153846153846
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.15557027115555616,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.75,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.8571428571428571,
+          "lift": 7.357142857142857
+        },
+        "holdout": {
+          "coverage": 0.2028985507246377,
+          "event_capture": 0.8076923076923077,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.75,
+          "lift": 3.980769230769231
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.8665400278573461,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.6666666666666666,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.25806451612903225,
+          "lift": 2.21505376344086
+        },
+        "holdout": {
+          "coverage": 0.6739130434782609,
+          "event_capture": 0.9230769230769231,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.25806451612903225,
+          "lift": 1.3697270471464018
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 1.0026615834699293,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.4583333333333333,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.2619047619047619,
+          "lift": 2.248015873015873
+        },
+        "holdout": {
+          "coverage": 0.5289855072463768,
+          "event_capture": 0.6538461538461539,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2328767123287671,
+          "lift": 1.2360379346680717
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.2000000000000002,
+        "train": {
+          "coverage": 0.10679611650485436,
+          "event_capture": 0.2916666666666667,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.3181818181818182,
+          "lift": 2.731060606060606
+        },
+        "holdout": {
+          "coverage": 0.38405797101449274,
+          "event_capture": 0.5384615384615384,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2641509433962264,
+          "lift": 1.4020319303338171
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:dominant_side_gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.7983260596488476,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5833333333333334,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.22580645161290322,
+          "lift": 1.9381720430107525
+        },
+        "holdout": {
+          "coverage": 0.5652173913043478,
+          "event_capture": 0.8076923076923077,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2692307692307692,
+          "lift": 1.4289940828402365
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.9402306763453886,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.4583333333333333,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.2619047619047619,
+          "lift": 2.248015873015873
+        },
+        "holdout": {
+          "coverage": 0.42028985507246375,
+          "event_capture": 0.5769230769230769,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.25862068965517243,
+          "lift": 1.3726790450928383
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.1318297363087373,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.25,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.2857142857142857,
+          "lift": 2.452380952380952
+        },
+        "holdout": {
+          "coverage": 0.2391304347826087,
+          "event_capture": 0.34615384615384615,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2727272727272727,
+          "lift": 1.4475524475524475
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:equity_loss_12h": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.0260184994433989,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.4166666666666667,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.16129032258064516,
+          "lift": 1.3844086021505375
+        },
+        "holdout": {
+          "coverage": 0.34782608695652173,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2708333333333333,
+          "lift": 1.4374999999999998
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.034239634931802265,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.20833333333333334,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.11904761904761904,
+          "lift": 1.0218253968253967
+        },
+        "holdout": {
+          "coverage": 0.2246376811594203,
+          "event_capture": 0.38461538461538464,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.3225806451612903,
+          "lift": 1.7121588089330024
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.04154408835068696,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.16666666666666666,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.19047619047619047,
+          "lift": 1.6349206349206349
+        },
+        "holdout": {
+          "coverage": 0.14492753623188406,
+          "event_capture": 0.2692307692307692,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.35,
+          "lift": 1.8576923076923075
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:core_gross": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.6075003351099787,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.625,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.24193548387096775,
+          "lift": 2.0766129032258065
+        },
+        "holdout": {
+          "coverage": 0.717391304347826,
+          "event_capture": 0.8076923076923077,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.21212121212121213,
+          "lift": 1.1258741258741258
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.7152306763453886,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.4166666666666667,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.23809523809523808,
+          "lift": 2.0436507936507935
+        },
+        "holdout": {
+          "coverage": 0.5797101449275363,
+          "event_capture": 0.7692307692307693,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.25,
+          "lift": 1.3269230769230769
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.9126406738593036,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.2916666666666667,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.3333333333333333,
+          "lift": 2.8611111111111107
+        },
+        "holdout": {
+          "coverage": 0.37681159420289856,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.25,
+          "lift": 1.3269230769230769
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:core_net_abs": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.526435278686176,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5416666666666666,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.20967741935483872,
+          "lift": 1.799731182795699
+        },
+        "holdout": {
+          "coverage": 0.6594202898550725,
+          "event_capture": 0.7692307692307693,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.21978021978021978,
+          "lift": 1.1665257819103974
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.6394893988807664,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.3333333333333333,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.19047619047619047,
+          "lift": 1.6349206349206349
+        },
+        "holdout": {
+          "coverage": 0.5434782608695652,
+          "event_capture": 0.6153846153846154,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.21333333333333335,
+          "lift": 1.1323076923076925
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.815626188870844,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.2916666666666667,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.3333333333333333,
+          "lift": 2.8611111111111107
+        },
+        "holdout": {
+          "coverage": 0.39855072463768115,
+          "event_capture": 0.5384615384615384,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2545454545454545,
+          "lift": 1.351048951048951
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:equity_loss_6h": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.0340089606221643,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.375,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14516129032258066,
+          "lift": 1.245967741935484
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "event_capture": 0.6153846153846154,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.23880597014925373,
+          "lift": 1.267508610792193
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.037720059430031094,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.25,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.226190476190476
+        },
+        "holdout": {
+          "coverage": 0.3115942028985507,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.3023255813953488,
+          "lift": 1.6046511627906976
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.04261889523849971,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.125,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.226190476190476
+        },
+        "holdout": {
+          "coverage": 0.18840579710144928,
+          "event_capture": 0.38461538461538464,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.38461538461538464,
+          "lift": 2.0414201183431953
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:equity_loss_24h": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.02323191049593759,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.375,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14516129032258066,
+          "lift": 1.245967741935484
+        },
+        "holdout": {
+          "coverage": 0.39855072463768115,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.23636363636363636,
+          "lift": 1.2545454545454544
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.0373730400433081,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.25,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.226190476190476
+        },
+        "holdout": {
+          "coverage": 0.2463768115942029,
+          "event_capture": 0.38461538461538464,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.29411764705882354,
+          "lift": 1.5610859728506787
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.051804452010172475,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.16666666666666666,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.19047619047619047,
+          "lift": 1.6349206349206349
+        },
+        "holdout": {
+          "coverage": 0.16666666666666666,
+          "event_capture": 0.3076923076923077,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.34782608695652173,
+          "lift": 1.846153846153846
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:btc_abs_weight": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.29369572348357936,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.4583333333333333,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.1774193548387097,
+          "lift": 1.5228494623655915
+        },
+        "holdout": {
+          "coverage": 0.427536231884058,
+          "event_capture": 0.5384615384615384,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.23728813559322035,
+          "lift": 1.259452411994785
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.3999673898734972,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.4166666666666667,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.23809523809523808,
+          "lift": 2.0436507936507935
+        },
+        "holdout": {
+          "coverage": 0.34782608695652173,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2708333333333333,
+          "lift": 1.4374999999999998
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.5784708223111686,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.20833333333333334,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.23809523809523808,
+          "lift": 2.0436507936507935
+        },
+        "holdout": {
+          "coverage": 0.2971014492753623,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.3170731707317073,
+          "lift": 1.6829268292682926
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:net_abs": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.7422719355798884,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.5416666666666666,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.20967741935483872,
+          "lift": 1.799731182795699
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "event_capture": 0.6538461538461539,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2537313432835821,
+          "lift": 1.3467278989667049
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.8989138080248144,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.3333333333333333,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.19047619047619047,
+          "lift": 1.6349206349206349
+        },
+        "holdout": {
+          "coverage": 0.3695652173913043,
+          "event_capture": 0.5769230769230769,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.29411764705882354,
+          "lift": 1.5610859728506787
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 1.069419969588691,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.125,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.226190476190476
+        },
+        "holdout": {
+          "coverage": 0.2246376811594203,
+          "event_capture": 0.15384615384615385,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.12903225806451613,
+          "lift": 0.6848635235732009
+        }
+      }
+    ],
+    "hit_20pct_dd_14d:equity_loss_3h": [
+      {
+        "quantile": 0.7,
+        "threshold": 0.017777662834976893,
+        "train": {
+          "coverage": 0.30097087378640774,
+          "event_capture": 0.375,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14516129032258066,
+          "lift": 1.245967741935484
+        },
+        "holdout": {
+          "coverage": 0.427536231884058,
+          "event_capture": 0.5,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.22033898305084745,
+          "lift": 1.1694915254237288
+        }
+      },
+      {
+        "quantile": 0.8,
+        "threshold": 0.028051025250969586,
+        "train": {
+          "coverage": 0.20388349514563106,
+          "event_capture": 0.25,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.226190476190476
+        },
+        "holdout": {
+          "coverage": 0.2971014492753623,
+          "event_capture": 0.38461538461538464,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.24390243902439024,
+          "lift": 1.294559099437148
+        }
+      },
+      {
+        "quantile": 0.9,
+        "threshold": 0.03597891630784372,
+        "train": {
+          "coverage": 0.10194174757281553,
+          "event_capture": 0.125,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14285714285714285,
+          "lift": 1.226190476190476
+        },
+        "holdout": {
+          "coverage": 0.17391304347826086,
+          "event_capture": 0.2692307692307692,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.2916666666666667,
+          "lift": 1.5480769230769231
+        }
+      }
+    ]
+  },
+  "component_tests": {
+    "deepen_7d_5pp": [
+      {
+        "name": "fast_loss",
+        "train": {
+          "coverage": 0.2961165048543689,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.22950819672131148,
+          "lift": 1.2122740647330812,
+          "events": 61
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.23880597014925373,
+          "lift": 0.9986431478968792,
+          "events": 67
+        }
+      },
+      {
+        "name": "drawdown_accel",
+        "train": {
+          "coverage": 0.07281553398058252,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.13333333333333333,
+          "lift": 0.7042735042735042,
+          "events": 15
+        },
+        "holdout": {
+          "coverage": 0.13768115942028986,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.10526315789473684,
+          "lift": 0.4401913875598086,
+          "events": 19
+        }
+      },
+      {
+        "name": "market_conflict",
+        "train": {
+          "coverage": 0.6941747572815534,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.18181818181818182,
+          "lift": 0.9603729603729604,
+          "events": 143
+        },
+        "holdout": {
+          "coverage": 0.47101449275362317,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.27692307692307694,
+          "lift": 1.158041958041958,
+          "events": 65
+        }
+      },
+      {
+        "name": "two_or_more_components",
+        "train": {
+          "coverage": 0.038834951456310676,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.25,
+          "lift": 1.3205128205128205,
+          "events": 8
+        },
+        "holdout": {
+          "coverage": 0.08695652173913043,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.25,
+          "lift": 1.0454545454545454,
+          "events": 12
+        }
+      },
+      {
+        "name": "all_three_components",
+        "train": {
+          "coverage": 0.024271844660194174,
+          "base_rate": 0.18932038834951456,
+          "gated_rate": 0.2,
+          "lift": 1.0564102564102564,
+          "events": 5
+        },
+        "holdout": {
+          "coverage": 0.007246376811594203,
+          "base_rate": 0.2391304347826087,
+          "gated_rate": 0.0,
+          "lift": 0.0,
+          "events": 1
+        }
+      }
+    ],
+    "deepen_14d_8pp": [
+      {
+        "name": "fast_loss",
+        "train": {
+          "coverage": 0.2961165048543689,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.16393442622950818,
+          "lift": 1.535022354694486,
+          "events": 61
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.1791044776119403,
+          "lift": 1.0746268656716418,
+          "events": 67
+        }
+      },
+      {
+        "name": "drawdown_accel",
+        "train": {
+          "coverage": 0.07281553398058252,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.0,
+          "lift": 0.0,
+          "events": 15
+        },
+        "holdout": {
+          "coverage": 0.13768115942028986,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.10526315789473684,
+          "lift": 0.631578947368421,
+          "events": 19
+        }
+      },
+      {
+        "name": "market_conflict",
+        "train": {
+          "coverage": 0.6941747572815534,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.09090909090909091,
+          "lift": 0.8512396694214877,
+          "events": 143
+        },
+        "holdout": {
+          "coverage": 0.47101449275362317,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.16923076923076924,
+          "lift": 1.0153846153846156,
+          "events": 65
+        }
+      },
+      {
+        "name": "two_or_more_components",
+        "train": {
+          "coverage": 0.038834951456310676,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.125,
+          "lift": 1.1704545454545454,
+          "events": 8
+        },
+        "holdout": {
+          "coverage": 0.08695652173913043,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.16666666666666666,
+          "lift": 1.0,
+          "events": 12
+        }
+      },
+      {
+        "name": "all_three_components",
+        "train": {
+          "coverage": 0.024271844660194174,
+          "base_rate": 0.10679611650485436,
+          "gated_rate": 0.0,
+          "lift": 0.0,
+          "events": 5
+        },
+        "holdout": {
+          "coverage": 0.007246376811594203,
+          "base_rate": 0.16666666666666666,
+          "gated_rate": 0.0,
+          "lift": 0.0,
+          "events": 1
+        }
+      }
+    ],
+    "hit_20pct_dd_14d": [
+      {
+        "name": "fast_loss",
+        "train": {
+          "coverage": 0.2961165048543689,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.14754098360655737,
+          "lift": 1.2663934426229508,
+          "events": 61
+        },
+        "holdout": {
+          "coverage": 0.4855072463768116,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.23880597014925373,
+          "lift": 1.267508610792193,
+          "events": 67
+        }
+      },
+      {
+        "name": "drawdown_accel",
+        "train": {
+          "coverage": 0.07281553398058252,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.2,
+          "lift": 1.7166666666666668,
+          "events": 15
+        },
+        "holdout": {
+          "coverage": 0.13768115942028986,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.3157894736842105,
+          "lift": 1.6761133603238865,
+          "events": 19
+        }
+      },
+      {
+        "name": "market_conflict",
+        "train": {
+          "coverage": 0.6941747572815534,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.09090909090909091,
+          "lift": 0.7803030303030303,
+          "events": 143
+        },
+        "holdout": {
+          "coverage": 0.47101449275362317,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.16923076923076924,
+          "lift": 0.898224852071006,
+          "events": 65
+        }
+      },
+      {
+        "name": "two_or_more_components",
+        "train": {
+          "coverage": 0.038834951456310676,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.125,
+          "lift": 1.0729166666666667,
+          "events": 8
+        },
+        "holdout": {
+          "coverage": 0.08695652173913043,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.5833333333333334,
+          "lift": 3.0961538461538463,
+          "events": 12
+        }
+      },
+      {
+        "name": "all_three_components",
+        "train": {
+          "coverage": 0.024271844660194174,
+          "base_rate": 0.11650485436893204,
+          "gated_rate": 0.0,
+          "lift": 0.0,
+          "events": 5
+        },
+        "holdout": {
+          "coverage": 0.007246376811594203,
+          "base_rate": 0.18840579710144928,
+          "gated_rate": 0.0,
+          "lift": 0.0,
+          "events": 1
+        }
+      }
+    ]
+  },
+  "disclosure": "Diagnostic only. Every feature is known at the medium-state entry timestamp. Future equity is used only for event labels. Any defensive action must be tested prospectively in a separate revision.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 142,
+    "ready_universe_size": 139,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bull",
+    "allocated_opportunity_gross": 0.0
+  }
+}
