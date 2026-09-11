@@ -6,25 +6,25 @@
   "candidate_version": "v99-frozen-r16-2026-09-06",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-06T22:00:00+00:00",
-  "latest_data_timestamp": "2026-09-11T03:00:00+00:00",
+  "latest_data_timestamp": "2026-09-11T04:00:00+00:00",
   "summary": {
-    "new_forward_hours": 101,
-    "net_result_brl": -518.16,
-    "current_capital_brl": 9481.84,
+    "new_forward_hours": 102,
+    "net_result_brl": -514.38,
+    "current_capital_brl": 9485.62,
     "highest_capital_brl": 10052.49,
     "lowest_capital_brl": 9474.86,
-    "forward_return_pct": -5.181599
+    "forward_return_pct": -5.143806
   },
   "assets": {
     "BTCUSDT": {
       "direction": "buy",
-      "current_weight": 0.03129419,
-      "position_value_brl": 296.73
+      "current_weight": 0.03137377,
+      "position_value_brl": 297.6
     },
     "ETHUSDT": {
       "direction": "buy",
-      "current_weight": 0.06451491,
-      "position_value_brl": 611.72
+      "current_weight": 0.06494652,
+      "position_value_brl": 616.06
     }
   },
   "equity_curve": [
@@ -639,13 +639,19 @@
       "equity_multiple": 0.948184006,
       "capital_brl": 9481.84,
       "hour_result_brl": 0.27
+    },
+    {
+      "timestamp": "2026-09-11T04:00:00+00:00",
+      "equity_multiple": 0.9485619398,
+      "capital_brl": 9485.62,
+      "hour_result_brl": 3.78
     }
   ],
   "composite": {
     "architecture": "V16 core + consensus-gated persistent alpha satellite",
-    "satellite_realized_weight": 0.03396173,
-    "satellite_target_weight": 0.03333333,
-    "consensus_vote_fraction": 0.66666667,
+    "satellite_realized_weight": 0.03408345,
+    "satellite_target_weight": 0.06666667,
+    "consensus_vote_fraction": 0.83333333,
     "maximum_satellite_weight": 0.1,
     "rebalance_hours": 720,
     "note": "Core and alpha sleeves retain independent backtest state; transfer costs are embedded in the composite equity curve."
