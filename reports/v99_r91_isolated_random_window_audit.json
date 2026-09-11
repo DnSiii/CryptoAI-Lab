@@ -1,0 +1,834 @@
+{
+  "study": "V99 R91 isolated random-window audit of frozen R88",
+  "status": "DIAGNOSTIC_ONLY_NO_PROMOTION_AND_NO_PARAMETER_SELECTION",
+  "objective": "repeat R90 random-window consistency as isolated replays that restart state inside each sampled window, using the unchanged R88 threshold/scale and the same >=60% return-win criterion",
+  "frozen_r88": {
+    "threshold": 0.03360248266113066,
+    "scale": 1.1,
+    "decision_cadence_hours": 24,
+    "hold_hours": 24
+  },
+  "sampling": {
+    "seed": 99091,
+    "durations_days": [
+      30,
+      90,
+      180,
+      365
+    ],
+    "samples_per_duration": 8,
+    "candidate_starts": "every 24 hourly rows; deterministic random sample without replacement",
+    "state_policy": "each replay uses the same isolated-slice method as prior V99 horizon validation; no inherited equity/positions from before the sampled window"
+  },
+  "audits": {
+    "30": {
+      "days": 30,
+      "samples": 8,
+      "return_win_rate": 0.75,
+      "dd_win_rate": 0.375,
+      "worst_day_win_rate": 0.5,
+      "strict_triplet_win_rate": 0.375,
+      "median_wealth_ratio": 1.0008234961872147,
+      "p10_wealth_ratio": 0.9921822366717252,
+      "p90_wealth_ratio": 1.008502975398698,
+      "windows": [
+        {
+          "start": "2020-01-02T00:00:00+00:00",
+          "end": "2020-02-01T00:00:00+00:00",
+          "candidate": {
+            "return": 0.0,
+            "max_drawdown": 0.0,
+            "best_day": 0.0,
+            "worst_day": 0.0,
+            "positive_days": 0.0
+          },
+          "parent_r73": {
+            "return": 0.0,
+            "max_drawdown": 0.0,
+            "best_day": 0.0,
+            "worst_day": 0.0,
+            "positive_days": 0.0
+          },
+          "wealth_ratio": 1.0,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2020-03-23T00:00:00+00:00",
+          "end": "2020-04-22T00:00:00+00:00",
+          "candidate": {
+            "return": -0.03452505226624669,
+            "max_drawdown": -0.06459179319060904,
+            "best_day": 0.01724390263730191,
+            "worst_day": -0.027241458622705328,
+            "positive_days": 0.5333333333333333
+          },
+          "parent_r73": {
+            "return": -0.03452505226624669,
+            "max_drawdown": -0.06459179319060904,
+            "best_day": 0.01724390263730191,
+            "worst_day": -0.027241458622705328,
+            "positive_days": 0.5333333333333333
+          },
+          "wealth_ratio": 1.0,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2020-07-01T00:00:00+00:00",
+          "end": "2020-07-31T00:00:00+00:00",
+          "candidate": {
+            "return": 0.03843139319504707,
+            "max_drawdown": -0.1896420736786818,
+            "best_day": 0.05532929152190258,
+            "worst_day": -0.03930329921114806,
+            "positive_days": 0.4
+          },
+          "parent_r73": {
+            "return": 0.03148499781467051,
+            "max_drawdown": -0.1896420736786818,
+            "best_day": 0.050195252845855354,
+            "worst_day": -0.03930329921114806,
+            "positive_days": 0.4
+          },
+          "wealth_ratio": 1.0067343639462458,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2020-07-30T00:00:00+00:00",
+          "end": "2020-08-29T00:00:00+00:00",
+          "candidate": {
+            "return": 0.194098936233837,
+            "max_drawdown": -0.1275393977940743,
+            "best_day": 0.10606432604847948,
+            "worst_day": -0.05945914911046746,
+            "positive_days": 0.5
+          },
+          "parent_r73": {
+            "return": 0.20794923357373452,
+            "max_drawdown": -0.11599234635637379,
+            "best_day": 0.10606432604847948,
+            "worst_day": -0.0530888701027421,
+            "positive_days": 0.5
+          },
+          "wealth_ratio": 0.9885340402105135,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2023-07-09T00:00:00+00:00",
+          "end": "2023-08-08T00:00:00+00:00",
+          "candidate": {
+            "return": -0.1368089011580117,
+            "max_drawdown": -0.20453751199097714,
+            "best_day": 0.07571256313538477,
+            "worst_day": -0.06854020981504061,
+            "positive_days": 0.36666666666666664
+          },
+          "parent_r73": {
+            "return": -0.13822823268727424,
+            "max_drawdown": -0.20017666304115622,
+            "best_day": 0.07571256313538477,
+            "worst_day": -0.06194796450369322,
+            "positive_days": 0.3333333333333333
+          },
+          "wealth_ratio": 1.0016469923744293,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2024-10-28T00:00:00+00:00",
+          "end": "2024-11-27T00:00:00+00:00",
+          "candidate": {
+            "return": 0.4623849044513224,
+            "max_drawdown": -0.10518467680970955,
+            "best_day": 0.12948636521308954,
+            "worst_day": -0.056731374849413374,
+            "positive_days": 0.5333333333333333
+          },
+          "parent_r73": {
+            "return": 0.4441457259746311,
+            "max_drawdown": -0.10023285909835411,
+            "best_day": 0.11726677355832482,
+            "worst_day": -0.051787692338160385,
+            "positive_days": 0.5333333333333333
+          },
+          "wealth_ratio": 1.0126297354544203,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2024-12-21T00:00:00+00:00",
+          "end": "2025-01-20T00:00:00+00:00",
+          "candidate": {
+            "return": -0.037140840883545634,
+            "max_drawdown": -0.09346883265396533,
+            "best_day": 0.04051827209122649,
+            "worst_day": -0.051334344712331115,
+            "positive_days": 0.4666666666666667
+          },
+          "parent_r73": {
+            "return": -0.031080978551849436,
+            "max_drawdown": -0.0877634768690655,
+            "best_day": 0.04026901342884259,
+            "worst_day": -0.051334344712331115,
+            "positive_days": 0.4666666666666667
+          },
+          "wealth_ratio": 0.993745749440816,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2025-07-31T00:00:00+00:00",
+          "end": "2025-08-30T00:00:00+00:00",
+          "candidate": {
+            "return": 0.11504435985173855,
+            "max_drawdown": -0.08699424447844895,
+            "best_day": 0.09850905247802055,
+            "worst_day": -0.04905414435547517,
+            "positive_days": 0.6333333333333333
+          },
+          "parent_r73": {
+            "return": 0.11023167534275946,
+            "max_drawdown": -0.08150184787591597,
+            "best_day": 0.08928540732030465,
+            "worst_day": -0.044587238763052484,
+            "positive_days": 0.6
+          },
+          "wealth_ratio": 1.0043348470556772,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        }
+      ]
+    },
+    "90": {
+      "days": 90,
+      "samples": 8,
+      "return_win_rate": 0.625,
+      "dd_win_rate": 0.125,
+      "worst_day_win_rate": 0.25,
+      "strict_triplet_win_rate": 0.0,
+      "median_wealth_ratio": 1.0082003785815208,
+      "p10_wealth_ratio": 0.9955300532435063,
+      "p90_wealth_ratio": 1.02370997461199,
+      "windows": [
+        {
+          "start": "2020-01-07T00:00:00+00:00",
+          "end": "2020-04-06T00:00:00+00:00",
+          "candidate": {
+            "return": 0.6893848480660587,
+            "max_drawdown": -0.1191718547483438,
+            "best_day": 0.13483004313574143,
+            "worst_day": -0.0594369633628441,
+            "positive_days": 0.43333333333333335
+          },
+          "parent_r73": {
+            "return": 0.6683036940144198,
+            "max_drawdown": -0.11000488502731176,
+            "best_day": 0.13483004313574298,
+            "worst_day": -0.057681766331261985,
+            "positive_days": 0.43333333333333335
+          },
+          "wealth_ratio": 1.0126362808685698,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2021-06-28T00:00:00+00:00",
+          "end": "2021-09-26T00:00:00+00:00",
+          "candidate": {
+            "return": 0.18711711469438375,
+            "max_drawdown": -0.20286717803562282,
+            "best_day": 0.06622812368715802,
+            "worst_day": -0.11549756686295398,
+            "positive_days": 0.4777777777777778
+          },
+          "parent_r73": {
+            "return": 0.18266500033631594,
+            "max_drawdown": -0.20286717803562038,
+            "best_day": 0.06559907058732528,
+            "worst_day": -0.1152191437432517,
+            "positive_days": 0.4888888888888889
+          },
+          "wealth_ratio": 1.003764476294472,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-01-10T00:00:00+00:00",
+          "end": "2022-04-10T00:00:00+00:00",
+          "candidate": {
+            "return": 0.11214026604723215,
+            "max_drawdown": -0.21423724524354848,
+            "best_day": 0.12729456724841315,
+            "worst_day": -0.06937714553835406,
+            "positive_days": 0.4444444444444444
+          },
+          "parent_r73": {
+            "return": 0.11693208895647245,
+            "max_drawdown": -0.19832329588624298,
+            "best_day": 0.11491721288853407,
+            "worst_day": -0.06937714553835372,
+            "positive_days": 0.4444444444444444
+          },
+          "wealth_ratio": 0.9957098350413432,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-11-11T00:00:00+00:00",
+          "end": "2023-02-09T00:00:00+00:00",
+          "candidate": {
+            "return": 0.21051726577511953,
+            "max_drawdown": -0.2101373723797788,
+            "best_day": 0.09526600562093246,
+            "worst_day": -0.04332300058113325,
+            "positive_days": 0.4666666666666667
+          },
+          "parent_r73": {
+            "return": 0.18218141899676765,
+            "max_drawdown": -0.2101373723797788,
+            "best_day": 0.08666952313742327,
+            "worst_day": -0.04332300058113314,
+            "positive_days": 0.4666666666666667
+          },
+          "wealth_ratio": 1.0239691187181732,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-12-28T00:00:00+00:00",
+          "end": "2023-03-28T00:00:00+00:00",
+          "candidate": {
+            "return": 0.35879317290360513,
+            "max_drawdown": -0.15853493913614847,
+            "best_day": 0.10358198871509638,
+            "worst_day": -0.05584100398908298,
+            "positive_days": 0.4666666666666667
+          },
+          "parent_r73": {
+            "return": 0.32746640880792777,
+            "max_drawdown": -0.15799769421252363,
+            "best_day": 0.09425593462322923,
+            "worst_day": -0.05584100398908254,
+            "positive_days": 0.4666666666666667
+          },
+          "wealth_ratio": 1.0235989128521972,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2023-03-21T00:00:00+00:00",
+          "end": "2023-06-19T00:00:00+00:00",
+          "candidate": {
+            "return": -0.22802108191183101,
+            "max_drawdown": -0.28078237438990916,
+            "best_day": 0.06411401395322125,
+            "worst_day": -0.10749974253570649,
+            "positive_days": 0.4444444444444444
+          },
+          "parent_r73": {
+            "return": -0.22422799307810803,
+            "max_drawdown": -0.2792202412976156,
+            "best_day": 0.06411401395322036,
+            "worst_day": -0.10749974253570671,
+            "positive_days": 0.4444444444444444
+          },
+          "wealth_ratio": 0.9951105623818869,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2024-05-14T00:00:00+00:00",
+          "end": "2024-08-12T00:00:00+00:00",
+          "candidate": {
+            "return": 0.3373875782728091,
+            "max_drawdown": -0.1568467832562387,
+            "best_day": 0.14934368722155145,
+            "worst_day": -0.06056936062841434,
+            "positive_days": 0.4888888888888889
+          },
+          "parent_r73": {
+            "return": 0.3401236099554821,
+            "max_drawdown": -0.1487589584328438,
+            "best_day": 0.14934368722155145,
+            "worst_day": -0.060569360628415225,
+            "positive_days": 0.4888888888888889
+          },
+          "wealth_ratio": 0.9979583736437836,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2025-02-23T00:00:00+00:00",
+          "end": "2025-05-24T00:00:00+00:00",
+          "candidate": {
+            "return": 0.3913702986258949,
+            "max_drawdown": -0.14994959448172773,
+            "best_day": 0.16862526991078997,
+            "worst_day": -0.09156559019418486,
+            "positive_days": 0.4888888888888889
+          },
+          "parent_r73": {
+            "return": 0.3715480754730329,
+            "max_drawdown": -0.13825977367989406,
+            "best_day": 0.15246650930532368,
+            "worst_day": -0.08340742427365999,
+            "positive_days": 0.4888888888888889
+          },
+          "wealth_ratio": 1.014452445019855,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        }
+      ]
+    },
+    "180": {
+      "days": 180,
+      "samples": 8,
+      "return_win_rate": 0.625,
+      "dd_win_rate": 0.125,
+      "worst_day_win_rate": 0.75,
+      "strict_triplet_win_rate": 0.125,
+      "median_wealth_ratio": 1.0077469010165718,
+      "p10_wealth_ratio": 0.9852590311533509,
+      "p90_wealth_ratio": 1.0304948579215545,
+      "windows": [
+        {
+          "start": "2020-01-20T00:00:00+00:00",
+          "end": "2020-07-18T00:00:00+00:00",
+          "candidate": {
+            "return": 0.3250762592664389,
+            "max_drawdown": -0.2959044079087424,
+            "best_day": 0.13483004313574143,
+            "worst_day": -0.07625649243897714,
+            "positive_days": 0.4444444444444444
+          },
+          "parent_r73": {
+            "return": 0.3042901094256121,
+            "max_drawdown": -0.2970485709703389,
+            "best_day": 0.13483004313574298,
+            "worst_day": -0.07672502966126138,
+            "positive_days": 0.4444444444444444
+          },
+          "wealth_ratio": 1.0159367534037198,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2020-05-03T00:00:00+00:00",
+          "end": "2020-10-30T00:00:00+00:00",
+          "candidate": {
+            "return": 0.2849440674254984,
+            "max_drawdown": -0.3056898134772982,
+            "best_day": 0.11072738349771982,
+            "worst_day": -0.07625649243897714,
+            "positive_days": 0.4444444444444444
+          },
+          "parent_r73": {
+            "return": 0.31748239854599736,
+            "max_drawdown": -0.2786995542186359,
+            "best_day": 0.10624792479564049,
+            "worst_day": -0.07672502966126149,
+            "positive_days": 0.4388888888888889
+          },
+          "wealth_ratio": 0.9753026445314116,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2021-10-19T00:00:00+00:00",
+          "end": "2022-04-17T00:00:00+00:00",
+          "candidate": {
+            "return": 0.26565141905836787,
+            "max_drawdown": -0.21423724524355003,
+            "best_day": 0.1272945672484127,
+            "worst_day": -0.06937714553835361,
+            "positive_days": 0.4777777777777778
+          },
+          "parent_r73": {
+            "return": 0.27531668244979124,
+            "max_drawdown": -0.19832329588624453,
+            "best_day": 0.11491721288853407,
+            "worst_day": -0.06937714553835428,
+            "positive_days": 0.4777777777777778
+          },
+          "wealth_ratio": 0.9924212836510089,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-03-10T00:00:00+00:00",
+          "end": "2022-09-06T00:00:00+00:00",
+          "candidate": {
+            "return": 0.5382806492249601,
+            "max_drawdown": -0.17590728448873605,
+            "best_day": 0.13998469489979493,
+            "worst_day": -0.06937714553835428,
+            "positive_days": 0.5
+          },
+          "parent_r73": {
+            "return": 0.5545630587695938,
+            "max_drawdown": -0.17214166281865373,
+            "best_day": 0.12667506524305394,
+            "worst_day": -0.06937714553835428,
+            "positive_days": 0.5055555555555555
+          },
+          "wealth_ratio": 0.9895260539913249,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-12-31T00:00:00+00:00",
+          "end": "2023-06-29T00:00:00+00:00",
+          "candidate": {
+            "return": 0.3270665755526678,
+            "max_drawdown": -0.31855722587641067,
+            "best_day": 0.11085056080108768,
+            "worst_day": -0.10749974253570727,
+            "positive_days": 0.4722222222222222
+          },
+          "parent_r73": {
+            "return": 0.2859278540111243,
+            "max_drawdown": -0.31549433286438056,
+            "best_day": 0.10082473599867225,
+            "worst_day": -0.10749974253570738,
+            "positive_days": 0.4722222222222222
+          },
+          "wealth_ratio": 1.0319914693606036,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2024-09-13T00:00:00+00:00",
+          "end": "2025-03-12T00:00:00+00:00",
+          "candidate": {
+            "return": 0.32073120744965244,
+            "max_drawdown": -0.18756012747313622,
+            "best_day": 0.1294863652130902,
+            "worst_day": -0.05290733902973388,
+            "positive_days": 0.4666666666666667
+          },
+          "parent_r73": {
+            "return": 0.3085134168921757,
+            "max_drawdown": -0.1837454882308005,
+            "best_day": 0.11726677355832549,
+            "worst_day": -0.05133434471233167,
+            "positive_days": 0.4666666666666667
+          },
+          "wealth_ratio": 1.0093371534443223,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2025-06-06T00:00:00+00:00",
+          "end": "2025-12-03T00:00:00+00:00",
+          "candidate": {
+            "return": 1.1324760666164466,
+            "max_drawdown": -0.23078471180858828,
+            "best_day": 0.09839603333530822,
+            "worst_day": -0.0845393515069145,
+            "positive_days": 0.5388888888888889
+          },
+          "parent_r73": {
+            "return": 1.0706597238324616,
+            "max_drawdown": -0.2263600086021026,
+            "best_day": 0.09159333519807689,
+            "worst_day": -0.08453935150691483,
+            "positive_days": 0.5333333333333333
+          },
+          "wealth_ratio": 1.0298534530191048,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2025-11-08T00:00:00+00:00",
+          "end": "2026-05-07T00:00:00+00:00",
+          "candidate": {
+            "return": 0.24642434550099157,
+            "max_drawdown": -0.23035183626190003,
+            "best_day": 0.1038673085034989,
+            "worst_day": -0.07041968974771218,
+            "positive_days": 0.4722222222222222
+          },
+          "parent_r73": {
+            "return": 0.2387975045925066,
+            "max_drawdown": -0.2178961272180463,
+            "best_day": 0.10390800595455985,
+            "worst_day": -0.06472525609291158,
+            "positive_days": 0.4777777777777778
+          },
+          "wealth_ratio": 1.0061566485888214,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        }
+      ]
+    },
+    "365": {
+      "days": 365,
+      "samples": 8,
+      "return_win_rate": 0.875,
+      "dd_win_rate": 0.375,
+      "worst_day_win_rate": 0.5,
+      "strict_triplet_win_rate": 0.375,
+      "median_wealth_ratio": 1.0537758307723522,
+      "p10_wealth_ratio": 0.9997655213844202,
+      "p90_wealth_ratio": 1.0824872584331888,
+      "windows": [
+        {
+          "start": "2020-01-17T00:00:00+00:00",
+          "end": "2021-01-16T00:00:00+00:00",
+          "candidate": {
+            "return": 3.8703692492977915,
+            "max_drawdown": -0.32190972545214036,
+            "best_day": 0.13483004313574143,
+            "worst_day": -0.07625649243897714,
+            "positive_days": 0.4904109589041096
+          },
+          "parent_r73": {
+            "return": 3.5159122479024925,
+            "max_drawdown": -0.3230116295874319,
+            "best_day": 0.13483004313574298,
+            "worst_day": -0.07672502966126138,
+            "positive_days": 0.4876712328767123
+          },
+          "wealth_ratio": 1.0784906751808416,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2020-01-27T00:00:00+00:00",
+          "end": "2021-01-26T00:00:00+00:00",
+          "candidate": {
+            "return": 3.907273559940732,
+            "max_drawdown": -0.32190972545214036,
+            "best_day": 0.13483004313574143,
+            "worst_day": -0.07625649243897714,
+            "positive_days": 0.5068493150684932
+          },
+          "parent_r73": {
+            "return": 3.55506461360582,
+            "max_drawdown": -0.3230116295874319,
+            "best_day": 0.13483004313574298,
+            "worst_day": -0.07672502966126138,
+            "positive_days": 0.5041095890410959
+          },
+          "wealth_ratio": 1.0773224918221525,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2020-02-27T00:00:00+00:00",
+          "end": "2021-02-26T00:00:00+00:00",
+          "candidate": {
+            "return": 3.7754278310832765,
+            "max_drawdown": -0.3219097254521437,
+            "best_day": 0.13642995077727837,
+            "worst_day": -0.07625649243897681,
+            "positive_days": 0.5013698630136987
+          },
+          "parent_r73": {
+            "return": 3.3738529363243295,
+            "max_drawdown": -0.3230116295874287,
+            "best_day": 0.13483004313574276,
+            "worst_day": -0.07672502966126105,
+            "positive_days": 0.4986301369863014
+          },
+          "wealth_ratio": 1.0918126193553321,
+          "return_win": true,
+          "dd_win": true,
+          "worst_day_win": true,
+          "strict_triplet_win": true
+        },
+        {
+          "start": "2021-04-03T00:00:00+00:00",
+          "end": "2022-04-03T00:00:00+00:00",
+          "candidate": {
+            "return": 1.1288930856303954,
+            "max_drawdown": -0.23305313714043863,
+            "best_day": 0.12729456724841337,
+            "worst_day": -0.11549756686295432,
+            "positive_days": 0.5095890410958904
+          },
+          "parent_r73": {
+            "return": 1.1269637223831652,
+            "max_drawdown": -0.23305313714043763,
+            "best_day": 0.11491721288853363,
+            "worst_day": -0.11521914374325193,
+            "positive_days": 0.5150684931506849
+          },
+          "wealth_ratio": 1.0009070973928358,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-05-18T00:00:00+00:00",
+          "end": "2023-05-18T00:00:00+00:00",
+          "candidate": {
+            "return": 0.2743436280774756,
+            "max_drawdown": -0.28125996683654597,
+            "best_day": 0.14912133278849637,
+            "worst_day": -0.10749974253570682,
+            "positive_days": 0.4712328767123288
+          },
+          "parent_r73": {
+            "return": 0.2780476093847044,
+            "max_drawdown": -0.2786090197572143,
+            "best_day": 0.14912133278849726,
+            "worst_day": -0.10749974253570649,
+            "positive_days": 0.4712328767123288
+          },
+          "wealth_ratio": 0.9971018440314504,
+          "return_win": false,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2022-11-20T00:00:00+00:00",
+          "end": "2023-11-20T00:00:00+00:00",
+          "candidate": {
+            "return": 0.24162628734151115,
+            "max_drawdown": -0.31855722587640933,
+            "best_day": 0.16377929174797168,
+            "worst_day": -0.10749974253570549,
+            "positive_days": 0.4520547945205479
+          },
+          "parent_r73": {
+            "return": 0.21123310307039667,
+            "max_drawdown": -0.31549433286437534,
+            "best_day": 0.14819548293991014,
+            "worst_day": -0.10749974253570649,
+            "positive_days": 0.4547945205479452
+          },
+          "wealth_ratio": 1.0250927622388042,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": true,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2023-07-25T00:00:00+00:00",
+          "end": "2024-07-24T00:00:00+00:00",
+          "candidate": {
+            "return": 0.761624603168573,
+            "max_drawdown": -0.2870452914588475,
+            "best_day": 0.16377929174797234,
+            "worst_day": -0.08216329304103054,
+            "positive_days": 0.5068493150684932
+          },
+          "parent_r73": {
+            "return": 0.6922894603089127,
+            "max_drawdown": -0.28556523880782336,
+            "best_day": 0.149343687221551,
+            "worst_day": -0.07457675265441044,
+            "positive_days": 0.5068493150684932
+          },
+          "wealth_ratio": 1.0409712076366673,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        },
+        {
+          "start": "2025-04-19T00:00:00+00:00",
+          "end": "2026-04-19T00:00:00+00:00",
+          "candidate": {
+            "return": 2.587933419492428,
+            "max_drawdown": -0.23078471180858673,
+            "best_day": 0.18030726868613045,
+            "worst_day": -0.08453935150691494,
+            "positive_days": 0.5150684931506849
+          },
+          "parent_r73": {
+            "return": 2.363959470985943,
+            "max_drawdown": -0.2263600086021017,
+            "best_day": 0.1629715531260829,
+            "worst_day": -0.08453935150691472,
+            "positive_days": 0.5150684931506849
+          },
+          "wealth_ratio": 1.0665804539080372,
+          "return_win": true,
+          "dd_win": false,
+          "worst_day_win": false,
+          "strict_triplet_win": false
+        }
+      ]
+    }
+  },
+  "gates": {
+    "same_60pct_all_durations_pass": true,
+    "all_duration_medians_above_parent": true,
+    "long_horizon_180_365_consistency_pass": true,
+    "isolated_consistency_pass": true
+  },
+  "interpretation_policy": "R91 validates R88 only. No sampled window, duration or result may change the frozen R87 threshold or R88 1.10 scale. Failure cannot authorize choosing another threshold/scale from R90 probes.",
+  "disclosure": "Historical research only. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 150,
+    "ready_universe_size": 144,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
