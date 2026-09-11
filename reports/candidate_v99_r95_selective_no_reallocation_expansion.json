@@ -1,0 +1,533 @@
+{
+  "study": "V99 R95 selective no-reallocation R88 expansion",
+  "status": "RESEARCH_ONLY_DO_NOT_REWRITE_FROZEN_V99_PAPER",
+  "objective": "preserve frozen R88 timing and 1.10 local scale, but add incremental exposure only to parent positions above the frozen R93 train-only absolute-target threshold; leave unused sleeve unused rather than concentrating it",
+  "design": {
+    "r88_strategy_r72_threshold": 0.03360248266113066,
+    "r88_scale": 1.1,
+    "allocation_feature": "abs(parent_r73_target)",
+    "allocation_threshold": 0.4169397245236464,
+    "allocation_threshold_source": "R93 first-60% train only",
+    "allocation_rule": "eligible positions x1.10, ineligible positions unchanged; no reallocation",
+    "new_fitted_parameters": 0
+  },
+  "r73_parent": {
+    "summary": {
+      "return": 244.95761454215472,
+      "max_drawdown": -0.3230116295874319,
+      "best_day": 0.2165798028412682,
+      "worst_day": -0.11521914374325193,
+      "positive_days": 0.4885433715220949
+    },
+    "holdout": {
+      "return": 8.811269638393258,
+      "max_drawdown": -0.29328228556002045,
+      "best_day": 0.2165798028412682,
+      "worst_day": -0.08453935150691438,
+      "positive_days": 0.49585921325051757
+    },
+    "severe": {
+      "return": 102.09116196260173,
+      "max_drawdown": -0.3889152043285854,
+      "best_day": 0.21637994182666942,
+      "worst_day": -0.11604055163118343,
+      "positive_days": 0.4758592471358429
+    }
+  },
+  "r88_growth_parent": {
+    "summary": {
+      "return": 312.5710777513375,
+      "max_drawdown": -0.32190972545214036,
+      "best_day": 0.21657980284126865,
+      "worst_day": -0.11549756686295387,
+      "positive_days": 0.4877250409165303
+    },
+    "holdout": {
+      "return": 10.171250022138056,
+      "max_drawdown": -0.29770270828674195,
+      "best_day": 0.21657980284126865,
+      "worst_day": -0.09156559019418431,
+      "positive_days": 0.49585921325051757
+    },
+    "severe": {
+      "return": 123.73518324004758,
+      "max_drawdown": -0.3795401152863125,
+      "best_day": 0.21637994182666942,
+      "worst_day": -0.11634792289764528,
+      "positive_days": 0.47504091653027825
+    }
+  },
+  "candidate": {
+    "summary": {
+      "return": 293.28062487180154,
+      "max_drawdown": -0.3195017132239085,
+      "best_day": 0.21657980284126777,
+      "worst_day": -0.11555035538686131,
+      "positive_days": 0.4881342062193126
+    },
+    "holdout": {
+      "return": 10.060246383215288,
+      "max_drawdown": -0.2914799080537088,
+      "best_day": 0.21657980284126777,
+      "worst_day": -0.08860502677196769,
+      "positive_days": 0.4968944099378882
+    },
+    "severe": {
+      "return": 115.45635157857187,
+      "max_drawdown": -0.3844207242826102,
+      "best_day": 0.21637994182666964,
+      "worst_day": -0.11638474620096984,
+      "positive_days": 0.4762684124386252
+    },
+    "diagnostics": {
+      "raw_protect_fraction": 0.17082481254260395,
+      "daily_protect_trigger_fraction": 0.00652692569870484,
+      "protect_active_fraction": 0.23190184049079754,
+      "protect_persistence_hours": 72,
+      "h15_active_fraction": 0.7039877300613497,
+      "h25_active_fraction": 0.7039877300613497,
+      "effective_protect_fraction": 0.20269256987048398,
+      "raw_gate_fraction": 0.19596114519427402,
+      "daily_active_fraction": 0.19795501022494888,
+      "decision_count": 2445,
+      "decision_cadence_hours": 24,
+      "threshold": 0.03360248266113066,
+      "allocation_feature": "abs(parent_r73_target)",
+      "allocation_threshold": 0.4169397245236464,
+      "threshold_source": "R93 first-60% train only; 5/5 positive contribution/lift folds",
+      "scale": 1.1,
+      "allocation_rule": "apply 1.10 only to eligible positions; unused incremental budget is not reallocated",
+      "gate_rows": 11616,
+      "rows_with_selection": 8476,
+      "rows_with_selection_fraction": 0.7296831955922864,
+      "selected_position_fraction_within_gate": 0.23783582089552238,
+      "effective_extra_gross_mean": 0.05809106218360279,
+      "r88_extra_gross_mean": 0.09977184236974043,
+      "turnover_delta_vs_r73": 29.326914218927186,
+      "turnover_delta_vs_r88": -25.984515231907153,
+      "protect_overlap_fraction": 0.017586912065439674
+    },
+    "severe_diagnostics": {
+      "raw_protect_fraction": 0.17082481254260395,
+      "daily_protect_trigger_fraction": 0.00652692569870484,
+      "protect_active_fraction": 0.23190184049079754,
+      "protect_persistence_hours": 72,
+      "h15_active_fraction": 0.6952453987730062,
+      "h25_active_fraction": 0.6952453987730062,
+      "effective_protect_fraction": 0.20168711656441718,
+      "raw_gate_fraction": 0.19093387866394002,
+      "daily_active_fraction": 0.19304703476482618,
+      "decision_count": 2445,
+      "decision_cadence_hours": 24,
+      "threshold": 0.03360248266113066,
+      "allocation_feature": "abs(parent_r73_target)",
+      "allocation_threshold": 0.4169397245236464,
+      "threshold_source": "R93 first-60% train only; 5/5 positive contribution/lift folds",
+      "scale": 1.1,
+      "allocation_rule": "apply 1.10 only to eligible positions; unused incremental budget is not reallocated",
+      "gate_rows": 11328,
+      "rows_with_selection": 8325,
+      "rows_with_selection_fraction": 0.7349046610169492,
+      "selected_position_fraction_within_gate": 0.24028358665714578,
+      "effective_extra_gross_mean": 0.05888035677380272,
+      "r88_extra_gross_mean": 0.10027287786829764,
+      "turnover_delta_vs_r73": 22.912444263950647,
+      "turnover_delta_vs_r88": -21.476019140854078,
+      "protect_overlap_fraction": 0.017586912065439674
+    }
+  },
+  "ratios": {
+    "full_wealth_vs_r88": 0.9384814026284869,
+    "holdout_wealth_vs_r88": 0.9900634540715864,
+    "severe_wealth_vs_r88": 0.9336287369254636,
+    "full_wealth_vs_r73": 1.1964688526500762,
+    "holdout_wealth_vs_r73": 1.127300216063226,
+    "severe_wealth_vs_r73": 1.1296443784465113,
+    "full_dd_ratio_vs_r88": 0.9925196039826083,
+    "holdout_dd_ratio_vs_r88": 0.9790972669719906,
+    "severe_dd_ratio_vs_r88": 1.0128592704689883,
+    "full_worst_ratio_vs_r88": 1.000457053125371
+  },
+  "isolated": {
+    "7": {
+      "candidate": {
+        "return": -0.002091725906784969,
+        "max_drawdown": -0.04918807580925988,
+        "best_day": 0.032444657599708826,
+        "worst_day": -0.026396475580823142,
+        "positive_days": 0.42857142857142855
+      },
+      "r88_growth": {
+        "return": -0.002091725906784969,
+        "max_drawdown": -0.04918807580925988,
+        "best_day": 0.032444657599708826,
+        "worst_day": -0.026396475580823142,
+        "positive_days": 0.42857142857142855
+      },
+      "r73_parent": {
+        "return": -0.002091725906784969,
+        "max_drawdown": -0.04918807580925988,
+        "best_day": 0.032444657599708826,
+        "worst_day": -0.026396475580823142,
+        "positive_days": 0.42857142857142855
+      }
+    },
+    "30": {
+      "candidate": {
+        "return": 0.5356219248127212,
+        "max_drawdown": -0.10293668584419591,
+        "best_day": 0.21657980284126843,
+        "worst_day": -0.04705039789556298,
+        "positive_days": 0.6
+      },
+      "r88_growth": {
+        "return": 0.5434098756304429,
+        "max_drawdown": -0.1029366858441969,
+        "best_day": 0.21657980284126843,
+        "worst_day": -0.04705039789556287,
+        "positive_days": 0.6
+      },
+      "r73_parent": {
+        "return": 0.507885902949125,
+        "max_drawdown": -0.10293668584419624,
+        "best_day": 0.21657980284126843,
+        "worst_day": -0.0470503978955632,
+        "positive_days": 0.6
+      }
+    },
+    "90": {
+      "candidate": {
+        "return": 0.21089922671941408,
+        "max_drawdown": -0.2261420645831067,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.04705039789556387,
+        "positive_days": 0.4444444444444444
+      },
+      "r88_growth": {
+        "return": 0.21704033702171754,
+        "max_drawdown": -0.2261420645831067,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.047050397895563645,
+        "positive_days": 0.4444444444444444
+      },
+      "r73_parent": {
+        "return": 0.18902826559010455,
+        "max_drawdown": -0.2261420645831067,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.047050397895563756,
+        "positive_days": 0.4444444444444444
+      }
+    },
+    "180": {
+      "candidate": {
+        "return": 0.6307125254204131,
+        "max_drawdown": -0.28751434135264453,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.060969921406575533,
+        "positive_days": 0.48333333333333334
+      },
+      "r88_growth": {
+        "return": 0.6445327892584911,
+        "max_drawdown": -0.29035977381428335,
+        "best_day": 0.21657980284126932,
+        "worst_day": -0.062227220304194586,
+        "positive_days": 0.4888888888888889
+      },
+      "r73_parent": {
+        "return": 0.5901798825466427,
+        "max_drawdown": -0.2894276394251253,
+        "best_day": 0.216579802841268,
+        "worst_day": -0.0566752549262628,
+        "positive_days": 0.4888888888888889
+      }
+    },
+    "365": {
+      "candidate": {
+        "return": 1.7040826698373923,
+        "max_drawdown": -0.2875143413526432,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.08453935150691405,
+        "positive_days": 0.4821917808219178
+      },
+      "r88_growth": {
+        "return": 1.7230056042526232,
+        "max_drawdown": -0.29035977381428213,
+        "best_day": 0.2165798028412691,
+        "worst_day": -0.08453935150691438,
+        "positive_days": 0.4821917808219178
+      },
+      "r73_parent": {
+        "return": 1.6281213998933062,
+        "max_drawdown": -0.28942763942512595,
+        "best_day": 0.21657980284126888,
+        "worst_day": -0.08453935150691405,
+        "positive_days": 0.4821917808219178
+      }
+    }
+  },
+  "parent_horizon_wins": {
+    "7": {
+      "return": true,
+      "drawdown": true,
+      "worst_day": true
+    },
+    "30": {
+      "return": true,
+      "drawdown": true,
+      "worst_day": true
+    },
+    "90": {
+      "return": true,
+      "drawdown": true,
+      "worst_day": false
+    },
+    "180": {
+      "return": true,
+      "drawdown": true,
+      "worst_day": false
+    },
+    "365": {
+      "return": true,
+      "drawdown": true,
+      "worst_day": true
+    }
+  },
+  "r88_horizon_wins": {
+    "7": {
+      "return": true,
+      "drawdown": true,
+      "worst_day": true
+    },
+    "30": {
+      "return": false,
+      "drawdown": true,
+      "worst_day": false
+    },
+    "90": {
+      "return": false,
+      "drawdown": true,
+      "worst_day": false
+    },
+    "180": {
+      "return": false,
+      "drawdown": true,
+      "worst_day": true
+    },
+    "365": {
+      "return": false,
+      "drawdown": true,
+      "worst_day": true
+    }
+  },
+  "alternative_horizons": {
+    "14": {
+      "candidate": {
+        "return": 0.045450799653022456,
+        "max_drawdown": -0.10293668584419724,
+        "best_day": 0.07198169865264514,
+        "worst_day": -0.04705039789556342,
+        "positive_days": 0.5
+      },
+      "r88_growth": {
+        "return": 0.05066219953736528,
+        "max_drawdown": -0.10293668584419724,
+        "best_day": 0.07498275242131114,
+        "worst_day": -0.04705039789556342,
+        "positive_days": 0.5
+      },
+      "r73_parent": {
+        "return": 0.04077305116161267,
+        "max_drawdown": -0.10293668584419724,
+        "best_day": 0.06815335363842223,
+        "worst_day": -0.04705039789556342,
+        "positive_days": 0.5
+      },
+      "wealth_vs_r88": 0.9950398901886471,
+      "wealth_vs_r73": 1.0044944942475105,
+      "dd_win_vs_r88": true,
+      "worst_win_vs_r88": true
+    },
+    "21": {
+      "candidate": {
+        "return": 0.16918030395136885,
+        "max_drawdown": -0.10293668584419724,
+        "best_day": 0.10836742828407475,
+        "worst_day": -0.04705039789556398,
+        "positive_days": 0.5714285714285714
+      },
+      "r88_growth": {
+        "return": 0.1753928558676623,
+        "max_drawdown": -0.10293668584419624,
+        "best_day": 0.10836742828407475,
+        "worst_day": -0.04705039789556276,
+        "positive_days": 0.5714285714285714
+      },
+      "r73_parent": {
+        "return": 0.16342621909336286,
+        "max_drawdown": -0.10293668584419646,
+        "best_day": 0.10836742828407475,
+        "worst_day": -0.047050397895562424,
+        "positive_days": 0.5714285714285714
+      },
+      "wealth_vs_r88": 0.9947144889597722,
+      "wealth_vs_r73": 1.0049458098533228,
+      "dd_win_vs_r88": false,
+      "worst_win_vs_r88": false
+    },
+    "45": {
+      "candidate": {
+        "return": 0.3958609924457521,
+        "max_drawdown": -0.10293668584419613,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.04705039789556331,
+        "positive_days": 0.4888888888888889
+      },
+      "r88_growth": {
+        "return": 0.40294014166985126,
+        "max_drawdown": -0.10293668584419713,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.047050397895563645,
+        "positive_days": 0.4888888888888889
+      },
+      "r73_parent": {
+        "return": 0.3706492978356133,
+        "max_drawdown": -0.10293668584419824,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.04705039789556398,
+        "positive_days": 0.4888888888888889
+      },
+      "wealth_vs_r88": 0.994954061820718,
+      "wealth_vs_r73": 1.0183939791527639,
+      "dd_win_vs_r88": true,
+      "worst_win_vs_r88": true
+    },
+    "60": {
+      "candidate": {
+        "return": 0.28871769821298043,
+        "max_drawdown": -0.15625196731738944,
+        "best_day": 0.21379631670738863,
+        "worst_day": -0.04705039789556287,
+        "positive_days": 0.48333333333333334
+      },
+      "r88_growth": {
+        "return": 0.29961725895871494,
+        "max_drawdown": -0.15625196731738944,
+        "best_day": 0.21379631670738863,
+        "worst_day": -0.047050397895563645,
+        "positive_days": 0.48333333333333334
+      },
+      "r73_parent": {
+        "return": 0.2716186636848026,
+        "max_drawdown": -0.15625196731738944,
+        "best_day": 0.21379631670738863,
+        "worst_day": -0.0470503978955632,
+        "positive_days": 0.48333333333333334
+      },
+      "wealth_vs_r88": 0.9916132533093108,
+      "wealth_vs_r73": 1.0134466684207273,
+      "dd_win_vs_r88": true,
+      "worst_win_vs_r88": true
+    },
+    "120": {
+      "candidate": {
+        "return": 0.5441843695781767,
+        "max_drawdown": -0.2875143413526483,
+        "best_day": 0.21657980284126777,
+        "worst_day": -0.06096992140657598,
+        "positive_days": 0.4666666666666667
+      },
+      "r88_growth": {
+        "return": 0.555712729378957,
+        "max_drawdown": -0.2903597738142799,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.06222722030419414,
+        "positive_days": 0.4666666666666667
+      },
+      "r73_parent": {
+        "return": 0.49985004164800206,
+        "max_drawdown": -0.28942763942512784,
+        "best_day": 0.21657980284126932,
+        "worst_day": -0.05667525492626235,
+        "positive_days": 0.4666666666666667
+      },
+      "wealth_vs_r88": 0.9925896602996992,
+      "wealth_vs_r73": 1.0295591737167678,
+      "dd_win_vs_r88": true,
+      "worst_win_vs_r88": true
+    },
+    "240": {
+      "candidate": {
+        "return": 0.6968246577598018,
+        "max_drawdown": -0.287514341352641,
+        "best_day": 0.21657980284126888,
+        "worst_day": -0.06472525609291158,
+        "positive_days": 0.4708333333333333
+      },
+      "r88_growth": {
+        "return": 0.6895741345411492,
+        "max_drawdown": -0.29035977381428213,
+        "best_day": 0.21657980284126888,
+        "worst_day": -0.07115414939295495,
+        "positive_days": 0.4708333333333333
+      },
+      "r73_parent": {
+        "return": 0.6369384488742857,
+        "max_drawdown": -0.28942763942512284,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.06472525609291191,
+        "positive_days": 0.4708333333333333
+      },
+      "wealth_vs_r88": 1.0042913318039293,
+      "wealth_vs_r73": 1.0365842765356874,
+      "dd_win_vs_r88": true,
+      "worst_win_vs_r88": true
+    },
+    "540": {
+      "candidate": {
+        "return": 3.7372205225273865,
+        "max_drawdown": -0.28751434135264353,
+        "best_day": 0.21657980284126843,
+        "worst_day": -0.08860502677196835,
+        "positive_days": 0.5018518518518519
+      },
+      "r88_growth": {
+        "return": 3.8508064624748144,
+        "max_drawdown": -0.29035977381428635,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.09156559019418442,
+        "positive_days": 0.5018518518518519
+      },
+      "r73_parent": {
+        "return": 3.429733538576536,
+        "max_drawdown": -0.2894276394251255,
+        "best_day": 0.21657980284126888,
+        "worst_day": -0.08453935150691427,
+        "positive_days": 0.5018518518518519
+      },
+      "wealth_vs_r88": 0.9765841121829714,
+      "wealth_vs_r73": 1.0694143296144307,
+      "dd_win_vs_r88": true,
+      "worst_win_vs_r88": true
+    }
+  },
+  "requested_parent_dimension_wins": 13,
+  "requested_r88_dimension_wins": 9,
+  "full_parent_dominance": false,
+  "holdout_parent_dominance": false,
+  "severe_parent_dominance": false,
+  "strict_r73_gate_passed": false,
+  "disclosure": "Historical research only. R95 uses only the precommitted R93 train-selected threshold; no unused sleeve is reallocated and no new numeric parameter is fitted. R88 remains research growth parent until a challenger proves superior. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 150,
+    "ready_universe_size": 144,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
