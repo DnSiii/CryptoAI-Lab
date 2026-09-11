@@ -1,0 +1,27 @@
+{
+  "name": "CryptoAI V17 Research",
+  "version": "v17-relative-cost-aware-2026-09-08",
+  "mode": "RESEARCH_ONLY",
+  "real_orders": false,
+  "paper_enabled": false,
+  "approval": "NOT_APPROVED",
+  "supersedes_research_name_only": "V16 reconstruction / boosting_12_relative_cost1",
+  "source_research_commit": "9f51a033ab0ea3dbd01d565b91295f480116a561",
+  "preserve_engines": ["v13", "v14", "v15", "v16", "v99"],
+  "forecast": {"model": "boosting", "horizon_hours": 12, "decision_every_hours": 12, "objective": "relative"},
+  "portfolio": {"balance": "beta", "retain_rank_buffer": true, "rebalance_hours": 12, "trading_cost_hurdle": 1.0},
+  "comparison": {
+    "required_engines": ["v13", "v14", "v15", "v16", "v99"],
+    "combined_reference": {"v13": 0.25, "v14": 0.25, "v15": 0.25, "v16": 0.25},
+    "combined_method": "Equal initial allocations, no inter-engine rebalancing, same total starting capital.",
+    "windows": ["1Y", "6M", "3M", "30D", "7D"],
+    "require_identical_data_dates_costs_timezone_initialization": true,
+    "benchmarks_reconciled": false,
+    "operational_research_target_not_owner_guarantee": {
+      "return_uplift_vs_best_positive_return": 0.5,
+      "max_drawdown_fraction_of_lowest_benchmark": 0.8,
+      "minimum_return_drawdown_ratio_uplift": 0.25
+    }
+  },
+  "disclosure": "Owner requests substantial superiority across return and risk. No such superiority has been established. Historic V16-named experiment reports remain unchanged for audit; new work is V17. No automatic promotion or exchange orders."
+}
