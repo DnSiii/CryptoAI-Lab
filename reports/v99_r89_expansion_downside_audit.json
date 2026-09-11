@@ -1,0 +1,339 @@
+{
+  "study": "V99 R89 downside audit inside the frozen R88 expansion regime",
+  "status": "DIAGNOSTIC_ONLY_NO_CANDIDATE_PROMOTION",
+  "objective": "within daily observations already satisfying the frozen R87/R88 72h-momentum expansion gate, select on the first 60% only one simple causal state that predicts a next-24h relative loss from 1.10x expansion, so a future candidate may veto only demonstrably adverse expansion states",
+  "frozen_expansion_rule": {
+    "strategy_r72_threshold": 0.03360248266113066,
+    "scale": 1.1,
+    "bad_advantage_threshold": -0.002
+  },
+  "expansion_rows": 484,
+  "train_rows": 290,
+  "holdout_rows": 194,
+  "base_bad_rates": {
+    "train": 0.18275862068965518,
+    "holdout": 0.17010309278350516
+  },
+  "selected_train_only": {
+    "feature": "strategy_r24",
+    "direction": "high",
+    "threshold_train_only": 0.05331697588061375,
+    "train": {
+      "rows": 290,
+      "selected": 58,
+      "coverage": 0.2,
+      "base_bad_rate": 0.18275862068965518,
+      "bad_rate": 0.3793103448275862,
+      "lift": 2.0754716981132075,
+      "mean_advantage": -0.0006491186331176658,
+      "bad_capture": 0.41509433962264153
+    },
+    "holdout": {
+      "rows": 194,
+      "selected": 39,
+      "coverage": 0.20103092783505155,
+      "base_bad_rate": 0.17010309278350516,
+      "bad_rate": 0.20512820512820512,
+      "lift": 1.2059052059052058,
+      "mean_advantage": 0.0010860252040583106,
+      "bad_capture": 0.24242424242424243
+    },
+    "train_selection_score": 2.2441571463306342
+  },
+  "selected_temporal_stability": {
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2020-02-03T00:00:00+00:00",
+        "end": "2021-02-10T00:00:00+00:00",
+        "rows": 96,
+        "selected": 23,
+        "coverage": 0.23958333333333334,
+        "base_bad_rate": 0.19791666666666666,
+        "bad_rate": 0.2608695652173913,
+        "lift": 1.3180778032036613,
+        "mean_advantage": 0.00035029871677132353,
+        "bad_capture": 0.3157894736842105
+      },
+      {
+        "fold": 2,
+        "start": "2021-02-11T00:00:00+00:00",
+        "end": "2022-05-01T00:00:00+00:00",
+        "rows": 97,
+        "selected": 13,
+        "coverage": 0.13402061855670103,
+        "base_bad_rate": 0.15463917525773196,
+        "bad_rate": 0.5384615384615384,
+        "lift": 3.4820512820512817,
+        "mean_advantage": -0.0015497844817219557,
+        "bad_capture": 0.4666666666666667
+      },
+      {
+        "fold": 3,
+        "start": "2022-05-08T00:00:00+00:00",
+        "end": "2024-01-11T00:00:00+00:00",
+        "rows": 97,
+        "selected": 22,
+        "coverage": 0.2268041237113402,
+        "base_bad_rate": 0.1958762886597938,
+        "bad_rate": 0.4090909090909091,
+        "lift": 2.0885167464114835,
+        "mean_advantage": -0.0011617524065536198,
+        "bad_capture": 0.47368421052631576
+      },
+      {
+        "fold": 4,
+        "start": "2024-01-21T00:00:00+00:00",
+        "end": "2025-06-11T00:00:00+00:00",
+        "rows": 97,
+        "selected": 18,
+        "coverage": 0.18556701030927836,
+        "base_bad_rate": 0.17525773195876287,
+        "bad_rate": 0.2222222222222222,
+        "lift": 1.2679738562091503,
+        "mean_advantage": 0.0002698978331964012,
+        "bad_capture": 0.23529411764705882
+      },
+      {
+        "fold": 5,
+        "start": "2025-06-12T00:00:00+00:00",
+        "end": "2026-09-06T00:00:00+00:00",
+        "rows": 97,
+        "selected": 21,
+        "coverage": 0.21649484536082475,
+        "base_bad_rate": 0.16494845360824742,
+        "bad_rate": 0.19047619047619047,
+        "lift": 1.1547619047619047,
+        "mean_advantage": 0.0017855629505113759,
+        "bad_capture": 0.25
+      }
+    ],
+    "negative_mean_folds": 2,
+    "positive_bad_lift_folds": 5
+  },
+  "veto_signal_pass": false,
+  "top_train_candidates": [
+    {
+      "feature": "strategy_r24",
+      "direction": "high",
+      "threshold_train_only": 0.05331697588061375,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.3793103448275862,
+        "lift": 2.0754716981132075,
+        "mean_advantage": -0.0006491186331176658,
+        "bad_capture": 0.41509433962264153
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 39,
+        "coverage": 0.20103092783505155,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.20512820512820512,
+        "lift": 1.2059052059052058,
+        "mean_advantage": 0.0010860252040583106,
+        "bad_capture": 0.24242424242424243
+      },
+      "train_selection_score": 2.2441571463306342
+    },
+    {
+      "feature": "strategy_r24_minus_r72_dailyized",
+      "direction": "high",
+      "threshold_train_only": 0.031247768206416535,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.3620689655172414,
+        "lift": 1.9811320754716981,
+        "mean_advantage": -0.0007143506432367604,
+        "bad_capture": 0.39622641509433965
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 33,
+        "coverage": 0.17010309278350516,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.21212121212121213,
+        "lift": 1.2470156106519743,
+        "mean_advantage": 0.0005178295048194825,
+        "bad_capture": 0.21212121212121213
+      },
+      "train_selection_score": 2.151623743568959
+    },
+    {
+      "feature": "strategy_dd",
+      "direction": "low",
+      "threshold_train_only": 0.008509427871455501,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.29310344827586204,
+        "lift": 1.6037735849056602,
+        "mean_advantage": -0.0003512922197718838,
+        "bad_capture": 0.32075471698113206
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 32,
+        "coverage": 0.16494845360824742,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.25,
+        "lift": 1.4696969696969697,
+        "mean_advantage": 0.0003364954316936314,
+        "bad_capture": 0.24242424242424243
+      },
+      "train_selection_score": 1.7190914861281317
+    },
+    {
+      "feature": "market_med24",
+      "direction": "high",
+      "threshold_train_only": 0.041188565618601916,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.29310344827586204,
+        "lift": 1.6037735849056602,
+        "mean_advantage": -0.00034337256123384753,
+        "bad_capture": 0.32075471698113206
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 32,
+        "coverage": 0.16494845360824742,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.1875,
+        "lift": 1.1022727272727273,
+        "mean_advantage": 0.0013962929277867367,
+        "bad_capture": 0.18181818181818182
+      },
+      "train_selection_score": 1.718299520274328
+    },
+    {
+      "feature": "net_btc_alignment24",
+      "direction": "high",
+      "threshold_train_only": 0.047582152680082555,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.29310344827586204,
+        "lift": 1.6037735849056602,
+        "mean_advantage": -0.00022768762096081474,
+        "bad_capture": 0.32075471698113206
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 25,
+        "coverage": 0.12886597938144329,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.2,
+        "lift": 1.1757575757575758,
+        "mean_advantage": 0.0010007674640624886,
+        "bad_capture": 0.15151515151515152
+      },
+      "train_selection_score": 1.7067310262470248
+    },
+    {
+      "feature": "breadth24",
+      "direction": "high",
+      "threshold_train_only": 0.2916666666666667,
+      "train": {
+        "rows": 290,
+        "selected": 67,
+        "coverage": 0.23103448275862068,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.2537313432835821,
+        "lift": 1.3883413123063926,
+        "mean_advantage": -0.0002616096958454146,
+        "bad_capture": 0.32075471698113206
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 68,
+        "coverage": 0.35051546391752575,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.1323529411764706,
+        "lift": 0.7780748663101604,
+        "mean_advantage": 0.0012702165451625054,
+        "bad_capture": 0.2727272727272727
+      },
+      "train_selection_score": 1.4946909611362171
+    },
+    {
+      "feature": "market_abs24",
+      "direction": "high",
+      "threshold_train_only": 0.06502872321537685,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.2413793103448276,
+        "lift": 1.320754716981132,
+        "mean_advantage": -0.0005224726229260459,
+        "bad_capture": 0.2641509433962264
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 27,
+        "coverage": 0.13917525773195877,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.2222222222222222,
+        "lift": 1.3063973063973062,
+        "mean_advantage": -0.0003940963636909335,
+        "bad_capture": 0.18181818181818182
+      },
+      "train_selection_score": 1.4390397151227934
+    },
+    {
+      "feature": "btc_r72",
+      "direction": "high",
+      "threshold_train_only": 0.09076804299001241,
+      "train": {
+        "rows": 290,
+        "selected": 58,
+        "coverage": 0.2,
+        "base_bad_rate": 0.18275862068965518,
+        "bad_rate": 0.22413793103448276,
+        "lift": 1.2264150943396226,
+        "mean_advantage": -5.833872968316707e-05,
+        "bad_capture": 0.24528301886792453
+      },
+      "holdout": {
+        "rows": 194,
+        "selected": 18,
+        "coverage": 0.09278350515463918,
+        "base_bad_rate": 0.17010309278350516,
+        "bad_rate": 0.2222222222222222,
+        "lift": 1.3063973063973062,
+        "mean_advantage": 0.0006021483410531178,
+        "bad_capture": 0.12121212121212122
+      },
+      "train_selection_score": 1.2935697220249205
+    }
+  ],
+  "disclosure": "Diagnostic only. R88 expansion threshold/scale are frozen. Future expanded-vs-parent wealth is used only in labels; all candidate veto features are causal and thresholds are fit on the first 60% only. Holdout and temporal folds never alter the selected threshold. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 150,
+    "ready_universe_size": 144,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
