@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/run_v99_r105_all_regime_structural_audit.py"
       - "scripts/run_v99_r105_all_regime_structural_audit_fast.py"
+      - "scripts/run_v99_r105_all_regime_structural_audit_fast2.py"
       - "research/V99_ALL_REGIME_REBUILD_STANDARD.md"
       - ".github/workflows/v99-r105-all-regime-structural-audit.yml"
 
@@ -41,7 +42,7 @@ jobs:
       - name: Prepare frozen V15 replay inputs
         run: python scripts/prepare_dashboard_v15_replay.py
       - name: Run V99 R105 structural audit
-        run: python scripts/run_v99_r105_all_regime_structural_audit_fast.py
+        run: python scripts/run_v99_r105_all_regime_structural_audit_fast2.py
       - name: Upload V99 R105 evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
