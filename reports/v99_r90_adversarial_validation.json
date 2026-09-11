@@ -1,0 +1,2779 @@
+{
+  "study": "V99 R90 adversarial validation of frozen R88 selective expansion",
+  "status": "DIAGNOSTIC_ONLY_NO_PROMOTION_AND_NO_FROZEN_REWRITE",
+  "objective": "stress-test R88 without tuning it: stronger costs, threshold and scale perturbations, execution delay, removal of best candidate days, and deterministic random calendar windows on the same full replay path",
+  "frozen_r88": {
+    "threshold": 0.03360248266113066,
+    "scale": 1.1,
+    "decision_cadence_hours": 24,
+    "hold_hours": 24,
+    "source": "R87 train-only signal + R88 implementation"
+  },
+  "nominal": {
+    "candidate": {
+      "return": 312.5710777513375,
+      "max_drawdown": -0.32190972545214036,
+      "best_day": 0.21657980284126865,
+      "worst_day": -0.11549756686295387,
+      "positive_days": 0.4877250409165303
+    },
+    "parent_r73": {
+      "return": 244.95761454215472,
+      "max_drawdown": -0.3230116295874319,
+      "best_day": 0.2165798028412682,
+      "worst_day": -0.11521914374325193,
+      "positive_days": 0.4885433715220949
+    },
+    "wealth_ratio": 1.274898841148073,
+    "dd_ratio": 0.9965886549140693,
+    "worst_ratio": 1.0024164657942813,
+    "diagnostics": {
+      "raw_protect_fraction": 0.17082481254260395,
+      "daily_protect_trigger_fraction": 0.00652692569870484,
+      "protect_active_fraction": 0.23190184049079754,
+      "protect_persistence_hours": 72,
+      "h15_active_fraction": 0.7039877300613497,
+      "h25_active_fraction": 0.7039877300613497,
+      "effective_protect_fraction": 0.20269256987048398,
+      "raw_gate_fraction": 0.19596114519427402,
+      "daily_active_fraction": 0.19795501022494888,
+      "decision_count": 2445,
+      "threshold": 0.03360248266113066,
+      "delay_hours": 0,
+      "scale": 1.1,
+      "effective_scaled_fraction": 0.19795501022494888,
+      "protect_overlap_fraction": 0.017586912065439674,
+      "turnover_delta_vs_parent": 55.31142945083434
+    }
+  },
+  "cost_tests": {
+    "base": {
+      "candidate": {
+        "return": 312.5710777513375,
+        "max_drawdown": -0.32190972545214036,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.11549756686295387,
+        "positive_days": 0.4877250409165303
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.274898841148073,
+      "dd_ratio": 0.9965886549140693,
+      "worst_ratio": 1.0024164657942813,
+      "cost_per_side": 0.0007,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 55.31142945083434
+      }
+    },
+    "severe": {
+      "candidate": {
+        "return": 123.73518324004758,
+        "max_drawdown": -0.3795401152863125,
+        "best_day": 0.21637994182666942,
+        "worst_day": -0.11634792289764528,
+        "positive_days": 0.47504091653027825
+      },
+      "parent_r73": {
+        "return": 102.09116196260173,
+        "max_drawdown": -0.3889152043285854,
+        "best_day": 0.21637994182666942,
+        "worst_day": -0.11604055163118343,
+        "positive_days": 0.4758592471358429
+      },
+      "wealth_ratio": 1.2099503086918122,
+      "dd_ratio": 0.9758942593708625,
+      "worst_ratio": 1.0026488263123634,
+      "cost_per_side": 0.0012,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.6952453987730062,
+        "h25_active_fraction": 0.6952453987730062,
+        "effective_protect_fraction": 0.20168711656441718,
+        "raw_gate_fraction": 0.19093387866394002,
+        "daily_active_fraction": 0.19304703476482618,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19304703476482618,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 44.388463404804725
+      }
+    },
+    "super_severe_1p5x": {
+      "candidate": {
+        "return": 36.18631047670065,
+        "max_drawdown": -0.5083163101804264,
+        "best_day": 0.17799359817279137,
+        "worst_day": -0.11736752221067825,
+        "positive_days": 0.46481178396072015
+      },
+      "parent_r73": {
+        "return": 27.89802353677763,
+        "max_drawdown": -0.5183824686125592,
+        "best_day": 0.16091257232031686,
+        "worst_day": -0.11702548385201161,
+        "positive_days": 0.46481178396072015
+      },
+      "wealth_ratio": 1.286811550602233,
+      "dd_ratio": 0.9805815994142807,
+      "worst_ratio": 1.002922768164746,
+      "cost_per_side": 0.0018,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17087593728698022,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.2331288343558282,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.6860259032038173,
+        "h25_active_fraction": 0.6860259032038173,
+        "effective_protect_fraction": 0.2019256987048398,
+        "raw_gate_fraction": 0.18341854124062712,
+        "daily_active_fraction": 0.18773006134969325,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.18773006134969325,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 46.425997830490815
+      }
+    }
+  },
+  "threshold_sensitivity": {
+    "x0.90": {
+      "candidate": {
+        "return": 309.6844409623726,
+        "max_drawdown": -0.3186260708513958,
+        "best_day": 0.21657980284126932,
+        "worst_day": -0.11549756686295365,
+        "positive_days": 0.4877250409165303
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.2631625231066972,
+      "dd_ratio": 0.9864229076159345,
+      "worst_ratio": 1.0024164657942793,
+      "threshold": 0.030242234395017595,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.214093387866394,
+        "daily_active_fraction": 0.2167689161554192,
+        "decision_count": 2445,
+        "threshold": 0.030242234395017595,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.2167689161554192,
+        "protect_overlap_fraction": 0.020040899795501024,
+        "turnover_delta_vs_parent": 60.24480323208036
+      }
+    },
+    "x1.00": {
+      "candidate": {
+        "return": 312.5710777513375,
+        "max_drawdown": -0.32190972545214036,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.11549756686295387,
+        "positive_days": 0.4877250409165303
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.274898841148073,
+      "dd_ratio": 0.9965886549140693,
+      "worst_ratio": 1.0024164657942813,
+      "threshold": 0.03360248266113066,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 55.31142945083434
+      }
+    },
+    "x1.10": {
+      "candidate": {
+        "return": 308.37470027126955,
+        "max_drawdown": -0.32156311776596347,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.11549756686295387,
+        "positive_days": 0.48731587561374795
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.257837456454294,
+      "dd_ratio": 0.9955156047374562,
+      "worst_ratio": 1.0024164657942813,
+      "threshold": 0.03696273092724373,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.18040218132242672,
+        "daily_active_fraction": 0.18282208588957055,
+        "decision_count": 2445,
+        "threshold": 0.03696273092724373,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.18282208588957055,
+        "protect_overlap_fraction": 0.01717791411042945,
+        "turnover_delta_vs_parent": 52.01631567533855
+      }
+    }
+  },
+  "scale_sensitivity": {
+    "x1.05": {
+      "candidate": {
+        "return": 281.78748865714465,
+        "max_drawdown": -0.31714704129592153,
+        "best_day": 0.21657980284126932,
+        "worst_day": -0.11535099312245045,
+        "positive_days": 0.48731587561374795
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.1497407355472529,
+      "dd_ratio": 0.981844033606465,
+      "worst_ratio": 1.0011443356973069,
+      "scale": 1.05,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.05,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 24.955969311981335
+      }
+    },
+    "x1.10": {
+      "candidate": {
+        "return": 312.5710777513375,
+        "max_drawdown": -0.32190972545214036,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.11549756686295387,
+        "positive_days": 0.4877250409165303
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.274898841148073,
+      "dd_ratio": 0.9965886549140693,
+      "worst_ratio": 1.0024164657942813,
+      "scale": 1.1,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 55.31142945083434
+      }
+    },
+    "x1.15": {
+      "candidate": {
+        "return": 333.6195218353265,
+        "max_drawdown": -0.3149398861972984,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.11564417677115957,
+        "positive_days": 0.48731587561374795
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.3604763668659505,
+      "dd_ratio": 0.975010982110944,
+      "worst_ratio": 1.0036889097948407,
+      "scale": 1.15,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.15,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 81.56117712840546
+      }
+    }
+  },
+  "delay_sensitivity": {
+    "0h": {
+      "candidate": {
+        "return": 312.5710777513375,
+        "max_drawdown": -0.32190972545214036,
+        "best_day": 0.21657980284126865,
+        "worst_day": -0.11549756686295387,
+        "positive_days": 0.4877250409165303
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.274898841148073,
+      "dd_ratio": 0.9965886549140693,
+      "worst_ratio": 1.0024164657942813,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 0,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.017586912065439674,
+        "turnover_delta_vs_parent": 55.31142945083434
+      }
+    },
+    "24h": {
+      "candidate": {
+        "return": 318.30005158720536,
+        "max_drawdown": -0.3136509547408729,
+        "best_day": 0.21657980284126843,
+        "worst_day": -0.12620343611234197,
+        "positive_days": 0.4881342062193126
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.298191365945617,
+      "dd_ratio": 0.9710206259182836,
+      "worst_ratio": 1.0953339177174137,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 24,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.0196319018404908,
+        "turnover_delta_vs_parent": 49.947074469714835
+      }
+    },
+    "48h": {
+      "candidate": {
+        "return": 325.7984167681301,
+        "max_drawdown": -0.31311910980368596,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11549756686295409,
+        "positive_days": 0.4877250409165303
+      },
+      "parent_r73": {
+        "return": 244.95761454215472,
+        "max_drawdown": -0.3230116295874319,
+        "best_day": 0.2165798028412682,
+        "worst_day": -0.11521914374325193,
+        "positive_days": 0.4885433715220949
+      },
+      "wealth_ratio": 1.3286777779840602,
+      "dd_ratio": 0.9693741064481758,
+      "worst_ratio": 1.0024164657942831,
+      "diagnostics": {
+        "raw_protect_fraction": 0.17082481254260395,
+        "daily_protect_trigger_fraction": 0.00652692569870484,
+        "protect_active_fraction": 0.23190184049079754,
+        "protect_persistence_hours": 72,
+        "h15_active_fraction": 0.7039877300613497,
+        "h25_active_fraction": 0.7039877300613497,
+        "effective_protect_fraction": 0.20269256987048398,
+        "raw_gate_fraction": 0.19596114519427402,
+        "daily_active_fraction": 0.19795501022494888,
+        "decision_count": 2445,
+        "threshold": 0.03360248266113066,
+        "delay_hours": 48,
+        "scale": 1.1,
+        "effective_scaled_fraction": 0.19795501022494888,
+        "protect_overlap_fraction": 0.025766871165644172,
+        "turnover_delta_vs_parent": 50.964226273523764
+      }
+    }
+  },
+  "remove_best_candidate_days": {
+    "1": {
+      "removed_days": [
+        "2026-08-19T00:00:00+00:00"
+      ],
+      "candidate_wealth": 257.74805484934365,
+      "parent_wealth": 202.17137746963212,
+      "wealth_ratio": 1.274898841148073
+    },
+    "5": {
+      "removed_days": [
+        "2026-08-19T00:00:00+00:00",
+        "2025-05-08T00:00:00+00:00",
+        "2023-10-23T00:00:00+00:00",
+        "2024-05-20T00:00:00+00:00",
+        "2022-11-04T00:00:00+00:00"
+      ],
+      "candidate_wealth": 142.0737644134744,
+      "parent_wealth": 114.63545058859697,
+      "wealth_ratio": 1.2393527803484448
+    },
+    "10": {
+      "removed_days": [
+        "2026-08-19T00:00:00+00:00",
+        "2025-05-08T00:00:00+00:00",
+        "2023-10-23T00:00:00+00:00",
+        "2024-05-20T00:00:00+00:00",
+        "2022-11-04T00:00:00+00:00",
+        "2022-05-09T00:00:00+00:00",
+        "2021-02-19T00:00:00+00:00",
+        "2020-03-12T00:00:00+00:00",
+        "2021-01-06T00:00:00+00:00",
+        "2022-01-21T00:00:00+00:00"
+      ],
+      "candidate_wealth": 75.60218377814199,
+      "parent_wealth": 63.77303696852989,
+      "wealth_ratio": 1.1854882152695572
+    }
+  },
+  "random_calendar_windows": {
+    "30": {
+      "days": 30,
+      "samples": 60,
+      "return_win_rate": 0.5333333333333333,
+      "dd_win_rate": 0.21666666666666667,
+      "median_wealth_ratio": 1.0007856000498134,
+      "p10_wealth_ratio": 0.9921735283841896,
+      "p90_wealth_ratio": 1.0189167564381574,
+      "windows": [
+        {
+          "start": "2020-01-23T00:00:00+00:00",
+          "end": "2020-02-22T00:00:00+00:00",
+          "wealth_ratio": 1.0165885195799824,
+          "candidate_dd": -0.08461928278610975,
+          "parent_dd": -0.07960684409341656,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-05-08T00:00:00+00:00",
+          "end": "2020-06-07T00:00:00+00:00",
+          "wealth_ratio": 1.0063812270515406,
+          "candidate_dd": -0.14934578734764248,
+          "parent_dd": -0.15008652436138958,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-05-26T00:00:00+00:00",
+          "end": "2020-06-25T00:00:00+00:00",
+          "wealth_ratio": 1.0061410384301142,
+          "candidate_dd": -0.11069478592582727,
+          "parent_dd": -0.10833049839533693,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-06-29T00:00:00+00:00",
+          "end": "2020-07-29T00:00:00+00:00",
+          "wealth_ratio": 1.0164240931661328,
+          "candidate_dd": -0.1421135158925544,
+          "parent_dd": -0.14211351589255528,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-07-16T00:00:00+00:00",
+          "end": "2020-08-15T00:00:00+00:00",
+          "wealth_ratio": 1.0218875747668328,
+          "candidate_dd": -0.05133449453619021,
+          "parent_dd": -0.04737346047037072,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-10-10T00:00:00+00:00",
+          "end": "2020-11-09T00:00:00+00:00",
+          "wealth_ratio": 0.9952313456600069,
+          "candidate_dd": -0.09670692656784663,
+          "parent_dd": -0.09105859476821654,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-03-03T00:00:00+00:00",
+          "end": "2021-04-02T00:00:00+00:00",
+          "wealth_ratio": 1.004080411225126,
+          "candidate_dd": -0.13900281864954944,
+          "parent_dd": -0.13766736236780275,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-05-15T00:00:00+00:00",
+          "end": "2021-06-14T00:00:00+00:00",
+          "wealth_ratio": 0.9984682437938667,
+          "candidate_dd": -0.12644844111447595,
+          "parent_dd": -0.12644844111447662,
+          "return_win": false,
+          "dd_win": true
+        },
+        {
+          "start": "2021-06-01T00:00:00+00:00",
+          "end": "2021-07-01T00:00:00+00:00",
+          "wealth_ratio": 0.9934100758788015,
+          "candidate_dd": -0.06634674634712956,
+          "parent_dd": -0.062244539156601664,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-17T00:00:00+00:00",
+          "end": "2021-07-17T00:00:00+00:00",
+          "wealth_ratio": 0.9919410337664956,
+          "candidate_dd": -0.06869829165864505,
+          "parent_dd": -0.06274135761627331,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-07-07T00:00:00+00:00",
+          "end": "2021-08-06T00:00:00+00:00",
+          "wealth_ratio": 1.0056965394943513,
+          "candidate_dd": -0.05792657518721833,
+          "parent_dd": -0.05792657518721789,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-07-08T00:00:00+00:00",
+          "end": "2021-08-07T00:00:00+00:00",
+          "wealth_ratio": 1.0083603431884798,
+          "candidate_dd": -0.05792657518721833,
+          "parent_dd": -0.05792657518721789,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-08-16T00:00:00+00:00",
+          "end": "2021-09-15T00:00:00+00:00",
+          "wealth_ratio": 1.0122692203563581,
+          "candidate_dd": -0.15090903102718312,
+          "parent_dd": -0.15064175470590246,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-09-15T00:00:00+00:00",
+          "end": "2021-10-15T00:00:00+00:00",
+          "wealth_ratio": 1.0051829262216636,
+          "candidate_dd": -0.0978411447017783,
+          "parent_dd": -0.09784114470177807,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-09-19T00:00:00+00:00",
+          "end": "2021-10-19T00:00:00+00:00",
+          "wealth_ratio": 1.0044003741289849,
+          "candidate_dd": -0.04621285188468938,
+          "parent_dd": -0.04621285188468882,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-11-14T00:00:00+00:00",
+          "end": "2021-12-14T00:00:00+00:00",
+          "wealth_ratio": 0.996407767476424,
+          "candidate_dd": -0.08720207168059291,
+          "parent_dd": -0.08686317612879935,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-12-06T00:00:00+00:00",
+          "end": "2022-01-05T00:00:00+00:00",
+          "wealth_ratio": 0.9984913820850879,
+          "candidate_dd": -0.0869692030220407,
+          "parent_dd": -0.0863834814826111,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-12-28T00:00:00+00:00",
+          "end": "2022-01-27T00:00:00+00:00",
+          "wealth_ratio": 1.0160961321114346,
+          "candidate_dd": -0.04264451420603366,
+          "parent_dd": -0.03877821708945495,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-02-26T00:00:00+00:00",
+          "end": "2022-03-28T00:00:00+00:00",
+          "wealth_ratio": 0.9866286322447284,
+          "candidate_dd": -0.08457145052947235,
+          "parent_dd": -0.08011757783055518,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-11T00:00:00+00:00",
+          "end": "2022-04-10T00:00:00+00:00",
+          "wealth_ratio": 0.9828716767498804,
+          "candidate_dd": -0.0761299262024473,
+          "parent_dd": -0.07587442031431701,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-04-19T00:00:00+00:00",
+          "end": "2022-05-19T00:00:00+00:00",
+          "wealth_ratio": 1.008249488777505,
+          "candidate_dd": -0.07314099635655591,
+          "parent_dd": -0.06922558194870587,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-05-28T00:00:00+00:00",
+          "end": "2022-06-27T00:00:00+00:00",
+          "wealth_ratio": 0.9912417356435334,
+          "candidate_dd": -0.031103908140155845,
+          "parent_dd": -0.028930120600997533,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-06-09T00:00:00+00:00",
+          "end": "2022-07-09T00:00:00+00:00",
+          "wealth_ratio": 0.994940611949199,
+          "candidate_dd": -0.03943073214014381,
+          "parent_dd": -0.039103603248221486,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-08-24T00:00:00+00:00",
+          "end": "2022-09-23T00:00:00+00:00",
+          "wealth_ratio": 0.9988688201486164,
+          "candidate_dd": -0.14578786229529195,
+          "parent_dd": -0.14201130110433857,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-09-08T00:00:00+00:00",
+          "end": "2022-10-08T00:00:00+00:00",
+          "wealth_ratio": 1.0007856000498143,
+          "candidate_dd": -0.08362404652085886,
+          "parent_dd": -0.08362404652085986,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2022-09-14T00:00:00+00:00",
+          "end": "2022-10-14T00:00:00+00:00",
+          "wealth_ratio": 1.0007856000498125,
+          "candidate_dd": -0.04816858067647689,
+          "parent_dd": -0.0483715990593212,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2022-12-14T00:00:00+00:00",
+          "end": "2023-01-13T00:00:00+00:00",
+          "wealth_ratio": 1.0188365111668451,
+          "candidate_dd": -0.06376136744857319,
+          "parent_dd": -0.06376136744857486,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2022-12-21T00:00:00+00:00",
+          "end": "2023-01-20T00:00:00+00:00",
+          "wealth_ratio": 1.0281277806608276,
+          "candidate_dd": -0.05240069259305802,
+          "parent_dd": -0.05155862744116846,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-01-08T00:00:00+00:00",
+          "end": "2023-02-07T00:00:00+00:00",
+          "wealth_ratio": 1.0259713023335006,
+          "candidate_dd": -0.06121814526617775,
+          "parent_dd": -0.06121814526617686,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-01-26T00:00:00+00:00",
+          "end": "2023-02-25T00:00:00+00:00",
+          "wealth_ratio": 0.9995866341453893,
+          "candidate_dd": -0.12657493557189148,
+          "parent_dd": -0.12657493557189037,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-01-30T00:00:00+00:00",
+          "end": "2023-03-01T00:00:00+00:00",
+          "wealth_ratio": 0.9995866341453908,
+          "candidate_dd": -0.11209061092566364,
+          "parent_dd": -0.11209061092566419,
+          "return_win": false,
+          "dd_win": true
+        },
+        {
+          "start": "2023-03-27T00:00:00+00:00",
+          "end": "2023-04-26T00:00:00+00:00",
+          "wealth_ratio": 0.9986344058254628,
+          "candidate_dd": -0.16709293220257548,
+          "parent_dd": -0.16709293220257382,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-04-04T00:00:00+00:00",
+          "end": "2023-05-04T00:00:00+00:00",
+          "wealth_ratio": 0.9986344058254626,
+          "candidate_dd": -0.1997765320176358,
+          "parent_dd": -0.19977653201763346,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-05-05T00:00:00+00:00",
+          "end": "2023-06-04T00:00:00+00:00",
+          "wealth_ratio": 0.9992039537776997,
+          "candidate_dd": -0.06271402831639727,
+          "parent_dd": -0.0618476062584884,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-05-11T00:00:00+00:00",
+          "end": "2023-06-10T00:00:00+00:00",
+          "wealth_ratio": 0.9991972157648467,
+          "candidate_dd": -0.09170933732320774,
+          "parent_dd": -0.09024139413949284,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-09-06T00:00:00+00:00",
+          "end": "2023-10-06T00:00:00+00:00",
+          "wealth_ratio": 0.9842517921184916,
+          "candidate_dd": -0.1585071184018494,
+          "parent_dd": -0.14818868401181862,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-10-08T00:00:00+00:00",
+          "end": "2023-11-07T00:00:00+00:00",
+          "wealth_ratio": 1.017493932321623,
+          "candidate_dd": -0.06657016051931586,
+          "parent_dd": -0.06060657463685337,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-10-17T00:00:00+00:00",
+          "end": "2023-11-16T00:00:00+00:00",
+          "wealth_ratio": 1.0157715666391842,
+          "candidate_dd": -0.08388999815655818,
+          "parent_dd": -0.08164347436224118,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-11-03T00:00:00+00:00",
+          "end": "2023-12-03T00:00:00+00:00",
+          "wealth_ratio": 0.9981595279795286,
+          "candidate_dd": -0.1262960808217749,
+          "parent_dd": -0.12415354702160775,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-11-16T00:00:00+00:00",
+          "end": "2023-12-16T00:00:00+00:00",
+          "wealth_ratio": 1.0022699147149197,
+          "candidate_dd": -0.08958772696366901,
+          "parent_dd": -0.08958772696366724,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-12-30T00:00:00+00:00",
+          "end": "2024-01-29T00:00:00+00:00",
+          "wealth_ratio": 0.9972628221119996,
+          "candidate_dd": -0.08436766647596294,
+          "parent_dd": -0.08436766647596372,
+          "return_win": false,
+          "dd_win": true
+        },
+        {
+          "start": "2023-12-31T00:00:00+00:00",
+          "end": "2024-01-30T00:00:00+00:00",
+          "wealth_ratio": 0.9972628221119989,
+          "candidate_dd": -0.09098565965860073,
+          "parent_dd": -0.09098565965860128,
+          "return_win": false,
+          "dd_win": true
+        },
+        {
+          "start": "2024-01-29T00:00:00+00:00",
+          "end": "2024-02-28T00:00:00+00:00",
+          "wealth_ratio": 1.0300109630301517,
+          "candidate_dd": -0.04399313855165532,
+          "parent_dd": -0.04399313855165421,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-03-27T00:00:00+00:00",
+          "end": "2024-04-26T00:00:00+00:00",
+          "wealth_ratio": 0.9982094994245289,
+          "candidate_dd": -0.05705776878358493,
+          "parent_dd": -0.05478670351836523,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2024-05-23T00:00:00+00:00",
+          "end": "2024-06-22T00:00:00+00:00",
+          "wealth_ratio": 0.9921993611194889,
+          "candidate_dd": -0.13302387580459218,
+          "parent_dd": -0.1282647030100551,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2024-06-15T00:00:00+00:00",
+          "end": "2024-07-15T00:00:00+00:00",
+          "wealth_ratio": 1.006362639901726,
+          "candidate_dd": -0.07150057612975513,
+          "parent_dd": -0.07255995524649494,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-06-17T00:00:00+00:00",
+          "end": "2024-07-17T00:00:00+00:00",
+          "wealth_ratio": 1.0079852479664344,
+          "candidate_dd": -0.07150057612975513,
+          "parent_dd": -0.07255995524649494,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-10-28T00:00:00+00:00",
+          "end": "2024-11-27T00:00:00+00:00",
+          "wealth_ratio": 1.0156260056815625,
+          "candidate_dd": -0.08986473141202733,
+          "parent_dd": -0.0833343698509168,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-01-10T00:00:00+00:00",
+          "end": "2025-02-09T00:00:00+00:00",
+          "wealth_ratio": 1.0005999141157944,
+          "candidate_dd": -0.12681691008770546,
+          "parent_dd": -0.12627709106979068,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-01-28T00:00:00+00:00",
+          "end": "2025-02-27T00:00:00+00:00",
+          "wealth_ratio": 1.0088157837487637,
+          "candidate_dd": -0.07540894440324719,
+          "parent_dd": -0.07540894440324641,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-06-10T00:00:00+00:00",
+          "end": "2025-07-10T00:00:00+00:00",
+          "wealth_ratio": 1.0037888422604595,
+          "candidate_dd": -0.21527900594540805,
+          "parent_dd": -0.21174068320018546,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-06-15T00:00:00+00:00",
+          "end": "2025-07-15T00:00:00+00:00",
+          "wealth_ratio": 1.0240398476798844,
+          "candidate_dd": -0.09620831616868697,
+          "parent_dd": -0.10123136120844367,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2025-07-12T00:00:00+00:00",
+          "end": "2025-08-11T00:00:00+00:00",
+          "wealth_ratio": 1.0132801615065636,
+          "candidate_dd": -0.08308325456222276,
+          "parent_dd": -0.08108533056587364,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-09-11T00:00:00+00:00",
+          "end": "2025-10-11T00:00:00+00:00",
+          "wealth_ratio": 0.9897193365290746,
+          "candidate_dd": -0.10372614293410265,
+          "parent_dd": -0.09796540953977173,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2025-09-20T00:00:00+00:00",
+          "end": "2025-10-20T00:00:00+00:00",
+          "wealth_ratio": 0.9951057047043814,
+          "candidate_dd": -0.12645208043862888,
+          "parent_dd": -0.12264558942732062,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2025-11-07T00:00:00+00:00",
+          "end": "2025-12-07T00:00:00+00:00",
+          "wealth_ratio": 0.9958703454899653,
+          "candidate_dd": -0.059111666600296764,
+          "parent_dd": -0.05883300292065907,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2026-02-02T00:00:00+00:00",
+          "end": "2026-03-04T00:00:00+00:00",
+          "wealth_ratio": 0.998040198056283,
+          "candidate_dd": -0.1204897230955514,
+          "parent_dd": -0.1146252077724742,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2026-04-01T00:00:00+00:00",
+          "end": "2026-05-01T00:00:00+00:00",
+          "wealth_ratio": 1.004471142326558,
+          "candidate_dd": -0.1235536490066459,
+          "parent_dd": -0.12133672706648424,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2026-04-13T00:00:00+00:00",
+          "end": "2026-05-13T00:00:00+00:00",
+          "wealth_ratio": 0.99534651697187,
+          "candidate_dd": -0.1085194999712158,
+          "parent_dd": -0.1046062608224475,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2026-08-05T00:00:00+00:00",
+          "end": "2026-09-04T00:00:00+00:00",
+          "wealth_ratio": 1.0196389638799668,
+          "candidate_dd": -0.07789773527625998,
+          "parent_dd": -0.07789773527626087,
+          "return_win": true,
+          "dd_win": true
+        }
+      ]
+    },
+    "90": {
+      "days": 90,
+      "samples": 60,
+      "return_win_rate": 0.5833333333333334,
+      "dd_win_rate": 0.16666666666666666,
+      "median_wealth_ratio": 1.0032601046064369,
+      "p10_wealth_ratio": 0.9893188974724392,
+      "p90_wealth_ratio": 1.0258821456600355,
+      "windows": [
+        {
+          "start": "2020-02-02T00:00:00+00:00",
+          "end": "2020-05-02T00:00:00+00:00",
+          "wealth_ratio": 1.009127723272608,
+          "candidate_dd": -0.11143642860344571,
+          "parent_dd": -0.10234889900887967,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-02-23T00:00:00+00:00",
+          "end": "2020-05-23T00:00:00+00:00",
+          "wealth_ratio": 0.990125713768749,
+          "candidate_dd": -0.13527163423419686,
+          "parent_dd": -0.13013502838006363,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2020-03-21T00:00:00+00:00",
+          "end": "2020-06-19T00:00:00+00:00",
+          "wealth_ratio": 1.0032592872658321,
+          "candidate_dd": -0.17492536123582303,
+          "parent_dd": -0.17769251495319638,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-05-03T00:00:00+00:00",
+          "end": "2020-08-01T00:00:00+00:00",
+          "wealth_ratio": 1.0379052025809163,
+          "candidate_dd": -0.266813552322558,
+          "parent_dd": -0.2719231480845091,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-08-05T00:00:00+00:00",
+          "end": "2020-11-03T00:00:00+00:00",
+          "wealth_ratio": 0.9859702252595707,
+          "candidate_dd": -0.1400830258768032,
+          "parent_dd": -0.13843344319775264,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2020-10-04T00:00:00+00:00",
+          "end": "2021-01-02T00:00:00+00:00",
+          "wealth_ratio": 1.0244626521842017,
+          "candidate_dd": -0.13995292081303146,
+          "parent_dd": -0.13619518307155465,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-11-09T00:00:00+00:00",
+          "end": "2021-02-07T00:00:00+00:00",
+          "wealth_ratio": 1.0467114213528645,
+          "candidate_dd": -0.13995292081303146,
+          "parent_dd": -0.13619518307155465,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-01-09T00:00:00+00:00",
+          "end": "2021-04-09T00:00:00+00:00",
+          "wealth_ratio": 1.0229087742739384,
+          "candidate_dd": -0.13900281864954944,
+          "parent_dd": -0.13766736236780275,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-03-25T00:00:00+00:00",
+          "end": "2021-06-23T00:00:00+00:00",
+          "wealth_ratio": 1.022336516317071,
+          "candidate_dd": -0.1387830584247941,
+          "parent_dd": -0.1374618602762454,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-05-05T00:00:00+00:00",
+          "end": "2021-08-03T00:00:00+00:00",
+          "wealth_ratio": 1.0055223457000693,
+          "candidate_dd": -0.15396250064509454,
+          "parent_dd": -0.14578046296622982,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-05-31T00:00:00+00:00",
+          "end": "2021-08-29T00:00:00+00:00",
+          "wealth_ratio": 0.9853142713640105,
+          "candidate_dd": -0.0981805693599711,
+          "parent_dd": -0.0944246090050842,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-10T00:00:00+00:00",
+          "end": "2021-09-08T00:00:00+00:00",
+          "wealth_ratio": 0.9993678586721388,
+          "candidate_dd": -0.11549756686295387,
+          "parent_dd": -0.11521914374325193,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-15T00:00:00+00:00",
+          "end": "2021-09-13T00:00:00+00:00",
+          "wealth_ratio": 0.9993678586721382,
+          "candidate_dd": -0.1422292584053253,
+          "parent_dd": -0.14195924987067654,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-16T00:00:00+00:00",
+          "end": "2021-09-14T00:00:00+00:00",
+          "wealth_ratio": 0.9993678586721384,
+          "candidate_dd": -0.15090903102718312,
+          "parent_dd": -0.15064175470590246,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-25T00:00:00+00:00",
+          "end": "2021-09-23T00:00:00+00:00",
+          "wealth_ratio": 1.0029785699567846,
+          "candidate_dd": -0.19019191359132326,
+          "parent_dd": -0.18993700271111313,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-08-17T00:00:00+00:00",
+          "end": "2021-11-15T00:00:00+00:00",
+          "wealth_ratio": 1.0100589090512537,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-10-12T00:00:00+00:00",
+          "end": "2022-01-10T00:00:00+00:00",
+          "wealth_ratio": 0.997757502833645,
+          "candidate_dd": -0.10415370204671093,
+          "parent_dd": -0.10210716373033402,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-12-16T00:00:00+00:00",
+          "end": "2022-03-16T00:00:00+00:00",
+          "wealth_ratio": 1.0169673276038946,
+          "candidate_dd": -0.17244319720081047,
+          "parent_dd": -0.17311517519586606,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2021-12-20T00:00:00+00:00",
+          "end": "2022-03-20T00:00:00+00:00",
+          "wealth_ratio": 1.0008543563950558,
+          "candidate_dd": -0.17982604133811797,
+          "parent_dd": -0.1748352742468835,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-16T00:00:00+00:00",
+          "end": "2022-06-14T00:00:00+00:00",
+          "wealth_ratio": 0.98434175627323,
+          "candidate_dd": -0.15251803318489687,
+          "parent_dd": -0.1476829692796423,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-06-10T00:00:00+00:00",
+          "end": "2022-09-08T00:00:00+00:00",
+          "wealth_ratio": 0.9883529437379069,
+          "candidate_dd": -0.08664576039087879,
+          "parent_dd": -0.08489145896319383,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-06-25T00:00:00+00:00",
+          "end": "2022-09-23T00:00:00+00:00",
+          "wealth_ratio": 0.9939471846123257,
+          "candidate_dd": -0.14578786229529195,
+          "parent_dd": -0.14201130110433857,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-08-20T00:00:00+00:00",
+          "end": "2022-11-18T00:00:00+00:00",
+          "wealth_ratio": 0.9858775001962256,
+          "candidate_dd": -0.17830712910749058,
+          "parent_dd": -0.17610571201821323,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-09-11T00:00:00+00:00",
+          "end": "2022-12-10T00:00:00+00:00",
+          "wealth_ratio": 0.9899002127594333,
+          "candidate_dd": -0.17878537899326707,
+          "parent_dd": -0.1758831926907376,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-10-06T00:00:00+00:00",
+          "end": "2023-01-04T00:00:00+00:00",
+          "wealth_ratio": 0.9894262256651651,
+          "candidate_dd": -0.24318052124374012,
+          "parent_dd": -0.23868875398265854,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-10-07T00:00:00+00:00",
+          "end": "2023-01-05T00:00:00+00:00",
+          "wealth_ratio": 0.989426225665165,
+          "candidate_dd": -0.24318052124374012,
+          "parent_dd": -0.23868875398265854,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-12-24T00:00:00+00:00",
+          "end": "2023-03-24T00:00:00+00:00",
+          "wealth_ratio": 1.023598912852195,
+          "candidate_dd": -0.12657493557189148,
+          "parent_dd": -0.12657493557189037,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-03-10T00:00:00+00:00",
+          "end": "2023-06-08T00:00:00+00:00",
+          "wealth_ratio": 0.9957125927280176,
+          "candidate_dd": -0.2645005456478515,
+          "parent_dd": -0.2629030485953595,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-04-08T00:00:00+00:00",
+          "end": "2023-07-07T00:00:00+00:00",
+          "wealth_ratio": 1.0093812715219308,
+          "candidate_dd": -0.26325648858289863,
+          "parent_dd": -0.26266456732152177,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-05-28T00:00:00+00:00",
+          "end": "2023-08-26T00:00:00+00:00",
+          "wealth_ratio": 1.005944888905878,
+          "candidate_dd": -0.23949921419803144,
+          "parent_dd": -0.22532423557672487,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-06-22T00:00:00+00:00",
+          "end": "2023-09-20T00:00:00+00:00",
+          "wealth_ratio": 0.9935474721351725,
+          "candidate_dd": -0.23949921419803144,
+          "parent_dd": -0.2260525866566121,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-07-07T00:00:00+00:00",
+          "end": "2023-10-05T00:00:00+00:00",
+          "wealth_ratio": 0.9786567837723513,
+          "candidate_dd": -0.2739073325625663,
+          "parent_dd": -0.26080194914864385,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-09-08T00:00:00+00:00",
+          "end": "2023-12-07T00:00:00+00:00",
+          "wealth_ratio": 1.002044388797344,
+          "candidate_dd": -0.16060129377315246,
+          "parent_dd": -0.14818868401181862,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-10-09T00:00:00+00:00",
+          "end": "2024-01-07T00:00:00+00:00",
+          "wealth_ratio": 1.0155125177069595,
+          "candidate_dd": -0.23338712977731646,
+          "parent_dd": -0.23131117296708514,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-01-05T00:00:00+00:00",
+          "end": "2024-04-04T00:00:00+00:00",
+          "wealth_ratio": 1.02715091663582,
+          "candidate_dd": -0.0997350263720247,
+          "parent_dd": -0.09973502637202547,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-01-15T00:00:00+00:00",
+          "end": "2024-04-14T00:00:00+00:00",
+          "wealth_ratio": 1.025392582095223,
+          "candidate_dd": -0.0997350263720247,
+          "parent_dd": -0.09973502637202547,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-02-03T00:00:00+00:00",
+          "end": "2024-05-03T00:00:00+00:00",
+          "wealth_ratio": 1.0249069273329205,
+          "candidate_dd": -0.11782421618081318,
+          "parent_dd": -0.11569950618891023,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-02-07T00:00:00+00:00",
+          "end": "2024-05-07T00:00:00+00:00",
+          "wealth_ratio": 1.02490692733292,
+          "candidate_dd": -0.16054458085352852,
+          "parent_dd": -0.15852276235710971,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-02-24T00:00:00+00:00",
+          "end": "2024-05-24T00:00:00+00:00",
+          "wealth_ratio": 1.0032609219470419,
+          "candidate_dd": -0.16536039973590122,
+          "parent_dd": -0.1633501800825775,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-03-06T00:00:00+00:00",
+          "end": "2024-06-04T00:00:00+00:00",
+          "wealth_ratio": 0.9990495932431358,
+          "candidate_dd": -0.16536039973590122,
+          "parent_dd": -0.1633501800825775,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2024-04-07T00:00:00+00:00",
+          "end": "2024-07-06T00:00:00+00:00",
+          "wealth_ratio": 0.9928611032760002,
+          "candidate_dd": -0.16536039973590122,
+          "parent_dd": -0.1633501800825775,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2024-04-17T00:00:00+00:00",
+          "end": "2024-07-16T00:00:00+00:00",
+          "wealth_ratio": 1.0007567304547507,
+          "candidate_dd": -0.1558865229353672,
+          "parent_dd": -0.15588652293536343,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-04-29T00:00:00+00:00",
+          "end": "2024-07-28T00:00:00+00:00",
+          "wealth_ratio": 0.9961412243194934,
+          "candidate_dd": -0.13302387580459218,
+          "parent_dd": -0.1282647030100551,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2024-06-29T00:00:00+00:00",
+          "end": "2024-09-27T00:00:00+00:00",
+          "wealth_ratio": 1.0106709088250514,
+          "candidate_dd": -0.09062407720404797,
+          "parent_dd": -0.09201430335017069,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-08-07T00:00:00+00:00",
+          "end": "2024-11-05T00:00:00+00:00",
+          "wealth_ratio": 1.005297835803564,
+          "candidate_dd": -0.14810259758623245,
+          "parent_dd": -0.15162319915924527,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-10-15T00:00:00+00:00",
+          "end": "2025-01-13T00:00:00+00:00",
+          "wealth_ratio": 1.0183560074133298,
+          "candidate_dd": -0.12618759006126035,
+          "parent_dd": -0.12688694641017384,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-11-28T00:00:00+00:00",
+          "end": "2025-02-26T00:00:00+00:00",
+          "wealth_ratio": 1.0033834369599117,
+          "candidate_dd": -0.17129224375701269,
+          "parent_dd": -0.17040471647463062,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-12-21T00:00:00+00:00",
+          "end": "2025-03-21T00:00:00+00:00",
+          "wealth_ratio": 0.9919773798327095,
+          "candidate_dd": -0.12681691008770546,
+          "parent_dd": -0.12808744470697853,
+          "return_win": false,
+          "dd_win": true
+        },
+        {
+          "start": "2024-12-31T00:00:00+00:00",
+          "end": "2025-03-31T00:00:00+00:00",
+          "wealth_ratio": 0.9919773798327088,
+          "candidate_dd": -0.12837116613005006,
+          "parent_dd": -0.12808744470697853,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2025-05-11T00:00:00+00:00",
+          "end": "2025-08-09T00:00:00+00:00",
+          "wealth_ratio": 1.0294413186615912,
+          "candidate_dd": -0.21927110094715585,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-05-30T00:00:00+00:00",
+          "end": "2025-08-28T00:00:00+00:00",
+          "wealth_ratio": 1.031222392932816,
+          "candidate_dd": -0.21527900594540805,
+          "parent_dd": -0.21174068320018546,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-08-07T00:00:00+00:00",
+          "end": "2025-11-05T00:00:00+00:00",
+          "wealth_ratio": 0.9928430459915255,
+          "candidate_dd": -0.15742300084136918,
+          "parent_dd": -0.14293076968926188,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2025-08-31T00:00:00+00:00",
+          "end": "2025-11-29T00:00:00+00:00",
+          "wealth_ratio": 0.9986725075763581,
+          "candidate_dd": -0.13132883823271524,
+          "parent_dd": -0.12264558942732062,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2025-10-19T00:00:00+00:00",
+          "end": "2026-01-17T00:00:00+00:00",
+          "wealth_ratio": 1.0111390361584889,
+          "candidate_dd": -0.11487590684960369,
+          "parent_dd": -0.11505463273819672,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2025-11-18T00:00:00+00:00",
+          "end": "2026-02-16T00:00:00+00:00",
+          "wealth_ratio": 1.0092856617745025,
+          "candidate_dd": -0.1328535495946196,
+          "parent_dd": -0.13280952533547474,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-12-13T00:00:00+00:00",
+          "end": "2026-03-13T00:00:00+00:00",
+          "wealth_ratio": 1.0092428871284187,
+          "candidate_dd": -0.17584978409248608,
+          "parent_dd": -0.17035440592963147,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-12-23T00:00:00+00:00",
+          "end": "2026-03-23T00:00:00+00:00",
+          "wealth_ratio": 0.9975083043431857,
+          "candidate_dd": -0.21227636937563554,
+          "parent_dd": -0.19661743929789754,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2026-03-12T00:00:00+00:00",
+          "end": "2026-06-10T00:00:00+00:00",
+          "wealth_ratio": 1.0039552636066569,
+          "candidate_dd": -0.13975458228095128,
+          "parent_dd": -0.13577761632050178,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2026-05-24T00:00:00+00:00",
+          "end": "2026-08-22T00:00:00+00:00",
+          "wealth_ratio": 1.0257411711071707,
+          "candidate_dd": -0.26861190825901504,
+          "parent_dd": -0.2661278417149312,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2026-05-25T00:00:00+00:00",
+          "end": "2026-08-23T00:00:00+00:00",
+          "wealth_ratio": 1.02734563974522,
+          "candidate_dd": -0.26861190825901504,
+          "parent_dd": -0.2661278417149312,
+          "return_win": true,
+          "dd_win": false
+        }
+      ]
+    },
+    "180": {
+      "days": 180,
+      "samples": 60,
+      "return_win_rate": 0.75,
+      "dd_win_rate": 0.18333333333333332,
+      "median_wealth_ratio": 1.01170113579636,
+      "p10_wealth_ratio": 0.9816068524119593,
+      "p90_wealth_ratio": 1.0477584238720568,
+      "windows": [
+        {
+          "start": "2020-01-13T00:00:00+00:00",
+          "end": "2020-07-11T00:00:00+00:00",
+          "wealth_ratio": 1.01593675340372,
+          "candidate_dd": -0.21531632528311895,
+          "parent_dd": -0.21794801488481064,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-01-16T00:00:00+00:00",
+          "end": "2020-07-14T00:00:00+00:00",
+          "wealth_ratio": 1.0159367534037202,
+          "candidate_dd": -0.2655692870562609,
+          "parent_dd": -0.2680324371544386,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-02-01T00:00:00+00:00",
+          "end": "2020-07-30T00:00:00+00:00",
+          "wealth_ratio": 1.0371963733645464,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-02-03T00:00:00+00:00",
+          "end": "2020-08-01T00:00:00+00:00",
+          "wealth_ratio": 1.0491964061769794,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-02-17T00:00:00+00:00",
+          "end": "2020-08-15T00:00:00+00:00",
+          "wealth_ratio": 1.0212324112032587,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-03-21T00:00:00+00:00",
+          "end": "2020-09-17T00:00:00+00:00",
+          "wealth_ratio": 1.0229277523277518,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-05-13T00:00:00+00:00",
+          "end": "2020-11-09T00:00:00+00:00",
+          "wealth_ratio": 1.0212177282153194,
+          "candidate_dd": -0.266813552322558,
+          "parent_dd": -0.2719231480845091,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-06-28T00:00:00+00:00",
+          "end": "2020-12-25T00:00:00+00:00",
+          "wealth_ratio": 1.0284115952040918,
+          "candidate_dd": -0.1421135158925544,
+          "parent_dd": -0.14211351589255528,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-08-03T00:00:00+00:00",
+          "end": "2021-01-30T00:00:00+00:00",
+          "wealth_ratio": 1.0312366340001164,
+          "candidate_dd": -0.1400830258768032,
+          "parent_dd": -0.13843344319775264,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-08-25T00:00:00+00:00",
+          "end": "2021-02-21T00:00:00+00:00",
+          "wealth_ratio": 1.067750243455608,
+          "candidate_dd": -0.1400830258768032,
+          "parent_dd": -0.13843344319775264,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-08-31T00:00:00+00:00",
+          "end": "2021-02-27T00:00:00+00:00",
+          "wealth_ratio": 1.0623935596911438,
+          "candidate_dd": -0.1400830258768032,
+          "parent_dd": -0.13843344319775264,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-11-17T00:00:00+00:00",
+          "end": "2021-05-16T00:00:00+00:00",
+          "wealth_ratio": 1.0794510493356961,
+          "candidate_dd": -0.13995292081303146,
+          "parent_dd": -0.13766736236780275,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-11-24T00:00:00+00:00",
+          "end": "2021-05-23T00:00:00+00:00",
+          "wealth_ratio": 1.0696118712579628,
+          "candidate_dd": -0.13923853509695194,
+          "parent_dd": -0.13766736236780275,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-12-20T00:00:00+00:00",
+          "end": "2021-06-18T00:00:00+00:00",
+          "wealth_ratio": 1.071952466931974,
+          "candidate_dd": -0.13900281864954944,
+          "parent_dd": -0.13766736236780275,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-01-19T00:00:00+00:00",
+          "end": "2021-07-18T00:00:00+00:00",
+          "wealth_ratio": 1.031215171701784,
+          "candidate_dd": -0.14660385394474384,
+          "parent_dd": -0.13982765701843225,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-02-25T00:00:00+00:00",
+          "end": "2021-08-24T00:00:00+00:00",
+          "wealth_ratio": 1.0004694073544411,
+          "candidate_dd": -0.15396250064509454,
+          "parent_dd": -0.14578046296622982,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-03-07T00:00:00+00:00",
+          "end": "2021-09-03T00:00:00+00:00",
+          "wealth_ratio": 1.0130207030915517,
+          "candidate_dd": -0.15396250064509454,
+          "parent_dd": -0.14578046296622982,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-03-17T00:00:00+00:00",
+          "end": "2021-09-13T00:00:00+00:00",
+          "wealth_ratio": 1.02379365415081,
+          "candidate_dd": -0.15396250064509454,
+          "parent_dd": -0.14578046296622982,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-05-09T00:00:00+00:00",
+          "end": "2021-11-05T00:00:00+00:00",
+          "wealth_ratio": 0.9950387961000421,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-28T00:00:00+00:00",
+          "end": "2021-12-25T00:00:00+00:00",
+          "wealth_ratio": 0.9967599981206067,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-11-27T00:00:00+00:00",
+          "end": "2022-05-26T00:00:00+00:00",
+          "wealth_ratio": 1.0025504671801628,
+          "candidate_dd": -0.1991912140432167,
+          "parent_dd": -0.1814789997951619,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-02-12T00:00:00+00:00",
+          "end": "2022-08-11T00:00:00+00:00",
+          "wealth_ratio": 0.9797474068308779,
+          "candidate_dd": -0.16266854069402292,
+          "parent_dd": -0.1476829692796423,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-03T00:00:00+00:00",
+          "end": "2022-08-30T00:00:00+00:00",
+          "wealth_ratio": 0.975831900417596,
+          "candidate_dd": -0.15251803318489687,
+          "parent_dd": -0.1476829692796423,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-13T00:00:00+00:00",
+          "end": "2022-09-09T00:00:00+00:00",
+          "wealth_ratio": 0.9738574901779233,
+          "candidate_dd": -0.15251803318489687,
+          "parent_dd": -0.1476829692796423,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-20T00:00:00+00:00",
+          "end": "2022-09-16T00:00:00+00:00",
+          "wealth_ratio": 0.9895358329862306,
+          "candidate_dd": -0.15251803318489687,
+          "parent_dd": -0.1476829692796423,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-24T00:00:00+00:00",
+          "end": "2022-09-20T00:00:00+00:00",
+          "wealth_ratio": 0.9868211900564181,
+          "candidate_dd": -0.15251803318489687,
+          "parent_dd": -0.1476829692796423,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-05-11T00:00:00+00:00",
+          "end": "2022-11-07T00:00:00+00:00",
+          "wealth_ratio": 0.9816467203077074,
+          "candidate_dd": -0.17830712910749058,
+          "parent_dd": -0.17610571201821323,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-05-19T00:00:00+00:00",
+          "end": "2022-11-15T00:00:00+00:00",
+          "wealth_ratio": 0.9740015232244629,
+          "candidate_dd": -0.17830712910749058,
+          "parent_dd": -0.17610571201821323,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-05-24T00:00:00+00:00",
+          "end": "2022-11-20T00:00:00+00:00",
+          "wealth_ratio": 0.9740015232244643,
+          "candidate_dd": -0.17830712910749058,
+          "parent_dd": -0.17610571201821323,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-06-10T00:00:00+00:00",
+          "end": "2022-12-07T00:00:00+00:00",
+          "wealth_ratio": 0.981248041350227,
+          "candidate_dd": -0.17878537899326707,
+          "parent_dd": -0.17610571201821323,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-08-09T00:00:00+00:00",
+          "end": "2023-02-05T00:00:00+00:00",
+          "wealth_ratio": 1.010633654071042,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-09-22T00:00:00+00:00",
+          "end": "2023-03-21T00:00:00+00:00",
+          "wealth_ratio": 1.012802342343399,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-10-28T00:00:00+00:00",
+          "end": "2023-04-26T00:00:00+00:00",
+          "wealth_ratio": 1.0127686175216775,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-01-14T00:00:00+00:00",
+          "end": "2023-07-13T00:00:00+00:00",
+          "wealth_ratio": 1.0055296129727773,
+          "candidate_dd": -0.30391677708612197,
+          "parent_dd": -0.30078807938732344,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-02-15T00:00:00+00:00",
+          "end": "2023-08-14T00:00:00+00:00",
+          "wealth_ratio": 0.9894872645976801,
+          "candidate_dd": -0.27040555896710927,
+          "parent_dd": -0.2675265827706459,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-03-12T00:00:00+00:00",
+          "end": "2023-09-08T00:00:00+00:00",
+          "wealth_ratio": 1.0019619621874578,
+          "candidate_dd": -0.2645005456478515,
+          "parent_dd": -0.2629030485953595,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-06-26T00:00:00+00:00",
+          "end": "2023-12-23T00:00:00+00:00",
+          "wealth_ratio": 0.997406458012631,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-07-09T00:00:00+00:00",
+          "end": "2024-01-05T00:00:00+00:00",
+          "wealth_ratio": 0.9938382144596566,
+          "candidate_dd": -0.2757143179984304,
+          "parent_dd": -0.26080194914864385,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-07-22T00:00:00+00:00",
+          "end": "2024-01-18T00:00:00+00:00",
+          "wealth_ratio": 1.0005062367645976,
+          "candidate_dd": -0.23338712977731646,
+          "parent_dd": -0.23131117296708514,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-01-09T00:00:00+00:00",
+          "end": "2024-07-07T00:00:00+00:00",
+          "wealth_ratio": 1.0228383298415011,
+          "candidate_dd": -0.16536039973590122,
+          "parent_dd": -0.1633501800825775,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-04-10T00:00:00+00:00",
+          "end": "2024-10-07T00:00:00+00:00",
+          "wealth_ratio": 0.9966553461948419,
+          "candidate_dd": -0.16536039973590122,
+          "parent_dd": -0.1633501800825775,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2024-04-27T00:00:00+00:00",
+          "end": "2024-10-24T00:00:00+00:00",
+          "wealth_ratio": 1.004449623959913,
+          "candidate_dd": -0.14172955783848162,
+          "parent_dd": -0.14727340344809525,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-05-23T00:00:00+00:00",
+          "end": "2024-11-19T00:00:00+00:00",
+          "wealth_ratio": 1.0175893408778456,
+          "candidate_dd": -0.14977451540548525,
+          "parent_dd": -0.15526639603937953,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-05-30T00:00:00+00:00",
+          "end": "2024-11-26T00:00:00+00:00",
+          "wealth_ratio": 1.0216236558745626,
+          "candidate_dd": -0.14977451540548525,
+          "parent_dd": -0.15526639603937953,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2024-09-19T00:00:00+00:00",
+          "end": "2025-03-18T00:00:00+00:00",
+          "wealth_ratio": 1.0208276192662784,
+          "candidate_dd": -0.17129224375701269,
+          "parent_dd": -0.17040471647463062,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-10-31T00:00:00+00:00",
+          "end": "2025-04-29T00:00:00+00:00",
+          "wealth_ratio": 1.0061703421138202,
+          "candidate_dd": -0.2018959819467825,
+          "parent_dd": -0.19157203147073143,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-12-06T00:00:00+00:00",
+          "end": "2025-06-04T00:00:00+00:00",
+          "wealth_ratio": 1.0161511210143679,
+          "candidate_dd": -0.19208693155376233,
+          "parent_dd": -0.18102719772560116,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-02-03T00:00:00+00:00",
+          "end": "2025-08-02T00:00:00+00:00",
+          "wealth_ratio": 1.0475986480603987,
+          "candidate_dd": -0.21927110094715585,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-02-20T00:00:00+00:00",
+          "end": "2025-08-19T00:00:00+00:00",
+          "wealth_ratio": 1.0471899383795131,
+          "candidate_dd": -0.21927110094715585,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-02-24T00:00:00+00:00",
+          "end": "2025-08-23T00:00:00+00:00",
+          "wealth_ratio": 1.0471899383795122,
+          "candidate_dd": -0.21927110094715585,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-05-31T00:00:00+00:00",
+          "end": "2025-11-27T00:00:00+00:00",
+          "wealth_ratio": 1.0298534530191081,
+          "candidate_dd": -0.21527900594540805,
+          "parent_dd": -0.21174068320018546,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-06-07T00:00:00+00:00",
+          "end": "2025-12-04T00:00:00+00:00",
+          "wealth_ratio": 1.0298534530191108,
+          "candidate_dd": -0.21527900594540805,
+          "parent_dd": -0.21174068320018546,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-08-16T00:00:00+00:00",
+          "end": "2026-02-12T00:00:00+00:00",
+          "wealth_ratio": 1.0079031248421533,
+          "candidate_dd": -0.1328535495946196,
+          "parent_dd": -0.13280952533547474,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-09-02T00:00:00+00:00",
+          "end": "2026-03-01T00:00:00+00:00",
+          "wealth_ratio": 1.0091822830211665,
+          "candidate_dd": -0.1328535495946196,
+          "parent_dd": -0.13280952533547474,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-11-07T00:00:00+00:00",
+          "end": "2026-05-06T00:00:00+00:00",
+          "wealth_ratio": 1.0019561234724128,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.20736005064816165,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-11-13T00:00:00+00:00",
+          "end": "2026-05-12T00:00:00+00:00",
+          "wealth_ratio": 1.0049718538715924,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.20736005064816165,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-11-30T00:00:00+00:00",
+          "end": "2026-05-29T00:00:00+00:00",
+          "wealth_ratio": 1.0026615844337448,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.20736005064816165,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-12-04T00:00:00+00:00",
+          "end": "2026-06-02T00:00:00+00:00",
+          "wealth_ratio": 1.0026615844337419,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.20736005064816165,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-12-17T00:00:00+00:00",
+          "end": "2026-06-15T00:00:00+00:00",
+          "wealth_ratio": 1.0145960629080448,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.20736005064816165,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2026-02-11T00:00:00+00:00",
+          "end": "2026-08-10T00:00:00+00:00",
+          "wealth_ratio": 1.0062269322462547,
+          "candidate_dd": -0.26158245419583726,
+          "parent_dd": -0.2590745130059138,
+          "return_win": true,
+          "dd_win": false
+        }
+      ]
+    },
+    "365": {
+      "days": 365,
+      "samples": 60,
+      "return_win_rate": 0.8,
+      "dd_win_rate": 0.1,
+      "median_wealth_ratio": 1.0293784553394627,
+      "p10_wealth_ratio": 0.9908829539236089,
+      "p90_wealth_ratio": 1.0806487336439836,
+      "windows": [
+        {
+          "start": "2020-01-04T00:00:00+00:00",
+          "end": "2021-01-03T00:00:00+00:00",
+          "wealth_ratio": 1.065464461972826,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-01-29T00:00:00+00:00",
+          "end": "2021-01-28T00:00:00+00:00",
+          "wealth_ratio": 1.077322491822151,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-01-30T00:00:00+00:00",
+          "end": "2021-01-29T00:00:00+00:00",
+          "wealth_ratio": 1.0773224918221516,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-02-14T00:00:00+00:00",
+          "end": "2021-02-13T00:00:00+00:00",
+          "wealth_ratio": 1.072948273345827,
+          "candidate_dd": -0.28500870106707954,
+          "parent_dd": -0.28740665482517336,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-05-07T00:00:00+00:00",
+          "end": "2021-05-07T00:00:00+00:00",
+          "wealth_ratio": 1.1086095658015716,
+          "candidate_dd": -0.266813552322558,
+          "parent_dd": -0.2719231480845091,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-05-15T00:00:00+00:00",
+          "end": "2021-05-15T00:00:00+00:00",
+          "wealth_ratio": 1.1154167845196672,
+          "candidate_dd": -0.266813552322558,
+          "parent_dd": -0.2719231480845091,
+          "return_win": true,
+          "dd_win": true
+        },
+        {
+          "start": "2020-07-17T00:00:00+00:00",
+          "end": "2021-07-17T00:00:00+00:00",
+          "wealth_ratio": 1.0935240748604929,
+          "candidate_dd": -0.14660385394474384,
+          "parent_dd": -0.13982765701843225,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-09-07T00:00:00+00:00",
+          "end": "2021-09-07T00:00:00+00:00",
+          "wealth_ratio": 1.0805281802840725,
+          "candidate_dd": -0.15396250064509454,
+          "parent_dd": -0.14578046296622982,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-09-20T00:00:00+00:00",
+          "end": "2021-09-20T00:00:00+00:00",
+          "wealth_ratio": 1.0805281802840734,
+          "candidate_dd": -0.1775981439253148,
+          "parent_dd": -0.1773392687862102,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-10-04T00:00:00+00:00",
+          "end": "2021-10-04T00:00:00+00:00",
+          "wealth_ratio": 1.0797678426115132,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-10-16T00:00:00+00:00",
+          "end": "2021-10-16T00:00:00+00:00",
+          "wealth_ratio": 1.0844736393226242,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-10-21T00:00:00+00:00",
+          "end": "2021-10-21T00:00:00+00:00",
+          "wealth_ratio": 1.0817337138831757,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-11-10T00:00:00+00:00",
+          "end": "2021-11-10T00:00:00+00:00",
+          "wealth_ratio": 1.0828639461263816,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-11-22T00:00:00+00:00",
+          "end": "2021-11-22T00:00:00+00:00",
+          "wealth_ratio": 1.0708199649432624,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-11-25T00:00:00+00:00",
+          "end": "2021-11-25T00:00:00+00:00",
+          "wealth_ratio": 1.0692345010886792,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2020-12-14T00:00:00+00:00",
+          "end": "2021-12-14T00:00:00+00:00",
+          "wealth_ratio": 1.0651926057132122,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-01-11T00:00:00+00:00",
+          "end": "2022-01-11T00:00:00+00:00",
+          "wealth_ratio": 1.034909695760559,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-01-20T00:00:00+00:00",
+          "end": "2022-01-20T00:00:00+00:00",
+          "wealth_ratio": 1.0362347289126324,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-02-08T00:00:00+00:00",
+          "end": "2022-02-08T00:00:00+00:00",
+          "wealth_ratio": 1.0432550667398983,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-02-26T00:00:00+00:00",
+          "end": "2022-02-26T00:00:00+00:00",
+          "wealth_ratio": 1.02191557724144,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-03-13T00:00:00+00:00",
+          "end": "2022-03-13T00:00:00+00:00",
+          "wealth_ratio": 1.0252858376667444,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2021-06-23T00:00:00+00:00",
+          "end": "2022-06-23T00:00:00+00:00",
+          "wealth_ratio": 0.9946994336130548,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-07-01T00:00:00+00:00",
+          "end": "2022-07-01T00:00:00+00:00",
+          "wealth_ratio": 0.9952164096159831,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-08-31T00:00:00+00:00",
+          "end": "2022-08-31T00:00:00+00:00",
+          "wealth_ratio": 0.990017350399211,
+          "candidate_dd": -0.2080624696194069,
+          "parent_dd": -0.20781318402158666,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2021-11-27T00:00:00+00:00",
+          "end": "2022-11-27T00:00:00+00:00",
+          "wealth_ratio": 0.9764856821428782,
+          "candidate_dd": -0.1991912140432167,
+          "parent_dd": -0.1814789997951619,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-01-31T00:00:00+00:00",
+          "end": "2023-01-31T00:00:00+00:00",
+          "wealth_ratio": 0.9902099585611858,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-02-05T00:00:00+00:00",
+          "end": "2023-02-05T00:00:00+00:00",
+          "wealth_ratio": 0.9902099585611889,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-02-20T00:00:00+00:00",
+          "end": "2023-02-20T00:00:00+00:00",
+          "wealth_ratio": 0.9897564011405738,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-02-23T00:00:00+00:00",
+          "end": "2023-02-23T00:00:00+00:00",
+          "wealth_ratio": 0.9909577311861,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-13T00:00:00+00:00",
+          "end": "2023-03-13T00:00:00+00:00",
+          "wealth_ratio": 0.9887304165310862,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-03-28T00:00:00+00:00",
+          "end": "2023-03-28T00:00:00+00:00",
+          "wealth_ratio": 1.0024796791692236,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-04-13T00:00:00+00:00",
+          "end": "2023-04-13T00:00:00+00:00",
+          "wealth_ratio": 1.0049010444382926,
+          "candidate_dd": -0.24988898103402857,
+          "parent_dd": -0.2454370288687595,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-06-17T00:00:00+00:00",
+          "end": "2023-06-17T00:00:00+00:00",
+          "wealth_ratio": 0.9987423765101217,
+          "candidate_dd": -0.30391677708612197,
+          "parent_dd": -0.30078807938732344,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-06-18T00:00:00+00:00",
+          "end": "2023-06-18T00:00:00+00:00",
+          "wealth_ratio": 0.998742376510121,
+          "candidate_dd": -0.30391677708612197,
+          "parent_dd": -0.30078807938732344,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2022-08-16T00:00:00+00:00",
+          "end": "2023-08-16T00:00:00+00:00",
+          "wealth_ratio": 1.0023884144323547,
+          "candidate_dd": -0.30391677708612197,
+          "parent_dd": -0.30078807938732344,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-10-22T00:00:00+00:00",
+          "end": "2023-10-22T00:00:00+00:00",
+          "wealth_ratio": 1.0028274048312773,
+          "candidate_dd": -0.3050154566038902,
+          "parent_dd": -0.30078807938732344,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-11-15T00:00:00+00:00",
+          "end": "2023-11-15T00:00:00+00:00",
+          "wealth_ratio": 1.028183976894448,
+          "candidate_dd": -0.3050154566038902,
+          "parent_dd": -0.30078807938732344,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2022-12-17T00:00:00+00:00",
+          "end": "2023-12-17T00:00:00+00:00",
+          "wealth_ratio": 1.0294285658511277,
+          "candidate_dd": -0.3050154566038902,
+          "parent_dd": -0.30078807938732344,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-01-15T00:00:00+00:00",
+          "end": "2024-01-15T00:00:00+00:00",
+          "wealth_ratio": 0.999297060988456,
+          "candidate_dd": -0.3050154566038902,
+          "parent_dd": -0.30078807938732344,
+          "return_win": false,
+          "dd_win": false
+        },
+        {
+          "start": "2023-01-31T00:00:00+00:00",
+          "end": "2024-01-31T00:00:00+00:00",
+          "wealth_ratio": 1.0006233453201354,
+          "candidate_dd": -0.29349027584067167,
+          "parent_dd": -0.2891927944943984,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-02-18T00:00:00+00:00",
+          "end": "2024-02-18T00:00:00+00:00",
+          "wealth_ratio": 1.0228660649862353,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-04-12T00:00:00+00:00",
+          "end": "2024-04-11T00:00:00+00:00",
+          "wealth_ratio": 1.0318877619366125,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-04-14T00:00:00+00:00",
+          "end": "2024-04-13T00:00:00+00:00",
+          "wealth_ratio": 1.031807470030863,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-04-29T00:00:00+00:00",
+          "end": "2024-04-28T00:00:00+00:00",
+          "wealth_ratio": 1.0293283448277977,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-05-01T00:00:00+00:00",
+          "end": "2024-04-30T00:00:00+00:00",
+          "wealth_ratio": 1.0293283448277961,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-05-14T00:00:00+00:00",
+          "end": "2024-05-13T00:00:00+00:00",
+          "wealth_ratio": 1.0293283448277948,
+          "candidate_dd": -0.28610836148691854,
+          "parent_dd": -0.27077109570838565,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-07-06T00:00:00+00:00",
+          "end": "2024-07-05T00:00:00+00:00",
+          "wealth_ratio": 1.0166172263654154,
+          "candidate_dd": -0.2757143179984304,
+          "parent_dd": -0.26080194914864385,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-07-16T00:00:00+00:00",
+          "end": "2024-07-15T00:00:00+00:00",
+          "wealth_ratio": 1.0249892622287098,
+          "candidate_dd": -0.25757940389742706,
+          "parent_dd": -0.2554062611158018,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-09-11T00:00:00+00:00",
+          "end": "2024-09-10T00:00:00+00:00",
+          "wealth_ratio": 1.0236683483405649,
+          "candidate_dd": -0.25757940389742706,
+          "parent_dd": -0.2554062611158018,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-09-18T00:00:00+00:00",
+          "end": "2024-09-17T00:00:00+00:00",
+          "wealth_ratio": 1.0265988927676448,
+          "candidate_dd": -0.25757940389742706,
+          "parent_dd": -0.2554062611158018,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-10-21T00:00:00+00:00",
+          "end": "2024-10-20T00:00:00+00:00",
+          "wealth_ratio": 1.0435911502553914,
+          "candidate_dd": -0.25757940389742706,
+          "parent_dd": -0.2554062611158018,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2023-12-19T00:00:00+00:00",
+          "end": "2024-12-18T00:00:00+00:00",
+          "wealth_ratio": 1.0435271616577237,
+          "candidate_dd": -0.17001261791230093,
+          "parent_dd": -0.16773455935121062,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-01-19T00:00:00+00:00",
+          "end": "2025-01-18T00:00:00+00:00",
+          "wealth_ratio": 1.0404017123281706,
+          "candidate_dd": -0.16536039973590122,
+          "parent_dd": -0.1633501800825775,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2024-09-08T00:00:00+00:00",
+          "end": "2025-09-08T00:00:00+00:00",
+          "wealth_ratio": 1.0689725153780734,
+          "candidate_dd": -0.21927110094715585,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-01-04T00:00:00+00:00",
+          "end": "2026-01-04T00:00:00+00:00",
+          "wealth_ratio": 1.0450231275757582,
+          "candidate_dd": -0.21927110094715585,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-04-26T00:00:00+00:00",
+          "end": "2026-04-26T00:00:00+00:00",
+          "wealth_ratio": 1.0652765591360234,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-05-03T00:00:00+00:00",
+          "end": "2026-05-03T00:00:00+00:00",
+          "wealth_ratio": 1.0652765591360225,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.21759306801441436,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-05-14T00:00:00+00:00",
+          "end": "2026-05-14T00:00:00+00:00",
+          "wealth_ratio": 1.0369209768136507,
+          "candidate_dd": -0.2232857773154866,
+          "parent_dd": -0.21174068320018546,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-08-01T00:00:00+00:00",
+          "end": "2026-08-01T00:00:00+00:00",
+          "wealth_ratio": 1.0187174288400151,
+          "candidate_dd": -0.2383261897512159,
+          "parent_dd": -0.23573926161974978,
+          "return_win": true,
+          "dd_win": false
+        },
+        {
+          "start": "2025-08-06T00:00:00+00:00",
+          "end": "2026-08-06T00:00:00+00:00",
+          "wealth_ratio": 1.0187174288400167,
+          "candidate_dd": -0.25819438418637786,
+          "parent_dd": -0.2556749358479863,
+          "return_win": true,
+          "dd_win": false
+        }
+      ]
+    }
+  },
+  "gates": {
+    "cost_pass": true,
+    "threshold_pass": true,
+    "scale_pass": true,
+    "delay_pass": true,
+    "top_day_pass": true,
+    "random_window_pass": false,
+    "growth_robustness_pass": false
+  },
+  "interpretation_policy": "R90 cannot select a new threshold, scale or delay. Sensitivity variants are robustness probes only. A failure does not authorize choosing the best probe. Random windows are path-segment diagnostics, not isolated-horizon replays.",
+  "disclosure": "Historical research only. R88 remains unchanged regardless of probe results. Frozen V99 and official paper remain untouched.",
+  "funding_quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "v15_metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 150,
+    "ready_universe_size": 144,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
