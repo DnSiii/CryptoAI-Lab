@@ -5,6 +5,7 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - "scripts/run_v99_r106_native_all_regime_engine.py"
+      - "scripts/run_v99_r106_native_all_regime_engine_fast.py"
       - ".github/workflows/v99-r106-native-all-regime-engine.yml"
 
 jobs:
@@ -39,7 +40,7 @@ jobs:
       - name: Prepare frozen V15 replay inputs
         run: python scripts/prepare_dashboard_v15_replay.py
       - name: Run R106 structural phase 1
-        run: python scripts/run_v99_r106_native_all_regime_engine.py
+        run: python scripts/run_v99_r106_native_all_regime_engine_fast.py
       - name: Upload R106 evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
