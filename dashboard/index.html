@@ -23,6 +23,7 @@
       <nav class="nav">
         <button class="nav-btn active" data-view="backtest"><span class="nav-symbol">↗</span><div><strong>Visão Geral</strong><small>Backtest</small></div></button>
         <button class="nav-btn" data-view="paper"><span class="nav-symbol">◉</span><div><strong>Paper</strong><small>Ao vivo</small></div></button>
+        <button class="nav-btn v99r-nav" data-view="v99research"><span class="nav-symbol">V</span><div><strong>V99</strong><small>Research Lab</small></div></button>
       </nav>
       <div class="sidebar-status">
         <div class="status-dot"></div>
@@ -142,6 +143,16 @@
         <article class="pc-panel"><div class="pc-table-wrap"><table class="pc-table"><thead><tr><th>Data</th><th>V13</th><th>V14</th><th>V15</th><th>V16</th><th>V99</th><th>Melhor do dia</th></tr></thead><tbody id="pc-daily-table"></tbody></table></div></article>
       </section>
 
+      <section id="v99research" class="view">
+        <article class="v99r-hero">
+          <div><p class="eyebrow">V99 · RESEARCH LAB</p><h2>Cinco versões. Um mesmo paper.</h2><p>R98, R106 F1, F3, F7/F9 e F12 acompanhados lado a lado. O backtest permanece como referência congelada; o paper começa no mesmo boundary para todos e não recalibra nenhuma versão.</p></div>
+          <div class="v99r-badge">PAPER ONLY · 0 ORDENS REAIS</div>
+        </article>
+        <div class="v99r-tabs"><button class="v99r-tab active" data-v99-tab="backtest">Backtest</button><button class="v99r-tab" data-v99-tab="paper">Paper</button></div>
+        <div id="v99r-backtest" class="v99r-pane active"><div class="v99r-empty">Carregando comparativo V99…</div></div>
+        <div id="v99r-paper" class="v99r-pane"><div class="v99r-empty">Carregando paper V99…</div></div>
+      </section>
+
       <footer class="footer"><span>Backtest CryptoAI · Historical Replay · America/Sao_Paulo</span><span id="footer-generated">Snapshot</span></footer>
     </main>
   </div>
@@ -149,6 +160,6 @@
   <script src="layout_fix.js?v=20260916c" defer></script>
   <script src="paper_classic.js?v=20260916c" defer></script>
   <script src="backtest_only.js?v=20260916c" defer></script>
-  <script src="v99_research.js?v=20260916c" defer></script>
+  <script src="v99_research.js?v=20260916e" defer></script>
 </body>
 </html>
