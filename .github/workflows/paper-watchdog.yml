@@ -1,0 +1,71 @@
+name: CryptoAI paper watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: cryptoai-paper-watchdog
+  cancel-in-progress: true
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ensure normal paper workflow is alive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          repo="$GITHUB_REPOSITORY"
+          workflow="v13-paper.yml"
+
+          runs_json="$(gh run list --repo "$repo" --workflow "$workflow" --limit 30 --json databaseId,status,conclusion,createdAt,updatedAt,event)"
+
+          active_count="$(python - <<'PY' <<<"$runs_json"
+          import json, sys
+          runs = json.load(sys.stdin)
+          print(sum(r.get('status') != 'completed' for r in runs))
+          PY
+          )"
+
+          if [ "$active_count" -gt 0 ]; then
+            echo "Normal paper workflow is active (${active_count} run(s)); nothing to do."
+            exit 0
+          fi
+
+          stale="$(python - <<'PY' <<<"$runs_json"
+          import json, sys
+          from datetime import datetime, timezone
+
+          runs = json.load(sys.stdin)
+          completed = [r for r in runs if r.get('status') == 'completed']
+          if not completed:
+              print('1')
+              raise SystemExit
+
+          latest = max(completed, key=lambda r: r.get('updatedAt') or r.get('createdAt') or '')
+          raw = latest.get('updatedAt') or latest.get('createdAt')
+          if not raw:
+              print('1')
+              raise SystemExit
+          ts = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+          age_minutes = (datetime.now(timezone.utc) - ts).total_seconds() / 60
+          print('1' if age_minutes >= 20 else '0')
+          PY
+          )"
+
+          if [ "$stale" = "1" ]; then
+            echo "Normal paper workflow has no active run and is stale; dispatching recovery run."
+            gh workflow run "$workflow" --repo "$repo" --ref main
+          else
+            echo "Normal paper workflow completed recently; current chain is healthy."
+          fi
