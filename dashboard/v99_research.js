@@ -4,11 +4,11 @@
   const ORDER = ['r98', 'f1', 'f3', 'f7', 'f12'];
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const brl = (value) => Number(value || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  const brl = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const pct = (value, digits = 2) => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(digits).replace('.', ',')}%`;
   const num = (value, digits = 3) => value == null ? '—' : Number(value).toFixed(digits).replace('.', ',');
-  const dt = (value) => value ? new Intl.DateTimeFormat('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo'}).format(new Date(value)) : '—';
-  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const dt = (value) => value ? new Intl.DateTimeFormat('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' }).format(new Date(value)) : '—';
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
   let data = null;
   let activeTab = 'backtest';
 
@@ -22,53 +22,71 @@
     document.head.appendChild(style);
   }
 
-  function installView() {
-    if ($('#v99research')) return;
+  function ensureNavigation() {
     const nav = $('.nav');
-    if (nav) {
-      const button = document.createElement('button');
+    if (!nav) return;
+    let button = $('.nav-btn[data-view="v99research"]', nav);
+    if (!button) {
+      button = document.createElement('button');
       button.className = 'nav-btn v99r-nav';
       button.dataset.view = 'v99research';
       button.innerHTML = '<span class="nav-symbol">V</span><div><strong>V99</strong><small>Research Lab</small></div>';
       nav.appendChild(button);
+    }
+    if (button.dataset.v99Bound !== '1') {
+      button.dataset.v99Bound = '1';
       button.addEventListener('click', (event) => {
         event.preventDefault();
+        event.stopImmediatePropagation();
         showView();
-      });
+      }, true);
     }
-    const footer = $('.footer');
-    const section = document.createElement('section');
-    section.id = 'v99research';
-    section.className = 'view';
-    section.innerHTML = `
-      <article class="v99r-hero">
-        <div><p class="eyebrow">V99 · RESEARCH LAB</p><h2>Cinco versões. Um mesmo paper.</h2><p>R98, R106 F1, F3, F7/F9 e F12 acompanhados lado a lado. O backtest permanece como referência congelada; o paper começa no mesmo boundary para todos e não recalibra nenhuma versão.</p></div>
-        <div class="v99r-badge">PAPER ONLY · 0 ORDENS REAIS</div>
-      </article>
-      <div class="v99r-tabs"><button class="v99r-tab active" data-v99-tab="backtest">Backtest</button><button class="v99r-tab" data-v99-tab="paper">Paper</button></div>
-      <div id="v99r-backtest" class="v99r-pane active"></div>
-      <div id="v99r-paper" class="v99r-pane"></div>
-    `;
-    if (footer) footer.parentElement.insertBefore(section, footer);
-    else $('.main')?.appendChild(section);
-    $$('.v99r-tab', section).forEach((button) => button.addEventListener('click', () => setTab(button.dataset.v99Tab)));
+  }
+
+  function ensureView() {
+    let section = $('#v99research');
+    if (!section) {
+      section = document.createElement('section');
+      section.id = 'v99research';
+      section.className = 'view';
+      const footer = $('.footer');
+      if (footer) footer.parentElement.insertBefore(section, footer);
+      else $('.main')?.appendChild(section);
+    }
+    if (!$('#v99r-backtest', section) || !$('#v99r-paper', section)) {
+      section.innerHTML = `
+        <article class="v99r-hero">
+          <div><p class="eyebrow">V99 · RESEARCH LAB</p><h2>Cinco versões. Um mesmo paper.</h2><p>R98, R106 F1, F3, F7/F9 e F12 acompanhados lado a lado. O backtest permanece como referência congelada; o paper começa no mesmo boundary para todos e não recalibra nenhuma versão.</p></div>
+          <div class="v99r-badge">PAPER ONLY · 0 ORDENS REAIS</div>
+        </article>
+        <div class="v99r-tabs"><button class="v99r-tab active" data-v99-tab="backtest">Backtest</button><button class="v99r-tab" data-v99-tab="paper">Paper</button></div>
+        <div id="v99r-backtest" class="v99r-pane active"><div class="v99r-empty">Carregando comparativo V99…</div></div>
+        <div id="v99r-paper" class="v99r-pane"><div class="v99r-empty">Carregando paper V99…</div></div>
+      `;
+    }
+    $$('.v99r-tab', section).forEach((button) => {
+      if (button.dataset.v99TabBound === '1') return;
+      button.dataset.v99TabBound = '1';
+      button.addEventListener('click', () => setTab(button.dataset.v99Tab));
+    });
   }
 
   function showView() {
+    ensureView();
     $$('.view').forEach((view) => view.classList.toggle('active', view.id === 'v99research'));
     $$('.nav-btn').forEach((button) => button.classList.toggle('active', button.dataset.view === 'v99research'));
     const title = $('#page-title');
     const subtitle = $('#page-subtitle');
     if (title) title.textContent = 'V99 · Research Lab';
-    if (subtitle) subtitle.textContent = 'Backtest validado e paper forward das cinco melhores versões do V99.';
+    if (subtitle) subtitle.textContent = 'Backtest validado e paper forward das cinco versões acompanhadas do V99.';
     render();
   }
 
   function setTab(tab) {
-    activeTab = tab;
-    $$('.v99r-tab').forEach((button) => button.classList.toggle('active', button.dataset.v99Tab === tab));
-    $('#v99r-backtest')?.classList.toggle('active', tab === 'backtest');
-    $('#v99r-paper')?.classList.toggle('active', tab === 'paper');
+    activeTab = tab === 'paper' ? 'paper' : 'backtest';
+    $$('.v99r-tab').forEach((button) => button.classList.toggle('active', button.dataset.v99Tab === activeTab));
+    $('#v99r-backtest')?.classList.toggle('active', activeTab === 'backtest');
+    $('#v99r-paper')?.classList.toggle('active', activeTab === 'paper');
   }
 
   function researchStatus(item) {
@@ -88,20 +106,20 @@
     if (!root) return;
     const bt = v99?.backtest || {};
     if (!Object.keys(bt).length) {
-      root.innerHTML = '<div class="v99r-empty">Aguardando o primeiro snapshot do V99 Research Lab.</div>';
+      root.innerHTML = '<div class="v99r-empty">Aguardando snapshot do V99 Research Lab.</div>';
       return;
     }
     const rows = ORDER.filter((key) => bt[key]).map((key) => {
       const item = bt[key];
       return `<tr class="${key === 'f7' ? 'leader' : ''}"><td><strong>${esc(item.label)}</strong><br><small>${esc(item.name)}</small></td><td class="v99r-positive">${pct(item.historicalRoiPct)}</td><td class="v99r-positive">${pct(item.holdoutRoiPct)}</td><td>${pct(item.maxDrawdownPct)}</td><td>${num(item.profitFactor)}</td><td>${item.winRatePct == null ? '—' : pct(item.winRatePct)}</td><td>${item.positiveDaysPct == null ? '—' : pct(item.positiveDaysPct)}</td><td>${num(item.payoff,2)}</td><td>${item.severeRoiPct == null ? '—' : pct(item.severeRoiPct)}</td></tr>`;
     }).join('');
-    root.innerHTML = `<div class="v99r-note"><strong>Leitura correta:</strong> estes números são o snapshot de backtest/holdout já validado. Eles ficam congelados para comparação e não são recalculados para favorecer o paper.</div><div class="v99r-grid">${ORDER.filter((key) => bt[key]).map((key) => btCard(key, bt[key])).join('')}</div><article class="v99r-panel"><h3>Comparativo completo</h3><p>F7/F9 é o campeão de pesquisa atual. F1, F3 e F12 permanecem no paper como adversários fixos, mesmo tendo sido rejeitados nos gates anteriores.</p><div class="v99r-table-wrap"><table class="v99r-table"><thead><tr><th>Versão</th><th>Histórico</th><th>Holdout</th><th>Max DD</th><th>PF</th><th>WR</th><th>Dias +</th><th>Payoff</th><th>Severe</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
+    root.innerHTML = `<div class="v99r-note"><strong>Backtest congelado:</strong> estes números são snapshots já validados e não são recalculados usando o paper.</div><div class="v99r-grid">${ORDER.filter((key) => bt[key]).map((key) => btCard(key, bt[key])).join('')}</div><article class="v99r-panel"><h3>Comparativo completo</h3><p>F7/F9 é o líder de pesquisa atual; as demais versões continuam visíveis para comparação.</p><div class="v99r-table-wrap"><table class="v99r-table"><thead><tr><th>Versão</th><th>Histórico</th><th>Holdout</th><th>Max DD</th><th>PF</th><th>WR</th><th>Dias +</th><th>Payoff</th><th>Severe</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
   }
 
   function paperCard(key, item) {
     const [status, statusClass] = researchStatus(item);
     const roiClass = Number(item.roiPct || 0) >= 0 ? 'positive' : 'negative';
-    const positions = (item.positions || []).slice(0,3).map((p) => `${p.symbol.replace('USDT','')} ${p.direction === 'buy' ? 'L' : 'S'} ${Number(p.weightPct).toFixed(1)}%`).join(' · ');
+    const positions = (item.positions || []).slice(0,3).map((p) => `${String(p.symbol || '').replace('USDT','')} ${p.direction === 'buy' ? 'L' : 'S'} ${Number(p.weightPct || 0).toFixed(1)}%`).join(' · ');
     return `<article class="v99r-card ${key === 'f7' ? 'leader' : ''}"><div class="top"><strong>${esc(item.label || key.toUpperCase())}</strong><span class="v99r-status ${statusClass}">${status}</span></div><div class="v99r-main ${roiClass}">${pct(item.roiPct,4)}</div><div class="v99r-sub">${brl(item.currentCapitalBrl)} · ${Number(item.newForwardHours || 0)}h forward</div><div class="v99r-kv"><div><span>Resultado</span><strong>${brl(item.netResultBrl)}</strong></div><div><span>Exposição</span><strong>${pct(item.grossExposurePct,1)}</strong></div><div><span>Máximo</span><strong>${brl(item.highestCapitalBrl)}</strong></div><div><span>Mínimo</span><strong>${brl(item.lowestCapitalBrl)}</strong></div></div><div class="v99r-pos">${positions || 'Sem posição aberta agora'}</div></article>`;
   }
 
@@ -110,7 +128,7 @@
     if (!root) return;
     const paper = v99?.paper || {};
     if (!Object.keys(paper).length) {
-      root.innerHTML = '<div class="v99r-empty">O paper das cinco versões está inicializando. Assim que o primeiro ciclo publicar, os cinco começam juntos em R$ 10.000.</div>';
+      root.innerHTML = '<div class="v99r-empty">O paper das cinco versões está inicializando. Todos partem do mesmo boundary e de R$ 10.000.</div>';
       return;
     }
     const rows = ORDER.filter((key) => paper[key]).map((key) => {
@@ -118,10 +136,11 @@
       const c = Number(item.roiPct || 0) >= 0 ? 'v99r-positive' : 'v99r-negative';
       return `<tr class="${key === 'f7' ? 'leader' : ''}"><td><strong>${esc(item.label)}</strong></td><td class="${c}">${pct(item.roiPct,4)}</td><td>${brl(item.currentCapitalBrl)}</td><td>${brl(item.netResultBrl)}</td><td>${pct(item.grossExposurePct,1)}</td><td>${item.positions?.length || 0}</td><td>${Number(item.newForwardHours || 0)}h</td><td>${dt(item.latest)}</td></tr>`;
     }).join('');
-    root.innerHTML = `<div class="v99r-boundary"><span>Boundary comum: <strong>${dt(v99.paperStart)}</strong></span><span>Último dado: <strong>${dt(v99.latest)}</strong></span><span>Capital inicial: <strong>R$ 10.000 por versão</strong></span><span>Seleção congelada antes do paper: <strong>${v99.selectionFrozenBeforePaper ? 'SIM' : 'NÃO'}</strong></span></div><div class="v99r-note"><strong>Forward-only:</strong> todos começaram no mesmo instante. O resultado abaixo não contém o lucro histórico do backtest e nenhuma versão é recalibrada pelos dados do paper.</div><div class="v99r-grid">${ORDER.filter((key) => paper[key]).map((key) => paperCard(key, paper[key])).join('')}</div><article class="v99r-panel"><h3>Placar do paper V99</h3><p>Comparação direta das cinco versões desde o mesmo boundary.</p><div class="v99r-table-wrap"><table class="v99r-table"><thead><tr><th>Versão</th><th>ROI paper</th><th>Capital</th><th>Resultado</th><th>Exposição</th><th>Posições</th><th>Forward</th><th>Atualizado</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
+    root.innerHTML = `<div class="v99r-boundary"><span>Boundary comum: <strong>${dt(v99.paperStart)}</strong></span><span>Último dado: <strong>${dt(v99.latest)}</strong></span><span>Capital inicial: <strong>R$ 10.000 por versão</strong></span><span>Seleção congelada antes do paper: <strong>${v99.selectionFrozenBeforePaper ? 'SIM' : 'NÃO'}</strong></span></div><div class="v99r-note"><strong>Forward-only:</strong> o placar abaixo contém apenas o paper posterior ao boundary.</div><div class="v99r-grid">${ORDER.filter((key) => paper[key]).map((key) => paperCard(key, paper[key])).join('')}</div><article class="v99r-panel"><h3>Placar do paper V99</h3><p>Comparação direta das cinco versões desde o mesmo boundary.</p><div class="v99r-table-wrap"><table class="v99r-table"><thead><tr><th>Versão</th><th>ROI paper</th><th>Capital</th><th>Resultado</th><th>Exposição</th><th>Posições</th><th>Forward</th><th>Atualizado</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
   }
 
   function render() {
+    ensureView();
     const v99 = data?.v99Research;
     renderBacktest(v99);
     renderPaper(v99);
@@ -130,13 +149,14 @@
 
   async function load() {
     try {
-      const response = await fetch(`${DATA_URL}?t=${Date.now()}`, {cache:'no-store'});
+      const response = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache:'no-store' });
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
       data = await response.json();
     } catch (error) {
       console.warn('V99 research remote snapshot failed', error);
       try {
-        const response = await fetch(`dashboard_data.json?t=${Date.now()}`, {cache:'no-store'});
+        const response = await fetch(`dashboard_data.json?t=${Date.now()}`, { cache:'no-store' });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         data = await response.json();
       } catch (fallbackError) {
         console.warn('V99 research local snapshot failed', fallbackError);
@@ -146,6 +166,7 @@
   }
 
   installStyles();
-  installView();
+  ensureNavigation();
+  ensureView();
   load();
 })();
