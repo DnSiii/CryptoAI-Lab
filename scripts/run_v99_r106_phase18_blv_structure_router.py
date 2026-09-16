@@ -39,10 +39,14 @@ def blv_substates(close: pd.DataFrame, direction: pd.Series, vol_state: pd.Serie
     v = vol_state.shift(1).reindex(idx).fillna("UNKNOWN")
     blv = d.eq("BULL") & v.eq("LOW_VOLATILITY")
 
-    btc7 = diag["btc_7d_shock_return"].shift(1).reindex(idx)
-    breadth = diag["breadth_30d"].shift(1).reindex(idx)
+    # Diagnostics include None during warm-up on some dynamic-universe snapshots.
+    # Coerce only representation; this does not alter the precommitted state rules.
+    btc7_raw = pd.to_numeric(diag["btc_7d_shock_return"], errors="coerce")
+    breadth_raw = pd.to_numeric(diag["breadth_30d"], errors="coerce")
+    btc7 = btc7_raw.shift(1).reindex(idx)
+    breadth = breadth_raw.shift(1).reindex(idx)
     breadth_reference = (
-        diag["breadth_30d"]
+        breadth_raw
         .rolling(24 * 90, min_periods=24 * 30)
         .median()
         .shift(1)
