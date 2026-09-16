@@ -37,4 +37,14 @@
   };
 
   window.addEventListener('resize', () => requestAnimationFrame(refit));
+
+  // V99 Research Lab uses categorical calendar-day axes. Load it separately
+  // so the official/frozen engines remain untouched.
+  if (!document.querySelector('script[data-v99-categorical]')) {
+    const script = document.createElement('script');
+    script.src = `v99_categorical.js?v=20260916g-${Date.now()}`;
+    script.defer = true;
+    script.dataset.v99Categorical = '1';
+    document.head.appendChild(script);
+  }
 })();
