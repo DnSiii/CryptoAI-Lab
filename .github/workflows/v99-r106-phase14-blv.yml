@@ -1,0 +1,101 @@
+name: V99 R106 phase14 bull low vol structural gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v99-r106-phase14-blv.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v99-r106-phase14-blv
+  cancel-in-progress: true
+
+jobs:
+  phase14:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      RESEARCH_BRANCH: research/v99-r106-native-all-regime-engine
+    steps:
+      - name: Check out V99 R106 research branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Resolve UTC cache date
+        id: utc
+        shell: bash
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore canonical market cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: data/canonical
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-paper-v15-market-v1-
+            ${{ runner.os }}-paper-v13-market-
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Synchronize latest closed public candles
+        run: python scripts/sync_paper_data_v13.py
+
+      - name: Run phase14 structural gate
+        run: python scripts/run_v99_r106_phase14_bull_low_vol_structural_gate.py
+
+      - name: Verify report contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('reports/candidate_v99_r106_phase14_bull_low_vol_structural_gate.json')
+          r = json.loads(p.read_text())
+          assert r['frozen_assets_untouched']['v16'] is True
+          assert r['frozen_assets_untouched']['v99_frozen'] is True
+          assert r['precommitment']['holdout_used_for_selection'] is False
+          assert r['precommitment']['market_features_shifted_t_minus_1'] is True
+          assert r['precommitment']['no_numeric_threshold_grid'] is True
+          print(json.dumps({
+              'selected_rule': r['rule_diagnostics']['selected_rule'],
+              'research_gate': r['research_gate'],
+              'pass_count': r['pass_count'],
+          }, indent=2))
+          PY
+
+      - name: Publish phase14 evidence back to research branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/candidate_v99_r106_phase14_bull_low_vol_structural_gate.json
+          if git diff --cached --quiet; then
+            echo "No report change"
+            exit 0
+          fi
+          git commit -m "Record V99 R106 phase14 BLV evidence"
+          git push origin HEAD:${RESEARCH_BRANCH}
+
+      - name: Upload phase14 evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-phase14-blv-${{ github.run_id }}
+          retention-days: 30
+          path: reports/candidate_v99_r106_phase14_bull_low_vol_structural_gate.json
