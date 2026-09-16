@@ -63,53 +63,30 @@ jobs:
       - name: Synchronize latest closed public candles
         run: python scripts/sync_paper_data_v13.py
 
-      - name: Execute V98 Independent baseline
-        run: python scripts/v98_independent_baseline.py
+      - name: Execute V98 Independent Phase 003
+        run: python scripts/v98_independent_phase003_dispersion_neutral.py
 
-      - name: Record execution state
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          state_path = Path('state/v98_independent_state.json')
-          report_path = Path('reports/v98_independent_baseline.json')
-          state = json.loads(state_path.read_text())
-          report = json.loads(report_path.read_text())
-          state['last_experiment']['status'] = 'executed'
-          state['last_experiment']['report'] = str(report_path)
-          state['last_experiment']['training_summary'] = report['scenarios']['base']['research']
-          state['last_experiment']['folds'] = report['folds']
-          state['last_experiment']['stress_training'] = {
-              'severe': report['scenarios']['severe']['research'],
-              'supersevere': report['scenarios']['supersevere']['research'],
-          }
-          state['last_experiment']['holdout_validation_recorded_but_not_for_selection'] = report['scenarios']['base']['holdout']
-          state['next_action'] = 'diagnose training/fold failure modes before proposing any new hypothesis'
-          state_path.write_text(json.dumps(state, indent=2, allow_nan=True) + '\n')
-          PY
-
-      - name: Commit compact V98 evidence back to isolated branch
+      - name: Commit compact V98 Phase 003 evidence back to isolated branch
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/v98_independent_baseline.json state/v98_independent_state.json
+          git add reports/v98_independent_phase003_dispersion_neutral.json state/v98_independent_state.json
           if git diff --cached --quiet; then
             echo "No compact evidence changes to commit."
           else
-            git commit -m "v98: record baseline independent evidence"
+            git commit -m "v98: record phase003 dispersion-neutral evidence"
             git push origin HEAD:research/v98-independent-zero
           fi
 
-      - name: Upload V98 evidence artifact
+      - name: Upload V98 Phase 003 evidence artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: v98-independent-${{ github.run_id }}
+          name: v98-independent-phase003-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            reports/v98_independent_baseline.json
-            reports/v98_independent_baseline_positions.csv
+            reports/v98_independent_phase003_dispersion_neutral.json
+            reports/v98_independent_phase003_dispersion_neutral_positions.csv
             state/v98_independent_state.json

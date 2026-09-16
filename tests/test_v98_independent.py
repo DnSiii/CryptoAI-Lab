@@ -10,22 +10,33 @@ import pandas as pd
 from cryptoai_v13.data import FuturesData
 
 PROJECT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location(
-    "v98_independent_baseline", PROJECT / "scripts" / "v98_independent_baseline.py"
-)
-assert SPEC and SPEC.loader
-MOD = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MOD)
 
 
-def synthetic_data(hours: int = 5000) -> FuturesData:
+def load_module(name: str, path: str):
+    spec = importlib.util.spec_from_file_location(name, PROJECT / path)
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+BASE = load_module("v98_independent_baseline", "scripts/v98_independent_baseline.py")
+P003 = load_module("v98_independent_phase003", "scripts/v98_independent_phase003_dispersion_neutral.py")
+
+
+def synthetic_data(hours: int = 6500) -> FuturesData:
     index = pd.date_range("2024-01-01", periods=hours, freq="h", tz="UTC")
-    symbols = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT")
+    symbols = (
+        "BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT",
+        "LINKUSDT", "LTCUSDT", "DOGEUSDT", "SOLUSDT", "AVAXUSDT",
+    )
     rng = np.random.default_rng(42)
-    close = {}
-    for i, symbol in enumerate(symbols):
-        returns = rng.normal(0.00002 * (i + 1), 0.006 + i * 0.0005, hours)
-        close[symbol] = 100.0 * np.exp(np.cumsum(returns))
+    btc_r = rng.normal(0.00002, 0.007, hours)
+    close = {"BTCUSDT": 100.0 * np.exp(np.cumsum(btc_r))}
+    for i, symbol in enumerate(symbols[1:], start=1):
+        idio = rng.normal(0.00001 * ((i % 3) - 1), 0.0045 + i * 0.0002, hours)
+        r = (0.65 + 0.03 * i) * btc_r + idio
+        close[symbol] = 100.0 * np.exp(np.cumsum(r))
     close_df = pd.DataFrame(close, index=index)
     opened = close_df.shift(1).fillna(close_df.iloc[0])
     frames = {
@@ -47,36 +58,46 @@ def membership_for(data: FuturesData) -> pd.DataFrame:
     return data.close.notna()
 
 
-def test_v98_targets_are_future_invariant() -> None:
+def test_v98_baseline_targets_are_future_invariant() -> None:
     cfg = json.loads((PROJECT / "config" / "v98_independent.json").read_text())
     data = synthetic_data()
-    membership = membership_for(data)
-    baseline = MOD.build_targets(data, membership, cfg)
-
-    cut = 4300
+    baseline = BASE.build_targets(data, membership_for(data), cfg)
+    cut = 5600
     mutated_frames = {k: v.copy() for k, v in data.frames.items()}
     for frame in mutated_frames.values():
         frame.iloc[cut + 1 :] *= 1.75
     mutated_funding = data.funding.copy()
     mutated_funding.iloc[cut + 1 :] = 0.05
     mutated = FuturesData(mutated_frames, mutated_funding, data.symbols)
-    changed = MOD.build_targets(mutated, membership_for(mutated), cfg)
-
+    changed = BASE.build_targets(mutated, membership_for(mutated), cfg)
     pd.testing.assert_frame_equal(baseline.iloc[: cut + 1], changed.iloc[: cut + 1])
 
 
-def test_v98_respects_declared_gross_cap() -> None:
-    cfg = json.loads((PROJECT / "config" / "v98_independent.json").read_text())
+def test_v98_phase003_targets_are_future_invariant() -> None:
     data = synthetic_data()
-    targets = MOD.build_targets(data, membership_for(data), cfg)
-    assert float(targets.abs().sum(axis=1).max()) <= cfg["architecture"]["gross_cap"] + 1e-12
+    baseline = P003.build_targets(data, membership_for(data))
+    cut = 5600
+    mutated_frames = {k: v.copy() for k, v in data.frames.items()}
+    for frame in mutated_frames.values():
+        frame.iloc[cut + 1 :] *= 1.75
+    mutated = FuturesData(mutated_frames, data.funding.copy(), data.symbols)
+    changed = P003.build_targets(mutated, membership_for(mutated))
+    pd.testing.assert_frame_equal(baseline.iloc[: cut + 1], changed.iloc[: cut + 1])
 
 
-def test_v98_rebalances_only_on_fixed_events_after_warmup() -> None:
-    cfg = json.loads((PROJECT / "config" / "v98_independent.json").read_text())
+def test_v98_phase003_respects_gross_and_rebalance_constraints() -> None:
     data = synthetic_data()
-    targets = MOD.build_targets(data, membership_for(data), cfg)
+    targets = P003.build_targets(data, membership_for(data))
+    assert float(targets.abs().sum(axis=1).max()) <= P003.PHASE["gross_cap"] + 1e-12
     changed = targets.diff().abs().sum(axis=1) > 1e-12
     hours = np.flatnonzero(changed.to_numpy())
     if len(hours):
-        assert all(h % cfg["architecture"]["rebalance_hours"] == 0 for h in hours)
+        assert all(h % P003.PHASE["rebalance_hours"] == 0 for h in hours)
+
+
+def test_v98_phase003_is_nearly_dollar_neutral_at_rebalances() -> None:
+    data = synthetic_data()
+    targets = P003.build_targets(data, membership_for(data))
+    active = targets.abs().sum(axis=1) > 1e-8
+    if active.any():
+        assert float(targets.loc[active].sum(axis=1).abs().max()) < 1e-8
