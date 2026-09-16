@@ -37,4 +37,14 @@
   };
 
   window.addEventListener('resize', () => requestAnimationFrame(refit));
+
+  // The V99 Research Lab is isolated in its own module so the existing
+  // Backtest/Paper dashboard remains unchanged.
+  if (!document.querySelector('script[data-v99-research-module]')) {
+    const script = document.createElement('script');
+    script.src = 'v99_research.js';
+    script.defer = true;
+    script.dataset.v99ResearchModule = 'true';
+    document.body.appendChild(script);
+  }
 })();
