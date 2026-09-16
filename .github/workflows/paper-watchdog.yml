@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "4,19,34,49 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/paper-watchdog.yml"
 
 permissions:
   actions: write
