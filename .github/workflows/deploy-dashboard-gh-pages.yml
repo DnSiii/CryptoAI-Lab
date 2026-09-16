@@ -1,0 +1,58 @@
+name: Deploy CryptoAI dashboard to GitHub Pages
+
+on:
+  workflow_run:
+    workflows: ["CryptoAI dashboard refresh"]
+    types: [completed]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/deploy-dashboard-gh-pages.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cryptoai-gh-pages-dashboard
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Mirror published dashboard into gh-pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch --no-tags origin paper-results gh-pages
+
+          src="$RUNNER_TEMP/paper-results-dashboard"
+          dst="$RUNNER_TEMP/gh-pages-site"
+          git worktree add --detach "$src" origin/paper-results
+          git worktree add --detach "$dst" origin/gh-pages
+          git -C "$dst" switch -C gh-pages
+
+          mkdir -p "$dst/dashboard"
+          rm -rf "$dst/dashboard"/*
+          cp -a "$src/dashboard/." "$dst/dashboard/"
+
+          git -C "$dst" add dashboard
+          if git -C "$dst" diff --cached --quiet; then
+            echo "gh-pages dashboard already up to date"
+            exit 0
+          fi
+
+          git -C "$dst" commit -m "Deploy CryptoAI dashboard from paper-results"
+          git -C "$dst" push origin HEAD:gh-pages
