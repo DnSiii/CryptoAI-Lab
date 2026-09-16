@@ -1,0 +1,481 @@
+{
+  "study": "V99 R106 phase 11 \u2014 crash short continuation audit",
+  "status": "DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "context": "R98 short positions during causal crash-continuation state",
+    "future_horizon_hours": 3,
+    "candidate_rules": [
+      "recent3_pnl_positive",
+      "recent6_pnl_positive",
+      "price3_down",
+      "price6_down",
+      "recent3_positive_and_price3_down",
+      "recent6_positive_and_price6_down"
+    ],
+    "no_numeric_threshold_grid": true,
+    "selection_uses_train_only": true,
+    "tail_robustness": "selected rule must retain positive mean after removing top 1% future outcomes in train and holdout"
+  },
+  "selected_rule": "price3_down",
+  "selected_passed": false,
+  "train": {
+    "recent3_pnl_positive": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1688,
+      "coverage": 0.548408057179987,
+      "mean_future_net_pnl": -0.003975374106454586,
+      "median_future_net_pnl": -0.004111153139026861,
+      "positive_rate": 0.44075829383886256,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.9356234678869096,
+      "mean_without_top1pct": -0.009856380599612509
+    },
+    "recent6_pnl_positive": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1802,
+      "coverage": 0.5854450942170241,
+      "mean_future_net_pnl": -0.00417675189401551,
+      "median_future_net_pnl": -0.004260917427134258,
+      "positive_rate": 0.4295227524972253,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.9117731256458342,
+      "mean_without_top1pct": -0.010495339931414471
+    },
+    "price3_down": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1725,
+      "coverage": 0.5604288499025342,
+      "mean_future_net_pnl": -0.00370940169747132,
+      "median_future_net_pnl": -0.003840849631851202,
+      "positive_rate": 0.4394202898550725,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.9327832083958022,
+      "mean_without_top1pct": -0.009758227774441372
+    },
+    "price6_down": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1876,
+      "coverage": 0.6094866796621182,
+      "mean_future_net_pnl": -0.004859396121369354,
+      "median_future_net_pnl": -0.004178096274516482,
+      "positive_rate": 0.42590618336886993,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.9040960223512977,
+      "mean_without_top1pct": -0.01075578477295686
+    },
+    "recent3_positive_and_price3_down": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1667,
+      "coverage": 0.541585445094217,
+      "mean_future_net_pnl": -0.004461623723419054,
+      "median_future_net_pnl": -0.004267642655724506,
+      "positive_rate": 0.4379124175164967,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.929582359390191,
+      "mean_without_top1pct": -0.010379864805145616
+    },
+    "recent6_positive_and_price6_down": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1772,
+      "coverage": 0.5756985055230669,
+      "mean_future_net_pnl": -0.005469999366503896,
+      "median_future_net_pnl": -0.004671827671463831,
+      "positive_rate": 0.42437923250564336,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.900854674243014,
+      "mean_without_top1pct": -0.01143804027486199
+    }
+  },
+  "holdout": {
+    "recent3_pnl_positive": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1300,
+      "coverage": 0.5453020134228188,
+      "mean_future_net_pnl": -0.015019708332864173,
+      "median_future_net_pnl": -0.026967341635048263,
+      "positive_rate": 0.43923076923076926,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.9822947034204071,
+      "mean_without_top1pct": -0.07948887984574285
+    },
+    "recent6_pnl_positive": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1439,
+      "coverage": 0.6036073825503355,
+      "mean_future_net_pnl": -0.02425628506672023,
+      "median_future_net_pnl": -0.03193662834508887,
+      "positive_rate": 0.43571924947880475,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.9744415485529743,
+      "mean_without_top1pct": -0.08613204694841978
+    },
+    "price3_down": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1317,
+      "coverage": 0.5524328859060402,
+      "mean_future_net_pnl": -0.002556055017906267,
+      "median_future_net_pnl": -0.025939041450455808,
+      "positive_rate": 0.4411541381928626,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.986596121436946,
+      "mean_without_top1pct": -0.07215286536828355
+    },
+    "price6_down": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1475,
+      "coverage": 0.6187080536912751,
+      "mean_future_net_pnl": -0.021796283127759004,
+      "median_future_net_pnl": -0.028678048420444677,
+      "positive_rate": 0.4366101694915254,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.9764340000635992,
+      "mean_without_top1pct": -0.08212106729930405
+    },
+    "recent3_positive_and_price3_down": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1293,
+      "coverage": 0.5423657718120806,
+      "mean_future_net_pnl": -0.012992285690005,
+      "median_future_net_pnl": -0.026910795258790907,
+      "positive_rate": 0.440061871616396,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.9841533789244729,
+      "mean_without_top1pct": -0.0777934319733782
+    },
+    "recent6_positive_and_price6_down": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1425,
+      "coverage": 0.597734899328859,
+      "mean_future_net_pnl": -0.022581037985331117,
+      "median_future_net_pnl": -0.03203009397740053,
+      "positive_rate": 0.43649122807017543,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.9761679997366776,
+      "mean_without_top1pct": -0.08505334735647956
+    }
+  },
+  "folds": {
+    "1": {
+      "recent3_pnl_positive": {
+        "eligible_asset_hours": 74,
+        "selected_asset_hours": 45,
+        "coverage": 0.6081081081081081,
+        "mean_future_net_pnl": -0.0033576711094079545,
+        "median_future_net_pnl": -0.0036485660632799835,
+        "positive_rate": 0.37777777777777777,
+        "base_positive_rate": 0.4189189189189189,
+        "hit_lift": 0.9017921146953405,
+        "mean_without_top1pct": -0.004604985821393974
+      },
+      "recent6_pnl_positive": {
+        "eligible_asset_hours": 74,
+        "selected_asset_hours": 47,
+        "coverage": 0.6351351351351351,
+        "mean_future_net_pnl": -0.005213018539390023,
+        "median_future_net_pnl": -0.00436055926958376,
+        "positive_rate": 0.3404255319148936,
+        "base_positive_rate": 0.4189189189189189,
+        "hit_lift": 0.8126286890871653,
+        "mean_without_top1pct": -0.006029780677533487
+      },
+      "price3_down": {
+        "eligible_asset_hours": 74,
+        "selected_asset_hours": 45,
+        "coverage": 0.6081081081081081,
+        "mean_future_net_pnl": -0.0032849329950182223,
+        "median_future_net_pnl": -0.0036485660632799835,
+        "positive_rate": 0.37777777777777777,
+        "base_positive_rate": 0.4189189189189189,
+        "hit_lift": 0.9017921146953405,
+        "mean_without_top1pct": -0.004530594568040839
+      },
+      "price6_down": {
+        "eligible_asset_hours": 74,
+        "selected_asset_hours": 49,
+        "coverage": 0.6621621621621622,
+        "mean_future_net_pnl": -0.0018339537814064614,
+        "median_future_net_pnl": -0.003189429165501526,
+        "positive_rate": 0.3673469387755102,
+        "base_positive_rate": 0.4189189189189189,
+        "hit_lift": 0.8768926925608954,
+        "mean_without_top1pct": -0.0030418128492804967
+      },
+      "recent3_positive_and_price3_down": {
+        "eligible_asset_hours": 74,
+        "selected_asset_hours": 43,
+        "coverage": 0.581081081081081,
+        "mean_future_net_pnl": -0.0036448694359192107,
+        "median_future_net_pnl": -0.00436055926958376,
+        "positive_rate": 0.3488372093023256,
+        "base_positive_rate": 0.4189189189189189,
+        "hit_lift": 0.8327081770442611,
+        "mean_without_top1pct": -0.004958418141964357
+      },
+      "recent6_positive_and_price6_down": {
+        "eligible_asset_hours": 74,
+        "selected_asset_hours": 46,
+        "coverage": 0.6216216216216216,
+        "mean_future_net_pnl": -0.00421483971565567,
+        "median_future_net_pnl": -0.003774994217542643,
+        "positive_rate": 0.34782608695652173,
+        "base_positive_rate": 0.4189189189189189,
+        "hit_lift": 0.8302945301542777,
+        "mean_without_top1pct": -0.005027570371897114
+      }
+    },
+    "2": {
+      "recent3_pnl_positive": {
+        "eligible_asset_hours": 1039,
+        "selected_asset_hours": 551,
+        "coverage": 0.5303176130895092,
+        "mean_future_net_pnl": -0.007786832706724242,
+        "median_future_net_pnl": -0.006667583852460574,
+        "positive_rate": 0.38475499092558985,
+        "base_positive_rate": 0.4302213666987488,
+        "hit_lift": 0.8943186478113823,
+        "mean_without_top1pct": -0.010376570570826232
+      },
+      "recent6_pnl_positive": {
+        "eligible_asset_hours": 1039,
+        "selected_asset_hours": 622,
+        "coverage": 0.5986525505293552,
+        "mean_future_net_pnl": -0.005927497127958452,
+        "median_future_net_pnl": -0.005584188701475986,
+        "positive_rate": 0.39389067524115756,
+        "base_positive_rate": 0.4302213666987488,
+        "hit_lift": 0.9155534934576347,
+        "mean_without_top1pct": -0.0083946434861343
+      },
+      "price3_down": {
+        "eligible_asset_hours": 1039,
+        "selected_asset_hours": 562,
+        "coverage": 0.5409047160731473,
+        "mean_future_net_pnl": -0.007678821006916743,
+        "median_future_net_pnl": -0.006543008708064579,
+        "positive_rate": 0.38434163701067614,
+        "base_positive_rate": 0.4302213666987488,
+        "hit_lift": 0.8933578542597148,
+        "mean_without_top1pct": -0.01021615745608354
+      },
+      "price6_down": {
+        "eligible_asset_hours": 1039,
+        "selected_asset_hours": 640,
+        "coverage": 0.6159769008662175,
+        "mean_future_net_pnl": -0.00602896636647612,
+        "median_future_net_pnl": -0.005761070224218547,
+        "positive_rate": 0.3875,
+        "base_positive_rate": 0.4302213666987488,
+        "hit_lift": 0.900699105145414,
+        "mean_without_top1pct": -0.008427078996725363
+      },
+      "recent3_positive_and_price3_down": {
+        "eligible_asset_hours": 1039,
+        "selected_asset_hours": 549,
+        "coverage": 0.5283926852743022,
+        "mean_future_net_pnl": -0.007703176370991367,
+        "median_future_net_pnl": -0.006582708244097521,
+        "positive_rate": 0.3861566484517304,
+        "base_positive_rate": 0.4302213666987488,
+        "hit_lift": 0.8975766392423891,
+        "mean_without_top1pct": -0.010301528485026702
+      },
+      "recent6_positive_and_price6_down": {
+        "eligible_asset_hours": 1039,
+        "selected_asset_hours": 616,
+        "coverage": 0.5928777670837344,
+        "mean_future_net_pnl": -0.005940757136433961,
+        "median_future_net_pnl": -0.005761070224218547,
+        "positive_rate": 0.3912337662337662,
+        "base_positive_rate": 0.4302213666987488,
+        "hit_lift": 0.9093778145791569,
+        "mean_without_top1pct": -0.008432362769172017
+      }
+    },
+    "3": {
+      "recent3_pnl_positive": {
+        "eligible_asset_hours": 1487,
+        "selected_asset_hours": 847,
+        "coverage": 0.5696032279757902,
+        "mean_future_net_pnl": -0.0016373397610563954,
+        "median_future_net_pnl": -0.0005863322605129635,
+        "positive_rate": 0.48642266824085006,
+        "base_positive_rate": 0.4969737726967048,
+        "hit_lift": 0.9787692931991123,
+        "mean_without_top1pct": -0.008194112017220237
+      },
+      "recent6_pnl_positive": {
+        "eligible_asset_hours": 1487,
+        "selected_asset_hours": 891,
+        "coverage": 0.5991930060524546,
+        "mean_future_net_pnl": -0.0031848104706777543,
+        "median_future_net_pnl": -0.0018630686273867492,
+        "positive_rate": 0.46464646464646464,
+        "base_positive_rate": 0.4969737726967048,
+        "hit_lift": 0.9349516819070269,
+        "mean_without_top1pct": -0.009732095174679864
+      },
+      "price3_down": {
+        "eligible_asset_hours": 1487,
+        "selected_asset_hours": 867,
+        "coverage": 0.5830531271015468,
+        "mean_future_net_pnl": -0.0008775946240347299,
+        "median_future_net_pnl": -0.0005863322605129635,
+        "positive_rate": 0.4867358708189158,
+        "base_positive_rate": 0.4969737726967048,
+        "hit_lift": 0.9793995127303488,
+        "mean_without_top1pct": -0.007286630057577127
+      },
+      "price6_down": {
+        "eligible_asset_hours": 1487,
+        "selected_asset_hours": 936,
+        "coverage": 0.6294552790854069,
+        "mean_future_net_pnl": -0.003467448931808022,
+        "median_future_net_pnl": -0.0017907677202145238,
+        "positive_rate": 0.46260683760683763,
+        "base_positive_rate": 0.4969737726967048,
+        "hit_lift": 0.9308475879856124,
+        "mean_without_top1pct": -0.01007168893986237
+      },
+      "recent3_positive_and_price3_down": {
+        "eligible_asset_hours": 1487,
+        "selected_asset_hours": 832,
+        "coverage": 0.5595158036314728,
+        "mean_future_net_pnl": -0.0023755392561653817,
+        "median_future_net_pnl": -0.000901790467810853,
+        "positive_rate": 0.4831730769230769,
+        "base_positive_rate": 0.4969737726967048,
+        "hit_lift": 0.9722305350265431,
+        "mean_without_top1pct": -0.009022509113484569
+      },
+      "recent6_positive_and_price6_down": {
+        "eligible_asset_hours": 1487,
+        "selected_asset_hours": 872,
+        "coverage": 0.5864156018829859,
+        "mean_future_net_pnl": -0.004976786980710626,
+        "median_future_net_pnl": -0.0024510284616041673,
+        "positive_rate": 0.45871559633027525,
+        "base_positive_rate": 0.4969737726967048,
+        "hit_lift": 0.9230177154845999,
+        "mean_without_top1pct": -0.011447258960548686
+      }
+    },
+    "4": {
+      "recent3_pnl_positive": {
+        "eligible_asset_hours": 478,
+        "selected_asset_hours": 245,
+        "coverage": 0.5125523012552301,
+        "mean_future_net_pnl": -0.0035998558887843104,
+        "median_future_net_pnl": -0.007430130491379503,
+        "positive_rate": 0.4204081632653061,
+        "base_positive_rate": 0.4874476987447699,
+        "hit_lift": 0.862468249102216,
+        "mean_without_top1pct": -0.010652090971671212
+      },
+      "recent6_pnl_positive": {
+        "eligible_asset_hours": 478,
+        "selected_asset_hours": 242,
+        "coverage": 0.5062761506276151,
+        "mean_future_net_pnl": -0.003127792143390841,
+        "median_future_net_pnl": -0.005785173362523334,
+        "positive_rate": 0.4090909090909091,
+        "base_positive_rate": 0.4874476987447699,
+        "hit_lift": 0.8392508778774873,
+        "mean_without_top1pct": -0.010262623519216989
+      },
+      "price3_down": {
+        "eligible_asset_hours": 478,
+        "selected_asset_hours": 251,
+        "coverage": 0.5251046025104602,
+        "mean_future_net_pnl": -0.004679378479828232,
+        "median_future_net_pnl": -0.007430130491379503,
+        "positive_rate": 0.4103585657370518,
+        "base_positive_rate": 0.4874476987447699,
+        "hit_lift": 0.8418514782073423,
+        "mean_without_top1pct": -0.011574053713020822
+      },
+      "price6_down": {
+        "eligible_asset_hours": 478,
+        "selected_asset_hours": 251,
+        "coverage": 0.5251046025104602,
+        "mean_future_net_pnl": -0.007658536707900272,
+        "median_future_net_pnl": -0.0063766114156718155,
+        "positive_rate": 0.398406374501992,
+        "base_positive_rate": 0.4874476987447699,
+        "hit_lift": 0.8173315322401381,
+        "mean_without_top1pct": -0.013928034495231
+      },
+      "recent3_positive_and_price3_down": {
+        "eligible_asset_hours": 478,
+        "selected_asset_hours": 243,
+        "coverage": 0.5083682008368201,
+        "mean_future_net_pnl": -0.0044251229316509535,
+        "median_future_net_pnl": -0.008758391298100524,
+        "positive_rate": 0.4156378600823045,
+        "base_positive_rate": 0.4874476987447699,
+        "hit_lift": 0.8526819618855861,
+        "mean_without_top1pct": -0.011546442478264411
+      },
+      "recent6_positive_and_price6_down": {
+        "eligible_asset_hours": 478,
+        "selected_asset_hours": 238,
+        "coverage": 0.497907949790795,
+        "mean_future_net_pnl": -0.006301225240763683,
+        "median_future_net_pnl": -0.0062124935483706106,
+        "positive_rate": 0.39915966386554624,
+        "base_positive_rate": 0.4874476987447699,
+        "hit_lift": 0.8188769069859704,
+        "mean_without_top1pct": -0.01290021892951522
+      }
+    }
+  },
+  "selected_summary": {
+    "train": {
+      "eligible_asset_hours": 3078,
+      "selected_asset_hours": 1725,
+      "coverage": 0.5604288499025342,
+      "mean_future_net_pnl": -0.00370940169747132,
+      "median_future_net_pnl": -0.003840849631851202,
+      "positive_rate": 0.4394202898550725,
+      "base_positive_rate": 0.4710851202079272,
+      "hit_lift": 0.9327832083958022,
+      "mean_without_top1pct": -0.009758227774441372
+    },
+    "holdout": {
+      "eligible_asset_hours": 2384,
+      "selected_asset_hours": 1317,
+      "coverage": 0.5524328859060402,
+      "mean_future_net_pnl": -0.002556055017906267,
+      "median_future_net_pnl": -0.025939041450455808,
+      "positive_rate": 0.4411541381928626,
+      "base_positive_rate": 0.4471476510067114,
+      "hit_lift": 0.986596121436946,
+      "mean_without_top1pct": -0.07215286536828355
+    },
+    "eligible_folds": 4,
+    "positive_folds": 0
+  },
+  "data": {
+    "start": "2020-01-01T00:00:00+00:00",
+    "end": "2026-09-12T23:00:00+00:00",
+    "train_end": "2024-01-18T00:00:00+00:00",
+    "holdout_start": "2024-01-18T01:00:00+00:00"
+  },
+  "disclosure": "Diagnostic-only future-label study. No strategy changes or real orders.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 156,
+    "ready_universe_size": 150,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
