@@ -5,7 +5,7 @@
   "real_orders_enabled": false,
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
-  "latest_data_timestamp": "2026-09-16T14:00:00+00:00",
+  "latest_data_timestamp": "2026-09-16T18:00:00+00:00",
   "same_boundary_for_all_variants": true,
   "variants": {
     "r98": {
@@ -17,36 +17,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T14:00:00+00:00",
+      "latest_data_timestamp": "2026-09-16T18:00:00+00:00",
       "summary": {
-        "new_forward_hours": 1,
-        "net_result_brl": 15.06,
-        "current_capital_brl": 10015.06,
+        "new_forward_hours": 5,
+        "net_result_brl": 2.9,
+        "current_capital_brl": 10002.9,
         "highest_capital_brl": 10015.06,
-        "lowest_capital_brl": 10000.0,
-        "forward_return_pct": 0.150637,
-        "gross_exposure_pct": 80.04446
+        "lowest_capital_brl": 9991.53,
+        "forward_return_pct": 0.029012,
+        "gross_exposure_pct": 90.445779
       },
       "assets": {
         "BTCUSDT": {
           "direction": "sell",
-          "current_weight": -0.19434592,
-          "position_value_brl": 1946.39
+          "current_weight": -0.43400807,
+          "position_value_brl": 4341.34
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38109868,
-          "position_value_brl": 3816.73
+          "current_weight": 0.24544972,
+          "position_value_brl": 2455.21
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.14633857,
-          "position_value_brl": 1465.59
+          "current_weight": -0.13006553,
+          "position_value_brl": 1301.03
+        },
+        "ZECUSDT": {
+          "direction": "buy",
+          "current_weight": 0.02032799,
+          "position_value_brl": 203.34
         },
         "PUMPUSDT": {
           "direction": "sell",
-          "current_weight": -0.07866143,
-          "position_value_brl": 787.8
+          "current_weight": -0.07460648,
+          "position_value_brl": 746.28
         }
       },
       "equity_curve": [
@@ -61,10 +66,80 @@
           "equity_multiple": 1.0015063709,
           "capital_brl": 10015.06,
           "hour_result_brl": 15.06
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "equity_multiple": 1.0009428989,
+          "capital_brl": 10009.43,
+          "hour_result_brl": -5.63
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "equity_multiple": 0.9991528822,
+          "capital_brl": 9991.53,
+          "hour_result_brl": -17.9
+        },
+        {
+          "timestamp": "2026-09-16T17:00:00+00:00",
+          "equity_multiple": 0.9999198395,
+          "capital_brl": 9999.2,
+          "hour_result_brl": 7.67
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 1.0002901209,
+          "capital_brl": 10002.9,
+          "hour_result_brl": 3.7
         }
       ],
       "real_orders_enabled": false,
-      "operations": []
+      "operations": [
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -19.43459,
+          "to_weight_pct": -43.39107,
+          "delta_weight_pct": -23.95648
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.10987,
+          "to_weight_pct": 24.54484,
+          "delta_weight_pct": -13.56503
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -14.63386,
+          "to_weight_pct": -13.00655,
+          "delta_weight_pct": 1.6273
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "ZECUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 2.0328,
+          "delta_weight_pct": 2.0328
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -7.86614,
+          "to_weight_pct": -7.46065,
+          "delta_weight_pct": 0.4055
+        }
+      ]
     },
     "f1": {
       "track": "f1",
@@ -75,46 +150,51 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T14:00:00+00:00",
+      "latest_data_timestamp": "2026-09-16T18:00:00+00:00",
       "summary": {
-        "new_forward_hours": 1,
-        "net_result_brl": -27.61,
-        "current_capital_brl": 9972.39,
+        "new_forward_hours": 5,
+        "net_result_brl": -8.28,
+        "current_capital_brl": 9991.72,
         "highest_capital_brl": 10000.0,
         "lowest_capital_brl": 9972.39,
-        "forward_return_pct": -0.27612,
-        "gross_exposure_pct": 110.04446
+        "forward_return_pct": -0.082801,
+        "gross_exposure_pct": 119.215277
       },
       "assets": {
         "BTCUSDT": {
           "direction": "sell",
-          "current_weight": -0.19434592,
-          "position_value_brl": 1938.09
+          "current_weight": -0.43400807,
+          "position_value_brl": 4336.49
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38109868,
-          "position_value_brl": 3800.46
+          "current_weight": 0.24544972,
+          "position_value_brl": 2452.46
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.14633857,
-          "position_value_brl": 1459.34
+          "current_weight": -0.13006553,
+          "position_value_brl": 1299.58
         },
         "ATOMUSDT": {
           "direction": "sell",
-          "current_weight": -0.2006841,
-          "position_value_brl": 2001.3
+          "current_weight": -0.06993546,
+          "position_value_brl": 698.78
+        },
+        "ZECUSDT": {
+          "direction": "buy",
+          "current_weight": 0.19903413,
+          "position_value_brl": 1988.69
         },
         "PUMPUSDT": {
           "direction": "sell",
-          "current_weight": -0.07866143,
-          "position_value_brl": 784.44
+          "current_weight": -0.07460648,
+          "position_value_brl": 745.45
         },
         "KATUSDT": {
           "direction": "sell",
-          "current_weight": -0.0993159,
-          "position_value_brl": 990.42
+          "current_weight": -0.03905338,
+          "position_value_brl": 390.21
         }
       },
       "equity_curve": [
@@ -129,6 +209,30 @@
           "equity_multiple": 0.9972387968,
           "capital_brl": 9972.39,
           "hour_result_brl": -27.61
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "equity_multiple": 0.997708999,
+          "capital_brl": 9977.09,
+          "hour_result_brl": 4.7
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "equity_multiple": 0.99850097,
+          "capital_brl": 9985.01,
+          "hour_result_brl": 7.92
+        },
+        {
+          "timestamp": "2026-09-16T17:00:00+00:00",
+          "equity_multiple": 0.9994370285,
+          "capital_brl": 9994.37,
+          "hour_result_brl": 9.36
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 0.9991719871,
+          "capital_brl": 9991.72,
+          "hour_result_brl": -2.65
         }
       ],
       "real_orders_enabled": false,
@@ -159,6 +263,123 @@
           "from_weight_pct": -3.41711,
           "to_weight_pct": -9.93159,
           "delta_weight_pct": -6.51448
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -19.43459,
+          "to_weight_pct": -43.39107,
+          "delta_weight_pct": -23.95648
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.10987,
+          "to_weight_pct": 24.54484,
+          "delta_weight_pct": -13.56503
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "ATOMUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -20.06841,
+          "to_weight_pct": -6.95834,
+          "delta_weight_pct": 13.11007
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "KATUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -9.93159,
+          "to_weight_pct": -3.49758,
+          "delta_weight_pct": 6.43401
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "LSKUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 2.51844,
+          "delta_weight_pct": 2.51844
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "symbol": "ATOMUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -6.95834,
+          "to_weight_pct": -19.95726,
+          "delta_weight_pct": -12.99892
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "symbol": "KATUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -3.49758,
+          "to_weight_pct": -10.04274,
+          "delta_weight_pct": -6.54515
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "symbol": "LSKUSDT",
+          "action": "closed",
+          "direction": "buy",
+          "from_weight_pct": 2.51844,
+          "to_weight_pct": 0.0,
+          "delta_weight_pct": -2.51844
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -14.63386,
+          "to_weight_pct": -13.00655,
+          "delta_weight_pct": 1.6273
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "ATOMUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -19.95726,
+          "to_weight_pct": -6.99355,
+          "delta_weight_pct": 12.96372
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "ZECUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 19.90341,
+          "delta_weight_pct": 19.90341
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -7.86614,
+          "to_weight_pct": -7.46065,
+          "delta_weight_pct": 0.4055
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "KATUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -10.04274,
+          "to_weight_pct": -3.90534,
+          "delta_weight_pct": 6.1374
         }
       ]
     },
@@ -171,36 +392,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T14:00:00+00:00",
+      "latest_data_timestamp": "2026-09-16T18:00:00+00:00",
       "summary": {
-        "new_forward_hours": 1,
-        "net_result_brl": 15.06,
-        "current_capital_brl": 10015.06,
+        "new_forward_hours": 5,
+        "net_result_brl": 2.9,
+        "current_capital_brl": 10002.9,
         "highest_capital_brl": 10015.06,
-        "lowest_capital_brl": 10000.0,
-        "forward_return_pct": 0.150637,
-        "gross_exposure_pct": 80.04446
+        "lowest_capital_brl": 9991.53,
+        "forward_return_pct": 0.029012,
+        "gross_exposure_pct": 90.445779
       },
       "assets": {
         "BTCUSDT": {
           "direction": "sell",
-          "current_weight": -0.19434592,
-          "position_value_brl": 1946.39
+          "current_weight": -0.43400807,
+          "position_value_brl": 4341.34
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38109868,
-          "position_value_brl": 3816.73
+          "current_weight": 0.24544972,
+          "position_value_brl": 2455.21
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.14633857,
-          "position_value_brl": 1465.59
+          "current_weight": -0.13006553,
+          "position_value_brl": 1301.03
+        },
+        "ZECUSDT": {
+          "direction": "buy",
+          "current_weight": 0.02032799,
+          "position_value_brl": 203.34
         },
         "PUMPUSDT": {
           "direction": "sell",
-          "current_weight": -0.07866143,
-          "position_value_brl": 787.8
+          "current_weight": -0.07460648,
+          "position_value_brl": 746.28
         }
       },
       "equity_curve": [
@@ -215,10 +441,80 @@
           "equity_multiple": 1.0015063709,
           "capital_brl": 10015.06,
           "hour_result_brl": 15.06
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "equity_multiple": 1.0009428989,
+          "capital_brl": 10009.43,
+          "hour_result_brl": -5.63
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "equity_multiple": 0.9991528822,
+          "capital_brl": 9991.53,
+          "hour_result_brl": -17.9
+        },
+        {
+          "timestamp": "2026-09-16T17:00:00+00:00",
+          "equity_multiple": 0.9999198395,
+          "capital_brl": 9999.2,
+          "hour_result_brl": 7.67
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 1.0002901209,
+          "capital_brl": 10002.9,
+          "hour_result_brl": 3.7
         }
       ],
       "real_orders_enabled": false,
-      "operations": []
+      "operations": [
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -19.43459,
+          "to_weight_pct": -43.39107,
+          "delta_weight_pct": -23.95648
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.10987,
+          "to_weight_pct": 24.54484,
+          "delta_weight_pct": -13.56503
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -14.63386,
+          "to_weight_pct": -13.00655,
+          "delta_weight_pct": 1.6273
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "ZECUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 2.0328,
+          "delta_weight_pct": 2.0328
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -7.86614,
+          "to_weight_pct": -7.46065,
+          "delta_weight_pct": 0.4055
+        }
+      ]
     },
     "f7": {
       "track": "f7",
@@ -229,36 +525,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T14:00:00+00:00",
+      "latest_data_timestamp": "2026-09-16T18:00:00+00:00",
       "summary": {
-        "new_forward_hours": 1,
-        "net_result_brl": 15.06,
-        "current_capital_brl": 10015.06,
+        "new_forward_hours": 5,
+        "net_result_brl": 2.9,
+        "current_capital_brl": 10002.9,
         "highest_capital_brl": 10015.06,
-        "lowest_capital_brl": 10000.0,
-        "forward_return_pct": 0.150637,
-        "gross_exposure_pct": 80.04446
+        "lowest_capital_brl": 9991.53,
+        "forward_return_pct": 0.029012,
+        "gross_exposure_pct": 90.445779
       },
       "assets": {
         "BTCUSDT": {
           "direction": "sell",
-          "current_weight": -0.19434592,
-          "position_value_brl": 1946.39
+          "current_weight": -0.43400807,
+          "position_value_brl": 4341.34
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38109868,
-          "position_value_brl": 3816.73
+          "current_weight": 0.24544972,
+          "position_value_brl": 2455.21
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.14633857,
-          "position_value_brl": 1465.59
+          "current_weight": -0.13006553,
+          "position_value_brl": 1301.03
+        },
+        "ZECUSDT": {
+          "direction": "buy",
+          "current_weight": 0.02032799,
+          "position_value_brl": 203.34
         },
         "PUMPUSDT": {
           "direction": "sell",
-          "current_weight": -0.07866143,
-          "position_value_brl": 787.8
+          "current_weight": -0.07460648,
+          "position_value_brl": 746.28
         }
       },
       "equity_curve": [
@@ -273,10 +574,80 @@
           "equity_multiple": 1.0015063709,
           "capital_brl": 10015.06,
           "hour_result_brl": 15.06
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "equity_multiple": 1.0009428989,
+          "capital_brl": 10009.43,
+          "hour_result_brl": -5.63
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "equity_multiple": 0.9991528822,
+          "capital_brl": 9991.53,
+          "hour_result_brl": -17.9
+        },
+        {
+          "timestamp": "2026-09-16T17:00:00+00:00",
+          "equity_multiple": 0.9999198395,
+          "capital_brl": 9999.2,
+          "hour_result_brl": 7.67
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 1.0002901209,
+          "capital_brl": 10002.9,
+          "hour_result_brl": 3.7
         }
       ],
       "real_orders_enabled": false,
-      "operations": []
+      "operations": [
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -19.43459,
+          "to_weight_pct": -43.39107,
+          "delta_weight_pct": -23.95648
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.10987,
+          "to_weight_pct": 24.54484,
+          "delta_weight_pct": -13.56503
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -14.63386,
+          "to_weight_pct": -13.00655,
+          "delta_weight_pct": 1.6273
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "ZECUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 2.0328,
+          "delta_weight_pct": 2.0328
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -7.86614,
+          "to_weight_pct": -7.46065,
+          "delta_weight_pct": 0.4055
+        }
+      ]
     },
     "f12": {
       "track": "f12",
@@ -287,36 +658,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T14:00:00+00:00",
+      "latest_data_timestamp": "2026-09-16T18:00:00+00:00",
       "summary": {
-        "new_forward_hours": 1,
-        "net_result_brl": 15.06,
-        "current_capital_brl": 10015.06,
+        "new_forward_hours": 5,
+        "net_result_brl": 2.9,
+        "current_capital_brl": 10002.9,
         "highest_capital_brl": 10015.06,
-        "lowest_capital_brl": 10000.0,
-        "forward_return_pct": 0.150637,
-        "gross_exposure_pct": 80.04446
+        "lowest_capital_brl": 9991.53,
+        "forward_return_pct": 0.029012,
+        "gross_exposure_pct": 90.445779
       },
       "assets": {
         "BTCUSDT": {
           "direction": "sell",
-          "current_weight": -0.19434592,
-          "position_value_brl": 1946.39
+          "current_weight": -0.43400807,
+          "position_value_brl": 4341.34
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38109868,
-          "position_value_brl": 3816.73
+          "current_weight": 0.24544972,
+          "position_value_brl": 2455.21
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.14633857,
-          "position_value_brl": 1465.59
+          "current_weight": -0.13006553,
+          "position_value_brl": 1301.03
+        },
+        "ZECUSDT": {
+          "direction": "buy",
+          "current_weight": 0.02032799,
+          "position_value_brl": 203.34
         },
         "PUMPUSDT": {
           "direction": "sell",
-          "current_weight": -0.07866143,
-          "position_value_brl": 787.8
+          "current_weight": -0.07460648,
+          "position_value_brl": 746.28
         }
       },
       "equity_curve": [
@@ -331,10 +707,80 @@
           "equity_multiple": 1.0015063709,
           "capital_brl": 10015.06,
           "hour_result_brl": 15.06
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "equity_multiple": 1.0009428989,
+          "capital_brl": 10009.43,
+          "hour_result_brl": -5.63
+        },
+        {
+          "timestamp": "2026-09-16T16:00:00+00:00",
+          "equity_multiple": 0.9991528822,
+          "capital_brl": 9991.53,
+          "hour_result_brl": -17.9
+        },
+        {
+          "timestamp": "2026-09-16T17:00:00+00:00",
+          "equity_multiple": 0.9999198395,
+          "capital_brl": 9999.2,
+          "hour_result_brl": 7.67
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 1.0002901209,
+          "capital_brl": 10002.9,
+          "hour_result_brl": 3.7
         }
       ],
       "real_orders_enabled": false,
-      "operations": []
+      "operations": [
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -19.43459,
+          "to_weight_pct": -43.39107,
+          "delta_weight_pct": -23.95648
+        },
+        {
+          "timestamp": "2026-09-16T15:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.10987,
+          "to_weight_pct": 24.54484,
+          "delta_weight_pct": -13.56503
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -14.63386,
+          "to_weight_pct": -13.00655,
+          "delta_weight_pct": 1.6273
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "ZECUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 2.0328,
+          "delta_weight_pct": 2.0328
+        },
+        {
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -7.86614,
+          "to_weight_pct": -7.46065,
+          "delta_weight_pct": 0.4055
+        }
+      ]
     }
   },
   "backtest_reference": {
@@ -12609,9 +13055,9 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T14:00:00+00:00",
-          "equity_multiple": 319.668440806,
-          "daily_return_pct": -0.18817987
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 319.2802288757,
+          "daily_return_pct": -0.3093934
         }
       ]
     },
@@ -24886,9 +25332,9 @@
           "daily_return_pct": -1.73541258
         },
         {
-          "timestamp": "2026-09-16T14:00:00+00:00",
-          "equity_multiple": 575.9483044753,
-          "daily_return_pct": 0.83273584
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 577.0648050209,
+          "daily_return_pct": 1.02820443
         }
       ]
     },
@@ -37163,9 +37609,9 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T14:00:00+00:00",
-          "equity_multiple": 646.0067187937,
-          "daily_return_pct": -0.18817987
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 645.2221949456,
+          "daily_return_pct": -0.3093934
         }
       ]
     },
@@ -49440,9 +49886,9 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T14:00:00+00:00",
-          "equity_multiple": 436.8819456759,
-          "daily_return_pct": -0.18817987
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 436.3513872541,
+          "daily_return_pct": -0.3093934
         }
       ]
     },
@@ -61717,9 +62163,9 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T14:00:00+00:00",
-          "equity_multiple": 412.7149305004,
-          "daily_return_pct": -0.18817987
+          "timestamp": "2026-09-16T18:00:00+00:00",
+          "equity_multiple": 412.213720999,
+          "daily_return_pct": -0.3093934
         }
       ]
     }
