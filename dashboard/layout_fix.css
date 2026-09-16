@@ -38,11 +38,14 @@ body {
   overflow-x: hidden;
 }
 
+/* The analytical charts are intentionally stacked. This gives labels room
+   and keeps the dashboard readable instead of squeezing two plots together. */
 .visual-grid {
   grid-template-columns: minmax(0, 1fr) !important;
   gap: 14px !important;
 }
 
+/* The paper table/detail block also stacks so the table cannot push the page. */
 .lower-grid {
   grid-template-columns: minmax(0, 1fr) !important;
   gap: 14px !important;
@@ -53,6 +56,7 @@ body {
   overflow: hidden;
 }
 
+/* Horizontal navigation belongs only to the plot viewport. */
 .chart-scroll {
   display: block;
   width: 100%;
@@ -81,6 +85,7 @@ body {
   max-width: none !important;
 }
 
+/* Cards may wrap instead of forcing a wider page. */
 .engine-grid.five,
 .analytics-cards {
   grid-template-columns: repeat(5, minmax(0, 1fr));
