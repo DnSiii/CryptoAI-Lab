@@ -1,172 +1,193 @@
-/* Dedicated V99 research lab. Kept separate from the official V99 Frozen view. */
+/* Full V99 Research Lab dashboard. Separate from the official V99 Frozen engine. */
 (function () {
   const DATA_URL = 'https://raw.githubusercontent.com/DnSiii/CryptoAI-Lab/paper-results/dashboard/dashboard_data.json';
   const ORDER = ['r98', 'f1', 'f3', 'f7', 'f12'];
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const brl = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const pct = (value, digits = 2) => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(digits).replace('.', ',')}%`;
-  const num = (value, digits = 3) => value == null ? '—' : Number(value).toFixed(digits).replace('.', ',');
-  const dt = (value) => value ? new Intl.DateTimeFormat('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' }).format(new Date(value)) : '—';
-  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
-  let data = null;
-  let activeTab = 'backtest';
+  const COLORS = {r98:'#93a4b8', f1:'#5f8cff', f3:'#a477ff', f7:'#b7ff4a', f12:'#35d6e8'};
+  const LABELS = {r98:'R98', f1:'R106 F1', f3:'R106 F3', f7:'R106 F7/F9', f12:'R106 F12'};
+  const TZ = 'America/Sao_Paulo';
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const state = {
+    data: null,
+    tab: 'backtest',
+    btSelected: new Set(ORDER),
+    btDays: 365,
+    btStart: '',
+    btEnd: '',
+    btCapital: 10000,
+    paperSelected: new Set(ORDER),
+    paperRange: 'all',
+    paperStart: '',
+    paperEnd: '',
+    selectedPaperEngine: 'f7',
+  };
 
-  function installStyles() {
-    if ($('#v99-research-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'v99-research-styles';
-    style.textContent = `
-      #v99research{padding-bottom:28px}.v99r-hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;padding:28px;border:1px solid rgba(183,255,74,.18);border-radius:22px;background:linear-gradient(135deg,rgba(183,255,74,.08),rgba(53,214,232,.04));margin-bottom:18px}.v99r-hero h2{margin:5px 0 8px;font-size:clamp(26px,3vw,42px)}.v99r-hero p{max-width:850px;color:var(--muted,#94a3b8);line-height:1.55}.v99r-badge{white-space:nowrap;border:1px solid rgba(183,255,74,.32);border-radius:999px;padding:10px 14px;color:#b7ff4a;font-weight:800}.v99r-tabs{display:flex;gap:8px;margin:14px 0 18px}.v99r-tab{border:1px solid rgba(148,163,184,.18);background:rgba(255,255,255,.025);color:#aebbd0;border-radius:12px;padding:11px 18px;font-weight:800;cursor:pointer}.v99r-tab.active{background:rgba(183,255,74,.12);border-color:rgba(183,255,74,.42);color:#dfffaa}.v99r-pane{display:none}.v99r-pane.active{display:block}.v99r-note{padding:13px 16px;border-radius:14px;background:rgba(95,140,255,.07);border:1px solid rgba(95,140,255,.17);color:#b9c8db;margin-bottom:16px;line-height:1.5}.v99r-grid{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:12px;margin:14px 0 20px}.v99r-card{padding:18px;border-radius:18px;border:1px solid rgba(148,163,184,.13);background:rgba(8,13,25,.72);min-width:0}.v99r-card.leader{border-color:rgba(183,255,74,.42);box-shadow:0 0 0 1px rgba(183,255,74,.07) inset}.v99r-card .top{display:flex;justify-content:space-between;gap:8px;align-items:center}.v99r-card .top strong{font-size:14px}.v99r-status{font-size:10px;border-radius:999px;padding:4px 7px;background:rgba(148,163,184,.10);color:#9fb0c6;text-transform:uppercase}.v99r-status.leader{background:rgba(183,255,74,.12);color:#b7ff4a}.v99r-main{font-size:28px;font-weight:900;margin:13px 0 2px}.v99r-main.positive{color:#b7ff4a}.v99r-main.negative{color:#ff7d91}.v99r-sub{font-size:12px;color:#7f91a8;margin-bottom:15px;min-height:32px}.v99r-kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}.v99r-kv div{padding:9px;border-radius:11px;background:rgba(255,255,255,.025)}.v99r-kv span{display:block;font-size:10px;color:#71839a;text-transform:uppercase;margin-bottom:3px}.v99r-kv strong{font-size:13px}.v99r-panel{border:1px solid rgba(148,163,184,.13);background:rgba(8,13,25,.65);border-radius:18px;padding:18px;margin-top:14px}.v99r-panel h3{margin:0 0 4px}.v99r-panel>p{margin:0 0 14px;color:#7f91a8}.v99r-table-wrap{overflow:auto}.v99r-table{width:100%;border-collapse:collapse;min-width:900px}.v99r-table th,.v99r-table td{text-align:left;padding:11px 10px;border-bottom:1px solid rgba(148,163,184,.09);font-size:12px}.v99r-table th{color:#6f8299;text-transform:uppercase;font-size:10px}.v99r-table tr.leader td{background:rgba(183,255,74,.035)}.v99r-positive{color:#b7ff4a;font-weight:800}.v99r-negative{color:#ff7d91;font-weight:800}.v99r-empty{padding:26px;text-align:center;color:#8394aa;border:1px dashed rgba(148,163,184,.18);border-radius:16px}.v99r-boundary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}.v99r-boundary span{padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.035);font-size:11px;color:#9cafc5}.v99r-pos{font-size:11px;color:#8ca0b8;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media(max-width:1200px){.v99r-grid{grid-template-columns:repeat(2,minmax(220px,1fr))}}@media(max-width:700px){.v99r-grid{grid-template-columns:1fr}.v99r-hero{align-items:flex-start;flex-direction:column}.v99r-badge{white-space:normal}}
+  const brl = (v,d=2) => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:d,maximumFractionDigits:d});
+  const pct = (v,d=2) => `${Number(v||0)>=0?'+':''}${Number(v||0).toFixed(d).replace('.',',')}%`;
+  const num = (v,d=2) => v==null || !Number.isFinite(Number(v)) ? '—' : Number(v).toFixed(d).replace('.',',');
+  const cls = (v) => Number(v||0)>=0 ? 'positive' : 'negative';
+  const esc = (v) => String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const dt = (v) => v ? new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:TZ}).format(new Date(v)) : '—';
+  const shortDate = (v) => v ? new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',timeZone:TZ}).format(new Date(v)) : '—';
+  const hourLabel = (v) => v ? new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:TZ}).format(new Date(v)) : '—';
+  const dateKeyFmt = new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:TZ});
+  const dateKey = (v) => dateKeyFmt.format(new Date(v));
+
+  function installStyles(){
+    if ($('#v99-full-styles')) return;
+    const style=document.createElement('style');
+    style.id='v99-full-styles';
+    style.textContent=`
+      #v99research{padding-bottom:30px}.v99-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:22px;padding:28px;border:1px solid rgba(183,255,74,.2);border-radius:22px;background:linear-gradient(135deg,rgba(183,255,74,.08),rgba(53,214,232,.035));margin-bottom:18px}.v99-hero h2{font-size:clamp(28px,3vw,44px);margin:5px 0 8px}.v99-hero p{max-width:900px;color:#8fa1b8;line-height:1.55}.v99-badge{white-space:nowrap;border:1px solid rgba(183,255,74,.35);border-radius:999px;padding:10px 14px;color:#caff75;font-weight:900;font-size:12px}.v99-tabs{display:flex;gap:8px;margin:0 0 18px}.v99-tab{border:1px solid rgba(148,163,184,.17);background:rgba(255,255,255,.025);color:#93a4b8;border-radius:12px;padding:11px 19px;font-weight:900;cursor:pointer}.v99-tab.active{background:rgba(183,255,74,.11);border-color:rgba(183,255,74,.38);color:#dfffaa}.v99-pane{display:none}.v99-pane.active{display:block}.v99-controls{display:grid;grid-template-columns:140px 1fr 170px 170px;gap:12px;padding:14px;border:1px solid rgba(148,163,184,.13);border-radius:18px;background:rgba(8,13,25,.64);margin-bottom:16px}.v99-control label{display:block;font-size:10px;color:#667a93;text-transform:uppercase;margin:0 0 7px}.v99-control input{width:100%;box-sizing:border-box;border:1px solid rgba(148,163,184,.15);background:#0b1320;color:#dce7f5;border-radius:10px;padding:10px}.v99-control.span-all{grid-column:1/-1}.v99-presets,.v99-toggles{display:flex;gap:7px;flex-wrap:wrap}.v99-chip{border:1px solid rgba(148,163,184,.16);background:#0b1320;color:#8194aa;border-radius:9px;padding:9px 12px;font-size:11px;font-weight:800;cursor:pointer}.v99-chip.active{border-color:rgba(183,255,74,.42);background:rgba(183,255,74,.08);color:#cfff7e}.v99-grid{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:11px;margin-bottom:14px}.v99-card{min-width:0;border:1px solid rgba(148,163,184,.13);background:rgba(8,13,25,.72);border-radius:17px;padding:16px}.v99-card.leader{border-color:rgba(183,255,74,.42);box-shadow:inset 0 0 0 1px rgba(183,255,74,.05)}.v99-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.v99-card small{color:#6f839a}.v99-card h4{margin:3px 0 0;font-size:13px}.v99-tag{font-size:9px;text-transform:uppercase;padding:4px 6px;border-radius:999px;background:rgba(255,255,255,.04);color:#7e92aa;white-space:nowrap}.v99-tag.leader{background:rgba(183,255,74,.11);color:#caff75}.v99-roi{font-size:27px;font-weight:950;margin:14px 0 3px}.v99-roi.positive,.v99-positive{color:#79f79b}.v99-roi.negative,.v99-negative{color:#ff7d91}.v99-capital{font-size:13px;font-weight:800;color:#d7e2ef;margin-bottom:12px}.v99-kv{display:grid;grid-template-columns:1fr 1fr;gap:7px}.v99-kv div{padding:8px;border-radius:10px;background:rgba(255,255,255,.024)}.v99-kv span{display:block;color:#60748c;font-size:9px;text-transform:uppercase;margin-bottom:3px}.v99-kv strong{font-size:12px}.v99-insights{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.v99-insight{border:1px solid rgba(148,163,184,.12);border-radius:15px;padding:14px;background:rgba(8,13,25,.63)}.v99-insight span{display:block;font-size:9px;text-transform:uppercase;color:#64778f;margin-bottom:5px}.v99-insight strong{font-size:16px}.v99-insight small{display:block;color:#70839a;margin-top:3px}.v99-panel{border:1px solid rgba(148,163,184,.13);background:rgba(8,13,25,.67);border-radius:18px;padding:17px;margin-bottom:14px}.v99-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}.v99-panel-head h3{margin:3px 0 0}.v99-panel-head p{margin:0;color:#637890;font-size:11px}.v99-scroll{overflow:auto}.v99-stage{position:relative;height:330px;min-width:760px}.v99-stage.daily{height:300px}.v99-stage canvas{width:100%;height:100%;display:block}.v99-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:#8ea0b6}.v99-legend span{display:flex;align-items:center;gap:5px}.v99-legend i{width:8px;height:8px;border-radius:50%}.v99-foot{font-size:10px;color:#60738b;margin-top:8px}.v99-table-wrap{overflow:auto}.v99-table{width:100%;border-collapse:collapse;min-width:920px}.v99-table th,.v99-table td{text-align:left;padding:10px 9px;border-bottom:1px solid rgba(148,163,184,.08);font-size:11px}.v99-table th{font-size:9px;text-transform:uppercase;color:#62768e}.v99-paper-hero{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;border:1px solid rgba(53,214,232,.16);border-radius:20px;padding:22px;background:linear-gradient(135deg,rgba(53,214,232,.05),rgba(183,255,74,.025));margin-bottom:14px}.v99-paper-status{text-align:right}.v99-paper-status span{display:block;font-size:9px;text-transform:uppercase;color:#677b92}.v99-paper-status strong{display:block;margin:3px 0;color:#b7ff4a}.v99-analysis{display:flex;gap:12px;align-items:flex-start;padding:15px;border:1px solid rgba(95,140,255,.15);background:rgba(95,140,255,.05);border-radius:15px;margin-bottom:14px}.v99-analysis b{display:flex;align-items:center;justify-content:center;min-width:34px;height:34px;border-radius:10px;background:rgba(95,140,255,.12)}.v99-analysis p{margin:3px 0 0;color:#8ca0b8;line-height:1.5}.v99-ops-layout{display:grid;grid-template-columns:190px 1fr;gap:14px}.v99-op-filter{display:flex;flex-direction:column;gap:6px}.v99-op-filter button{border:1px solid rgba(148,163,184,.13);background:#0b1320;color:#8093aa;border-radius:9px;padding:10px;text-align:left;cursor:pointer}.v99-op-filter button.active{border-color:rgba(183,255,74,.4);color:#dfffaa;background:rgba(183,255,74,.07)}.v99-current-positions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.v99-position{padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.025);font-size:10px;color:#9aacbf}.v99-op-row{display:grid;grid-template-columns:125px 90px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(148,163,184,.07);font-size:11px}.v99-empty{padding:28px;border:1px dashed rgba(148,163,184,.17);border-radius:15px;text-align:center;color:#73869d}.v99-note{padding:12px 14px;border-radius:13px;border:1px solid rgba(183,255,74,.14);background:rgba(183,255,74,.035);color:#8fa1b8;font-size:11px;line-height:1.5;margin-bottom:14px}@media(max-width:1250px){.v99-grid{grid-template-columns:repeat(2,minmax(220px,1fr))}.v99-controls{grid-template-columns:1fr 1fr}.v99-insights{grid-template-columns:1fr 1fr}}@media(max-width:720px){.v99-grid,.v99-insights,.v99-controls{grid-template-columns:1fr}.v99-control.span-all{grid-column:auto}.v99-hero,.v99-paper-hero{display:block}.v99-badge{display:inline-block;margin-top:12px}.v99-paper-status{text-align:left;margin-top:12px}.v99-ops-layout{grid-template-columns:1fr}.v99-op-filter{flex-direction:row;flex-wrap:wrap}.v99-op-row{grid-template-columns:1fr 1fr}.v99-op-row>*:nth-child(3){grid-column:1/-1}}
     `;
     document.head.appendChild(style);
   }
 
-  function ensureNavigation() {
-    const nav = $('.nav');
-    if (!nav) return;
-    let button = $('.nav-btn[data-view="v99research"]', nav);
-    if (!button) {
-      button = document.createElement('button');
-      button.className = 'nav-btn v99r-nav';
-      button.dataset.view = 'v99research';
-      button.innerHTML = '<span class="nav-symbol">V</span><div><strong>V99</strong><small>Research Lab</small></div>';
-      nav.appendChild(button);
-    }
-    if (button.dataset.v99Bound !== '1') {
-      button.dataset.v99Bound = '1';
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        showView();
-      }, true);
+  function ensureNavigation(){
+    const nav=$('.nav'); if(!nav) return;
+    let btn=$('.nav-btn[data-view="v99research"]',nav);
+    if(!btn){btn=document.createElement('button');btn.className='nav-btn v99r-nav';btn.dataset.view='v99research';btn.innerHTML='<span class="nav-symbol">V</span><div><strong>V99</strong><small>Research Lab</small></div>';nav.appendChild(btn)}
+    if(btn.dataset.v99Bound!=='1'){
+      btn.dataset.v99Bound='1';
+      btn.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();showView()},true);
     }
   }
 
-  function ensureView() {
-    let section = $('#v99research');
-    if (!section) {
-      section = document.createElement('section');
-      section.id = 'v99research';
-      section.className = 'view';
-      const footer = $('.footer');
-      if (footer) footer.parentElement.insertBefore(section, footer);
-      else $('.main')?.appendChild(section);
-    }
-    if (!$('#v99r-backtest', section) || !$('#v99r-paper', section)) {
-      section.innerHTML = `
-        <article class="v99r-hero">
-          <div><p class="eyebrow">V99 · RESEARCH LAB</p><h2>Cinco versões. Um mesmo paper.</h2><p>R98, R106 F1, F3, F7/F9 e F12 acompanhados lado a lado. O backtest permanece como referência congelada; o paper começa no mesmo boundary para todos e não recalibra nenhuma versão.</p></div>
-          <div class="v99r-badge">PAPER ONLY · 0 ORDENS REAIS</div>
-        </article>
-        <div class="v99r-tabs"><button class="v99r-tab active" data-v99-tab="backtest">Backtest</button><button class="v99r-tab" data-v99-tab="paper">Paper</button></div>
-        <div id="v99r-backtest" class="v99r-pane active"><div class="v99r-empty">Carregando comparativo V99…</div></div>
-        <div id="v99r-paper" class="v99r-pane"><div class="v99r-empty">Carregando paper V99…</div></div>
-      `;
-    }
-    $$('.v99r-tab', section).forEach((button) => {
-      if (button.dataset.v99TabBound === '1') return;
-      button.dataset.v99TabBound = '1';
-      button.addEventListener('click', () => setTab(button.dataset.v99Tab));
-    });
+  function ensureView(){
+    let section=$('#v99research');
+    if(!section){section=document.createElement('section');section.id='v99research';section.className='view';const footer=$('.footer');footer?footer.parentElement.insertBefore(section,footer):$('.main')?.appendChild(section)}
+    section.innerHTML=`
+      <article class="v99-hero"><div><p class="eyebrow">V99 · RESEARCH LAB COMPLETO</p><h2>Cinco versões. Mesma estrutura. Mesmo mercado.</h2><p>R98, R106 F1, F3, F7/F9 e F12 com backtest completo e paper forward no mesmo boundary. Os controles abaixo afetam somente a visualização; nenhuma versão é recalibrada pelos dados do paper.</p></div><div class="v99-badge">PAPER ONLY · 0 ORDENS REAIS</div></article>
+      <div class="v99-tabs"><button class="v99-tab active" data-v99-tab="backtest">Backtest completo</button><button class="v99-tab" data-v99-tab="paper">Paper completo</button></div>
+      <div id="v99-backtest" class="v99-pane active"></div>
+      <div id="v99-paper" class="v99-pane"></div>`;
+    $$('.v99-tab',section).forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.v99Tab)));
   }
 
-  function showView() {
-    ensureView();
-    $$('.view').forEach((view) => view.classList.toggle('active', view.id === 'v99research'));
-    $$('.nav-btn').forEach((button) => button.classList.toggle('active', button.dataset.view === 'v99research'));
-    const title = $('#page-title');
-    const subtitle = $('#page-subtitle');
-    if (title) title.textContent = 'V99 · Research Lab';
-    if (subtitle) subtitle.textContent = 'Backtest validado e paper forward das cinco versões acompanhadas do V99.';
+  function showView(){
+    $$('.view').forEach(v=>v.classList.toggle('active',v.id==='v99research'));
+    $$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view==='v99research'));
+    const title=$('#page-title'), sub=$('#page-subtitle');
+    if(title) title.textContent='V99 · Research Lab';
+    if(sub) sub.textContent='Backtest e paper completos das cinco versões de pesquisa do V99.';
     render();
   }
 
-  function setTab(tab) {
-    activeTab = tab === 'paper' ? 'paper' : 'backtest';
-    $$('.v99r-tab').forEach((button) => button.classList.toggle('active', button.dataset.v99Tab === activeTab));
-    $('#v99r-backtest')?.classList.toggle('active', activeTab === 'backtest');
-    $('#v99r-paper')?.classList.toggle('active', activeTab === 'paper');
+  function setTab(tab){
+    state.tab=tab;
+    $$('.v99-tab').forEach(b=>b.classList.toggle('active',b.dataset.v99Tab===tab));
+    $('#v99-backtest')?.classList.toggle('active',tab==='backtest');
+    $('#v99-paper')?.classList.toggle('active',tab==='paper');
+    requestAnimationFrame(()=>tab==='backtest'?renderBacktest():renderPaper());
   }
 
-  function researchStatus(item) {
-    const gate = item?.researchGate || item?.researchStatus || '';
-    if (String(gate).includes('LEADER') || gate === 'research_leader') return ['Líder atual', 'leader'];
-    if (gate === 'REFERENCE' || gate === 'reference') return ['Referência', ''];
-    return ['Pesquisa', ''];
+  function researchStatus(item){
+    const gate=String(item?.researchGate||item?.researchStatus||'');
+    if(gate.includes('LEADER')||gate==='research_leader') return ['Líder atual','leader'];
+    if(gate==='REFERENCE'||gate==='reference') return ['Referência',''];
+    return ['Pesquisa',''];
   }
 
-  function btCard(key, item) {
-    const [status, statusClass] = researchStatus(item);
-    return `<article class="v99r-card ${key === 'f7' ? 'leader' : ''}"><div class="top"><strong>${esc(item.label || key.toUpperCase())}</strong><span class="v99r-status ${statusClass}">${status}</span></div><div class="v99r-main positive">${pct(item.historicalRoiPct)}</div><div class="v99r-sub">${esc(item.name || '')}</div><div class="v99r-kv"><div><span>Holdout</span><strong>${pct(item.holdoutRoiPct)}</strong></div><div><span>Max DD</span><strong>${pct(item.maxDrawdownPct)}</strong></div><div><span>PF</span><strong>${num(item.profitFactor)}</strong></div><div><span>Payoff</span><strong>${num(item.payoff, 2)}</strong></div></div></article>`;
+  function curvePoints(curve,valueKey){
+    return (curve||[]).map(p=>({time:new Date(p.time).getTime(),value:Number(p[valueKey])})).filter(p=>Number.isFinite(p.time)&&Number.isFinite(p.value)).sort((a,b)=>a.time-b.time);
   }
 
-  function renderBacktest(v99) {
-    const root = $('#v99r-backtest');
-    if (!root) return;
-    const bt = v99?.backtest || {};
-    if (!Object.keys(bt).length) {
-      root.innerHTML = '<div class="v99r-empty">Aguardando snapshot do V99 Research Lab.</div>';
-      return;
+  function rangeFilter(points,start,end,days=null,hours=null){
+    if(!points.length) return [];
+    let out=points;
+    if(start) out=out.filter(p=>dateKey(p.time)>=start);
+    if(end) out=out.filter(p=>dateKey(p.time)<=end);
+    if(!start&&!end){
+      const max=points.at(-1).time;
+      if(hours) out=out.filter(p=>p.time>=max-hours*3600000);
+      else if(days) out=out.filter(p=>p.time>=max-days*86400000);
     }
-    const rows = ORDER.filter((key) => bt[key]).map((key) => {
-      const item = bt[key];
-      return `<tr class="${key === 'f7' ? 'leader' : ''}"><td><strong>${esc(item.label)}</strong><br><small>${esc(item.name)}</small></td><td class="v99r-positive">${pct(item.historicalRoiPct)}</td><td class="v99r-positive">${pct(item.holdoutRoiPct)}</td><td>${pct(item.maxDrawdownPct)}</td><td>${num(item.profitFactor)}</td><td>${item.winRatePct == null ? '—' : pct(item.winRatePct)}</td><td>${item.positiveDaysPct == null ? '—' : pct(item.positiveDaysPct)}</td><td>${num(item.payoff,2)}</td><td>${item.severeRoiPct == null ? '—' : pct(item.severeRoiPct)}</td></tr>`;
-    }).join('');
-    root.innerHTML = `<div class="v99r-note"><strong>Backtest congelado:</strong> estes números são snapshots já validados e não são recalculados usando o paper.</div><div class="v99r-grid">${ORDER.filter((key) => bt[key]).map((key) => btCard(key, bt[key])).join('')}</div><article class="v99r-panel"><h3>Comparativo completo</h3><p>F7/F9 é o líder de pesquisa atual; as demais versões continuam visíveis para comparação.</p><div class="v99r-table-wrap"><table class="v99r-table"><thead><tr><th>Versão</th><th>Histórico</th><th>Holdout</th><th>Max DD</th><th>PF</th><th>WR</th><th>Dias +</th><th>Payoff</th><th>Severe</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
+    return out;
   }
 
-  function paperCard(key, item) {
-    const [status, statusClass] = researchStatus(item);
-    const roiClass = Number(item.roiPct || 0) >= 0 ? 'positive' : 'negative';
-    const positions = (item.positions || []).slice(0,3).map((p) => `${String(p.symbol || '').replace('USDT','')} ${p.direction === 'buy' ? 'L' : 'S'} ${Number(p.weightPct || 0).toFixed(1)}%`).join(' · ');
-    return `<article class="v99r-card ${key === 'f7' ? 'leader' : ''}"><div class="top"><strong>${esc(item.label || key.toUpperCase())}</strong><span class="v99r-status ${statusClass}">${status}</span></div><div class="v99r-main ${roiClass}">${pct(item.roiPct,4)}</div><div class="v99r-sub">${brl(item.currentCapitalBrl)} · ${Number(item.newForwardHours || 0)}h forward</div><div class="v99r-kv"><div><span>Resultado</span><strong>${brl(item.netResultBrl)}</strong></div><div><span>Exposição</span><strong>${pct(item.grossExposurePct,1)}</strong></div><div><span>Máximo</span><strong>${brl(item.highestCapitalBrl)}</strong></div><div><span>Mínimo</span><strong>${brl(item.lowestCapitalBrl)}</strong></div></div><div class="v99r-pos">${positions || 'Sem posição aberta agora'}</div></article>`;
+  function analytics(points){
+    if(!points||points.length<2) return {roi:0,maxDd:0,best:0,worst:0,posPct:0,avg:0,final:1};
+    const first=points[0].value;
+    let peak=1,maxDd=0,best=-Infinity,worst=Infinity;const returns=[];
+    points.forEach((p,i)=>{const n=p.value/first;peak=Math.max(peak,n);maxDd=Math.min(maxDd,n/peak-1);if(i){const prev=points[i-1].value/first,r=n/prev-1;returns.push(r);best=Math.max(best,r);worst=Math.min(worst,r)}});
+    return {roi:(points.at(-1).value/first-1)*100,maxDd:maxDd*100,best:(Number.isFinite(best)?best:0)*100,worst:(Number.isFinite(worst)?worst:0)*100,posPct:returns.length?returns.filter(r=>r>0).length/returns.length*100:0,avg:returns.length?returns.reduce((a,b)=>a+b,0)/returns.length*100:0,final:points.at(-1).value/first};
   }
 
-  function renderPaper(v99) {
-    const root = $('#v99r-paper');
-    if (!root) return;
-    const paper = v99?.paper || {};
-    if (!Object.keys(paper).length) {
-      root.innerHTML = '<div class="v99r-empty">O paper das cinco versões está inicializando. Todos partem do mesmo boundary e de R$ 10.000.</div>';
-      return;
-    }
-    const rows = ORDER.filter((key) => paper[key]).map((key) => {
-      const item = paper[key];
-      const c = Number(item.roiPct || 0) >= 0 ? 'v99r-positive' : 'v99r-negative';
-      return `<tr class="${key === 'f7' ? 'leader' : ''}"><td><strong>${esc(item.label)}</strong></td><td class="${c}">${pct(item.roiPct,4)}</td><td>${brl(item.currentCapitalBrl)}</td><td>${brl(item.netResultBrl)}</td><td>${pct(item.grossExposurePct,1)}</td><td>${item.positions?.length || 0}</td><td>${Number(item.newForwardHours || 0)}h</td><td>${dt(item.latest)}</td></tr>`;
-    }).join('');
-    root.innerHTML = `<div class="v99r-boundary"><span>Boundary comum: <strong>${dt(v99.paperStart)}</strong></span><span>Último dado: <strong>${dt(v99.latest)}</strong></span><span>Capital inicial: <strong>R$ 10.000 por versão</strong></span><span>Seleção congelada antes do paper: <strong>${v99.selectionFrozenBeforePaper ? 'SIM' : 'NÃO'}</strong></span></div><div class="v99r-note"><strong>Forward-only:</strong> o placar abaixo contém apenas o paper posterior ao boundary.</div><div class="v99r-grid">${ORDER.filter((key) => paper[key]).map((key) => paperCard(key, paper[key])).join('')}</div><article class="v99r-panel"><h3>Placar do paper V99</h3><p>Comparação direta das cinco versões desde o mesmo boundary.</p><div class="v99r-table-wrap"><table class="v99r-table"><thead><tr><th>Versão</th><th>ROI paper</th><th>Capital</th><th>Resultado</th><th>Exposição</th><th>Posições</th><th>Forward</th><th>Atualizado</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
+  function legendHtml(keys){return keys.map(k=>`<span><i style="background:${COLORS[k]}"></i>${LABELS[k]}</span>`).join('')}
+
+  function chartSize(canvas){
+    if(!canvas) return null;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return null;const dpr=Math.min(window.devicePixelRatio||1,1.5);canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return{ctx,w:r.width,h:r.height};
+  }
+  function yLabel(v,mode){if(mode==='money')return `R$ ${Math.round(v).toLocaleString('pt-BR')}`;return `${v>=0?'+':''}${v.toFixed(Math.abs(v)<10?1:0).replace('.',',')}%`}
+  function xLabel(t,span){return span<=2*86400000?new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:TZ}).format(new Date(t)):shortDate(t)}
+
+  function drawLine(id,series,mode='pct',includeZero=false){
+    const canvas=$(id);const size=chartSize(canvas);if(!size||!series.length)return;const{ctx,w,h}=size,pad={l:70,r:25,t:26,b:42};const all=series.flatMap(s=>s.points).filter(p=>Number.isFinite(p.time)&&Number.isFinite(p.value));if(!all.length)return;const minT=Math.min(...all.map(p=>p.time)),maxT=Math.max(...all.map(p=>p.time));let minV=Math.min(...all.map(p=>p.value)),maxV=Math.max(...all.map(p=>p.value));if(includeZero){minV=Math.min(minV,0);maxV=Math.max(maxV,0)}let spread=maxV-minV;if(spread<1e-9)spread=Math.max(Math.abs(maxV),1);minV-=spread*.1;maxV+=spread*.14;const x=t=>pad.l+((t-minT)/Math.max(maxT-minT,1))*(w-pad.l-pad.r),y=v=>pad.t+((maxV-v)/Math.max(maxV-minV,1e-9))*(h-pad.t-pad.b);ctx.clearRect(0,0,w,h);ctx.font='10px system-ui';ctx.fillStyle='#667a92';ctx.strokeStyle='rgba(148,163,184,.09)';ctx.lineWidth=1;for(let i=0;i<5;i++){const val=minV+(maxV-minV)*(i/4),yy=y(val);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.fillText(yLabel(val,mode),6,yy+3)}for(let i=0;i<6;i++){const t=minT+(maxT-minT)*(i/5),xx=x(t);ctx.fillText(xLabel(t,maxT-minT),Math.max(2,xx-18),h-12)}series.forEach(s=>{ctx.strokeStyle=s.color;ctx.lineWidth=2;ctx.beginPath();s.points.forEach((p,i)=>{const xx=x(p.time),yy=y(p.value);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.stroke();if(s.points.length<=70){ctx.fillStyle=s.color;s.points.forEach(p=>{ctx.beginPath();ctx.arc(x(p.time),y(p.value),2.2,0,Math.PI*2);ctx.fill()})}})
   }
 
-  function render() {
-    ensureView();
-    const v99 = data?.v99Research;
-    renderBacktest(v99);
-    renderPaper(v99);
-    setTab(activeTab);
+  function drawBars(id,series,mode='pct'){
+    const canvas=$(id),size=chartSize(canvas);if(!size||!series.length)return;const{ctx,w,h}=size,pad={l:65,r:20,t:22,b:46};const times=[...new Set(series.flatMap(s=>s.points.map(p=>p.time)))].sort((a,b)=>a-b);const maps=Object.fromEntries(series.map(s=>[s.key,new Map(s.points.map(p=>[p.time,p.value]))]));const vals=series.flatMap(s=>s.points.map(p=>p.value));if(!vals.length)return;let minV=Math.min(0,...vals),maxV=Math.max(0,...vals);let spread=maxV-minV;if(spread<1e-9)spread=1;minV-=spread*.08;maxV+=spread*.08;const y=v=>pad.t+((maxV-v)/(maxV-minV))*(h-pad.t-pad.b),zero=y(0),groupW=(w-pad.l-pad.r)/Math.max(times.length,1),barW=Math.max(2,Math.min(14,(groupW*.76)/Math.max(series.length,1)));ctx.clearRect(0,0,w,h);ctx.font='9px system-ui';ctx.strokeStyle='rgba(148,163,184,.09)';ctx.fillStyle='#667a92';for(let i=0;i<5;i++){const val=minV+(maxV-minV)*(i/4),yy=y(val);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.fillText(yLabel(val,mode),5,yy+3)}ctx.strokeStyle='rgba(148,163,184,.22)';ctx.beginPath();ctx.moveTo(pad.l,zero);ctx.lineTo(w-pad.r,zero);ctx.stroke();times.forEach((t,ti)=>{const gx=pad.l+ti*groupW+groupW/2;series.forEach((s,si)=>{const v=maps[s.key].get(t);if(!Number.isFinite(v))return;const xx=gx-(series.length*barW)/2+si*barW,yy=y(v);ctx.fillStyle=s.color;ctx.fillRect(xx,Math.min(yy,zero),Math.max(1,barW-1),Math.abs(zero-yy))});if(ti%Math.max(1,Math.ceil(times.length/7))===0){ctx.fillStyle='#667a92';ctx.fillText(xLabel(t,times.at(-1)-times[0]),Math.max(2,gx-16),h-12)}})
   }
 
-  async function load() {
-    try {
-      const response = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache:'no-store' });
-      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-      data = await response.json();
-    } catch (error) {
-      console.warn('V99 research remote snapshot failed', error);
-      try {
-        const response = await fetch(`dashboard_data.json?t=${Date.now()}`, { cache:'no-store' });
-        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-        data = await response.json();
-      } catch (fallbackError) {
-        console.warn('V99 research local snapshot failed', fallbackError);
-      }
-    }
-    render();
+  function setStageWidth(stageSelector,count,per=34){const stage=$(stageSelector);if(!stage)return;const parent=stage.parentElement;stage.style.width=`${Math.max(parent?.clientWidth||760,Math.min(24000,Math.max(760,count*per)))}px`}
+
+  function btSelectedKeys(){return ORDER.filter(k=>state.btSelected.has(k)&&state.data?.v99Research?.backtest?.[k])}
+  function btPoints(k){const item=state.data?.v99Research?.backtest?.[k];let pts=curvePoints(item?.curve,'equity');return rangeFilter(pts,state.btStart,state.btEnd,state.btStart||state.btEnd?null:state.btDays)}
+  function btSeries(mode){return btSelectedKeys().map(k=>{const pts=btPoints(k);if(pts.length<1)return null;const first=pts[0].value;return{key:k,label:LABELS[k],color:COLORS[k],points:pts.map(p=>({time:p.time,value:mode==='money'?state.btCapital*p.value/first:(p.value/first-1)*100}))}}).filter(Boolean)}
+  function btDailySeries(){return btSelectedKeys().map(k=>{const pts=btPoints(k),out=[];for(let i=1;i<pts.length;i++)out.push({time:pts[i].time,value:(pts[i].value/pts[i-1].value-1)*100});return{key:k,label:LABELS[k],color:COLORS[k],points:out}}).filter(s=>s.points.length)}
+  function btDdSeries(){return btSelectedKeys().map(k=>{const pts=btPoints(k);if(!pts.length)return null;let peak=pts[0].value;return{key:k,label:LABELS[k],color:COLORS[k],points:pts.map(p=>{peak=Math.max(peak,p.value);return{time:p.time,value:(p.value/peak-1)*100}})}}).filter(Boolean)}
+
+  function renderBtControls(root){
+    root.innerHTML=`<div class="v99-controls"><div class="v99-control"><label>Capital inicial</label><input id="v99-bt-capital" type="number" min="1" step="100" value="${state.btCapital}"></div><div class="v99-control"><label>Período</label><div class="v99-presets">${[7,30,90,180,365].map(d=>`<button class="v99-chip ${state.btDays===d&&!state.btStart&&!state.btEnd?'active':''}" data-v99-bt-days="${d}">${d===90?'3M':d===180?'6M':d===365?'1A':d+'D'}</button>`).join('')}</div></div><div class="v99-control"><label>De</label><input id="v99-bt-start" type="date" value="${state.btStart}"></div><div class="v99-control"><label>Até</label><input id="v99-bt-end" type="date" value="${state.btEnd}"></div><div class="v99-control span-all"><label>Versões V99</label><div class="v99-toggles">${ORDER.map(k=>`<button class="v99-chip ${state.btSelected.has(k)?'active':''}" data-v99-bt-engine="${k}">${LABELS[k]}</button>`).join('')}</div></div></div>`;
+    $('#v99-bt-capital',root)?.addEventListener('change',e=>{state.btCapital=Math.max(1,Number(e.target.value)||10000);renderBacktest()});
+    $$('#v99-bt-start,#v99-bt-end',root).forEach(inp=>inp.addEventListener('change',()=>{state.btStart=$('#v99-bt-start',root).value;state.btEnd=$('#v99-bt-end',root).value;renderBacktest()}));
+    $$('[data-v99-bt-days]',root).forEach(b=>b.addEventListener('click',()=>{state.btDays=Number(b.dataset.v99BtDays);state.btStart='';state.btEnd='';renderBacktest()}));
+    $$('[data-v99-bt-engine]',root).forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.v99BtEngine;if(state.btSelected.has(k)&&state.btSelected.size>1)state.btSelected.delete(k);else state.btSelected.add(k);renderBacktest()}));
   }
 
-  installStyles();
-  ensureNavigation();
-  ensureView();
-  load();
+  function btCard(k){const item=state.data.v99Research.backtest[k],a=analytics(btPoints(k)),[tag,tagClass]=researchStatus(item);return `<article class="v99-card ${k==='f7'?'leader':''}"><div class="v99-card-top"><div><small>${LABELS[k]}</small><h4>${esc(item.name||'')}</h4></div><span class="v99-tag ${tagClass}">${tag}</span></div><div class="v99-roi ${cls(a.roi)}">${pct(a.roi)}</div><div class="v99-capital">${brl(state.btCapital*a.final)}</div><div class="v99-kv"><div><span>Max DD</span><strong class="v99-negative">${pct(a.maxDd)}</strong></div><div><span>Melhor dia</span><strong class="v99-positive">${pct(a.best)}</strong></div><div><span>Pior dia</span><strong class="v99-negative">${pct(a.worst)}</strong></div><div><span>Dias +</span><strong>${pct(a.posPct,1)}</strong></div><div><span>Holdout ref.</span><strong>${pct(item.holdoutRoiPct)}</strong></div><div><span>PF ref.</span><strong>${num(item.profitFactor,3)}</strong></div></div></article>`}
+
+  function renderBacktest(){
+    const root=$('#v99-backtest');if(!root||state.tab!=='backtest')return;const lab=state.data?.v99Research;if(!lab){root.innerHTML='<div class="v99-empty">Carregando V99 Research Lab…</div>';return}const hasCurves=ORDER.some(k=>(lab.backtest?.[k]?.curve||[]).length>1);if(!hasCurves){root.innerHTML='<div class="v99-empty">Aguardando a publicação das curvas históricas completas das cinco versões. O novo ciclo do V99 está processando esses dados agora.</div>';return}
+    root.innerHTML='<div id="v99-bt-controls"></div><div id="v99-bt-cards" class="v99-grid"></div><div id="v99-bt-insights" class="v99-insights"></div><div id="v99-bt-charts"></div>';
+    renderBtControls($('#v99-bt-controls'));
+    const keys=btSelectedKeys();$('#v99-bt-cards').innerHTML=keys.map(btCard).join('');
+    const stats=keys.map(k=>({k,a:analytics(btPoints(k))}));const best=[...stats].sort((a,b)=>b.a.roi-a.a.roi)[0],dd=[...stats].sort((a,b)=>b.a.maxDd-a.a.maxDd)[0],pos=[...stats].sort((a,b)=>b.a.posPct-a.a.posPct)[0],allPts=keys.flatMap(k=>btPoints(k));
+    $('#v99-bt-insights').innerHTML=`<div class="v99-insight"><span>Maior retorno</span><strong>${best?LABELS[best.k]+' · '+pct(best.a.roi):'—'}</strong><small>${best?brl(state.btCapital*best.a.final):''}</small></div><div class="v99-insight"><span>Menor drawdown</span><strong>${dd?LABELS[dd.k]+' · '+pct(dd.a.maxDd):'—'}</strong><small>no período escolhido</small></div><div class="v99-insight"><span>Mais dias positivos</span><strong>${pos?LABELS[pos.k]+' · '+pct(pos.a.posPct,1):'—'}</strong><small>consistência diária</small></div><div class="v99-insight"><span>Janela · São Paulo</span><strong>${allPts.length?shortDate(Math.min(...allPts.map(p=>p.time)))+' → '+shortDate(Math.max(...allPts.map(p=>p.time))):'—'}</strong><small>filtro visual, sem recalibração</small></div>`;
+    $('#v99-bt-charts').innerHTML=`<div class="v99-note"><strong>Backtest histórico real:</strong> as curvas abaixo são o replay das cinco versões pré-selecionadas. Capital e período são simuladores de visualização; eles não mudam os motores nem os resultados de validação congelados.</div><div class="grid-2 visual-grid"><article class="v99-panel"><div class="v99-panel-head"><div><p>EVOLUÇÃO POR VALOR</p><h3>Patrimônio · fechamento diário</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-bt-money-stage" class="v99-stage"><canvas id="v99-bt-money"></canvas></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>EVOLUÇÃO POR %</p><h3>ROI acumulado</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-bt-pct-stage" class="v99-stage"><canvas id="v99-bt-pct"></canvas></div></div></article></div><article class="v99-panel"><div class="v99-panel-head"><div><p>RESULTADO % DE CADA DIA · NÃO ACUMULADO</p><h3>Retorno diário das versões V99</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-bt-daily-stage" class="v99-stage daily"><canvas id="v99-bt-daily"></canvas></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>RISCO AO LONGO DO TEMPO</p><h3>Drawdown diário</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-bt-dd-stage" class="v99-stage"><canvas id="v99-bt-dd"></canvas></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>DIA A DIA · AMERICA/SAO_PAULO</p><h3>Tabela completa do backtest V99</h3></div><small>mais recente primeiro</small></div><div class="v99-table-wrap"><table class="v99-table"><thead><tr><th>Data</th>${keys.map(k=>`<th>${LABELS[k]}</th>`).join('')}<th>Melhor do dia</th></tr></thead><tbody id="v99-bt-table"></tbody></table></div></article>`;
+    const maxCount=Math.max(1,...keys.map(k=>btPoints(k).length));setStageWidth('#v99-bt-money-stage',maxCount,26);setStageWidth('#v99-bt-pct-stage',maxCount,26);setStageWidth('#v99-bt-daily-stage',maxCount,34);setStageWidth('#v99-bt-dd-stage',maxCount,26);requestAnimationFrame(()=>{drawLine('#v99-bt-money',btSeries('money'),'money');drawLine('#v99-bt-pct',btSeries('pct'),'pct',true);drawBars('#v99-bt-daily',btDailySeries(),'pct');drawLine('#v99-bt-dd',btDdSeries(),'pct',true)});
+    const maps={},times=new Set;keys.forEach(k=>{const pts=btPoints(k),m=new Map;for(let i=1;i<pts.length;i++){const r=(pts[i].value/pts[i-1].value-1)*100;m.set(pts[i].time,r);times.add(pts[i].time)}maps[k]=m});$('#v99-bt-table').innerHTML=[...times].sort((a,b)=>b-a).map(t=>{const vals=keys.map(k=>({k,v:maps[k].get(t)})).filter(x=>Number.isFinite(x.v)),winner=[...vals].sort((a,b)=>b.v-a.v)[0];return `<tr><td>${shortDate(t)}</td>${keys.map(k=>{const v=maps[k].get(t);return `<td class="${Number(v)>=0?'v99-positive':'v99-negative'}">${Number.isFinite(v)?pct(v):'—'}</td>`}).join('')}<td>${winner?LABELS[winner.k]+' · '+pct(winner.v):'—'}</td></tr>`}).join('');
+  }
+
+  function paperKeys(){return ORDER.filter(k=>state.paperSelected.has(k)&&state.data?.v99Research?.paper?.[k])}
+  function paperCurve(k,mode='all'){const item=state.data?.v99Research?.paper?.[k],pts=curvePoints(item?.curve,'capital');if(state.paperStart||state.paperEnd)return rangeFilter(pts,state.paperStart,state.paperEnd);if(state.paperRange==='24h')return rangeFilter(pts,'','',null,24);if(state.paperRange==='7d')return rangeFilter(pts,'','',7);if(state.paperRange==='30d')return rangeFilter(pts,'','',30);return pts}
+  function returnBetween(points){return points.length>=2?(points.at(-1).value/points[0].value-1)*100:0}
+  function lastHoursReturn(item,hours){const pts=curvePoints(item?.curve,'capital');if(pts.length<2)return 0;const cutoff=pts.at(-1).time-hours*3600000;let base=pts[0];for(const p of pts){if(p.time<=cutoff)base=p;else break}return (pts.at(-1).value/base.value-1)*100}
+  function todayReturn(item){const pts=curvePoints(item?.curve,'capital');if(pts.length<2)return 0;const key=dateKey(pts.at(-1).time);const today=pts.filter(p=>dateKey(p.time)===key);if(!today.length)return 0;let base=today[0];const prev=pts.filter(p=>p.time<today[0].time).at(-1);if(prev)base=prev;return(pts.at(-1).value/base.value-1)*100}
+  function paperDaily(k){const pts=paperCurve(k);if(!pts.length)return[];const by=new Map;pts.forEach(p=>by.set(dateKey(p.time),p));const arr=[...by.values()].sort((a,b)=>a.time-b.time),out=[];for(let i=0;i<arr.length;i++){const base=i?arr[i-1].value:pts[0].value;out.push({time:arr[i].time,value:(arr[i].value/base-1)*100,capital:arr[i].value})}return out}
+  function paperLineSeries(mode){return paperKeys().map(k=>{const pts=paperCurve(k);if(!pts.length)return null;const first=pts[0].value;return{key:k,label:LABELS[k],color:COLORS[k],points:pts.map(p=>({time:p.time,value:mode==='money'?p.value:(p.value/first-1)*100}))}}).filter(Boolean)}
+  function paperDailySeries(){return paperKeys().map(k=>({key:k,label:LABELS[k],color:COLORS[k],points:paperDaily(k).slice(1).map(p=>({time:p.time,value:p.value}))})).filter(s=>s.points.length)}
+  function paperHourlySeries(){return paperKeys().map(k=>{const pts=rangeFilter(curvePoints(state.data.v99Research.paper[k]?.curve,'capital'),'','',null,24),out=[];for(let i=1;i<pts.length;i++)out.push({time:pts[i].time,value:(pts[i].value/pts[i-1].value-1)*100});return{key:k,label:LABELS[k],color:COLORS[k],points:out}}).filter(s=>s.points.length)}
+
+  function renderPaperControls(root){root.innerHTML=`<div class="v99-controls"><div class="v99-control"><label>Janela</label><div class="v99-presets">${[['24h','24H'],['7d','7D'],['30d','30D'],['all','Tudo']].map(([v,l])=>`<button class="v99-chip ${state.paperRange===v&&!state.paperStart&&!state.paperEnd?'active':''}" data-v99-paper-range="${v}">${l}</button>`).join('')}</div></div><div class="v99-control"><label>Versões</label><div class="v99-toggles">${ORDER.map(k=>`<button class="v99-chip ${state.paperSelected.has(k)?'active':''}" data-v99-paper-engine="${k}">${LABELS[k]}</button>`).join('')}</div></div><div class="v99-control"><label>De</label><input id="v99-paper-start" type="date" value="${state.paperStart}"></div><div class="v99-control"><label>Até</label><input id="v99-paper-end" type="date" value="${state.paperEnd}"></div></div>`;$$('[data-v99-paper-range]',root).forEach(b=>b.addEventListener('click',()=>{state.paperRange=b.dataset.v99PaperRange;state.paperStart='';state.paperEnd='';renderPaper()}));$$('[data-v99-paper-engine]',root).forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.v99PaperEngine;if(state.paperSelected.has(k)&&state.paperSelected.size>1)state.paperSelected.delete(k);else state.paperSelected.add(k);renderPaper()}));$$('#v99-paper-start,#v99-paper-end',root).forEach(i=>i.addEventListener('change',()=>{state.paperStart=$('#v99-paper-start',root).value;state.paperEnd=$('#v99-paper-end',root).value;renderPaper()}))}
+
+  function paperCard(k){const item=state.data.v99Research.paper[k],h1=lastHoursReturn(item,1),h24=lastHoursReturn(item,24),td=todayReturn(item),[tag,tagClass]=researchStatus(item);return `<article class="v99-card ${k==='f7'?'leader':''}"><div class="v99-card-top"><div><small>${LABELS[k]}</small><h4>${esc(item.name||'')}</h4></div><span class="v99-tag ${tagClass}">${tag}</span></div><div class="v99-roi ${cls(item.roiPct)}">${pct(item.roiPct,4)}</div><div class="v99-capital">${brl(item.currentCapitalBrl)} <small>de ${brl(item.baseCapitalBrl)}</small></div><div class="v99-kv"><div><span>Última hora</span><strong class="${h1>=0?'v99-positive':'v99-negative'}">${pct(h1,3)}</strong></div><div><span>24h</span><strong class="${h24>=0?'v99-positive':'v99-negative'}">${pct(h24,3)}</strong></div><div><span>Hoje</span><strong class="${td>=0?'v99-positive':'v99-negative'}">${pct(td,3)}</strong></div><div><span>Total paper</span><strong>${pct(item.roiPct,3)}</strong></div><div><span>Exposição</span><strong>${pct(item.grossExposurePct,1)}</strong></div><div><span>Posições</span><strong>${item.positions?.length||0}</strong></div></div></article>`}
+
+  function renderOperations(){const root=$('#v99-ops-body');if(!root)return;const k=state.selectedPaperEngine,item=state.data?.v99Research?.paper?.[k];$$('[data-v99-op-engine]').forEach(b=>b.classList.toggle('active',b.dataset.v99OpEngine===k));if(!item){root.innerHTML='<div class="v99-empty">Sem dados.</div>';return}const pos=(item.positions||[]).map(p=>`<span class="v99-position">${p.symbol.replace('USDT','')} · ${p.direction==='buy'?'COMPRA':'VENDA'} · ${pct(p.weightPct,1)}</span>`).join('');const ops=[...(item.operations||[])].reverse().slice(0,100);const action={opened:'abriu posição',closed:'encerrou posição',flipped:'inverteu a direção',increased:'aumentou a posição',reduced:'reduziu a posição'};root.innerHTML=`<div class="v99-current-positions">${pos||'<span class="v99-position">Sem posição aberta agora</span>'}</div>${ops.length?ops.map(o=>`<div class="v99-op-row"><span>${hourLabel(o.time)}</span><strong>${esc(o.symbol.replace('USDT','/USDT'))}</strong><span>${action[o.action]||o.action} para <b>${o.toWeightPct>0?'COMPRA':o.toWeightPct<0?'VENDA':'ZERO'}</b></span><span>${pct(o.fromWeightPct,1)} → ${pct(o.toWeightPct,1)}</span></div>`).join(''):'<div class="v99-empty">Nenhuma mudança de posição registrada depois do boundary ainda.</div>'}`}
+
+  function renderPaper(){
+    const root=$('#v99-paper');if(!root||state.tab!=='paper')return;const lab=state.data?.v99Research;if(!lab){root.innerHTML='<div class="v99-empty">Carregando paper V99…</div>';return}const paper=lab.paper||{};if(!Object.keys(paper).length){root.innerHTML='<div class="v99-empty">Aguardando primeiro snapshot das cinco versões.</div>';return}
+    root.innerHTML=`<article class="v99-paper-hero"><div><p class="eyebrow">PAPER TRADING · CINCO VERSÕES · MESMO BOUNDARY</p><h2>V99 Forward Paper</h2><p>Resultado forward real da simulação das cinco versões, sem misturar backtest e sem recalibração depois do boundary.</p></div><div class="v99-paper-status"><span>Status</span><strong>${lab.realOrders?'ORDENS REAIS':'SIMULAÇÃO APENAS'}</strong><small>Atualizado ${dt(lab.latest)}</small></div></article><div id="v99-paper-controls"></div><div id="v99-paper-summary" class="v99-insights"></div><div id="v99-paper-cards" class="v99-grid"></div><div class="v99-analysis"><b>AI</b><div><strong>Análise automática em português simples</strong><p id="v99-analysis-text"></p></div></div><div id="v99-paper-charts"></div>`;
+    renderPaperControls($('#v99-paper-controls'));const keys=paperKeys();$('#v99-paper-cards').innerHTML=keys.map(paperCard).join('');const vals=keys.map(k=>({k,item:paper[k],h24:lastHoursReturn(paper[k],24),today:todayReturn(paper[k])}));const total=[...vals].sort((a,b)=>b.item.roiPct-a.item.roiPct)[0],h24=[...vals].sort((a,b)=>b.h24-a.h24)[0],today=[...vals].sort((a,b)=>b.today-a.today)[0],exp=[...vals].sort((a,b)=>b.item.grossExposurePct-a.item.grossExposurePct)[0];$('#v99-paper-summary').innerHTML=`<div class="v99-insight"><span>Melhor total</span><strong>${total?LABELS[total.k]+' · '+pct(total.item.roiPct,3):'—'}</strong><small>${total?brl(total.item.currentCapitalBrl):''}</small></div><div class="v99-insight"><span>Melhor 24h</span><strong>${h24?LABELS[h24.k]+' · '+pct(h24.h24,3):'—'}</strong><small>janela móvel</small></div><div class="v99-insight"><span>Melhor hoje</span><strong>${today?LABELS[today.k]+' · '+pct(today.today,3):'—'}</strong><small>00:00–agora · São Paulo</small></div><div class="v99-insight"><span>Maior exposição</span><strong>${exp?LABELS[exp.k]+' · '+pct(exp.item.grossExposurePct,1):'—'}</strong><small>gross exposure</small></div>`;
+    const loser=[...vals].sort((a,b)=>a.item.roiPct-b.item.roiPct)[0];$('#v99-analysis-text').textContent=total?`${LABELS[total.k]} lidera o paper total com ${pct(total.item.roiPct,3)} (${brl(total.item.currentCapitalBrl)}). ${h24?LABELS[h24.k]+' teve o melhor desempenho nas últimas 24h com '+pct(h24.h24,3)+'. ':''}${loser&&loser.k!==total.k?LABELS[loser.k]+' está na última posição do total com '+pct(loser.item.roiPct,3)+'. ':''}Todas as cinco versões seguem o mesmo boundary e continuam sem ordens reais.`:'Aguardando dados suficientes.';
+    $('#v99-paper-charts').innerHTML=`<article class="v99-panel"><div class="v99-panel-head"><div><p>% POR HORA</p><h3>Resultado % por hora · últimas 24h</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-hour-stage" class="v99-stage daily"><canvas id="v99-paper-hour"></canvas></div></div><div class="v99-foot">Cada barra representa somente aquela hora, não o acumulado.</div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>% POR DIA</p><h3>Resultado % de cada dia · não acumulado</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-day-stage" class="v99-stage daily"><canvas id="v99-paper-day"></canvas></div></div></article><div class="grid-2 visual-grid"><article class="v99-panel"><div class="v99-panel-head"><div><p>PATRIMÔNIO</p><h3>Evolução do capital</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-money-stage" class="v99-stage"><canvas id="v99-paper-money"></canvas></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>ROI ACUMULADO</p><h3>Evolução % na janela</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-pct-stage" class="v99-stage"><canvas id="v99-paper-pct"></canvas></div></div></article></div><article class="v99-panel"><div class="v99-panel-head"><div><p>OPERAÇÕES SIMULADAS</p><h3>O que cada versão fez</h3></div><small>horário de São Paulo</small></div><div class="v99-ops-layout"><div class="v99-op-filter">${ORDER.filter(k=>paper[k]).map(k=>`<button data-v99-op-engine="${k}" class="${state.selectedPaperEngine===k?'active':''}">${LABELS[k]}</button>`).join('')}</div><div id="v99-ops-body"></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>HISTÓRICO DIÁRIO</p><h3>Resultado diário das versões V99</h3></div><small>mais recente primeiro</small></div><div class="v99-table-wrap"><table class="v99-table"><thead><tr><th>Data</th>${keys.map(k=>`<th>${LABELS[k]}</th>`).join('')}<th>Melhor do dia</th></tr></thead><tbody id="v99-paper-table"></tbody></table></div></article>`;
+    $$('[data-v99-op-engine]').forEach(b=>b.addEventListener('click',()=>{state.selectedPaperEngine=b.dataset.v99OpEngine;renderOperations()}));renderOperations();const maxPts=Math.max(1,...keys.map(k=>paperCurve(k).length));setStageWidth('#v99-paper-hour-stage',24,42);setStageWidth('#v99-paper-day-stage',Math.max(1,...keys.map(k=>paperDaily(k).length)),38);setStageWidth('#v99-paper-money-stage',maxPts,18);setStageWidth('#v99-paper-pct-stage',maxPts,18);requestAnimationFrame(()=>{drawBars('#v99-paper-hour',paperHourlySeries(),'pct');drawBars('#v99-paper-day',paperDailySeries(),'pct');drawLine('#v99-paper-money',paperLineSeries('money'),'money');drawLine('#v99-paper-pct',paperLineSeries('pct'),'pct',true)});
+    const dailyMaps={},times=new Set;keys.forEach(k=>{const arr=paperDaily(k),m=new Map(arr.map(x=>[x.time,x.value]));dailyMaps[k]=m;arr.forEach(x=>times.add(x.time))});$('#v99-paper-table').innerHTML=[...times].sort((a,b)=>b-a).map(t=>{const vals2=keys.map(k=>({k,v:dailyMaps[k].get(t)})).filter(x=>Number.isFinite(x.v)),win=[...vals2].sort((a,b)=>b.v-a.v)[0];return `<tr><td>${shortDate(t)}</td>${keys.map(k=>{const v=dailyMaps[k].get(t);return `<td class="${Number(v)>=0?'v99-positive':'v99-negative'}">${Number.isFinite(v)?pct(v,3):'—'}</td>`}).join('')}<td>${win?LABELS[win.k]+' · '+pct(win.v,3):'—'}</td></tr>`}).join('');
+  }
+
+  function render(){if(!state.data)return;state.tab==='backtest'?renderBacktest():renderPaper()}
+  async function load(){try{const r=await fetch(`${DATA_URL}?t=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`${r.status}`);state.data=await r.json()}catch(e){console.warn('V99 research remote snapshot failed',e);try{const r=await fetch(`dashboard_data.json?t=${Date.now()}`,{cache:'no-store'});state.data=await r.json()}catch(e2){console.warn('V99 local snapshot failed',e2)}}render()}
+
+  installStyles();ensureNavigation();ensureView();load();
+  window.addEventListener('resize',()=>{if($('#v99research')?.classList.contains('active'))requestAnimationFrame(render)});
 })();
