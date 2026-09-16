@@ -2,7 +2,7 @@ name: CryptoAI dashboard refresh
 
 on:
   workflow_run:
-    workflows: ["CryptoAI multi-engine paper refresh"]
+    workflows: ["CryptoAI multi-engine paper refresh", "V99 five-variant research paper refresh"]
     types: [completed]
   workflow_dispatch:
   push:
@@ -11,6 +11,7 @@ on:
       - "dashboard/**"
       - "scripts/build_cryptoai_dashboard.py"
       - "scripts/augment_dashboard_v13.py"
+      - "scripts/augment_dashboard_v99_research.py"
       - "scripts/prepare_dashboard_v15_replay.py"
       - ".github/workflows/cryptoai-dashboard.yml"
   pull_request:
@@ -19,6 +20,7 @@ on:
       - "dashboard/**"
       - "scripts/build_cryptoai_dashboard.py"
       - "scripts/augment_dashboard_v13.py"
+      - "scripts/augment_dashboard_v99_research.py"
       - "scripts/prepare_dashboard_v15_replay.py"
       - ".github/workflows/cryptoai-dashboard.yml"
 
@@ -73,6 +75,7 @@ jobs:
           for path in \
             state/paper_v15_universe.json \
             state/paper_v99_state.json \
+            state/paper_v99_research_state.json \
             reports/paper_data_sync_v13.json \
             reports/paper_data_sync_v15.json \
             reports/paper_runtime_status.json \
@@ -85,7 +88,9 @@ jobs:
             reports/paper_v16_snapshot.json \
             reports/paper_v16_ledger.json \
             reports/paper_v99_snapshot.json \
-            reports/paper_v99_ledger.json; do
+            reports/paper_v99_ledger.json \
+            reports/paper_v99_research_snapshot.json \
+            reports/paper_v99_research_ledger.json; do
             if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
               mkdir -p "$(dirname "$path")"
               git show "FETCH_HEAD:$path" > "$path"
@@ -99,13 +104,15 @@ jobs:
           node --check dashboard/layout_fix.js
           node --check dashboard/backtest_only.js
           node --check dashboard/paper_classic.js
+          node --check dashboard/v99_research.js
       - name: Prepare V15 historical replay boundary
         run: python scripts/prepare_dashboard_v15_replay.py
-      - name: Build five-engine dashboard snapshot
+      - name: Build dashboard snapshot and V99 research overlay
         run: |
           python scripts/build_cryptoai_dashboard.py
           python scripts/augment_dashboard_v13.py
-      - name: Validate five-engine snapshot
+          python scripts/augment_dashboard_v99_research.py
+      - name: Validate dashboard snapshot
         shell: bash
         run: |
           python - <<'PY'
@@ -114,7 +121,13 @@ jobs:
           expected={'v13','v14','v15','v16','v99'}
           assert expected <= set(p['backtest']['engines']), p['backtest']['engines'].keys()
           assert expected <= set(p['paper']['engines']), p['paper']['engines'].keys()
-          print('five-engine snapshot ok')
+          lab=p.get('v99Research', {})
+          if lab.get('available'):
+              variants={'r98','f1','f3','f7','f12'}
+              assert variants == set(lab['backtest']), lab['backtest'].keys()
+              assert variants == set(lab['paper']), lab['paper'].keys()
+              assert lab['sameBoundary'] is True
+          print('dashboard snapshot ok; V99 research available=', lab.get('available'))
           PY
       - name: Upload dashboard snapshot
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -142,6 +155,7 @@ jobs:
           cp dashboard/backtest_only.js "$results_dir/dashboard/backtest_only.js"
           cp dashboard/paper_classic.css "$results_dir/dashboard/paper_classic.css"
           cp dashboard/paper_classic.js "$results_dir/dashboard/paper_classic.js"
+          cp dashboard/v99_research.js "$results_dir/dashboard/v99_research.js"
           cp dashboard/app_v2.js "$results_dir/dashboard/app.js"
           cp dashboard/nevryn.css "$results_dir/dashboard/styles.css"
           git -C "$results_dir" add dashboard
