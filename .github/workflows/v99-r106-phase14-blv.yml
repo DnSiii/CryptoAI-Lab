@@ -53,16 +53,18 @@ jobs:
       - name: Install package
         run: python -m pip install -e ".[dev]"
 
-      - name: Restore published V15 universe
+      - name: Restore frozen published V15 research snapshot
         shell: bash
         run: |
           set -euo pipefail
           if ! git ls-remote --exit-code --heads origin paper-results >/dev/null 2>&1; then
-            echo "paper-results branch is required for the frozen V15 dynamic universe"
+            echo "paper-results branch is required for the published V15 snapshot"
             exit 1
           fi
           git fetch --no-tags origin paper-results
-          for path in state/paper_v15_universe.json; do
+          for path in \
+            state/paper_v15_universe.json \
+            reports/paper_data_sync_v15.json; do
             if ! git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
               echo "Missing $path on paper-results"
               exit 1
@@ -70,11 +72,6 @@ jobs:
             mkdir -p "$(dirname "$path")"
             git show "FETCH_HEAD:$path" > "$path"
           done
-
-      - name: Synchronize official public market data
-        run: |
-          python scripts/sync_paper_data_v13.py
-          python scripts/sync_paper_data_v15.py
 
       - name: Prepare V15 dynamic research runtime
         run: python scripts/prepare_dashboard_v15_replay.py
