@@ -1,0 +1,114 @@
+name: CryptoAI V99 R106 Phase24 Orthogonal Flow Alpha
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - "scripts/run_v99_r106_phase24_orthogonal_flow_alpha_audit.py"
+      - ".github/workflows/v99-r106-phase24-orthogonal-flow-alpha.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  phase24:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      RESEARCH_BRANCH: research/v99-r106-native-all-regime-engine
+    steps:
+      - name: Check out V99 R106 research branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Resolve UTC cache date
+        id: cache_date
+        shell: bash
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore canonical market cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: data/canonical
+          key: Linux-paper-v15-market-v1-${{ steps.cache_date.outputs.date }}
+          restore-keys: |
+            Linux-paper-v15-market-v1-
+            Linux-paper-v13-market-
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Restore frozen published V15 research snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin paper-results
+          for path in state/paper_v15_universe.json reports/paper_data_sync_v15.json; do
+            if ! git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
+              echo "Missing $path on paper-results"
+              exit 1
+            fi
+            mkdir -p "$(dirname "$path")"
+            git show "FETCH_HEAD:$path" > "$path"
+          done
+
+      - name: Prepare V15 dynamic research runtime
+        run: python scripts/prepare_dashboard_v15_replay.py
+
+      - name: Run phase24 orthogonal funding/flow alpha audit
+        run: python scripts/run_v99_r106_phase24_orthogonal_flow_alpha_audit.py
+
+      - name: Verify report contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('reports/candidate_v99_r106_phase24_orthogonal_flow_alpha_audit.json')
+          r=json.loads(p.read_text())
+          assert r['frozen_assets_untouched']['v16'] is True
+          assert r['frozen_assets_untouched']['v99_frozen'] is True
+          assert r['precommitment']['selection_uses_train_only'] is True
+          assert r['precommitment']['holdout_cannot_change_selected_family'] is True
+          assert r['precommitment']['no_parameter_grid'] is True
+          assert r['precommitment']['all_features_causal_t_minus_1'] is True
+          assert r['precommitment']['strategy_change_in_phase24'] is False
+          print(json.dumps({
+              'selected_train_only': r['selected_train_only'],
+              'selected_holdout_pass': r['selected_holdout_pass'],
+              'actionable_for_phase25': r['actionable_for_phase25'],
+          }, indent=2))
+          PY
+
+      - name: Publish phase24 evidence back to research branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/candidate_v99_r106_phase24_orthogonal_flow_alpha_audit.json
+          if git diff --cached --quiet; then
+            echo "No report change"
+            exit 0
+          fi
+          git commit -m "Record V99 R106 phase24 orthogonal flow alpha evidence"
+          git push origin HEAD:${RESEARCH_BRANCH}
+
+      - name: Upload phase24 evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-phase24-orthogonal-flow-alpha-${{ github.run_id }}
+          retention-days: 30
+          path: reports/candidate_v99_r106_phase24_orthogonal_flow_alpha_audit.json
