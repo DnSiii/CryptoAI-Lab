@@ -4,6 +4,8 @@ on:
   workflow_run:
     workflows: ["CryptoAI multi-engine paper refresh"]
     types: [completed]
+  schedule:
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -77,10 +79,10 @@ jobs:
           python scripts/sync_paper_data_v13.py
           python scripts/sync_paper_data_v15.py
 
-      - name: Run five V99 variants in forward paper mode
-        run: python scripts/paper_once_v99_research_variants.py
+      - name: Run five V99 variants in full forward paper mode
+        run: python scripts/paper_once_v99_research_variants_v2.py
 
-      - name: Verify paper isolation and shared boundary
+      - name: Verify paper isolation, shared boundary and full dashboard series
         shell: bash
         run: |
           python - <<'PY'
@@ -92,14 +94,19 @@ jobs:
           expected={'r98','f1','f3','f7','f12'}
           assert s['mode']=='PAPER_ONLY' and s['real_orders_enabled'] is False
           assert l['mode']=='PAPER_ONLY' and l['real_orders_enabled'] is False
+          assert int(l.get('schema_version', 0)) >= 2
           assert set(l['variants'])==expected
           assert set(l['backtest_reference'])==expected
           boundary=l['paper_start_after_timestamp']
           for key,item in l['variants'].items():
               assert item['paper_start_after_timestamp']==boundary, (key,item['paper_start_after_timestamp'],boundary)
               assert item['real_orders_enabled'] is False
+              assert isinstance(item.get('equity_curve'), list) and item['equity_curve'], key
+              assert isinstance(item.get('operations'), list), key
+          for key,item in l['backtest_reference'].items():
+              assert isinstance(item.get('curve'), list) and len(item['curve']) >= 30, (key, len(item.get('curve', [])))
           assert l['same_boundary_for_all_variants'] is True
-          print('V99 research paper safety/boundary verification passed')
+          print('V99 full research paper/dashboard series verification passed')
           PY
 
       - name: Upload V99 research paper audit artifact
