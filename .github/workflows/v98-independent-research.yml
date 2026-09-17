@@ -5,7 +5,7 @@ on:
     branches: [research/v98-independent-zero]
     paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent.json", "scripts/v98_independent_*.py", "tests/test_v98_independent.py", "state/v98_independent_state.json"]
 permissions: {contents: write}
-concurrency: {group: v98-independent-research, cancel-in-progress: false}
+concurrency: {group: v98-independent-research, cancel-in-progress: true}
 jobs:
   research:
     runs-on: ubuntu-latest
