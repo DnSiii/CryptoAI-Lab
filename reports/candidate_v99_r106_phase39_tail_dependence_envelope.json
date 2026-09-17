@@ -1,0 +1,88 @@
+{
+  "study": "V99 R106 phase 39 \u2014 severe-cost tail-dependence envelope",
+  "status": "DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "objective": "compare phase37 tail dependence to established severe-cost benchmarks after phase38 showed every benchmark also has negative top1-removed mean",
+    "train_only_diagnostic": true,
+    "untouched_holdout_not_evaluated": true,
+    "does_not_relax_any_gate": true,
+    "strategy_change_in_phase39": false
+  },
+  "benchmarks": {
+    "v13": {
+      "n": 34704,
+      "mean": 7.334335086676845e-05,
+      "median": 1.1667016779237649e-05,
+      "top1_share_positive": 0.14975954790040197,
+      "mean_without_top1": -0.0001427173801025193
+    },
+    "v14": {
+      "n": 34704,
+      "mean": 9.595369286258363e-05,
+      "median": 2.549021264663942e-05,
+      "top1_share_positive": 0.14459259530586138,
+      "mean_without_top1": -0.0001613832063055928
+    },
+    "v15": {
+      "n": 34704,
+      "mean": 8.753963721800703e-05,
+      "median": 4.1679736674571366e-05,
+      "top1_share_positive": 0.14272573719016096,
+      "mean_without_top1": -0.00016988967484306167
+    },
+    "v16": {
+      "n": 34704,
+      "mean": 2.8755840627857744e-05,
+      "median": 4.9404672020081364e-08,
+      "top1_share_positive": 0.20570740269750765,
+      "mean_without_top1": -0.00018944188749105094
+    }
+  },
+  "benchmark_envelope": {
+    "top1_share_positive_min": 0.14272573719016096,
+    "top1_share_positive_max": 0.20570740269750765,
+    "mean_without_top1_min": -0.00018944188749105094,
+    "mean_without_top1_max": -0.0001427173801025193
+  },
+  "phase37": {
+    "funding_pressure_reversal_24v168h": {
+      "n": 35352,
+      "mean": 6.005117546214303e-06,
+      "median": -6.70260698598657e-06,
+      "top1_share_positive": 0.13447313570657102,
+      "mean_without_top1": -3.696470929716576e-05
+    },
+    "funding_pressure_reversal_72v336h": {
+      "n": 35352,
+      "mean": 1.2225793692461901e-05,
+      "median": -8.093183210267085e-07,
+      "top1_share_positive": 0.13699263637413248,
+      "mean_without_top1": -3.1173564575776315e-05
+    },
+    "funding_pressure_reversal_168v720h": {
+      "n": 35231,
+      "mean": 1.039124685096693e-05,
+      "median": 1.8002240060877028e-06,
+      "top1_share_positive": 0.13483565295172206,
+      "mean_without_top1": -3.0676960789320495e-05
+    }
+  },
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  },
+  "disclosure": "Calibration only; no promotion and no relaxation of anti-overfit gates."
+}
