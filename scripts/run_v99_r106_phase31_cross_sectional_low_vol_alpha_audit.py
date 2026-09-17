@@ -29,8 +29,6 @@ def sleeves(data):
     c=data.close.astype(float); r=c.pct_change(fill_method=None)
     out={}
     for h in (24,72,168):
-        # Fixed low-volatility anomaly: long lowest trailing realized-vol names, short highest.
-        # rolling statistic is shifted one full bar, so decisions at t use information <=t-1.
         rv=r.rolling(h,min_periods=max(12,h//2)).std().shift(1)
         out[f'low_vol_{h}h']=weights(-rv,c)
     return out
@@ -58,3 +56,4 @@ def main():
     REPORT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n',encoding='utf-8')
     print(json.dumps({'selected_train_only':selected,'selected_holdout_pass':hp,'actionable_for_phase32':out['actionable_for_phase32'],'train_summary':{n:{'stable_train':r['stable_train'],'healthy_folds':r['healthy_folds'],'train':r['train']} for n,r in ds.items()}},indent=2,default=audit.safe_float),flush=True)
 if __name__=='__main__': main()
+# Phase31 fixed-family trigger marker; no strategy mutation.
