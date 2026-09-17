@@ -1,0 +1,255 @@
+{
+  "study": "V99 R106 phase 31 \u2014 cross-sectional low-volatility alpha audit",
+  "status": "DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "objective": "test fixed cross-sectional low-volatility anomaly after dispersion-momentum phase30 rejection; mechanism is volatility ranking rather than return continuation/reversal",
+    "families": [
+      "low_vol_24h",
+      "low_vol_72h",
+      "low_vol_168h"
+    ],
+    "alpha_gross": 0.2,
+    "top_n_each_side": 2,
+    "all_features_causal_t_minus_1": true,
+    "selection_uses_train_only": true,
+    "holdout_cannot_change_selected_family": true,
+    "no_parameter_grid": true,
+    "cost_for_selection": "severe",
+    "strategy_change_in_phase31": false
+  },
+  "data": {
+    "common_start": "2020-01-01T00:00:00+00:00",
+    "common_end": "2026-09-16T13:00:00+00:00",
+    "train_end": "2024-01-18T00:00:00+00:00",
+    "holdout_start": "2024-01-18T01:00:00+00:00",
+    "severe_cost_per_side": 0.0012
+  },
+  "sleeves": {
+    "low_vol_24h": {
+      "stable_train": false,
+      "quality_score": -1000000000.0,
+      "train": {
+        "active_hours": 35352,
+        "roi": -0.5702004485066815,
+        "profit_factor": 0.947777093196128,
+        "max_drawdown_abs": 0.5890767995721391,
+        "positive_hour_ratio": 0.5130685675492193,
+        "robust_mean_without_top1pct": -7.332537580760374e-05
+      },
+      "valid_folds": 4,
+      "healthy_folds": 0,
+      "folds": [
+        {
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-01-04T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8747,
+          "roi": -0.25632622274149053,
+          "profit_factor": 0.9268237067480369,
+          "max_drawdown_abs": 0.27010621559926173,
+          "positive_hour_ratio": 0.5050874585572196,
+          "robust_mean_without_top1pct": -8.184795169904867e-05
+        },
+        {
+          "fold": 2,
+          "start": "2021-01-04T12:00:00+00:00",
+          "end": "2022-01-08T23:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.33416180965528997,
+          "profit_factor": 0.9332497170337642,
+          "max_drawdown_abs": 0.365213344379816,
+          "positive_hour_ratio": 0.5177041046459179,
+          "robust_mean_without_top1pct": -0.00011273602353379205
+        },
+        {
+          "fold": 3,
+          "start": "2022-01-09T00:00:00+00:00",
+          "end": "2023-01-13T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.07845161952133373,
+          "profit_factor": 0.9752119053366425,
+          "max_drawdown_abs": 0.13105753911673024,
+          "positive_hour_ratio": 0.5162381596752368,
+          "robust_mean_without_top1pct": -4.35409185333327e-05
+        },
+        {
+          "fold": 4,
+          "start": "2023-01-13T12:00:00+00:00",
+          "end": "2024-01-18T00:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8869,
+          "roi": -0.05811767236191068,
+          "profit_factor": 0.9787409641718035,
+          "max_drawdown_abs": 0.09926335857452784,
+          "positive_hour_ratio": 0.5131356409967301,
+          "robust_mean_without_top1pct": -3.9243092217642516e-05
+        }
+      ]
+    },
+    "low_vol_72h": {
+      "stable_train": false,
+      "quality_score": -1000000000.0,
+      "train": {
+        "active_hours": 35352,
+        "roi": -0.5657802766753092,
+        "profit_factor": 0.9486780562650478,
+        "max_drawdown_abs": 0.5933693045525632,
+        "positive_hour_ratio": 0.5134928716904277,
+        "robust_mean_without_top1pct": -7.21297052792647e-05
+      },
+      "valid_folds": 4,
+      "healthy_folds": 0,
+      "folds": [
+        {
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-01-04T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8747,
+          "roi": -0.08419308923560609,
+          "profit_factor": 0.9790444453671439,
+          "max_drawdown_abs": 0.13385918623953952,
+          "positive_hour_ratio": 0.5140048016462787,
+          "robust_mean_without_top1pct": -6.012046658346707e-05
+        },
+        {
+          "fold": 2,
+          "start": "2021-01-04T12:00:00+00:00",
+          "end": "2022-01-08T23:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.4693478914563045,
+          "profit_factor": 0.8956977969921496,
+          "max_drawdown_abs": 0.4966302184386868,
+          "positive_hour_ratio": 0.5109382047812359,
+          "robust_mean_without_top1pct": -0.00013589375777982077
+        },
+        {
+          "fold": 3,
+          "start": "2022-01-09T00:00:00+00:00",
+          "end": "2023-01-13T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.08379053575514661,
+          "profit_factor": 0.9737642086207478,
+          "max_drawdown_abs": 0.13163486043350203,
+          "positive_hour_ratio": 0.5129679747406405,
+          "robust_mean_without_top1pct": -4.2637533950247466e-05
+        },
+        {
+          "fold": 4,
+          "start": "2023-01-13T12:00:00+00:00",
+          "end": "2024-01-18T00:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8869,
+          "roi": -0.024783676611938255,
+          "profit_factor": 0.9921569685835093,
+          "max_drawdown_abs": 0.07341312287548762,
+          "positive_hour_ratio": 0.5160672003608073,
+          "robust_mean_without_top1pct": -3.453508973496233e-05
+        }
+      ]
+    },
+    "low_vol_168h": {
+      "stable_train": false,
+      "quality_score": -1000000000.0,
+      "train": {
+        "active_hours": 35352,
+        "roi": -0.38027454079992573,
+        "profit_factor": 0.9700113404266686,
+        "max_drawdown_abs": 0.4661513092850157,
+        "positive_hour_ratio": 0.5165478615071283,
+        "robust_mean_without_top1pct": -5.9387709928398294e-05
+      },
+      "valid_folds": 4,
+      "healthy_folds": 0,
+      "folds": [
+        {
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-01-04T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8747,
+          "roi": -0.022649850543336902,
+          "profit_factor": 0.995898520281647,
+          "max_drawdown_abs": 0.12728172609279365,
+          "positive_hour_ratio": 0.5117183034183148,
+          "robust_mean_without_top1pct": -5.26129839816386e-05
+        },
+        {
+          "fold": 2,
+          "start": "2021-01-04T12:00:00+00:00",
+          "end": "2022-01-08T23:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.3680683876413404,
+          "profit_factor": 0.9199419621275188,
+          "max_drawdown_abs": 0.39843794562772794,
+          "positive_hour_ratio": 0.5152232746955345,
+          "robust_mean_without_top1pct": -0.00010913987855613824
+        },
+        {
+          "fold": 3,
+          "start": "2022-01-09T00:00:00+00:00",
+          "end": "2023-01-13T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.053509815414098716,
+          "profit_factor": 0.9834636094642925,
+          "max_drawdown_abs": 0.12850300701795903,
+          "positive_hour_ratio": 0.5182679296346414,
+          "robust_mean_without_top1pct": -3.8780620671226876e-05
+        },
+        {
+          "fold": 4,
+          "start": "2023-01-13T12:00:00+00:00",
+          "end": "2024-01-18T00:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8869,
+          "roi": 0.060139358218993966,
+          "profit_factor": 1.0237997691558163,
+          "max_drawdown_abs": 0.09322461037490626,
+          "positive_hour_ratio": 0.5209155485398579,
+          "robust_mean_without_top1pct": -2.5547995244931618e-05
+        }
+      ]
+    }
+  },
+  "selected_train_only": null,
+  "selected_holdout_descriptive": {},
+  "selected_holdout_pass": false,
+  "actionable_for_phase32": false,
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  },
+  "disclosure": "Historical research only. No real orders. Phase31 cannot alter V99 Frozen or V16 Frozen."
+}
