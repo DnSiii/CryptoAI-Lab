@@ -11,9 +11,7 @@ PROJECT=Path(__file__).resolve().parents[1]; REPORT=PROJECT/'reports'/'candidate
 
 def sleeves(data):
     c=data.close.astype(float); r=c.pct_change(fill_method=None); out={}
-    # Fixed low-tail-risk anomaly using excess kurtosis only; shifted t-1 and no direction/return ranking.
-    for h in (168,336,720):
-        k=r.rolling(h,min_periods=max(96,h//2)).kurt().shift(1); out[f'low_kurtosis_{h}h']=p31.weights(-k,c)
+    for h in (168,336,720): k=r.rolling(h,min_periods=max(96,h//2)).kurt().shift(1); out[f'low_kurtosis_{h}h']=p31.weights(-k,c)
     return out
 
 def diag(result,index,a,b):
@@ -29,3 +27,4 @@ def main():
     ss=sleeves(data); results={n:p1.run_targets(data,t,ex,guard,severe,ALPHA_GROSS) for n,t in ss.items()}; ds={n:diag(r,data.close.index,start,train_end) for n,r in results.items()}; elig=[n for n,r in ds.items() if r['stable_train']]; selected=max(elig,key=lambda n:ds[n]['quality_score']) if elig else None; hold=p17.sleeve_row(results[selected],hold_start,end) if selected else {}; hp=bool(selected and int(hold['active_hours'])>=MIN_HOLDOUT_ACTIVE_HOURS and float(hold['roi'])>0 and float(hold['profit_factor'])>1.05 and float(hold['robust_mean_without_top1pct'])>0)
     out={'study':'V99 R106 phase 34 — cross-sectional tail-risk alpha audit','status':'DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'objective':'test fixed low-kurtosis tail-risk anomaly after phase33 volume-trend rejection','families':list(ss),'alpha_gross':ALPHA_GROSS,'all_features_causal_t_minus_1':True,'selection_uses_train_only':True,'holdout_cannot_change_selected_family':True,'no_parameter_grid':True,'cost_for_selection':'severe','strategy_change_in_phase34':False},'data':{'common_start':start.isoformat(),'common_end':end.isoformat(),'train_end':train_end.isoformat(),'holdout_start':hold_start.isoformat(),'severe_cost_per_side':severe},'sleeves':ds,'selected_train_only':selected,'selected_holdout_descriptive':hold,'selected_holdout_pass':hp,'actionable_for_phase35':bool(selected and hp),'quarantined_symbols':quarantined,'metadata':metadata,'disclosure':'Historical research only. No real orders. Phase34 cannot alter V99 Frozen or V16 Frozen.'}; REPORT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n',encoding='utf-8'); print(json.dumps({'selected_train_only':selected,'selected_holdout_pass':hp,'actionable_for_phase35':out['actionable_for_phase35'],'train_summary':{n:{'stable_train':r['stable_train'],'healthy_folds':r['healthy_folds'],'train':r['train']} for n,r in ds.items()}},indent=2,default=audit.safe_float),flush=True)
 if __name__=='__main__': main()
+# Phase34 fixed-family trigger marker; no strategy mutation.
