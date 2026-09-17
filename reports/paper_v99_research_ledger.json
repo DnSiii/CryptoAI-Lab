@@ -5,7 +5,7 @@
   "real_orders_enabled": false,
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
-  "latest_data_timestamp": "2026-09-16T23:00:00+00:00",
+  "latest_data_timestamp": "2026-09-17T04:00:00+00:00",
   "same_boundary_for_all_variants": true,
   "variants": {
     "r98": {
@@ -17,36 +17,31 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-17T04:00:00+00:00",
       "summary": {
-        "new_forward_hours": 10,
-        "net_result_brl": -22.33,
-        "current_capital_brl": 9977.67,
+        "new_forward_hours": 15,
+        "net_result_brl": -9.74,
+        "current_capital_brl": 9990.26,
         "highest_capital_brl": 10015.06,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": -0.223261,
-        "gross_exposure_pct": 80.045478
+        "forward_return_pct": -0.09744,
+        "gross_exposure_pct": 67.872839
       },
       "assets": {
         "BTCUSDT": {
-          "direction": "sell",
-          "current_weight": -0.19445554,
-          "position_value_brl": 1940.21
+          "direction": "buy",
+          "current_weight": 0.07367479,
+          "position_value_brl": 736.03
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38099924,
-          "position_value_brl": 3801.49
+          "current_weight": 0.3800536,
+          "position_value_brl": 3796.83
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.1374442,
-          "position_value_brl": 1371.37
-        },
-        "PUMPUSDT": {
-          "direction": "sell",
-          "current_weight": -0.0875558,
-          "position_value_brl": 873.6
+          "current_weight": -0.225,
+          "position_value_brl": 2247.81
         }
       },
       "equity_curve": [
@@ -115,6 +110,36 @@
           "equity_multiple": 0.997767392,
           "capital_brl": 9977.67,
           "hour_result_brl": 5.57
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "equity_multiple": 0.9964462569,
+          "capital_brl": 9964.46,
+          "hour_result_brl": -13.21
+        },
+        {
+          "timestamp": "2026-09-17T01:00:00+00:00",
+          "equity_multiple": 0.9965719894,
+          "capital_brl": 9965.72,
+          "hour_result_brl": 1.26
+        },
+        {
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 0.9968764587,
+          "capital_brl": 9968.76,
+          "hour_result_brl": 3.04
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "equity_multiple": 0.9975280555,
+          "capital_brl": 9975.28,
+          "hour_result_brl": 6.52
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 0.9990255976,
+          "capital_brl": 9990.26,
+          "hour_result_brl": 14.98
         }
       ],
       "real_orders_enabled": false,
@@ -208,6 +233,51 @@
           "from_weight_pct": 24.54497,
           "to_weight_pct": 38.09992,
           "delta_weight_pct": 13.55495
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "flipped",
+          "direction": "buy",
+          "from_weight_pct": -19.44555,
+          "to_weight_pct": 7.35739,
+          "delta_weight_pct": 26.80294
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.09992,
+          "to_weight_pct": 37.99724,
+          "delta_weight_pct": -0.10268
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -13.74442,
+          "to_weight_pct": -22.5,
+          "delta_weight_pct": -8.75558
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "closed",
+          "direction": "sell",
+          "from_weight_pct": -8.75558,
+          "to_weight_pct": 0.0,
+          "delta_weight_pct": 8.75558
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.35739,
+          "to_weight_pct": 7.36748,
+          "delta_weight_pct": 0.01009
         }
       ]
     },
@@ -220,46 +290,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-17T04:00:00+00:00",
       "summary": {
-        "new_forward_hours": 10,
-        "net_result_brl": -150.49,
-        "current_capital_brl": 9849.51,
+        "new_forward_hours": 15,
+        "net_result_brl": -168.93,
+        "current_capital_brl": 9831.07,
         "highest_capital_brl": 10000.0,
-        "lowest_capital_brl": 9828.65,
-        "forward_return_pct": -1.504889,
-        "gross_exposure_pct": 110.045478
+        "lowest_capital_brl": 9815.25,
+        "forward_return_pct": -1.689273,
+        "gross_exposure_pct": 97.872839
       },
       "assets": {
         "BTCUSDT": {
-          "direction": "sell",
-          "current_weight": -0.19445554,
-          "position_value_brl": 1915.29
+          "direction": "buy",
+          "current_weight": 0.07367479,
+          "position_value_brl": 724.3
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38099924,
-          "position_value_brl": 3752.66
+          "current_weight": 0.3800536,
+          "position_value_brl": 3736.33
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.1374442,
-          "position_value_brl": 1353.76
+          "current_weight": -0.225,
+          "position_value_brl": 2211.99
         },
         "ATOMUSDT": {
           "direction": "sell",
           "current_weight": -0.18861684,
-          "position_value_brl": 1857.78
-        },
-        "PUMPUSDT": {
-          "direction": "sell",
-          "current_weight": -0.0875558,
-          "position_value_brl": 862.38
+          "position_value_brl": 1854.31
         },
         "KATUSDT": {
           "direction": "sell",
           "current_weight": -0.11138316,
-          "position_value_brl": 1097.07
+          "position_value_brl": 1095.02
         }
       },
       "equity_curve": [
@@ -328,6 +393,36 @@
           "equity_multiple": 0.9849511103,
           "capital_brl": 9849.51,
           "hour_result_brl": -40.66
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "equity_multiple": 0.9843588121,
+          "capital_brl": 9843.59,
+          "hour_result_brl": -5.92
+        },
+        {
+          "timestamp": "2026-09-17T01:00:00+00:00",
+          "equity_multiple": 0.9840077405,
+          "capital_brl": 9840.08,
+          "hour_result_brl": -3.51
+        },
+        {
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 0.9840809791,
+          "capital_brl": 9840.81,
+          "hour_result_brl": 0.73
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "equity_multiple": 0.9815251843,
+          "capital_brl": 9815.25,
+          "hour_result_brl": -25.56
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 0.9831072745,
+          "capital_brl": 9831.07,
+          "hour_result_brl": 15.82
         }
       ],
       "real_orders_enabled": false,
@@ -538,6 +633,51 @@
           "from_weight_pct": 24.54497,
           "to_weight_pct": 38.09992,
           "delta_weight_pct": 13.55495
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "flipped",
+          "direction": "buy",
+          "from_weight_pct": -19.44555,
+          "to_weight_pct": 7.35739,
+          "delta_weight_pct": 26.80294
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.09992,
+          "to_weight_pct": 37.99724,
+          "delta_weight_pct": -0.10268
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -13.74442,
+          "to_weight_pct": -22.5,
+          "delta_weight_pct": -8.75558
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "closed",
+          "direction": "sell",
+          "from_weight_pct": -8.75558,
+          "to_weight_pct": 0.0,
+          "delta_weight_pct": 8.75558
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.35739,
+          "to_weight_pct": 7.36748,
+          "delta_weight_pct": 0.01009
         }
       ]
     },
@@ -550,36 +690,31 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-17T04:00:00+00:00",
       "summary": {
-        "new_forward_hours": 10,
-        "net_result_brl": -22.33,
-        "current_capital_brl": 9977.67,
+        "new_forward_hours": 15,
+        "net_result_brl": -9.74,
+        "current_capital_brl": 9990.26,
         "highest_capital_brl": 10015.06,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": -0.223261,
-        "gross_exposure_pct": 80.045478
+        "forward_return_pct": -0.09744,
+        "gross_exposure_pct": 67.872839
       },
       "assets": {
         "BTCUSDT": {
-          "direction": "sell",
-          "current_weight": -0.19445554,
-          "position_value_brl": 1940.21
+          "direction": "buy",
+          "current_weight": 0.07367479,
+          "position_value_brl": 736.03
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38099924,
-          "position_value_brl": 3801.49
+          "current_weight": 0.3800536,
+          "position_value_brl": 3796.83
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.1374442,
-          "position_value_brl": 1371.37
-        },
-        "PUMPUSDT": {
-          "direction": "sell",
-          "current_weight": -0.0875558,
-          "position_value_brl": 873.6
+          "current_weight": -0.225,
+          "position_value_brl": 2247.81
         }
       },
       "equity_curve": [
@@ -648,6 +783,36 @@
           "equity_multiple": 0.997767392,
           "capital_brl": 9977.67,
           "hour_result_brl": 5.57
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "equity_multiple": 0.9964462569,
+          "capital_brl": 9964.46,
+          "hour_result_brl": -13.21
+        },
+        {
+          "timestamp": "2026-09-17T01:00:00+00:00",
+          "equity_multiple": 0.9965719894,
+          "capital_brl": 9965.72,
+          "hour_result_brl": 1.26
+        },
+        {
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 0.9968764587,
+          "capital_brl": 9968.76,
+          "hour_result_brl": 3.04
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "equity_multiple": 0.9975280555,
+          "capital_brl": 9975.28,
+          "hour_result_brl": 6.52
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 0.9990255976,
+          "capital_brl": 9990.26,
+          "hour_result_brl": 14.98
         }
       ],
       "real_orders_enabled": false,
@@ -741,6 +906,51 @@
           "from_weight_pct": 24.54497,
           "to_weight_pct": 38.09992,
           "delta_weight_pct": 13.55495
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "flipped",
+          "direction": "buy",
+          "from_weight_pct": -19.44555,
+          "to_weight_pct": 7.35739,
+          "delta_weight_pct": 26.80294
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.09992,
+          "to_weight_pct": 37.99724,
+          "delta_weight_pct": -0.10268
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -13.74442,
+          "to_weight_pct": -22.5,
+          "delta_weight_pct": -8.75558
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "closed",
+          "direction": "sell",
+          "from_weight_pct": -8.75558,
+          "to_weight_pct": 0.0,
+          "delta_weight_pct": 8.75558
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.35739,
+          "to_weight_pct": 7.36748,
+          "delta_weight_pct": 0.01009
         }
       ]
     },
@@ -753,36 +963,31 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-17T04:00:00+00:00",
       "summary": {
-        "new_forward_hours": 10,
-        "net_result_brl": -22.33,
-        "current_capital_brl": 9977.67,
+        "new_forward_hours": 15,
+        "net_result_brl": -9.74,
+        "current_capital_brl": 9990.26,
         "highest_capital_brl": 10015.06,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": -0.223261,
-        "gross_exposure_pct": 80.045478
+        "forward_return_pct": -0.09744,
+        "gross_exposure_pct": 67.872839
       },
       "assets": {
         "BTCUSDT": {
-          "direction": "sell",
-          "current_weight": -0.19445554,
-          "position_value_brl": 1940.21
+          "direction": "buy",
+          "current_weight": 0.07367479,
+          "position_value_brl": 736.03
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38099924,
-          "position_value_brl": 3801.49
+          "current_weight": 0.3800536,
+          "position_value_brl": 3796.83
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.1374442,
-          "position_value_brl": 1371.37
-        },
-        "PUMPUSDT": {
-          "direction": "sell",
-          "current_weight": -0.0875558,
-          "position_value_brl": 873.6
+          "current_weight": -0.225,
+          "position_value_brl": 2247.81
         }
       },
       "equity_curve": [
@@ -851,6 +1056,36 @@
           "equity_multiple": 0.997767392,
           "capital_brl": 9977.67,
           "hour_result_brl": 5.57
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "equity_multiple": 0.9964462569,
+          "capital_brl": 9964.46,
+          "hour_result_brl": -13.21
+        },
+        {
+          "timestamp": "2026-09-17T01:00:00+00:00",
+          "equity_multiple": 0.9965719894,
+          "capital_brl": 9965.72,
+          "hour_result_brl": 1.26
+        },
+        {
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 0.9968764587,
+          "capital_brl": 9968.76,
+          "hour_result_brl": 3.04
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "equity_multiple": 0.9975280555,
+          "capital_brl": 9975.28,
+          "hour_result_brl": 6.52
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 0.9990255976,
+          "capital_brl": 9990.26,
+          "hour_result_brl": 14.98
         }
       ],
       "real_orders_enabled": false,
@@ -944,6 +1179,51 @@
           "from_weight_pct": 24.54497,
           "to_weight_pct": 38.09992,
           "delta_weight_pct": 13.55495
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "flipped",
+          "direction": "buy",
+          "from_weight_pct": -19.44555,
+          "to_weight_pct": 7.35739,
+          "delta_weight_pct": 26.80294
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.09992,
+          "to_weight_pct": 37.99724,
+          "delta_weight_pct": -0.10268
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -13.74442,
+          "to_weight_pct": -22.5,
+          "delta_weight_pct": -8.75558
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "closed",
+          "direction": "sell",
+          "from_weight_pct": -8.75558,
+          "to_weight_pct": 0.0,
+          "delta_weight_pct": 8.75558
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.35739,
+          "to_weight_pct": 7.36748,
+          "delta_weight_pct": 0.01009
         }
       ]
     },
@@ -956,36 +1236,31 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-16T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-17T04:00:00+00:00",
       "summary": {
-        "new_forward_hours": 10,
-        "net_result_brl": -22.33,
-        "current_capital_brl": 9977.67,
+        "new_forward_hours": 15,
+        "net_result_brl": -9.74,
+        "current_capital_brl": 9990.26,
         "highest_capital_brl": 10015.06,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": -0.223261,
-        "gross_exposure_pct": 80.045478
+        "forward_return_pct": -0.09744,
+        "gross_exposure_pct": 67.872839
       },
       "assets": {
         "BTCUSDT": {
-          "direction": "sell",
-          "current_weight": -0.19445554,
-          "position_value_brl": 1940.21
+          "direction": "buy",
+          "current_weight": 0.07367479,
+          "position_value_brl": 736.03
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.38099924,
-          "position_value_brl": 3801.49
+          "current_weight": 0.3800536,
+          "position_value_brl": 3796.83
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.1374442,
-          "position_value_brl": 1371.37
-        },
-        "PUMPUSDT": {
-          "direction": "sell",
-          "current_weight": -0.0875558,
-          "position_value_brl": 873.6
+          "current_weight": -0.225,
+          "position_value_brl": 2247.81
         }
       },
       "equity_curve": [
@@ -1054,6 +1329,36 @@
           "equity_multiple": 0.997767392,
           "capital_brl": 9977.67,
           "hour_result_brl": 5.57
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "equity_multiple": 0.9964462569,
+          "capital_brl": 9964.46,
+          "hour_result_brl": -13.21
+        },
+        {
+          "timestamp": "2026-09-17T01:00:00+00:00",
+          "equity_multiple": 0.9965719894,
+          "capital_brl": 9965.72,
+          "hour_result_brl": 1.26
+        },
+        {
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 0.9968764587,
+          "capital_brl": 9968.76,
+          "hour_result_brl": 3.04
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "equity_multiple": 0.9975280555,
+          "capital_brl": 9975.28,
+          "hour_result_brl": 6.52
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 0.9990255976,
+          "capital_brl": 9990.26,
+          "hour_result_brl": 14.98
         }
       ],
       "real_orders_enabled": false,
@@ -1147,6 +1452,51 @@
           "from_weight_pct": 24.54497,
           "to_weight_pct": 38.09992,
           "delta_weight_pct": 13.55495
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "flipped",
+          "direction": "buy",
+          "from_weight_pct": -19.44555,
+          "to_weight_pct": 7.35739,
+          "delta_weight_pct": 26.80294
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 38.09992,
+          "to_weight_pct": 37.99724,
+          "delta_weight_pct": -0.10268
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "increased",
+          "direction": "sell",
+          "from_weight_pct": -13.74442,
+          "to_weight_pct": -22.5,
+          "delta_weight_pct": -8.75558
+        },
+        {
+          "timestamp": "2026-09-17T00:00:00+00:00",
+          "symbol": "PUMPUSDT",
+          "action": "closed",
+          "direction": "sell",
+          "from_weight_pct": -8.75558,
+          "to_weight_pct": 0.0,
+          "delta_weight_pct": 8.75558
+        },
+        {
+          "timestamp": "2026-09-17T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.35739,
+          "to_weight_pct": 7.36748,
+          "delta_weight_pct": 0.01009
         }
       ]
     }
@@ -13423,9 +13773,14 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T23:00:00+00:00",
-          "equity_multiple": 318.4750050144,
-          "daily_return_pct": -0.56081283
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 318.1906301323,
+          "daily_return_pct": -0.64960475
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 318.8766086835,
+          "daily_return_pct": 0.21558729
         }
       ]
     },
@@ -25081,628 +25436,633 @@
         },
         {
           "timestamp": "2026-05-16T02:00:00+00:00",
-          "equity_multiple": 358.125121249,
-          "daily_return_pct": -5.2797704
+          "equity_multiple": 358.1025538494,
+          "daily_return_pct": -5.28573924
         },
         {
           "timestamp": "2026-05-17T02:00:00+00:00",
-          "equity_multiple": 360.754275658,
-          "daily_return_pct": 0.73414409
+          "equity_multiple": 360.7683309419,
+          "daily_return_pct": 0.74441722
         },
         {
           "timestamp": "2026-05-18T02:00:00+00:00",
-          "equity_multiple": 367.2306196253,
-          "daily_return_pct": 1.79522307
+          "equity_multiple": 367.2516623854,
+          "daily_return_pct": 1.79708996
         },
         {
           "timestamp": "2026-05-19T02:00:00+00:00",
-          "equity_multiple": 365.4712179278,
-          "daily_return_pct": -0.47909995
+          "equity_multiple": 365.4988873494,
+          "daily_return_pct": -0.4772681
         },
         {
           "timestamp": "2026-05-20T02:00:00+00:00",
-          "equity_multiple": 368.7342608586,
-          "daily_return_pct": 0.89283171
+          "equity_multiple": 368.7768490729,
+          "daily_return_pct": 0.89684588
         },
         {
           "timestamp": "2026-05-21T02:00:00+00:00",
-          "equity_multiple": 359.3740702399,
-          "daily_return_pct": -2.53846513
+          "equity_multiple": 359.4154373756,
+          "daily_return_pct": -2.53850309
         },
         {
           "timestamp": "2026-05-22T02:00:00+00:00",
-          "equity_multiple": 366.5923498918,
-          "daily_return_pct": 2.00856997
+          "equity_multiple": 366.6376044815,
+          "daily_return_pct": 2.0094204
         },
         {
           "timestamp": "2026-05-23T02:00:00+00:00",
-          "equity_multiple": 385.2302281502,
-          "daily_return_pct": 5.08408816
+          "equity_multiple": 385.2910712195,
+          "daily_return_pct": 5.08771237
         },
         {
           "timestamp": "2026-05-24T02:00:00+00:00",
-          "equity_multiple": 369.5303707591,
-          "daily_return_pct": -4.07544794
+          "equity_multiple": 369.5954560352,
+          "daily_return_pct": -4.07370333
         },
         {
           "timestamp": "2026-05-25T02:00:00+00:00",
-          "equity_multiple": 372.7864188398,
-          "daily_return_pct": 0.88113139
+          "equity_multiple": 372.8725258381,
+          "daily_return_pct": 0.88666399
         },
         {
           "timestamp": "2026-05-26T02:00:00+00:00",
-          "equity_multiple": 387.8555049036,
-          "daily_return_pct": 4.04228408
+          "equity_multiple": 387.9413061965,
+          "daily_return_pct": 4.04126861
         },
         {
           "timestamp": "2026-05-27T02:00:00+00:00",
-          "equity_multiple": 384.7526709203,
-          "daily_return_pct": -0.79999741
+          "equity_multiple": 384.8603468823,
+          "daily_return_pct": -0.79418182
         },
         {
           "timestamp": "2026-05-28T02:00:00+00:00",
-          "equity_multiple": 395.1276722298,
-          "daily_return_pct": 2.69653783
+          "equity_multiple": 395.2357725264,
+          "daily_return_pct": 2.69589365
         },
         {
           "timestamp": "2026-05-29T02:00:00+00:00",
-          "equity_multiple": 399.7666017099,
-          "daily_return_pct": 1.17403305
+          "equity_multiple": 399.8817702015,
+          "daily_return_pct": 1.1755003
         },
         {
           "timestamp": "2026-05-30T02:00:00+00:00",
-          "equity_multiple": 393.4128726386,
-          "daily_return_pct": -1.58935965
+          "equity_multiple": 393.5231618204,
+          "daily_return_pct": -1.59012209
         },
         {
           "timestamp": "2026-05-31T02:00:00+00:00",
-          "equity_multiple": 391.7776526498,
+          "equity_multiple": 391.8874834148,
           "daily_return_pct": -0.41564984
         },
         {
           "timestamp": "2026-06-01T02:00:00+00:00",
-          "equity_multiple": 395.4508875927,
+          "equity_multiple": 395.5617481107,
           "daily_return_pct": 0.93758154
         },
         {
           "timestamp": "2026-06-02T02:00:00+00:00",
-          "equity_multiple": 402.6364162003,
+          "equity_multiple": 402.749291106,
           "daily_return_pct": 1.81704703
         },
         {
           "timestamp": "2026-06-03T02:00:00+00:00",
-          "equity_multiple": 437.053345924,
+          "equity_multiple": 437.1758692557,
           "daily_return_pct": 8.54789292
         },
         {
           "timestamp": "2026-06-04T02:00:00+00:00",
-          "equity_multiple": 458.4574266563,
+          "equity_multiple": 458.5859503981,
           "daily_return_pct": 4.89736114
         },
         {
           "timestamp": "2026-06-05T02:00:00+00:00",
-          "equity_multiple": 481.6497361931,
+          "equity_multiple": 481.7847616562,
           "daily_return_pct": 5.05877061
         },
         {
           "timestamp": "2026-06-06T02:00:00+00:00",
-          "equity_multiple": 520.2760362424,
+          "equity_multiple": 520.4218901845,
           "daily_return_pct": 8.01958293
         },
         {
           "timestamp": "2026-06-07T02:00:00+00:00",
-          "equity_multiple": 512.2765700511,
+          "equity_multiple": 512.4201814266,
           "daily_return_pct": -1.5375427
         },
         {
           "timestamp": "2026-06-08T02:00:00+00:00",
-          "equity_multiple": 489.6041380989,
+          "equity_multiple": 489.7413934953,
           "daily_return_pct": -4.42581865
         },
         {
           "timestamp": "2026-06-09T02:00:00+00:00",
-          "equity_multiple": 487.3563013409,
+          "equity_multiple": 487.4929265798,
           "daily_return_pct": -0.4591131
         },
         {
           "timestamp": "2026-06-10T02:00:00+00:00",
-          "equity_multiple": 491.761826784,
+          "equity_multiple": 491.8996870658,
           "daily_return_pct": 0.90396399
         },
         {
           "timestamp": "2026-06-11T02:00:00+00:00",
-          "equity_multiple": 488.7804078518,
+          "equity_multiple": 488.917432324,
           "daily_return_pct": -0.60627295
         },
         {
           "timestamp": "2026-06-12T02:00:00+00:00",
-          "equity_multiple": 483.1063418879,
+          "equity_multiple": 483.2417756952,
           "daily_return_pct": -1.16086199
         },
         {
           "timestamp": "2026-06-13T02:00:00+00:00",
-          "equity_multiple": 483.5443627747,
+          "equity_multiple": 483.6799193765,
           "daily_return_pct": 0.09066759
         },
         {
           "timestamp": "2026-06-14T02:00:00+00:00",
-          "equity_multiple": 480.7963191637,
+          "equity_multiple": 480.9311053803,
           "daily_return_pct": -0.56831261
         },
         {
           "timestamp": "2026-06-15T02:00:00+00:00",
-          "equity_multiple": 479.4576742241,
+          "equity_multiple": 479.5920851656,
           "daily_return_pct": -0.27842246
         },
         {
           "timestamp": "2026-06-16T02:00:00+00:00",
-          "equity_multiple": 468.2724928506,
+          "equity_multiple": 468.4037681435,
           "daily_return_pct": -2.33288192
         },
         {
           "timestamp": "2026-06-17T02:00:00+00:00",
-          "equity_multiple": 465.6254360156,
+          "equity_multiple": 465.7559692338,
           "daily_return_pct": -0.5652813
         },
         {
           "timestamp": "2026-06-18T02:00:00+00:00",
-          "equity_multiple": 472.4182637641,
+          "equity_multiple": 472.5507012805,
           "daily_return_pct": 1.45886097
         },
         {
           "timestamp": "2026-06-19T02:00:00+00:00",
-          "equity_multiple": 479.5557873968,
+          "equity_multiple": 479.6902258432,
           "daily_return_pct": 1.51084837
         },
         {
           "timestamp": "2026-06-20T02:00:00+00:00",
-          "equity_multiple": 479.7768276456,
+          "equity_multiple": 479.9113280583,
           "daily_return_pct": 0.04609271
         },
         {
           "timestamp": "2026-06-21T02:00:00+00:00",
-          "equity_multiple": 475.0148432583,
+          "equity_multiple": 475.1480086986,
           "daily_return_pct": -0.99254156
         },
         {
           "timestamp": "2026-06-22T02:00:00+00:00",
-          "equity_multiple": 474.7978795095,
+          "equity_multiple": 474.9309841263,
           "daily_return_pct": -0.04567515
         },
         {
           "timestamp": "2026-06-23T02:00:00+00:00",
-          "equity_multiple": 472.7917560398,
+          "equity_multiple": 472.9242982609,
           "daily_return_pct": -0.42252157
         },
         {
           "timestamp": "2026-06-24T02:00:00+00:00",
-          "equity_multiple": 471.0412679099,
+          "equity_multiple": 471.1733193999,
           "daily_return_pct": -0.37024506
         },
         {
           "timestamp": "2026-06-25T02:00:00+00:00",
-          "equity_multiple": 477.5783104456,
+          "equity_multiple": 477.7121945271,
           "daily_return_pct": 1.38778553
         },
         {
           "timestamp": "2026-06-26T02:00:00+00:00",
-          "equity_multiple": 491.5704795357,
+          "equity_multiple": 491.7082861754,
           "daily_return_pct": 2.9298167
         },
         {
           "timestamp": "2026-06-27T02:00:00+00:00",
-          "equity_multiple": 483.2337631825,
+          "equity_multiple": 483.369232711,
           "daily_return_pct": -1.69593511
         },
         {
           "timestamp": "2026-06-28T02:00:00+00:00",
-          "equity_multiple": 482.5644071247,
+          "equity_multiple": 482.6996890062,
           "daily_return_pct": -0.138516
         },
         {
           "timestamp": "2026-06-29T02:00:00+00:00",
-          "equity_multiple": 481.0787978953,
+          "equity_multiple": 481.2136633018,
           "daily_return_pct": -0.30785719
         },
         {
           "timestamp": "2026-06-30T02:00:00+00:00",
-          "equity_multiple": 478.9192390919,
+          "equity_multiple": 479.0534990886,
           "daily_return_pct": -0.44889919
         },
         {
           "timestamp": "2026-07-01T02:00:00+00:00",
-          "equity_multiple": 486.3083810886,
+          "equity_multiple": 486.4447125541,
           "daily_return_pct": 1.54287851
         },
         {
           "timestamp": "2026-07-02T02:00:00+00:00",
-          "equity_multiple": 479.1675270984,
+          "equity_multiple": 479.3018567001,
           "daily_return_pct": -1.46837979
         },
         {
           "timestamp": "2026-07-03T02:00:00+00:00",
-          "equity_multiple": 468.6183607825,
+          "equity_multiple": 468.7497330359,
           "daily_return_pct": -2.20156119
         },
         {
           "timestamp": "2026-07-04T02:00:00+00:00",
-          "equity_multiple": 469.5108089054,
+          "equity_multiple": 469.6424313473,
           "daily_return_pct": 0.19044241
         },
         {
           "timestamp": "2026-07-05T02:00:00+00:00",
-          "equity_multiple": 468.4793238028,
+          "equity_multiple": 468.6106570786,
           "daily_return_pct": -0.21969358
         },
         {
           "timestamp": "2026-07-06T02:00:00+00:00",
-          "equity_multiple": 468.6171808621,
+          "equity_multiple": 468.7485527847,
           "daily_return_pct": 0.0294265
         },
         {
           "timestamp": "2026-07-07T02:00:00+00:00",
-          "equity_multiple": 454.4755587841,
+          "equity_multiple": 454.6029662509,
           "daily_return_pct": -3.01773444
         },
         {
           "timestamp": "2026-07-08T02:00:00+00:00",
-          "equity_multiple": 446.936100736,
+          "equity_multiple": 447.0613945947,
           "daily_return_pct": -1.65893587
         },
         {
           "timestamp": "2026-07-09T02:00:00+00:00",
-          "equity_multiple": 441.5627378938,
+          "equity_multiple": 441.6865253865,
           "daily_return_pct": -1.20226646
         },
         {
           "timestamp": "2026-07-10T02:00:00+00:00",
-          "equity_multiple": 438.9022891314,
+          "equity_multiple": 439.0253307951,
           "daily_return_pct": -0.60250753
         },
         {
           "timestamp": "2026-07-11T02:00:00+00:00",
-          "equity_multiple": 437.7684961515,
+          "equity_multiple": 437.8912199682,
           "daily_return_pct": -0.25832469
         },
         {
           "timestamp": "2026-07-12T02:00:00+00:00",
-          "equity_multiple": 438.3003455265,
+          "equity_multiple": 438.4232184416,
           "daily_return_pct": 0.12149101
         },
         {
           "timestamp": "2026-07-13T02:00:00+00:00",
-          "equity_multiple": 437.8872675735,
+          "equity_multiple": 438.0100246865,
           "daily_return_pct": -0.09424541
         },
         {
           "timestamp": "2026-07-14T02:00:00+00:00",
-          "equity_multiple": 434.5330889354,
+          "equity_multiple": 434.6549057395,
           "daily_return_pct": -0.76599136
         },
         {
           "timestamp": "2026-07-15T02:00:00+00:00",
-          "equity_multiple": 433.1703450997,
+          "equity_multiple": 433.2917798728,
           "daily_return_pct": -0.31361106
         },
         {
           "timestamp": "2026-07-16T02:00:00+00:00",
-          "equity_multiple": 435.9907857296,
+          "equity_multiple": 436.1130111838,
           "daily_return_pct": 0.65111582
         },
         {
           "timestamp": "2026-07-17T02:00:00+00:00",
-          "equity_multiple": 425.2007300889,
+          "equity_multiple": 425.3199306638,
           "daily_return_pct": -2.47483571
         },
         {
           "timestamp": "2026-07-18T02:00:00+00:00",
-          "equity_multiple": 420.381118605,
+          "equity_multiple": 420.4989680524,
           "daily_return_pct": -1.13349088
         },
         {
           "timestamp": "2026-07-19T02:00:00+00:00",
-          "equity_multiple": 426.3158022696,
+          "equity_multiple": 426.4353154434,
           "daily_return_pct": 1.41173887
         },
         {
           "timestamp": "2026-07-20T02:00:00+00:00",
-          "equity_multiple": 427.2053922474,
+          "equity_multiple": 427.3251548085,
           "daily_return_pct": 0.20866925
         },
         {
           "timestamp": "2026-07-21T02:00:00+00:00",
-          "equity_multiple": 431.5320932931,
+          "equity_multiple": 431.6530687995,
           "daily_return_pct": 1.01279177
         },
         {
           "timestamp": "2026-07-22T02:00:00+00:00",
-          "equity_multiple": 434.4389752884,
+          "equity_multiple": 434.5607657087,
           "daily_return_pct": 0.67361896
         },
         {
           "timestamp": "2026-07-23T02:00:00+00:00",
-          "equity_multiple": 433.2796062861,
+          "equity_multiple": 433.4010716894,
           "daily_return_pct": -0.26686579
         },
         {
           "timestamp": "2026-07-24T02:00:00+00:00",
-          "equity_multiple": 423.7624391239,
-          "daily_return_pct": -2.19654168
+          "equity_multiple": 423.8829073685,
+          "daily_return_pct": -2.19615616
         },
         {
           "timestamp": "2026-07-25T02:00:00+00:00",
-          "equity_multiple": 418.7710709381,
-          "daily_return_pct": -1.17786942
+          "equity_multiple": 418.9239110929,
+          "daily_return_pct": -1.16989767
         },
         {
           "timestamp": "2026-07-26T02:00:00+00:00",
-          "equity_multiple": 413.8125518425,
-          "daily_return_pct": -1.18406438
+          "equity_multiple": 413.9684309361,
+          "daily_return_pct": -1.18290697
         },
         {
           "timestamp": "2026-07-27T02:00:00+00:00",
-          "equity_multiple": 421.6846730943,
-          "daily_return_pct": 1.90233989
+          "equity_multiple": 421.8745761684,
+          "daily_return_pct": 1.90984255
         },
         {
           "timestamp": "2026-07-28T02:00:00+00:00",
-          "equity_multiple": 412.9951411306,
-          "daily_return_pct": -2.06067057
+          "equity_multiple": 413.0468337072,
+          "daily_return_pct": -2.09250402
         },
         {
           "timestamp": "2026-07-29T02:00:00+00:00",
-          "equity_multiple": 408.8469404294,
-          "daily_return_pct": -1.00441877
+          "equity_multiple": 408.9008406358,
+          "daily_return_pct": -1.00375859
         },
         {
           "timestamp": "2026-07-30T02:00:00+00:00",
-          "equity_multiple": 401.5177830629,
+          "equity_multiple": 401.5707170321,
           "daily_return_pct": -1.79264087
         },
         {
           "timestamp": "2026-07-31T02:00:00+00:00",
-          "equity_multiple": 401.2072088582,
-          "daily_return_pct": -0.07735005
+          "equity_multiple": 401.2660081076,
+          "daily_return_pct": -0.07587927
         },
         {
           "timestamp": "2026-08-01T02:00:00+00:00",
-          "equity_multiple": 397.7498406347,
+          "equity_multiple": 397.8081331866,
           "daily_return_pct": -0.8617413
         },
         {
           "timestamp": "2026-08-02T02:00:00+00:00",
-          "equity_multiple": 388.7790598547,
+          "equity_multiple": 388.8360376866,
           "daily_return_pct": -2.25538262
         },
         {
           "timestamp": "2026-08-03T02:00:00+00:00",
-          "equity_multiple": 390.4021478359,
+          "equity_multiple": 390.4593635407,
           "daily_return_pct": 0.41748339
         },
         {
           "timestamp": "2026-08-04T02:00:00+00:00",
-          "equity_multiple": 386.6496068138,
+          "equity_multiple": 386.7062725619,
           "daily_return_pct": -0.96119887
         },
         {
           "timestamp": "2026-08-05T02:00:00+00:00",
-          "equity_multiple": 382.8034171677,
+          "equity_multiple": 382.8595192344,
           "daily_return_pct": -0.99474811
         },
         {
           "timestamp": "2026-08-06T02:00:00+00:00",
-          "equity_multiple": 385.3799454733,
+          "equity_multiple": 385.4364251452,
           "daily_return_pct": 0.67306826
         },
         {
           "timestamp": "2026-08-07T02:00:00+00:00",
-          "equity_multiple": 390.2084751445,
+          "equity_multiple": 390.2656624655,
           "daily_return_pct": 1.25292707
         },
         {
           "timestamp": "2026-08-08T02:00:00+00:00",
-          "equity_multiple": 393.3927398341,
+          "equity_multiple": 393.4503938275,
           "daily_return_pct": 0.81604191
         },
         {
           "timestamp": "2026-08-09T02:00:00+00:00",
-          "equity_multiple": 392.7227197708,
+          "equity_multiple": 392.7802755689,
           "daily_return_pct": -0.17031836
         },
         {
           "timestamp": "2026-08-10T02:00:00+00:00",
-          "equity_multiple": 394.9140055518,
+          "equity_multiple": 394.9718824956,
           "daily_return_pct": 0.55797276
         },
         {
           "timestamp": "2026-08-11T02:00:00+00:00",
-          "equity_multiple": 381.5079738862,
+          "equity_multiple": 381.5638860981,
           "daily_return_pct": -3.39467111
         },
         {
           "timestamp": "2026-08-12T02:00:00+00:00",
-          "equity_multiple": 377.3432993427,
+          "equity_multiple": 377.3986011973,
           "daily_return_pct": -1.09163499
         },
         {
           "timestamp": "2026-08-13T02:00:00+00:00",
-          "equity_multiple": 377.5872009087,
+          "equity_multiple": 377.6425385085,
           "daily_return_pct": 0.06463652
         },
         {
           "timestamp": "2026-08-14T02:00:00+00:00",
-          "equity_multiple": 379.6532414722,
+          "equity_multiple": 379.7088818623,
           "daily_return_pct": 0.54716912
         },
         {
           "timestamp": "2026-08-15T02:00:00+00:00",
-          "equity_multiple": 388.121128352,
+          "equity_multiple": 388.1780097601,
           "daily_return_pct": 2.2304266
         },
         {
           "timestamp": "2026-08-16T02:00:00+00:00",
-          "equity_multiple": 385.8982469534,
+          "equity_multiple": 385.9548025853,
           "daily_return_pct": -0.57272878
         },
         {
           "timestamp": "2026-08-17T02:00:00+00:00",
-          "equity_multiple": 385.7350060867,
+          "equity_multiple": 385.7915377947,
           "daily_return_pct": -0.04230153
         },
         {
           "timestamp": "2026-08-18T02:00:00+00:00",
-          "equity_multiple": 374.4605820043,
+          "equity_multiple": 374.51546138,
           "daily_return_pct": -2.92284182
         },
         {
           "timestamp": "2026-08-19T02:00:00+00:00",
-          "equity_multiple": 378.7381764684,
+          "equity_multiple": 378.7936827504,
           "daily_return_pct": 1.14233505
         },
         {
           "timestamp": "2026-08-20T02:00:00+00:00",
-          "equity_multiple": 464.4053414179,
-          "daily_return_pct": 22.61909949
+          "equity_multiple": 463.4297509941,
+          "daily_return_pct": 22.34357966
         },
         {
           "timestamp": "2026-08-21T02:00:00+00:00",
-          "equity_multiple": 502.0818941202,
-          "daily_return_pct": 8.11285947
+          "equity_multiple": 501.0382631722,
+          "daily_return_pct": 8.11525632
         },
         {
           "timestamp": "2026-08-22T02:00:00+00:00",
-          "equity_multiple": 567.1064516632,
-          "daily_return_pct": 12.95098634
+          "equity_multiple": 565.9111431872,
+          "daily_return_pct": 12.94768978
         },
         {
           "timestamp": "2026-08-23T02:00:00+00:00",
-          "equity_multiple": 534.914770197,
-          "daily_return_pct": -5.6764795
+          "equity_multiple": 533.863245853,
+          "daily_return_pct": -5.66306172
         },
         {
           "timestamp": "2026-08-24T02:00:00+00:00",
-          "equity_multiple": 541.2733148763,
-          "daily_return_pct": 1.18870239
+          "equity_multiple": 540.1807942331,
+          "daily_return_pct": 1.18336455
         },
         {
           "timestamp": "2026-08-25T02:00:00+00:00",
-          "equity_multiple": 559.7741535468,
-          "daily_return_pct": 3.41802157
+          "equity_multiple": 558.6743447483,
+          "daily_return_pct": 3.42358535
         },
         {
           "timestamp": "2026-08-26T02:00:00+00:00",
-          "equity_multiple": 545.0412417654,
-          "daily_return_pct": -2.63193856
+          "equity_multiple": 543.9861970066,
+          "daily_return_pct": -2.62910726
         },
         {
           "timestamp": "2026-08-27T02:00:00+00:00",
-          "equity_multiple": 570.7052140049,
-          "daily_return_pct": 4.70862942
+          "equity_multiple": 569.6033664176,
+          "daily_return_pct": 4.70915798
         },
         {
           "timestamp": "2026-08-28T02:00:00+00:00",
-          "equity_multiple": 580.4402114537,
-          "daily_return_pct": 1.70578386
+          "equity_multiple": 579.3018961448,
+          "daily_return_pct": 1.70268125
         },
         {
           "timestamp": "2026-08-29T02:00:00+00:00",
-          "equity_multiple": 585.0203049755,
-          "daily_return_pct": 0.7890724
+          "equity_multiple": 583.8553071261,
+          "daily_return_pct": 0.78601693
         },
         {
           "timestamp": "2026-08-30T02:00:00+00:00",
-          "equity_multiple": 543.4620385978,
+          "equity_multiple": 542.3797990571,
           "daily_return_pct": -7.10373059
         },
         {
           "timestamp": "2026-08-31T02:00:00+00:00",
-          "equity_multiple": 534.4394692058,
+          "equity_multiple": 533.375197031,
           "daily_return_pct": -1.66020232
         },
         {
           "timestamp": "2026-09-01T02:00:00+00:00",
-          "equity_multiple": 553.1309155385,
+          "equity_multiple": 552.0294215877,
           "daily_return_pct": 3.49739258
         },
         {
           "timestamp": "2026-09-02T02:00:00+00:00",
-          "equity_multiple": 583.8564444631,
+          "equity_multiple": 582.6937643025,
           "daily_return_pct": 5.55483848
         },
         {
           "timestamp": "2026-09-03T02:00:00+00:00",
-          "equity_multiple": 583.3569293352,
+          "equity_multiple": 582.1952438992,
           "daily_return_pct": -0.08555444
         },
         {
           "timestamp": "2026-09-04T02:00:00+00:00",
-          "equity_multiple": 628.6123927971,
+          "equity_multiple": 627.3605865274,
           "daily_return_pct": 7.75776565
         },
         {
           "timestamp": "2026-09-05T02:00:00+00:00",
-          "equity_multiple": 591.1211274784,
+          "equity_multiple": 589.9439805719,
           "daily_return_pct": -5.9641308
         },
         {
           "timestamp": "2026-09-06T02:00:00+00:00",
-          "equity_multiple": 614.0746267635,
+          "equity_multiple": 612.8517707131,
           "daily_return_pct": 3.88304498
         },
         {
           "timestamp": "2026-09-07T02:00:00+00:00",
-          "equity_multiple": 632.227564831,
+          "equity_multiple": 630.9685593793,
           "daily_return_pct": 2.95614528
         },
         {
           "timestamp": "2026-09-08T02:00:00+00:00",
-          "equity_multiple": 632.3723949108,
+          "equity_multiple": 631.1131010473,
           "daily_return_pct": 0.0229079
         },
         {
           "timestamp": "2026-09-09T02:00:00+00:00",
-          "equity_multiple": 643.202329904,
+          "equity_multiple": 641.9214695225,
           "daily_return_pct": 1.7125882
         },
         {
           "timestamp": "2026-09-10T02:00:00+00:00",
-          "equity_multiple": 637.0743026859,
+          "equity_multiple": 635.8056455364,
           "daily_return_pct": -0.9527371
         },
         {
           "timestamp": "2026-09-11T02:00:00+00:00",
-          "equity_multiple": 635.4054524217,
+          "equity_multiple": 634.1401185876,
           "daily_return_pct": -0.26195536
         },
         {
           "timestamp": "2026-09-12T02:00:00+00:00",
-          "equity_multiple": 628.5827322192,
+          "equity_multiple": 627.3309850149,
           "daily_return_pct": -1.07375852
         },
         {
           "timestamp": "2026-09-13T02:00:00+00:00",
-          "equity_multiple": 624.7284772561,
+          "equity_multiple": 623.4844053388,
           "daily_return_pct": -0.6131659
         },
         {
           "timestamp": "2026-09-14T02:00:00+00:00",
-          "equity_multiple": 616.1035736294,
+          "equity_multiple": 614.8766771744,
           "daily_return_pct": -1.38058436
         },
         {
           "timestamp": "2026-09-15T02:00:00+00:00",
-          "equity_multiple": 581.2793812763,
+          "equity_multiple": 580.1218330283,
           "daily_return_pct": -5.6523276
         },
         {
           "timestamp": "2026-09-16T02:00:00+00:00",
-          "equity_multiple": 571.1917857866,
+          "equity_multiple": 570.0543257765,
           "daily_return_pct": -1.73541258
         },
         {
-          "timestamp": "2026-09-16T23:00:00+00:00",
-          "equity_multiple": 568.8516369551,
-          "daily_return_pct": -0.40969581
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 567.2172996065,
+          "daily_return_pct": -0.49767646
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 566.656063162,
+          "daily_return_pct": -0.09894558
         }
       ]
     },
@@ -37358,628 +37718,633 @@
         },
         {
           "timestamp": "2026-05-16T02:00:00+00:00",
-          "equity_multiple": 393.5753541402,
-          "daily_return_pct": -3.53670394
+          "equity_multiple": 393.5605672552,
+          "daily_return_pct": -3.54032813
         },
         {
           "timestamp": "2026-05-17T02:00:00+00:00",
-          "equity_multiple": 395.6868823928,
-          "daily_return_pct": 0.53649911
+          "equity_multiple": 395.6961200335,
+          "daily_return_pct": 0.54262367
         },
         {
           "timestamp": "2026-05-18T02:00:00+00:00",
-          "equity_multiple": 402.6330801997,
-          "daily_return_pct": 1.75547841
+          "equity_multiple": 402.6469009158,
+          "daily_return_pct": 1.75659566
         },
         {
           "timestamp": "2026-05-19T02:00:00+00:00",
-          "equity_multiple": 401.1025968813,
-          "daily_return_pct": -0.38011862
+          "equity_multiple": 401.1207742358,
+          "daily_return_pct": -0.37902358
         },
         {
           "timestamp": "2026-05-20T02:00:00+00:00",
-          "equity_multiple": 404.9818234417,
-          "daily_return_pct": 0.96714072
+          "equity_multiple": 405.0097919144,
+          "daily_return_pct": 0.96953784
         },
         {
           "timestamp": "2026-05-21T02:00:00+00:00",
-          "equity_multiple": 396.3095829775,
-          "daily_return_pct": -2.14139005
+          "equity_multiple": 396.3368735939,
+          "daily_return_pct": -2.14140954
         },
         {
           "timestamp": "2026-05-22T02:00:00+00:00",
-          "equity_multiple": 403.925754429,
-          "daily_return_pct": 1.92177322
+          "equity_multiple": 403.9556043458,
+          "daily_return_pct": 1.92228664
         },
         {
           "timestamp": "2026-05-23T02:00:00+00:00",
-          "equity_multiple": 424.0558756982,
-          "daily_return_pct": 4.98361915
+          "equity_multiple": 424.095970573,
+          "daily_return_pct": 4.98578705
         },
         {
           "timestamp": "2026-05-24T02:00:00+00:00",
-          "equity_multiple": 406.9377634536,
-          "daily_return_pct": -4.03675865
+          "equity_multiple": 406.9806649348,
+          "daily_return_pct": -4.03571522
         },
         {
           "timestamp": "2026-05-25T02:00:00+00:00",
-          "equity_multiple": 409.3456254907,
-          "daily_return_pct": 0.59170277
+          "equity_multiple": 409.4021977433,
+          "daily_return_pct": 0.59499947
         },
         {
           "timestamp": "2026-05-26T02:00:00+00:00",
-          "equity_multiple": 425.2359427846,
-          "daily_return_pct": 3.88188277
+          "equity_multiple": 425.2922538652,
+          "daily_return_pct": 3.88128257
         },
         {
           "timestamp": "2026-05-27T02:00:00+00:00",
-          "equity_multiple": 421.472927684,
-          "daily_return_pct": -0.88492404
+          "equity_multiple": 421.5435115239,
+          "daily_return_pct": -0.88145089
         },
         {
           "timestamp": "2026-05-28T02:00:00+00:00",
-          "equity_multiple": 431.90855195,
-          "daily_return_pct": 2.47598922
+          "equity_multiple": 431.9793036512,
+          "daily_return_pct": 2.47561446
         },
         {
           "timestamp": "2026-05-29T02:00:00+00:00",
-          "equity_multiple": 436.2890224158,
-          "daily_return_pct": 1.01421249
+          "equity_multiple": 436.3642853523,
+          "daily_return_pct": 1.01509069
         },
         {
           "timestamp": "2026-05-30T02:00:00+00:00",
-          "equity_multiple": 427.592528593,
-          "daily_return_pct": -1.99328733
+          "equity_multiple": 427.6638794096,
+          "daily_return_pct": -1.99384006
         },
         {
           "timestamp": "2026-05-31T02:00:00+00:00",
-          "equity_multiple": 425.4536634672,
+          "equity_multiple": 425.5246573791,
           "daily_return_pct": -0.50021106
         },
         {
           "timestamp": "2026-06-01T02:00:00+00:00",
-          "equity_multiple": 428.7056662024,
-          "daily_return_pct": 0.7643612
+          "equity_multiple": 428.9425692231,
+          "daily_return_pct": 0.80322298
         },
         {
           "timestamp": "2026-06-02T02:00:00+00:00",
-          "equity_multiple": 436.7204143044,
-          "daily_return_pct": 1.86952232
+          "equity_multiple": 436.9515388723,
+          "daily_return_pct": 1.86714265
         },
         {
           "timestamp": "2026-06-03T02:00:00+00:00",
-          "equity_multiple": 477.6772619144,
-          "daily_return_pct": 9.37827641
+          "equity_multiple": 477.800986574,
+          "daily_return_pct": 9.34873643
         },
         {
           "timestamp": "2026-06-04T02:00:00+00:00",
-          "equity_multiple": 500.1571154222,
+          "equity_multiple": 500.286662658,
           "daily_return_pct": 4.70607569
         },
         {
           "timestamp": "2026-06-05T02:00:00+00:00",
-          "equity_multiple": 526.8139798405,
+          "equity_multiple": 526.9504315529,
           "daily_return_pct": 5.32969813
         },
         {
           "timestamp": "2026-06-06T02:00:00+00:00",
-          "equity_multiple": 569.062263866,
+          "equity_multiple": 569.2096584366,
           "daily_return_pct": 8.01958293
         },
         {
           "timestamp": "2026-06-07T02:00:00+00:00",
-          "equity_multiple": 560.3126885954,
+          "equity_multiple": 560.4578169116,
           "daily_return_pct": -1.5375427
         },
         {
           "timestamp": "2026-06-08T02:00:00+00:00",
-          "equity_multiple": 535.5142651523,
+          "equity_multiple": 535.6529703524,
           "daily_return_pct": -4.42581865
         },
         {
           "timestamp": "2026-06-09T02:00:00+00:00",
-          "equity_multiple": 533.0556489847,
+          "equity_multiple": 533.193717371,
           "daily_return_pct": -0.4591131
         },
         {
           "timestamp": "2026-06-10T02:00:00+00:00",
-          "equity_multiple": 538.3037080653,
+          "equity_multiple": 538.4431357676,
           "daily_return_pct": 0.98452368
         },
         {
           "timestamp": "2026-06-11T02:00:00+00:00",
-          "equity_multiple": 535.0401182967,
+          "equity_multiple": 535.1787006866,
           "daily_return_pct": -0.60627295
         },
         {
           "timestamp": "2026-06-12T02:00:00+00:00",
-          "equity_multiple": 528.8290409381,
+          "equity_multiple": 528.9660145777,
           "daily_return_pct": -1.16086199
         },
         {
           "timestamp": "2026-06-13T02:00:00+00:00",
-          "equity_multiple": 529.308517495,
+          "equity_multiple": 529.4456153253,
           "daily_return_pct": 0.09066759
         },
         {
           "timestamp": "2026-06-14T02:00:00+00:00",
-          "equity_multiple": 526.3003904199,
+          "equity_multiple": 526.4367091059,
           "daily_return_pct": -0.56831261
         },
         {
           "timestamp": "2026-06-15T02:00:00+00:00",
-          "equity_multiple": 524.1714999343,
-          "daily_return_pct": -0.40450103
+          "equity_multiple": 524.3012312967,
+          "daily_return_pct": -0.40564759
         },
         {
           "timestamp": "2026-06-16T02:00:00+00:00",
-          "equity_multiple": 511.5020121502,
-          "daily_return_pct": -2.4170501
+          "equity_multiple": 511.6002470576,
+          "daily_return_pct": -2.42245936
         },
         {
           "timestamp": "2026-06-17T02:00:00+00:00",
-          "equity_multiple": 514.3277581361,
+          "equity_multiple": 514.4265357332,
           "daily_return_pct": 0.55244083
         },
         {
           "timestamp": "2026-06-18T02:00:00+00:00",
-          "equity_multiple": 520.9404229476,
+          "equity_multiple": 521.0404705192,
           "daily_return_pct": 1.28569083
         },
         {
           "timestamp": "2026-06-19T02:00:00+00:00",
-          "equity_multiple": 528.644236596,
-          "daily_return_pct": 1.47882816
+          "equity_multiple": 528.7788405641,
+          "daily_return_pct": 1.48517639
         },
         {
           "timestamp": "2026-06-20T02:00:00+00:00",
-          "equity_multiple": 528.2749717619,
-          "daily_return_pct": -0.06985129
+          "equity_multiple": 528.4412341079,
+          "daily_return_pct": -0.06384644
         },
         {
           "timestamp": "2026-06-21T02:00:00+00:00",
-          "equity_multiple": 523.0316231408,
+          "equity_multiple": 523.1962352639,
           "daily_return_pct": -0.99254156
         },
         {
           "timestamp": "2026-06-22T02:00:00+00:00",
-          "equity_multiple": 522.2895732256,
+          "equity_multiple": 522.4539518056,
           "daily_return_pct": -0.14187477
         },
         {
           "timestamp": "2026-06-23T02:00:00+00:00",
-          "equity_multiple": 519.944991308,
+          "equity_multiple": 520.108631985,
           "daily_return_pct": -0.4489046
         },
         {
           "timestamp": "2026-06-24T02:00:00+00:00",
-          "equity_multiple": 516.6456512332,
-          "daily_return_pct": -0.6345556
+          "equity_multiple": 516.8316416242,
+          "daily_return_pct": -0.63005883
         },
         {
           "timestamp": "2026-06-25T02:00:00+00:00",
-          "equity_multiple": 523.6955782857,
-          "daily_return_pct": 1.36455751
+          "equity_multiple": 523.882953929,
+          "daily_return_pct": 1.36433448
         },
         {
           "timestamp": "2026-06-26T02:00:00+00:00",
-          "equity_multiple": 539.0388987901,
+          "equity_multiple": 539.2317641963,
           "daily_return_pct": 2.9298167
         },
         {
           "timestamp": "2026-06-27T02:00:00+00:00",
-          "equity_multiple": 529.889953355,
+          "equity_multiple": 530.0795453145,
           "daily_return_pct": -1.69726998
         },
         {
           "timestamp": "2026-06-28T02:00:00+00:00",
-          "equity_multiple": 529.155971011,
+          "equity_multiple": 529.3453003553,
           "daily_return_pct": -0.138516
         },
         {
           "timestamp": "2026-06-29T02:00:00+00:00",
-          "equity_multiple": 527.5269263017,
+          "equity_multiple": 527.715672782,
           "daily_return_pct": -0.30785719
         },
         {
           "timestamp": "2026-06-30T02:00:00+00:00",
-          "equity_multiple": 525.1588622283,
+          "equity_multiple": 525.3467614272,
           "daily_return_pct": -0.44889919
         },
         {
           "timestamp": "2026-07-01T02:00:00+00:00",
-          "equity_multiple": 535.048907728,
+          "equity_multiple": 535.2403455354,
           "daily_return_pct": 1.88324833
         },
         {
           "timestamp": "2026-07-02T02:00:00+00:00",
-          "equity_multiple": 527.1578610328,
+          "equity_multiple": 527.3464754634,
           "daily_return_pct": -1.47482718
         },
         {
           "timestamp": "2026-07-03T02:00:00+00:00",
-          "equity_multiple": 515.5521581497,
+          "equity_multiple": 515.7366201182,
           "daily_return_pct": -2.20156119
         },
         {
           "timestamp": "2026-07-04T02:00:00+00:00",
-          "equity_multiple": 520.3829087398,
-          "daily_return_pct": 0.93700521
+          "equity_multiple": 520.5595338438,
+          "daily_return_pct": 0.93515053
         },
         {
           "timestamp": "2026-07-05T02:00:00+00:00",
-          "equity_multiple": 517.8496283398,
-          "daily_return_pct": -0.48681084
+          "equity_multiple": 518.0181741539,
+          "daily_return_pct": -0.4881977
         },
         {
           "timestamp": "2026-07-06T02:00:00+00:00",
-          "equity_multiple": 518.4435112507,
-          "daily_return_pct": 0.1146825
+          "equity_multiple": 518.6130176668,
+          "daily_return_pct": 0.11483063
         },
         {
           "timestamp": "2026-07-07T02:00:00+00:00",
-          "equity_multiple": 498.8001641138,
-          "daily_return_pct": -3.7889079
+          "equity_multiple": 498.9319829748,
+          "daily_return_pct": -3.7949365
         },
         {
           "timestamp": "2026-07-08T02:00:00+00:00",
-          "equity_multiple": 492.7354000164,
-          "daily_return_pct": -1.21587051
+          "equity_multiple": 492.9078496618,
+          "daily_return_pct": -1.20740572
         },
         {
           "timestamp": "2026-07-09T02:00:00+00:00",
-          "equity_multiple": 487.225329082,
-          "daily_return_pct": -1.11826163
+          "equity_multiple": 487.4039222096,
+          "daily_return_pct": -1.11662402
         },
         {
           "timestamp": "2026-07-10T02:00:00+00:00",
-          "equity_multiple": 479.535655545,
-          "daily_return_pct": -1.57825816
+          "equity_multiple": 479.7178915465,
+          "daily_return_pct": -1.57693246
         },
         {
           "timestamp": "2026-07-11T02:00:00+00:00",
-          "equity_multiple": 477.9197608249,
-          "daily_return_pct": -0.33697071
+          "equity_multiple": 478.0954248258,
+          "daily_return_pct": -0.33821268
         },
         {
           "timestamp": "2026-07-12T02:00:00+00:00",
-          "equity_multiple": 477.9758531544,
-          "daily_return_pct": 0.01173677
+          "equity_multiple": 478.1153653763,
+          "daily_return_pct": 0.00417083
         },
         {
           "timestamp": "2026-07-13T02:00:00+00:00",
-          "equity_multiple": 477.6477166271,
-          "daily_return_pct": -0.06865128
+          "equity_multiple": 477.8159370077,
+          "daily_return_pct": -0.0626268
         },
         {
           "timestamp": "2026-07-14T02:00:00+00:00",
-          "equity_multiple": 474.2355201478,
-          "daily_return_pct": -0.71437513
+          "equity_multiple": 474.410313338,
+          "daily_return_pct": -0.71274803
         },
         {
           "timestamp": "2026-07-15T02:00:00+00:00",
-          "equity_multiple": 470.3745534017,
-          "daily_return_pct": -0.81414542
+          "equity_multiple": 470.5482831909,
+          "daily_return_pct": -0.8140696
         },
         {
           "timestamp": "2026-07-16T02:00:00+00:00",
-          "equity_multiple": 474.0648877316,
+          "equity_multiple": 474.2399805219,
           "daily_return_pct": 0.78455229
         },
         {
           "timestamp": "2026-07-17T02:00:00+00:00",
-          "equity_multiple": 463.3935691883,
-          "daily_return_pct": -2.25102487
+          "equity_multiple": 463.6034625153,
+          "daily_return_pct": -2.24285561
         },
         {
           "timestamp": "2026-07-18T02:00:00+00:00",
-          "equity_multiple": 457.4014383285,
-          "daily_return_pct": -1.29309754
+          "equity_multiple": 457.5406380123,
+          "daily_return_pct": -1.30776083
         },
         {
           "timestamp": "2026-07-19T02:00:00+00:00",
-          "equity_multiple": 462.8236030161,
-          "daily_return_pct": 1.18542799
+          "equity_multiple": 462.8469784894,
+          "daily_return_pct": 1.15975283
         },
         {
           "timestamp": "2026-07-20T02:00:00+00:00",
-          "equity_multiple": 464.1321039619,
-          "daily_return_pct": 0.28272131
+          "equity_multiple": 464.1380931594,
+          "daily_return_pct": 0.27895065
         },
         {
           "timestamp": "2026-07-21T02:00:00+00:00",
-          "equity_multiple": 468.4011112886,
-          "daily_return_pct": 0.91978281
+          "equity_multiple": 468.4202252468,
+          "daily_return_pct": 0.92259872
         },
         {
           "timestamp": "2026-07-22T02:00:00+00:00",
-          "equity_multiple": 470.9969851747,
-          "daily_return_pct": 0.55419892
+          "equity_multiple": 471.4028549746,
+          "daily_return_pct": 0.6367423
         },
         {
           "timestamp": "2026-07-23T02:00:00+00:00",
-          "equity_multiple": 468.2788352937,
-          "daily_return_pct": -0.57710558
+          "equity_multiple": 468.6808796163,
+          "daily_return_pct": -0.57742021
         },
         {
           "timestamp": "2026-07-24T02:00:00+00:00",
-          "equity_multiple": 457.0000699945,
-          "daily_return_pct": -2.40855756
+          "equity_multiple": 457.3932688965,
+          "daily_return_pct": -2.40837875
         },
         {
           "timestamp": "2026-07-25T02:00:00+00:00",
-          "equity_multiple": 453.1322378494,
-          "daily_return_pct": -0.84635264
+          "equity_multiple": 453.6122333938,
+          "daily_return_pct": -0.8266487
         },
         {
           "timestamp": "2026-07-26T02:00:00+00:00",
-          "equity_multiple": 447.228725284,
-          "daily_return_pct": -1.30282334
+          "equity_multiple": 447.7178245207,
+          "daily_return_pct": -1.29943781
         },
         {
           "timestamp": "2026-07-27T02:00:00+00:00",
-          "equity_multiple": 455.8949923553,
-          "daily_return_pct": 1.93777067
+          "equity_multiple": 456.4928171804,
+          "daily_return_pct": 1.9599382
         },
         {
           "timestamp": "2026-07-28T02:00:00+00:00",
-          "equity_multiple": 445.383551997,
-          "daily_return_pct": -2.30567138
+          "equity_multiple": 445.5764082669,
+          "daily_return_pct": -2.39136488
         },
         {
           "timestamp": "2026-07-29T02:00:00+00:00",
-          "equity_multiple": 442.5902239019,
-          "daily_return_pct": -0.62717361
+          "equity_multiple": 442.7790083564,
+          "daily_return_pct": -0.62781598
         },
         {
           "timestamp": "2026-07-30T02:00:00+00:00",
-          "equity_multiple": 435.3212748831,
-          "daily_return_pct": -1.64236547
+          "equity_multiple": 435.5172229292,
+          "daily_return_pct": -1.64004736
         },
         {
           "timestamp": "2026-07-31T02:00:00+00:00",
-          "equity_multiple": 432.8315140266,
-          "daily_return_pct": -0.57193641
+          "equity_multiple": 432.976607924,
+          "daily_return_pct": -0.58335581
         },
         {
           "timestamp": "2026-08-01T02:00:00+00:00",
-          "equity_multiple": 428.4164973097,
-          "daily_return_pct": -1.02003125
+          "equity_multiple": 428.5469880779,
+          "daily_return_pct": -1.02306216
         },
         {
           "timestamp": "2026-08-02T02:00:00+00:00",
-          "equity_multiple": 417.8588299342,
+          "equity_multiple": 417.9861049576,
           "daily_return_pct": -2.4643466
         },
         {
           "timestamp": "2026-08-03T02:00:00+00:00",
-          "equity_multiple": 419.0039537342,
+          "equity_multiple": 419.1315775492,
           "daily_return_pct": 0.27404561
         },
         {
           "timestamp": "2026-08-04T02:00:00+00:00",
-          "equity_multiple": 414.0792285152,
+          "equity_multiple": 414.2053523152,
           "daily_return_pct": -1.17534099
         },
         {
           "timestamp": "2026-08-05T02:00:00+00:00",
-          "equity_multiple": 409.5915135837,
+          "equity_multiple": 409.716270477,
           "daily_return_pct": -1.08378171
         },
         {
           "timestamp": "2026-08-06T02:00:00+00:00",
-          "equity_multiple": 412.8087909061,
+          "equity_multiple": 412.9345277454,
           "daily_return_pct": 0.78548437
         },
         {
           "timestamp": "2026-08-07T02:00:00+00:00",
-          "equity_multiple": 418.5135563776,
-          "daily_return_pct": 1.38193895
+          "equity_multiple": 418.6490214211,
+          "daily_return_pct": 1.38387403
         },
         {
           "timestamp": "2026-08-08T02:00:00+00:00",
-          "equity_multiple": 421.8245357711,
-          "daily_return_pct": 0.79112835
+          "equity_multiple": 421.9361698954,
+          "daily_return_pct": 0.78518002
         },
         {
           "timestamp": "2026-08-09T02:00:00+00:00",
-          "equity_multiple": 421.5628749373,
-          "daily_return_pct": -0.06203073
+          "equity_multiple": 421.6914981591,
+          "daily_return_pct": -0.05798786
         },
         {
           "timestamp": "2026-08-10T02:00:00+00:00",
-          "equity_multiple": 424.9370997931,
-          "daily_return_pct": 0.80040845
+          "equity_multiple": 425.0294538271,
+          "daily_return_pct": 0.79156343
         },
         {
           "timestamp": "2026-08-11T02:00:00+00:00",
-          "equity_multiple": 410.0260346026,
-          "daily_return_pct": -3.50900526
+          "equity_multiple": 410.081104215,
+          "daily_return_pct": -3.51701499
         },
         {
           "timestamp": "2026-08-12T02:00:00+00:00",
-          "equity_multiple": 404.9249342818,
-          "daily_return_pct": -1.24409181
+          "equity_multiple": 405.1971163729,
+          "daily_return_pct": -1.19098095
         },
         {
           "timestamp": "2026-08-13T02:00:00+00:00",
-          "equity_multiple": 406.0556072731,
-          "daily_return_pct": 0.27923027
+          "equity_multiple": 406.3928640236,
+          "daily_return_pct": 0.2951027
         },
         {
           "timestamp": "2026-08-14T02:00:00+00:00",
-          "equity_multiple": 408.5482250726,
-          "daily_return_pct": 0.61386119
+          "equity_multiple": 408.9110004527,
+          "daily_return_pct": 0.61963106
         },
         {
           "timestamp": "2026-08-15T02:00:00+00:00",
-          "equity_multiple": 417.6468442982,
-          "daily_return_pct": 2.22706125
+          "equity_multiple": 418.0008436325,
+          "daily_return_pct": 2.22293926
         },
         {
           "timestamp": "2026-08-16T02:00:00+00:00",
-          "equity_multiple": 415.8228019653,
+          "equity_multiple": 416.1752552331,
           "daily_return_pct": -0.43674275
         },
         {
           "timestamp": "2026-08-17T02:00:00+00:00",
-          "equity_multiple": 415.2535166101,
+          "equity_multiple": 415.6054873492,
           "daily_return_pct": -0.13690576
         },
         {
           "timestamp": "2026-08-18T02:00:00+00:00",
-          "equity_multiple": 403.4144624566,
+          "equity_multiple": 403.7563983604,
           "daily_return_pct": -2.85104248
         },
         {
           "timestamp": "2026-08-19T02:00:00+00:00",
-          "equity_multiple": 408.0715596253,
+          "equity_multiple": 408.4174429055,
           "daily_return_pct": 1.15441998
         },
         {
           "timestamp": "2026-08-20T02:00:00+00:00",
-          "equity_multiple": 502.4160089697,
-          "daily_return_pct": 23.11958457
+          "equity_multiple": 500.8868577732,
+          "daily_return_pct": 22.64090735
         },
         {
           "timestamp": "2026-08-21T02:00:00+00:00",
-          "equity_multiple": 543.8947139589,
-          "daily_return_pct": 8.25584859
+          "equity_multiple": 542.2465080632,
+          "daily_return_pct": 8.25728399
         },
         {
           "timestamp": "2026-08-22T02:00:00+00:00",
-          "equity_multiple": 614.9145655314,
-          "daily_return_pct": 13.05764696
+          "equity_multiple": 613.0136958122,
+          "daily_return_pct": 13.05074107
         },
         {
           "timestamp": "2026-08-23T02:00:00+00:00",
-          "equity_multiple": 581.3141942616,
-          "daily_return_pct": -5.46423408
+          "equity_multiple": 579.5973700266,
+          "daily_return_pct": -5.45115485
         },
         {
           "timestamp": "2026-08-24T02:00:00+00:00",
-          "equity_multiple": 587.4492686464,
-          "daily_return_pct": 1.05538011
+          "equity_multiple": 585.6881015695,
+          "daily_return_pct": 1.05085562
         },
         {
           "timestamp": "2026-08-25T02:00:00+00:00",
-          "equity_multiple": 606.6876327351,
-          "daily_return_pct": 3.27489796
+          "equity_multiple": 604.8624638229,
+          "daily_return_pct": 3.27381796
         },
         {
           "timestamp": "2026-08-26T02:00:00+00:00",
-          "equity_multiple": 590.9900554575,
-          "daily_return_pct": -2.58742332
+          "equity_multiple": 589.2396923183,
+          "daily_return_pct": -2.58286345
         },
         {
           "timestamp": "2026-08-27T02:00:00+00:00",
-          "equity_multiple": 624.0992182631,
-          "daily_return_pct": 5.60232148
+          "equity_multiple": 622.2535365415,
+          "daily_return_pct": 5.60278689
         },
         {
           "timestamp": "2026-08-28T02:00:00+00:00",
-          "equity_multiple": 634.9845820957,
-          "daily_return_pct": 1.744172
+          "equity_multiple": 633.0927179741,
+          "daily_return_pct": 1.74192364
         },
         {
           "timestamp": "2026-08-29T02:00:00+00:00",
-          "equity_multiple": 630.4813495304,
-          "daily_return_pct": -0.7091877
+          "equity_multiple": 628.5867725089,
+          "daily_return_pct": -0.71173548
         },
         {
           "timestamp": "2026-08-30T02:00:00+00:00",
-          "equity_multiple": 598.066507278,
+          "equity_multiple": 596.2693358584,
           "daily_return_pct": -5.14128487
         },
         {
           "timestamp": "2026-08-31T02:00:00+00:00",
-          "equity_multiple": 586.8402840907,
+          "equity_multiple": 585.0768471256,
           "daily_return_pct": -1.87708609
         },
         {
           "timestamp": "2026-09-01T02:00:00+00:00",
-          "equity_multiple": 607.8933906813,
+          "equity_multiple": 606.0666897799,
           "daily_return_pct": 3.58753602
         },
         {
           "timestamp": "2026-09-02T02:00:00+00:00",
-          "equity_multiple": 617.7640491188,
+          "equity_multiple": 615.907687193,
           "daily_return_pct": 1.62374827
         },
         {
           "timestamp": "2026-09-03T02:00:00+00:00",
-          "equity_multiple": 628.3433926932,
+          "equity_multiple": 626.4552401661,
           "daily_return_pct": 1.71252173
         },
         {
           "timestamp": "2026-09-04T02:00:00+00:00",
-          "equity_multiple": 672.8000532043,
+          "equity_multiple": 670.7783097827,
           "daily_return_pct": 7.07521731
         },
         {
           "timestamp": "2026-09-05T02:00:00+00:00",
-          "equity_multiple": 659.6638223284,
+          "equity_multiple": 657.6815528757,
           "daily_return_pct": -1.95247174
         },
         {
           "timestamp": "2026-09-06T02:00:00+00:00",
-          "equity_multiple": 691.2407192603,
+          "equity_multiple": 689.1635622056,
           "daily_return_pct": 4.78681654
         },
         {
           "timestamp": "2026-09-07T02:00:00+00:00",
-          "equity_multiple": 690.3756445265,
+          "equity_multiple": 688.3010869947,
           "daily_return_pct": -0.12514812
         },
         {
           "timestamp": "2026-09-08T02:00:00+00:00",
-          "equity_multiple": 674.9651841463,
+          "equity_multiple": 672.9369345729,
           "daily_return_pct": -2.23218483
         },
         {
           "timestamp": "2026-09-09T02:00:00+00:00",
-          "equity_multiple": 676.1537116234,
+          "equity_multiple": 674.1218905616,
           "daily_return_pct": 0.17608723
         },
         {
           "timestamp": "2026-09-10T02:00:00+00:00",
-          "equity_multiple": 669.3026293834,
+          "equity_multiple": 667.2913956125,
           "daily_return_pct": -1.01324331
         },
         {
           "timestamp": "2026-09-11T02:00:00+00:00",
-          "equity_multiple": 678.4616725734,
+          "equity_multiple": 676.4229161601,
           "daily_return_pct": 1.36844572
         },
         {
           "timestamp": "2026-09-12T02:00:00+00:00",
-          "equity_multiple": 687.9322942436,
+          "equity_multiple": 685.8650789041,
           "daily_return_pct": 1.39589634
         },
         {
           "timestamp": "2026-09-13T02:00:00+00:00",
-          "equity_multiple": 678.0584601612,
+          "equity_multiple": 676.0209153887,
           "daily_return_pct": -1.43529155
         },
         {
           "timestamp": "2026-09-14T02:00:00+00:00",
-          "equity_multiple": 682.9212400812,
+          "equity_multiple": 680.869082805,
           "daily_return_pct": 0.71716234
         },
         {
           "timestamp": "2026-09-15T02:00:00+00:00",
-          "equity_multiple": 663.3913782362,
+          "equity_multiple": 661.3979075929,
           "daily_return_pct": -2.85975317
         },
         {
           "timestamp": "2026-09-16T02:00:00+00:00",
-          "equity_multiple": 647.2246653169,
+          "equity_multiple": 645.2797751476,
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T23:00:00+00:00",
-          "equity_multiple": 643.59494634,
-          "daily_return_pct": -0.56081283
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 641.0880070634,
+          "daily_return_pct": -0.64960475
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 642.4701113136,
+          "daily_return_pct": 0.21558729
         }
       ]
     },
@@ -50254,9 +50619,14 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T23:00:00+00:00",
-          "equity_multiple": 435.2509102525,
-          "daily_return_pct": -0.56081283
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 434.8622630295,
+          "daily_return_pct": -0.64960475
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 435.7997707903,
+          "daily_return_pct": 0.21558729
         }
       ]
     },
@@ -62531,9 +62901,14 @@
           "daily_return_pct": -2.43697965
         },
         {
-          "timestamp": "2026-09-16T23:00:00+00:00",
-          "equity_multiple": 411.1741191255,
-          "daily_return_pct": -0.56081283
+          "timestamp": "2026-09-17T02:00:00+00:00",
+          "equity_multiple": 410.8069707157,
+          "daily_return_pct": -0.64960475
+        },
+        {
+          "timestamp": "2026-09-17T04:00:00+00:00",
+          "equity_multiple": 411.6926183241,
+          "daily_return_pct": 0.21558729
         }
       ]
     }
