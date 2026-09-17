@@ -1,0 +1,467 @@
+{
+  "study": "V99 R106 phase 38 \u2014 benchmark robustness calibration",
+  "status": "DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "objective": "calibrate the same top-1%-removed robust-mean diagnostic against the established benchmark envelope before interpreting repeated phase31-37 failures",
+    "train_only_diagnostic": true,
+    "untouched_holdout_not_evaluated": true,
+    "does_not_relax_any_gate": true,
+    "strategy_change_in_phase38": false
+  },
+  "data": {
+    "common_start": "2020-01-01T00:00:00+00:00",
+    "train_end": "2024-01-18T00:00:00+00:00"
+  },
+  "benchmarks": {
+    "v13": {
+      "base": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 9.684642448420025,
+          "profit_factor": 1.0585085370875673,
+          "max_drawdown_abs": 0.2986660379169145,
+          "positive_hour_ratio": 0.5038035961272476,
+          "robust_mean_without_top1pct": -0.00013498403389768945
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 2.135588770724889,
+            "profit_factor": 1.1156529664119952,
+            "max_drawdown_abs": 0.2986660379169145,
+            "positive_hour_ratio": 0.5099394987035436,
+            "robust_mean_without_top1pct": -6.453850499100882e-05
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.49261676518986564,
+            "profit_factor": 1.037069319045675,
+            "max_drawdown_abs": 0.2182349200260716,
+            "positive_hour_ratio": 0.5068786648624267,
+            "robust_mean_without_top1pct": -0.000127946547195678
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.9791800507669519,
+            "profit_factor": 1.0648712566059295,
+            "max_drawdown_abs": 0.22311569481075788,
+            "positive_hour_ratio": 0.5038340099233198,
+            "robust_mean_without_top1pct": -0.00014901694719271006
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": 0.15347257414234594,
+            "profit_factor": 1.0213272273613243,
+            "max_drawdown_abs": 0.2665408142927136,
+            "positive_hour_ratio": 0.4950952756793325,
+            "robust_mean_without_top1pct": -0.0001870053818462005
+          }
+        ]
+      },
+      "severe": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 7.698932258557342,
+          "profit_factor": 1.053936148871973,
+          "max_drawdown_abs": 0.3260793999312488,
+          "positive_hour_ratio": 0.5021035039188566,
+          "robust_mean_without_top1pct": -0.00014271738010251966
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 2.0563838372713565,
+            "profit_factor": 1.1130445571710588,
+            "max_drawdown_abs": 0.3260793999312488,
+            "positive_hour_ratio": 0.5079639461661933,
+            "robust_mean_without_top1pct": -7.279762076906673e-05
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.448213428947309,
+            "profit_factor": 1.0346724877011308,
+            "max_drawdown_abs": 0.21889341762089165,
+            "positive_hour_ratio": 0.505638249887235,
+            "robust_mean_without_top1pct": -0.0001319740015658612
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.8685905053070035,
+            "profit_factor": 1.0599699483122533,
+            "max_drawdown_abs": 0.22498540151953306,
+            "positive_hour_ratio": 0.502593594948128,
+            "robust_mean_without_top1pct": -0.00015528052018322865
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": 0.05174715623252002,
+            "profit_factor": 1.0127515831602518,
+            "max_drawdown_abs": 0.30520488532201284,
+            "positive_hour_ratio": 0.49272747773142406,
+            "robust_mean_without_top1pct": -0.00019962850427058322
+          }
+        ]
+      }
+    },
+    "v14": {
+      "base": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 26.708937076464732,
+          "profit_factor": 1.0674591906555675,
+          "max_drawdown_abs": 0.3246401022379328,
+          "positive_hour_ratio": 0.5059647302904564,
+          "robust_mean_without_top1pct": -0.0001451714671299131
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 3.8311942970045134,
+            "profit_factor": 1.127951391153907,
+            "max_drawdown_abs": 0.32327594387699066,
+            "positive_hour_ratio": 0.5121619953080627,
+            "robust_mean_without_top1pct": -5.4318800559332236e-05
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 2.222003227441542,
+            "profit_factor": 1.0792755737301267,
+            "max_drawdown_abs": 0.22143968524100544,
+            "positive_hour_ratio": 0.5125169147496617,
+            "robust_mean_without_top1pct": -8.277281554490837e-05
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.8422287500011694,
+            "profit_factor": 1.0528275059793264,
+            "max_drawdown_abs": 0.32017322587587915,
+            "positive_hour_ratio": 0.5042850699142986,
+            "robust_mean_without_top1pct": -0.00019023591434416925
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": -0.03373591913918461,
+            "profit_factor": 1.0068802193016162,
+            "max_drawdown_abs": 0.32464010223792883,
+            "positive_hour_ratio": 0.4954335325290337,
+            "robust_mean_without_top1pct": -0.00023934027987072728
+          }
+        ]
+      },
+      "severe": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 14.631152058887611,
+          "profit_factor": 1.057368262168821,
+          "max_drawdown_abs": 0.43142711719240556,
+          "positive_hour_ratio": 0.5042070078377132,
+          "robust_mean_without_top1pct": -0.00016138320630559308
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 3.2037596844427743,
+            "profit_factor": 1.1174498803635609,
+            "max_drawdown_abs": 0.3731720415786305,
+            "positive_hour_ratio": 0.5108038029386344,
+            "robust_mean_without_top1pct": -7.145004395699084e-05
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 1.9371652526085685,
+            "profit_factor": 1.0735713932239044,
+            "max_drawdown_abs": 0.2279717113143105,
+            "positive_hour_ratio": 0.5117275597654488,
+            "robust_mean_without_top1pct": -9.268594866944837e-05
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.6449849691701259,
+            "profit_factor": 1.0445899601644808,
+            "max_drawdown_abs": 0.33531197406294233,
+            "positive_hour_ratio": 0.502255299954894,
+            "robust_mean_without_top1pct": -0.0002053073959655748
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": -0.23040401854331505,
+            "profit_factor": 0.9897113918473419,
+            "max_drawdown_abs": 0.4314271171924089,
+            "positive_hour_ratio": 0.49261472544819035,
+            "robust_mean_without_top1pct": -0.00026105523241683296
+          }
+        ]
+      }
+    },
+    "v15": {
+      "base": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 17.49071792024677,
+          "profit_factor": 1.0595841053626376,
+          "max_drawdown_abs": 0.3609351959174427,
+          "positive_hour_ratio": 0.5083563854310742,
+          "robust_mean_without_top1pct": -0.00015621244825120832
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 3.3634075261431295,
+            "profit_factor": 1.1179321310226282,
+            "max_drawdown_abs": 0.31553947954397243,
+            "positive_hour_ratio": 0.5133967156439067,
+            "robust_mean_without_top1pct": -6.515904435293108e-05
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 1.7496154257061693,
+            "profit_factor": 1.0686972406087754,
+            "max_drawdown_abs": 0.2829799376853672,
+            "positive_hour_ratio": 0.5149977447000451,
+            "robust_mean_without_top1pct": -9.59869996404796e-05
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.6473528523745953,
+            "profit_factor": 1.0441933926585822,
+            "max_drawdown_abs": 0.2844755131711435,
+            "positive_hour_ratio": 0.5034957149300857,
+            "robust_mean_without_top1pct": -0.00020120223685105674
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": -0.06444481679094705,
+            "profit_factor": 1.0046628460663167,
+            "max_drawdown_abs": 0.3609351959174336,
+            "positive_hour_ratio": 0.5019731649565904,
+            "robust_mean_without_top1pct": -0.0002498941221675134
+          }
+        ]
+      },
+      "severe": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 10.499367341209735,
+          "profit_factor": 1.0513673449121776,
+          "max_drawdown_abs": 0.42735113816400594,
+          "positive_hour_ratio": 0.5061952512678654,
+          "robust_mean_without_top1pct": -0.00016988967484306167
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 2.7946564491233183,
+            "profit_factor": 1.1082670524900617,
+            "max_drawdown_abs": 0.35099038426749996,
+            "positive_hour_ratio": 0.5108038029386344,
+            "robust_mean_without_top1pct": -7.96623543600625e-05
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 1.4575719920564647,
+            "profit_factor": 1.0620035949877027,
+            "max_drawdown_abs": 0.30207853822232644,
+            "positive_hour_ratio": 0.513531799729364,
+            "robust_mean_without_top1pct": -0.00010847081118743429
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.5405469941515633,
+            "profit_factor": 1.0394064160998036,
+            "max_drawdown_abs": 0.3081671559684188,
+            "positive_hour_ratio": 0.5020297699594046,
+            "robust_mean_without_top1pct": -0.0002109635107819251
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": -0.19957566346922206,
+            "profit_factor": 0.9931867640134763,
+            "max_drawdown_abs": 0.4273511381640063,
+            "positive_hour_ratio": 0.4988161010260458,
+            "robust_mean_without_top1pct": -0.000267429887452976
+          }
+        ]
+      }
+    },
+    "v16": {
+      "base": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 1.586139638441566,
+          "profit_factor": 1.036816520041783,
+          "max_drawdown_abs": 0.443643958406439,
+          "positive_hour_ratio": 0.5031984785615491,
+          "robust_mean_without_top1pct": -0.00018099666611987307
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 0.8100939576916677,
+            "profit_factor": 1.0848168064363852,
+            "max_drawdown_abs": 0.40587942483863015,
+            "positive_hour_ratio": 0.5110507470058032,
+            "robust_mean_without_top1pct": -0.00013439934772436154
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.8881723640576089,
+            "profit_factor": 1.0702422521989934,
+            "max_drawdown_abs": 0.2841028395749102,
+            "positive_hour_ratio": 0.5080063148398737,
+            "robust_mean_without_top1pct": -0.00015105025636983943
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": -0.21276297926232413,
+            "profit_factor": 0.9808793756127532,
+            "max_drawdown_abs": 0.3941636929179234,
+            "positive_hour_ratio": 0.500789354984213,
+            "robust_mean_without_top1pct": -0.00021846306080154404
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": -0.03882225584741128,
+            "profit_factor": 1.0051364688934463,
+            "max_drawdown_abs": 0.2772457736598892,
+            "positive_hour_ratio": 0.49362949599729394,
+            "robust_mean_without_top1pct": -0.00020636731207963757
+          }
+        ]
+      },
+      "severe": {
+        "train": {
+          "active_hours": 34704,
+          "roi": 0.9125281343165028,
+          "profit_factor": 1.028116794071894,
+          "max_drawdown_abs": 0.49221263702514995,
+          "positive_hour_ratio": 0.5001728907330567,
+          "robust_mean_without_top1pct": -0.0001894418874910511
+        },
+        "healthy_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "healthy": false,
+            "active_hours": 8099,
+            "roi": 0.6334118367363353,
+            "profit_factor": 1.0716274374291201,
+            "max_drawdown_abs": 0.41947885861919676,
+            "positive_hour_ratio": 0.5075935300654402,
+            "robust_mean_without_top1pct": -0.000145918610768897
+          },
+          {
+            "fold": 2,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": 0.8083642754076963,
+            "profit_factor": 1.0664345070789003,
+            "max_drawdown_abs": 0.2862272141672241,
+            "positive_hour_ratio": 0.5057510148849798,
+            "robust_mean_without_top1pct": -0.00015600496744695358
+          },
+          {
+            "fold": 3,
+            "healthy": false,
+            "active_hours": 8868,
+            "roi": -0.25151443417786157,
+            "profit_factor": 0.9755317572157961,
+            "max_drawdown_abs": 0.4021661325593059,
+            "positive_hour_ratio": 0.4981957600360848,
+            "robust_mean_without_top1pct": -0.0002245043092714513
+          },
+          {
+            "fold": 4,
+            "healthy": false,
+            "active_hours": 8869,
+            "roi": -0.13494686243568688,
+            "profit_factor": 0.9917816870102791,
+            "max_drawdown_abs": 0.32336318367305894,
+            "positive_hour_ratio": 0.4897959183673469,
+            "robust_mean_without_top1pct": -0.00021848695094429618
+          }
+        ]
+      }
+    }
+  },
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  },
+  "disclosure": "Calibration only. This report cannot weaken promotion criteria or modify frozen assets."
+}
