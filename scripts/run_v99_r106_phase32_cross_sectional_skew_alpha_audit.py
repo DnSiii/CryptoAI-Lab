@@ -47,3 +47,4 @@ def main():
     REPORT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n',encoding='utf-8')
     print(json.dumps({'selected_train_only':selected,'selected_holdout_pass':hp,'actionable_for_phase33':out['actionable_for_phase33'],'train_summary':{n:{'stable_train':r['stable_train'],'healthy_folds':r['healthy_folds'],'train':r['train']} for n,r in ds.items()}},indent=2,default=audit.safe_float),flush=True)
 if __name__=='__main__': main()
+# Phase32 fixed-family trigger marker; no strategy mutation.
