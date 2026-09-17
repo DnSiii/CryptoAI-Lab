@@ -1,0 +1,313 @@
+{
+  "study": "V99 R106 phase 35 \u2014 recent alpha failure decomposition",
+  "status": "DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "objective": "determine whether phases31-34 failed because transaction costs erased genuine broad train edge or because broad edge was absent before costs",
+    "train_only_diagnostic": true,
+    "untouched_holdout_not_evaluated": true,
+    "all_source_features_causal_t_minus_1": true,
+    "no_parameter_selection": true,
+    "strategy_change_in_phase35": false
+  },
+  "data": {
+    "common_start": "2020-01-01T00:00:00+00:00",
+    "common_end": "2026-09-16T13:00:00+00:00",
+    "train_end": "2024-01-18T00:00:00+00:00",
+    "severe_cost_per_side": 0.0012
+  },
+  "families": {
+    "phase31_low_vol": {
+      "low_vol_24h": {
+        "gross_train": {
+          "active_hours": 35352,
+          "roi": -0.3619514732506365,
+          "profit_factor": 0.9730235693228801,
+          "max_drawdown_abs": 0.4376023907497687,
+          "positive_hour_ratio": 0.5182167911292147,
+          "robust_mean_without_top1pct": -6.251787134591399e-05
+        },
+        "severe_train": {
+          "active_hours": 35352,
+          "roi": -0.5702004485066815,
+          "profit_factor": 0.947777093196128,
+          "max_drawdown_abs": 0.5890767995721391,
+          "positive_hour_ratio": 0.5130685675492193,
+          "robust_mean_without_top1pct": -7.332537580760374e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.20824897525604502,
+        "robust_mean_cost_drag": 1.0807504461689754e-05
+      },
+      "low_vol_72h": {
+        "gross_train": {
+          "active_hours": 35352,
+          "roi": -0.46470318548594447,
+          "profit_factor": 0.9617731495600563,
+          "max_drawdown_abs": 0.5479793734344947,
+          "positive_hour_ratio": 0.516378139850645,
+          "robust_mean_without_top1pct": -6.594181650403102e-05
+        },
+        "severe_train": {
+          "active_hours": 35352,
+          "roi": -0.5657802766753092,
+          "profit_factor": 0.9486780562650478,
+          "max_drawdown_abs": 0.5933693045525632,
+          "positive_hour_ratio": 0.5134928716904277,
+          "robust_mean_without_top1pct": -7.21297052792647e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.1010770911893647,
+        "robust_mean_cost_drag": 6.18788877523368e-06
+      },
+      "low_vol_168h": {
+        "gross_train": {
+          "active_hours": 35352,
+          "roi": -0.29831430404653736,
+          "profit_factor": 0.9782962805662099,
+          "max_drawdown_abs": 0.4346873848453926,
+          "positive_hour_ratio": 0.5184996605566871,
+          "robust_mean_without_top1pct": -5.6072895670748426e-05
+        },
+        "severe_train": {
+          "active_hours": 35352,
+          "roi": -0.38027454079992573,
+          "profit_factor": 0.9700113404266686,
+          "max_drawdown_abs": 0.4661513092850157,
+          "positive_hour_ratio": 0.5165478615071283,
+          "robust_mean_without_top1pct": -5.9387709928398294e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.08196023675338837,
+        "robust_mean_cost_drag": 3.3148142576498678e-06
+      }
+    },
+    "phase32_low_skew": {
+      "low_skew_72h": {
+        "gross_train": {
+          "active_hours": 35328,
+          "roi": 0.07289675040644061,
+          "profit_factor": 1.0083640268217968,
+          "max_drawdown_abs": 0.15310419722467283,
+          "positive_hour_ratio": 0.5120584239130435,
+          "robust_mean_without_top1pct": -3.450292624765941e-05
+        },
+        "severe_train": {
+          "active_hours": 35328,
+          "roi": -0.2977239266172844,
+          "profit_factor": 0.9675758339370674,
+          "max_drawdown_abs": 0.3186650162244544,
+          "positive_hour_ratio": 0.5042742300724637,
+          "robust_mean_without_top1pct": -4.639600829897139e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.37062067702372503,
+        "robust_mean_cost_drag": 1.1893082051311976e-05
+      },
+      "low_skew_168h": {
+        "gross_train": {
+          "active_hours": 35352,
+          "roi": 0.04319471601146052,
+          "profit_factor": 1.0056421728794198,
+          "max_drawdown_abs": 0.1783275526889626,
+          "positive_hour_ratio": 0.5149355057705364,
+          "robust_mean_without_top1pct": -3.607105626906486e-05
+        },
+        "severe_train": {
+          "active_hours": 35352,
+          "roi": -0.21828005980083176,
+          "profit_factor": 0.9777612671959227,
+          "max_drawdown_abs": 0.311493269942271,
+          "positive_hour_ratio": 0.5092781172210907,
+          "robust_mean_without_top1pct": -4.4154634046953474e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.2614747758122923,
+        "robust_mean_cost_drag": 8.083577777888613e-06
+      },
+      "low_skew_336h": {
+        "gross_train": {
+          "active_hours": 35280,
+          "roi": -0.2519347587306966,
+          "profit_factor": 0.9723670286221092,
+          "max_drawdown_abs": 0.3370509169393965,
+          "positive_hour_ratio": 0.5075113378684807,
+          "robust_mean_without_top1pct": -4.6988256996592096e-05
+        },
+        "severe_train": {
+          "active_hours": 35280,
+          "roi": -0.38236339347627524,
+          "profit_factor": 0.9534273349014012,
+          "max_drawdown_abs": 0.426145960545922,
+          "positive_hour_ratio": 0.5037131519274376,
+          "robust_mean_without_top1pct": -5.164769307633231e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.13042863474557864,
+        "robust_mean_cost_drag": 4.6594360797402135e-06
+      }
+    },
+    "phase33_volume_trend": {
+      "volume_trend_24v168h": {
+        "gross_train": {
+          "active_hours": 35352,
+          "roi": 0.9507031156541825,
+          "profit_factor": 1.054658001012995,
+          "max_drawdown_abs": 0.10445776656049777,
+          "positive_hour_ratio": 0.49448404616429054,
+          "robust_mean_without_top1pct": -3.8303406090659616e-05
+        },
+        "severe_train": {
+          "active_hours": 35352,
+          "roi": 0.19001712792015768,
+          "profit_factor": 1.0153553056316755,
+          "max_drawdown_abs": 0.14947491164775295,
+          "positive_hour_ratio": 0.4876103190767142,
+          "robust_mean_without_top1pct": -5.223577686649135e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.7606859877340248,
+        "robust_mean_cost_drag": 1.393237077583173e-05
+      },
+      "volume_trend_72v336h": {
+        "gross_train": {
+          "active_hours": 35304,
+          "roi": 0.6932692525303219,
+          "profit_factor": 1.0435220701180912,
+          "max_drawdown_abs": 0.13839756713138818,
+          "positive_hour_ratio": 0.4891230455472468,
+          "robust_mean_without_top1pct": -4.084283565950313e-05
+        },
+        "severe_train": {
+          "active_hours": 35304,
+          "roi": 0.25714709375849076,
+          "profit_factor": 1.0197813418571655,
+          "max_drawdown_abs": 0.21152245009460924,
+          "positive_hour_ratio": 0.4853274416496714,
+          "robust_mean_without_top1pct": -4.9230884481372286e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.43612215877183114,
+        "robust_mean_cost_drag": 8.388048821869157e-06
+      },
+      "volume_trend_168v720h": {
+        "gross_train": {
+          "active_hours": 35112,
+          "roi": 0.2974740072532669,
+          "profit_factor": 1.0227188159701903,
+          "max_drawdown_abs": 0.21175447862149677,
+          "positive_hour_ratio": 0.4918261562998405,
+          "robust_mean_without_top1pct": -4.7389932350995755e-05
+        },
+        "severe_train": {
+          "active_hours": 35112,
+          "roi": 0.08325017866651008,
+          "profit_factor": 1.0083491710044166,
+          "max_drawdown_abs": 0.22300757791743797,
+          "positive_hour_ratio": 0.489149008885851,
+          "robust_mean_without_top1pct": -5.1738959269841565e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.21422382858675681,
+        "robust_mean_cost_drag": 4.34902691884581e-06
+      }
+    },
+    "phase34_low_kurtosis": {
+      "low_kurtosis_168h": {
+        "gross_train": {
+          "active_hours": 35352,
+          "roi": 0.3602358714907461,
+          "profit_factor": 1.0307890791329823,
+          "max_drawdown_abs": 0.1013580414298223,
+          "positive_hour_ratio": 0.5031115637021951,
+          "robust_mean_without_top1pct": -3.0105872698605964e-05
+        },
+        "severe_train": {
+          "active_hours": 35352,
+          "roi": 0.02358005016858944,
+          "profit_factor": 1.0036764082155691,
+          "max_drawdown_abs": 0.13985500858499333,
+          "positive_hour_ratio": 0.4980764878931885,
+          "robust_mean_without_top1pct": -3.8087673362428495e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.33665582132215666,
+        "robust_mean_cost_drag": 7.981800663822532e-06
+      },
+      "low_kurtosis_336h": {
+        "gross_train": {
+          "active_hours": 35280,
+          "roi": 0.24861109361826084,
+          "profit_factor": 1.022949173614485,
+          "max_drawdown_abs": 0.09872622595556113,
+          "positive_hour_ratio": 0.5022675736961452,
+          "robust_mean_without_top1pct": -3.19379499142591e-05
+        },
+        "severe_train": {
+          "active_hours": 35280,
+          "roi": 0.030980724438295804,
+          "profit_factor": 1.0044213493233873,
+          "max_drawdown_abs": 0.15950900090467635,
+          "positive_hour_ratio": 0.4985827664399093,
+          "robust_mean_without_top1pct": -3.73421499961902e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.21763036917996503,
+        "robust_mean_cost_drag": 5.404200081931103e-06
+      },
+      "low_kurtosis_720h": {
+        "gross_train": {
+          "active_hours": 35088,
+          "roi": 0.05078989553263291,
+          "profit_factor": 1.006343004062271,
+          "max_drawdown_abs": 0.1926326835380876,
+          "positive_hour_ratio": 0.5013109895120839,
+          "robust_mean_without_top1pct": -3.3987703808516104e-05
+        },
+        "severe_train": {
+          "active_hours": 35088,
+          "roi": -0.06785494005193038,
+          "profit_factor": 0.9944991526942415,
+          "max_drawdown_abs": 0.251924872619687,
+          "positive_hour_ratio": 0.499515503875969,
+          "robust_mean_without_top1pct": -3.716389327934764e-05
+        },
+        "gross_edge_exists": false,
+        "survives_severe": false,
+        "roi_cost_drag": 0.11864483558456329,
+        "robust_mean_cost_drag": 3.1761894708315326e-06
+      }
+    }
+  },
+  "gross_edges": [],
+  "severe_edges": [],
+  "diagnosis": "no_broad_gross_edge",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  },
+  "disclosure": "Historical research only. Train-only failure analysis; untouched holdout deliberately not inspected. V99 Frozen and V16 Frozen unchanged."
+}
