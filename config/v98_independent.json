@@ -4,6 +4,11 @@
   "data_config": "research.json",
   "holdout_start": "2026-01-01T00:00:00Z",
   "holdout_end": "2026-07-31T23:00:00Z",
+  "validation_start": "2026-01-01T00:00:00Z",
+  "validation_end": "2026-07-31T23:00:00Z",
+  "final_holdout_start": "2026-08-01T00:00:00Z",
+  "final_holdout_end": "2026-09-15T23:00:00Z",
+  "final_holdout_policy": "DO NOT inspect, score, tune, select, or compare on final_holdout until a candidate is frozen after training and validation gates. The legacy holdout_start/end interval has already been observed by prior phases and is henceforth validation, not an untouched final holdout.",
   "research_start": "2021-01-01T00:00:00Z",
   "training_end": "2025-12-31T23:00:00Z",
   "folds": [
@@ -11,40 +16,8 @@
     {"name": "2024", "start": "2024-01-01T00:00:00Z", "end": "2024-12-31T23:00:00Z"},
     {"name": "2025", "start": "2025-01-01T00:00:00Z", "end": "2025-12-31T23:00:00Z"}
   ],
-  "costs": {
-    "base_per_side": 0.0007,
-    "severe_per_side": 0.0012,
-    "supersevere_per_side": 0.0020
-  },
-  "funding_stress": {
-    "base": {"debit_multiplier": 1.0, "credit_multiplier": 1.0},
-    "severe": {"debit_multiplier": 1.25, "credit_multiplier": 0.75},
-    "supersevere": {"debit_multiplier": 1.75, "credit_multiplier": 0.50}
-  },
-  "architecture": {
-    "liquidity_top_n": 8,
-    "liquidity_lookback_hours": 720,
-    "minimum_history_hours": 2160,
-    "volatility_lookback_hours": 720,
-    "residual_beta_lookback_hours": 1440,
-    "momentum_fast_hours": 168,
-    "momentum_medium_hours": 720,
-    "momentum_slow_hours": 2160,
-    "trend_hours": 720,
-    "breadth_threshold": 0.60,
-    "long_count": 2,
-    "short_count": 2,
-    "gross_cap": 1.50,
-    "risk_on_gross": 1.25,
-    "neutral_gross": 1.00,
-    "risk_off_gross": 0.90,
-    "rebalance_hours": 24
-  },
-  "research_rules": {
-    "decision_information_lag_hours": 1,
-    "holdout_used_for_selection": false,
-    "mass_grid_search_allowed": false,
-    "v99_used_for_selection": false,
-    "promotion_requires_material_improvement": true
-  }
+  "costs": {"base_per_side": 0.0007, "severe_per_side": 0.0012, "supersevere_per_side": 0.0020},
+  "funding_stress": {"base": {"debit_multiplier": 1.0, "credit_multiplier": 1.0}, "severe": {"debit_multiplier": 1.25, "credit_multiplier": 0.75}, "supersevere": {"debit_multiplier": 1.75, "credit_multiplier": 0.50}},
+  "architecture": {"liquidity_top_n": 8, "liquidity_lookback_hours": 720, "minimum_history_hours": 2160, "volatility_lookback_hours": 720, "residual_beta_lookback_hours": 1440, "momentum_fast_hours": 168, "momentum_medium_hours": 720, "momentum_slow_hours": 2160, "trend_hours": 720, "breadth_threshold": 0.60, "long_count": 2, "short_count": 2, "gross_cap": 1.50, "risk_on_gross": 1.25, "neutral_gross": 1.00, "risk_off_gross": 0.90, "rebalance_hours": 24},
+  "research_rules": {"decision_information_lag_hours": 1, "holdout_used_for_selection": false, "mass_grid_search_allowed": false, "v99_used_for_selection": false, "promotion_requires_material_improvement": true, "final_holdout_single_open_only": true}
 }
