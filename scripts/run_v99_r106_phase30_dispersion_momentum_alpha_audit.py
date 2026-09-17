@@ -27,9 +27,6 @@ def weights(score,close):
 def sleeves(data):
     c=data.close.astype(float)
     r24=c.pct_change(24,fill_method=None).shift(1); r72=c.pct_change(72,fill_method=None).shift(1); r168=c.pct_change(168,fill_method=None).shift(1)
-    # Cross-sectional dispersion is computed only from information known at t-1.
-    # Fixed families test continuation specifically when asset returns are unusually spread out,
-    # a mechanism distinct from prior reversal and compression families.
     def gated(r):
         disp=r.std(axis=1); base=disp.rolling(24*30,min_periods=24*15).median().shift(1)
         return r.where(disp.gt(base),axis=0)
@@ -58,3 +55,4 @@ def main():
     REPORT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n',encoding='utf-8')
     print(json.dumps({'selected_train_only':selected,'selected_holdout_pass':hp,'actionable_for_phase31':out['actionable_for_phase31'],'train_summary':{n:{'stable_train':r['stable_train'],'healthy_folds':r['healthy_folds'],'train':r['train']} for n,r in ds.items()}},indent=2,default=audit.safe_float),flush=True)
 if __name__=='__main__': main()
+# Phase30 pre-registered fixed family; trigger marker only.
