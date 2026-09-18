@@ -1,0 +1,54 @@
+{
+  "study": "V99 R106 phase 58 \u2014 taker-buy research-only ingestion contract",
+  "status": "SPEC_READY_NO_BACKTEST",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "source_contract": {
+    "venue": "Binance USD-M perpetual futures",
+    "archive": "data.binance.vision futures/um klines 1h",
+    "schema": [
+      "open_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume",
+      "close_time",
+      "quote_volume",
+      "trades",
+      "taker_buy_base_volume",
+      "taker_buy_quote_volume",
+      "ignore"
+    ],
+    "required_fields": [
+      "open_time",
+      "close_time",
+      "taker_buy_base_volume",
+      "taker_buy_quote_volume",
+      "volume",
+      "quote_volume"
+    ],
+    "provenance_rule": "accept only exchange archive bytes with archive CHECKSUM verification",
+    "research_only_destination": "data/research/v99_r106/taker_buy_1h",
+    "canonical_mutation_forbidden": true
+  },
+  "causality_contract": {
+    "feature_timestamp": "bar close_time",
+    "decision_availability": "strictly after bar close; feature must be shifted t-1 before position decision",
+    "no_same_bar_execution": true,
+    "no_holdout_selection": true
+  },
+  "integrity_gates": [
+    "checksum and ZIP CRC pass",
+    "unique symbol/open_time",
+    "strict hourly monotonic timestamps",
+    "0 <= taker_buy_base_volume <= volume",
+    "0 <= taker_buy_quote_volume <= quote_volume",
+    "full expected train/validation coverage before any alpha evaluation",
+    "no OHLCV-derived proxy substitution"
+  ],
+  "next_gate": "implement deterministic downloader/parser + coverage/provenance audit; only then pre-register an alpha transform and direction without holdout inspection",
+  "disclosure": "No candidate, returns, direction choice, parameter search, or holdout inspection occurs in phase58."
+}
