@@ -12,15 +12,13 @@ def build_targets(data,membership):
     c=PHASE; close=data.close; lag=close.shift(1); eligible=(membership & close.notna()).copy(); eligible['BTCUSDT']=False
     hourly=lag.pct_change(fill_method=None); btc=hourly['BTCUSDT']; var=btc.rolling(c['beta_lookback_hours'],min_periods=360).var(); beta=hourly.rolling(c['beta_lookback_hours'],min_periods=360).cov(btc).div(var,axis=0)
     residual=hourly.sub(beta.mul(btc,axis=0)); daily_resid=residual.rolling(24,min_periods=24).sum()
-    targets=pd.DataFrame(np.nan,index=close.index,columns=close.columns); events=(targets.index.hour==0)
-    event_idx=targets.index[events]
+    targets=pd.DataFrame(np.nan,index=close.index,columns=close.columns); events=(targets.index.hour==0); event_idx=targets.index[events]
     for ts in event_idx:
-        hist_idx=event_idx[(event_idx<ts) & (event_idx.weekday==ts.weekday)][-c['same_weekday_observations']:]
+        hist_idx=event_idx[(event_idx<ts) & (event_idx.weekday==ts.weekday())][-c['same_weekday_observations']:]
         if len(hist_idx)<c['minimum_same_weekday_observations']: continue
         exp=daily_resid.loc[hist_idx].mean(axis=0); ok=eligible.loc[ts] & exp.notna() & beta.loc[ts].notna(); names=ok.index[ok]
         if len(names)<4: continue
-        score=exp.loc[names].rank(pct=True).sub(0.5); y=score.to_numpy(float); b=beta.loc[ts,names].to_numpy(float); x=np.column_stack([np.ones(len(names)),b]); coef,*_=np.linalg.lstsq(x,y,rcond=None); neutral=y-x@coef; gross=float(np.abs(neutral).sum())
-        row=pd.Series(0.0,index=targets.columns)
+        score=exp.loc[names].rank(pct=True).sub(0.5); y=score.to_numpy(float); b=beta.loc[ts,names].to_numpy(float); x=np.column_stack([np.ones(len(names)),b]); coef,*_=np.linalg.lstsq(x,y,rcond=None); neutral=y-x@coef; gross=float(np.abs(neutral).sum()); row=pd.Series(0.0,index=targets.columns)
         if np.isfinite(gross) and gross>1e-12: row.loc[names]=neutral*(c['gross_target']/gross)
         targets.loc[ts]=row
     targets=targets.ffill().fillna(0.0); gross=targets.abs().sum(axis=1); return targets.mul((c['gross_cap']/gross.replace(0,np.nan)).clip(upper=1).fillna(0),axis=0)
