@@ -1,0 +1,97 @@
+{
+  "study": "V99 R106 Phase66 \u2014 native positioning dispersion TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase66_positioning_dispersion_prereg.md",
+    "source": "Binance USD-M daily metrics count_long_short_ratio + sum_toptrader_long_short_ratio (native top-trader POSITION ratio)",
+    "transform": "log(sum_toptrader_long_short_ratio/count_long_short_ratio).shift(1)",
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "missing_archives_not_filled": true,
+    "blank_or_nonfinite_observations_treated_missing": true
+  },
+  "train_end": "2024-01-18T00:00:00+00:00",
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 10992,
+      "roi": 0.01924195840441345,
+      "profit_factor": 1.0087636709544898,
+      "max_drawdown_abs": 0.06665156824110607,
+      "positive_hour_ratio": 0.4896288209606987,
+      "robust_mean_without_top1pct": -3.1354978605136296e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 1139,
+        "roi": 0.006186122534340477,
+        "profit_factor": 1.0176878219269785,
+        "max_drawdown_abs": 0.02679429048170434,
+        "positive_hour_ratio": 0.5057067603160668,
+        "robust_mean_without_top1pct": -3.0378318448893387e-05
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 516,
+        "roi": 0.016118916383258686,
+        "profit_factor": 1.1126723502910194,
+        "max_drawdown_abs": 0.01754718500012764,
+        "positive_hour_ratio": 0.4806201550387597,
+        "robust_mean_without_top1pct": -4.189351528097261e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.003809773576134323,
+        "profit_factor": 0.9969054873179174,
+        "max_drawdown_abs": 0.044696177174874174,
+        "positive_hour_ratio": 0.4890745501285347,
+        "robust_mean_without_top1pct": -2.9390343622207384e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": 0.0007190275765991405,
+        "profit_factor": 1.0017538448984036,
+        "max_drawdown_abs": 0.06665156824110652,
+        "positive_hour_ratio": 0.487256371814093,
+        "robust_mean_without_top1pct": -3.076143647697682e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "archives_consumed": 37836,
+  "next_gate": "If pass, freeze exact specification and evaluate untouched holdout separately; if reject, no sign/field/smoothing/threshold retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "disclosure": "Phase66 consumes native metrics only through train_end; every consumed archive is SHA256+CRC verified; missing/nonfinite observations remain missing; no holdout metrics/returns are inspected."
+}
