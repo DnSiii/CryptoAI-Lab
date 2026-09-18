@@ -5,7 +5,7 @@
   "real_orders_enabled": false,
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
-  "latest_data_timestamp": "2026-09-17T23:00:00+00:00",
+  "latest_data_timestamp": "2026-09-18T03:00:00+00:00",
   "same_boundary_for_all_variants": true,
   "variants": {
     "r98": {
@@ -17,31 +17,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-17T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-18T03:00:00+00:00",
       "summary": {
-        "new_forward_hours": 34,
-        "net_result_brl": 4.29,
-        "current_capital_brl": 10004.29,
-        "highest_capital_brl": 10028.64,
+        "new_forward_hours": 38,
+        "net_result_brl": 36.48,
+        "current_capital_brl": 10036.48,
+        "highest_capital_brl": 10036.48,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": 0.042905,
-        "gross_exposure_pct": 67.894613
+        "forward_return_pct": 0.36479,
+        "gross_exposure_pct": 90.259762
       },
       "assets": {
         "BTCUSDT": {
           "direction": "buy",
-          "current_weight": 0.07398399,
-          "position_value_brl": 740.16
+          "current_weight": 0.07413067,
+          "position_value_brl": 744.01
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.37996214,
-          "position_value_brl": 3801.25
+          "current_weight": 0.60346695,
+          "position_value_brl": 6056.68
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.225,
-          "position_value_brl": 2250.97
+          "current_weight": -0.03977711,
+          "position_value_brl": 399.22
+        },
+        "UNIUSDT": {
+          "direction": "buy",
+          "current_weight": 0.08370874,
+          "position_value_brl": 840.14
+        },
+        "NEARUSDT": {
+          "direction": "buy",
+          "current_weight": 0.10151415,
+          "position_value_brl": 1018.84
         }
       },
       "equity_curve": [
@@ -254,6 +264,30 @@
           "equity_multiple": 1.0004290536,
           "capital_brl": 10004.29,
           "hour_result_brl": 1.52
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "equity_multiple": 0.9998895607,
+          "capital_brl": 9998.9,
+          "hour_result_brl": -5.39
+        },
+        {
+          "timestamp": "2026-09-18T01:00:00+00:00",
+          "equity_multiple": 1.0013278674,
+          "capital_brl": 10013.28,
+          "hour_result_brl": 14.38
+        },
+        {
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 1.0027442875,
+          "capital_brl": 10027.44,
+          "hour_result_brl": 14.16
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 1.0036478952,
+          "capital_brl": 10036.48,
+          "hour_result_brl": 9.04
         }
       ],
       "real_orders_enabled": false,
@@ -419,6 +453,69 @@
           "from_weight_pct": 37.99056,
           "to_weight_pct": 38.00177,
           "delta_weight_pct": 0.0112
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.3984,
+          "to_weight_pct": 7.43733,
+          "delta_weight_pct": 0.03893
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 37.99621,
+          "to_weight_pct": 60.35677,
+          "delta_weight_pct": 22.36055
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 7.43733,
+          "to_weight_pct": 7.41307,
+          "delta_weight_pct": -0.02427
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 60.35677,
+          "to_weight_pct": 60.3467,
+          "delta_weight_pct": -0.01007
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -22.5,
+          "to_weight_pct": -3.97771,
+          "delta_weight_pct": 18.52229
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "UNIUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 8.37087,
+          "delta_weight_pct": 8.37087
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "NEARUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 10.15142,
+          "delta_weight_pct": 10.15142
         }
       ]
     },
@@ -431,51 +528,61 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-17T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-18T03:00:00+00:00",
       "summary": {
-        "new_forward_hours": 34,
-        "net_result_brl": -206.59,
-        "current_capital_brl": 9793.41,
+        "new_forward_hours": 38,
+        "net_result_brl": -150.26,
+        "current_capital_brl": 9849.74,
         "highest_capital_brl": 10000.0,
         "lowest_capital_brl": 9760.25,
-        "forward_return_pct": -2.065871,
-        "gross_exposure_pct": 97.894613
+        "forward_return_pct": -1.502611,
+        "gross_exposure_pct": 120.259762
       },
       "assets": {
         "BTCUSDT": {
           "direction": "buy",
-          "current_weight": 0.07398399,
-          "position_value_brl": 724.56
+          "current_weight": 0.07413067,
+          "position_value_brl": 730.17
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.37996214,
-          "position_value_brl": 3721.13
+          "current_weight": 0.60346695,
+          "position_value_brl": 5943.99
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.225,
-          "position_value_brl": 2203.52
+          "current_weight": -0.03977711,
+          "position_value_brl": 391.79
         },
         "ATOMUSDT": {
           "direction": "sell",
           "current_weight": -0.0181997,
-          "position_value_brl": 178.24
+          "position_value_brl": 179.26
+        },
+        "UNIUSDT": {
+          "direction": "buy",
+          "current_weight": 0.08370874,
+          "position_value_brl": 824.51
+        },
+        "NEARUSDT": {
+          "direction": "buy",
+          "current_weight": 0.10151415,
+          "position_value_brl": 999.89
         },
         "ONDOUSDT": {
           "direction": "buy",
           "current_weight": 0.06957955,
-          "position_value_brl": 681.42
+          "position_value_brl": 685.34
         },
         "XAUTUSDT": {
           "direction": "buy",
           "current_weight": 0.19890243,
-          "position_value_brl": 1947.93
+          "position_value_brl": 1959.14
         },
         "KATUSDT": {
           "direction": "sell",
           "current_weight": -0.01331832,
-          "position_value_brl": 130.43
+          "position_value_brl": 131.18
         }
       },
       "equity_curve": [
@@ -688,6 +795,30 @@
           "equity_multiple": 0.9793412938,
           "capital_brl": 9793.41,
           "hour_result_brl": 4.11
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "equity_multiple": 0.9811756303,
+          "capital_brl": 9811.76,
+          "hour_result_brl": 18.34
+        },
+        {
+          "timestamp": "2026-09-18T01:00:00+00:00",
+          "equity_multiple": 0.9825024792,
+          "capital_brl": 9825.02,
+          "hour_result_brl": 13.27
+        },
+        {
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 0.9839318487,
+          "capital_brl": 9839.32,
+          "hour_result_brl": 14.29
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 0.9849738861,
+          "capital_brl": 9849.74,
+          "hour_result_brl": 10.42
         }
       ],
       "real_orders_enabled": false,
@@ -1060,6 +1191,69 @@
           "from_weight_pct": 37.99056,
           "to_weight_pct": 38.00177,
           "delta_weight_pct": 0.0112
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.3984,
+          "to_weight_pct": 7.43733,
+          "delta_weight_pct": 0.03893
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 37.99621,
+          "to_weight_pct": 60.35677,
+          "delta_weight_pct": 22.36055
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 7.43733,
+          "to_weight_pct": 7.41307,
+          "delta_weight_pct": -0.02427
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 60.35677,
+          "to_weight_pct": 60.3467,
+          "delta_weight_pct": -0.01007
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -22.5,
+          "to_weight_pct": -3.97771,
+          "delta_weight_pct": 18.52229
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "UNIUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 8.37087,
+          "delta_weight_pct": 8.37087
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "NEARUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 10.15142,
+          "delta_weight_pct": 10.15142
         }
       ]
     },
@@ -1072,31 +1266,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-17T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-18T03:00:00+00:00",
       "summary": {
-        "new_forward_hours": 34,
-        "net_result_brl": 4.29,
-        "current_capital_brl": 10004.29,
-        "highest_capital_brl": 10028.64,
+        "new_forward_hours": 38,
+        "net_result_brl": 36.48,
+        "current_capital_brl": 10036.48,
+        "highest_capital_brl": 10036.48,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": 0.042905,
-        "gross_exposure_pct": 67.894613
+        "forward_return_pct": 0.36479,
+        "gross_exposure_pct": 90.259762
       },
       "assets": {
         "BTCUSDT": {
           "direction": "buy",
-          "current_weight": 0.07398399,
-          "position_value_brl": 740.16
+          "current_weight": 0.07413067,
+          "position_value_brl": 744.01
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.37996214,
-          "position_value_brl": 3801.25
+          "current_weight": 0.60346695,
+          "position_value_brl": 6056.68
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.225,
-          "position_value_brl": 2250.97
+          "current_weight": -0.03977711,
+          "position_value_brl": 399.22
+        },
+        "UNIUSDT": {
+          "direction": "buy",
+          "current_weight": 0.08370874,
+          "position_value_brl": 840.14
+        },
+        "NEARUSDT": {
+          "direction": "buy",
+          "current_weight": 0.10151415,
+          "position_value_brl": 1018.84
         }
       },
       "equity_curve": [
@@ -1309,6 +1513,30 @@
           "equity_multiple": 1.0004290536,
           "capital_brl": 10004.29,
           "hour_result_brl": 1.52
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "equity_multiple": 0.9998895607,
+          "capital_brl": 9998.9,
+          "hour_result_brl": -5.39
+        },
+        {
+          "timestamp": "2026-09-18T01:00:00+00:00",
+          "equity_multiple": 1.0013278674,
+          "capital_brl": 10013.28,
+          "hour_result_brl": 14.38
+        },
+        {
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 1.0027442875,
+          "capital_brl": 10027.44,
+          "hour_result_brl": 14.16
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 1.0036478952,
+          "capital_brl": 10036.48,
+          "hour_result_brl": 9.04
         }
       ],
       "real_orders_enabled": false,
@@ -1474,6 +1702,69 @@
           "from_weight_pct": 37.99056,
           "to_weight_pct": 38.00177,
           "delta_weight_pct": 0.0112
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.3984,
+          "to_weight_pct": 7.43733,
+          "delta_weight_pct": 0.03893
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 37.99621,
+          "to_weight_pct": 60.35677,
+          "delta_weight_pct": 22.36055
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 7.43733,
+          "to_weight_pct": 7.41307,
+          "delta_weight_pct": -0.02427
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 60.35677,
+          "to_weight_pct": 60.3467,
+          "delta_weight_pct": -0.01007
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -22.5,
+          "to_weight_pct": -3.97771,
+          "delta_weight_pct": 18.52229
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "UNIUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 8.37087,
+          "delta_weight_pct": 8.37087
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "NEARUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 10.15142,
+          "delta_weight_pct": 10.15142
         }
       ]
     },
@@ -1486,31 +1777,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-17T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-18T03:00:00+00:00",
       "summary": {
-        "new_forward_hours": 34,
-        "net_result_brl": 4.29,
-        "current_capital_brl": 10004.29,
-        "highest_capital_brl": 10028.64,
+        "new_forward_hours": 38,
+        "net_result_brl": 36.48,
+        "current_capital_brl": 10036.48,
+        "highest_capital_brl": 10036.48,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": 0.042905,
-        "gross_exposure_pct": 67.894613
+        "forward_return_pct": 0.36479,
+        "gross_exposure_pct": 90.259762
       },
       "assets": {
         "BTCUSDT": {
           "direction": "buy",
-          "current_weight": 0.07398399,
-          "position_value_brl": 740.16
+          "current_weight": 0.07413067,
+          "position_value_brl": 744.01
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.37996214,
-          "position_value_brl": 3801.25
+          "current_weight": 0.60346695,
+          "position_value_brl": 6056.68
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.225,
-          "position_value_brl": 2250.97
+          "current_weight": -0.03977711,
+          "position_value_brl": 399.22
+        },
+        "UNIUSDT": {
+          "direction": "buy",
+          "current_weight": 0.08370874,
+          "position_value_brl": 840.14
+        },
+        "NEARUSDT": {
+          "direction": "buy",
+          "current_weight": 0.10151415,
+          "position_value_brl": 1018.84
         }
       },
       "equity_curve": [
@@ -1723,6 +2024,30 @@
           "equity_multiple": 1.0004290536,
           "capital_brl": 10004.29,
           "hour_result_brl": 1.52
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "equity_multiple": 0.9998895607,
+          "capital_brl": 9998.9,
+          "hour_result_brl": -5.39
+        },
+        {
+          "timestamp": "2026-09-18T01:00:00+00:00",
+          "equity_multiple": 1.0013278674,
+          "capital_brl": 10013.28,
+          "hour_result_brl": 14.38
+        },
+        {
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 1.0027442875,
+          "capital_brl": 10027.44,
+          "hour_result_brl": 14.16
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 1.0036478952,
+          "capital_brl": 10036.48,
+          "hour_result_brl": 9.04
         }
       ],
       "real_orders_enabled": false,
@@ -1888,6 +2213,69 @@
           "from_weight_pct": 37.99056,
           "to_weight_pct": 38.00177,
           "delta_weight_pct": 0.0112
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.3984,
+          "to_weight_pct": 7.43733,
+          "delta_weight_pct": 0.03893
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 37.99621,
+          "to_weight_pct": 60.35677,
+          "delta_weight_pct": 22.36055
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 7.43733,
+          "to_weight_pct": 7.41307,
+          "delta_weight_pct": -0.02427
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 60.35677,
+          "to_weight_pct": 60.3467,
+          "delta_weight_pct": -0.01007
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -22.5,
+          "to_weight_pct": -3.97771,
+          "delta_weight_pct": 18.52229
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "UNIUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 8.37087,
+          "delta_weight_pct": 8.37087
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "NEARUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 10.15142,
+          "delta_weight_pct": 10.15142
         }
       ]
     },
@@ -1900,31 +2288,41 @@
       "base_capital_brl": 10000.0,
       "paper_start_after_timestamp": "2026-09-16T13:00:00+00:00",
       "effective_base_timestamp": "2026-09-16T13:00:00+00:00",
-      "latest_data_timestamp": "2026-09-17T23:00:00+00:00",
+      "latest_data_timestamp": "2026-09-18T03:00:00+00:00",
       "summary": {
-        "new_forward_hours": 34,
-        "net_result_brl": 4.29,
-        "current_capital_brl": 10004.29,
-        "highest_capital_brl": 10028.64,
+        "new_forward_hours": 38,
+        "net_result_brl": 36.48,
+        "current_capital_brl": 10036.48,
+        "highest_capital_brl": 10036.48,
         "lowest_capital_brl": 9941.88,
-        "forward_return_pct": 0.042905,
-        "gross_exposure_pct": 67.894613
+        "forward_return_pct": 0.36479,
+        "gross_exposure_pct": 90.259762
       },
       "assets": {
         "BTCUSDT": {
           "direction": "buy",
-          "current_weight": 0.07398399,
-          "position_value_brl": 740.16
+          "current_weight": 0.07413067,
+          "position_value_brl": 744.01
         },
         "ETHUSDT": {
           "direction": "buy",
-          "current_weight": 0.37996214,
-          "position_value_brl": 3801.25
+          "current_weight": 0.60346695,
+          "position_value_brl": 6056.68
         },
         "XRPUSDT": {
           "direction": "sell",
-          "current_weight": -0.225,
-          "position_value_brl": 2250.97
+          "current_weight": -0.03977711,
+          "position_value_brl": 399.22
+        },
+        "UNIUSDT": {
+          "direction": "buy",
+          "current_weight": 0.08370874,
+          "position_value_brl": 840.14
+        },
+        "NEARUSDT": {
+          "direction": "buy",
+          "current_weight": 0.10151415,
+          "position_value_brl": 1018.84
         }
       },
       "equity_curve": [
@@ -2137,6 +2535,30 @@
           "equity_multiple": 1.0004290536,
           "capital_brl": 10004.29,
           "hour_result_brl": 1.52
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "equity_multiple": 0.9998895607,
+          "capital_brl": 9998.9,
+          "hour_result_brl": -5.39
+        },
+        {
+          "timestamp": "2026-09-18T01:00:00+00:00",
+          "equity_multiple": 1.0013278674,
+          "capital_brl": 10013.28,
+          "hour_result_brl": 14.38
+        },
+        {
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 1.0027442875,
+          "capital_brl": 10027.44,
+          "hour_result_brl": 14.16
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 1.0036478952,
+          "capital_brl": 10036.48,
+          "hour_result_brl": 9.04
         }
       ],
       "real_orders_enabled": false,
@@ -2302,6 +2724,69 @@
           "from_weight_pct": 37.99056,
           "to_weight_pct": 38.00177,
           "delta_weight_pct": 0.0112
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 7.3984,
+          "to_weight_pct": 7.43733,
+          "delta_weight_pct": 0.03893
+        },
+        {
+          "timestamp": "2026-09-18T00:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "increased",
+          "direction": "buy",
+          "from_weight_pct": 37.99621,
+          "to_weight_pct": 60.35677,
+          "delta_weight_pct": 22.36055
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "BTCUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 7.43733,
+          "to_weight_pct": 7.41307,
+          "delta_weight_pct": -0.02427
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "ETHUSDT",
+          "action": "reduced",
+          "direction": "buy",
+          "from_weight_pct": 60.35677,
+          "to_weight_pct": 60.3467,
+          "delta_weight_pct": -0.01007
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "XRPUSDT",
+          "action": "reduced",
+          "direction": "sell",
+          "from_weight_pct": -22.5,
+          "to_weight_pct": -3.97771,
+          "delta_weight_pct": 18.52229
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "UNIUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 8.37087,
+          "delta_weight_pct": 8.37087
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "symbol": "NEARUSDT",
+          "action": "opened",
+          "direction": "buy",
+          "from_weight_pct": 0.0,
+          "to_weight_pct": 10.15142,
+          "delta_weight_pct": 10.15142
         }
       ]
     }
@@ -14583,9 +15068,14 @@
           "daily_return_pct": -0.64960475
         },
         {
-          "timestamp": "2026-09-17T23:00:00+00:00",
-          "equity_multiple": 319.3245744686,
-          "daily_return_pct": 0.35637264
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 320.0635684843,
+          "daily_return_pct": 0.58862147
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 320.351988872,
+          "daily_return_pct": 0.09011347
         }
       ]
     },
@@ -26865,9 +27355,14 @@
           "daily_return_pct": -0.49767646
         },
         {
-          "timestamp": "2026-09-17T23:00:00+00:00",
-          "equity_multiple": 568.677299526,
-          "daily_return_pct": -0.4816357
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 571.3429120074,
+          "daily_return_pct": -0.01515428
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 571.9479952821,
+          "daily_return_pct": 0.10590545
         }
       ]
     },
@@ -39147,9 +39642,14 @@
           "daily_return_pct": -0.64960475
         },
         {
-          "timestamp": "2026-09-17T23:00:00+00:00",
-          "equity_multiple": 646.8051736203,
-          "daily_return_pct": 0.35637264
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 648.3020366583,
+          "daily_return_pct": 0.58862147
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 648.8862441195,
+          "daily_return_pct": 0.09011347
         }
       ]
     },
@@ -51429,9 +51929,14 @@
           "daily_return_pct": -0.64960475
         },
         {
-          "timestamp": "2026-09-17T23:00:00+00:00",
-          "equity_multiple": 436.4119931395,
-          "daily_return_pct": 0.35637264
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 437.4219556576,
+          "daily_return_pct": 0.58862147
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 437.8161317603,
+          "daily_return_pct": 0.09011347
         }
       ]
     },
@@ -63711,9 +64216,14 @@
           "daily_return_pct": -0.64960475
         },
         {
-          "timestamp": "2026-09-17T23:00:00+00:00",
-          "equity_multiple": 412.2709743463,
-          "daily_return_pct": 0.35637264
+          "timestamp": "2026-09-18T02:00:00+00:00",
+          "equity_multiple": 413.2250687295,
+          "daily_return_pct": 0.58862147
+        },
+        {
+          "timestamp": "2026-09-18T03:00:00+00:00",
+          "equity_multiple": 413.5974401777,
+          "daily_return_pct": 0.09011347
         }
       ]
     }
