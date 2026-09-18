@@ -1,0 +1,106 @@
+{
+  "study": "V99 R106 phase 59 \u2014 exchange-native taker-buy provenance/schema probe",
+  "status": "PROVENANCE_PROBE_PASS",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "data_integrity_only": true,
+    "no_returns": true,
+    "no_direction_choice": true,
+    "no_parameter_search": true,
+    "no_holdout_inspection": true,
+    "no_ohlcv_proxy": true
+  },
+  "sentinel_rule": "BTCUSDT/ETHUSDT x 2020-06, 2023-01, 2025-01 fixed before inspecting taker-buy values",
+  "results": [
+    {
+      "symbol": "BTCUSDT",
+      "month": "2020-06",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2020-06.zip",
+      "sha256": "5f5b7ccd40facb7ddecd6019192be8de148e0aeeec8c8adc30cab3c474406c5b",
+      "rows": 720,
+      "first_open_time": 1590969600000,
+      "last_open_time": 1593558000000,
+      "hourly_gap_count": 0,
+      "taker_buy_fields_present": true,
+      "checksum_pass": true,
+      "zip_crc_pass": true,
+      "volume_invariants_pass": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "month": "2023-01",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-01.zip",
+      "sha256": "b9ac60cc3ffc1e16db96ca2314120ff7531988108ebef1733ee54234f4fedf7f",
+      "rows": 744,
+      "first_open_time": 1672531200000,
+      "last_open_time": 1675206000000,
+      "hourly_gap_count": 0,
+      "taker_buy_fields_present": true,
+      "checksum_pass": true,
+      "zip_crc_pass": true,
+      "volume_invariants_pass": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "month": "2025-01",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2025-01.zip",
+      "sha256": "9ebc05c9b3d5ab3591edf65bc5c7e5dbc2f96c1efc4adc4ea198c651a99a41b1",
+      "rows": 744,
+      "first_open_time": 1735689600000,
+      "last_open_time": 1738364400000,
+      "hourly_gap_count": 0,
+      "taker_buy_fields_present": true,
+      "checksum_pass": true,
+      "zip_crc_pass": true,
+      "volume_invariants_pass": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "month": "2020-06",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2020-06.zip",
+      "sha256": "312490661c3b420680eb6d99616643150393e9ab65b878060fe7776557b50c5c",
+      "rows": 720,
+      "first_open_time": 1590969600000,
+      "last_open_time": 1593558000000,
+      "hourly_gap_count": 0,
+      "taker_buy_fields_present": true,
+      "checksum_pass": true,
+      "zip_crc_pass": true,
+      "volume_invariants_pass": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "month": "2023-01",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-01.zip",
+      "sha256": "247b85e0a8806e139f263831445e1d7bb91f9f56e6ab32e1f285038cdd1ceff4",
+      "rows": 744,
+      "first_open_time": 1672531200000,
+      "last_open_time": 1675206000000,
+      "hourly_gap_count": 0,
+      "taker_buy_fields_present": true,
+      "checksum_pass": true,
+      "zip_crc_pass": true,
+      "volume_invariants_pass": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "month": "2025-01",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2025-01.zip",
+      "sha256": "99928eb8fdc5d565d317b0e9685e07fc5f9487510a39b8675d7374cfdfcbec82",
+      "rows": 744,
+      "first_open_time": 1735689600000,
+      "last_open_time": 1738364400000,
+      "hourly_gap_count": 0,
+      "taker_buy_fields_present": true,
+      "checksum_pass": true,
+      "zip_crc_pass": true,
+      "volume_invariants_pass": true
+    }
+  ],
+  "all_pass": true,
+  "next_gate": "build full train/validation-only coverage manifest for the PIT48 universe; do not evaluate alpha until coverage/integrity gate passes",
+  "disclosure": "This probe establishes source/schema/provenance only. It does not create or evaluate a candidate."
+}
