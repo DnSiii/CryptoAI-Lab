@@ -36,23 +36,23 @@ jobs:
         run: python -m pytest tests/test_v98_independent.py -q
       - name: Synchronize latest closed public candles
         run: python scripts/sync_paper_data_v13.py
-      - name: Execute V98 Independent Phase 024
-        run: python scripts/v98_independent_phase024_residual_tail_shape.py
-      - name: Commit compact V98 Phase 024 evidence back to isolated branch
+      - name: Execute V98 Independent Phase 025
+        run: python scripts/v98_independent_phase025_liquidity_efficiency.py
+      - name: Commit compact V98 Phase 025 evidence back to isolated branch
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/v98_independent_phase024_residual_tail_shape.json state/v98_independent_state.json
-          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase024 residual tail-shape evidence"; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase 024 evidence artifact
+          git add reports/v98_independent_phase025_liquidity_efficiency.json state/v98_independent_state.json
+          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase025 liquidity efficiency evidence"; git pull --rebase origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase 025 evidence artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase024-${{ github.run_id }}
+          name: v98-independent-phase025-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            reports/v98_independent_phase024_residual_tail_shape.json
-            reports/v98_independent_phase024_residual_tail_shape_positions.csv
+            reports/v98_independent_phase025_liquidity_efficiency.json
+            reports/v98_independent_phase025_liquidity_efficiency_positions.csv
             state/v98_independent_state.json
