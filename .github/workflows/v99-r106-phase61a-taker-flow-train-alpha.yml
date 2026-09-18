@@ -1,0 +1,45 @@
+name: CryptoAI V99 R106 Phase61A Taker Flow Train Alpha
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'scripts/run_v99_r106_phase61a_taker_flow_train_alpha.py'
+      - '.github/workflows/v99-r106-phase61a-taker-flow-train-alpha.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v99-r106-phase61a-taker-flow-train-alpha
+  cancel-in-progress: false
+jobs:
+  phase61a:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python scripts/run_v99_r106_phase61a_taker_flow_train_alpha.py
+      - name: Guard and publish evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('reports/candidate_v99_r106_phase61a_taker_flow_train_alpha.json').read_text())
+          assert r['frozen_assets_untouched']['v16'] and r['frozen_assets_untouched']['v99_frozen']
+          assert r['precommitment']['holdout_not_parsed'] and r['precommitment']['single_hypothesis_no_grid']
+          assert r['status'] in ('TRAIN_ALPHA_PASS_FREEZE_FOR_HOLDOUT','TRAIN_ALPHA_REJECT')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/candidate_v99_r106_phase61a_taker_flow_train_alpha.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Record V99 R106 Phase61A train-only taker-flow alpha gate'
+          git fetch origin research/v99-r106-native-all-regime-engine
+          git rebase origin/research/v99-r106-native-all-regime-engine
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
