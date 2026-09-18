@@ -1,26 +1,6 @@
 {
-  "engine": "V98 Independent",
-  "branch": "research/v98-independent-zero",
-  "phase": "phase_024_complete",
-  "champion": null,
-  "holdout_locked": true,
-  "v99_benchmark_locked_until_final": true,
-  "last_experiment": {
-    "id": "phase_024_residual_tail_shape",
-    "hypothesis": "Low residual excess-kurtosis may proxy idiosyncratic tail quality after BTC-beta neutralization, producing a cross-sectional premium distinct from residual skew, volatility, autocorrelation, and beta stability.",
-    "status": "training_rejected",
-    "parameters": "30d BTC beta + 30d residual kurtosis; 48h rebalance; 0.75 gross; beta/dollar neutral; no grid/sign search",
-    "report": "reports/v98_independent_phase024_residual_tail_shape.json",
-    "training_summary": {"total_return": -0.6294117271323321, "max_drawdown": -0.6599485357538929, "worst_day": -0.2688857943510078, "profit_factor_daily": 0.8797924863564772, "payoff_daily": 0.9828772208367604, "win_rate_daily": 0.4723287671232877, "positive_days": 862, "negative_days": 963, "days": 1825},
-    "folds": {"2023": {"total_return": -0.07329972751303726, "profit_factor_daily": 0.9258070189823406}, "2024": {"total_return": -0.13994707611867296, "profit_factor_daily": 0.8713852941339946}, "2025": {"total_return": -0.14883693112450724, "profit_factor_daily": 0.8414580411669691}},
-    "stress_training": {"severe": {"total_return": -0.722913449872732, "max_drawdown": -0.7413548419975058, "profit_factor_daily": 0.8389689706642884}, "supersevere": {"total_return": -0.8229943628405672, "max_drawdown": -0.8303641455749122, "profit_factor_daily": 0.7799673323037727}},
-    "training_gate": {"passed": false, "failures": ["training_pf_below_1.15","training_drawdown_below_-45pct","training_worst_day_below_-12pct","fold_2023_nonpositive_return","fold_2023_pf_below_1.05","fold_2024_nonpositive_return","fold_2024_pf_below_1.05","fold_2025_nonpositive_return","fold_2025_pf_below_1.05","severe_pf_below_1.10","supersevere_pf_below_1.03","supersevere_drawdown_below_-55pct"]},
-    "validation": null,
-    "final_holdout_opened": false
-  },
-  "next_hypothesis": {"id": "phase_025_liquidity_efficiency", "status": "preregistered_before_phase024_result_harvest", "spec": "reports/v98_independent_phase025_preregistration.md"},
-  "research_protocol": ["Read and diagnose the prior V98 experiment before proposing the next one.","Use training and chronological folds for research decisions; validation only after training pass.","Do not use V99 for tuning or parameter selection.","Reject cosmetic improvements and robustness-destroying return gains.","Do not repeat failed concepts under renamed parameters.","Evaluate base, severe and supersevere costs plus funding stress.","Record failure mechanism before changing architecture."],
-  "next_action": "Phase024 rejected decisively. Implement the already preregistered Phase025 liquidity-efficiency architecture without changing its sign/window/cadence, then run unchanged V98 gates.",
-  "holdout_evaluated_for_validation": false,
-  "final_holdout_untouched": true
+  "engine":"V98 Independent","branch":"research/v98-independent-zero","phase":"phase_025_complete","champion":null,"holdout_locked":true,"v99_benchmark_locked_until_final":true,
+  "last_experiment":{"id":"phase_025_liquidity_efficiency","hypothesis":"Low causal price impact per lagged quote-volume may proxy liquidity efficiency and structural quality after dollar/BTC-beta neutralization.","status":"training_rejected","parameters":"preregistered 30d BTC beta + 30d median lagged price-impact; 48h rebalance; 0.75 gross; beta/dollar neutral","report":"reports/v98_independent_phase025_liquidity_efficiency.json","training_summary":{"total_return":-0.8815622963002051,"max_drawdown":-0.8895088529008872,"worst_day":-0.33229239078172523,"profit_factor_daily":0.7288329359974213,"payoff_daily":0.7264407053541038,"win_rate_daily":0.5008219178082192,"positive_days":914,"negative_days":911},"folds":{"2023":{"total_return":-0.028418031740177874,"profit_factor_daily":0.9796781051140871},"2024":{"total_return":-0.03609565201543885,"profit_factor_daily":0.9711520885598978},"2025":{"total_return":0.020455151456566734,"profit_factor_daily":1.028022868713925}},"stress_training":{"severe":{"total_return":-0.9047569950551662,"max_drawdown":-0.9102953726878441,"profit_factor_daily":0.7026583457530134},"supersevere":{"total_return":-0.9318725291600066,"max_drawdown":-0.9355669359874937,"profit_factor_daily":0.664248584642547}},"training_gate":{"passed":false},"validation":null,"final_holdout_opened":false},
+  "research_protocol":["Read and diagnose the prior V98 experiment before proposing the next one.","Use training and chronological folds for research decisions; validation only after training pass.","Do not use V99 for tuning or parameter selection.","Reject cosmetic improvements and robustness-destroying return gains.","Do not repeat failed concepts under renamed parameters.","Evaluate base, severe and supersevere costs plus funding stress.","Record failure mechanism before changing architecture."],
+  "next_action":"Phase025 rejected decisively; close liquidity-efficiency without sign/window/cadence tuning. Next cycle must select a genuinely different pre-registered alpha family after reviewing this failure.","holdout_evaluated_for_validation":false,"final_holdout_untouched":true
 }
