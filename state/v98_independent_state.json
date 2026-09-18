@@ -1,6 +1,25 @@
 {
-  "engine":"V98 Independent","branch":"research/v98-independent-zero","phase":"phase_025_complete","champion":null,"holdout_locked":true,"v99_benchmark_locked_until_final":true,
-  "last_experiment":{"id":"phase_025_liquidity_efficiency","hypothesis":"Low causal price impact per lagged quote-volume may proxy liquidity efficiency and structural quality after dollar/BTC-beta neutralization.","status":"training_rejected","parameters":"preregistered 30d BTC beta + 30d median lagged price-impact; 48h rebalance; 0.75 gross; beta/dollar neutral","report":"reports/v98_independent_phase025_liquidity_efficiency.json","training_summary":{"total_return":-0.8815622963002051,"max_drawdown":-0.8895088529008872,"worst_day":-0.33229239078172523,"profit_factor_daily":0.7288329359974213,"payoff_daily":0.7264407053541038,"win_rate_daily":0.5008219178082192,"positive_days":914,"negative_days":911},"folds":{"2023":{"total_return":-0.028418031740177874,"profit_factor_daily":0.9796781051140871},"2024":{"total_return":-0.03609565201543885,"profit_factor_daily":0.9711520885598978},"2025":{"total_return":0.020455151456566734,"profit_factor_daily":1.028022868713925}},"stress_training":{"severe":{"total_return":-0.9047569950551662,"max_drawdown":-0.9102953726878441,"profit_factor_daily":0.7026583457530134},"supersevere":{"total_return":-0.9318725291600066,"max_drawdown":-0.9355669359874937,"profit_factor_daily":0.664248584642547}},"training_gate":{"passed":false},"validation":null,"final_holdout_opened":false},
-  "research_protocol":["Read and diagnose the prior V98 experiment before proposing the next one.","Use training and chronological folds for research decisions; validation only after training pass.","Do not use V99 for tuning or parameter selection.","Reject cosmetic improvements and robustness-destroying return gains.","Do not repeat failed concepts under renamed parameters.","Evaluate base, severe and supersevere costs plus funding stress.","Record failure mechanism before changing architecture."],
-  "next_action":"Phase025 rejected decisively; close liquidity-efficiency without sign/window/cadence tuning. Next cycle must select a genuinely different pre-registered alpha family after reviewing this failure.","holdout_evaluated_for_validation":false,"final_holdout_untouched":true
+  "engine": "V98 Independent",
+  "branch": "research/v98-independent-zero",
+  "phase": "phase_028_complete",
+  "champion": null,
+  "holdout_locked": true,
+  "v99_benchmark_locked_until_final": true,
+  "last_experiment": {
+    "id": "phase_028_residual_shock_recovery",
+    "hypothesis": "Lagged standardized 24h BTC-residual shocks may mean-revert cross-sectionally as temporary forced-flow dislocations normalize.",
+    "status": "training_rejected",
+    "parameters": "preregistered 24h standardized BTC-residual shock recovery; 720h beta/scale; 24h rebalance; 0.75 gross; beta/dollar neutral",
+    "report": "reports/v98_independent_phase028_residual_shock_recovery.json",
+    "training_summary": {"total_return": -0.9047445596310838, "max_drawdown": -0.9087014154404176, "worst_day": -0.3210460725252898, "profit_factor_daily": 0.7210623304247948, "payoff_daily": 0.8720838596784141, "win_rate_daily": 0.4526027397260274, "positive_days": 826, "negative_days": 999},
+    "folds": {"2023": {"total_return": -0.2504012714696965, "profit_factor_daily": 0.7525647582022721}, "2024": {"total_return": -0.2816713041411172, "profit_factor_daily": 0.7386191417870691}, "2025": {"total_return": -0.25043251587445503, "profit_factor_daily": 0.7314801154849101}},
+    "stress_training": {"severe": {"total_return": -0.9685597803646936, "max_drawdown": -0.9689209876253327, "profit_factor_daily": 0.608127147052262}, "supersevere": {"total_return": -0.9945603225779449, "max_drawdown": -0.9946184247574668, "profit_factor_daily": 0.4651583061375452}},
+    "training_gate": {"passed": false},
+    "validation": null,
+    "final_holdout_opened": false
+  },
+  "research_protocol": ["Read and diagnose the prior V98 experiment before proposing the next one.", "Use training and chronological folds for research decisions; validation only after training pass.", "Do not use V99 for tuning or parameter selection.", "Reject cosmetic improvements and robustness-destroying return gains.", "Do not repeat failed concepts under renamed parameters.", "Evaluate base, severe and supersevere costs plus funding stress.", "Record failure mechanism before changing architecture."],
+  "next_action": "Phase028 rejected decisively across every chronological fold and cost stress; close residual shock-recovery without sign/lookback/cadence rescue. Next experiment must use a genuinely different causal alpha family.",
+  "holdout_evaluated_for_validation": false,
+  "final_holdout_untouched": true
 }
