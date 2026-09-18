@@ -1,0 +1,17 @@
+{
+  "study": "V99 R106 phase59 holdout-integrity correction",
+  "status": "QUARANTINED_NONDECISION_EVIDENCE",
+  "issue": "Phase59 provenance probe included deterministic 2025-01 archive sentinels, which are after the frozen train_end 2024-01-18T00:00:00+00:00. Although the probe evaluated only checksum/CRC/schema/volume invariants and did not compute returns, distributions, alpha direction, or candidate performance, this was stricter-than-intended holdout contact.",
+  "containment": {
+    "phase59_2025_sentinels_may_influence_alpha": false,
+    "phase59_2025_sentinels_may_influence_parameter_choice": false,
+    "phase59_2025_sentinels_may_influence_promotion": false,
+    "future_ingestion_before_formal_holdout_gate": "parse feature values only through frozen train_end; bytes after cutoff may not be inspected",
+    "phase60_enforces_train_cutoff_before_feature parsing": true
+  },
+  "observed_from_post_train_sentinels": ["archive checksum pass", "ZIP CRC pass", "12-column schema presence", "basic taker-volume bounds pass"],
+  "not_observed": ["returns", "alpha PnL", "feature distribution", "cross-sectional ranks", "directional predictiveness", "parameter comparison"],
+  "phase61_preregistration_policy": "The already-fixed 24h continuation hypothesis is not changed in response to Phase59; no sign/horizon/threshold adjustment is permitted. If strict audit treats any post-train feature contact as contamination, Phase61 evidence must be labelled contaminated and cannot be promoted without a fresh independently frozen evaluation dataset.",
+  "frozen_assets_untouched": {"v16": true, "v99_frozen": true},
+  "disclosure": "This correction is conservative and prevents accidental use of Phase59 post-train integrity observations as research evidence."
+}
