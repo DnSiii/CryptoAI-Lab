@@ -1,0 +1,24 @@
+{
+  "study": "V99 R106 phase 57A \u2014 genuine taker-buy data availability audit",
+  "status": "DATA_BLOCKED_NO_PROXY",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "data_availability_only": true,
+    "strategy_change": false,
+    "no_proxy_from_ohlcv": true,
+    "no_holdout_feature_selection": true,
+    "required_feature": "exchange-provided taker-buy volume field"
+  },
+  "roots_scanned": [
+    "data/canonical",
+    "data"
+  ],
+  "matching_sources": [],
+  "genuine_field_found": false,
+  "actionable_for_phase57b": false,
+  "next_step": "If genuine fields exist, audit timestamp semantics/provenance/full coverage and causal join before any returns. If absent, specify research-only ingestion/cache without changing canonical or frozen assets.",
+  "disclosure": "No candidate, return backtest, direction choice or holdout inspection is performed by Phase57A."
+}
