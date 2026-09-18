@@ -20,8 +20,15 @@ def load(job):
   rd=csv.DictReader(io.TextIOWrapper(z.open(z.namelist()[0]),encoding='utf-8'));rows=[]
   if 'count_long_short_ratio' not in (rd.fieldnames or []):raise RuntimeError('schema '+stem)
   for r in rd:
-   t=pd.to_datetime(r['create_time'],utc=True);v=float(r['count_long_short_ratio']);rows.append((t,v))
- if not rows:raise RuntimeError('empty '+stem)
+   t=pd.to_datetime(r['create_time'],utc=True);raw_v=(r.get('count_long_short_ratio') or '').strip()
+   # Native archives can contain blank observations. Treat them as missing exactly as preregistered;
+   # never impute, forward-fill, infer, or substitute another positioning field.
+   if not raw_v:continue
+   try:v=float(raw_v)
+   except ValueError:continue
+   if not np.isfinite(v):continue
+   rows.append((t,v))
+ if not rows:return s,[]
  df=pd.DataFrame(rows,columns=['t','v']).sort_values('t').drop_duplicates('t',keep='last').set_index('t');h=df['v'].resample('1h').last().dropna();return s,list(h.items())
 
 def main():
@@ -33,9 +40,9 @@ def main():
  cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup();idx=data.close.index;ratio=pd.DataFrame(index=idx,columns=data.close.columns,dtype=float)
  for s,rows in loaded:
   if s not in ratio.columns:continue
-  ser=pd.Series(dict(rows));ix=ratio.index.intersection(ser.index);ratio.loc[ix,s]=ser.reindex(ix).values
+  ser=pd.Series(dict(rows),dtype=float);ix=ratio.index.intersection(ser.index);ratio.loc[ix,s]=ser.reindex(ix).values
  # Fixed preregistered crowding contrarian transform. Non-positive native ratios are invalid/missing, never imputed.
  feature=-np.log(ratio.where(ratio>0)).shift(1)
  targets=p31.weights(feature,data.close);severe=float(ex['severe_cost_per_side']);result=p1.run_targets(data,targets,ex,guard,severe,ALPHA_GROSS);train_end=pd.Timestamp(da['train_end'],tz='UTC');start=max(data.close.index[0],pd.Timestamp('2021-12-01',tz='UTC'));d=p47.diag(result,data.close.index,start,train_end);passed=bool(d['stable_train'])
- out={'study':'V99 R106 Phase65 — native crowd-positioning contrarian TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_HOLDOUT' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'prereg':'research/v99_r106_phase65_crowd_positioning_contrarian_prereg.md','source':'Binance USD-M daily metrics count_long_short_ratio','transform':'-log(count_long_short_ratio).shift(1)','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True,'missing_archives_not_filled':True},'train_end':train_end.isoformat(),'diagnostic':d,'selected_train_only':'native_crowd_positioning_contrarian' if passed else None,'archives_consumed':len(jobs),'next_gate':'If pass, freeze exact specification and evaluate untouched holdout separately; if reject, no sign/field/smoothing/threshold retuning.','quarantined_symbols':quarantined,'disclosure':'Phase65 consumes native metrics only through train_end; every consumed archive is SHA256+CRC verified; no holdout metrics/returns are inspected.'};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'archives_consumed':len(jobs),'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
+ out={'study':'V99 R106 Phase65 — native crowd-positioning contrarian TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_HOLDOUT' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'prereg':'research/v99_r106_phase65_crowd_positioning_contrarian_prereg.md','source':'Binance USD-M daily metrics count_long_short_ratio','transform':'-log(count_long_short_ratio).shift(1)','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True,'missing_archives_not_filled':True,'blank_or_nonfinite_observations_treated_missing':True},'train_end':train_end.isoformat(),'diagnostic':d,'selected_train_only':'native_crowd_positioning_contrarian' if passed else None,'archives_consumed':len(jobs),'next_gate':'If pass, freeze exact specification and evaluate untouched holdout separately; if reject, no sign/field/smoothing/threshold retuning.','quarantined_symbols':quarantined,'disclosure':'Phase65 consumes native metrics only through train_end; every consumed archive is SHA256+CRC verified; blank/nonfinite native observations remain missing; no holdout metrics/returns are inspected.'};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'archives_consumed':len(jobs),'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
 if __name__=='__main__':main()
