@@ -1,0 +1,120 @@
+{
+  "study": "V99 R106 phase 55 \u2014 slow quality-momentum alpha audit",
+  "status": "DIAGNOSTIC_ONLY_NO_STRATEGY_CHANGE",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "objective": "test one genuinely slow standalone factor after phase54 showed universal daily-family tail/cost fragility: 30d momentum per downside risk, weekly rebalance",
+    "distinction_from_prior": "not a rescue of any listed family: single composite economic score, one 720h horizon and one 168h rebalance cadence are precommitted; no grid or direction flip",
+    "families": [
+      "slow_quality_momentum_720h_weekly"
+    ],
+    "signal_horizon_hours": 720,
+    "rebalance_hours": 168,
+    "alpha_gross": 0.2,
+    "all_features_causal_t_minus_1": true,
+    "selection_uses_train_only": true,
+    "holdout_cannot_change_selected_family": true,
+    "no_parameter_grid": true,
+    "cost_for_selection": "severe",
+    "strategy_change_in_phase55": false
+  },
+  "data": {
+    "common_start": "2020-01-01T00:00:00+00:00",
+    "common_end": "2026-09-16T13:00:00+00:00",
+    "train_end": "2024-01-18T00:00:00+00:00",
+    "holdout_start": "2024-01-18T01:00:00+00:00",
+    "severe_cost_per_side": 0.0012
+  },
+  "sleeves": {
+    "slow_quality_momentum_720h_weekly": {
+      "stable_train": false,
+      "quality_score": -1000000000.0,
+      "train": {
+        "active_hours": 34632,
+        "roi": 0.40182368493174137,
+        "profit_factor": 1.0302476930157483,
+        "max_drawdown_abs": 0.14252498804796376,
+        "positive_hour_ratio": 0.4943982443982444,
+        "robust_mean_without_top1pct": -4.462758818312753e-05
+      },
+      "valid_folds": 4,
+      "healthy_folds": 0,
+      "folds": [
+        {
+          "fold": 1,
+          "start": "2020-01-01T00:00:00+00:00",
+          "end": "2021-01-04T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8027,
+          "roi": 0.03543587482013688,
+          "profit_factor": 1.0151040659788335,
+          "max_drawdown_abs": 0.08326707129880939,
+          "positive_hour_ratio": 0.5076616419583905,
+          "robust_mean_without_top1pct": -3.151970851485034e-05
+        },
+        {
+          "fold": 2,
+          "start": "2021-01-04T12:00:00+00:00",
+          "end": "2022-01-08T23:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": 0.35796320494993394,
+          "profit_factor": 1.066705560646167,
+          "max_drawdown_abs": 0.14252498804798097,
+          "positive_hour_ratio": 0.4899639152007217,
+          "robust_mean_without_top1pct": -4.997360596889003e-05
+        },
+        {
+          "fold": 3,
+          "start": "2022-01-09T00:00:00+00:00",
+          "end": "2023-01-13T11:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8868,
+          "roi": -0.021774559208025623,
+          "profit_factor": 0.9924597642209393,
+          "max_drawdown_abs": 0.07872476024120822,
+          "positive_hour_ratio": 0.4870320252593595,
+          "robust_mean_without_top1pct": -3.636926197239295e-05
+        },
+        {
+          "fold": 4,
+          "start": "2023-01-13T12:00:00+00:00",
+          "end": "2024-01-18T00:00:00+00:00",
+          "eligible": true,
+          "healthy": false,
+          "active_hours": 8869,
+          "roi": 0.01916201690482433,
+          "profit_factor": 1.0103525385685395,
+          "max_drawdown_abs": 0.07125078486918834,
+          "positive_hour_ratio": 0.49419325741346265,
+          "robust_mean_without_top1pct": -3.1075799563328805e-05
+        }
+      ]
+    }
+  },
+  "selected_train_only": null,
+  "selected_holdout_descriptive": {},
+  "selected_holdout_pass": false,
+  "actionable_for_phase56": false,
+  "next_phase_policy": "If actionable, freeze this exact single family and run severe+supersevere temporal folds, regime matrix and benchmark envelope. If rejected, do not tune horizon, cadence, risk denominator or direction.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  },
+  "disclosure": "Historical research only. No real orders. Phase55 cannot alter V99 Frozen or V16 Frozen."
+}
