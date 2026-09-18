@@ -1,4 +1,5 @@
 from __future__ import annotations
+# Phase67 execution trigger; specification is frozen by preregistration before this run.
 import concurrent.futures,csv,hashlib,io,json,urllib.request,zipfile
 from pathlib import Path
 import numpy as np,pandas as pd
