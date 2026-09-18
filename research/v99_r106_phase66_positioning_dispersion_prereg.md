@@ -11,6 +11,8 @@ For each asset/hour, using only native Binance USD-M metrics observations availa
 
 `dispersion = log(top_long_short_position_ratio / count_long_short_ratio).shift(1)`
 
+Schema clarification recorded after the first execution failed before producing any alpha result: in the Binance USD-M daily metrics archive, the native top-trader **position** long/short ratio named conceptually above is physically stored as `sum_toptrader_long_short_ratio`. Therefore the executable expression is exactly `log(sum_toptrader_long_short_ratio / count_long_short_ratio).shift(1)`. This is a schema-name correction only, not an alternate signal, sign change, parameter change, or post-result rescue; the failed run never reached portfolio construction/backtest.
+
 Both ratios must be finite and strictly positive at the same native timestamp. Otherwise the observation is missing. No imputation, forward-fill, proxy, alternate field, sign flip, smoothing, clipping, threshold sweep, or parameter grid is allowed. Cross-sectional portfolio construction reuses the already-audited Phase31 weighting function unchanged. Alpha gross is fixed at 0.20.
 
 ## Data/integrity contract
