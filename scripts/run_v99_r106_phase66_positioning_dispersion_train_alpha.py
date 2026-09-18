@@ -7,6 +7,8 @@ import run_v99_r106_native_all_regime_engine as p1
 import run_v99_r106_phase47_downside_semivariance_alpha_audit as p47
 import run_v99_r105_all_regime_structural_audit as audit
 PROJECT=Path(__file__).resolve().parents[1];OUT=PROJECT/'reports'/'candidate_v99_r106_phase66_positioning_dispersion_train_alpha.json';BASE='https://data.binance.vision/data/futures/um/daily/metrics';ALPHA_GROSS=.20
+# Binance archive column implementing the preregistered native top-trader POSITION ratio.
+TOP_POSITION_FIELD='sum_toptrader_long_short_ratio';CROWD_FIELD='count_long_short_ratio'
 
 def get(u):
  req=urllib.request.Request(u,headers={'User-Agent':'CryptoAI-v99-r106-phase66'})
@@ -18,10 +20,10 @@ def load(job):
  with zipfile.ZipFile(io.BytesIO(raw)) as z:
   if z.testzip() is not None:raise RuntimeError('crc '+stem)
   rd=csv.DictReader(io.TextIOWrapper(z.open(z.namelist()[0]),encoding='utf-8'));rows=[]
-  need={'count_long_short_ratio','top_long_short_position_ratio'}
-  if not need.issubset(set(rd.fieldnames or [])):raise RuntimeError('schema '+stem)
+  need={'create_time',CROWD_FIELD,TOP_POSITION_FIELD}
+  if not need.issubset(set(rd.fieldnames or [])):raise RuntimeError('schema '+stem+': '+repr(rd.fieldnames))
   for r in rd:
-   t=pd.to_datetime(r['create_time'],utc=True);a=(r.get('count_long_short_ratio') or '').strip();b=(r.get('top_long_short_position_ratio') or '').strip()
+   t=pd.to_datetime(r['create_time'],utc=True);a=(r.get(CROWD_FIELD) or '').strip();b=(r.get(TOP_POSITION_FIELD) or '').strip()
    if not a or not b:continue
    try:a=float(a);b=float(b)
    except ValueError:continue
@@ -41,5 +43,5 @@ def main():
   if s not in disp.columns:continue
   ser=pd.Series(dict(rows),dtype=float);ix=disp.index.intersection(ser.index);disp.loc[ix,s]=ser.reindex(ix).values
  feature=disp.shift(1);targets=p31.weights(feature,data.close);severe=float(ex['severe_cost_per_side']);result=p1.run_targets(data,targets,ex,guard,severe,ALPHA_GROSS);train_end=pd.Timestamp(da['train_end'],tz='UTC');start=max(data.close.index[0],pd.Timestamp('2021-12-01',tz='UTC'));d=p47.diag(result,data.close.index,start,train_end);passed=bool(d['stable_train'])
- out={'study':'V99 R106 Phase66 — native positioning dispersion TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_HOLDOUT' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'prereg':'research/v99_r106_phase66_positioning_dispersion_prereg.md','source':'Binance USD-M daily metrics count_long_short_ratio + top_long_short_position_ratio','transform':'log(top_long_short_position_ratio/count_long_short_ratio).shift(1)','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True,'missing_archives_not_filled':True,'blank_or_nonfinite_observations_treated_missing':True},'train_end':train_end.isoformat(),'diagnostic':d,'selected_train_only':'native_positioning_dispersion' if passed else None,'archives_consumed':len(jobs),'next_gate':'If pass, freeze exact specification and evaluate untouched holdout separately; if reject, no sign/field/smoothing/threshold retuning.','quarantined_symbols':quarantined,'disclosure':'Phase66 consumes native metrics only through train_end; every consumed archive is SHA256+CRC verified; missing/nonfinite observations remain missing; no holdout metrics/returns are inspected.'};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'archives_consumed':len(jobs),'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
+ out={'study':'V99 R106 Phase66 — native positioning dispersion TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_HOLDOUT' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'prereg':'research/v99_r106_phase66_positioning_dispersion_prereg.md','source':'Binance USD-M daily metrics count_long_short_ratio + sum_toptrader_long_short_ratio (native top-trader POSITION ratio)','transform':'log(sum_toptrader_long_short_ratio/count_long_short_ratio).shift(1)','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True,'missing_archives_not_filled':True,'blank_or_nonfinite_observations_treated_missing':True},'train_end':train_end.isoformat(),'diagnostic':d,'selected_train_only':'native_positioning_dispersion' if passed else None,'archives_consumed':len(jobs),'next_gate':'If pass, freeze exact specification and evaluate untouched holdout separately; if reject, no sign/field/smoothing/threshold retuning.','quarantined_symbols':quarantined,'disclosure':'Phase66 consumes native metrics only through train_end; every consumed archive is SHA256+CRC verified; missing/nonfinite observations remain missing; no holdout metrics/returns are inspected.'};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'archives_consumed':len(jobs),'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
 if __name__=='__main__':main()
