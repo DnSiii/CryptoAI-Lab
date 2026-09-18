@@ -9,7 +9,7 @@ import v98_independent_phase003_dispersion_neutral as p3
 CONFIG_PATH=PROJECT/'config'/'v98_independent.json'; STATE_PATH=PROJECT/'state'/'v98_independent_state.json'; REPORT_PATH=PROJECT/'reports'/'v98_independent_phase035_close_location_pressure.json'; POSITIONS_PATH=PROJECT/'reports'/'v98_independent_phase035_close_location_pressure_positions.csv'
 PHASE={'id':'phase_035_close_location_pressure','liquidity_top_n':10,'liquidity_lookback_hours':720,'minimum_history_hours':2160,'signal_lookback_hours':24,'min_signal_obs':18,'beta_lookback_hours':720,'min_beta_obs':360,'rebalance_hours':24,'gross_target':0.75,'gross_cap':0.75}
 def build_targets(data,membership):
-    c=PHASE; close=data.close; high=data.high; low=data.low; lagc=close.shift(1); lagh=high.shift(1); lagl=low.shift(1); rng=lagh-lagl
+    c=PHASE; close=data.close; high=data.frames['high']; low=data.frames['low']; lagc=close.shift(1); lagh=high.shift(1); lagl=low.shift(1); rng=lagh-lagl
     clv=(2*lagc-lagh-lagl).div(rng.where(rng.abs()>1e-12)).fillna(0.0); score=clv.rolling(c['signal_lookback_hours'],min_periods=c['min_signal_obs']).mean()
     ret=lagc.pct_change(fill_method=None); btc=ret['BTCUSDT']; var=btc.rolling(c['beta_lookback_hours'],min_periods=c['min_beta_obs']).var(); beta=ret.rolling(c['beta_lookback_hours'],min_periods=c['min_beta_obs']).cov(btc).div(var,axis=0)
     eligible=(membership & close.notna()); eligible['BTCUSDT']=False; targets=pd.DataFrame(0.0,index=close.index,columns=close.columns); events=np.arange(len(targets))%c['rebalance_hours']==0
