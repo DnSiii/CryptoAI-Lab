@@ -1,4 +1,5 @@
 from __future__ import annotations
+# Phase61A is deliberately train-only; this marker triggers the registered workflow after creation.
 import concurrent.futures,csv,datetime as dt,hashlib,io,json,urllib.error,urllib.request,zipfile
 from pathlib import Path
 import numpy as np,pandas as pd
@@ -50,7 +51,6 @@ def main():
  for s,rs in by.items():
   if s not in pressure.columns:continue
   ser=pd.Series({pd.to_datetime(t,unit='ms',utc=True):v for t,v in rs});pressure.loc[pressure.index.intersection(ser.index),s]=ser.reindex(pressure.index.intersection(ser.index)).values
- # Strict train-only construction: all downloaded/assigned feature values end at train_end; t-1 after 24 completed hours.
  feature=pressure.rolling(H,min_periods=H).mean().shift(1); targets=p31.weights(feature,data.close); severe=float(ex['severe_cost_per_side']); result=p1.run_targets(data,targets,ex,guard,severe,ALPHA_GROSS)
  start=max(data.close.index[0],min(x for x in feature.index if x<=train_end)); d=p47.diag(result,data.close.index,start,train_end); passed=bool(d['stable_train'])
  out={'study':'V99 R106 phase61A — native taker-flow 24h continuation TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_HOLDOUT' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'source':'Binance USD-M native taker_buy_quote_volume/quote_volume','transform':'rolling24_mean(2*taker_buy_quote_volume/quote_volume-1).shift(1)','direction':'continuation','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True},'train_end':train_end.isoformat(),'diagnostic':d,'selected_train_only':'native_taker_flow_24h_continuation' if passed else None,'next_gate':'If pass, freeze exact specification and evaluate untouched holdout separately; if reject, do not flip sign/horizon or retune.','quarantined_symbols':quarantined,'disclosure':'Phase61A downloads/parses native taker-flow only through train_end. No holdout feature values or returns are inspected.'};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'stable_train':passed,'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
