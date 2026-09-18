@@ -1,0 +1,95 @@
+{
+  "study": "V99 R106 phase62 \u2014 native taker-flow absorption TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase62_taker_absorption_prereg.md",
+    "source": "Binance USD-M native taker_buy_quote_volume/quote_volume + canonical close",
+    "transform": "cross-sectional winsor05/95[-flow24*sign(ret24)*abs(flow24)/(abs(ret24)+1e-4)].shift(1)",
+    "mechanism": "passive-liquidity absorption",
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "selection_train_only": true,
+    "holdout_not_parsed": true
+  },
+  "train_end": "2024-01-18T00:00:00+00:00",
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 35352,
+      "roi": -0.5352817549095289,
+      "profit_factor": 0.9131076380894146,
+      "max_drawdown_abs": 0.5479119714655762,
+      "positive_hour_ratio": 0.48178320887078524,
+      "robust_mean_without_top1pct": -5.35003418577597e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2020-01-01T00:00:00+00:00",
+        "end": "2021-01-04T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 8747,
+        "roi": -0.13768966783011727,
+        "profit_factor": 0.9323157845613084,
+        "max_drawdown_abs": 0.16753411651685612,
+        "positive_hour_ratio": 0.4877100720246942,
+        "robust_mean_without_top1pct": -4.5632617430158365e-05
+      },
+      {
+        "fold": 2,
+        "start": "2021-01-04T12:00:00+00:00",
+        "end": "2022-01-08T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 8868,
+        "roi": -0.17456103102320775,
+        "profit_factor": 0.9406522972809315,
+        "max_drawdown_abs": 0.1960768413910836,
+        "positive_hour_ratio": 0.4815065403698692,
+        "robust_mean_without_top1pct": -6.271294427412465e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-01-09T00:00:00+00:00",
+        "end": "2023-01-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 8868,
+        "roi": -0.16658446573746,
+        "profit_factor": 0.9022189520229235,
+        "max_drawdown_abs": 0.1661624248757515,
+        "positive_hour_ratio": 0.481957600360848,
+        "robust_mean_without_top1pct": -4.679072639165823e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-01-13T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 8869,
+        "roi": -0.21660720234932884,
+        "profit_factor": 0.8435350126103219,
+        "max_drawdown_abs": 0.21671024854703802,
+        "positive_hour_ratio": 0.4760401398128312,
+        "robust_mean_without_top1pct": -4.85042200344326e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "next_gate": "If pass, freeze exact specification and evaluate untouched holdout separately; if reject, no sign/horizon/epsilon/winsor retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "disclosure": "Phase62 downloads/parses native taker-flow only through train_end. No holdout feature values or returns are inspected."
+}
