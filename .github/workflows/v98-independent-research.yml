@@ -36,23 +36,23 @@ jobs:
         run: python -m pytest tests/test_v98_independent.py -q
       - name: Synchronize latest closed public candles
         run: python scripts/sync_paper_data_v13.py
-      - name: Execute V98 Independent Phase 033
-        run: python scripts/v98_independent_phase033_beta_asymmetry.py
-      - name: Commit compact V98 Phase 033 evidence back to isolated branch
+      - name: Execute V98 Independent Phase 034
+        run: python scripts/v98_independent_phase034_cross_asset_leadlag.py
+      - name: Commit compact V98 Phase 034 evidence back to isolated branch
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/v98_independent_phase033_beta_asymmetry.json state/v98_independent_state.json
-          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase033 beta asymmetry evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase 033 evidence artifact
+          git add reports/v98_independent_phase034_cross_asset_leadlag.json state/v98_independent_state.json
+          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase034 cross-asset leadlag evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase 034 evidence artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase033-${{ github.run_id }}
+          name: v98-independent-phase034-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            reports/v98_independent_phase033_beta_asymmetry.json
-            reports/v98_independent_phase033_beta_asymmetry_positions.csv
+            reports/v98_independent_phase034_cross_asset_leadlag.json
+            reports/v98_independent_phase034_cross_asset_leadlag_positions.csv
             state/v98_independent_state.json
