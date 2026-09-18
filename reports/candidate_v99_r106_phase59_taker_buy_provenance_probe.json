@@ -1,6 +1,6 @@
 {
-  "study": "V99 R106 phase 59 \u2014 exchange-native taker-buy provenance/schema probe",
-  "status": "PROVENANCE_PROBE_PASS",
+  "study": "V99 R106 phase 59B \u2014 corrected pre-holdout exchange-native taker-buy provenance/schema probe",
+  "status": "PROVENANCE_PROBE_PASS_PREHOLDOUT_ONLY",
   "frozen_assets_untouched": {
     "v16": true,
     "v99_frozen": true
@@ -13,7 +13,7 @@
     "no_holdout_inspection": true,
     "no_ohlcv_proxy": true
   },
-  "sentinel_rule": "BTCUSDT/ETHUSDT x 2020-06, 2023-01, 2025-01 fixed before inspecting taker-buy values",
+  "sentinel_rule": "BTCUSDT/ETHUSDT x 2020-06, 2022-01, 2023-12; all strictly before frozen train_end 2024-01-18",
   "results": [
     {
       "symbol": "BTCUSDT",
@@ -31,12 +31,12 @@
     },
     {
       "symbol": "BTCUSDT",
-      "month": "2023-01",
-      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-01.zip",
-      "sha256": "b9ac60cc3ffc1e16db96ca2314120ff7531988108ebef1733ee54234f4fedf7f",
+      "month": "2022-01",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-01.zip",
+      "sha256": "5281a9c866e7d54b0a5b5e6a7dad5575ad7b96df67f05f74d614c54190ffff5f",
       "rows": 744,
-      "first_open_time": 1672531200000,
-      "last_open_time": 1675206000000,
+      "first_open_time": 1640995200000,
+      "last_open_time": 1643670000000,
       "hourly_gap_count": 0,
       "taker_buy_fields_present": true,
       "checksum_pass": true,
@@ -45,12 +45,12 @@
     },
     {
       "symbol": "BTCUSDT",
-      "month": "2025-01",
-      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2025-01.zip",
-      "sha256": "9ebc05c9b3d5ab3591edf65bc5c7e5dbc2f96c1efc4adc4ea198c651a99a41b1",
+      "month": "2023-12",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-12.zip",
+      "sha256": "5377bec9e6dc04027717836cc1c2a3789da4e4122d57e8395265a0414b766b7c",
       "rows": 744,
-      "first_open_time": 1735689600000,
-      "last_open_time": 1738364400000,
+      "first_open_time": 1701388800000,
+      "last_open_time": 1704063600000,
       "hourly_gap_count": 0,
       "taker_buy_fields_present": true,
       "checksum_pass": true,
@@ -73,12 +73,12 @@
     },
     {
       "symbol": "ETHUSDT",
-      "month": "2023-01",
-      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-01.zip",
-      "sha256": "247b85e0a8806e139f263831445e1d7bb91f9f56e6ab32e1f285038cdd1ceff4",
+      "month": "2022-01",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-01.zip",
+      "sha256": "6d96a19efda6917a3912377ef8e1a5eadc8f1a273f91afa069ae70bd679301bc",
       "rows": 744,
-      "first_open_time": 1672531200000,
-      "last_open_time": 1675206000000,
+      "first_open_time": 1640995200000,
+      "last_open_time": 1643670000000,
       "hourly_gap_count": 0,
       "taker_buy_fields_present": true,
       "checksum_pass": true,
@@ -87,12 +87,12 @@
     },
     {
       "symbol": "ETHUSDT",
-      "month": "2025-01",
-      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2025-01.zip",
-      "sha256": "99928eb8fdc5d565d317b0e9685e07fc5f9487510a39b8675d7374cfdfcbec82",
+      "month": "2023-12",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-12.zip",
+      "sha256": "8f581fcee21156d501435fc88db1d99515e6d7432fa7ae2993de3b5f95bb0069",
       "rows": 744,
-      "first_open_time": 1735689600000,
-      "last_open_time": 1738364400000,
+      "first_open_time": 1701388800000,
+      "last_open_time": 1704063600000,
       "hourly_gap_count": 0,
       "taker_buy_fields_present": true,
       "checksum_pass": true,
@@ -101,6 +101,7 @@
     }
   ],
   "all_pass": true,
-  "next_gate": "build full train/validation-only coverage manifest for the PIT48 universe; do not evaluate alpha until coverage/integrity gate passes",
-  "disclosure": "This probe establishes source/schema/provenance only. It does not create or evaluate a candidate."
+  "quarantine_reference": "reports/v99_r106_phase59_holdout_integrity_correction.json",
+  "next_gate": "Phase60 full train-only coverage; no alpha until gate passes",
+  "disclosure": "Corrected provenance evidence uses pre-holdout data only. No candidate or returns are evaluated."
 }
