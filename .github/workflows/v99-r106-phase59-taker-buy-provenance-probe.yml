@@ -22,8 +22,8 @@ jobs:
           import json
           from pathlib import Path
           r=json.loads(Path('reports/candidate_v99_r106_phase59_taker_buy_provenance_probe.json').read_text())
-          assert r['status']=='PROVENANCE_PROBE_PASS' and r['all_pass']
-          assert len(r['results'])==6
+          assert r['status']=='PROVENANCE_PROBE_PASS_PREHOLDOUT_ONLY' and r['all_pass']
+          assert len(r['results'])==6 and all(x['month']<'2024-01' for x in r['results'])
           assert r['frozen_assets_untouched']['v16'] and r['frozen_assets_untouched']['v99_frozen']
           assert r['precommitment']['no_returns'] and r['precommitment']['no_holdout_inspection'] and r['precommitment']['no_ohlcv_proxy']
           PY
@@ -33,5 +33,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/candidate_v99_r106_phase59_taker_buy_provenance_probe.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Record V99 R106 phase59 taker-buy provenance evidence"
+          git commit -m "Record corrected pre-holdout Phase59 taker-buy provenance"
           git push origin HEAD:research/v99-r106-native-all-regime-engine
