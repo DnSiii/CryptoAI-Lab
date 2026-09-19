@@ -50,3 +50,4 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Record V99 R106 Phase74 train-only top-trader account change gate"
           git fetch origin ${RESEARCH_BRANCH}; git rebase origin/${RESEARCH_BRANCH}; git push origin HEAD:${RESEARCH_BRANCH}
+# trigger after workflow registration; preregistered specification unchanged.
