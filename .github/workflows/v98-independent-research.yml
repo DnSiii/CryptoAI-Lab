@@ -20,11 +20,12 @@ jobs:
         with: {python-version: "3.12", cache: pip}
       - name: Install package
         run: python -m pip install -e ".[dev]"
-      - name: Reconstruct canonical research data
+      - name: Restore canonical research seed
         run: |
-          unzip -o data/paper_seed_v13.zip -d .
-          python scripts/build_canonical.py --config config/research_pit48.json || python scripts/build_canonical.py
+          mkdir -p data/canonical
+          unzip -o data/paper_seed_v13.zip -d data/canonical
           test -f data/canonical/BTCUSDT_1h.csv
+          test -f data/canonical/BTCUSDT_funding.csv
       - name: Run V98 causality and invariant tests only
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Execute frozen Phase050 book-depth imbalance
