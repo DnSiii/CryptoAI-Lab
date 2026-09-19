@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [research/v98-independent-zero]
-    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent.json", "scripts/v98_independent_*.py", "tests/test_v98_independent.py", "state/v98_independent_state.json"]
+    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent.json", "scripts/v98_independent_*.py", "tests/test_v98_independent*.py", "state/v98_independent_state.json"]
 permissions: {contents: write}
 concurrency: {group: v98-independent-research, cancel-in-progress: true}
 jobs:
@@ -33,26 +33,26 @@ jobs:
       - name: Install package
         run: python -m pip install -e ".[dev]"
       - name: Run V98 causality and invariant tests only
-        run: python -m pytest tests/test_v98_independent.py -q
+        run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py -q
       - name: Synchronize latest closed public candles
         run: python scripts/sync_paper_data_v13.py
-      - name: Execute V98 Independent Phase 043
-        run: python scripts/v98_independent_phase043_trade_intensity.py
-      - name: Commit compact V98 Phase 043 evidence back to isolated branch
+      - name: Execute V98 Independent Phase 044
+        run: python scripts/v98_independent_phase044_volatility_of_volatility.py
+      - name: Commit compact V98 Phase 044 evidence back to isolated branch
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/v98_independent_phase043_trade_intensity.json state/v98_independent_state.json
-          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase043 trade intensity evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase 043 evidence artifact
+          git add reports/v98_independent_phase044_volatility_of_volatility.json state/v98_independent_state.json
+          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase044 volatility-of-volatility evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase 044 evidence artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase043-${{ github.run_id }}
+          name: v98-independent-phase044-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            reports/v98_independent_phase043_trade_intensity.json
-            reports/v98_independent_phase043_trade_intensity_positions.csv
+            reports/v98_independent_phase044_volatility_of_volatility.json
+            reports/v98_independent_phase044_volatility_of_volatility_positions.csv
             state/v98_independent_state.json
