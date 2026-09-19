@@ -1,0 +1,358 @@
+{
+  "engine": "V98 Independent",
+  "phase": {
+    "id": "phase_048_taker_pressure",
+    "liquidity_top_n": 10,
+    "liquidity_lookback_hours": 720,
+    "minimum_history_hours": 2160,
+    "beta_lookback_hours": 720,
+    "min_beta_obs": 360,
+    "rebalance_hours": 24,
+    "gross_target": 0.75,
+    "gross_cap": 0.75
+  },
+  "hypothesis": "Contracts with stronger strictly lagged aggressive taker long/short volume pressure are more crowded and subsequently underperform weaker-pressure peers after dollar/BTC-beta neutralization.",
+  "preregistration": "reports/v98_independent_phase048_taker_pressure_preregistration.md",
+  "acquisition_training": {
+    "requested_days": 1826,
+    "requested_files": 18260,
+    "failed_files": 4285,
+    "failure_examples": [
+      [
+        "BTCUSDT",
+        "2021-12-31",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-01",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-02",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-03",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-05",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-07",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-06",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-08",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-04",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-10",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-09",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-11",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-14",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-12",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-15",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-13",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-18",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-17",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-19",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-22",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-21",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-23",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-24",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-25",
+        "no_valid_hourly_taker"
+      ],
+      [
+        "BTCUSDT",
+        "2022-01-26",
+        "no_valid_hourly_taker"
+      ]
+    ],
+    "hourly_coverage": {
+      "BTCUSDT": 0.928714859437751,
+      "ETHUSDT": 0.7460752099306316,
+      "BNBUSDT": 0.7460752099306316,
+      "XRPUSDT": 0.74662285505659,
+      "ADAUSDT": 0.7460752099306316,
+      "LINKUSDT": 0.7460752099306316,
+      "LTCUSDT": 0.7460752099306316,
+      "DOGEUSDT": 0.7460752099306316,
+      "SOLUSDT": 0.7460752099306316,
+      "AVAXUSDT": 0.7460752099306316
+    },
+    "min_symbol_coverage": 0.7460752099306316
+  },
+  "selection_policy": "single frozen negative lagged taker-ratio signal; no sign/window/cadence/gross/threshold/regime/symbol-subset search",
+  "training": {
+    "total_return": -0.6403115383739775,
+    "cagr": -0.18497465441836625,
+    "max_drawdown": -0.660500431703053,
+    "worst_day": -0.09001411039550877,
+    "best_day": 0.06306746806925578,
+    "p01_day": -0.02008490710904769,
+    "p05_day": -0.009941899843049874,
+    "cvar05_day": -0.01731669640525852,
+    "profit_factor_daily": 0.7516036989116562,
+    "payoff_daily": 0.8782650535772135,
+    "win_rate_daily": 0.34465753424657536,
+    "positive_days": 629,
+    "negative_days": 735,
+    "days": 1825,
+    "turnover_sum": 1390.4603047565033,
+    "avg_gross": 0.5517778705930803,
+    "max_gross": 0.8519104773691425,
+    "avg_net": -2.0593972089340807e-05,
+    "max_abs_net": 0.08307032992292356,
+    "ruin": false
+  },
+  "folds": {
+    "2023": {
+      "total_return": -0.2066943776250465,
+      "cagr": -0.20684116290948973,
+      "max_drawdown": -0.2854611341141352,
+      "worst_day": -0.0335764320604105,
+      "best_day": 0.06306746806925578,
+      "p01_day": -0.01761945587507434,
+      "p05_day": -0.009899530893358122,
+      "cvar05_day": -0.014929541921481595,
+      "profit_factor_daily": 0.7566180216210712,
+      "payoff_daily": 1.031751847665097,
+      "win_rate_daily": 0.4230769230769231,
+      "positive_days": 154,
+      "negative_days": 210,
+      "days": 364,
+      "turnover_sum": 373.24310052690544,
+      "avg_gross": 0.7429558042836831,
+      "max_gross": 0.7870589311898544,
+      "avg_net": -0.00012576098357978816,
+      "max_abs_net": 0.05914084039488915,
+      "ruin": false
+    },
+    "2024": {
+      "total_return": -0.32030988861365073,
+      "cagr": -0.3198017295511215,
+      "max_drawdown": -0.36081668374135256,
+      "worst_day": -0.05798294758154854,
+      "best_day": 0.031925042962875017,
+      "p01_day": -0.03908784128705733,
+      "p05_day": -0.011890855570414827,
+      "cvar05_day": -0.024246698065796303,
+      "profit_factor_daily": 0.6944348767162597,
+      "payoff_daily": 0.8324851835333473,
+      "win_rate_daily": 0.4547945205479452,
+      "positive_days": 166,
+      "negative_days": 199,
+      "days": 365,
+      "turnover_sum": 371.27744927301313,
+      "avg_gross": 0.7393968177397556,
+      "max_gross": 0.7916405242656397,
+      "avg_net": -0.00021147225124139893,
+      "max_abs_net": 0.08307032992292356,
+      "ruin": false
+    },
+    "2025": {
+      "total_return": -0.13689613408420342,
+      "cagr": -0.1369976767476343,
+      "max_drawdown": -0.20759360532034188,
+      "worst_day": -0.09001411039550877,
+      "best_day": 0.02372204853172688,
+      "p01_day": -0.01760781966282964,
+      "p05_day": -0.009676839485533932,
+      "cvar05_day": -0.018348610537207582,
+      "profit_factor_daily": 0.8575847505927093,
+      "payoff_daily": 0.8297711911140268,
+      "win_rate_daily": 0.5082417582417582,
+      "positive_days": 185,
+      "negative_days": 179,
+      "days": 364,
+      "turnover_sum": 375.9475746933733,
+      "avg_gross": 0.7398058708781075,
+      "max_gross": 0.8519104773691425,
+      "avg_net": 0.00035024155177708897,
+      "max_abs_net": 0.07896955513289784,
+      "ruin": false
+    }
+  },
+  "stress_training": {
+    "severe": {
+      "total_return": -0.834677283671523,
+      "cagr": -0.30234367685552965,
+      "max_drawdown": -0.8368209345667581,
+      "worst_day": -0.0906641094620193,
+      "best_day": 0.062486507621068776,
+      "p01_day": -0.020861139652619595,
+      "p05_day": -0.010498964590678117,
+      "cvar05_day": -0.017959443904377526,
+      "profit_factor_daily": 0.5991087897498952,
+      "payoff_daily": 0.8549559597498505,
+      "win_rate_daily": 0.30794520547945203,
+      "positive_days": 562,
+      "negative_days": 802,
+      "days": 1825,
+      "turnover_sum": 1390.4603047565033,
+      "avg_gross": 0.5517778705930803,
+      "max_gross": 0.8519104773691425,
+      "avg_net": -2.0593972089340807e-05,
+      "max_abs_net": 0.08307032992292356,
+      "ruin": false
+    },
+    "supersevere": {
+      "total_return": -0.9520264421002683,
+      "cagr": -0.45529890530081985,
+      "max_drawdown": -0.952536022057475,
+      "worst_day": -0.09169430366700837,
+      "best_day": 0.06156727673671325,
+      "p01_day": -0.02193503576097677,
+      "p05_day": -0.011422735899791103,
+      "cvar05_day": -0.018999199533983813,
+      "profit_factor_daily": 0.41969707669305245,
+      "payoff_daily": 0.7957314001844923,
+      "win_rate_daily": 0.2580821917808219,
+      "positive_days": 471,
+      "negative_days": 893,
+      "days": 1825,
+      "turnover_sum": 1390.4603047565033,
+      "avg_gross": 0.5517778705930803,
+      "max_gross": 0.8519104773691425,
+      "avg_net": -2.0593972089340807e-05,
+      "max_abs_net": 0.08307032992292356,
+      "ruin": false
+    }
+  },
+  "concentration_training": {
+    "mean_top1_weight_share": 0.22791186354664178,
+    "p95_top1_weight_share": 0.3160802274039098,
+    "mean_active_assets": 6.591251369112815
+  },
+  "beta_neutrality_training": {
+    "mean_abs_portfolio_beta": 0.015747358205740934,
+    "p95_abs_portfolio_beta": 0.05758822560895875,
+    "max_abs_portfolio_beta": 0.316086435890939
+  },
+  "regimes_training": {
+    "bear": {
+      "hours": 7007,
+      "return_sum_approx": -0.2478693154644973,
+      "positive_hour_ratio": 0.3285286142429
+    },
+    "bear_highvol": {
+      "hours": 2881,
+      "return_sum_approx": -0.0006578238100193312,
+      "positive_hour_ratio": 0.23394654633807704
+    },
+    "bull": {
+      "hours": 15991,
+      "return_sum_approx": -0.450609061032911,
+      "positive_hour_ratio": 0.3814020386467388
+    },
+    "bull_highvol": {
+      "hours": 1996,
+      "return_sum_approx": 0.0,
+      "positive_hour_ratio": 0.0
+    },
+    "sideways": {
+      "hours": 15803,
+      "return_sum_approx": -0.2838400021476719,
+      "positive_hour_ratio": 0.4371954692147061
+    },
+    "sideways_highvol": {
+      "hours": 146,
+      "return_sum_approx": -0.0007559327097776958,
+      "positive_hour_ratio": 0.0136986301369863
+    }
+  },
+  "training_gate": {
+    "passed": false,
+    "failures": [
+      "training_pf_below_1.15",
+      "training_drawdown_below_-45pct",
+      "fold_2023_nonpositive_return",
+      "fold_2023_pf_below_1.05",
+      "fold_2024_nonpositive_return",
+      "fold_2024_pf_below_1.05",
+      "fold_2025_nonpositive_return",
+      "fold_2025_pf_below_1.05",
+      "severe_pf_below_1.10",
+      "supersevere_pf_below_1.03",
+      "supersevere_drawdown_below_-55pct"
+    ]
+  },
+  "validation": null,
+  "final_holdout": null
+}
