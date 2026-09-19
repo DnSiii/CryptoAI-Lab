@@ -26,20 +26,37 @@ jobs:
         run: python scripts/v98_independent_metrics_probe.py
       - name: Audit Phase047 OI archive integrity
         run: python scripts/v98_independent_phase047_acquire.py
-      - name: Commit compact V98 acquisition evidence
+      - name: Run frozen Phase047 only after integrity gate
+        shell: bash
+        run: |
+          if python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('reports/v98_independent_phase047_oi_acquisition_audit.json').read_text())
+          raise SystemExit(0 if r.get('decision')=='integrity_sample_pass' else 1)
+          PY
+          then
+            python scripts/v98_independent_phase047_open_interest_crowding.py
+          else
+            echo 'Phase047 backtest correctly blocked by integrity gate.'
+          fi
+      - name: Commit compact V98 Phase047 evidence
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/v98_independent_external_metrics_probe.json reports/v98_independent_phase047_oi_acquisition_audit.json
-          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase047 OI integrity evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase047 integrity evidence
+          test ! -f reports/v98_independent_phase047_open_interest_crowding.json || git add reports/v98_independent_phase047_open_interest_crowding.json state/v98_independent_state.json
+          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase047 frozen OI evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase047 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase047-integrity-${{ github.run_id }}
+          name: v98-independent-phase047-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
             reports/v98_independent_external_metrics_probe.json
             reports/v98_independent_phase047_oi_acquisition_audit.json
+            reports/v98_independent_phase047_open_interest_crowding.json
+            reports/v98_independent_phase047_open_interest_crowding_positions.csv
