@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
   push:
     branches: [research/v98-independent-zero]
-    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent.json", "scripts/v98_independent_*.py", "tests/test_v98_independent*.py", "state/v98_independent_state.json"]
+    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent.json", "config/v98_independent_phase050_data.json", "scripts/v98_independent_*.py", "tests/test_v98_independent*.py", "state/v98_independent_state.json"]
 permissions: {contents: write}
 concurrency: {group: v98-independent-research, cancel-in-progress: true}
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 300
     env: {PYTHONUNBUFFERED: "1", PIP_DISABLE_PIP_VERSION_CHECK: "1"}
     steps:
       - name: Check out isolated V98 branch
@@ -20,12 +20,22 @@ jobs:
         with: {python-version: "3.12", cache: pip}
       - name: Install package
         run: python -m pip install -e ".[dev]"
-      - name: Restore canonical research seed
+      - name: Reconstruct Phase050 training-only canonical data
         run: |
-          mkdir -p data/canonical
-          unzip -o data/paper_seed_v13.zip -d data/canonical
-          test -f data/canonical/BTCUSDT_1h.csv
-          test -f data/canonical/BTCUSDT_funding.csv
+          rm -rf data/raw data/canonical
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json --workers 40
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          root=Path('data/canonical')
+          for s in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              p=root/f'{s}_1h.csv'; f=root/f'{s}_funding.csv'
+              assert p.exists() and f.exists(), (s,p.exists(),f.exists())
+              x=pd.read_csv(p)
+              assert len(x)>10000, (s,len(x))
+          print('Phase050 canonical training reconstruction gate passed')
+          PY
       - name: Run V98 causality and invariant tests only
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Execute frozen Phase050 book-depth imbalance
@@ -37,7 +47,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           test ! -f reports/v98_independent_phase050_bookdepth_imbalance.json || git add reports/v98_independent_phase050_bookdepth_imbalance.json
-          test ! -f reports/v98_independent_phase050_bookdepth_imbalance_positions.csv || git add reports/v98_independent_phase050_bookdepth_imbalance_positions.csv
+          test ! -f reports/v98_independent_phase050_bookdepth_imbalance_positions.csv || git add -f reports/v98_independent_phase050_bookdepth_imbalance_positions.csv
           git add state/v98_independent_state.json
           if git diff --cached --quiet; then echo "No Phase050 evidence changes to commit."; else git commit -m "v98: record phase050 book-depth imbalance result"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
       - name: Upload V98 Phase050 evidence
