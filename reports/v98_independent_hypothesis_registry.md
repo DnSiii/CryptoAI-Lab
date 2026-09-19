@@ -26,10 +26,14 @@ REJECTED: total return -55.16%, PF 0.8985, max drawdown -68.55%, worst day -23.6
 
 REJECTED despite being materially stronger in aggregate: total return +92.67%, PF 1.1465, max drawdown -32.79%, payoff 1.2258. It misses the frozen PF>=1.15 training gate and, more importantly, lacks chronological robustness: 2023 -20.68% / PF 0.7532, 2024 +0.71% / PF 1.0123, 2025 -6.04% / PF 0.9491. Severe PF 1.0673 is below 1.10; supersevere return -40.98% / PF 0.9561 / DD -69.63%. No near-threshold rescue, sign/window/cadence/gross tuning, or validation opening is allowed.
 
+## Phase047 preregistered frontier
+
+The candle/funding feature frontier is now heavily consumed. Rather than manufacture another transformation of rejected inputs, Phase047 is frozen on a genuinely new public derivatives state variable: aggregate open interest. The preregistration `reports/v98_independent_phase047_open_interest_crowding_preregistration.md` fixes negative cross-sectional 24h lagged OI growth, daily rebalance, 720h BTC-beta/dollar neutralization and 0.75 gross before source-feasibility evidence is harvested. A separate V98-only probe must first prove stable Binance USD-M metrics availability/schema; if it fails, only acquisition/schema repair is permitted, not signal changes.
+
 ## Gate preservation
 
 Existing chronological folds, base/severe/supersevere costs and funding stress, concentration/tails, max drawdown, PF, payoff, win rate, positive days, beta/dollar neutrality, regimes and reproducibility diagnostics remain unchanged. Validation stays closed unless training passes. Final holdout stays untouched until training and validation pass and a candidate is formally frozen. V99 is excluded from V98 selection.
 
 ## Current decision
 
-No champion exists. Phases044-046 are closed without rescue tuning. Phase046 is recorded as a useful near-threshold negative result, not a candidate: its fold/stress failures dominate the attractive aggregate return. Next research must use a genuinely different economic mechanism rather than tuning peer-correlation crowding.
+No champion exists. Phases044-046 are closed without rescue tuning. Phase046 is recorded as a useful near-threshold negative result, not a candidate: its fold/stress failures dominate the attractive aggregate return. Phase047 is preregistered but not yet executed; its external-data feasibility gate must pass first.
