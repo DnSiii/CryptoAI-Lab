@@ -1,7 +1,7 @@
 {
   "engine": "V98 Independent",
   "purpose": "external orthogonal data-source feasibility probe only; no alpha selection and no validation/final-holdout access",
-  "source": "Binance public USD-M monthly metrics archive",
+  "source": "Binance public USD-M daily metrics archive",
   "symbols": [
     "BTCUSDT",
     "ETHUSDT",
@@ -14,216 +14,1028 @@
     "SOLUSDT",
     "AVAXUSDT"
   ],
-  "months": [
-    "2023-01",
-    "2024-01",
-    "2025-01",
-    "2026-01"
+  "dates": [
+    "2023-01-15",
+    "2024-01-15",
+    "2025-01-15",
+    "2026-01-15"
   ],
   "checks": {
-    "BTCUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BTCUSDT/BTCUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BTCUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "BTCUSDT",
+        "sum_open_interest": "93687.335",
+        "sum_open_interest_value": "1963868526.9828775",
+        "count_toptrader_long_short_ratio": "0.888370754173863",
+        "sum_toptrader_long_short_ratio": "1.1504431748",
+        "count_long_short_ratio": "0.9092976448754476",
+        "sum_taker_long_short_vol_ratio": "0.5817061366"
+      }
     },
-    "BTCUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BTCUSDT/BTCUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BTCUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "BTCUSDT",
+        "sum_open_interest": "77082.018",
+        "sum_open_interest_value": "3217372598.5128",
+        "count_toptrader_long_short_ratio": "2.40274115",
+        "sum_toptrader_long_short_ratio": "1.39548418",
+        "count_long_short_ratio": "2.6537541",
+        "sum_taker_long_short_vol_ratio": "1.05703456"
+      }
     },
-    "BTCUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BTCUSDT/BTCUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BTCUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "BTCUSDT",
+        "sum_open_interest": "84478.017",
+        "sum_open_interest_value": "8150591140.5906",
+        "count_toptrader_long_short_ratio": "1.35509773",
+        "sum_toptrader_long_short_ratio": "1.86105",
+        "count_long_short_ratio": "1.24454532",
+        "sum_taker_long_short_vol_ratio": "1.266442"
+      }
     },
-    "BTCUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BTCUSDT/BTCUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BTCUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "BTCUSDT",
+        "sum_open_interest": "96429.501",
+        "sum_open_interest_value": "9332582108.0814",
+        "count_toptrader_long_short_ratio": "1.01857704",
+        "sum_toptrader_long_short_ratio": "1.680363",
+        "count_long_short_ratio": "0.87625743",
+        "sum_taker_long_short_vol_ratio": "0.926294"
+      }
     },
-    "ETHUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ETHUSDT/ETHUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ETHUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ETHUSDT/ETHUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "ETHUSDT",
+        "sum_open_interest": "1032712.743",
+        "sum_open_interest_value": "1601055873.98262",
+        "count_toptrader_long_short_ratio": "0.9767599457864944",
+        "sum_toptrader_long_short_ratio": "1.3305823006",
+        "count_long_short_ratio": "1.0429160935350756",
+        "sum_taker_long_short_vol_ratio": "0.5051451481"
+      }
     },
-    "ETHUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ETHUSDT/ETHUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ETHUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ETHUSDT/ETHUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "ETHUSDT",
+        "sum_open_interest": "913700.522",
+        "sum_open_interest_value": "2260613872.49586",
+        "count_toptrader_long_short_ratio": "2.41834436",
+        "sum_toptrader_long_short_ratio": "1.94840625",
+        "count_long_short_ratio": "2.19773352",
+        "sum_taker_long_short_vol_ratio": "1.32211269"
+      }
     },
-    "ETHUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ETHUSDT/ETHUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ETHUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ETHUSDT/ETHUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "ETHUSDT",
+        "sum_open_interest": "1516895.583",
+        "sum_open_interest_value": "4882644178.38372",
+        "count_toptrader_long_short_ratio": "5.41538827",
+        "sum_toptrader_long_short_ratio": "4.440594",
+        "count_long_short_ratio": "4.30143668",
+        "sum_taker_long_short_vol_ratio": "0.437699"
+      }
     },
-    "ETHUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ETHUSDT/ETHUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ETHUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ETHUSDT/ETHUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "ETHUSDT",
+        "sum_open_interest": "2237113.06",
+        "sum_open_interest_value": "7482047000.3006",
+        "count_toptrader_long_short_ratio": "1.28137593",
+        "sum_toptrader_long_short_ratio": "2.691625",
+        "count_long_short_ratio": "1.22878661",
+        "sum_taker_long_short_vol_ratio": "0.389875"
+      }
     },
-    "BNBUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BNBUSDT/BNBUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BNBUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BNBUSDT/BNBUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "BNBUSDT",
+        "sum_open_interest": "516312.79",
+        "sum_open_interest_value": "157610752.4563242",
+        "count_toptrader_long_short_ratio": "1.0491523495278188",
+        "sum_toptrader_long_short_ratio": "0.883968652",
+        "count_long_short_ratio": "1.1742219695893137",
+        "sum_taker_long_short_vol_ratio": "0.3381942527"
+      }
     },
-    "BNBUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BNBUSDT/BNBUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BNBUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BNBUSDT/BNBUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "BNBUSDT",
+        "sum_open_interest": "536253.37",
+        "sum_open_interest_value": "160699047.3879",
+        "count_toptrader_long_short_ratio": "2.5646218",
+        "sum_toptrader_long_short_ratio": "1.23809801",
+        "count_long_short_ratio": "2.79577298",
+        "sum_taker_long_short_vol_ratio": "0.78403506"
+      }
     },
-    "BNBUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BNBUSDT/BNBUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BNBUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BNBUSDT/BNBUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "BNBUSDT",
+        "sum_open_interest": "541514.46",
+        "sum_open_interest_value": "378786038.0788028",
+        "count_toptrader_long_short_ratio": "2.13131313",
+        "sum_toptrader_long_short_ratio": "1.693694",
+        "count_long_short_ratio": "2.53001277",
+        "sum_taker_long_short_vol_ratio": "0.729261"
+      }
     },
-    "BNBUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/BNBUSDT/BNBUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "BNBUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/BNBUSDT/BNBUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "BNBUSDT",
+        "sum_open_interest": "571577.56",
+        "sum_open_interest_value": "541484001.466",
+        "count_toptrader_long_short_ratio": "1.72163947",
+        "sum_toptrader_long_short_ratio": "1.21858",
+        "count_long_short_ratio": "2.31344148",
+        "sum_taker_long_short_vol_ratio": "0.671909"
+      }
     },
-    "XRPUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/XRPUSDT/XRPUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "XRPUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/XRPUSDT/XRPUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "XRPUSDT",
+        "sum_open_interest": "295878213.3",
+        "sum_open_interest_value": "116931069.89616",
+        "count_toptrader_long_short_ratio": "2.0029463759575723",
+        "sum_toptrader_long_short_ratio": "0.9594017093",
+        "count_long_short_ratio": "2.169142589776582",
+        "sum_taker_long_short_vol_ratio": "0.8766716297"
+      }
     },
-    "XRPUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/XRPUSDT/XRPUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "XRPUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/XRPUSDT/XRPUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "XRPUSDT",
+        "sum_open_interest": "262264817.4",
+        "sum_open_interest_value": "151195667.2311",
+        "count_toptrader_long_short_ratio": "4.31751527",
+        "sum_toptrader_long_short_ratio": "2.06157227",
+        "count_long_short_ratio": "4.93234963",
+        "sum_taker_long_short_vol_ratio": "1.12963041"
+      }
     },
-    "XRPUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/XRPUSDT/XRPUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "XRPUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/XRPUSDT/XRPUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "XRPUSDT",
+        "sum_open_interest": "387551646.5",
+        "sum_open_interest_value": "1027941987.1766",
+        "count_toptrader_long_short_ratio": "1.93573508",
+        "sum_toptrader_long_short_ratio": "3.131191",
+        "count_long_short_ratio": "1.87117789",
+        "sum_taker_long_short_vol_ratio": "0.560616"
+      }
     },
-    "XRPUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/XRPUSDT/XRPUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "XRPUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/XRPUSDT/XRPUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "XRPUSDT",
+        "sum_open_interest": "226264566.2",
+        "sum_open_interest_value": "483527377.9694",
+        "count_toptrader_long_short_ratio": "2.87519685",
+        "sum_toptrader_long_short_ratio": "1.967411",
+        "count_long_short_ratio": "2.61895367",
+        "sum_taker_long_short_vol_ratio": "0.692111"
+      }
     },
-    "ADAUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ADAUSDT/ADAUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ADAUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ADAUSDT/ADAUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "ADAUSDT",
+        "sum_open_interest": "187016294.0",
+        "sum_open_interest_value": "65923243.635",
+        "count_toptrader_long_short_ratio": "1.825480957989792",
+        "sum_toptrader_long_short_ratio": "1.1542378769",
+        "count_long_short_ratio": "2.2088102209209475",
+        "sum_taker_long_short_vol_ratio": "0.6476682553"
+      }
     },
-    "ADAUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ADAUSDT/ADAUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ADAUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ADAUSDT/ADAUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "ADAUSDT",
+        "sum_open_interest": "103805262.0",
+        "sum_open_interest_value": "54518523.6024",
+        "count_toptrader_long_short_ratio": "3.47881137",
+        "sum_toptrader_long_short_ratio": "1.15912274",
+        "count_long_short_ratio": "3.94055165",
+        "sum_taker_long_short_vol_ratio": "1.07225074"
+      }
     },
-    "ADAUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ADAUSDT/ADAUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ADAUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ADAUSDT/ADAUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "ADAUSDT",
+        "sum_open_interest": "205432719.0",
+        "sum_open_interest_value": "204863645.7164437",
+        "count_toptrader_long_short_ratio": "2.82786754",
+        "sum_toptrader_long_short_ratio": "2.217248",
+        "count_long_short_ratio": "2.51504212",
+        "sum_taker_long_short_vol_ratio": "0.877613"
+      }
     },
-    "ADAUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/ADAUSDT/ADAUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "ADAUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/ADAUSDT/ADAUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "ADAUSDT",
+        "sum_open_interest": "304251127.0",
+        "sum_open_interest_value": "125558817.55207305",
+        "count_toptrader_long_short_ratio": "2.76511925",
+        "sum_toptrader_long_short_ratio": "1.778087",
+        "count_long_short_ratio": "2.38939759",
+        "sum_taker_long_short_vol_ratio": "0.505094"
+      }
     },
-    "LINKUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LINKUSDT/LINKUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LINKUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LINKUSDT/LINKUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "LINKUSDT",
+        "sum_open_interest": "8146043.61",
+        "sum_open_interest_value": "55878227.7398191",
+        "count_toptrader_long_short_ratio": "1.5082747676263886",
+        "sum_toptrader_long_short_ratio": "1.3164766353",
+        "count_long_short_ratio": "1.851760995268968",
+        "sum_taker_long_short_vol_ratio": "0.9945383006"
+      }
     },
-    "LINKUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LINKUSDT/LINKUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LINKUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LINKUSDT/LINKUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "LINKUSDT",
+        "sum_open_interest": "5254303.79",
+        "sum_open_interest_value": "77543015.33282",
+        "count_toptrader_long_short_ratio": "1.82678533",
+        "sum_toptrader_long_short_ratio": "1.46350405",
+        "count_long_short_ratio": "1.82029027",
+        "sum_taker_long_short_vol_ratio": "0.93353412"
+      }
     },
-    "LINKUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LINKUSDT/LINKUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LINKUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LINKUSDT/LINKUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "LINKUSDT",
+        "sum_open_interest": "7098134.66",
+        "sum_open_interest_value": "144085035.46334",
+        "count_toptrader_long_short_ratio": "4.05374782",
+        "sum_toptrader_long_short_ratio": "2.761483",
+        "count_long_short_ratio": "3.45620121",
+        "sum_taker_long_short_vol_ratio": "0.624115"
+      }
     },
-    "LINKUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LINKUSDT/LINKUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LINKUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LINKUSDT/LINKUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "LINKUSDT",
+        "sum_open_interest": "8592592.34",
+        "sum_open_interest_value": "120966514.96252",
+        "count_toptrader_long_short_ratio": "2.59269068",
+        "sum_toptrader_long_short_ratio": "2.403122",
+        "count_long_short_ratio": "2.04632068",
+        "sum_taker_long_short_vol_ratio": "0.361304"
+      }
     },
-    "LTCUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LTCUSDT/LTCUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LTCUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LTCUSDT/LTCUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "LTCUSDT",
+        "sum_open_interest": "1390824.627",
+        "sum_open_interest_value": "122277625.63187347",
+        "count_toptrader_long_short_ratio": "0.8804720213170918",
+        "sum_toptrader_long_short_ratio": "1.3164709359",
+        "count_long_short_ratio": "0.9887274549098196",
+        "sum_taker_long_short_vol_ratio": "1.3827547481"
+      }
     },
-    "LTCUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LTCUSDT/LTCUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LTCUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LTCUSDT/LTCUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "LTCUSDT",
+        "sum_open_interest": "882573.677",
+        "sum_open_interest_value": "61594362.36590914",
+        "count_toptrader_long_short_ratio": "3.80896478",
+        "sum_toptrader_long_short_ratio": "1.78463618",
+        "count_long_short_ratio": "4.04368699",
+        "sum_taker_long_short_vol_ratio": "1.02297729"
+      }
     },
-    "LTCUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LTCUSDT/LTCUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LTCUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LTCUSDT/LTCUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "LTCUSDT",
+        "sum_open_interest": "1000041.138",
+        "sum_open_interest_value": "102204204.3036",
+        "count_toptrader_long_short_ratio": "3.16791409",
+        "sum_toptrader_long_short_ratio": "4.048597",
+        "count_long_short_ratio": "2.72362669",
+        "sum_taker_long_short_vol_ratio": "0.661337"
+      }
     },
-    "LTCUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/LTCUSDT/LTCUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "LTCUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/LTCUSDT/LTCUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "LTCUSDT",
+        "sum_open_interest": "1753216.899",
+        "sum_open_interest_value": "134492413.80379283",
+        "count_toptrader_long_short_ratio": "2.87494145",
+        "sum_toptrader_long_short_ratio": "3.090802",
+        "count_long_short_ratio": "2.28171206",
+        "sum_taker_long_short_vol_ratio": "1.386772"
+      }
     },
-    "DOGEUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/DOGEUSDT/DOGEUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "DOGEUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/DOGEUSDT/DOGEUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "DOGEUSDT",
+        "sum_open_interest": "1561899260.0",
+        "sum_open_interest_value": "136347323.516071",
+        "count_toptrader_long_short_ratio": "2.580937287751868",
+        "sum_toptrader_long_short_ratio": "1.5516853455",
+        "count_long_short_ratio": "3.042067841801215",
+        "sum_taker_long_short_vol_ratio": "0.9399950809"
+      }
     },
-    "DOGEUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/DOGEUSDT/DOGEUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "DOGEUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/DOGEUSDT/DOGEUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "DOGEUSDT",
+        "sum_open_interest": "1328865341.0",
+        "sum_open_interest_value": "106349093.24023",
+        "count_toptrader_long_short_ratio": "4.42188782",
+        "sum_toptrader_long_short_ratio": "2.34571589",
+        "count_long_short_ratio": "4.8474212",
+        "sum_taker_long_short_vol_ratio": "0.83197514"
+      }
     },
-    "DOGEUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/DOGEUSDT/DOGEUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "DOGEUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/DOGEUSDT/DOGEUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "DOGEUSDT",
+        "sum_open_interest": "1995905826.0",
+        "sum_open_interest_value": "707648410.6083",
+        "count_toptrader_long_short_ratio": "3.9666749",
+        "sum_toptrader_long_short_ratio": "3.168809",
+        "count_long_short_ratio": "3.64116095",
+        "sum_taker_long_short_vol_ratio": "0.328606"
+      }
     },
-    "DOGEUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/DOGEUSDT/DOGEUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "DOGEUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/DOGEUSDT/DOGEUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "DOGEUSDT",
+        "sum_open_interest": "1785650957.0",
+        "sum_open_interest_value": "262062134.44932",
+        "count_toptrader_long_short_ratio": "2.72084865",
+        "sum_toptrader_long_short_ratio": "2.322009",
+        "count_long_short_ratio": "2.20150597",
+        "sum_taker_long_short_vol_ratio": "1.211365"
+      }
     },
-    "SOLUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/SOLUSDT/SOLUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "SOLUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/SOLUSDT/SOLUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "SOLUSDT",
+        "sum_open_interest": "7214581.0",
+        "sum_open_interest_value": "175213313.80527094",
+        "count_toptrader_long_short_ratio": "1.099989060277869",
+        "sum_toptrader_long_short_ratio": "0.9771992355",
+        "count_long_short_ratio": "1.0804191616766468",
+        "sum_taker_long_short_vol_ratio": "0.84636233"
+      }
     },
-    "SOLUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/SOLUSDT/SOLUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "SOLUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/SOLUSDT/SOLUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "SOLUSDT",
+        "sum_open_interest": "4630135.0",
+        "sum_open_interest_value": "434584640.09992754",
+        "count_toptrader_long_short_ratio": "3.24116487",
+        "sum_toptrader_long_short_ratio": "1.8143821",
+        "count_long_short_ratio": "3.34313725",
+        "sum_taker_long_short_vol_ratio": "0.85112575"
+      }
     },
-    "SOLUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/SOLUSDT/SOLUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "SOLUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/SOLUSDT/SOLUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "SOLUSDT",
+        "sum_open_interest": "6823922.0",
+        "sum_open_interest_value": "1277233480.74",
+        "count_toptrader_long_short_ratio": "4.93255745",
+        "sum_toptrader_long_short_ratio": "2.96188",
+        "count_long_short_ratio": "4.46196624",
+        "sum_taker_long_short_vol_ratio": "0.690902"
+      }
     },
-    "SOLUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/SOLUSDT/SOLUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "SOLUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/SOLUSDT/SOLUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "SOLUSDT",
+        "sum_open_interest": "10867028.79",
+        "sum_open_interest_value": "1588216257.6585",
+        "count_toptrader_long_short_ratio": "1.99074397",
+        "sum_toptrader_long_short_ratio": "2.66155",
+        "count_long_short_ratio": "1.76020674",
+        "sum_taker_long_short_vol_ratio": "0.513763"
+      }
     },
-    "AVAXUSDT:2023-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/AVAXUSDT/AVAXUSDT-metrics-2023-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "AVAXUSDT:2023-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/AVAXUSDT/AVAXUSDT-metrics-2023-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2023-01-15 00:00:00",
+        "symbol": "AVAXUSDT",
+        "sum_open_interest": "2998741.0",
+        "sum_open_interest_value": "50827288.35585401",
+        "count_toptrader_long_short_ratio": "1.919692307692308",
+        "sum_toptrader_long_short_ratio": "1.055461236",
+        "count_long_short_ratio": "2.001920614596671",
+        "sum_taker_long_short_vol_ratio": "0.7110484342"
+      }
     },
-    "AVAXUSDT:2024-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/AVAXUSDT/AVAXUSDT-metrics-2024-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "AVAXUSDT:2024-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/AVAXUSDT/AVAXUSDT-metrics-2024-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2024-01-15 00:00:00",
+        "symbol": "AVAXUSDT",
+        "sum_open_interest": "2339094.0",
+        "sum_open_interest_value": "82562649.89016342",
+        "count_toptrader_long_short_ratio": "2.87794378",
+        "sum_toptrader_long_short_ratio": "1.35108308",
+        "count_long_short_ratio": "3.2499534",
+        "sum_taker_long_short_vol_ratio": "1.02675887"
+      }
     },
-    "AVAXUSDT:2025-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/AVAXUSDT/AVAXUSDT-metrics-2025-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "AVAXUSDT:2025-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/AVAXUSDT/AVAXUSDT-metrics-2025-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2025-01-15 00:00:00",
+        "symbol": "AVAXUSDT",
+        "sum_open_interest": "3428311.0",
+        "sum_open_interest_value": "125129923.189",
+        "count_toptrader_long_short_ratio": "4.01554726",
+        "sum_toptrader_long_short_ratio": "2.422905",
+        "count_long_short_ratio": "3.56936117",
+        "sum_taker_long_short_vol_ratio": "1.029942"
+      }
     },
-    "AVAXUSDT:2026-01": {
-      "ok": false,
-      "url": "https://data.binance.vision/data/futures/um/monthly/metrics/AVAXUSDT/AVAXUSDT-metrics-2026-01.zip",
-      "error": "HTTPError: HTTP Error 404: Not Found"
+    "AVAXUSDT:2026-01-15": {
+      "ok": true,
+      "url": "https://data.binance.vision/data/futures/um/daily/metrics/AVAXUSDT/AVAXUSDT-metrics-2026-01-15.zip",
+      "rows": 288,
+      "columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "first": {
+        "create_time": "2026-01-15 00:00:00",
+        "symbol": "AVAXUSDT",
+        "sum_open_interest": "7012646.0",
+        "sum_open_interest_value": "102167239.574",
+        "count_toptrader_long_short_ratio": "3.11358274",
+        "sum_toptrader_long_short_ratio": "1.633122",
+        "count_long_short_ratio": "2.68385257",
+        "sum_taker_long_short_vol_ratio": "0.536865"
+      }
     }
   },
-  "ok_count": 0,
+  "ok_count": 40,
   "total_count": 40,
-  "column_sets": [],
-  "decision": "do_not_start_phase047"
+  "column_sets": [
+    [
+      "create_time",
+      "symbol",
+      "sum_open_interest",
+      "sum_open_interest_value",
+      "count_toptrader_long_short_ratio",
+      "sum_toptrader_long_short_ratio",
+      "count_long_short_ratio",
+      "sum_taker_long_short_vol_ratio"
+    ]
+  ],
+  "required_sum_open_interest_present": true,
+  "decision": "usable_for_preregistered_phase047"
 }
