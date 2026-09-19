@@ -1,26 +1,30 @@
 # V98 Independent — Hypothesis Family Registry
 
-Status: active research-control artifact after Phase044 rejection / Phase045 preregistration.
+Status: active research-control artifact after Phase046 rejection.
 
 Purpose: prevent renamed repeats, rescue tuning, and pseudo-diversification. This registry is selection hygiene only; it does not inspect validation/final holdout and does not use V99 evidence.
 
 ## Executed V98 families
 
-003 dispersion neutral; 004 tail-risk budget; 005 dual sleeve; 006 consensus residual; 007 residual reversal; 008 tail-budgeted dispersion; 009 funding carry neutral; 010 residual low-volatility; 011 volume attention; 012 residual skew; 013 bull dispersion; 014 non-bear dispersion; 015 continuous residual; 016 residual low-volatility follow-up; 017 residual quality; 018 residual quality consistency; 019 residual trend breadth; 020 residual trend low-turnover; 021 downside resilience; 022 residual autocorrelation; 023 beta stability; 024 residual tail shape; 025 liquidity efficiency / lagged price impact per quote-volume; 026 residual trend efficiency; 027 weekday residual seasonality; 028 residual shock recovery; 029 residual trend efficiency follow-up; 030 BTC lead response; 031 market decoupling; 032 beta convexity; 033 beta asymmetry; 034 cross-asset lead-lag; 035 close-location pressure; 036 wick imbalance; 037 UTC block seasonality; 038 signed-volume pressure; 039 volume-price divergence; 040 residual-volatility compression; 041 average trade-size pressure; 042 funding-shock reversal; 043 trade-intensity pressure; 044 residual volatility-of-volatility stability.
+003 dispersion neutral; 004 tail-risk budget; 005 dual sleeve; 006 consensus residual; 007 residual reversal; 008 tail-budgeted dispersion; 009 funding carry neutral; 010 residual low-volatility; 011 volume attention; 012 residual skew; 013 bull dispersion; 014 non-bear dispersion; 015 continuous residual; 016 residual low-volatility follow-up; 017 residual quality; 018 residual quality consistency; 019 residual trend breadth; 020 residual trend low-turnover; 021 downside resilience; 022 residual autocorrelation; 023 beta stability; 024 residual tail shape; 025 liquidity efficiency / lagged price impact per quote-volume; 026 residual trend efficiency; 027 weekday residual seasonality; 028 residual shock recovery; 029 residual trend efficiency follow-up; 030 BTC lead response; 031 market decoupling; 032 beta convexity; 033 beta asymmetry; 034 cross-asset lead-lag; 035 close-location pressure; 036 wick imbalance; 037 UTC block seasonality; 038 signed-volume pressure; 039 volume-price divergence; 040 residual-volatility compression; 041 average trade-size pressure; 042 funding-shock reversal; 043 trade-intensity pressure; 044 residual volatility-of-volatility stability; 045 quote-liquidity stability; 046 peer-correlation crowding.
 
 ## Closed / no-rescue families
 
-Consumed unless a future proposal has a genuinely different economic mechanism and is preregistered before seeing its result: residual dispersion/trend/reversal/quality/low-volatility/tail shape/volatility-compression/volatility-of-volatility stability; funding-level carry and funding-shock reversal; volume attention/pressure/divergence; liquidity/price-impact efficiency; trade-size and transaction-intensity pressure; calendar/UTC seasonality; BTC beta stability/asymmetry/convexity/lead response; cross-asset lead-lag; OHLC close-location/wick pressure.
+Consumed unless a future proposal has a genuinely different economic mechanism and is preregistered before seeing its result: residual dispersion/trend/reversal/quality/low-volatility/tail shape/volatility-compression/volatility-of-volatility stability; funding-level carry and funding-shock reversal; volume attention/pressure/divergence and quote-liquidity stability; liquidity/price-impact efficiency; trade-size and transaction-intensity pressure; calendar/UTC seasonality; BTC beta stability/asymmetry/convexity/lead response; cross-asset lead-lag; OHLC close-location/wick pressure; peer-correlation crowding.
 
 Forbidden rescue behavior includes sign inversion after failure, nearby-window search, cadence search, gross/leverage search, threshold search, regime cherry-picking, or combining failed signals merely to manufacture a new phase number.
 
 ## Phase044 decision
 
-REJECTED on frozen training. Total return -14.80%, PF 0.9968, max drawdown -58.70%; 2023/2024/2025 folds were all negative with PF below 1.0. Severe return -50.66% / PF 0.9132; supersevere -79.06% / PF 0.7965. Validation remained closed and final holdout untouched. No sign/window/cadence/gross rescue is allowed.
+REJECTED: total return -14.80%, PF 0.9968, max drawdown -58.70%; all 2023/2024/2025 folds negative; severe PF 0.9132 and supersevere PF 0.7965. Validation remained closed.
 
-## Phase045 admission audit — PASSED before result
+## Phase045 decision
 
-Phase045 Quote-Liquidity Stability measures the 168h coefficient of variation of lagged quote volume. This is stability of dollar participation, not volume level (Phase011), signed volume (Phase038), volume-price divergence (Phase039), price impact per quote-volume (Phase025), average trade size (Phase041), or transaction-count intensity (Phase043). Frozen direction is long lower variability / short higher variability; `quote_volume.shift(1)` only; 24h rebalance, 720h BTC beta and 0.75 gross fixed before result.
+REJECTED: total return -55.16%, PF 0.8985, max drawdown -68.55%, worst day -23.61%. Only 2023 was positive (+8.66%, PF 1.1068); 2024 and 2025 were negative. Severe PF 0.8304; supersevere PF 0.7345. Validation remained closed.
+
+## Phase046 decision
+
+REJECTED despite being materially stronger in aggregate: total return +92.67%, PF 1.1465, max drawdown -32.79%, payoff 1.2258. It misses the frozen PF>=1.15 training gate and, more importantly, lacks chronological robustness: 2023 -20.68% / PF 0.7532, 2024 +0.71% / PF 1.0123, 2025 -6.04% / PF 0.9491. Severe PF 1.0673 is below 1.10; supersevere return -40.98% / PF 0.9561 / DD -69.63%. No near-threshold rescue, sign/window/cadence/gross tuning, or validation opening is allowed.
 
 ## Gate preservation
 
@@ -28,4 +32,4 @@ Existing chronological folds, base/severe/supersevere costs and funding stress, 
 
 ## Current decision
 
-No champion exists. Phase045 is preregistered, implemented and covered by dedicated future-invariance/gross/rebalance/dollar-neutrality/holdout-access tests. Its isolated V98 workflow is the only permitted execution path. No Phase045 result has been used to alter its specification.
+No champion exists. Phases044-046 are closed without rescue tuning. Phase046 is recorded as a useful near-threshold negative result, not a candidate: its fold/stress failures dominate the attractive aggregate return. Next research must use a genuinely different economic mechanism rather than tuning peer-correlation crowding.
