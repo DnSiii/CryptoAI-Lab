@@ -4,7 +4,9 @@ This specification is frozen before Phase047 return evaluation. It governs only 
 
 ## Source and timestamp rules
 
-Use Binance public USD-M monthly metrics archives only. Preserve the archive timestamp as UTC and require monotonic, duplicate-free observations per symbol. A portfolio decision at hour `t` may use only a metrics record whose source timestamp is strictly earlier than `t`; no backfill from a later observation is allowed. The alpha formula itself additionally uses the preregistered `t-1` versus `t-25` 24h OI change.
+Use Binance public USD-M **daily** metrics archives only. The earlier monthly-path assumption was an acquisition-path error: the preregistered feasibility probe subsequently verified the daily archive across all sampled symbols/years. This correction changes source transport only and does not change the Phase047 economic hypothesis, sign, lookback, rebalance cadence, neutralization, gross, universe, or evaluation gates.
+
+Preserve each archive timestamp as UTC and require monotonic, duplicate-free observations per symbol. A portfolio decision at hour `t` may use only a metrics record whose source timestamp is strictly earlier than `t`; no backfill from a later observation is allowed. The alpha formula itself additionally uses the preregistered `t-1` versus `t-25` 24h OI change.
 
 ## Required field
 
@@ -12,7 +14,7 @@ Use Binance public USD-M monthly metrics archives only. Preserve the archive tim
 
 ## Coverage and missingness
 
-The source-feasibility gate requires stable schema across sampled 2023, 2024, 2025 and 2026 months for every current V98 symbol. Full acquisition must then report first/last timestamp, row count, duplicate count, nonpositive/invalid OI count, missing expected timestamps and SHA-256 per source archive. Symbols/hours with unavailable OI are ineligible at that decision; values are not interpolated across missing source intervals.
+The source-feasibility gate requires stable schema across sampled dates in 2023, 2024, 2025 and 2026 for every current V98 symbol. Full acquisition must then report first/last timestamp, row count, duplicate count, nonpositive/invalid OI count, missing expected timestamps and SHA-256 per source archive. Symbols/hours with unavailable OI are ineligible at that decision; values are not interpolated across missing source intervals.
 
 ## Point-in-time universe
 
