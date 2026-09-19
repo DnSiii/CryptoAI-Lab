@@ -38,7 +38,7 @@ jobs:
         run: python scripts/sync_paper_data_v13.py
       - name: Audit shared public derivatives metrics archive
         run: python scripts/v98_independent_phase047_acquire.py
-      - name: Run frozen Phase048 only after integrity gate
+      - name: Run frozen Phase049 only after integrity gate
         shell: bash
         run: |
           if python - <<'PY'
@@ -48,28 +48,28 @@ jobs:
           raise SystemExit(0 if r.get('decision')=='integrity_sample_pass' else 1)
           PY
           then
-            python scripts/v98_independent_phase048_taker_pressure.py
+            python scripts/v98_independent_phase049_positioning_divergence.py
           else
-            echo 'Phase048 backtest correctly blocked by shared archive integrity gate.'
+            echo 'Phase049 backtest correctly blocked by shared archive integrity gate.'
             exit 1
           fi
-      - name: Commit compact V98 Phase048 evidence
+      - name: Commit compact V98 Phase049 evidence
         if: always()
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/v98_independent_phase047_oi_acquisition_audit.json
-          test ! -f reports/v98_independent_phase048_taker_pressure.json || git add reports/v98_independent_phase048_taker_pressure.json state/v98_independent_state.json
-          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase048 frozen taker evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase048 evidence
+          test ! -f reports/v98_independent_phase049_positioning_divergence.json || git add reports/v98_independent_phase049_positioning_divergence.json state/v98_independent_state.json
+          if git diff --cached --quiet; then echo "No compact evidence changes to commit."; else git commit -m "v98: record phase049 frozen positioning evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase049 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase048-${{ github.run_id }}
+          name: v98-independent-phase049-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
             reports/v98_independent_phase047_oi_acquisition_audit.json
-            reports/v98_independent_phase048_taker_pressure.json
-            reports/v98_independent_phase048_taker_pressure_positions.csv
+            reports/v98_independent_phase049_positioning_divergence.json
+            reports/v98_independent_phase049_positioning_divergence_positions.csv
