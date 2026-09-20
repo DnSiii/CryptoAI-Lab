@@ -30,18 +30,99 @@
   ],
   "checks": {
     "VIXCLS": {
-      "ok": false,
-      "error": "TimeoutError:The read operation timed out"
+      "ok": true,
+      "http_status": 200,
+      "rows": 782,
+      "checks": {
+        "2023-01-17": {
+          "finite": true,
+          "present": true
+        },
+        "2023-07-17": {
+          "finite": true,
+          "present": true
+        },
+        "2024-01-16": {
+          "finite": true,
+          "present": true
+        },
+        "2024-07-15": {
+          "finite": true,
+          "present": true
+        },
+        "2025-01-15": {
+          "finite": true,
+          "present": true
+        },
+        "2025-07-15": {
+          "finite": true,
+          "present": true
+        }
+      }
     },
     "DGS10": {
-      "ok": false,
-      "error": "TimeoutError:The read operation timed out"
+      "ok": true,
+      "http_status": 200,
+      "rows": 782,
+      "checks": {
+        "2023-01-17": {
+          "finite": true,
+          "present": true
+        },
+        "2023-07-17": {
+          "finite": true,
+          "present": true
+        },
+        "2024-01-16": {
+          "finite": true,
+          "present": true
+        },
+        "2024-07-15": {
+          "finite": true,
+          "present": true
+        },
+        "2025-01-15": {
+          "finite": true,
+          "present": true
+        },
+        "2025-07-15": {
+          "finite": true,
+          "present": true
+        }
+      }
     },
     "DFF": {
-      "ok": false,
-      "error": "TimeoutError:The read operation timed out"
+      "ok": true,
+      "http_status": 200,
+      "rows": 1096,
+      "checks": {
+        "2023-01-17": {
+          "finite": true,
+          "present": true
+        },
+        "2023-07-17": {
+          "finite": true,
+          "present": true
+        },
+        "2024-01-16": {
+          "finite": true,
+          "present": true
+        },
+        "2024-07-15": {
+          "finite": true,
+          "present": true
+        },
+        "2025-01-15": {
+          "finite": true,
+          "present": true
+        },
+        "2025-07-15": {
+          "finite": true,
+          "present": true
+        }
+      }
     }
   },
-  "feasibility_pass": false,
+  "feasibility_pass": true,
   "decision_rule": "PASS_DATA_ONLY iff all frozen series are finite on all frozen training-era dates; otherwise FAIL_DATA_NO_ALPHA."
 }
