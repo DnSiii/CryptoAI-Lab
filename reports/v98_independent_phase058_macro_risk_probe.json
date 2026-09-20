@@ -1,0 +1,47 @@
+{
+  "engine": "V98 Independent",
+  "phase": "058",
+  "purpose": "exogenous macro-risk data feasibility only; ZERO ALPHA/ZERO RETURNS",
+  "source": "FRED public CSV",
+  "training_probe_only": true,
+  "training_years": [
+    2023,
+    2024,
+    2025
+  ],
+  "validation_accessed": false,
+  "final_holdout_accessed": false,
+  "v99_used": false,
+  "alpha_computed": false,
+  "returns_computed": false,
+  "parameter_search": false,
+  "series": [
+    "VIXCLS",
+    "DGS10",
+    "DFF"
+  ],
+  "dates": [
+    "2023-01-17",
+    "2023-07-17",
+    "2024-01-16",
+    "2024-07-15",
+    "2025-01-15",
+    "2025-07-15"
+  ],
+  "checks": {
+    "VIXCLS": {
+      "ok": false,
+      "error": "TimeoutError:The read operation timed out"
+    },
+    "DGS10": {
+      "ok": false,
+      "error": "TimeoutError:The read operation timed out"
+    },
+    "DFF": {
+      "ok": false,
+      "error": "TimeoutError:The read operation timed out"
+    }
+  },
+  "feasibility_pass": false,
+  "decision_rule": "PASS_DATA_ONLY iff all frozen series are finite on all frozen training-era dates; otherwise FAIL_DATA_NO_ALPHA."
+}
