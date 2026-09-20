@@ -1,0 +1,1538 @@
+{
+  "engine": "V98 Independent",
+  "phase": "052-feasibility-only",
+  "mechanism": "cross-market spot-vs-USD-M perpetual basis/dislocation",
+  "source": "Binance public spot + USD-M daily 1h kline archives",
+  "guardrails": {
+    "alpha_scored": false,
+    "basis_computed": false,
+    "returns_computed": false,
+    "validation_accessed": false,
+    "final_holdout_accessed": false,
+    "v99_used": false,
+    "latest_sample_date": "2025-07-15"
+  },
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT"
+  ],
+  "dates": [
+    "2023-01-15",
+    "2023-07-15",
+    "2024-01-15",
+    "2024-07-15",
+    "2025-01-15",
+    "2025-07-15"
+  ],
+  "matched_pairs_ok": 30,
+  "matched_pairs_total": 30,
+  "matched_pair_success_rate": 1.0,
+  "matched": [
+    {
+      "symbol": "BTCUSDT",
+      "date": "2023-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "date": "2023-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "date": "2024-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "date": "2024-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "date": "2025-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BTCUSDT",
+      "date": "2025-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "date": "2023-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "date": "2023-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "date": "2024-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "date": "2024-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "date": "2025-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "ETHUSDT",
+      "date": "2025-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BNBUSDT",
+      "date": "2023-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BNBUSDT",
+      "date": "2023-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BNBUSDT",
+      "date": "2024-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BNBUSDT",
+      "date": "2024-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BNBUSDT",
+      "date": "2025-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "BNBUSDT",
+      "date": "2025-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "XRPUSDT",
+      "date": "2023-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "XRPUSDT",
+      "date": "2023-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "XRPUSDT",
+      "date": "2024-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "XRPUSDT",
+      "date": "2024-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "XRPUSDT",
+      "date": "2025-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "XRPUSDT",
+      "date": "2025-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "SOLUSDT",
+      "date": "2023-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "SOLUSDT",
+      "date": "2023-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "SOLUSDT",
+      "date": "2024-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "SOLUSDT",
+      "date": "2024-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "SOLUSDT",
+      "date": "2025-01-15",
+      "spot_ok": true,
+      "perp_ok": true
+    },
+    {
+      "symbol": "SOLUSDT",
+      "date": "2025-07-15",
+      "spot_ok": true,
+      "perp_ok": true
+    }
+  ],
+  "checks": [
+    {
+      "market": "spot",
+      "symbol": "BTCUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1619,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1673740800000",
+        "20952.76000000",
+        "21001.84000000",
+        "20623.21000000"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "20911.27000000",
+        "20938.60000000",
+        "20837.00000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BTCUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1544,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "20927.00",
+        "20952.30",
+        "20850.00"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BTCUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1508,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1689379200000",
+        "30312.00000000",
+        "30328.77000000",
+        "30200.00000000"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "30285.43000000",
+        "30293.74000000",
+        "30269.96000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BTCUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1489,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "30272.40",
+        "30280.50",
+        "30251.00"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BTCUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1582,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1705276800000",
+        "41732.35000000",
+        "42353.94000000",
+        "41718.05000000"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "42628.00000000",
+        "42639.99000000",
+        "42474.00000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BTCUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1577,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "42634.40",
+        "42647.90",
+        "42477.00"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BTCUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1583,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1721001600000",
+        "60797.91000000",
+        "61324.01000000",
+        "60632.30000000"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "64343.60000000",
+        "64900.00000000",
+        "64225.19000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BTCUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1587,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "64309.00",
+        "64870.70",
+        "64185.60"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BTCUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1639,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1736899200000000",
+        "96560.85000000",
+        "97332.52000000",
+        "96500.00000000"
+      ],
+      "last_row_prefix": [
+        "1736982000000000",
+        "99713.45000000",
+        "100510.05000000",
+        "99632.73000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BTCUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1580,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1736982000000",
+        "99674.20",
+        "100500.00",
+        "99578.30"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BTCUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1623,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1752537600000000",
+        "119841.17000000",
+        "119940.83000000",
+        "119110.00000000"
+      ],
+      "last_row_prefix": [
+        "1752620400000000",
+        "117827.74000000",
+        "117972.86000000",
+        "117500.00000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BTCUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1595,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1752620400000",
+        "117807.70",
+        "117965.60",
+        "117479.10"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "ETHUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1475,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1673740800000",
+        "1549.91000000",
+        "1552.22000000",
+        "1516.12000000"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "1557.55000000",
+        "1560.93000000",
+        "1547.69000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "ETHUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1567,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "1558.83",
+        "1563.03",
+        "1548.54"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "ETHUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1447,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1689379200000",
+        "1937.82000000",
+        "1937.83000000",
+        "1929.27000000"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "1928.60000000",
+        "1931.42000000",
+        "1927.29000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "ETHUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1517,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "1927.78",
+        "1930.58",
+        "1926.37"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "ETHUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1492,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1705276800000",
+        "2472.87000000",
+        "2502.40000000",
+        "2470.92000000"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "2513.97000000",
+        "2519.90000000",
+        "2510.88000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "ETHUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1567,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "2514.62",
+        "2520.99",
+        "2511.25"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "ETHUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1522,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1721001600000",
+        "3245.20000000",
+        "3287.60000000",
+        "3233.22000000"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "3472.75000000",
+        "3493.00000000",
+        "3464.25000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "ETHUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1608,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "3471.49",
+        "3491.70",
+        "3462.87"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "ETHUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1559,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1736899200000000",
+        "3225.63000000",
+        "3242.65000000",
+        "3217.50000000"
+      ],
+      "last_row_prefix": [
+        "1736982000000000",
+        "3430.79000000",
+        "3454.11000000",
+        "3420.61000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "ETHUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1607,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1736982000000",
+        "3429.39",
+        "3453.65",
+        "3419.23"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "ETHUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1579,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1752537600000000",
+        "3013.61000000",
+        "3023.20000000",
+        "2988.26000000"
+      ],
+      "last_row_prefix": [
+        "1752620400000000",
+        "3094.06000000",
+        "3144.14000000",
+        "3094.05000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "ETHUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/1h/ETHUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1624,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1752620400000",
+        "3093.35",
+        "3144.48",
+        "3093.34"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BNBUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1298,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1673740800000",
+        "305.20000000",
+        "306.10000000",
+        "300.00000000"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "302.70000000",
+        "303.00000000",
+        "301.00000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BNBUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1452,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "302.900",
+        "303.270",
+        "301.040"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BNBUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1286,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1689379200000",
+        "248.10000000",
+        "248.70000000",
+        "246.90000000"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "251.50000000",
+        "251.80000000",
+        "250.70000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BNBUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1412,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "250.940",
+        "251.320",
+        "250.520"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BNBUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1358,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1705276800000",
+        "299.40000000",
+        "304.00000000",
+        "299.40000000"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "316.20000000",
+        "318.30000000",
+        "315.90000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BNBUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1467,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "315.950",
+        "317.990",
+        "315.610"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BNBUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1335,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1721001600000",
+        "544.90000000",
+        "549.00000000",
+        "543.80000000"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "582.10000000",
+        "586.80000000",
+        "581.40000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BNBUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1461,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "582.050",
+        "586.660",
+        "581.230"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BNBUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1409,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1736899200000000",
+        "698.89000000",
+        "702.84000000",
+        "698.89000000"
+      ],
+      "last_row_prefix": [
+        "1736982000000000",
+        "712.33000000",
+        "714.90000000",
+        "707.06000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BNBUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1459,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1736982000000",
+        "712.110",
+        "714.730",
+        "710.780"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "BNBUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1411,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1752537600000000",
+        "689.13000000",
+        "691.10000000",
+        "686.74000000"
+      ],
+      "last_row_prefix": [
+        "1752620400000000",
+        "690.94000000",
+        "693.21000000",
+        "689.36000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "BNBUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/1h/BNBUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1444,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1752620400000",
+        "691.210",
+        "693.540",
+        "690.080"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "XRPUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1264,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1673740800000",
+        "0.39530000",
+        "0.39690000",
+        "0.38420000"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "0.38570000",
+        "0.38600000",
+        "0.38370000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "XRPUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1436,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "0.3856",
+        "0.3859",
+        "0.3835"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "XRPUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1336,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1689379200000",
+        "0.71780000",
+        "0.72300000",
+        "0.69550000"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "0.71400000",
+        "0.71460000",
+        "0.70910000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "XRPUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1514,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "0.7138",
+        "0.7147",
+        "0.7088"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "XRPUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1265,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1705276800000",
+        "0.57630000",
+        "0.58480000",
+        "0.57630000"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "0.57820000",
+        "0.57930000",
+        "0.57520000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "XRPUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1433,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "0.5783",
+        "0.5796",
+        "0.5750"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "XRPUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1297,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1721001600000",
+        "0.52050000",
+        "0.52650000",
+        "0.52030000"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "0.53560000",
+        "0.53820000",
+        "0.53310000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "XRPUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1472,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "0.5354",
+        "0.5380",
+        "0.5326"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "XRPUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1445,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1736899200000000",
+        "2.66730000",
+        "2.68360000",
+        "2.64920000"
+      ],
+      "last_row_prefix": [
+        "1736982000000000",
+        "3.08210000",
+        "3.20000000",
+        "3.07590000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "XRPUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1567,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1736982000000",
+        "3.0810",
+        "3.1992",
+        "3.0748"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "XRPUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1442,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1752537600000000",
+        "2.95820000",
+        "2.95820000",
+        "2.90310000"
+      ],
+      "last_row_prefix": [
+        "1752620400000000",
+        "2.90940000",
+        "2.92860000",
+        "2.90890000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "XRPUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1554,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1752620400000",
+        "2.9094",
+        "2.9301",
+        "2.9091"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "SOLUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1335,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1673740800000",
+        "24.23000000",
+        "25.00000000",
+        "23.11000000"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "23.16000000",
+        "23.20000000",
+        "22.73000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "SOLUSDT",
+      "date": "2023-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2023-01-15.zip",
+      "ok": true,
+      "bytes": 1404,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1673823600000",
+        "23.1710",
+        "23.2290",
+        "22.7290"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "SOLUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1334,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1689379200000",
+        "26.67000000",
+        "27.76000000",
+        "26.45000000"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "27.34000000",
+        "27.52000000",
+        "27.24000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "SOLUSDT",
+      "date": "2023-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2023-07-15.zip",
+      "ok": true,
+      "bytes": 1421,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1689462000000",
+        "27.3370",
+        "27.5200",
+        "27.2320"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "SOLUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1335,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1705276800000",
+        "93.81000000",
+        "96.18000000",
+        "93.81000000"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "94.22000000",
+        "94.65000000",
+        "93.89000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "SOLUSDT",
+      "date": "2024-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2024-01-15.zip",
+      "ok": true,
+      "bytes": 1397,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1705359600000",
+        "94.2370",
+        "94.6730",
+        "93.9090"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "SOLUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1405,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1721001600000",
+        "147.66000000",
+        "150.91000000",
+        "147.00000000"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "158.79000000",
+        "159.95000000",
+        "158.29000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "SOLUSDT",
+      "date": "2024-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2024-07-15.zip",
+      "ok": true,
+      "bytes": 1418,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1721084400000",
+        "158.6970",
+        "159.8500",
+        "158.2030"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "SOLUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1460,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1736899200000000",
+        "187.57000000",
+        "188.28000000",
+        "187.03000000"
+      ],
+      "last_row_prefix": [
+        "1736982000000000",
+        "204.50000000",
+        "206.04000000",
+        "203.87000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "SOLUSDT",
+      "date": "2025-01-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2025-01-15.zip",
+      "ok": true,
+      "bytes": 1388,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1736982000000",
+        "204.4200",
+        "205.9400",
+        "203.7700"
+      ]
+    },
+    {
+      "market": "spot",
+      "symbol": "SOLUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/spot/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1452,
+      "rows": 24,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "1752537600000000",
+        "162.21000000",
+        "162.89000000",
+        "161.06000000"
+      ],
+      "last_row_prefix": [
+        "1752620400000000",
+        "162.53000000",
+        "164.26000000",
+        "162.53000000"
+      ]
+    },
+    {
+      "market": "um_perp",
+      "symbol": "SOLUSDT",
+      "date": "2025-07-15",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/1h/SOLUSDT-1h-2025-07-15.zip",
+      "ok": true,
+      "bytes": 1517,
+      "rows": 25,
+      "first_row_width": 12,
+      "first_row_prefix": [
+        "open_time",
+        "open",
+        "high",
+        "low"
+      ],
+      "last_row_prefix": [
+        "1752620400000",
+        "162.5000",
+        "164.2600",
+        "162.4900"
+      ]
+    }
+  ],
+  "decision_rule": "feasible only if matched spot/perp archives are broadly available across all three training years and multiple assets; feasibility alone does not authorize alpha until separately preregistered"
+}
