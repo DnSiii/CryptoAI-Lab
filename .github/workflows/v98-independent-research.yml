@@ -22,41 +22,36 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Run V98 causality and invariant tests only
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
-      - name: Rebuild training-only canonical data if absent
-        run: |
-          if [ ! -f data/canonical/BTCUSDT_1h.csv ]; then
-            python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
-            python scripts/build_canonical.py --config v98_independent_phase050_data.json
-          fi
-      - name: Execute frozen Phase061 stablecoin-liquidity training
-        run: python scripts/v98_independent_phase061_stablecoin_liquidity.py
-      - name: Enforce Phase061 isolation contract
+      - name: Execute frozen Phase062 cross-asset liquidity data feasibility
+        run: python scripts/v98_independent_phase062_cross_asset_liquidity_feasibility.py
+      - name: Enforce Phase062 no-alpha isolation contract
         if: always()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase061_stablecoin_liquidity.json'))
-          assert p['engine']=='V98 Independent' and p['phase']=='061'
+          p=json.load(open('reports/v98_independent_phase062_cross_asset_liquidity_feasibility.json'))
+          assert p['engine']=='V98 Independent' and p['phase']=='062'
+          assert p['purpose']=='DATA_FEASIBILITY_ONLY'
           assert p['validation'] is None and p['final_holdout'] is None and p['final_holdout_untouched']
-          assert not p['v99_used']
-          assert p['preregistration']=='reports/v98_independent_phase061_stablecoin_liquidity_preregistration.md'
-          print('Phase061 isolation guard passed')
+          assert not p['v99_used'] and not p['v16_used']
+          assert not p['crypto_prices_used'] and not p['crypto_returns_used'] and not p['alpha_or_pnl_computed']
+          assert not p['parameter_search'] and p['no_future_observation_rule']
+          assert p['preregistration']=='reports/v98_independent_phase062_cross_asset_liquidity_preregistration.md'
+          print('Phase062 no-alpha isolation guard passed')
           PY
-      - name: Commit V98 Phase061 evidence only
+      - name: Commit V98 Phase062 evidence only
         if: always()
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          test ! -f reports/v98_independent_phase061_stablecoin_liquidity.json || git add -f reports/v98_independent_phase061_stablecoin_liquidity.json
-          if git diff --cached --quiet; then echo "No Phase061 evidence changes to commit."; else git commit -m "v98: record phase061 stablecoin liquidity training"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase061 evidence
+          test ! -f reports/v98_independent_phase062_cross_asset_liquidity_feasibility.json || git add -f reports/v98_independent_phase062_cross_asset_liquidity_feasibility.json
+          if git diff --cached --quiet; then echo "No Phase062 evidence changes to commit."; else git commit -m "v98: record phase062 cross-asset liquidity feasibility"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase062 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase061-${{ github.run_id }}
+          name: v98-independent-phase062-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: |
-            reports/v98_independent_phase061_stablecoin_liquidity.json
-            reports/v98_independent_phase061_stablecoin_liquidity_positions.csv
+          path: reports/v98_independent_phase062_cross_asset_liquidity_feasibility.json
