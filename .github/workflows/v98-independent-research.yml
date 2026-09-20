@@ -22,32 +22,35 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Run V98 causality and invariant tests only
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
-      - name: Execute Phase058 macro-risk feasibility only
-        run: python scripts/v98_independent_phase058_macro_risk_probe.py
-      - name: Enforce Phase058 zero-alpha isolation contract
+      - name: Execute frozen Phase059 macro-risk training
+        run: python scripts/v98_independent_phase059_macro_risk_overlay.py
+      - name: Enforce Phase059 isolation contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase058_macro_risk_probe.json'))
-          assert p['training_probe_only']
-          assert not p['validation_accessed'] and not p['final_holdout_accessed'] and not p['v99_used']
-          assert not p['alpha_computed'] and not p['returns_computed'] and not p['parameter_search']
-          assert p['training_years'] == [2023, 2024, 2025]
-          print('Phase058 feasibility-only isolation guard passed')
+          p=json.load(open('reports/v98_independent_phase059_macro_risk_overlay.json'))
+          assert p['engine']=='V98 Independent' and p['phase']=='059'
+          assert p['final_holdout'] is None and p['final_holdout_untouched'] and not p['v99_used']
+          assert 'no search/inversion/rescue' in p['selection_policy']
+          if not p['training_gate']['passed']: assert p['validation'] is None
+          print('Phase059 isolation guard passed')
           PY
-      - name: Commit V98 Phase058 evidence only
+      - name: Commit V98 Phase059 evidence only
         if: always()
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          test ! -f reports/v98_independent_phase058_macro_risk_probe.json || git add reports/v98_independent_phase058_macro_risk_probe.json
-          if git diff --cached --quiet; then echo "No Phase058 evidence changes to commit."; else git commit -m "v98: record phase058 macro-risk feasibility evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase058 evidence
+          test ! -f reports/v98_independent_phase059_macro_risk_overlay.json || git add reports/v98_independent_phase059_macro_risk_overlay.json
+          test ! -f reports/v98_independent_phase059_macro_risk_overlay_positions.csv || git add reports/v98_independent_phase059_macro_risk_overlay_positions.csv
+          if git diff --cached --quiet; then echo "No Phase059 evidence changes to commit."; else git commit -m "v98: record phase059 macro-risk evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase059 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase058-${{ github.run_id }}
+          name: v98-independent-phase059-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase058_macro_risk_probe.json
+          path: |
+            reports/v98_independent_phase059_macro_risk_overlay.json
+            reports/v98_independent_phase059_macro_risk_overlay_positions.csv
