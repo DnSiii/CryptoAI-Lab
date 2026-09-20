@@ -9,6 +9,8 @@ import csv
 import io
 import json
 import math
+import time
+import urllib.error
 import urllib.request
 from datetime import date
 from pathlib import Path
@@ -26,8 +28,20 @@ OUT = Path("reports/v98_independent_phase062_cross_asset_liquidity_feasibility.j
 
 def fetch_series(series: str) -> list[tuple[date, float]]:
     req = urllib.request.Request(URL.format(series=series), headers={"User-Agent": "CryptoAI-Lab-V98-Independent/1.0"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        text = r.read().decode("utf-8")
+    text = None
+    last_error: Exception | None = None
+    # Transport-only hardening: retry the identical frozen source/query; never change series/dates/source.
+    for attempt in range(1, 4):
+        try:
+            with urllib.request.urlopen(req, timeout=90) as r:
+                text = r.read().decode("utf-8")
+            break
+        except (TimeoutError, urllib.error.URLError, OSError) as exc:
+            last_error = exc
+            if attempt < 3:
+                time.sleep(5 * attempt)
+    if text is None:
+        raise RuntimeError(f"FRED transport failed for frozen series {series} after 3 identical attempts") from last_error
     rows: list[tuple[date, float]] = []
     for row in csv.DictReader(io.StringIO(text)):
         raw_date = row.get("DATE") or row.get("observation_date")
