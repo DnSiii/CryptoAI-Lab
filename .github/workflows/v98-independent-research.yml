@@ -22,35 +22,32 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Run V98 causality and invariant tests only
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
-      - name: Probe Phase051 forced-liquidation data family (NO ALPHA)
-        run: python scripts/v98_independent_phase051_liquidation_probe.py
-      - name: Enforce Phase051 no-alpha feasibility contract
+      - name: Probe Phase052 matched spot-perp data family (NO ALPHA)
+        run: python scripts/v98_independent_phase052_spot_perp_basis_probe.py
+      - name: Enforce Phase052 no-alpha feasibility contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase051_liquidation_probe.json'))
+          p=json.load(open('reports/v98_independent_phase052_spot_perp_basis_probe.json'))
           g=p['guardrails']
-          assert g['alpha_scored'] is False
-          assert g['returns_computed'] is False
-          assert g['validation_accessed'] is False
-          assert g['final_holdout_accessed'] is False
-          assert g['v99_used'] is False
+          assert g['alpha_scored'] is False and g['basis_computed'] is False and g['returns_computed'] is False
+          assert g['validation_accessed'] is False and g['final_holdout_accessed'] is False and g['v99_used'] is False
           assert g['latest_sample_date'] <= '2025-12-31'
-          print('Phase051 no-alpha/holdout guard passed')
+          print('Phase052 no-alpha/holdout guard passed')
           PY
-      - name: Commit V98 Phase051 feasibility evidence only
+      - name: Commit V98 Phase052 feasibility evidence only
         if: always()
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          test ! -f reports/v98_independent_phase051_liquidation_probe.json || git add reports/v98_independent_phase051_liquidation_probe.json
-          if git diff --cached --quiet; then echo "No Phase051 feasibility evidence changes to commit."; else git commit -m "v98: record phase051 liquidation feasibility probe"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase051 feasibility evidence
+          test ! -f reports/v98_independent_phase052_spot_perp_basis_probe.json || git add reports/v98_independent_phase052_spot_perp_basis_probe.json
+          if git diff --cached --quiet; then echo "No Phase052 feasibility evidence changes to commit."; else git commit -m "v98: record phase052 spot-perp feasibility probe"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase052 feasibility evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase051-probe-${{ github.run_id }}
+          name: v98-independent-phase052-probe-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase051_liquidation_probe.json
+          path: reports/v98_independent_phase052_spot_perp_basis_probe.json
