@@ -1,6 +1,6 @@
 # V98 Independent — Hypothesis Family Registry
 
-Status: active research-control artifact after Phase050 rejection.
+Status: active research-control artifact after Phase050 rejection and Phase051 data-feasibility failure.
 
 Purpose: prevent renamed repeats, rescue tuning, and pseudo-diversification. This registry is selection hygiene only; it does not inspect validation/final holdout and does not use V99 evidence.
 
@@ -29,11 +29,14 @@ REJECTED without rescue tuning. The frozen positive strictly lagged `log(sum_top
 ## Phase050 decision
 REJECTED without rescue tuning. The preregistered positive prior-completed-UTC-day median all-level book-depth bid/ask quoted-notional imbalance produced training return -17.41%, CAGR -3.75%, PF 0.9462, max drawdown -35.18%, payoff 0.9940 and 534 positive days. Every scored chronological fold was negative: 2023 -10.94% / PF 0.8815; 2024 -2.66% / PF 0.9846; 2025 -4.48% / PF 0.9666. Severe returned -45.80% / PF 0.8177 / DD -48.62%; supersevere returned -72.36% / PF 0.6497 / DD -73.35%. Approximate regime attribution was +2.39% in bear, -14.44% in bull and -3.73% in sideways, so a bear-only rescue is forbidden regime cherry-picking. Mean top-1 weight share was 37.12% (p95 49.79%) and mean active assets 2.98. Beta neutrality remained tight (mean absolute portfolio beta 0.0156). Training book-depth daily coverage was about 59.5%-59.8% per symbol; despite missingness, the failure is broad across folds and cost stresses and does not justify rescue. Training gate failed, validation remained closed/null, and final holdout remained untouched.
 
+## Phase051 feasibility decision
+NO ALPHA EXECUTED. A training-era-only feasibility probe of Binance public USD-M `liquidationSnapshot` forced-liquidation files checked 30 symbol/date combinations across BTC/ETH/BNB/XRP/SOL and 2023/2024/2025; 0/30 were retrievable from the tested public archive paths. The probe computed no returns, opened no validation/final holdout data, and used no V99 evidence. Because a forced-liquidation candidate cannot support the required chronological 2023/2024/2025 folds from this source, the source is infeasible under the current reproducibility protocol; no partial-era alpha or third-party paid-source substitution is authorized as a rescue.
+
 ## Next frontier discipline
-Phase050 is closed. No Phase051 alpha is authorized by sign inversion, alternate book-depth levels/aggregation, nearby windows, cadence, gross, threshold, regime filtering, or symbol subsets. The next candidate must introduce a genuinely new economic mechanism/data family and must be preregistered before any return is computed. A data-source feasibility/integrity probe may precede that preregistration and must not score alpha or access validation/final holdout.
+Phase050 alpha is closed and Phase051 forced-liquidation source feasibility failed before alpha. No rescue via liquidation source substitution, partial-era scoring, sign/window/cadence/gross/threshold/regime/symbol search is authorized. The next candidate must introduce a genuinely new economic mechanism/data family and must be preregistered before any return is computed. A data-source feasibility/integrity probe may precede preregistration and must not score alpha or access validation/final holdout.
 
 ## Gate preservation
 Existing chronological folds, base/severe/supersevere costs and funding stress, concentration/tails, max drawdown, PF, payoff, win rate, positive days, beta/dollar neutrality, regimes and reproducibility diagnostics remain unchanged. Validation stays closed unless training passes. Final holdout stays untouched until training and validation pass and a candidate is formally frozen. V99 is excluded from V98 selection.
 
 ## Current decision
-No champion exists. Phases046-050 are closed without rescue tuning. The next action is genuinely orthogonal data/mechanism discovery under a no-alpha feasibility probe; validation and final holdout remain closed.
+No champion exists. Phases046-050 are closed without rescue tuning; Phase051 stopped at data feasibility with no alpha. The next action is genuinely orthogonal data/mechanism discovery under a no-alpha feasibility probe; validation and final holdout remain closed.
