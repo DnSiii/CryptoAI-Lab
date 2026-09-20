@@ -1,0 +1,107 @@
+{
+  "engine": "V98 Independent",
+  "phase": "057",
+  "purpose": "on-chain network-activity feasibility only; ZERO ALPHA/ZERO RETURNS",
+  "source": "Coin Metrics Community API",
+  "training_probe_only": true,
+  "training_years": [
+    2023,
+    2024,
+    2025
+  ],
+  "validation_accessed": false,
+  "final_holdout_accessed": false,
+  "v99_used": false,
+  "alpha_computed": false,
+  "returns_computed": false,
+  "parameter_search": false,
+  "assets": [
+    "btc",
+    "eth"
+  ],
+  "metrics": [
+    "AdrActCnt",
+    "TxCnt",
+    "FeeTotUSD"
+  ],
+  "dates": [
+    "2023-01-15",
+    "2023-07-15",
+    "2024-01-15",
+    "2024-07-15",
+    "2025-01-15",
+    "2025-07-15"
+  ],
+  "ok": 0,
+  "total": 12,
+  "by_training_year_ok": {
+    "2023": {
+      "btc": 0,
+      "eth": 0
+    },
+    "2024": {
+      "btc": 0,
+      "eth": 0
+    },
+    "2025": {
+      "btc": 0,
+      "eth": 0
+    }
+  },
+  "checks": {
+    "btc": {
+      "2023-01-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2023-07-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2024-01-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2024-07-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2025-01-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2025-07-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      }
+    },
+    "eth": {
+      "2023-01-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2023-07-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2024-01-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2024-07-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2025-01-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      },
+      "2025-07-15": {
+        "ok": false,
+        "error": "HTTPError:HTTP Error 403: Forbidden"
+      }
+    }
+  },
+  "feasibility_pass": false,
+  "decision_rule": "PASS_DATA_ONLY only if every frozen BTC/ETH metric is finite on both sampled dates in every training year; otherwise FAIL_DATA_NO_ALPHA."
+}
