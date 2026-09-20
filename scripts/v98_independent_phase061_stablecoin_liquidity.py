@@ -47,11 +47,11 @@ def main():
  train=p3.metrics(r['base'],a,b);folds={f['name']:p3.metrics(r['base'],f['start'],f['end']) for f in cfg['folds']};sev=p3.metrics(r['severe'],a,b);sup=p3.metrics(r['supersevere'],a,b);conc=p3.concentration_metrics(r['base'],a,b);reg=p3.regime_metrics(r['base'],data,a,b,b)
  failures=[]
  if train['total_return']<=0:failures.append('aggregate_return<=0')
- if train['profit_factor']<=1.05:failures.append('aggregate_pf<=1.05')
+ if train['profit_factor_daily']<=1.05:failures.append('aggregate_pf<=1.05')
  if train['max_drawdown']<=-0.35:failures.append('max_drawdown<=-35%')
  for name,m in folds.items():
   if m['total_return']<=0:failures.append(f'{name}_return<=0')
-  if m['profit_factor']<=1.02:failures.append(f'{name}_pf<=1.02')
+  if m['profit_factor_daily']<=1.02:failures.append(f'{name}_pf<=1.02')
  passed=not failures
  rep={'engine':'V98 Independent','phase':'061','hypothesis':'Lagged 30-calendar-day aggregate stablecoin supply growth direction predicts BTC liquidity direction.','preregistration':'reports/v98_independent_phase061_stablecoin_liquidity_preregistration.md','selection_policy':'single frozen 30-day sign; BTCUSDT perpetual gross 0.75; daily 00:00 UTC rebalance; no search/inversion/rescue','source_diagnostics':diag,'training':train,'folds':folds,'stress_training':{'severe':sev,'supersevere':sup},'concentration_training':conc,'regimes_training':reg,'training_gate':{'passed':passed,'failures':failures},'validation':None,'final_holdout':None,'final_holdout_untouched':True,'v99_used':False}
  # Validation is intentionally NOT executed in the same training script. A PASS freezes evidence first, then a separate validation-only gate may be created without changing signal construction.
