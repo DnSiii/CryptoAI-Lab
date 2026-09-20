@@ -25,8 +25,8 @@ jobs:
       - name: Rebuild training-only canonical data if absent
         run: |
           if [ ! -f data/canonical/BTCUSDT_1h.csv ]; then
-            python scripts/download_futures_archive.py --config v98_independent.json
-            python scripts/build_canonical.py --config v98_independent.json
+            python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+            python scripts/build_canonical.py --config v98_independent_phase050_data.json
           fi
       - name: Execute frozen Phase061 stablecoin-liquidity training
         run: python scripts/v98_independent_phase061_stablecoin_liquidity.py
