@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
   push:
     branches: [research/v98-independent-zero]
-    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent.json", "config/v98_independent_phase050_data.json", "scripts/v98_independent_*.py", "tests/test_v98_independent*.py", "state/v98_independent_state.json"]
+    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent*.json", "scripts/v98_independent_*.py", "tests/test_v98_independent*.py", "state/v98_independent_state.json"]
 permissions: {contents: write}
 concurrency: {group: v98-independent-research, cancel-in-progress: true}
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 30
     env: {PYTHONUNBUFFERED: "1", PIP_DISABLE_PIP_VERSION_CHECK: "1"}
     steps:
       - name: Check out isolated V98 branch
@@ -20,44 +20,37 @@ jobs:
         with: {python-version: "3.12", cache: pip}
       - name: Install package
         run: python -m pip install -e ".[dev]"
-      - name: Reconstruct Phase050 training-only canonical data
-        run: |
-          rm -rf data/raw data/canonical
-          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json --workers 40
-          python scripts/build_canonical.py --config v98_independent_phase050_data.json
-          python - <<'PY'
-          import pandas as pd
-          from pathlib import Path
-          root=Path('data/canonical')
-          for s in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
-              p=root/f'{s}_1h.csv'; f=root/f'{s}_funding.csv'
-              assert p.exists() and f.exists(), (s,p.exists(),f.exists())
-              x=pd.read_csv(p)
-              assert len(x)>10000, (s,len(x))
-          print('Phase050 canonical training reconstruction gate passed')
-          PY
       - name: Run V98 causality and invariant tests only
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
-      - name: Execute frozen Phase050 book-depth imbalance
-        run: python scripts/v98_independent_phase050_bookdepth_imbalance.py
-      - name: Commit V98 Phase050 evidence only
+      - name: Probe Phase051 forced-liquidation data family (NO ALPHA)
+        run: python scripts/v98_independent_phase051_liquidation_probe.py
+      - name: Enforce Phase051 no-alpha feasibility contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase051_liquidation_probe.json'))
+          g=p['guardrails']
+          assert g['alpha_scored'] is False
+          assert g['returns_computed'] is False
+          assert g['validation_accessed'] is False
+          assert g['final_holdout_accessed'] is False
+          assert g['v99_used'] is False
+          assert g['latest_sample_date'] <= '2025-12-31'
+          print('Phase051 no-alpha/holdout guard passed')
+          PY
+      - name: Commit V98 Phase051 feasibility evidence only
         if: always()
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          test ! -f reports/v98_independent_phase050_bookdepth_imbalance.json || git add reports/v98_independent_phase050_bookdepth_imbalance.json
-          test ! -f reports/v98_independent_phase050_bookdepth_imbalance_positions.csv || git add -f reports/v98_independent_phase050_bookdepth_imbalance_positions.csv
-          git add state/v98_independent_state.json
-          if git diff --cached --quiet; then echo "No Phase050 evidence changes to commit."; else git commit -m "v98: record phase050 book-depth imbalance result"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase050 evidence
+          test ! -f reports/v98_independent_phase051_liquidation_probe.json || git add reports/v98_independent_phase051_liquidation_probe.json
+          if git diff --cached --quiet; then echo "No Phase051 feasibility evidence changes to commit."; else git commit -m "v98: record phase051 liquidation feasibility probe"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase051 feasibility evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase050-${{ github.run_id }}
+          name: v98-independent-phase051-probe-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: |
-            reports/v98_independent_phase050_bookdepth_imbalance.json
-            reports/v98_independent_phase050_bookdepth_imbalance_positions.csv
-            state/v98_independent_state.json
+          path: reports/v98_independent_phase051_liquidation_probe.json
