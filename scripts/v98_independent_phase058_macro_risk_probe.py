@@ -13,8 +13,8 @@ def finite(x):
 def fetch_series(s):
     url=f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={s}&cosd=2023-01-01&coed=2025-12-31"
     try:
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-V98-Independent/1.0"})
-        with urllib.request.urlopen(req,timeout=30) as r:text=r.read().decode("utf-8");status=getattr(r,"status",200)
+        req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 CryptoAI-Lab-V98-Independent/1.0","Accept":"text/csv,*/*"})
+        with urllib.request.urlopen(req,timeout=120) as r:text=r.read().decode("utf-8");status=getattr(r,"status",200)
         rows=list(csv.DictReader(io.StringIO(text))); vals={row.get("observation_date"):row.get(s) for row in rows}
         checks={d:{"finite":finite(vals.get(d)),"present":d in vals} for d in DATES}
         return {"ok":status==200 and all(v["finite"] for v in checks.values()),"http_status":status,"rows":len(rows),"checks":checks}
