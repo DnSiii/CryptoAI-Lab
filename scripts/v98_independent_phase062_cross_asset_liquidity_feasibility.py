@@ -22,7 +22,11 @@ SERIES = ("WALCL", "RRPONTSYD", "WTREGEN")
 CHECK_DATES = (
     "2023-03-15", "2023-09-15", "2024-03-15", "2024-09-16", "2025-03-17", "2025-09-15"
 )
-URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}"
+# Same frozen FRED public CSV source and series. Bound transport to the already-frozen
+# feasibility era so the runner does not download decades of observations that are
+# irrelevant to the 18 preregistered checks. 2023-01-01 precedes the first check and
+# 2025-09-15 is the last check; this is transport hardening, not data/alpha selection.
+URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd=2023-01-01&coed=2025-09-15"
 OUT = Path("reports/v98_independent_phase062_cross_asset_liquidity_feasibility.json")
 
 
