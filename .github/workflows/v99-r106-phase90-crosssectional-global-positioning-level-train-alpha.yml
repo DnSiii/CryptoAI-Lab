@@ -24,9 +24,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: v99-r106-phase90-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          key: v99-r106-phase90-${{ runner.os }}-numpy-pandas
       - name: Install dependencies
-        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install numpy pandas
       - name: Snapshot frozen assets
         run: |
           python - <<'PY'
