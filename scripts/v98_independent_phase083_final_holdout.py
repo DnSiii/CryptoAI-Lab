@@ -15,7 +15,7 @@ def main():
  if v['errors']: raise RuntimeError(str(v['errors'][:5]))
  a=cfg['final_holdout_start'];b=cfg['final_holdout_end']
  # Never silently shorten the pre-registered one-shot holdout if current-month archives are incomplete.
- idx=data.prices.index
+ idx=data.close.index
  if idx.min()>pd.Timestamp(a) or idx.max()<pd.Timestamp(b):
   raise RuntimeError(f'Phase083 holdout coverage incomplete: {idx.min()}..{idx.max()} required {a}..{b}; scoring aborted before PnL evaluation')
  t=p81.targets(data,a,b);rs={s:p81.ev(data,t,cfg,s) for s in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,a,b);stress={s:p3.metrics(rs[s],a,b) for s in ('severe','supersevere')};fail=[]
