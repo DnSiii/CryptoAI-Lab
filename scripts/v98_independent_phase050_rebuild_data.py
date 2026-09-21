@@ -6,6 +6,10 @@ import sys
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
+ALLOWED_CONFIGS = {
+    "v98_independent_phase050_data.json",
+    "config/v98_independent_phase082_validation_data.json",
+}
 
 
 def run(*args: str) -> None:
@@ -17,10 +21,13 @@ def main() -> None:
     parser.add_argument("--config", default="v98_independent_phase050_data.json")
     parser.add_argument("--workers", type=int, default=40)
     args = parser.parse_args()
-    if args.config != "v98_independent_phase050_data.json":
-        raise SystemExit("V98 Phase050 rebuild accepts only the frozen training-only config")
-    run("scripts/download_futures_archive.py", "--config", args.config, "--workers", str(args.workers))
-    run("scripts/build_canonical.py", "--config", args.config)
+    config = args.config
+    if config == "v98_independent_phase082_validation_data.json":
+        config = "config/v98_independent_phase082_validation_data.json"
+    if config not in ALLOWED_CONFIGS:
+        raise SystemExit("V98 rebuild accepts only frozen Phase050 training or Phase082 validation-only configs")
+    run("scripts/download_futures_archive.py", "--config", config, "--workers", str(args.workers))
+    run("scripts/build_canonical.py", "--config", config)
 
 
 if __name__ == "__main__":
