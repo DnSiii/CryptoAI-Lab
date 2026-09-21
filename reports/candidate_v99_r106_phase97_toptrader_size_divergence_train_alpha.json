@@ -1,0 +1,100 @@
+{
+  "study": "V99 R106 Phase97 \u2014 TOP-TRADER SIZE DIVERGENCE TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase97_toptrader_size_divergence_prereg.md",
+    "source": "Binance USD-M daily metrics top-trader position/account long-short ratios",
+    "transform": "log(sum_toptrader_long_short_ratio)-log(count_toptrader_long_short_ratio); shifted t-1; simultaneous median/MAD robust z; raw=+tanh(z); L1 normalized; min 10 assets",
+    "direction": "continuation in relative top-trader size-vs-headcount divergence",
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "missing_archives_not_filled": true,
+    "simultaneous_crosssection_required": true,
+    "min_assets": 10,
+    "unit_tanh_scale_fixed": true
+  },
+  "train_end": "2024-01-18T00:00:00+00:00",
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 10996,
+      "roi": -0.19973027891449568,
+      "profit_factor": 0.7859415100789306,
+      "max_drawdown_abs": 0.2062523099898066,
+      "positive_hour_ratio": 0.4453437613677701,
+      "robust_mean_without_top1pct": -3.0958688071997116e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 1138,
+        "roi": -0.026636964192021106,
+        "profit_factor": 0.8257150236305403,
+        "max_drawdown_abs": 0.03456966962849273,
+        "positive_hour_ratio": 0.44727592267135324,
+        "robust_mean_without_top1pct": -3.7676826911021505e-05
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 521,
+        "roi": -0.013326125944184475,
+        "profit_factor": 0.8013970624567283,
+        "max_drawdown_abs": 0.013122758384168987,
+        "positive_hour_ratio": 0.42226487523992323,
+        "robust_mean_without_top1pct": -4.6630913683388963e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.12036940776209182,
+        "profit_factor": 0.7044008445083978,
+        "max_drawdown_abs": 0.12520922119305455,
+        "positive_hour_ratio": 0.4239502999143102,
+        "robust_mean_without_top1pct": -3.7291451704753346e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.0526999027158912,
+        "profit_factor": 0.8592764051356107,
+        "max_drawdown_abs": 0.052874653292431795,
+        "positive_hour_ratio": 0.4688370100663954,
+        "robust_mean_without_top1pct": -2.0370702897294842e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "archives_consumed": 37836,
+  "next_gate": "If pass, freeze exact specification and evaluate supersevere/regime/benchmark/reproducibility gates before untouched holdout; if reject, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "disclosure": "Phase97 consumes native metrics only through train_end; every archive SHA256+CRC verified; positive finite top-trader ratios; log position/account divergence shifted t-1; simultaneous median/MAD >=10 assets; fixed +tanh(z), no tuning; no holdout inspected."
+}
