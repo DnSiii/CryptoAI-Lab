@@ -27,13 +27,13 @@ def archive(symbol,day):
  return vals[-1]
 
 def signal_series(start,end):
- days=pd.date_range(pd.Timestamp(start,tz='UTC')-pd.Timedelta(days=LOOKBACK+1),pd.Timestamp(end,tz='UTC'),freq='D')
+ days=pd.date_range(pd.Timestamp(start)-pd.Timedelta(days=LOOKBACK+1),pd.Timestamp(end),freq='D')
  raw={s:{} for s in SYMBOLS}
  for s in SYMBOLS:
   for d in days:
    day=d.strftime('%Y-%m-%d');raw[s][d]=archive(s,day)
  votes={}
- for d in pd.date_range(pd.Timestamp(start,tz='UTC'),pd.Timestamp(end,tz='UTC'),freq='D'):
+ for d in pd.date_range(pd.Timestamp(start),pd.Timestamp(end),freq='D'):
   a=(d-pd.Timedelta(days=1)).strftime('%Y-%m-%d');b=(d-pd.Timedelta(days=LOOKBACK+1)).strftime('%Y-%m-%d');sv=[]
   for s in SYMBOLS:
    oi1,ls1=raw[s][a];oi0,_=raw[s][b];g=oi1/oi0-1
@@ -54,7 +54,9 @@ def ev(data,t,cfg,stress):
 def main():
  cfg=json.loads(CFG.read_text());data=load_data(PROJECT,cfg['data_config']);v=validate_data(data)
  if v['errors']: raise RuntimeError(str(v['errors'][:5]))
- a,b=cfg['research_start'],cfg['training_end'];sig,diag=signal_series(a,b);t=targets(data,sig);r={s:ev(data,t,cfg,s) for s in ('base','severe','supersevere')}
+ # Phase064 preregistration explicitly freezes training to the chronological 2023/2024/2025 folds.
+ # Do not inherit the broader V98 research_start here: that would request pre-training metrics outside the frozen contract.
+ a=cfg['folds'][0]['start'];b=cfg['training_end'];sig,diag=signal_series(a,b);t=targets(data,sig);r={s:ev(data,t,cfg,s) for s in ('base','severe','supersevere')}
  train=p3.metrics(r['base'],a,b);folds={f['name']:p3.metrics(r['base'],f['start'],f['end']) for f in cfg['folds']};sev=p3.metrics(r['severe'],a,b);sup=p3.metrics(r['supersevere'],a,b);conc=p3.concentration_metrics(r['base'],a,b);reg=p3.regime_metrics(r['base'],data,a,b,b)
  failures=[]
  if train['total_return']<=0: failures.append('aggregate_return<=0')
