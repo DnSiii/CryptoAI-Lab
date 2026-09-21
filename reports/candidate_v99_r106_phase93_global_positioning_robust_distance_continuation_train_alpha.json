@@ -1,0 +1,100 @@
+{
+  "study": "V99 R106 Phase93 \u2014 ROBUST GLOBAL POSITIONING DISTANCE CONTINUATION TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase93_global_positioning_robust_distance_continuation_prereg.md",
+    "source": "Binance USD-M daily metrics count_long_short_ratio",
+    "transform": "log level shifted t-1; simultaneous median/MAD robust z; raw=+tanh(z); L1 normalized; min 10 assets",
+    "direction": "continuation robust distance",
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "missing_archives_not_filled": true,
+    "simultaneous_crosssection_required": true,
+    "min_assets": 10,
+    "unit_tanh_scale_fixed": true
+  },
+  "train_end": "2024-01-18T00:00:00+00:00",
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 18193,
+      "roi": -0.31493849175841515,
+      "profit_factor": 0.7970142330114012,
+      "max_drawdown_abs": 0.31612613469950923,
+      "positive_hour_ratio": 0.46820205573572254,
+      "robust_mean_without_top1pct": -3.0614273288245877e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4188,
+        "roi": -0.08251269849670251,
+        "profit_factor": 0.836359055304409,
+        "max_drawdown_abs": 0.08789240876415738,
+        "positive_hour_ratio": 0.47325692454632284,
+        "robust_mean_without_top1pct": -3.2139383819265445e-05
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.09776384622242862,
+        "profit_factor": 0.7993275084719416,
+        "max_drawdown_abs": 0.10606217199541457,
+        "positive_hour_ratio": 0.46679520137103686,
+        "robust_mean_without_top1pct": -3.274720180191315e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.08342395981694284,
+        "profit_factor": 0.7825402188972167,
+        "max_drawdown_abs": 0.08411965282111367,
+        "positive_hour_ratio": 0.47664952870608396,
+        "robust_mean_without_top1pct": -2.6456644043936548e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.09709766105406858,
+        "profit_factor": 0.7591303766256423,
+        "max_drawdown_abs": 0.09783976722927468,
+        "positive_hour_ratio": 0.4566288284429214,
+        "robust_mean_without_top1pct": -2.987925031657724e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "archives_consumed": 37836,
+  "next_gate": "If pass, freeze exact specification and evaluate supersevere/regime/benchmark/reproducibility gates before untouched holdout; if reject, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "disclosure": "Phase93 consumes native metrics only through train_end; every archive SHA256+CRC verified by Phase92 loader; positive finite ratio; feature shifted t-1; simultaneous median/MAD >=10 assets; degenerate MAD zero exposure; fixed +tanh(z), no tuning; no holdout inspected."
+}
