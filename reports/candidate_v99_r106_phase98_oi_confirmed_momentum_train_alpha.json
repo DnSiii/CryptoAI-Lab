@@ -1,0 +1,100 @@
+{
+  "study": "V99 R106 Phase98 \u2014 OI-CONFIRMED MOMENTUM TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase98_oi_confirmed_momentum_prereg.md",
+    "source": "Binance USD-M daily metrics sum_open_interest_value + canonical close",
+    "transform": "24h log OI change and 24h close return, both shifted t-1; independent simultaneous median/MAD z; raw=tanh(z_return)*max(tanh(z_oi_change),0); L1 normalized; min 10 assets",
+    "direction": "price momentum continuation only under expanding open interest",
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "missing_archives_not_filled": true,
+    "simultaneous_crosssection_required": true,
+    "min_assets": 10,
+    "unit_tanh_scale_fixed": true
+  },
+  "train_end": "2024-01-18T00:00:00+00:00",
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 18629,
+      "roi": -0.7879083624883652,
+      "profit_factor": 0.7691179051534872,
+      "max_drawdown_abs": 0.7874155169802789,
+      "positive_hour_ratio": 0.4418379945246658,
+      "robust_mean_without_top1pct": -0.00011986924156628148
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4624,
+        "roi": -0.40809215835968726,
+        "profit_factor": 0.7534112316961448,
+        "max_drawdown_abs": 0.40714204121948316,
+        "positive_hour_ratio": 0.45891003460207613,
+        "robust_mean_without_top1pct": -0.00015112693973374467
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.29281425473408595,
+        "profit_factor": 0.8032983608502814,
+        "max_drawdown_abs": 0.3111777832052761,
+        "positive_hour_ratio": 0.4458011996572408,
+        "robust_mean_without_top1pct": -0.00011796045162451113
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.3224367417022307,
+        "profit_factor": 0.7201212016402339,
+        "max_drawdown_abs": 0.32702828577372367,
+        "positive_hour_ratio": 0.431662382176521,
+        "robust_mean_without_top1pct": -0.00011390399702370724
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.2521988894278292,
+        "profit_factor": 0.798004836142849,
+        "max_drawdown_abs": 0.25792035183048345,
+        "positive_hour_ratio": 0.4311415720711073,
+        "robust_mean_without_top1pct": -9.36661909839417e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "archives_consumed": 37836,
+  "next_gate": "If pass, freeze exact specification and evaluate supersevere/regime/benchmark/reproducibility gates before untouched holdout; if reject, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "disclosure": "Phase98 consumes native OI metrics only through train_end plus canonical close; every archive SHA256+CRC verified; OI change and return shifted t-1; simultaneous robust cross-section >=10 assets; fixed transform and direction; no tuning; no holdout inspected."
+}
