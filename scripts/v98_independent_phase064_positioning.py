@@ -31,7 +31,7 @@ def signal_series(start,end):
  raw={s:{} for s in SYMBOLS}
  for s in SYMBOLS:
   for d in days:
-   day=d.strftime('%Y-%m-%d');raw[s][d]=archive(s,day)
+   day=d.strftime('%Y-%m-%d');raw[s][day]=archive(s,day)
  votes={}
  for d in pd.date_range(pd.Timestamp(start),pd.Timestamp(end),freq='D'):
   a=(d-pd.Timedelta(days=1)).strftime('%Y-%m-%d');b=(d-pd.Timedelta(days=LOOKBACK+1)).strftime('%Y-%m-%d');sv=[]
