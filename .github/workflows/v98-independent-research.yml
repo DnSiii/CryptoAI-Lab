@@ -20,35 +20,35 @@ jobs:
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Rebuild frozen V98 training-only data
         run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
-      - name: Execute frozen Phase071 funding dispersion training
-        run: python scripts/v98_independent_phase071_funding_dispersion.py
-      - name: Enforce Phase071 isolation contract
+      - name: Execute frozen Phase072 vol-normalized momentum training
+        run: python scripts/v98_independent_phase072_volnorm_momentum.py
+      - name: Enforce Phase072 isolation contract
         if: always()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase071_funding_dispersion.json'))
-          assert p['engine']=='V98 Independent' and p['phase']=='071'
-          assert p['preregistration']=='reports/v98_independent_phase071_prereg.md'
+          p=json.load(open('reports/v98_independent_phase072_volnorm_momentum.json'))
+          assert p['engine']=='V98 Independent' and p['phase']=='072'
+          assert p['preregistration']=='reports/v98_independent_phase072_prereg.md'
           assert p['validation'] is None and p['final_holdout'] is None and p['final_holdout_untouched']
           assert not p['v99_used'] and not p['v16_used'] and not p['parameter_search'] and not p['rescue_allowed']
-          print('Phase071 isolation guard passed')
+          print('Phase072 isolation guard passed')
           PY
-      - name: Commit V98 Phase071 evidence only
+      - name: Commit V98 Phase072 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          test ! -f reports/v98_independent_phase071_funding_dispersion.json || git add -f reports/v98_independent_phase071_funding_dispersion.json
-          test ! -f reports/v98_independent_phase071_funding_dispersion_positions.csv || git add -f reports/v98_independent_phase071_funding_dispersion_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase071 funding dispersion training"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase071 evidence
+          test ! -f reports/v98_independent_phase072_volnorm_momentum.json || git add -f reports/v98_independent_phase072_volnorm_momentum.json
+          test ! -f reports/v98_independent_phase072_volnorm_momentum_positions.csv || git add -f reports/v98_independent_phase072_volnorm_momentum_positions.csv
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase072 vol-normalized momentum training"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase072 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase071-${{ github.run_id }}
+          name: v98-independent-phase072-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            reports/v98_independent_phase071_funding_dispersion.json
-            reports/v98_independent_phase071_funding_dispersion_positions.csv
+            reports/v98_independent_phase072_volnorm_momentum.json
+            reports/v98_independent_phase072_volnorm_momentum_positions.csv
