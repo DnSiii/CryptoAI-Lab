@@ -1,4 +1,5 @@
 from __future__ import annotations
+# Phase082 confirmatory validation: candidate frozen before any 2026 validation PnL inspection.
 import hashlib,json,sys
 from pathlib import Path
 import pandas as pd
