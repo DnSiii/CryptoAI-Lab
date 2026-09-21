@@ -18,8 +18,12 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
-      - name: Rebuild isolated Phase083 one-shot holdout data
+      - name: Rebuild isolated Phase083 historical and completed-month data
         run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase083_final_holdout_data.json
+      - name: Acquire pre-registered Phase083 September 1-15 daily archives
+        run: python scripts/v98_independent_phase083_daily_holdout_fill.py
+      - name: Rebuild canonical after current-month daily fill
+        run: python scripts/build_canonical.py --config v98_independent_phase083_final_holdout_data.json
       - name: Execute frozen Phase081 one-shot final holdout as Phase083
         run: python scripts/v98_independent_phase083_final_holdout.py
       - name: Enforce Phase083 isolation contract
