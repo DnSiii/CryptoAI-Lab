@@ -19,7 +19,7 @@ jobs:
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Rebuild V98 validation-bounded data
-        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase066_validation_data.json
+        run: python scripts/v98_independent_phase066_rebuild_validation_data.py
       - name: Execute frozen Phase066 validation
         run: python scripts/v98_independent_phase066_validation.py
       - name: Enforce Phase066 isolation contract
