@@ -46,5 +46,7 @@ def test_v98_phase043_constraints_and_neutrality(): _assert_daily_neutral(P043)
 def test_final_holdout_is_reserved_and_not_accessed_by_research_scripts():
     cfg=json.loads((PROJECT/'config'/'v98_independent.json').read_text()); assert cfg['final_holdout_start']>cfg['validation_end']; assert cfg['research_rules']['final_holdout_single_open_only'] is True
     forbidden=("cfg['final_holdout_start']","cfg[\"final_holdout_start\"]","cfg['final_holdout_end']","cfg[\"final_holdout_end\"]")
+    authorized='v98_independent_phase083_final_holdout.py'; assert (PROJECT/'reports'/'v98_independent_phase083_final_holdout_preregistration.md').exists()
     for path in (PROJECT/'scripts').glob('v98_independent_phase*.py'):
+        if path.name==authorized: continue
         text=path.read_text(); assert not any(token in text for token in forbidden),f'final holdout data access leaked into research script: {path.name}'
