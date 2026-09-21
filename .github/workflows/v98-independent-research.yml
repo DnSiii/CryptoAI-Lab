@@ -20,35 +20,35 @@ jobs:
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Rebuild frozen V98 training-only data
         run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
-      - name: Execute frozen Phase067 volatility spread training
-        run: python scripts/v98_independent_phase067_volatility_spread.py
-      - name: Enforce Phase067 isolation contract
+      - name: Execute frozen Phase068 short-term reversal training
+        run: python scripts/v98_independent_phase068_short_reversal.py
+      - name: Enforce Phase068 isolation contract
         if: always()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase067_volatility_spread.json'))
-          assert p['engine']=='V98 Independent' and p['phase']=='067'
-          assert p['preregistration']=='reports/v98_independent_phase067_prereg.md'
+          p=json.load(open('reports/v98_independent_phase068_short_reversal.json'))
+          assert p['engine']=='V98 Independent' and p['phase']=='068'
+          assert p['preregistration']=='reports/v98_independent_phase068_prereg.md'
           assert p['validation'] is None and p['final_holdout'] is None and p['final_holdout_untouched']
           assert not p['v99_used'] and not p['v16_used'] and not p['parameter_search'] and not p['rescue_allowed']
-          print('Phase067 isolation guard passed')
+          print('Phase068 isolation guard passed')
           PY
-      - name: Commit V98 Phase067 evidence only
+      - name: Commit V98 Phase068 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          test ! -f reports/v98_independent_phase067_volatility_spread.json || git add -f reports/v98_independent_phase067_volatility_spread.json
-          test ! -f reports/v98_independent_phase067_volatility_spread_positions.csv || git add -f reports/v98_independent_phase067_volatility_spread_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase067 volatility spread training"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase067 evidence
+          test ! -f reports/v98_independent_phase068_short_reversal.json || git add -f reports/v98_independent_phase068_short_reversal.json
+          test ! -f reports/v98_independent_phase068_short_reversal_positions.csv || git add -f reports/v98_independent_phase068_short_reversal_positions.csv
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase068 short reversal training"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase068 evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase067-${{ github.run_id }}
+          name: v98-independent-phase068-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            reports/v98_independent_phase067_volatility_spread.json
-            reports/v98_independent_phase067_volatility_spread_positions.csv
+            reports/v98_independent_phase068_short_reversal.json
+            reports/v98_independent_phase068_short_reversal_positions.csv
