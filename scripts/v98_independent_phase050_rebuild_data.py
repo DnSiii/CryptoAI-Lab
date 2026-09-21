@@ -8,7 +8,7 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parents[1]
 ALLOWED_CONFIGS = {
     "v98_independent_phase050_data.json",
-    "config/v98_independent_phase082_validation_data.json",
+    "v98_independent_phase082_validation_data.json",
 }
 
 
@@ -22,8 +22,6 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=40)
     args = parser.parse_args()
     config = args.config
-    if config == "v98_independent_phase082_validation_data.json":
-        config = "config/v98_independent_phase082_validation_data.json"
     if config not in ALLOWED_CONFIGS:
         raise SystemExit("V98 rebuild accepts only frozen Phase050 training or Phase082 validation-only configs")
     run("scripts/download_futures_archive.py", "--config", config, "--workers", str(args.workers))
