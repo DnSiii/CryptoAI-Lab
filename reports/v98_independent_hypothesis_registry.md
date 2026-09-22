@@ -26,13 +26,14 @@ Post-062 V98 evidence is preserved in its namespaced scripts/reports and remains
 ## Phase101 decision — REJECT_NO_RESCUE
 Frozen protocol-fees regime training returned +44.5684% total return and 13.0701% CAGR, but failed four preregistered gates: aggregate PF 1.0774 <= 1.10; max drawdown -54.7761% < -35%; chronological 2025 return -5.1213% <= 0; supersevere return -1.0284% with PF 1.0289 failed the stress gate. 2023 was +41.2122%/PF 1.1804 and 2024 +8.9385%/PF 1.0690, but this does not override the frozen all-gates requirement. Severe remained +24.8980% yet DD was -57.7337%. No sign/window/gross/cadence/regime/basket/source rescue is allowed. Validation and final holdout were not opened.
 
-## Phase102 preregistration — decentralized perpetuals volume feasibility only
-PRE-REGISTERED before Phase102 payload inspection or alpha/PnL. Frozen source is DefiLlama `overview/derivatives` top-level `totalDataChart`, window 2023-01-01 through 2025-12-31 UTC. Mode is DATA_ONLY_NO_ALPHA_NO_PNL. This family measures decentralized perpetuals risk-taking/activity and is distinct from closed spot DEX-volume, TVL, stablecoin, sentiment, fees, positioning/OI and price-derived families.
+## Phase102 decision — FAIL_DATA_NO_ALPHA
+The frozen DefiLlama `overview/derivatives` / `totalDataChart` feasibility probe returned HTTP 402 with a paid-plan requirement. Per preregistration this closes the exact decentralized-perpetuals-volume source/schema without substitution, source-shopping, partial-data rescue, or alpha/PnL. Expected window remained 2023-01-01 through 2025-12-31 (1,096 days). Validation/final holdout were not opened and V16/V99/Phase083 were not used.
 
-PASS_DATA_ONLY requires HTTP/JSON success, >=95% of 1,096 days, first day <=2023-01-07, last >=2025-12-24, finite non-negative values, zero duplicate normalized dates, strict chronological order and raw SHA-256. Any failure closes the exact source/schema without substitution. A pass authorizes only a separately preregistered Phase103; no same-run economic evaluation.
+## State reconciliation note
+`state/v98_independent_state.json` is a legacy snapshot ending at Phase050 and must not be treated as the current research pointer. It is intentionally not rewritten from incomplete reconstructed summaries: the namespaced reports plus this append-only decision registry are authoritative for post-050 continuity until a deterministic state migration can preserve every intervening decision without information loss. This avoids silently erasing Phase051-102 provenance while fixing the stale-state ambiguity.
 
 ## Gate preservation
 Validation remains closed unless a future frozen training candidate passes. Final holdout remains untouched until training and validation pass and a candidate is formally frozen. V99 is excluded from V98 selection. No V16/V99 files/state/workflows/reports may be modified.
 
 ## Current decision
-No champion exists. Phase101 is REJECT_NO_RESCUE. Phase102 is preregistered DATA_ONLY and execution #266 is pending/queued at registry update time.
+No champion exists. Phase101 is REJECT_NO_RESCUE. Phase102 is FAIL_DATA_NO_ALPHA and permanently closed without rescue. Next research must begin with a genuinely orthogonal, preregistered DATA_ONLY feasibility gate; no alpha/PnL may be inspected before that gate passes.
