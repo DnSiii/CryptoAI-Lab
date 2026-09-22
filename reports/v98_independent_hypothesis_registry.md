@@ -21,22 +21,18 @@ Phase061 REJECT_NO_RESCUE: aggregate +64.89%, PF 1.0704, DD -48.74%; 2023 and 20
 Phase062 FAIL_DATA_NO_ALPHA: frozen FRED system-liquidity source did not complete reproducibly; no alternate-source rescue.
 
 ## Later-family continuity
-Post-062 V98 evidence is preserved in its namespaced scripts/reports and remains binding even where this compact registry was not updated contemporaneously. In particular, Phase083 is permanently ineligible for reuse/selection; Phase093 Fear & Greed contrarian is REJECT_NO_RESCUE; Phase095 is the frozen CandleFeed/Bybit liquidation data-feasibility family.
+Post-062 V98 evidence is preserved in its namespaced scripts/reports and remains binding. Phase083 is permanently ineligible for reuse/selection. Phase093 Fear & Greed contrarian is REJECT_NO_RESCUE. Phase095 CandleFeed/Bybit liquidation feasibility is FAIL_DATA_NO_ALPHA. Phase096 DeFi TVL feasibility passed; Phase097 relative-TVL candidate is REJECT_NO_RESCUE. Phase098 DEX-volume feasibility passed; Phase099 DEX-volume regime is REJECT_NO_RESCUE. Phase100 protocol-fees feasibility passed.
 
-## Phase095 decision — FAIL_DATA_NO_ALPHA
-ZERO ALPHA/ZERO RETURNS/ZERO CRYPTO PRICE JOIN. Run #252 completed successfully as an execution but the frozen CandleFeed source could not be queried because CANDLEFEED_API_KEY was absent in the runner. The report therefore correctly emitted FAIL_DATA_NO_ALPHA. Source substitution after observing this failure is forbidden for Phase095. This is a data-access result, not economic evidence.
+## Phase101 decision — REJECT_NO_RESCUE
+Frozen protocol-fees regime training returned +44.5684% total return and 13.0701% CAGR, but failed four preregistered gates: aggregate PF 1.0774 <= 1.10; max drawdown -54.7761% < -35%; chronological 2025 return -5.1213% <= 0; supersevere return -1.0284% with PF 1.0289 failed the stress gate. 2023 was +41.2122%/PF 1.1804 and 2024 +8.9385%/PF 1.0690, but this does not override the frozen all-gates requirement. Severe remained +24.8980% yet DD was -57.7337%. No sign/window/gross/cadence/regime/basket/source rescue is allowed. Validation and final holdout were not opened.
 
-## Phase096 preregistration — DeFi TVL feasibility only
-PRE-REGISTERED BEFORE ANY Phase096 alpha/PnL/crypto-price join. This is a new data-feasibility family, not a rescue of Phase060/061 stablecoin liquidity. Frozen source: DefiLlama public API endpoint `https://api.llama.fi/v2/historicalChainTvl/{chain}`. Frozen chains: Ethereum and BSC. Frozen window: 2023-01-01 through 2025-12-31 UTC. Frozen mode: DATA_ONLY_NO_ALPHA_NO_PNL.
+## Phase102 preregistration — decentralized perpetuals volume feasibility only
+PRE-REGISTERED before Phase102 payload inspection or alpha/PnL. Frozen source is DefiLlama `overview/derivatives` top-level `totalDataChart`, window 2023-01-01 through 2025-12-31 UTC. Mode is DATA_ONLY_NO_ALPHA_NO_PNL. This family measures decentralized perpetuals risk-taking/activity and is distinct from closed spot DEX-volume, TVL, stablecoin, sentiment, fees, positioning/OI and price-derived families.
 
-Rationale for orthogonality: TVL measures capital locked in DeFi protocols, whereas the closed Phase060/061 family measured aggregate stablecoin circulating liquidity. Phase096 must not use stablecoin supply, crypto returns, prices, V99 evidence, validation, holdout, Phase083, or 2026 selection data.
-
-PASS_DATA_ONLY requires, independently for BOTH frozen chains: HTTP success; parseable daily observations; at least 95% of the 1,096 calendar days in the frozen window; first in-window observation no later than 2023-01-07; last no earlier than 2025-12-24; finite non-negative TVL values; no duplicate UTC dates after deterministic daily normalization; strictly increasing normalized dates; raw-payload SHA-256 recorded. Any failure => FAIL_DATA_NO_ALPHA and the exact Phase096 source/schema/chains are closed without source/chain/subset rescue.
-
-A PASS_DATA_ONLY authorizes only a separately preregistered later hypothesis. It does NOT authorize inspecting same-run crypto returns or selecting sign/window/threshold/cadence/gross from Phase096 data.
+PASS_DATA_ONLY requires HTTP/JSON success, >=95% of 1,096 days, first day <=2023-01-07, last >=2025-12-24, finite non-negative values, zero duplicate normalized dates, strict chronological order and raw SHA-256. Any failure closes the exact source/schema without substitution. A pass authorizes only a separately preregistered Phase103; no same-run economic evaluation.
 
 ## Gate preservation
 Validation remains closed unless a future frozen training candidate passes. Final holdout remains untouched until training and validation pass and a candidate is formally frozen. V99 is excluded from V98 selection. No V16/V99 files/state/workflows/reports may be modified.
 
 ## Current decision
-No champion exists. Phase095 is closed FAIL_DATA_NO_ALPHA. Phase096 is preregistered DATA_ONLY and awaits deterministic execution.
+No champion exists. Phase101 is REJECT_NO_RESCUE. Phase102 is preregistered DATA_ONLY and execution #266 is pending/queued at registry update time.
