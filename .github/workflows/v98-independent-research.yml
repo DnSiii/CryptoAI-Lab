@@ -20,36 +20,31 @@ jobs:
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Rebuild training-only canonical data
         run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
-      - name: Execute preregistered Phase085 training only
-        run: python scripts/v98_independent_phase085_volume_concentration.py
-      - name: Enforce Phase085 isolation contract
+      - name: Execute preregistered Phase086 data-only feasibility
+        run: python scripts/v98_independent_phase086_funding_interval_feasibility.py
+      - name: Enforce Phase086 no-alpha isolation contract
         if: success()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase085_volume_concentration.json'))
-          assert p['engine']=='V98 Independent' and p['phase']=='085'
-          assert p['preregistration']=='reports/v98_independent_phase085_prereg.md'
-          assert p['phase083_selection_use'] is False and p['future_holdout_required'] is True
-          assert not p['parameter_search'] and not p['rescue_allowed']
-          assert not p['v99_used'] and not p['v16_used']
-          assert p['validation'] is None and p['final_holdout'] is None
-          print('Phase085 isolation guard passed')
+          p=json.load(open('reports/v98_independent_phase086_funding_interval_feasibility.json'))
+          assert p['engine']=='V98 Independent' and p['phase']=='086' and p['kind']=='DATA_ONLY_FEASIBILITY'
+          assert p['alpha_executed'] is False and p['returns_inspected'] is False
+          assert p['phase083_selection_use'] is False and not p['v99_used'] and not p['v16_used']
+          print('Phase086 no-alpha isolation guard passed')
           PY
-      - name: Commit V98 Phase085 training evidence only
+      - name: Commit V98 Phase086 feasibility evidence only
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase085_volume_concentration.json reports/v98_independent_phase085_volume_concentration_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase085 training evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase085 evidence
+          git add -f reports/v98_independent_phase086_funding_interval_feasibility.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase086 funding interval feasibility"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase086 evidence
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase085-${{ github.run_id }}
+          name: v98-independent-phase086-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
-          path: |
-            reports/v98_independent_phase085_volume_concentration.json
-            reports/v98_independent_phase085_volume_concentration_positions.csv
+          path: reports/v98_independent_phase086_funding_interval_feasibility.json
