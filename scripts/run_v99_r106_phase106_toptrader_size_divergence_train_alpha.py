@@ -1,3 +1,4 @@
+# Phase106 frozen preregistered implementation; train-only execution.
 from __future__ import annotations
 import concurrent.futures,csv,hashlib,io,json,time,urllib.error,urllib.request,zipfile
 from pathlib import Path
