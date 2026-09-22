@@ -18,34 +18,30 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py -q
-      - name: Rebuild canonical V98 training-only data
-        run: python scripts/v98_independent_phase050_rebuild_data.py
-      - name: Execute frozen Phase109 training gate
-        run: python scripts/v98_independent_phase109_fee_burden_rotation.py
-      - name: Enforce Phase109 isolation contract
+      - name: Execute Phase110 bridge-flow DATA_ONLY gate
+        run: python scripts/v98_independent_phase110_bridge_flow_feasibility.py
+      - name: Enforce Phase110 isolation contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase109_fee_burden_rotation.json'))
-          assert p['phase']=='109' and p['v99_used'] is False and p['v16_used'] is False
-          assert p['phase083_selection_use'] is False and p['validation'] is None and p['final_holdout'] is None
-          assert p['parameter_search'] is False and p['rescue_allowed'] is False
-          assert p['execution_guard_audit']['max_open_gross'] <= p['execution_guard_audit']['cap'] + 1e-9
-          assert p['training_gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
-          print('Phase109 isolation/guard passed:',p['training_gate']['decision'])
+          p=json.load(open('reports/v98_independent_phase110_bridge_flow_feasibility.json'))
+          assert p['phase']=='110' and p['mode']=='DATA_ONLY_NO_ALPHA_NO_PNL'
+          assert p['v99_used'] is False and p['v16_used'] is False and p['phase083_selection_use'] is False
+          assert p['validation'] is None and p['final_holdout'] is None
+          assert p['alpha_or_pnl_computed'] is False and p['parameter_search'] is False and p['rescue_allowed'] is False
+          assert p['gate'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          print('Phase110 isolation guard passed:',p['gate'])
           PY
-      - name: Commit V98 Phase109 evidence only
+      - name: Commit V98 Phase110 evidence only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase109_fee_burden_rotation.json reports/v98_independent_phase109_fee_burden_rotation_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase109 fee-burden evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase109 evidence
+          git add -f reports/v98_independent_phase110_bridge_flow_feasibility.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase110 bridge-flow feasibility evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase110 evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase109-${{ github.run_id }}
+          name: v98-independent-phase110-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
-          path: |
-            reports/v98_independent_phase109_fee_burden_rotation.json
-            reports/v98_independent_phase109_fee_burden_rotation_positions.csv
+          path: reports/v98_independent_phase110_bridge_flow_feasibility.json
