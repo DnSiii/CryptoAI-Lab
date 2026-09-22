@@ -8,22 +8,21 @@ def load_module(name,path):
     mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
 P111=load_module('v98_independent_phase111','scripts/v98_independent_phase111_stablecoin_peg_feasibility.py')
 
-def test_phase111_flat_schema_parser_and_daily_canonicalization():
+def test_phase111_date_prices_schema_and_daily_canonicalization():
     hist=[
-      {'id':'1','price':1.0,'timestamp':1672531200},
-      {'id':'1','price':1.001,'timestamp':1672534800},
-      {'id':'2','price':0.999,'timestamp':1672531200},
-      {'id':'1','price':1.0,'timestamp':1672617600},
+      {'date':1672531200,'prices':{'tether':1.0,'usd-coin':0.999}},
+      {'date':1672534800,'prices':{'tether':1.001,'usd-coin':1.0}},
+      {'date':1672617600,'prices':{'tether':1.0,'usd-coin':1.0}},
     ]
-    d,meta=P111.canonical_history(hist,'1')
+    d,meta=P111.canonical_history(hist,'tether')
     assert meta['schema_ok'] is True
-    assert meta['raw_records_for_id']==3
+    assert meta['raw_records_with_price']==3
     assert meta['collapsed_duplicate_days']==1
     assert list(d['date_norm'])==['2023-01-01','2023-01-02']
 
-def test_phase111_parser_is_id_specific():
-    hist=[{'id':'1','price':1.0,'timestamp':1672531200},{'id':'2','price':1.0,'timestamp':1672531200}]
-    d,_=P111.canonical_history(hist,'2')
+def test_phase111_parser_is_gecko_id_specific():
+    hist=[{'date':1672531200,'prices':{'tether':1.0,'usd-coin':0.999}}]
+    d,_=P111.canonical_history(hist,'usd-coin')
     assert len(d)==1
 
 def test_phase111_script_exposes_no_price_descriptives_or_trading_logic():

@@ -22,31 +22,43 @@ def get(url):
     except (URLError,TimeoutError,Exception) as e:
         return None,b'',type(e).__name__+': '+str(e)
 
-def canonical_history(hist, stablecoin_id):
-    """Parse frozen /stablecoinprices flat records without exposing price descriptives."""
+def canonical_history(hist, gecko_id):
+    """Parse frozen /stablecoinprices date+prices mapping without exposing descriptives."""
     if not isinstance(hist,list):
-        return pd.DataFrame(columns=['date_norm','price']), {'schema_ok':False,'raw_records_for_id':0,'collapsed_duplicate_days':0}
+        return pd.DataFrame(columns=['date_norm','price']), {'schema_ok':False,'raw_records_with_price':0,'collapsed_duplicate_days':0}
     rows=[]
-    sid=str(stablecoin_id)
+    key=str(gecko_id)
+    schema_ok=True
     for x in hist:
-        if not isinstance(x,dict) or str(x.get('id'))!=sid:
+        if not isinstance(x,dict):
+            schema_ok=False; continue
+        prices=x.get('prices')
+        if not isinstance(prices,dict):
+            schema_ok=False; continue
+        if key not in prices or prices.get(key) is None:
             continue
         try:
-            ts=pd.to_datetime(int(x['timestamp']),unit='s',utc=True)
-            price=float(x['price'])
+            raw_date=x['date']
+            if isinstance(raw_date,str) and raw_date.isdigit():
+                raw_date=int(raw_date)
+            if isinstance(raw_date,(int,float)):
+                ts=pd.to_datetime(raw_date,unit='s',utc=True)
+            else:
+                ts=pd.to_datetime(raw_date,utc=True)
+            price=float(prices[key])
             rows.append((ts,ts.strftime('%Y-%m-%d'),price))
         except Exception:
-            rows.append((pd.NaT,None,np.nan))
+            rows.append((pd.NaT,None,float('nan')))
     df=pd.DataFrame(rows,columns=['timestamp','date_norm','price'])
     raw_records=len(df)
     if not len(df):
-        return pd.DataFrame(columns=['date_norm','price']), {'schema_ok':True,'raw_records_for_id':0,'collapsed_duplicate_days':0}
-    df=df.dropna(subset=['date_norm']).sort_values(['timestamp'])
+        return pd.DataFrame(columns=['date_norm','price']), {'schema_ok':schema_ok,'raw_records_with_price':0,'collapsed_duplicate_days':0}
+    df=df.dropna(subset=['date_norm']).sort_values('timestamp')
     before=len(df)
     df=df.drop_duplicates('date_norm',keep='last').sort_values('date_norm')
     return df[['date_norm','price']].reset_index(drop=True), {
-        'schema_ok':True,
-        'raw_records_for_id':raw_records,
+        'schema_ok':schema_ok,
+        'raw_records_with_price':raw_records,
         'collapsed_duplicate_days':before-len(df),
     }
 
@@ -55,22 +67,22 @@ def main():
     base={'metadata_http_status':ms,'history_http_status':hs,'metadata_error':merr,'history_error':herr,
           'metadata_sha256':hashlib.sha256(mraw).hexdigest() if mraw else None,
           'history_sha256':hashlib.sha256(hraw).hexdigest() if hraw else None,
-          'history_schema_contract':'flat list of records with id,price,timestamp'}
-    checks=[]; gate='FAIL_DATA_NO_ALPHA'; ids={}
+          'history_schema_contract':'list of daily objects with date and prices{gecko_id:value}'}
+    checks=[]; gate='FAIL_DATA_NO_ALPHA'; resolved={}
     if ms==200 and hs==200:
         try:
             meta=json.loads(mraw); hist=json.loads(hraw)
             assets=meta.get('peggedAssets',[]) if isinstance(meta,dict) else []
             for sym in SYMS:
                 matches=[x for x in assets if isinstance(x,dict) and str(x.get('symbol','')).upper()==sym]
-                if len(matches)==1 and matches[0].get('id') is not None:
-                    ids[sym]=str(matches[0].get('id'))
+                if len(matches)==1 and matches[0].get('gecko_id'):
+                    resolved[sym]={'stablecoin_id':str(matches[0].get('id')),'gecko_id':str(matches[0].get('gecko_id'))}
                 else:
-                    checks.append({'symbol':sym,'resolved_ids':len(matches),'passed':False,'error':'metadata_symbol_resolution'})
+                    checks.append({'symbol':sym,'resolved_matches':len(matches),'passed':False,'error':'metadata_gecko_id_resolution'})
             for sym in SYMS:
-                if sym not in ids: continue
-                sid=ids[sym]
-                sub,parse=canonical_history(hist,sid)
+                if sym not in resolved: continue
+                info=resolved[sym]
+                sub,parse=canonical_history(hist,info['gecko_id'])
                 sub=sub[(sub.date_norm>=START)&(sub.date_norm<=END)].copy() if len(sub) else sub
                 vals=pd.to_numeric(sub['price'],errors='coerce') if len(sub) else pd.Series(dtype=float)
                 invalid=int((~vals.map(lambda x: math.isfinite(float(x)) if pd.notna(x) else False) | (vals<=0) | (vals>2.5)).sum()) if len(vals) else 0
@@ -81,8 +93,8 @@ def main():
                 post_dup=int(sub['date_norm'].duplicated().sum()) if len(sub) else 0
                 passed=(parse['schema_ok'] and unique>=math.ceil(.95*EXPECTED) and first is not None and first<='2023-01-07'
                         and last>='2025-12-24' and invalid==0 and post_dup==0)
-                checks.append({'symbol':sym,'resolved_id':sid,'schema_ok':parse['schema_ok'],
-                               'raw_records_for_id':parse['raw_records_for_id'],
+                checks.append({'symbol':sym,'resolved_id':info['stablecoin_id'],'resolved_gecko_id':info['gecko_id'],
+                               'schema_ok':parse['schema_ok'],'raw_records_with_price':parse['raw_records_with_price'],
                                'collapsed_duplicate_days':parse['collapsed_duplicate_days'],
                                'unique_daily_dates':unique,'coverage':cov,'first_date':first,'last_date':last,
                                'invalid_values':invalid,'post_canonical_duplicate_days':post_dup,
