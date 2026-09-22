@@ -1,0 +1,54 @@
+name: V99 R106 Phase119 aggTrades integrity probe
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ["scripts/run_v99_r106_phase119_aggtrades_integrity_probe.py", ".github/workflows/v99-r106-phase119-aggtrades-integrity-probe.yml"]
+permissions: {contents: write}
+concurrency: {group: v99-r106-phase119-aggtrades-integrity, cancel-in-progress: true}
+jobs:
+  integrity-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env: {PYTHONUNBUFFERED: "1", RESEARCH_BRANCH: research/v99-r106-native-all-regime-engine}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: research/v99-r106-native-all-regime-engine, fetch-depth: 0, persist-credentials: true}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: "3.12"}
+      - name: Snapshot frozen assets
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          files=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts})
+          pathlib.Path('/tmp/frozen_before.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},sort_keys=True))
+          PY
+      - name: Run Phase119 integrity probe
+        run: python scripts/run_v99_r106_phase119_aggtrades_integrity_probe.py
+      - name: Verify frozen assets unchanged
+        if: always()
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('/tmp/frozen_before.json'); assert p.exists()
+          before=json.loads(p.read_text()); after={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in before}
+          assert before==after,'Frozen asset mutation detected'
+          PY
+      - name: Guard and publish evidence
+        if: success()
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('reports/candidate_v99_r106_phase119_aggtrades_integrity_probe.json').read_text())
+          assert r['status']=='INTEGRITY_PROBE_PASS' and r['archives_verified']==192
+          assert r['frozen_assets_untouched']['v16'] and r['frozen_assets_untouched']['v99_frozen']
+          assert r['holdout_market_values_not_downloaded_or_parsed'] and r['alpha_prohibited'] and not r['return_relation_computed']
+          assert all(r['checks'].values())
+          PY
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/candidate_v99_r106_phase119_aggtrades_integrity_probe.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record V99 R106 Phase119 aggTrades integrity probe"
+          git fetch origin ${RESEARCH_BRANCH}; git rebase origin/${RESEARCH_BRANCH}; git push origin HEAD:${RESEARCH_BRANCH}
