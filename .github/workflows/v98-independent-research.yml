@@ -18,42 +18,7 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
-      - name: Rebuild isolated Phase083 historical and completed-month data
-        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase083_final_holdout_data.json
-      - name: Acquire pre-registered Phase083 September 1-15 daily archives
-        run: python scripts/v98_independent_phase083_daily_holdout_fill.py
-      - name: Rebuild canonical after current-month daily fill
-        run: python scripts/build_canonical.py --config v98_independent_phase083_final_holdout_data.json
-      - name: Execute frozen Phase081 one-shot final holdout as Phase083
-        run: python scripts/v98_independent_phase083_final_holdout.py
-      - name: Enforce Phase083 isolation contract
-        if: success()
+      - name: Phase084 staging guard
         run: |
-          python - <<'PY'
-          import json
-          p=json.load(open('reports/v98_independent_phase083_final_holdout.json'))
-          assert p['engine']=='V98 Independent' and p['phase']=='083'
-          assert p['preregistration']=='reports/v98_independent_phase083_final_holdout_preregistration.md'
-          assert p['holdout_boundary']['start']=='2026-08-01T00:00:00Z'
-          assert p['holdout_boundary']['end']=='2026-09-15T23:00:00Z'
-          assert p['parameters_frozen_from_phase081'] and not p['parameter_search'] and not p['rescue_allowed'] and p['single_open']
-          assert not p['v99_used'] and not p['v16_used']
-          print('Phase083 isolation guard passed')
-          PY
-      - name: Commit V98 Phase083 final evidence only
-        if: success()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase083_final_holdout.json reports/v98_independent_phase083_final_holdout_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase083 one-shot final holdout evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase083 evidence
-        if: success()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: v98-independent-phase083-${{ github.run_id }}
-          retention-days: 30
-          if-no-files-found: error
-          path: |
-            reports/v98_independent_phase083_final_holdout.json
-            reports/v98_independent_phase083_final_holdout_positions.csv
+          test -f reports/v98_independent_phase084_prereg.md
+          echo "Phase084 preregistered; implementation commit pending. Phase083 holdout will not be rerun."
