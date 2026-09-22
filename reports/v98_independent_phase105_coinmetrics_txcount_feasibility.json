@@ -1,0 +1,56 @@
+{
+  "alpha_or_pnl_computed": false,
+  "assets": [
+    {
+      "asset": "btc",
+      "coverage": 1.0,
+      "duplicates": 0,
+      "first_date": "2023-01-01",
+      "http_status": 200,
+      "invalid_values": 0,
+      "last_date": "2025-12-31",
+      "passed": true,
+      "raw_sha256": "f02e0afbee1c83d16c61a42315c1181bdac080844f30316d0053895ed054f214",
+      "rows": 1096,
+      "strict_order": true,
+      "unique_dates": 1096,
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=TxCnt&frequency=1d&start_time=2023-01-01&end_time=2025-12-31&page_size=10000"
+    },
+    {
+      "asset": "eth",
+      "coverage": 1.0,
+      "duplicates": 0,
+      "first_date": "2023-01-01",
+      "http_status": 200,
+      "invalid_values": 0,
+      "last_date": "2025-12-31",
+      "passed": true,
+      "raw_sha256": "2d119fa26fc261178779e37cd449f062a0b215396e7132ed99c8c2d7d7581476",
+      "rows": 1096,
+      "strict_order": true,
+      "unique_dates": 1096,
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=eth&metrics=TxCnt&frequency=1d&start_time=2023-01-01&end_time=2025-12-31&page_size=10000"
+    }
+  ],
+  "engine": "V98 Independent",
+  "expected_days_per_asset": 1096,
+  "final_holdout": null,
+  "frequency": "1d",
+  "future_holdout_required": true,
+  "gate": "PASS_DATA_ONLY",
+  "generated_at": "2026-09-22T19:23:11.435147+00:00",
+  "metric": "TxCnt",
+  "mode": "DATA_ONLY_NO_ALPHA_NO_PNL",
+  "parameter_search": false,
+  "phase": "105",
+  "phase083_selection_use": false,
+  "rescue_allowed": false,
+  "source": "Coin Metrics Community API",
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null,
+  "window": [
+    "2023-01-01",
+    "2025-12-31"
+  ]
+}
