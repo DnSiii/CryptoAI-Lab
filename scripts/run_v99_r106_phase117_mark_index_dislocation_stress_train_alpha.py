@@ -129,28 +129,47 @@ def load_month(job):
     ik = monthly_key("indexPriceKlines", symbol, year, month)
 
     # January 2024 monthly archives are prohibited because they contain post-train rows.
+    # A pre-2024 monthly pair is also unusable when its timestamp vectors differ.
+    monthly_integrity_fallback = 0
     if year < 2024:
         try:
             mr = verified_zip(mk)
             ir = verified_zip(ik)
             rows = paired_rows(mr, mk, ir, ik)
-            return symbol, rows, {"monthly_pairs": 1, "daily_pairs": 0, "monthly_fallbacks": 0}
+            return symbol, rows, {
+                "monthly_pairs": 1, "daily_pairs": 0, "monthly_fallbacks": 0,
+                "monthly_alignment_fallbacks": 0, "daily_pair_rejections": 0,
+            }
         except MissingArchive:
             pass
+        except RuntimeError as exc:
+            if "timestamp misalignment" not in str(exc):
+                raise
+            monthly_integrity_fallback = 1
 
     rows = []
     daily_pairs = 0
+    daily_pair_rejections = 0
     for date in dates:
         mkd = daily_key("markPriceKlines", symbol, date)
         ikd = daily_key("indexPriceKlines", symbol, date)
         mr = verified_zip(mkd)
         ir = verified_zip(ikd)
-        rows.extend(paired_rows(mr, mkd, ir, ikd))
+        try:
+            day_rows = paired_rows(mr, mkd, ir, ikd)
+        except RuntimeError as exc:
+            if "timestamp misalignment" not in str(exc):
+                raise
+            daily_pair_rejections += 1
+            continue
+        rows.extend(day_rows)
         daily_pairs += 1
     return symbol, rows, {
         "monthly_pairs": 0,
         "daily_pairs": daily_pairs,
         "monthly_fallbacks": 1 if year < 2024 else 0,
+        "monthly_alignment_fallbacks": monthly_integrity_fallback,
+        "daily_pair_rejections": daily_pair_rejections,
     }
 
 
