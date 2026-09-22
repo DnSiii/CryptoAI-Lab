@@ -20,35 +20,35 @@ jobs:
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py -q
       - name: Rebuild training-only canonical data
         run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
-      - name: Execute preregistered Phase087 training only
-        run: python scripts/v98_independent_phase087_range_concentration.py
-      - name: Enforce Phase087 isolation contract
+      - name: Execute preregistered Phase089 training only
+        run: python scripts/v98_independent_phase089_session_gap.py
+      - name: Enforce Phase089 isolation contract
         if: success()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase087_range_concentration.json'))
-          assert p['engine']=='V98 Independent' and p['phase']=='087'
-          assert p['preregistration']=='reports/v98_independent_phase087_prereg.md'
+          p=json.load(open('reports/v98_independent_phase089_session_gap.json'))
+          assert p['engine']=='V98 Independent' and p['phase']=='089'
+          assert p['preregistration']=='reports/v98_independent_phase089_prereg.md'
           assert p['phase083_selection_use'] is False and p['future_holdout_required'] is True
           assert not p['parameter_search'] and not p['rescue_allowed'] and not p['v99_used'] and not p['v16_used']
           assert p['validation'] is None and p['final_holdout'] is None
-          print('Phase087 isolation guard passed')
+          print('Phase089 isolation guard passed')
           PY
-      - name: Commit V98 Phase087 training evidence only
+      - name: Commit V98 Phase089 training evidence only
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase087_range_concentration.json reports/v98_independent_phase087_range_concentration_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase087 training evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase087 evidence
+          git add -f reports/v98_independent_phase089_session_gap.json reports/v98_independent_phase089_session_gap_positions.csv
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase089 training evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase089 evidence
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: v98-independent-phase087-${{ github.run_id }}
+          name: v98-independent-phase089-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
           path: |
-            reports/v98_independent_phase087_range_concentration.json
-            reports/v98_independent_phase087_range_concentration_positions.csv
+            reports/v98_independent_phase089_session_gap.json
+            reports/v98_independent_phase089_session_gap_positions.csv
