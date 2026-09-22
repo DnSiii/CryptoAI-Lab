@@ -6,7 +6,7 @@ import numpy as np,pandas as pd
 import run_v99_r106_native_all_regime_engine as p1
 import run_v99_r106_phase47_downside_semivariance_alpha_audit as p47
 import run_v99_r105_all_regime_structural_audit as audit
-PROJECT=Path(__file__).resolve().parents[1];OUT=PROJECT/'reports'/'candidate_v99_r106_phase108_global_crowding_contrarian_train_alpha.json';BASE='https://data.binance.vision/data/futures/um/daily/metrics';FIELD='global_long_short_account_ratio';ALPHA_GROSS=.20
+PROJECT=Path(__file__).resolve().parents[1];OUT=PROJECT/'reports'/'candidate_v99_r106_phase108_global_crowding_contrarian_train_alpha.json';BASE='https://data.binance.vision/data/futures/um/daily/metrics';FIELD='count_long_short_ratio';ALPHA_GROSS=.20
 
 def get(u):
  last=None
@@ -22,8 +22,9 @@ def load(job):
  with zipfile.ZipFile(io.BytesIO(raw)) as z:
   if z.testzip() is not None:raise RuntimeError('crc '+stem)
   rd=csv.DictReader(io.TextIOWrapper(z.open(z.namelist()[0]),encoding='utf-8'));rows=[]
-  # Binance historical metric schemas are not uniform: archives predating FIELD
-  # are unavailable observations, not corrupt data. Never synthesize/fill them.
+  # Canonical Binance daily-metrics name for the global account-count L/S ratio
+  # is count_long_short_ratio. Missing historical fields are unavailable data;
+  # never synthesize or fill them.
   if not {'create_time',FIELD}.issubset(set(rd.fieldnames or [])):return s,[]
   for r in rd:
    try:t=pd.to_datetime(r['create_time'],utc=True);a=float(r[FIELD])
@@ -49,5 +50,5 @@ def main():
    if t in x.index:x.at[t,s]=v
  z=rz(x);sig=(-np.tanh(z)).shift(1).where(z.shift(1).notna().sum(axis=1)>=10,0).fillna(0);targets=sig.div(sig.abs().sum(axis=1).replace(0,np.nan),axis=0).fillna(0)
  result=p1.run_targets(data,targets,ex,guard,float(ex['severe_cost_per_side']),ALPHA_GROSS);te=pd.Timestamp(da['train_end'],tz='UTC');d=p47.diag(result,data.close.index,max(data.close.index[0],pd.Timestamp('2021-12-01',tz='UTC')),te);passed=bool(d['stable_train'])
- out={'study':'V99 R106 Phase108 — GLOBAL CROWDING CONTRARIAN TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_DOWNSTREAM' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'prereg':'research/v99_r106_phase108_global_crowding_contrarian_prereg.md','source':'Binance USD-M global_long_short_account_ratio','transform':'negative tanh of cross-sectional median/MAD robust z of log(global account-count long/short ratio), whole alpha shifted t-1; L1 normalized','direction':'broad-account crowding contrarian: high global long tilt short, low global long tilt long','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True,'missing_archives_not_filled':True,'simultaneous_crosssection_required':True,'min_assets':10,'unit_tanh_scale_fixed':True},'train_end':te.isoformat(),'diagnostic':d,'selected_train_only':'native_global_crowding_contrarian' if passed else None,'archives_consumed':len(jobs),'next_gate':'PASS freezes exact spec for supersevere/regime/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.','quarantined_symbols':quarantined};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
+ out={'study':'V99 R106 Phase108 — GLOBAL CROWDING CONTRARIAN TRAIN-ONLY alpha gate','status':'TRAIN_ALPHA_PASS_FREEZE_FOR_DOWNSTREAM' if passed else 'TRAIN_ALPHA_REJECT','frozen_assets_untouched':{'v16':True,'v99_frozen':True},'precommitment':{'prereg':'research/v99_r106_phase108_global_crowding_contrarian_prereg.md','source':'Binance USD-M count_long_short_ratio (global account-count long/short ratio)','transform':'negative tanh of cross-sectional median/MAD robust z of log(global account-count long/short ratio), whole alpha shifted t-1; L1 normalized','direction':'broad-account crowding contrarian: high global long tilt short, low global long tilt long','single_hypothesis_no_grid':True,'alpha_gross':ALPHA_GROSS,'selection_train_only':True,'holdout_not_parsed':True,'missing_archives_not_filled':True,'simultaneous_crosssection_required':True,'min_assets':10,'unit_tanh_scale_fixed':True},'train_end':te.isoformat(),'diagnostic':d,'selected_train_only':'native_global_crowding_contrarian' if passed else None,'archives_consumed':len(jobs),'next_gate':'PASS freezes exact spec for supersevere/regime/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.','quarantined_symbols':quarantined};OUT.write_text(json.dumps(out,indent=2,default=audit.safe_float)+'\n');print(json.dumps({'status':out['status'],'healthy_folds':d['healthy_folds'],'valid_folds':d['valid_folds'],'train':d['train']},indent=2,default=audit.safe_float))
 if __name__=='__main__':main()
