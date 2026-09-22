@@ -5,7 +5,7 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths: ["scripts/run_v99_r106_phase114_bookdepth_data_audit.py", ".github/workflows/v99-r106-phase114-bookdepth-data-audit.yml"]
 permissions: {contents: write}
-concurrency: {group: v99-r106-phase114-bookdepth-data-audit, cancel-in-progress: false}
+concurrency: {group: v99-r106-phase114-bookdepth-data-audit, cancel-in-progress: true}
 jobs:
   data-audit:
     runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
           files=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts})
           pathlib.Path('/tmp/frozen_before.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},sort_keys=True))
           PY
-      - name: Run Phase114 train-only data audit
+      - name: Run Phase114 strict train-only data audit
         run: python scripts/run_v99_r106_phase114_bookdepth_data_audit.py
       - name: Verify frozen assets unchanged
         if: always()
@@ -36,7 +36,7 @@ jobs:
           assert before==after,'Frozen asset mutation detected'
           print('V16/V99 frozen guards OK')
           PY
-      - name: Guard and publish evidence
+      - name: Guard and publish strict evidence
         if: success()
         shell: bash
         run: |
@@ -50,9 +50,11 @@ jobs:
           assert r['holdout_market_values_not_downloaded_or_parsed']
           assert r['object_listing_metadata_only']
           assert r['alpha_prohibited'] and r['return_relation_computed'] is False
+          assert r['train_end_exclusive']=='2024-01-18T00:00:00Z'
+          assert 'boundary-day archive excluded' in r['strict_boundary_policy']
           PY
           git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/candidate_v99_r106_phase114_bookdepth_data_audit.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Record V99 R106 Phase114 bookDepth data audit"
+          git commit -m "Record strict V99 R106 Phase114 bookDepth data audit"
           git fetch origin ${RESEARCH_BRANCH}; git rebase origin/${RESEARCH_BRANCH}; git push origin HEAD:${RESEARCH_BRANCH}
