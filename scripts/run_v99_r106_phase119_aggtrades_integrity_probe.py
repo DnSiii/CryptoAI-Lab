@@ -9,6 +9,7 @@ import math
 import time
 import urllib.request
 import zipfile
+from itertools import chain
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -17,10 +18,18 @@ BASE = "https://data.binance.vision/data/futures/um/daily/aggTrades"
 DATES = ["2021-12-01", "2022-06-14", "2022-12-25", "2023-07-08"]
 
 
-def get(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": "CryptoAI-v99-r106-phase119"})
-    with urllib.request.urlopen(req, timeout=180) as r:
-        return r.read()
+def get(url: str, attempts: int = 4) -> bytes:
+    last = None
+    for attempt in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "CryptoAI-v99-r106-phase119"})
+            with urllib.request.urlopen(req, timeout=300) as r:
+                return r.read()
+        except (TimeoutError, OSError) as exc:
+            last = exc
+            if attempt + 1 < attempts:
+                time.sleep(2 ** attempt)
+    raise RuntimeError(f"download failed after {attempts} attempts: {url}") from last
 
 
 def parse_bool(v: str) -> bool:
@@ -49,12 +58,11 @@ def probe(symbol: str, date: str) -> dict:
         raise ValueError(f"expected one nonempty CSV member {name}, got {len(members)}")
     text = io.TextIOWrapper(zf.open(members[0]), encoding="utf-8-sig", newline="")
     reader = csv.reader(text)
-    rows = iter(reader)
-    first = next(rows, None)
+    first = next(reader, None)
     if first is None:
         raise ValueError(f"empty CSV {name}")
     headered = bool(first and first[0].strip().lower() in {"agg_trade_id", "aggtradeid", "a"})
-    stream = rows if headered else iter([first, *rows])
+    stream = reader if headered else chain([first], reader)
     n = 0
     prev_id = None
     prev_ts = None
@@ -85,7 +93,10 @@ def main() -> None:
     symbols = sorted(manifest["symbols"])
     targets = [(s, d) for s in symbols for d in DATES]
     started = time.monotonic()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+    # Limit concurrency deliberately: these archives are large and the upstream
+    # endpoint can throttle/timeout bursty readers. Retries are deterministic and
+    # do not alter the fixed sample or inspect holdout observations.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(lambda x: probe(*x), targets))
     elapsed = time.monotonic() - started
     out = {
