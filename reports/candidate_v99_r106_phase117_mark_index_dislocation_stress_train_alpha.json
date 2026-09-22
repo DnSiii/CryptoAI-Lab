@@ -1,0 +1,114 @@
+{
+  "study": "V99 R106 Phase117 \u2014 MARK/INDEX 24H DISLOCATION-STRESS QUALITY TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase117_mark_index_dislocation_stress_prereg.md",
+    "source": "official Binance USD-M markPriceKlines + indexPriceKlines 1h close",
+    "feature": "24h RMS of log(mark/index), cross-sectional median/MAD robust z",
+    "direction": "negative stress z: long lower dislocation stress, short higher dislocation stress",
+    "direction_discards_basis_sign": true,
+    "causal_t_minus_1": true,
+    "rolling_hours_fixed": 24,
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "cost_for_selection": "severe",
+    "selection_train_only": true,
+    "holdout_not_downloaded_or_parsed": true,
+    "missing_data_not_filled": true,
+    "min_crosssection_assets": 10,
+    "tanh_then_l1": true
+  },
+  "train_start": "2021-12-01T00:00:00+00:00",
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00",
+  "data_integrity": {
+    "observed_paired_symbol_hours": 894048,
+    "active_signal_hours": 18554,
+    "monthly_pairs": 1132,
+    "daily_pairs": 2896,
+    "monthly_fallbacks": 68,
+    "monthly_alignment_fallbacks": 68,
+    "daily_pair_rejections": 0,
+    "january_2024_monthly_archive_requested": false,
+    "checksums_and_zip_crc_verified": true,
+    "mark_index_timestamp_alignment_required": true
+  },
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 18554,
+      "roi": -0.39071833735614747,
+      "profit_factor": 0.7466238465657258,
+      "max_drawdown_abs": 0.39186145702329533,
+      "positive_hour_ratio": 0.4460493694082139,
+      "robust_mean_without_top1pct": -3.745914392713838e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4643,
+        "roi": -0.14396867894016707,
+        "profit_factor": 0.7584214202672892,
+        "max_drawdown_abs": 0.1483717968706847,
+        "positive_hour_ratio": 0.4503553736808098,
+        "robust_mean_without_top1pct": -4.669098337056839e-05
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4621,
+        "roi": -0.12042163224711455,
+        "profit_factor": 0.7371556590458455,
+        "max_drawdown_abs": 0.12150921829773698,
+        "positive_hour_ratio": 0.4423285003246051,
+        "robust_mean_without_top1pct": -3.8612808426921464e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4621,
+        "roi": -0.12937159942422305,
+        "profit_factor": 0.671454507966066,
+        "max_drawdown_abs": 0.13370980922607945,
+        "positive_hour_ratio": 0.4297771045228306,
+        "robust_mean_without_top1pct": -3.9251855436814396e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.07056059232836898,
+        "profit_factor": 0.8180991913691456,
+        "max_drawdown_abs": 0.07328601276140367,
+        "positive_hour_ratio": 0.46155493681730564,
+        "robust_mean_without_top1pct": -2.3786667790696115e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "next_gate": "PASS freezes exact spec for supersevere/regime/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ]
+}
