@@ -22,7 +22,9 @@ def load(job):
  with zipfile.ZipFile(io.BytesIO(raw)) as z:
   if z.testzip() is not None:raise RuntimeError('crc '+stem)
   rd=csv.DictReader(io.TextIOWrapper(z.open(z.namelist()[0]),encoding='utf-8'));rows=[]
-  if not {'create_time',FIELD}.issubset(set(rd.fieldnames or [])):raise RuntimeError('schema '+stem)
+  # Binance historical metric schemas are not uniform: archives predating FIELD
+  # are unavailable observations, not corrupt data. Never synthesize/fill them.
+  if not {'create_time',FIELD}.issubset(set(rd.fieldnames or [])):return s,[]
   for r in rd:
    try:t=pd.to_datetime(r['create_time'],utc=True);a=float(r[FIELD])
    except (ValueError,TypeError):continue
