@@ -1,0 +1,99 @@
+{
+  "study": "V99 R106 Phase105 \u2014 TOP-TRADER DIVERGENCE TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase105_toptrader_divergence_prereg.md",
+    "source": "Binance USD-M count_toptrader_long_short_ratio + count_long_short_ratio",
+    "transform": "median/MAD robust z of log(toptrader ratio)-log(global account ratio), whole alpha shifted t-1; tanh; L1 normalized",
+    "direction": "top-trader versus broad-account positioning divergence continuation",
+    "single_hypothesis_no_grid": true,
+    "alpha_gross": 0.2,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "missing_archives_not_filled": true,
+    "simultaneous_crosssection_required": true,
+    "min_assets": 10,
+    "unit_tanh_scale_fixed": true
+  },
+  "train_end": "2024-01-18T00:00:00+00:00",
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 10996,
+      "roi": -0.26604424021516027,
+      "profit_factor": 0.7087424768457222,
+      "max_drawdown_abs": 0.2707049059608203,
+      "positive_hour_ratio": 0.4249727173517643,
+      "robust_mean_without_top1pct": -3.823334699479667e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 1138,
+        "roi": -0.024989045536332855,
+        "profit_factor": 0.8381333922727366,
+        "max_drawdown_abs": 0.03039728170789413,
+        "positive_hour_ratio": 0.44551845342706503,
+        "robust_mean_without_top1pct": -3.7061837973615366e-05
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 521,
+        "roi": -0.005520406054383198,
+        "profit_factor": 0.9095548628272496,
+        "max_drawdown_abs": 0.009611292354793077,
+        "positive_hour_ratio": 0.4472168905950096,
+        "robust_mean_without_top1pct": -2.8417531437603955e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.1161409169372768,
+        "profit_factor": 0.6957244245869871,
+        "max_drawdown_abs": 0.11817815988810698,
+        "positive_hour_ratio": 0.4265209940017138,
+        "robust_mean_without_top1pct": -3.529073992729832e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.14359048776823047,
+        "profit_factor": 0.6469208831388695,
+        "max_drawdown_abs": 0.1471707031518804,
+        "positive_hour_ratio": 0.4159348896980081,
+        "robust_mean_without_top1pct": -4.155955532905542e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "archives_consumed": 37836,
+  "next_gate": "PASS freezes exact spec for supersevere/regime/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ]
+}
