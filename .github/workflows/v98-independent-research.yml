@@ -49,7 +49,7 @@ jobs:
           git add -f reports/v98_independent_phase111_stablecoin_peg_feasibility.json reports/v98_independent_phase112_stablecoin_confidence_regime.json reports/v98_independent_phase112_stablecoin_confidence_regime_positions.csv
           if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase112 stablecoin confidence evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
       - name: Upload Phase112 evidence
-        uses: actions/upload-artifact@ea165f8d65b5e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@v4
         with:
           name: v98-independent-phase112-${{ github.run_id }}
           retention-days: 30
