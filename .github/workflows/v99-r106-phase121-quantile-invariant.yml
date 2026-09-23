@@ -1,0 +1,26 @@
+name: V99 R106 Phase121 exact-quantile invariant
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'scripts/v99_r106_exact_rolling_quantile.py'
+      - '.github/workflows/v99-r106-phase121-quantile-invariant.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  invariant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Exact rolling quantile causal self-test
+        run: python scripts/v99_r106_exact_rolling_quantile.py
+      - name: Holdout/Frozen guard
+        shell: bash
+        run: |
+          test -f research/v99_r106_phase121_large_trade_pressure_prereg.md
+          git diff --exit-code HEAD^ HEAD -- v16_frozen v99_frozen || { echo 'Frozen path modified'; exit 1; }
