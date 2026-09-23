@@ -18,33 +18,33 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_future_holdout_policy.py -q
-      - name: Execute preregistered Phase116 DXY DATA_ONLY gate
-        run: python scripts/v98_independent_phase116_dxy_feasibility.py
-      - name: Enforce Phase116 isolation and activation contract
+      - name: Execute preregistered Phase117 global-liquidity DATA_ONLY gate
+        run: python scripts/v98_independent_phase117_global_liquidity_feasibility.py
+      - name: Enforce Phase117 isolation and activation contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase116_dxy_feasibility.json'))
-          assert p['phase']=='116' and p['training_only'] is True
+          p=json.load(open('reports/v98_independent_phase117_global_liquidity_feasibility.json'))
+          assert p['phase']=='117' and p['training_only'] is True
           assert p['validation_accessed'] is False and p['final_holdout_accessed'] is False
           assert p['v16_used'] is False and p['v99_used'] is False
           assert p['values_exposed'] is False and p['descriptives_computed'] is False
           assert p['returns_computed'] is False and p['correlations_computed'] is False
           assert p['alpha_computed'] is False and p['pnl_computed'] is False and p['parameter_search'] is False
-          assert p['decision'] in {'PASS_DATA_ONLY','REJECT_DATA_SOURCE'}
+          assert p['decision'] in {'PASS_DATA_ONLY','REJECT_DATA_SOURCE_NO_RESCUE'}
           if p['decision']=='PASS_DATA_ONLY':
-              assert p['coverage'] >= 0.95 and p['invalid_records']==0 and p['postcanonical_duplicate_dates']==0
+              assert p['coverage'] >= 0.95 and p['invalid_records']==0 and p['postcanonical_duplicate_dates']==0 and p['outside_training_rows']==0
           PY
-      - name: Commit V98 Phase116 evidence only
+      - name: Commit V98 Phase117 evidence only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase116_dxy_feasibility.json
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase116 DXY data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase116 evidence
+          git add -f reports/v98_independent_phase117_global_liquidity_feasibility.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase117 global liquidity data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase117 evidence
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase116-${{ github.run_id }}
+          name: v98-independent-phase117-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
-          path: reports/v98_independent_phase116_dxy_feasibility.json
+          path: reports/v98_independent_phase117_global_liquidity_feasibility.json
