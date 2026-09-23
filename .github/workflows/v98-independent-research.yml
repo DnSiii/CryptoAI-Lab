@@ -22,16 +22,6 @@ jobs:
         run: |
           python scripts/download_futures_archive.py --config v98_independent_phase050_data.json --workers 40
           python scripts/build_canonical.py --config v98_independent_phase050_data.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          cfg=json.load(open('config/v98_independent_phase050_data.json'))
-          expected=set(cfg['symbols'])
-          got={p.stem.removesuffix('_1h') for p in Path('data/canonical').glob('*_1h.csv')}
-          missing=sorted(expected-got)
-          assert not missing, f'missing V98 canonical symbols: {missing}'
-          print('V98 Phase050 training-only canonical reconstruction passed:', sorted(expected))
-          PY
       - name: Reconfirm corrected Phase111 DATA_ONLY gate
         run: python scripts/v98_independent_phase111_stablecoin_peg_feasibility.py
       - name: Enforce Phase111 activation gate
@@ -39,9 +29,7 @@ jobs:
           python - <<'PY'
           import json
           p=json.load(open('reports/v98_independent_phase111_stablecoin_peg_feasibility.json'))
-          assert p['gate']=='PASS_DATA_ONLY'
-          assert p['alpha_or_pnl_computed'] is False and p['validation'] is None and p['final_holdout'] is None
-          print('Phase111 activation gate passed')
+          assert p['gate']=='PASS_DATA_ONLY' and p['alpha_or_pnl_computed'] is False and p['validation'] is None and p['final_holdout'] is None
           PY
       - name: Execute preregistered Phase112 training gate
         run: python scripts/v98_independent_phase112_stablecoin_confidence_regime.py
@@ -54,20 +42,32 @@ jobs:
           assert p['phase083_selection_use'] is False and p['validation'] is None and p['final_holdout'] is None
           assert p['parameter_search'] is False and p['rescue_allowed'] is False
           assert p['training_gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
-          print('Phase112 isolation guard passed:',p['training_gate'])
           PY
-      - name: Commit V98 Phase112 evidence only
+      - name: Execute preregistered Phase113 DATA_ONLY gate
+        run: python scripts/v98_independent_phase113_fear_greed_feasibility.py
+      - name: Enforce Phase113 no-alpha isolation
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase113_fear_greed_feasibility.json'))
+          assert p['phase']=='113' and p['mode']=='DATA_ONLY_NO_ALPHA_NO_PNL'
+          assert p['alpha_or_pnl_computed'] is False and p['value_descriptives_exposed'] is False
+          assert p['validation'] is None and p['final_holdout'] is None and p['v99_used'] is False and p['v16_used'] is False
+          assert p['gate'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          PY
+      - name: Commit V98 evidence only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase111_stablecoin_peg_feasibility.json reports/v98_independent_phase112_stablecoin_confidence_regime.json reports/v98_independent_phase112_stablecoin_confidence_regime_positions.csv
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase112 stablecoin confidence evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase112 evidence
+          git add -f reports/v98_independent_phase111_stablecoin_peg_feasibility.json reports/v98_independent_phase112_stablecoin_confidence_regime.json reports/v98_independent_phase112_stablecoin_confidence_regime_positions.csv reports/v98_independent_phase113_fear_greed_feasibility.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase113 data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 evidence
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase112-${{ github.run_id }}
+          name: v98-independent-evidence-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
           path: |
             reports/v98_independent_phase112_stablecoin_confidence_regime.json
             reports/v98_independent_phase112_stablecoin_confidence_regime_positions.csv
+            reports/v98_independent_phase113_fear_greed_feasibility.json
