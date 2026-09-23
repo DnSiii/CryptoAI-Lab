@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """V98 Independent Phase117: WALCL DATA_ONLY feasibility. Never emits observation values."""
 from __future__ import annotations
-import csv, hashlib, io, json, math, urllib.request
+import csv, hashlib, io, json, math, time, urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -16,10 +16,21 @@ def expected_wednesdays():
     while d<=END: out.append(d); d += timedelta(days=7)
     return out
 
+def fetch_payload():
+    """Transport retry only; scientific series/window/gates remain frozen."""
+    last=None
+    for attempt in range(4):
+        try:
+            req=urllib.request.Request(URL, headers={"User-Agent":"CryptoAI-Lab-V98-Independent/1.0","Accept":"text/csv"})
+            with urllib.request.urlopen(req, timeout=90) as r:
+                return r.status, r.read()
+        except Exception as exc:
+            last=exc
+            if attempt < 3: time.sleep(2 ** attempt)
+    raise RuntimeError(f"Phase117 source transport failed after deterministic retries: {type(last).__name__}") from last
+
 def main():
-    req=urllib.request.Request(URL, headers={"User-Agent":"CryptoAI-Lab-V98-Independent/1.0"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        status=r.status; payload=r.read()
+    status,payload=fetch_payload()
     rows=list(csv.DictReader(io.StringIO(payload.decode("utf-8"))))
     dates=[]; invalid=0; outside=0
     for row in rows:
