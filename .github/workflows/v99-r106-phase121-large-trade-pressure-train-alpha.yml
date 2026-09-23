@@ -2,7 +2,7 @@ name: V99 R106 Phase121 large-trade pressure train alpha
 on:
   push:
     branches: [research/v99-r106-native-all-regime-engine]
-    paths: ['scripts/run_v99_r106_phase121_large_trade_pressure_train_alpha.py','.github/workflows/v99-r106-phase121-large-trade-pressure-train-alpha.yml']
+    paths: ['scripts/run_v99_r106_phase121_large_trade_pressure_train_alpha.py','scripts/run_v99_r106_phase121_large_trade_pressure_train_alpha_parallel.py','.github/workflows/v99-r106-phase121-large-trade-pressure-train-alpha.yml']
   workflow_dispatch:
 permissions: {contents: write}
 concurrency: {group: v99-r106-phase121-large-trade-pressure, cancel-in-progress: false}
@@ -44,7 +44,7 @@ jobs:
       - name: Exact quantile invariant
         run: python scripts/v99_r106_exact_rolling_quantile.py
       - name: Run Phase121 train-only gate
-        run: python scripts/run_v99_r106_phase121_large_trade_pressure_train_alpha.py
+        run: python scripts/run_v99_r106_phase121_large_trade_pressure_train_alpha_parallel.py
       - name: Verify frozen assets unchanged
         if: always()
         run: |
