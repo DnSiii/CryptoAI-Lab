@@ -18,6 +18,20 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_future_holdout_policy.py -q
+      - name: Reconstruct V98 training-only canonical market data
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json --workers 40
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          cfg=json.load(open('config/v98_independent_phase050_data.json'))
+          assert cfg['cutoff_month']=='2025-12'
+          assert set(cfg['symbols'])=={'BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'}
+          for s in cfg['symbols']:
+              p=Path('data/canonical')/f'{s}_1h.csv'
+              assert p.exists() and p.stat().st_size>0, p
+          PY
       - name: Execute preregistered Phase125 policy uncertainty training gate
         run: python scripts/v98_independent_phase125_policy_uncertainty_regime.py
       - name: Enforce Phase125 isolation contract
