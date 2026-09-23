@@ -11,8 +11,8 @@ CFG=PROJECT/'config'/'v98_independent.json'; OUT=PROJECT/'reports'/'v98_independ
 PREREG='reports/v98_independent_phase118_global_liquidity_regime_prereg.md'; GROSS=.75; ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT']
 
 def history():
-    status,raw,err=p117.get(p117.URL)
-    if status!=200: raise RuntimeError(f'phase117 source unavailable: {status} {err}')
+    status,raw=p117.fetch_payload()
+    if status!=200: raise RuntimeError(f'phase117 source unavailable: {status}')
     rows=[]
     for r in csv.DictReader(io.StringIO(raw.decode())):
         try:
