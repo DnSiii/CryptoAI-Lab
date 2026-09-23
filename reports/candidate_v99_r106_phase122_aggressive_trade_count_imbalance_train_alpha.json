@@ -1,0 +1,125 @@
+{
+  "study": "V99 R106 Phase122 \u2014 AGGRESSIVE TRADE-COUNT IMBALANCE TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase122_aggressive_trade_count_imbalance_prereg.md",
+    "source": "official Binance USD-M daily aggTrades + CHECKSUM",
+    "feature": "hourly aggressive trade-count imbalance; cross-sectional median/MAD z; tanh; entire alpha t-1; L1",
+    "direction": "continuation",
+    "selected_symbols": [
+      "ONTUSDT",
+      "IOTAUSDT",
+      "VETUSDT",
+      "DASHUSDT",
+      "EOSUSDT",
+      "THETAUSDT",
+      "ENJUSDT",
+      "SNXUSDT",
+      "CRVUSDT",
+      "EGLDUSDT",
+      "ALGOUSDT",
+      "1INCHUSDT"
+    ],
+    "executable_symbols": [
+      "ONTUSDT",
+      "IOTAUSDT",
+      "VETUSDT",
+      "DASHUSDT",
+      "EOSUSDT",
+      "THETAUSDT",
+      "ENJUSDT",
+      "SNXUSDT",
+      "CRVUSDT",
+      "EGLDUSDT",
+      "ALGOUSDT",
+      "1INCHUSDT"
+    ],
+    "min_assets": 8,
+    "alpha_gross": 0.2,
+    "single_hypothesis_no_grid": true,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "missing_archives_not_filled": true
+  },
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00",
+  "archives_consumed": 9336,
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 18671,
+      "roi": -0.9767994667383862,
+      "profit_factor": 0.24623053832949052,
+      "max_drawdown_abs": 0.9768149401167731,
+      "positive_hour_ratio": 0.24605002410154786,
+      "robust_mean_without_top1pct": -0.00021810406046208567
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4666,
+        "roi": -0.586487427369042,
+        "profit_factor": 0.3449171087965386,
+        "max_drawdown_abs": 0.5867632157068308,
+        "positive_hour_ratio": 0.29982854693527644,
+        "robust_mean_without_top1pct": -0.00020895246028411672
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.6056722315924816,
+        "profit_factor": 0.24328648454140492,
+        "max_drawdown_abs": 0.6055150408485321,
+        "positive_hour_ratio": 0.24828620394173093,
+        "robust_mean_without_top1pct": -0.00021560724886517913
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.6090753806355336,
+        "profit_factor": 0.2041779183183451,
+        "max_drawdown_abs": 0.6090162372604253,
+        "positive_hour_ratio": 0.22129391602399315,
+        "robust_mean_without_top1pct": -0.00021556696639288264
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.6360356343242795,
+        "profit_factor": 0.18167124116609862,
+        "max_drawdown_abs": 0.635836741128921,
+        "positive_hour_ratio": 0.21482116084814734,
+        "robust_mean_without_top1pct": -0.00023017678951298294
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "next_gate": "PASS freezes exact spec for folds/supersevere/regime/concentration/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ]
+}
