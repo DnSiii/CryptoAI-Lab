@@ -18,15 +18,15 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_future_holdout_policy.py -q
-      - name: Execute preregistered Phase122 ON RRP DATA_ONLY gate
-        run: python scripts/v98_independent_phase122_rrp_feasibility.py
-      - name: Enforce Phase122 isolation contract
+      - name: Execute preregistered Phase123 credit stress DATA_ONLY gate
+        run: python scripts/v98_independent_phase123_credit_stress_feasibility.py
+      - name: Enforce Phase123 isolation contract
         if: always()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase122_rrp_feasibility.json'))
-          assert p['phase']=='122' and p['training_only'] is True
+          p=json.load(open('reports/v98_independent_phase123_credit_stress_feasibility.json'))
+          assert p['phase']=='123' and p['training_only'] is True
           assert p['validation_accessed'] is False and p['final_holdout_accessed'] is False
           assert p['v16_used'] is False and p['v99_used'] is False
           assert p['values_exposed'] is False and p['descriptives_computed'] is False
@@ -34,18 +34,18 @@ jobs:
           assert p['alpha_computed'] is False and p['pnl_computed'] is False and p['parameter_search'] is False
           assert p['decision'] in ('PASS_DATA_ONLY','REJECT_DATA_SOURCE_NO_RESCUE')
           PY
-      - name: Commit V98 Phase122 evidence only
+      - name: Commit V98 Phase123 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f reports/v98_independent_phase122_rrp_feasibility.json ]; then git add -f reports/v98_independent_phase122_rrp_feasibility.json; fi
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase122 ON RRP data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase122 evidence
+          if [ -f reports/v98_independent_phase123_credit_stress_feasibility.json ]; then git add -f reports/v98_independent_phase123_credit_stress_feasibility.json; fi
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase123 credit stress data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase123 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase122-${{ github.run_id }}
+          name: v98-independent-phase123-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase122_rrp_feasibility.json
+          path: reports/v98_independent_phase123_credit_stress_feasibility.json
