@@ -1,0 +1,41 @@
+{
+  "alpha_or_pnl_computed": false,
+  "check": {
+    "canonicalization": "timestamp ascending; keep last observation per UTC day",
+    "collapsed_duplicate_days": 0,
+    "coverage": 0.9990875912408759,
+    "first_date": "2023-01-01",
+    "invalid_records": 0,
+    "last_date": "2025-12-31",
+    "passed": true,
+    "post_canonical_duplicate_days": 0,
+    "schema_ok": true,
+    "usable_daily_dates": 1095
+  },
+  "engine": "V98 Independent",
+  "expected_days": 1096,
+  "final_holdout": null,
+  "future_holdout_required": true,
+  "gate": "PASS_DATA_ONLY",
+  "generated_at": "2026-09-23T02:39:44.281774+00:00",
+  "integrity": {
+    "error": null,
+    "http_status": 200,
+    "payload_sha256": "4c15f7fb9dc8fac73968cde1017e6bb5634d66468619a1d166018c938833c37b",
+    "schema_contract": "object with data list; records require timestamp and integer value [0,100]"
+  },
+  "mode": "DATA_ONLY_NO_ALPHA_NO_PNL",
+  "parameter_search": false,
+  "phase": "113",
+  "phase083_selection_use": false,
+  "rescue_allowed": false,
+  "source": "alternative.me/fng",
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null,
+  "value_descriptives_exposed": false,
+  "window": [
+    "2023-01-01",
+    "2025-12-31"
+  ]
+}
