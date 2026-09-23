@@ -31,20 +31,37 @@ jobs:
           assert p['values_exposed'] is False and p['descriptives_computed'] is False
           assert p['returns_computed'] is False and p['correlations_computed'] is False
           assert p['alpha_computed'] is False and p['pnl_computed'] is False and p['parameter_search'] is False
-          assert p['decision'] in {'PASS_DATA_ONLY','REJECT_DATA_SOURCE_NO_RESCUE'}
-          if p['decision']=='PASS_DATA_ONLY':
-              assert p['coverage'] >= 0.95 and p['invalid_records']==0 and p['postcanonical_duplicate_dates']==0 and p['outside_training_rows']==0
+          assert p['decision']=='PASS_DATA_ONLY'
+          assert p['coverage'] >= 0.95 and p['invalid_records']==0 and p['postcanonical_duplicate_dates']==0 and p['outside_training_rows']==0
           PY
-      - name: Commit V98 Phase117 evidence only
+      - name: Rebuild frozen V98 training market data only
+        run: python scripts/v98_independent_phase050_rebuild_data.py
+      - name: Execute preregistered Phase118 WALCL regime training gate
+        run: python scripts/v98_independent_phase118_global_liquidity_regime.py
+      - name: Enforce Phase118 isolation contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase118_global_liquidity_regime.json'))
+          assert p['phase']=='118' and p['validation'] is None and p['final_holdout'] is None
+          assert p['v16_used'] is False and p['v99_used'] is False and p['phase083_selection_use'] is False
+          assert p['parameter_search'] is False and p['rescue_allowed'] is False
+          assert p['training_gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
+          assert p['execution_guard_audit']['max_open_gross'] <= 0.750000001
+          PY
+      - name: Commit V98 Phase117-118 evidence only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase117_global_liquidity_feasibility.json
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase117 global liquidity data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase117 evidence
+          git add -f reports/v98_independent_phase117_global_liquidity_feasibility.json reports/v98_independent_phase118_global_liquidity_regime.json reports/v98_independent_phase118_global_liquidity_regime_positions.csv
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase118 WALCL regime training evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase118 evidence
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase117-${{ github.run_id }}
+          name: v98-independent-phase118-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
-          path: reports/v98_independent_phase117_global_liquidity_feasibility.json
+          path: |
+            reports/v98_independent_phase117_global_liquidity_feasibility.json
+            reports/v98_independent_phase118_global_liquidity_regime.json
+            reports/v98_independent_phase118_global_liquidity_regime_positions.csv
