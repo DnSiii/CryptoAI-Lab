@@ -28,34 +28,34 @@ jobs:
           cfg=json.load(open('config/v98_independent_phase050_data.json'))
           assert cfg['cutoff_month']=='2025-12'
           assert set(cfg['symbols'])=={'BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'}
-          for s in cfg['symbols']: assert Path(f'data/canonical/{s}_funding.csv').exists()
+          for s in cfg['symbols']: assert Path(f'data/canonical/{s}_1h.csv').exists()
           PY
-      - name: Execute preregistered Phase131 funding dispersion DATA_ONLY
-        run: python scripts/v98_independent_phase131_funding_dispersion_data_only.py
-      - name: Enforce Phase131 isolation and anti-overfit contract
+      - name: Execute preregistered Phase133 jump breadth DATA_ONLY
+        run: python scripts/v98_independent_phase133_cross_asset_jump_breadth_data_only.py
+      - name: Enforce Phase133 isolation and anti-overfit contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase131_funding_dispersion_data_only.json'))
-          assert p['phase']=='131' and p['mode']=='DATA_ONLY'
-          assert p['numeric_values_exposed'] is False and p['alpha_or_pnl_inspected'] is False
+          p=json.load(open('reports/v98_independent_phase133_cross_asset_jump_breadth_data_only.json'))
+          assert p['phase']=='133' and p['mode']=='DATA_ONLY'
+          assert p['feature_values_exposed'] is False and p['returns_or_jump_values_exposed'] is False and p['alpha_or_pnl_inspected'] is False
           assert p['validation'] is None and p['final_holdout'] is None
           assert p['v16_used'] is False and p['v99_used'] is False
           assert p['phase083_selection_use'] is False and p['parameter_search'] is False and p['rescue_allowed'] is False
           assert p['decision'] in ('PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA')
           PY
-      - name: Commit V98 Phase131 evidence only
+      - name: Commit V98 Phase133 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f reports/v98_independent_phase131_funding_dispersion_data_only.json ]; then git add -f reports/v98_independent_phase131_funding_dispersion_data_only.json; fi
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase131 funding dispersion data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase131 evidence
+          if [ -f reports/v98_independent_phase133_cross_asset_jump_breadth_data_only.json ]; then git add -f reports/v98_independent_phase133_cross_asset_jump_breadth_data_only.json; fi
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase133 jump breadth data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase133 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase131-${{ github.run_id }}
+          name: v98-independent-phase133-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase131_funding_dispersion_data_only.json
+          path: reports/v98_independent_phase133_cross_asset_jump_breadth_data_only.json
