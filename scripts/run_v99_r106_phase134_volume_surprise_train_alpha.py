@@ -19,7 +19,7 @@ def main():
     prereg=PROJECT/'research'/'v99_r106_phase133_rejection_and_phase134_prereg.md';assert prereg.exists()
     txt=prereg.read_text();assert 'Phase134' in txt and 'Dollar-Volume Surprise Continuation' in txt and '24h' in txt and '168h' in txt
     cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup()
-    c=data.close.astype(float);v=data.volume.astype(float);assert c.index.equals(v.index) and c.columns.equals(v.columns);assert c.index.is_monotonic_increasing and c.index.tz is not None
+    c=data.close.astype(float);v=data.frames['volume'].astype(float);assert c.index.equals(v.index) and c.columns.equals(v.columns);assert c.index.is_monotonic_increasing and c.index.tz is not None
     ct=c.loc[c.index<TRAIN_END].copy();vt=v.loc[v.index<TRAIN_END].reindex_like(ct);assert len(ct) and ct.index.max()<TRAIN_END
     dv=(ct*vt).where((ct>0)&(vt>=0));smooth=dv.rolling(DV_WIN,min_periods=DV_WIN).mean();baseline=smooth.rolling(BASE_WIN,min_periods=BASE_WIN).median()
     ratio=np.log((smooth+1e-12)/(baseline+1e-12));z=robust_z(ratio);score=np.tanh(z).shift(1);score=score.where(score.notna().sum(axis=1)>=MIN_ASSETS,0).fillna(0)
