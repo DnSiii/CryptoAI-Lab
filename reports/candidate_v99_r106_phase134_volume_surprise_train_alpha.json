@@ -1,0 +1,111 @@
+{
+  "study": "V99 R106 Phase134 \u2014 DOLLAR-VOLUME SURPRISE CONTINUATION TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase133_rejection_and_phase134_prereg.md",
+    "feature": "hourly dollar volume close*volume; rolling mean24; own trailing median168; log ratio; robust cross-sectional z; tanh continuation; complete alpha t-1; L1",
+    "direction": "dollar_volume_surprise_continuation",
+    "dv_hours": 24,
+    "baseline_hours": 168,
+    "min_assets": 8,
+    "alpha_gross": 0.2,
+    "single_hypothesis_no_grid": true,
+    "selection_train_only": true,
+    "holdout_not_parsed": true,
+    "no_sign_flip": true
+  },
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00",
+  "causality_invariants": {
+    "feature_input_max_timestamp": "2024-01-17T23:00:00+00:00",
+    "post_train_targets_zero": true,
+    "full_score_shift_hours": 1,
+    "max_l1": 1.0000000000000007
+  },
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 18673,
+      "roi": -0.3852898061054809,
+      "profit_factor": 0.7906858193960683,
+      "max_drawdown_abs": 0.3859333490157565,
+      "positive_hour_ratio": 0.4466341776897124,
+      "robust_mean_without_top1pct": -3.908645501766483e-05
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.12727260518280403,
+        "profit_factor": 0.8172036872383565,
+        "max_drawdown_abs": 0.12813714017575029,
+        "positive_hour_ratio": 0.45758354755784064,
+        "robust_mean_without_top1pct": -4.477213027985525e-05
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.11722006347785308,
+        "profit_factor": 0.7831739261710221,
+        "max_drawdown_abs": 0.11835704584219287,
+        "positive_hour_ratio": 0.44280205655526994,
+        "robust_mean_without_top1pct": -3.978064103879505e-05
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.09726743445980846,
+        "profit_factor": 0.7959906000212967,
+        "max_drawdown_abs": 0.09813783471979798,
+        "positive_hour_ratio": 0.45201371036846616,
+        "robust_mean_without_top1pct": -3.3028108114165254e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.1161465880455772,
+        "profit_factor": 0.7548150576053819,
+        "max_drawdown_abs": 0.11688402574903889,
+        "positive_hour_ratio": 0.43414007282073247,
+        "robust_mean_without_top1pct": -3.701631604555533e-05
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "next_gate": "PASS freezes exact spec for supersevere/regime/tails/concentration/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
