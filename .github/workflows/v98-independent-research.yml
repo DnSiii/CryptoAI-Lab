@@ -18,48 +18,39 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
         run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_future_holdout_policy.py -q
-      - name: Reconstruct V98 training-only canonical market data
+      - name: Execute preregistered Phase137 DATA_ONLY twice
         run: |
-          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json --workers 40
-          python scripts/build_canonical.py --config v98_independent_phase050_data.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          cfg=json.load(open('config/v98_independent_phase050_data.json'))
-          assert cfg['cutoff_month']=='2025-12'
-          assert set(cfg['symbols'])=={'BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'}
-          for s in cfg['symbols']: assert Path(f'data/canonical/{s}_1h.csv').exists()
-          PY
-      - name: Execute preregistered Phase136 twice
-        run: |
-          python scripts/v98_independent_phase136_post_jump_rebound.py
-          cp reports/v98_independent_phase136_post_jump_rebound.json /tmp/phase136-first.json
-          python scripts/v98_independent_phase136_post_jump_rebound.py
-          cmp /tmp/phase136-first.json reports/v98_independent_phase136_post_jump_rebound.json
-      - name: Enforce Phase136 isolation and frozen decision contract
+          python scripts/v98_independent_phase137_real_yield_data_only.py
+          cp reports/v98_independent_phase137_real_yield_data_only.json /tmp/phase137-first.json
+          python scripts/v98_independent_phase137_real_yield_data_only.py
+          cmp /tmp/phase137-first.json reports/v98_independent_phase137_real_yield_data_only.json
+      - name: Enforce Phase137 isolation and frozen data-only contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase136_post_jump_rebound.json'))
-          assert p['phase']=='136'
-          assert p['validation'] is None and p['final_holdout'] is None
+          p=json.load(open('reports/v98_independent_phase137_real_yield_data_only.json'))
+          assert p['phase']=='137'
+          assert p['training_only'] is True
+          assert p['validation_accessed'] is False and p['final_holdout_accessed'] is False
           assert p['v16_used'] is False and p['v99_used'] is False and p['phase083_selection_use'] is False
+          assert p['values_exposed'] is False and p['descriptives_computed'] is False
+          assert p['returns_computed'] is False and p['correlations_computed'] is False
+          assert p['alpha_computed'] is False and p['pnl_computed'] is False
           assert p['parameter_search'] is False and p['rescue_allowed'] is False
-          assert p['training_gate']['decision'] in ('PASS_TRAINING','REJECT_NO_RESCUE')
-          assert p['execution_guard_audit']['max_open_gross'] <= 0.500001
+          assert p['decision'] in ('PASS_DATA_ONLY','REJECT_DATA_SOURCE_NO_RESCUE')
           PY
-      - name: Commit V98 Phase136 evidence only
+      - name: Commit V98 Phase137 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f reports/v98_independent_phase136_post_jump_rebound.json ]; then git add -f reports/v98_independent_phase136_post_jump_rebound.json; fi
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase136 evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase136 evidence
+          if [ -f reports/v98_independent_phase137_real_yield_data_only.json ]; then git add -f reports/v98_independent_phase137_real_yield_data_only.json; fi
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase137 evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase137 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase136-${{ github.run_id }}
+          name: v98-independent-phase137-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase136_post_jump_rebound.json
+          path: reports/v98_independent_phase137_real_yield_data_only.json
