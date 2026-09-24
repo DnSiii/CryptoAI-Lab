@@ -30,36 +30,36 @@ jobs:
           assert set(cfg['symbols'])=={'BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'}
           for s in cfg['symbols']: assert Path(f'data/canonical/{s}_1h.csv').exists()
           PY
-      - name: Execute preregistered Phase135 DATA_ONLY audit twice
+      - name: Execute preregistered Phase136 twice
         run: |
-          python scripts/v98_independent_phase135_post_jump_directional_asymmetry_data_only.py
-          cp reports/v98_independent_phase135_post_jump_directional_asymmetry_data_only.json /tmp/phase135-first.json
-          python scripts/v98_independent_phase135_post_jump_directional_asymmetry_data_only.py
-          cmp /tmp/phase135-first.json reports/v98_independent_phase135_post_jump_directional_asymmetry_data_only.json
-      - name: Enforce Phase135 isolation and reproducibility contract
+          python scripts/v98_independent_phase136_post_jump_rebound.py
+          cp reports/v98_independent_phase136_post_jump_rebound.json /tmp/phase136-first.json
+          python scripts/v98_independent_phase136_post_jump_rebound.py
+          cmp /tmp/phase136-first.json reports/v98_independent_phase136_post_jump_rebound.json
+      - name: Enforce Phase136 isolation and frozen decision contract
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase135_post_jump_directional_asymmetry_data_only.json'))
-          assert p['phase']=='135' and p['mode']=='DATA_ONLY'
+          p=json.load(open('reports/v98_independent_phase136_post_jump_rebound.json'))
+          assert p['phase']=='136'
           assert p['validation'] is None and p['final_holdout'] is None
           assert p['v16_used'] is False and p['v99_used'] is False and p['phase083_selection_use'] is False
           assert p['parameter_search'] is False and p['rescue_allowed'] is False
-          assert p['next_day_return_values_exposed'] is False and p['alpha_or_pnl_inspected'] is False
-          assert p['decision'] in ('PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA')
+          assert p['training_gate']['decision'] in ('PASS_TRAINING','REJECT_NO_RESCUE')
+          assert p['execution_guard_audit']['max_open_gross'] <= 0.500001
           PY
-      - name: Commit V98 Phase135 evidence only
+      - name: Commit V98 Phase136 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f reports/v98_independent_phase135_post_jump_directional_asymmetry_data_only.json ]; then git add -f reports/v98_independent_phase135_post_jump_directional_asymmetry_data_only.json; fi
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase135 data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase135 evidence
+          if [ -f reports/v98_independent_phase136_post_jump_rebound.json ]; then git add -f reports/v98_independent_phase136_post_jump_rebound.json; fi
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase136 evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase136 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase135-${{ github.run_id }}
+          name: v98-independent-phase136-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase135_post_jump_directional_asymmetry_data_only.json
+          path: reports/v98_independent_phase136_post_jump_rebound.json
