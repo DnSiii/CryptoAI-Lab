@@ -1,0 +1,44 @@
+{
+  "alpha_or_pnl_inspected": false,
+  "decision": "FAIL_DATA_NO_ALPHA",
+  "engine": "V98 Independent",
+  "family": "St. Louis Fed Financial Stress Index",
+  "final_holdout": null,
+  "gates": {
+    "finite_coverage_gte_95pct": false,
+    "http_200": false,
+    "required_columns": false,
+    "rows_gte_150": false,
+    "strictly_increasing": true,
+    "zero_duplicate_dates": true,
+    "zero_malformed_dates": true
+  },
+  "integrity": {
+    "date_manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "duplicate_dates": 0,
+    "finite_coverage": 0.0,
+    "finite_rows": 0,
+    "in_window_rows": 0,
+    "malformed_dates": 0
+  },
+  "mode": "DATA_ONLY",
+  "numeric_values_exposed": false,
+  "parameter_search": false,
+  "phase": "128",
+  "phase083_selection_use": false,
+  "prereg_sha256": "020bdcf6eb189a6b2b6c15cbc464fe3c3d2d1f872df73df33e53d6a2f5d0cd93",
+  "rescue_allowed": false,
+  "source": {
+    "error_type": "TimeoutError",
+    "http_status": null,
+    "payload_sha256": null,
+    "series": "STLFSI4"
+  },
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null,
+  "window": {
+    "end": "2025-12-31",
+    "start": "2023-01-01"
+  }
+}
