@@ -1,0 +1,68 @@
+{
+  "alpha_or_pnl_inspected": false,
+  "decision": "PASS_DATA_ONLY",
+  "engine": "V98 Independent",
+  "event_day_count": 717,
+  "event_days_by_fold": {
+    "2023": 251,
+    "2024": 240,
+    "2025": 226
+  },
+  "event_manifest_sha256": "c109374964e8af0ce851a97ac36483436621bba1ca12da4d6d190e20954b1b0c",
+  "family": "post-jump directional asymmetry testability",
+  "final_holdout": null,
+  "gates": {
+    "each_fold_event_days_gte_5": true,
+    "event_days_gte_20": true,
+    "integrity": true,
+    "next_day_availability_gte_95pct": true
+  },
+  "integrity": {
+    "BNBUSDT": {
+      "duplicate_timestamps": 0,
+      "future_rows": 0,
+      "malformed_timestamps": 0,
+      "strictly_increasing": true
+    },
+    "BTCUSDT": {
+      "duplicate_timestamps": 0,
+      "future_rows": 0,
+      "malformed_timestamps": 0,
+      "strictly_increasing": true
+    },
+    "ETHUSDT": {
+      "duplicate_timestamps": 0,
+      "future_rows": 0,
+      "malformed_timestamps": 0,
+      "strictly_increasing": true
+    },
+    "SOLUSDT": {
+      "duplicate_timestamps": 0,
+      "future_rows": 0,
+      "malformed_timestamps": 0,
+      "strictly_increasing": true
+    },
+    "XRPUSDT": {
+      "duplicate_timestamps": 0,
+      "future_rows": 0,
+      "malformed_timestamps": 0,
+      "strictly_increasing": true
+    }
+  },
+  "mode": "DATA_ONLY",
+  "next_day_availability_ratio": 1.0,
+  "next_day_return_values_exposed": false,
+  "parameter_search": false,
+  "parameters": {
+    "breadth_assets": 3,
+    "jump_multiple": 3.0,
+    "lookback_days": 28
+  },
+  "phase": "135",
+  "phase083_selection_use": false,
+  "prereg_sha256": "8ce987f152cd32b15aa8acf5d5b1895c1a0a1720924ee169637309c0e35ab830",
+  "rescue_allowed": false,
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null
+}
