@@ -1,0 +1,44 @@
+{
+  "alpha_or_pnl_inspected": false,
+  "decision": "FAIL_DATA_NO_ALPHA",
+  "engine": "V98 Independent",
+  "family": "NY Fed Global Supply Chain Pressure Index",
+  "final_holdout": null,
+  "gates": {
+    "finite_coverage_gte_95pct": false,
+    "http_200": true,
+    "required_columns": false,
+    "rows_gte_34": false,
+    "strictly_increasing": true,
+    "zero_duplicate_dates": true,
+    "zero_malformed_dates": true
+  },
+  "integrity": {
+    "date_manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "duplicate_dates": 0,
+    "finite_coverage": 0.0,
+    "finite_rows": 0,
+    "in_window_rows": 0,
+    "malformed_dates": 0
+  },
+  "mode": "DATA_ONLY",
+  "numeric_values_exposed": false,
+  "parameter_search": false,
+  "phase": "127",
+  "phase083_selection_use": false,
+  "prereg_sha256": "132f74293589a127cc5b965504ca9ac25c030c9c329c6e6dc524b3c085ef7def",
+  "rescue_allowed": false,
+  "source": {
+    "error_type": "UnicodeDecodeError",
+    "http_status": 200,
+    "official_url": "https://www.newyorkfed.org/medialibrary/research/interactives/gscpi/downloads/gscpi_data.csv",
+    "payload_sha256": "9aeaaf93cc070addeb670b700b3b342ba86fc9bb6adb3d5fd8933488908a6cff"
+  },
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null,
+  "window": {
+    "end": "2025-12-31",
+    "start": "2023-01-01"
+  }
+}
