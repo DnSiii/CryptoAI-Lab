@@ -19,8 +19,12 @@ def main():
  prereg=PROJECT/'research'/'v99_r106_phase125_rejection_and_phase126_prereg.md';assert prereg.exists()
  txt=prereg.read_text();assert 'Phase126' in txt and 'Range Compression Expansion Continuation' in txt and 'No sign flip' in txt
  cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup()
- c=data.close.astype(float);h=data.high.astype(float);l=data.low.astype(float)
- assert c.index.equals(h.index) and c.index.equals(l.index) and c.index.is_monotonic_increasing and c.index.tz is not None
+ # FuturesData intentionally exposes only close as a convenience property; OHLC
+ # remains in frames. Read the preregistered high/low inputs from that canonical
+ # panel rather than changing the shared data model or either frozen engine.
+ c=data.close.astype(float);h=data.frames['high'].astype(float);l=data.frames['low'].astype(float)
+ assert c.index.equals(h.index) and c.index.equals(l.index) and c.columns.equals(h.columns) and c.columns.equals(l.columns)
+ assert c.index.is_monotonic_increasing and c.index.tz is not None
  # Hard train-only feature construction. No post-cutoff OHLC enters feature, normalization, or diagnostics.
  mask=c.index<TRAIN_END;ct=c.loc[mask].copy();ht=h.loc[mask].copy();lt=l.loc[mask].copy();assert len(ct) and ct.index.max()<TRAIN_END
  prev=ct.shift(1);tr=pd.DataFrame(np.maximum.reduce([(ht-lt).to_numpy(),(ht-prev).abs().to_numpy(),(lt-prev).abs().to_numpy()]),index=ct.index,columns=ct.columns).div(prev.where(prev>0))
