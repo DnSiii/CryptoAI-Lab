@@ -29,6 +29,12 @@ Frozen protocol-fees regime training returned +44.5684% total return and 13.0701
 ## Phase102 decision — FAIL_DATA_NO_ALPHA
 The frozen DefiLlama `overview/derivatives` / `totalDataChart` feasibility probe returned HTTP 402 with a paid-plan requirement. Per preregistration this closes the exact decentralized-perpetuals-volume source/schema without substitution, source-shopping, partial-data rescue, or alpha/PnL. Expected window remained 2023-01-01 through 2025-12-31 (1,096 days). Validation/final holdout were not opened and V16/V99/Phase083 were not used.
 
+## Phase125 decision — REJECT_NO_RESCUE
+The frozen US Economic Policy Uncertainty permission regime failed decisively in training: total return -30.0426%, CAGR -11.2256%, max drawdown -44.7666%, PF 0.9414. Chronological 2023 returned -27.4466%, 2024 +6.7886%, and 2025 -10.4452%. Severe returned -43.0322%; supersevere -59.2071%. Sideways return-sum proxy was -0.40346 and XRP represented 48.2379% of absolute pre-cost contribution, breaching the frozen 45% concentration gate. The always-long context benchmark returned +59.8055%, reinforcing that this exact permission filter destroyed rather than improved training expectancy. No sign inversion, lookback/lag change, XRP removal, threshold/gross/cadence adjustment, or other rescue is permitted. Validation/final holdout remained unopened; V16/V99/Phase083 were not used.
+
+## Phase126 preregistration — DATA_ONLY
+After closing Phase125, the next orthogonal family is Chicago Fed National Financial Conditions Index (`NFCI`) feasibility. Phase126 is frozen as DATA_ONLY before values/alpha/PnL: FRED `NFCI` only, native weekly cadence, 2023-01-01 through 2025-12-31, >=150 in-window rows, >=95% finite coverage, zero duplicate/malformed dates, deterministic payload/date-manifest hashes. No source substitution, interpolation, alternate series, partial-era rescue, validation/final-holdout access, V16/V99 use, or parameter search is allowed. PASS_DATA_ONLY authorizes only a separately preregistered later hypothesis; FAIL_DATA_NO_ALPHA permanently closes this exact source/schema family.
+
 ## State reconciliation note
 `state/v98_independent_state.json` is a legacy snapshot ending at Phase050 and must not be treated as the current research pointer. It is intentionally not rewritten from incomplete reconstructed summaries: the namespaced reports plus this append-only decision registry are authoritative for post-050 continuity until a deterministic state migration can preserve every intervening decision without information loss. This avoids silently erasing Phase051-102 provenance while fixing the stale-state ambiguity.
 
@@ -36,4 +42,4 @@ The frozen DefiLlama `overview/derivatives` / `totalDataChart` feasibility probe
 Validation remains closed unless a future frozen training candidate passes. Final holdout remains untouched until training and validation pass and a candidate is formally frozen. V99 is excluded from V98 selection. No V16/V99 files/state/workflows/reports may be modified.
 
 ## Current decision
-No champion exists. Phase101 is REJECT_NO_RESCUE. Phase102 is FAIL_DATA_NO_ALPHA and permanently closed without rescue. Next research must begin with a genuinely orthogonal, preregistered DATA_ONLY feasibility gate; no alpha/PnL may be inspected before that gate passes.
+No champion exists. Phase125 is REJECT_NO_RESCUE and permanently closed. Phase126 NFCI is the active preregistered DATA_ONLY feasibility family; no alpha/PnL may be inspected before its gate passes.
