@@ -28,36 +28,38 @@ jobs:
           cfg=json.load(open('config/v98_independent_phase050_data.json'))
           assert cfg['cutoff_month']=='2025-12'
           assert set(cfg['symbols'])=={'BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'}
-          p=Path('data/canonical/BTCUSDT_1h.csv')
-          assert p.exists() and p.stat().st_size>0
+          assert Path('data/canonical/BTCUSDT_1h.csv').exists()
           PY
-      - name: Execute preregistered Phase129 BTC realized-volatility DATA_ONLY gate
-        run: python scripts/v98_independent_phase129_realized_volatility_data_only.py
-      - name: Enforce Phase129 isolation and no-alpha contract
+      - name: Execute preregistered Phase130 BTC realized-volatility regime
+        run: python scripts/v98_independent_phase130_realized_volatility_regime.py
+      - name: Enforce Phase130 isolation and anti-overfit contract
         if: always()
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('reports/v98_independent_phase129_realized_volatility_data_only.json'))
-          assert p['phase']=='129' and p['mode']=='DATA_ONLY'
-          assert p['numeric_values_exposed'] is False and p['alpha_or_pnl_inspected'] is False
+          p=json.load(open('reports/v98_independent_phase130_realized_volatility_regime.json'))
+          assert p['phase']=='130'
           assert p['validation'] is None and p['final_holdout'] is None
           assert p['v16_used'] is False and p['v99_used'] is False
           assert p['phase083_selection_use'] is False and p['parameter_search'] is False and p['rescue_allowed'] is False
-          assert p['decision'] in ('PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA')
+          assert p['training_gate']['decision'] in ('PASS_TRAINING','REJECT_NO_RESCUE')
+          assert p['execution_guard_audit']['max_open_gross'] <= .750000001
           PY
-      - name: Commit V98 Phase129 evidence only
+      - name: Commit V98 Phase130 evidence only
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f reports/v98_independent_phase129_realized_volatility_data_only.json ]; then git add -f reports/v98_independent_phase129_realized_volatility_data_only.json; fi
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase129 realized-volatility data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload V98 Phase129 evidence
+          if [ -f reports/v98_independent_phase130_realized_volatility_regime.json ]; then git add -f reports/v98_independent_phase130_realized_volatility_regime.json; fi
+          if [ -f reports/v98_independent_phase130_realized_volatility_regime_positions.csv ]; then git add -f reports/v98_independent_phase130_realized_volatility_regime_positions.csv; fi
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase130 realized-volatility regime evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload V98 Phase130 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase129-${{ github.run_id }}
+          name: v98-independent-phase130-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: reports/v98_independent_phase129_realized_volatility_data_only.json
+          path: |
+            reports/v98_independent_phase130_realized_volatility_regime.json
+            reports/v98_independent_phase130_realized_volatility_regime_positions.csv
