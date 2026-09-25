@@ -1,27 +1,30 @@
 {
   "engine": "V98 Independent",
   "branch": "research/v98-independent-zero",
-  "phase": "phase_140_pit_audit_preregistered",
+  "phase": "phase_140_strict_full_pit_execution",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
   "v99_benchmark_locked_until_final": true,
-  "last_completed_experiment": {
-    "id": "phase_139_treasury_curve_data_only",
-    "status": "pass_data_only",
-    "report": "reports/v98_independent_phase139_treasury_curve_data_only.json"
+  "prior_phase140_evidence": {
+    "status": "pass_monthly_sample_only",
+    "report": "reports/v98_independent_phase140_t10y2y_pit_audit.json",
+    "result": "36/36 sampled vintages, 1501 overlaps, zero mismatches",
+    "authorization": false
   },
   "current_experiment": {
-    "id": "phase_140_t10y2y_pit_audit",
-    "status": "preregistered",
-    "mode": "DATA_ONLY_PIT_AUDIT",
-    "preregistration": "reports/v98_independent_phase140_t10y2y_pit_audit_prereg.md",
-    "executor": "scripts/v98_independent_phase140_t10y2y_pit_audit.py"
+    "id": "phase_140_t10y2y_full_pit_audit",
+    "status": "ready_for_execution",
+    "governing_preregistration": "reports/v98_independent_phase140_treasury_curve_pit_feasibility_prereg.md",
+    "reconciliation": "reports/v98_independent_phase140_governance_reconciliation.md",
+    "executor": "scripts/v98_independent_phase140_t10y2y_pit_audit.py",
+    "output": "reports/v98_independent_phase140_t10y2y_full_pit_audit.json",
+    "mode": "DATA_ONLY_FULL_PIT_AUDIT"
   },
   "final_holdout_policy": {
     "old_phase083_window": "permanently opened/ineligible",
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
     "access": "forbidden until a frozen candidate passes training and separate validation"
   },
-  "next_action": "Execute Phase140 PIT audit. Only PASS_PIT_SHORTCUT may authorize economic Phase141 using current FRED with a conservative lag; FAIL requires full ALFRED reconstruction before any alpha."
+  "next_action": "Harvest strict Phase140 full PIT audit. Only PASS_PIT_DATA_ONLY authorizes a separate Phase141 economic preregistration."
 }
