@@ -1,0 +1,95 @@
+{
+  "alpha_or_pnl_inspected": false,
+  "availability_contract": {
+    "accepted_vintage": "observation_date + 1 calendar day",
+    "availability_lag_days": 1,
+    "earliest_admissible_future_economic_use": "strictly after vintage date",
+    "future_use_buffer_days_reserved": 1
+  },
+  "calendar": {
+    "end": "2025-12-31",
+    "start": "2023-01-01"
+  },
+  "correlations_computed": false,
+  "crypto_data_accessed": false,
+  "crypto_returns_accessed": false,
+  "decision": "PASS_PIT_DATA_ONLY",
+  "descriptives_computed": false,
+  "economic_direction_selected": false,
+  "economic_lookback_selected": false,
+  "economic_threshold_selected": false,
+  "engine": "V98 Independent",
+  "family": "T10Y2Y ALFRED point-in-time/vintage feasibility",
+  "final_holdout_accessed": false,
+  "first_acquisition": {
+    "coverage": {
+      "2023": 0.9576923076923077,
+      "2024": 0.9541984732824428,
+      "2025": 0.9540229885057471
+    },
+    "duplicate_rows": 0,
+    "expected_business_days": {
+      "2023": 260,
+      "2024": 262,
+      "2025": 261
+    },
+    "future_value_leaks": 0,
+    "global_coverage": 0.9553001277139208,
+    "malformed_cells": 0,
+    "normalized_pit_sha256": "64a8bccb0a2ff5b4d455e0b1ba6004ef6b6e1fb42df51a1bf281aa9f44ff90ec",
+    "raw_payload_bundle_sha256": "0911cc514c61452ea32ab4e5fb769d0474a1781648bb9208adf173d770bccf43",
+    "requests": 66,
+    "schema_bundle_sha256": "9162ae3c446bbe75b1f32b026e1e96745ac085caa8c0aa9e6d3b6ea1d840c07f",
+    "valid_pit_observations": 748
+  },
+  "gates": {
+    "availability_timestamp_before_future_use": true,
+    "deterministic_double_acquisition": true,
+    "global_coverage": true,
+    "historical_availability_reconstructed": true,
+    "integrity": true,
+    "isolation_firewall": true,
+    "no_backfill_or_future_exposure": true,
+    "source_identity_t10y2y": true,
+    "year_coverage": true
+  },
+  "governing_preregistration": "reports/v98_independent_phase140_treasury_curve_pit_feasibility_prereg.md",
+  "mode": "DATA_ONLY_FULL_PIT_AUDIT",
+  "next_gate": "PASS_PIT_DATA_ONLY permits exactly one separately preregistered causal Treasury-curve economic hypothesis.",
+  "parameter_search": false,
+  "phase": "140",
+  "phase083_selection_use": false,
+  "rescue_allowed": false,
+  "second_acquisition": {
+    "coverage": {
+      "2023": 0.9576923076923077,
+      "2024": 0.9541984732824428,
+      "2025": 0.9540229885057471
+    },
+    "duplicate_rows": 0,
+    "future_value_leaks": 0,
+    "global_coverage": 0.9553001277139208,
+    "malformed_cells": 0,
+    "normalized_pit_sha256": "64a8bccb0a2ff5b4d455e0b1ba6004ef6b6e1fb42df51a1bf281aa9f44ff90ec",
+    "raw_payload_bundle_sha256": "0911cc514c61452ea32ab4e5fb769d0474a1781648bb9208adf173d770bccf43",
+    "requests": 66,
+    "schema_bundle_sha256": "9162ae3c446bbe75b1f32b026e1e96745ac085caa8c0aa9e6d3b6ea1d840c07f",
+    "valid_pit_observations": 748
+  },
+  "source": {
+    "endpoint": "https://alfred.stlouisfed.org/graph/alfredgraph.csv",
+    "provider": "ALFRED / Federal Reserve Bank of St. Louis",
+    "series": "T10Y2Y",
+    "transport": "batched repeated T10Y2Y ids paired with matching vintage_date columns"
+  },
+  "transport": {
+    "batch_size": 12,
+    "expected_vintages": 783,
+    "full_passes": 2,
+    "requests_per_full_pass": 66
+  },
+  "v16_used": false,
+  "v99_used": false,
+  "validation_accessed": false,
+  "values_exposed": false
+}
