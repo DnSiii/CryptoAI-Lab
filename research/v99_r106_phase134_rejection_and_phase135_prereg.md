@@ -29,7 +29,7 @@ Frozen specification, before PnL:
 - Selection cost: severe only.
 - Evaluation: chronological train-only diagnostic and exactly four temporal folds using the existing Phase47 diagnostic contract, including robust mean excluding top 1%.
 - Single hypothesis, no grid, no sign flip, no threshold search, no alternative 72/168 horizons after seeing PnL.
-- Holdout must not be parsed or used for selection.
+- Holdout isolation: the canonical replay may materialize the full panel, but feature construction is hard-cut to timestamps strictly before TRAIN_END; zero holdout rows may enter feature construction or selection, and no holdout-derived statistic may influence this phase.
 - V16 Frozen and V99 Frozen must remain byte-identical.
 
 Gate: only stable_train PASS may freeze this exact specification for supersevere -> regime matrix -> tails/concentration -> benchmark envelope -> reproducibility -> untouched holdout. Any train-gate FAIL permanently rejects Phase135 without rescue tuning.
