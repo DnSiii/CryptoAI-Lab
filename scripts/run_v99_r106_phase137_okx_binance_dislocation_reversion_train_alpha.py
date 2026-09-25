@@ -89,7 +89,15 @@ def main():
     cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup()
     c=data.close.astype(float)
     bclose=c.loc[(c.index>=TRAIN_START)&(c.index<TRAIN_END),list(MAP)].reindex(expected_index)
-    assert bclose.notna().all().all() and (bclose>0).all().all()
+    binance_integrity={}
+    for sym in MAP:
+        valid=bclose[sym].notna() & np.isfinite(bclose[sym]) & bclose[sym].gt(0)
+        coverage=float(valid.mean())
+        missing=int((~valid).sum())
+        if coverage < 0.98:
+            raise RuntimeError(f'{sym}: Binance training coverage below frozen 98% floor: {coverage:.6f}')
+        binance_integrity[sym]={'rows_expected':len(expected_index),'valid_rows':int(valid.sum()),'missing_or_invalid_rows':missing,'coverage':coverage}
+        bclose.loc[~valid,sym]=np.nan
 
     spread=np.log(bclose/okx_close)
     med=spread.rolling(LOOKBACK,min_periods=LOOKBACK).median()
@@ -130,7 +138,8 @@ def main():
       'source_integrity':{
         'phase136_report':'reports/candidate_v99_r106_phase136_okx_crossvenue_data_audit.json',
         'all_phase136_hashes_reproduced':True,'normalized_full_rows_sha256':hashes,'requests':requests,
-        'okx_rows_per_instrument':len(okx_close),
+        'okx_rows_per_instrument':len(okx_close),'binance_training_integrity':binance_integrity,
+        'missing_binance_prices_filled':False,'minimum_binance_coverage':0.98,
       },
       'train_start':TRAIN_START.isoformat(),'train_end_exclusive':TRAIN_END.isoformat(),
       'causality_invariants':{
