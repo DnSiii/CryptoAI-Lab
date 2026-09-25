@@ -1,17 +1,20 @@
 {
   "engine": "V98 Independent",
   "branch": "research/v98-independent-zero",
-  "phase": "phase_142_strict_pit_treasury_training",
+  "phase": "phase_143_sp500_data_only",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
   "v99_benchmark_locked_until_final": true,
   "last_completed_experiment": {
-    "id": "phase_140_t10y2y_full_pit_audit",
-    "status": "pass_pit_data_only",
-    "report": "reports/v98_independent_phase140_t10y2y_full_pit_audit.json",
-    "valid_pit_observations": 748,
-    "authorization": "exactly one separately preregistered Treasury economic hypothesis"
+    "id": "phase_142_treasury_curve_steepening_strict_pit",
+    "status": "reject_no_rescue",
+    "report": "reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json",
+    "audit": "reports/v98_independent_phase142_rejection_mechanism_audit.md",
+    "failures": [
+      "2024_return<=0",
+      "2024_pf<1.02"
+    ]
   },
   "inadmissible_experiment": {
     "id": "phase_141_treasury_curve_steepening_risk_on",
@@ -19,11 +22,11 @@
     "governance_hold": "reports/v98_independent_phase141_governance_hold.md"
   },
   "current_experiment": {
-    "id": "phase_142_treasury_curve_steepening_strict_pit",
-    "status": "preregistered_ready_for_training",
-    "preregistration": "reports/v98_independent_phase142_treasury_curve_steepening_strict_pit_prereg.md",
-    "executor": "scripts/v98_independent_phase142_treasury_curve_steepening_strict_pit.py",
-    "pit_dependency": "reports/v98_independent_phase140_t10y2y_full_pit_audit.json"
+    "id": "phase_143_sp500_data_only",
+    "status": "preregistered_executor_pending",
+    "preregistration": "reports/v98_independent_phase143_sp500_data_only_prereg.md",
+    "executor": "scripts/v98_independent_phase143_sp500_data_only.py",
+    "authorization": "DATA_ONLY only; no economic Phase144 before persisted PASS_DATA_ONLY"
   },
   "validation_policy": {
     "window": "2026-01-01T00:00:00Z..2026-07-31T23:00:00Z",
@@ -34,5 +37,5 @@
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
     "access": "forbidden until a frozen candidate passes training and separate validation"
   },
-  "next_action": "Run Phase142 strict-PIT training gate. PASS may authorize separately preregistered validation; failure is REJECT_NO_RESCUE."
+  "next_action": "Persist Phase143 DATA_ONLY executor, run independent double acquisition and reproducibility/integrity gates, persist DATA_ONLY evidence; only PASS_DATA_ONLY may authorize a separately preregistered Phase144 economic hypothesis."
 }
