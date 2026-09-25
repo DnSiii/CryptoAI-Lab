@@ -9,7 +9,7 @@ concurrency: {group: v98-independent-research, cancel-in-progress: true}
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with: {ref: research/v98-independent-zero, fetch-depth: 0}
@@ -17,60 +17,46 @@ jobs:
         with: {python-version: "3.12", cache: pip}
       - run: python -m pip install -e ".[dev]"
       - name: V98 causality/invariant tests
-        run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_future_holdout_policy.py -q
-      - name: Execute governing Phase140 full PIT audit
-        id: pit
-        shell: bash
+        run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_phase142.py tests/test_v98_independent_future_holdout_policy.py -q
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
+      - name: Execute frozen Phase142 strict-PIT training gate first pass
         run: |
-          set +e
-          python scripts/v98_independent_phase140_t10y2y_pit_audit.py
-          code=$?
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
-      - name: Enforce Phase140 strict DATA_ONLY firewall
-        if: always()
+          python scripts/v98_independent_phase142_treasury_curve_steepening_strict_pit.py
+          sha256sum reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json | awk '{print $1}' > /tmp/phase142.sha
+      - name: Execute Phase142 deterministic second pass
+        run: |
+          python scripts/v98_independent_phase142_treasury_curve_steepening_strict_pit.py
+          test "$(sha256sum reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json | awk '{print $1}')" = "$(cat /tmp/phase142.sha)"
+      - name: Enforce Phase142 isolation and frozen contract
         run: |
           python - <<'PY'
-          import json,pathlib
-          p=pathlib.Path('reports/v98_independent_phase140_t10y2y_full_pit_audit.json')
-          assert p.exists(),'Phase140 strict full-PIT report missing'
-          r=json.loads(p.read_text())
-          assert r['phase']=='140' and r['mode']=='DATA_ONLY_FULL_PIT_AUDIT'
-          assert r['source']['series']=='T10Y2Y'
-          assert r['transport']['expected_vintages']==783 and r['transport']['full_passes']==2
-          assert r['values_exposed'] is False and r['descriptives_computed'] is False
-          assert r['crypto_data_accessed'] is False and r['crypto_returns_accessed'] is False
-          assert r['correlations_computed'] is False and r['alpha_or_pnl_inspected'] is False
-          assert r['economic_direction_selected'] is False
-          assert r['economic_lookback_selected'] is False
-          assert r['economic_threshold_selected'] is False
-          assert r['validation_accessed'] is False and r['final_holdout_accessed'] is False
-          assert r['phase083_selection_use'] is False and r['v16_used'] is False and r['v99_used'] is False
-          assert r['parameter_search'] is False and r['rescue_allowed'] is False
-          assert r['decision'] in {'PASS_PIT_DATA_ONLY','FAIL_PIT_DATA'}
-          forbidden={'profit_factor','total_return','cagr','drawdown','trades','signal_direction','alpha_return'}
-          txt=p.read_text().lower()
-          assert not any('"'+x+'"' in txt for x in forbidden)
+          import json
+          p=json.load(open('reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json'))
+          assert p['phase']=='142'
+          assert p['pit_dependency']['decision']=='PASS_PIT_DATA_ONLY'
+          assert p['pit_dependency']['reacquisition_hash_verified'] is True
+          assert p['signal_contract']['lookback_accepted_observations']==20
+          assert p['signal_contract']['direction']=='delta>0 => long; else flat'
+          assert p['signal_contract']['economic_use_lag_days']==2
+          assert abs(p['signal_contract']['target_gross']-.45)<1e-12
+          assert abs(p['signal_contract']['hard_gross_cap']-.50)<1e-12
+          assert p['phase141_result_used'] is False
+          assert p['validation'] is None and p['final_holdout'] is None
+          assert p['phase083_selection_use'] is False and p['v16_used'] is False and p['v99_used'] is False
+          assert p['parameter_search'] is False and p['rescue_allowed'] is False
+          assert p['training_gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
           PY
-      - name: Commit Phase140 strict PIT evidence
-        if: always()
+      - name: Commit Phase142 evidence
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f reports/v98_independent_phase140_t10y2y_full_pit_audit.json ]; then git add -f reports/v98_independent_phase140_t10y2y_full_pit_audit.json; fi
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record governing phase140 full PIT evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase140 strict PIT evidence
-        if: always()
+          git add -f reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase142 strict-PIT Treasury training evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase142 evidence
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase140-full-pit-${{ github.run_id }}
+          name: v98-independent-phase142-${{ github.run_id }}
           retention-days: 30
-          if-no-files-found: warn
-          path: reports/v98_independent_phase140_t10y2y_full_pit_audit.json
-      - name: Enforce Phase140 strict decision
-        run: |
-          python - <<'PY'
-          import json,sys
-          r=json.load(open('reports/v98_independent_phase140_t10y2y_full_pit_audit.json'))
-          sys.exit(0 if r['decision']=='PASS_PIT_DATA_ONLY' else 2)
-          PY
+          if-no-files-found: error
+          path: reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json

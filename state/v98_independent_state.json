@@ -1,30 +1,38 @@
 {
   "engine": "V98 Independent",
   "branch": "research/v98-independent-zero",
-  "phase": "phase_140_strict_full_pit_execution",
+  "phase": "phase_142_strict_pit_treasury_training",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
   "v99_benchmark_locked_until_final": true,
-  "prior_phase140_evidence": {
-    "status": "pass_monthly_sample_only",
-    "report": "reports/v98_independent_phase140_t10y2y_pit_audit.json",
-    "result": "36/36 sampled vintages, 1501 overlaps, zero mismatches",
-    "authorization": false
+  "last_completed_experiment": {
+    "id": "phase_140_t10y2y_full_pit_audit",
+    "status": "pass_pit_data_only",
+    "report": "reports/v98_independent_phase140_t10y2y_full_pit_audit.json",
+    "valid_pit_observations": 748,
+    "authorization": "exactly one separately preregistered Treasury economic hypothesis"
+  },
+  "inadmissible_experiment": {
+    "id": "phase_141_treasury_curve_steepening_risk_on",
+    "status": "void_precondition_result_unread",
+    "governance_hold": "reports/v98_independent_phase141_governance_hold.md"
   },
   "current_experiment": {
-    "id": "phase_140_t10y2y_full_pit_audit",
-    "status": "ready_for_execution",
-    "governing_preregistration": "reports/v98_independent_phase140_treasury_curve_pit_feasibility_prereg.md",
-    "reconciliation": "reports/v98_independent_phase140_governance_reconciliation.md",
-    "executor": "scripts/v98_independent_phase140_t10y2y_pit_audit.py",
-    "output": "reports/v98_independent_phase140_t10y2y_full_pit_audit.json",
-    "mode": "DATA_ONLY_FULL_PIT_AUDIT"
+    "id": "phase_142_treasury_curve_steepening_strict_pit",
+    "status": "preregistered_ready_for_training",
+    "preregistration": "reports/v98_independent_phase142_treasury_curve_steepening_strict_pit_prereg.md",
+    "executor": "scripts/v98_independent_phase142_treasury_curve_steepening_strict_pit.py",
+    "pit_dependency": "reports/v98_independent_phase140_t10y2y_full_pit_audit.json"
+  },
+  "validation_policy": {
+    "window": "2026-01-01T00:00:00Z..2026-07-31T23:00:00Z",
+    "access": "only after Phase142 PASS_TRAINING and separate preregistration"
   },
   "final_holdout_policy": {
     "old_phase083_window": "permanently opened/ineligible",
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
     "access": "forbidden until a frozen candidate passes training and separate validation"
   },
-  "next_action": "Harvest strict Phase140 full PIT audit. Only PASS_PIT_DATA_ONLY authorizes a separate Phase141 economic preregistration."
+  "next_action": "Run Phase142 strict-PIT training gate. PASS may authorize separately preregistered validation; failure is REJECT_NO_RESCUE."
 }
