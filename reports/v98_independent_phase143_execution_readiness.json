@@ -1,0 +1,19 @@
+{
+  "phase": "143",
+  "status": "READY_FOR_EXECUTION",
+  "mode": "DATA_ONLY",
+  "executor": "scripts/v98_independent_phase143_sp500_data_only.py",
+  "preregistration": "reports/v98_independent_phase143_sp500_data_only_prereg.md",
+  "requirements": [
+    "two independent acquisitions",
+    "byte-identical normalized date+value SHA-256",
+    "global and annual weekday coverage >= 0.95",
+    "finite decimals, unique strictly increasing dates",
+    "training window 2023-01-01 through 2025-12-31 only"
+  ],
+  "economic_phase144_blocked_until": "PASS_DATA_ONLY",
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false
+}
