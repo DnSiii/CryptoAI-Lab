@@ -7,7 +7,7 @@ Canonical reproducibility digest covers date + normalized finite value so source
 cannot evade the double-acquisition check.
 """
 from __future__ import annotations
-import csv, hashlib, io, json, sys
+import csv, hashlib, io, json, sys, time
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
 from urllib.request import Request, urlopen
@@ -26,9 +26,23 @@ def weekdays(y:int)->int:
     return n
 
 def acquire()->bytes:
-    req=Request(URL,headers={"User-Agent":"CryptoAI-Lab-V98-Independent-Phase139/1.1"})
-    with urlopen(req,timeout=30) as r:
-        return r.read()
+    last=None
+    # Transport robustness only: retries do not alter source identity, dates, values,
+    # normalization, gates, or any scientific parameter.
+    for attempt,timeout in enumerate((30,60,90),start=1):
+        try:
+            req=Request(URL,headers={
+                "User-Agent":"CryptoAI-Lab-V98-Independent-Phase139/1.2",
+                "Cache-Control":"no-cache",
+                "Connection":"close",
+            })
+            with urlopen(req,timeout=timeout) as r:
+                return r.read()
+        except Exception as exc:
+            last=exc
+            if attempt<3:
+                time.sleep(5*attempt)
+    raise RuntimeError(f"FRED acquisition failed after 3 transport retries: {last!r}")
 
 def audit(raw:bytes)->dict:
     text=raw.decode("utf-8-sig")
