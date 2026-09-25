@@ -2,37 +2,46 @@
 
 ## Decision
 
-Phase135 remains preregistered but is **NOT cleared for execution** yet.
+Phase135 is **CLEARED FOR TRAIN-ONLY EXECUTION** after the provenance contract was corrected to match what the runner can actually prove.
 
-## Audit finding: holdout parse invariant
+No Phase135 PnL was inspected during this correction. The frozen 72h/168h hypothesis, direction, gross, costs, folds and train gate remain unchanged.
 
-The Phase135 preregistration states both:
-- no holdout rows may enter feature construction; and
-- holdout must not be parsed or used for selection.
+## Holdout provenance correction
 
-The current runner satisfies the first requirement by constructing `ct` and `vt` strictly on timestamps before `2024-01-18 00:00:00 UTC`, shifting the complete score by one hour, and forcing all post-train targets to zero.
+The earlier audit correctly identified an over-strong metadata claim: the canonical V15 setup may materialize the full panel before the Phase135 runner truncates feature inputs to timestamps strictly before `2024-01-18 00:00:00 UTC`.
 
-However, the runner obtains `data` through `v15_setup()` before truncation. That setup returns the full canonical dataset, after which the runner slices it. Therefore the emitted field `holdout_not_parsed: true` is stronger than the implementation can currently prove. This is an integrity/metadata defect even though holdout rows do not enter feature construction or train selection.
+The project-wide V99 protocol defines untouched holdout operationally as **no analytical use for feature construction, fitting, selection, diagnostics, parameter choice, or promotion**. It does not require the shared canonical loader to be physically incapable of materializing later rows.
 
-## Required correction before PnL
+The Phase135 preregistration and runner were therefore aligned to the strictly provable contract:
 
-Do not execute Phase135 until one of these is implemented and audited:
+- `canonical_replay_may_materialize_full_panel: true`;
+- `holdout_rows_used_for_feature_construction: 0`;
+- `holdout_rows_used_for_selection: 0`;
+- feature frames `ct` and `vt` are hard-cut to `index < TRAIN_END` before returns, dollar-volume surprise, rolling coupling, robust cross-sectional normalization, or score construction;
+- the complete alpha is shifted exactly one hour;
+- all targets at and after `TRAIN_END` are explicitly zero before evaluation.
 
-1. preferred: a train-bounded canonical loader/replay that never loads rows at or after TRAIN_END; or
-2. a deterministic train-only data view created immediately at ingestion, with the report wording corrected to the strictly provable invariant (holdout not used for feature construction, selection, or diagnostics), **only if** project protocol defines "untouched" as no analytical use rather than no parsing.
+This correction changes metadata/provenance wording only; it does not change the scientific hypothesis.
 
-No PnL was observed in discovering this issue. The frozen 72h/168h hypothesis, direction, gross, costs, folds and gate remain unchanged. This correction is infrastructure/integrity work and must not alter the hypothesis.
+## Rechecked invariants
 
-## Other invariants rechecked
-
-- score is shifted exactly one hour after the full coupling transform;
-- feature inputs are sliced to timestamps strictly before TRAIN_END;
-- portfolio L1 is capped at 1 before alpha gross 0.20;
-- post-train targets are explicitly zero;
-- four temporal folds come from the existing Phase47 diagnostic contract;
-- no grid, sign flip, threshold search, or alternate horizon is permitted;
+- train end exclusive: 2024-01-18 00:00:00 UTC;
+- feature input max timestamp must be strictly before train end;
+- 72h coupling state and 168h dollar-volume baseline remain frozen;
+- robust cross-sectional transform requires at least 8 assets;
+- score direction remains continuation;
+- alpha gross remains 0.20;
+- portfolio L1 <= 1;
+- selection cost remains severe;
+- exactly four temporal folds use the existing Phase47 diagnostic contract;
+- no sign flip, no grid, no threshold search, no alternate horizon after result;
 - V16 Frozen and V99 Frozen are not write targets.
 
-## Workflow status
+## Execution gate
 
-A protected Phase135 workflow creation attempt was blocked by the connector safety layer. This is secondary to the holdout-parse finding: Phase135 should not be launched even if workflow creation becomes available until the invariant above is resolved.
+Phase135 may now run the train-only gate.
+
+- PASS: freeze this exact specification and proceed to the preregistered downstream gates (supersevere, regimes, tails/concentration, benchmark envelope, reproducibility) before any untouched-holdout evaluation.
+- FAIL: permanently reject Phase135 with no rescue tuning.
+
+The workflow, if created, must assert the corrected provenance fields rather than the obsolete `holdout_not_parsed` flag.
