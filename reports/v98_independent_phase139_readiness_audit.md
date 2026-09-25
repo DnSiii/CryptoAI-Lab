@@ -1,24 +1,18 @@
 # V98 Independent Phase139 — readiness / reproducibility audit
 
-Status: READY_FOR_EXECUTION_AFTER_HASH_FIX. This is not a DATA_ONLY PASS and is not economic evidence.
+Status: **READY_FOR_REEXECUTION_AFTER_TRANSPORT_SCHEMA_FIX**. This is not a DATA_ONLY PASS and is not economic evidence.
 
 ## Independent audit
 - Branch scope checked: research/v98-independent-zero.
 - Frozen preregistration remains the authority for Phase139.
 - Validation and final holdout were not accessed.
 - V16/V99 were not used for selection or tuning.
-- Original executor defect was detected before execution: its canonical hash covered dates only and could miss source-value revisions.
-- Corrected executor is now persisted at scripts/v98_independent_phase139_treasury_curve_data_only_v2.py.
-- Corrected canonical SHA-256 covers date plus normalized finite value while persisted DATA_ONLY output exposes only the digest and aggregate integrity metadata, never observations, signs, descriptives, returns, correlation, PnL, or performance.
-- Numeric normalization uses Decimal and rejects non-finite observations.
-- Existing structural gates remain unchanged: exact schema, 2023-01-01..2025-12-31 only, global and annual coverage >=95%, unique and strictly increasing dates, no future dates, no malformed accepted observations, no imputation.
-- Double acquisition compares the full observation digest and aggregate integrity metadata.
-- Static post-write verification: corrected executor blob is e75927a0562e15e1567ef95ea3f4c00c40e8e33f.
-- Scope diff from the prior audit commit to corrected executor commit contains exactly one added V98 Independent file; no V16/V99/validation/holdout file was modified.
-- No Phase139 PASS may be declared until the corrected executor is actually run and returns PASS with identical double-acquisition hashes/metadata.
-
-## Workflow audit
-The pre-existing V98 Independent workflow executes Phase138 only. A dedicated Phase139 workflow was prepared but repository workflow creation was blocked by the platform safety layer before reaching GitHub. This does not authorize treating Phase139 as executed.
+- The first real Phase139 run (#338) failed before receiving any payload: FRED read timed out at the frozen URL. No observations, signs, descriptives, returns, correlations, alpha or PnL were exposed.
+- A second parser defect was identified from the already-established FRED graph CSV contract used by prior V98 phases: the date field is `observation_date`, not `DATE`.
+- These are transport/parser corrections only. Frozen series T10Y2Y, source host/path, 2023-01-01..2025-12-31 window, coverage gates, no-imputation rule, revision-detecting date+value digest, double acquisition and DATA_ONLY firewall are unchanged.
+- Corrected executor v3 is persisted at `scripts/v98_independent_phase139_treasury_curve_data_only_v3.py`.
+- v3 adds bounded retry/backoff (4 attempts, 90 s each) and the exact `observation_date,T10Y2Y` schema.
+- No Phase139 PASS may be declared until v3 actually executes and returns PASS with identical independent-acquisition hashes/metadata.
 
 ## Decision
-Phase139 advances from READY_AFTER_HASH_FIX to READY_FOR_EXECUTION. Champion remains NONE. No Phase140 economic preregistration is authorized until Phase139 execution is harvested and passes.
+Phase139 remains DATA_ONLY and is authorized for reexecution after a non-economic transport/parser fix. Champion remains NONE. No Phase140 economic preregistration is authorized until Phase139 PASS is harvested.

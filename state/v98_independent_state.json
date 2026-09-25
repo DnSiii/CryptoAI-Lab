@@ -1,7 +1,7 @@
 {
   "engine": "V98 Independent",
   "branch": "research/v98-independent-zero",
-  "phase": "phase_139_ready_for_execution",
+  "phase": "phase_139_reexecution_ready",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
@@ -10,22 +10,22 @@
     "id": "phase_138_real_yield_risk_on",
     "status": "rejected_no_rescue",
     "report": "reports/v98_independent_phase138_real_yield_risk_on.json",
-    "decision_audit": "reports/v98_independent_phase138_decision_audit.md",
     "failure_mechanism": "frozen gross-cap execution gate exceeded; economic evidence not promoted"
   },
   "current_experiment": {
     "id": "phase_139_treasury_curve_data_only",
-    "status": "ready_for_execution",
+    "status": "reexecution_ready_after_transport_schema_fix",
     "mode": "DATA_ONLY",
     "series": "T10Y2Y",
     "preregistration": "reports/v98_independent_phase139_treasury_curve_data_only_prereg.md",
-    "executor": "scripts/v98_independent_phase139_treasury_curve_data_only_v2.py",
-    "readiness_audit": "reports/v98_independent_phase139_readiness_audit.md"
+    "executor": "scripts/v98_independent_phase139_treasury_curve_data_only_v3.py",
+    "prior_run": 338,
+    "prior_run_failure": "transport timeout before payload; no economic/value evidence exposed"
   },
   "final_holdout_policy": {
     "old_phase083_window": "permanently opened/ineligible",
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
     "access": "forbidden until a frozen candidate passes training and separate validation"
   },
-  "next_action": "Execute and harvest Phase139 DATA_ONLY; only PASS may authorize a separately preregistered Phase140 economic hypothesis."
+  "next_action": "Reexecute Phase139 v3; only PASS may authorize a separately preregistered Phase140 economic hypothesis."
 }
