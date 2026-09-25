@@ -1,0 +1,176 @@
+{
+  "study": "V99 R106 Phase137 \u2014 OKX/BINANCE CROSS-VENUE DISLOCATION REVERSION TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase137_okx_binance_dislocation_reversion_prereg.md",
+    "source": "OKX public 1H USDT-SWAP + canonical Binance USD-M closes",
+    "feature": "log(Binance/OKX) minus rolling median168, divided by 1.4826*MAD168; -tanh; cross-sectional demean; complete score t-1; L1",
+    "direction": "cross_venue_dislocation_mean_reversion",
+    "lookback_hours": 168,
+    "alpha_gross": 0.2,
+    "frozen_symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT"
+    ],
+    "single_hypothesis_no_grid": true,
+    "selection_train_only": true,
+    "no_sign_flip": true,
+    "no_symbol_substitution": true,
+    "canonical_replay_may_materialize_full_panel": true,
+    "holdout_rows_used_for_feature_construction": 0,
+    "holdout_rows_used_for_selection": 0
+  },
+  "source_integrity": {
+    "phase136_report": "reports/candidate_v99_r106_phase136_okx_crossvenue_data_audit.json",
+    "all_phase136_hashes_reproduced": true,
+    "normalized_full_rows_sha256": {
+      "BTC-USDT-SWAP": "51b79e15d250f54c147220c4547bc8d8af2aaee2acd86d4d9d33e21246247adc",
+      "ETH-USDT-SWAP": "bd62d5349680fa9f811bb0eaf8d6fc8bbfcd43c2705b8b37b7645f741977e2d7",
+      "SOL-USDT-SWAP": "725f6a54bc3c72547551336a1b23d7ab89b3ff63fcb1dc5b4e4115c282b644f0",
+      "XRP-USDT-SWAP": "726bef146b02f5b4ea36770fa3b3415324e5aa9a6409419a329627203d0f6348",
+      "DOGE-USDT-SWAP": "2ca7ebfedf5738ba51a441e4845963f21d4af5e9e6513d46eb90295d8927d35a"
+    },
+    "requests": {
+      "BTC-USDT-SWAP": 63,
+      "ETH-USDT-SWAP": 63,
+      "SOL-USDT-SWAP": 63,
+      "XRP-USDT-SWAP": 63,
+      "DOGE-USDT-SWAP": 63
+    },
+    "okx_rows_per_instrument": 18672,
+    "binance_training_integrity": {
+      "BTCUSDT": {
+        "rows_expected": 18672,
+        "valid_rows": 18672,
+        "missing_or_invalid_rows": 0,
+        "coverage": 1.0
+      },
+      "ETHUSDT": {
+        "rows_expected": 18672,
+        "valid_rows": 18672,
+        "missing_or_invalid_rows": 0,
+        "coverage": 1.0
+      },
+      "SOLUSDT": {
+        "rows_expected": 18672,
+        "valid_rows": 18552,
+        "missing_or_invalid_rows": 120,
+        "coverage": 0.993573264781491
+      },
+      "XRPUSDT": {
+        "rows_expected": 18672,
+        "valid_rows": 18552,
+        "missing_or_invalid_rows": 120,
+        "coverage": 0.993573264781491
+      },
+      "DOGEUSDT": {
+        "rows_expected": 18672,
+        "valid_rows": 18672,
+        "missing_or_invalid_rows": 0,
+        "coverage": 1.0
+      }
+    },
+    "missing_binance_prices_filled": false,
+    "minimum_binance_coverage": 0.98
+  },
+  "train_start": "2021-12-01T00:00:00+00:00",
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00",
+  "causality_invariants": {
+    "complete_score_shift_hours": 1,
+    "feature_input_max_timestamp": "2024-01-17T23:00:00+00:00",
+    "feature_inputs_strictly_pre_train_end": true,
+    "post_train_targets_zero": true,
+    "max_l1": 1.0000000000000004,
+    "common_venue_component_removed_by_cross_sectional_demean": true
+  },
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 17549,
+      "roi": -0.9857715813379451,
+      "profit_factor": 0.26543752573591817,
+      "max_drawdown_abs": 0.9857624023628828,
+      "positive_hour_ratio": 0.23710752749444414,
+      "robust_mean_without_top1pct": -0.00026680305544362514
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 3544,
+        "roi": -0.6005115245103679,
+        "profit_factor": 0.25830531721334804,
+        "max_drawdown_abs": 0.6000673707832065,
+        "positive_hour_ratio": 0.2443566591422122,
+        "robust_mean_without_top1pct": -0.0002803714196855702
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.6941167083664872,
+        "profit_factor": 0.29176412909872895,
+        "max_drawdown_abs": 0.6944482155140839,
+        "positive_hour_ratio": 0.24635818337617824,
+        "robust_mean_without_top1pct": -0.00028525732416734815
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4668,
+        "roi": -0.6485039519324506,
+        "profit_factor": 0.24823832371383966,
+        "max_drawdown_abs": 0.6498528585994248,
+        "positive_hour_ratio": 0.2300771208226221,
+        "robust_mean_without_top1pct": -0.0002457352693914383
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.6687345224396377,
+        "profit_factor": 0.2578639908094845,
+        "max_drawdown_abs": 0.6682022839402237,
+        "positive_hour_ratio": 0.22938530734632684,
+        "robust_mean_without_top1pct": -0.0002588358730169805
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "next_gate": "PASS freezes exact spec for supersevere/regimes/tails/concentration/benchmark/reproducibility before untouched holdout; FAIL permanent, no sign flip or lookback rescue.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
