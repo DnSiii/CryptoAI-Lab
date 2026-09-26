@@ -1,0 +1,31 @@
+{
+  "engine": "V98 Independent",
+  "phase": "147",
+  "status": "PREREGISTERED_BEFORE_DATA_INSPECTION",
+  "mode": "DATA_ONLY",
+  "family": "orthogonal_macro_liquidity_broad_dollar",
+  "series": "DTWEXBGS",
+  "source": "FRED",
+  "frozen_training_calendar": {"start": "2023-01-01", "end": "2025-12-31"},
+  "purpose": "Establish integrity and deterministic reacquisition of a genuinely orthogonal broad trade-weighted US dollar series before any economic hypothesis is defined.",
+  "integrity_contract": {
+    "expected_schema_exact": ["observation_date", "DTWEXBGS"],
+    "finite_decimal_values_only": true,
+    "unique_dates": true,
+    "strictly_increasing_dates": true,
+    "outside_frozen_window_allowed": false,
+    "minimum_global_weekday_coverage": 0.95,
+    "minimum_each_year_weekday_coverage": 0.95,
+    "double_acquisition_required": true,
+    "normalized_data_value_sha256_must_match": true,
+    "economic_metrics_forbidden": ["returns", "correlation", "pnl", "signal", "profit_factor", "win_rate", "drawdown"]
+  },
+  "decision_rule": "PASS_DATA_ONLY iff every integrity gate and double-acquisition reproducibility gate passes; otherwise REJECT_DATA_QUALITY_NO_RESCUE.",
+  "economic_hypothesis_defined": false,
+  "parameter_search": false,
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false,
+  "phase148_blocked_until_phase147_pass": true
+}
