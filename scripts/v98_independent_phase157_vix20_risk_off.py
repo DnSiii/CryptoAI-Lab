@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json,sys,time,urllib.error
+import json,sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -8,21 +8,13 @@ from cryptoai_v13.backtest import exact_fast
 from cryptoai_v13.data import load_data,validate_data
 import v98_independent_phase003_dispersion_neutral as p3
 import v98_independent_phase156_vix_data_only as p156
-CFG=PROJECT/'config'/'v98_independent.json';PRE=PROJECT/'reports'/'v98_independent_phase157_vix20_risk_off_preregistration.json';P156=PROJECT/'reports'/'v98_independent_phase156_vix_data_only.json';OUT=PROJECT/'reports'/'v98_independent_phase157_vix20_risk_off.json'
+CFG=PROJECT/'config'/'v98_independent.json';PRE=PROJECT/'reports'/'v98_independent_phase157_vix20_risk_off_preregistration.json';P156=PROJECT/'reports'/'v98_independent_phase156_vix_data_only.json';SNAP=PROJECT/'data'/'v98_independent_phase156_vixcls_2023_2025.csv';OUT=PROJECT/'reports'/'v98_independent_phase157_vix20_risk_off.json'
 ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'];LAG_DAYS=1;THRESHOLD=20.;TARGET=.30;CAP=.35
 
-def reacquire(max_attempts=4):
- last=None
- for i in range(max_attempts):
-  try:return p156.acquire()
-  except (TimeoutError,urllib.error.URLError) as e:
-   last=e
-   if i+1<max_attempts:time.sleep(2**i)
- raise last
-
 def load_macro():
- rows,qa=p156.parse(reacquire()); governing=json.loads(P156.read_text()); assert governing['status']=='PASS_DATA_ONLY'
- h=p156.hashlib.sha256(p156.canonical(rows)).hexdigest(); assert h==governing['sha256'][0]
+ governing=json.loads(P156.read_text());assert governing['status']=='PASS_DATA_ONLY'
+ raw=SNAP.read_text();rows,qa=p156.parse(raw);assert all(v==0 for v in qa.values()),qa
+ h=p156.hashlib.sha256(p156.canonical(rows)).hexdigest();assert h==governing['sha256'][0]
  s=pd.Series({pd.Timestamp(d,tz='UTC'):float(v) for d,v in rows}).sort_index();assert s.index.is_unique and s.index.is_monotonic_increasing
  return s,h
 
@@ -56,6 +48,6 @@ def main():
   if stress[z]['total_return']<=0:fail.append(f'{z}_return<=0')
   if stress[z]['profit_factor_daily']<=1:fail.append(f'{z}_pf<=1')
  if max_open>CAP+1e-12:fail.append('max_open_gross>0.35')
- report={'engine':'V98 Independent','phase':'157','hypothesis':'VIXCLS >= 20 risk-off short crypto basket','preregistration':'reports/v98_independent_phase157_vix20_risk_off_preregistration.json','phase156_dependency':{'status':'PASS_DATA_ONLY','hash':h,'reacquisition_hash_verified':True},'signal_contract':{'direction':'VIXCLS_t >= 20 => short; else flat','threshold':THRESHOLD,'economic_use_lag_days':LAG_DAYS,'missing_macro_policy':'no imputation/no carry-forward','target_gross':TARGET,'hard_gross_cap':CAP,'assets':ASSETS},'training':train,'folds':folds,'stress_training':stress,'regimes_training':p3.regime_metrics(base,data,a,b,b),'concentration_training':p3.concentration_metrics(base,a,b),'asset_positive_contribution_share':shares,'tails_training':{'top10_positive_day_share':top10,'bottom10_negative_day_share':bottom10,'p01_day':train['p01_day'],'p05_day':train['p05_day'],'cvar05_day':train['cvar05_day'],'worst_day':train['worst_day'],'best_day':train['best_day']},'max_open_gross':max_open,'max_close_gross':max_close,'validation':None,'final_holdout':None,'parameter_search':False,'threshold_search':False,'lookback_search':False,'rescue_allowed':False,'v16_used':False,'v99_used':False,'gate':{'passed':not fail,'decision':'PASS_TRAINING' if not fail else 'REJECT_NO_RESCUE','failures':fail}}
+ report={'engine':'V98 Independent','phase':'157','hypothesis':'VIXCLS >= 20 risk-off short crypto basket','preregistration':'reports/v98_independent_phase157_vix20_risk_off_preregistration.json','phase156_dependency':{'status':'PASS_DATA_ONLY','hash':h,'frozen_snapshot_verified':True},'signal_contract':{'direction':'VIXCLS_t >= 20 => short; else flat','threshold':THRESHOLD,'economic_use_lag_days':LAG_DAYS,'missing_macro_policy':'no imputation/no carry-forward','target_gross':TARGET,'hard_gross_cap':CAP,'assets':ASSETS},'training':train,'folds':folds,'stress_training':stress,'regimes_training':p3.regime_metrics(base,data,a,b,b),'concentration_training':p3.concentration_metrics(base,a,b),'asset_positive_contribution_share':shares,'tails_training':{'top10_positive_day_share':top10,'bottom10_negative_day_share':bottom10,'p01_day':train['p01_day'],'p05_day':train['p05_day'],'cvar05_day':train['cvar05_day'],'worst_day':train['worst_day'],'best_day':train['best_day']},'max_open_gross':max_open,'max_close_gross':max_close,'validation':None,'final_holdout':None,'parameter_search':False,'threshold_search':False,'lookback_search':False,'rescue_allowed':False,'v16_used':False,'v99_used':False,'gate':{'passed':not fail,'decision':'PASS_TRAINING' if not fail else 'REJECT_NO_RESCUE','failures':fail}}
  OUT.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n');print(json.dumps(report,indent=2,sort_keys=True));return 0
 if __name__=='__main__':raise SystemExit(main())
