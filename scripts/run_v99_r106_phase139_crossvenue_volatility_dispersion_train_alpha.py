@@ -50,7 +50,7 @@ def exact_mad(frame,window): return frame.rolling(window,min_periods=window).app
 def rv24(close):
     r=np.log(close).diff();return np.sqrt(r.pow(2).rolling(RV_WINDOW,min_periods=RV_WINDOW).sum())
 def main():
-    assert DEC138.exists() and 'TRAIN_ALPHA_REJECT' in DEC138.read_text();pt=PREREG.read_text();at=ADDENDUM.read_text();assert 'direction as **reversion**' in pt and '168h' in pt and 'sqrt(sum_' in at and 'BEFORE ANY PHASE139 PNL' in at
+    assert RV_WINDOW==24 and LOOKBACK==168;assert DEC138.exists() and 'TRAIN_ALPHA_REJECT' in DEC138.read_text();pt=PREREG.read_text();at=ADDENDUM.read_text();assert 'direction as **reversion**' in pt and '168h' in pt and 'sqrt(sum_' in at and 'BEFORE ANY PHASE139 PNL' in at
     ph136=json.loads(PH136.read_text());assert ph136['status']=='PASS_DATA_ONLY' and ph136['passing_instruments']==5;okx={};hashes={};requests={}
     for b,inst in MAP.items():
         s,h,n=acquire(inst);expected=ph136['instruments'][inst]['normalized_full_rows_sha256']
