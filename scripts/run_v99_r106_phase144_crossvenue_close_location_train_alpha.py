@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""V99 R106 Phase144 preregistered cross-venue close-location divergence reversion."""
+"""V99 R106 Phase144 preregistered cross-venue close-location divergence reversion.
+Execution contract is frozen by the Phase144 preregistration.
+"""
 from __future__ import annotations
 import hashlib,json,time
 from pathlib import Path
@@ -55,7 +57,7 @@ def main():
     for b,inst in MAP.items():
         s,h,n,v=acquire(inst); expected=ph136['instruments'][inst]['normalized_full_rows_sha256']
         if h!=expected: raise RuntimeError(f'{inst}: Phase136 hash mismatch')
-        cov=v/len(idx); integrity[inst]={'valid_rows':v,'expected_rows':len(idx),'coverage':cov,'requests':n};
+        cov=v/len(idx); integrity[inst]={'valid_rows':v,'expected_rows':len(idx),'coverage':cov,'requests':n}
         if cov<.98: raise RuntimeError(f'{inst}: OKX aligned-valid coverage below 98%')
         okx[b]=s; hashes[inst]=h
     okx_clv=pd.DataFrame(okx).reindex(idx)
