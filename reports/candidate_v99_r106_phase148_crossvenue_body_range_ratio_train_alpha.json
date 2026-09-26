@@ -1,0 +1,182 @@
+{
+  "study": "V99 R106 Phase148 \u2014 CROSS-VENUE BODY/RANGE RATIO DIVERGENCE REVERSION TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "lookback_hours": 168,
+    "direction": "reversion",
+    "selection_train_only": true,
+    "no_sign_flip": true,
+    "no_grid": true,
+    "zero_range_missing": true,
+    "no_candle_repair": true,
+    "holdout_rows_used_for_feature_construction": 0,
+    "holdout_rows_used_for_selection": 0
+  },
+  "source_integrity": {
+    "all_phase136_hashes_reproduced": true,
+    "hashes": {
+      "BTC-USDT-SWAP": "51b79e15d250f54c147220c4547bc8d8af2aaee2acd86d4d9d33e21246247adc",
+      "ETH-USDT-SWAP": "bd62d5349680fa9f811bb0eaf8d6fc8bbfcd43c2705b8b37b7645f741977e2d7",
+      "SOL-USDT-SWAP": "725f6a54bc3c72547551336a1b23d7ab89b3ff63fcb1dc5b4e4115c282b644f0",
+      "XRP-USDT-SWAP": "726bef146b02f5b4ea36770fa3b3415324e5aa9a6409419a329627203d0f6348",
+      "DOGE-USDT-SWAP": "2ca7ebfedf5738ba51a441e4845963f21d4af5e9e6513d46eb90295d8927d35a"
+    },
+    "okx": {
+      "BTC-USDT-SWAP": {
+        "valid_rows": 18663,
+        "expected_rows": 18672,
+        "coverage": 0.9995179948586118,
+        "requests": 63,
+        "aligned_valid_coverage": 0.9995179948586118
+      },
+      "ETH-USDT-SWAP": {
+        "valid_rows": 18663,
+        "expected_rows": 18672,
+        "coverage": 0.9995179948586118,
+        "requests": 63,
+        "aligned_valid_coverage": 0.9995179948586118
+      },
+      "SOL-USDT-SWAP": {
+        "valid_rows": 18663,
+        "expected_rows": 18672,
+        "coverage": 0.9995179948586118,
+        "requests": 63,
+        "aligned_valid_coverage": 0.9930912596401028
+      },
+      "XRP-USDT-SWAP": {
+        "valid_rows": 18663,
+        "expected_rows": 18672,
+        "coverage": 0.9995179948586118,
+        "requests": 63,
+        "aligned_valid_coverage": 0.9930912596401028
+      },
+      "DOGE-USDT-SWAP": {
+        "valid_rows": 18663,
+        "expected_rows": 18672,
+        "coverage": 0.9995179948586118,
+        "requests": 63,
+        "aligned_valid_coverage": 0.9995179948586118
+      }
+    },
+    "binance": {
+      "BTCUSDT": {
+        "valid_rows": 18672,
+        "expected_rows": 18672,
+        "coverage": 1.0
+      },
+      "ETHUSDT": {
+        "valid_rows": 18672,
+        "expected_rows": 18672,
+        "coverage": 1.0
+      },
+      "SOLUSDT": {
+        "valid_rows": 18552,
+        "expected_rows": 18672,
+        "coverage": 0.993573264781491
+      },
+      "XRPUSDT": {
+        "valid_rows": 18552,
+        "expected_rows": 18672,
+        "coverage": 0.993573264781491
+      },
+      "DOGEUSDT": {
+        "valid_rows": 18672,
+        "expected_rows": 18672,
+        "coverage": 1.0
+      }
+    },
+    "imputation": false
+  },
+  "causality_invariants": {
+    "complete_score_shift_hours": 1,
+    "post_train_targets_zero": true,
+    "max_l1": 1.0000000000000004
+  },
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 17874,
+      "roi": -0.996641586695011,
+      "profit_factor": 0.179486073589552,
+      "max_drawdown_abs": 0.9966415804066491,
+      "positive_hour_ratio": 0.17069486404833836,
+      "robust_mean_without_top1pct": -0.0003460783231732714
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4045,
+        "roi": -0.7430270624212771,
+        "profit_factor": 0.16777952710940972,
+        "max_drawdown_abs": 0.7432491905421514,
+        "positive_hour_ratio": 0.18318912237330037,
+        "robust_mean_without_top1pct": -0.0003612184134430658
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4511,
+        "roi": -0.7467252389369275,
+        "profit_factor": 0.2429099179066738,
+        "max_drawdown_abs": 0.7469113226901923,
+        "positive_hour_ratio": 0.2021724673021503,
+        "robust_mean_without_top1pct": -0.0003405913787187765
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4649,
+        "roi": -0.7685268884766904,
+        "profit_factor": 0.1353429514700674,
+        "max_drawdown_abs": 0.768193544444272,
+        "positive_hour_ratio": 0.15315121531512152,
+        "robust_mean_without_top1pct": -0.00033410563926062606
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4669,
+        "roi": -0.7770773029810448,
+        "profit_factor": 0.16776193854488783,
+        "max_drawdown_abs": 0.7769145446757006,
+        "positive_hour_ratio": 0.1469265367316342,
+        "robust_mean_without_top1pct": -0.0003492037271984096
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "next_gate": "PASS: severe/supersevere then regimes/tails/concentration/benchmark/reproducibility; FAIL: permanent, no tuning/sign flip.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
