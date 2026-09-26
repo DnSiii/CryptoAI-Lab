@@ -1,0 +1,60 @@
+name: V99 R106 Phase140 Cross-Venue Volume Participation TRAIN Alpha
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'scripts/run_v99_r106_phase140_crossvenue_volume_participation_train_alpha.py'
+      - '.github/workflows/v99-r106-phase140-crossvenue-volume-participation-train-alpha.yml'
+permissions:
+  contents: write
+jobs:
+  train-alpha:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy pandas requests
+      - name: Assert preregistered/frozen contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/run_v99_r106_phase140_crossvenue_volume_participation_train_alpha.py').read_text()
+          q=Path('docs/v99_r106_phase140_crossvenue_volume_participation_preregister.md').read_text()
+          assert "LOOKBACK=168" in p and "score=(-centered).shift(1)" in p
+          assert "'direction':'reversion'" in p and "'no_sign_flip':True" in p
+          assert "'holdout_rows_used_for_feature_construction':0" in p
+          assert 'direction: reversion' in q and 'four chronological temporal folds' in q
+          print('Phase140 frozen TRAIN contract PASS')
+          PY
+      - name: Run Phase140 TRAIN alpha/folds
+        run: python scripts/run_v99_r106_phase140_crossvenue_volume_participation_train_alpha.py
+      - name: Verify evidence invariants
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/candidate_v99_r106_phase140_crossvenue_volume_participation_train_alpha.json'))
+          assert x['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
+          assert x['precommitment']['holdout_rows_used_for_feature_construction']==0
+          assert x['precommitment']['holdout_rows_used_for_selection']==0
+          assert x['causality_invariants']['complete_score_shift_hours']==1
+          assert x['causality_invariants']['post_train_targets_zero'] is True
+          assert x['causality_invariants']['max_l1']<=1.000000001
+          assert x['diagnostic']['valid_folds']==4
+          print(x['status'],x['diagnostic']['healthy_folds'])
+          PY
+      - name: Commit TRAIN evidence
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/candidate_v99_r106_phase140_crossvenue_volume_participation_train_alpha.json
+          git diff --cached --quiet || git commit -m 'Record V99 R106 Phase140 volume-participation TRAIN gate'
+          git pull --rebase origin research/v99-r106-native-all-regime-engine
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
