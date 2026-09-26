@@ -1,0 +1,56 @@
+{
+  "engine": "V98 Independent",
+  "phase": "146",
+  "audit_type": "independent_failure_mechanism",
+  "source_report": "reports/v98_independent_phase146_vix_risk_off.json",
+  "decision": "REJECT_NO_RESCUE",
+  "failure_mechanism": {
+    "primary": "negative expectancy and temporal instability, not a cost-only failure",
+    "aggregate_total_return": -0.21802227245527217,
+    "aggregate_profit_factor_daily": 0.8724693865217698,
+    "aggregate_max_drawdown": -0.3029298847945745,
+    "aggregate_payoff_daily": 0.915783469540581,
+    "aggregate_win_rate_daily": 0.25753424657534246,
+    "positive_days": 282,
+    "negative_days": 296,
+    "folds": {
+      "2023": {"return": -0.15919237344211534, "pf": 0.6412262363258371, "max_drawdown": -0.19124406700563323},
+      "2024": {"return": -0.054028695580860986, "pf": 0.9234181424881712, "max_drawdown": -0.1612345661212271},
+      "2025": {"return": -0.013887142069998526, "pf": 1.0028491142135951, "max_drawdown": -0.1520935026776522}
+    },
+    "stress": {
+      "severe_return": -0.2396629387534056,
+      "severe_pf": 0.857894439961911,
+      "supersevere_return": -0.2708483437676181,
+      "supersevere_pf": 0.836691511194725
+    },
+    "regimes": {
+      "bear_return_sum_approx": -0.1282281791393154,
+      "bull_return_sum_approx": -0.14978949118234008,
+      "sideways_return_sum_approx": 0.053027839824123735
+    },
+    "tails": {
+      "top10_positive_day_share": 0.17341629116329343,
+      "p01_day": -0.01994249840764211,
+      "cvar05_day": -0.01508445024444172,
+      "worst_day": -0.04206736706644998
+    },
+    "concentration": {
+      "mean_active_assets": 2.372262773722628,
+      "mean_top1_weight_share": 0.2147021328099387,
+      "p95_top1_weight_share": 0.23716643823905353
+    }
+  },
+  "interpretation": [
+    "All three chronological training folds have negative total return; 2025 PF is near one but return remains negative.",
+    "Severe and supersevere costs worsen an already negative base result, so transaction-cost assumptions are not the root cause.",
+    "Bear and bull regime sums are both negative; the only positive regime approximation is sideways, inconsistent with a robust VIX risk-off premise.",
+    "Top-10 positive-day share is not extreme enough to rescue the hypothesis and downside tail metrics remain material.",
+    "No parameter rescue, sign flip, threshold search, or VIX-family tuning is permitted after this rejection."
+  ],
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false,
+  "next_family": "orthogonal macro liquidity / broad-dollar data integrity only"
+}
