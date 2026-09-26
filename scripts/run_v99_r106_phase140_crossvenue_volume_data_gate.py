@@ -61,11 +61,16 @@ def acquire(inst):
     ts=sorted(rows); idx=pd.to_datetime(ts,unit='ms',utc=True)
     expected=(END_MS-START_MS)//HOUR_MS
     if len(ts)!=expected or idx.duplicated().any(): raise RuntimeError(f'{inst}: incomplete/duplicate rows={len(ts)} expected={expected}')
-    if len(idx)>1 and not (np.diff(idx.view('i8'))==HOUR_MS*1_000_000).all(): raise RuntimeError(f'{inst}: hourly gaps')
+    # Check the source timestamps in their native millisecond unit.  Using
+    # DatetimeIndex.view('i8') is dtype-resolution dependent in pandas 3.x
+    # (it may be microseconds), which previously caused a false hourly-gap
+    # failure despite complete rows.
+    gaps=sum(1 for a,b in zip(ts,ts[1:]) if b-a!=HOUR_MS)
+    if gaps: raise RuntimeError(f'{inst}: hourly gaps={gaps}')
     qv=pd.Series([float(rows[t].split('|')[7]) for t in ts],index=idx,dtype=float)
     valid=np.isfinite(qv.to_numpy()) & (qv.to_numpy()>=0)
     digest=hashlib.sha256(('\n'.join(rows[t] for t in ts)).encode()).hexdigest()
-    return {'rows_expected':int(expected),'rows_observed':len(ts),'valid_rows':int(valid.sum()),'coverage':float(valid.mean()),'duplicates':int(idx.duplicated().sum()),'hourly_gaps':0,'normalized_full_rows_sha256':digest,'requests':reqs,'positive_volume_ratio':float((qv>0).mean())}
+    return {'rows_expected':int(expected),'rows_observed':len(ts),'valid_rows':int(valid.sum()),'coverage':float(valid.mean()),'duplicates':int(idx.duplicated().sum()),'hourly_gaps':int(gaps),'normalized_full_rows_sha256':digest,'requests':reqs,'positive_volume_ratio':float((qv>0).mean())}
 
 def main():
     text=PREREG.read_text(); assert 'No PnL may be computed unless' in text and '>=98%' in text and 'without proxy substitution' in text
