@@ -1,0 +1,30 @@
+name: V98 Independent Phase156 VIX DATA_ONLY
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase156:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - name: Run V98-only data integrity gate twice
+        run: |
+          python scripts/v98_independent_phase156_vix_data_only.py > /tmp/p156a.json
+          python scripts/v98_independent_phase156_vix_data_only.py > /tmp/p156b.json
+          cmp /tmp/p156a.json /tmp/p156b.json
+          cp /tmp/p156a.json reports/v98_independent_phase156_vix_data_only.json
+      - name: Fail closed namespace guard
+        run: |
+          test "${GITHUB_REF_NAME}" = "research/v98-independent-zero"
+          grep -q '"status": "PASS_DATA_ONLY"' reports/v98_independent_phase156_vix_data_only.json
+          git diff --name-only | grep -v '^reports/v98_independent_' && exit 1 || true
+      - name: Persist V98 evidence
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase156_vix_data_only.json
+          git commit -m 'v98: record phase156 VIX data-only evidence' || exit 0
+          git push origin HEAD:research/v98-independent-zero
