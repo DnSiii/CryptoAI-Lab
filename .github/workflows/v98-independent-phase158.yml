@@ -1,0 +1,45 @@
+name: V98 Independent Phase158
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase158_stlfsi4_data_only.py'
+      - 'reports/v98_independent_phase158_stlfsi4_data_only_preregistration.json'
+      - '.github/workflows/v98-independent-phase158.yml'
+permissions:
+  contents: write
+jobs:
+  data-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Deterministic double replay
+        run: |
+          python scripts/v98_independent_phase158_stlfsi4_data_only.py > /tmp/p158a.json
+          python scripts/v98_independent_phase158_stlfsi4_data_only.py > /tmp/p158b.json
+          cmp /tmp/p158a.json /tmp/p158b.json
+          cp /tmp/p158a.json reports/v98_independent_phase158_stlfsi4_data_only.json
+      - name: Enforce DATA_ONLY invariants
+        run: |
+          python - <<'PY'
+          import json
+          p='reports/v98_independent_phase158_stlfsi4_data_only.json'
+          r=json.load(open(p))
+          assert r['engine']=='V98 Independent' and r['phase']=='158' and r['kind']=='DATA_ONLY'
+          assert r['economic_firewall'] is True and r['status']=='PASS_DATA_ONLY'
+          assert all(r['gates'].values())
+          PY
+      - name: Commit Phase158 evidence
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add reports/v98_independent_phase158_stlfsi4_data_only.json
+          git diff --cached --quiet || git commit -m 'v98: record phase158 STLFSI4 data-only evidence'
+          git push origin HEAD:research/v98-independent-zero
