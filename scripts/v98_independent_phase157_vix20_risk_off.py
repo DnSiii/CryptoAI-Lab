@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json,sys
+import json,sys,time,urllib.error
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -11,8 +11,17 @@ import v98_independent_phase156_vix_data_only as p156
 CFG=PROJECT/'config'/'v98_independent.json';PRE=PROJECT/'reports'/'v98_independent_phase157_vix20_risk_off_preregistration.json';P156=PROJECT/'reports'/'v98_independent_phase156_vix_data_only.json';OUT=PROJECT/'reports'/'v98_independent_phase157_vix20_risk_off.json'
 ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'];LAG_DAYS=1;THRESHOLD=20.;TARGET=.30;CAP=.35
 
+def reacquire(max_attempts=4):
+ last=None
+ for i in range(max_attempts):
+  try:return p156.acquire()
+  except (TimeoutError,urllib.error.URLError) as e:
+   last=e
+   if i+1<max_attempts:time.sleep(2**i)
+ raise last
+
 def load_macro():
- rows,qa=p156.parse(p156.acquire()); governing=json.loads(P156.read_text()); assert governing['status']=='PASS_DATA_ONLY'
+ rows,qa=p156.parse(reacquire()); governing=json.loads(P156.read_text()); assert governing['status']=='PASS_DATA_ONLY'
  h=p156.hashlib.sha256(p156.canonical(rows)).hexdigest(); assert h==governing['sha256'][0]
  s=pd.Series({pd.Timestamp(d,tz='UTC'):float(v) for d,v in rows}).sort_index();assert s.index.is_unique and s.index.is_monotonic_increasing
  return s,h
