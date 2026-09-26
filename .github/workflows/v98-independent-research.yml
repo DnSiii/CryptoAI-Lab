@@ -47,16 +47,43 @@ jobs:
           assert p['parameter_search'] is False and p['rescue_allowed'] is False
           assert p['training_gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
           PY
-      - name: Commit Phase142 evidence
+      - name: Execute Phase143 SP500 DATA_ONLY integrity gate
+        run: |
+          python scripts/v98_independent_phase143_sp500_data_only.py > /tmp/phase143.first.json
+          python scripts/v98_independent_phase143_sp500_data_only.py > /tmp/phase143.second.json
+          cmp /tmp/phase143.first.json /tmp/phase143.second.json
+          cp /tmp/phase143.first.json reports/v98_independent_phase143_sp500_data_only.json
+      - name: Enforce Phase143 DATA_ONLY firewall and reproducibility
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase143_sp500_data_only.json'))
+          assert p['phase']=='143' and p['mode']=='DATA_ONLY' and p['series']=='SP500'
+          assert p['calendar']=={'start':'2023-01-01','end':'2025-12-31'}
+          assert p['decision']=='PASS_DATA_ONLY'
+          assert all(p['gates'].values())
+          assert p['reproducibility']['identical_hash'] is True
+          assert p['reproducibility']['identical_integrity_metadata'] is True
+          forbidden=('return','correlation','pnl','profit','drawdown','sharpe','payoff','win_rate','position','signal')
+          def walk(x):
+              if isinstance(x,dict):
+                  for k,v in x.items():
+                      assert not any(t in k.lower() for t in forbidden), k
+                      walk(v)
+              elif isinstance(x,list):
+                  for v in x: walk(v)
+          walk(p)
+          PY
+      - name: Commit V98 evidence
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase142 strict-PIT Treasury training evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase142 evidence
+          git add -f reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json reports/v98_independent_phase143_sp500_data_only.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase142 and phase143 evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Upload Phase143 evidence
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase142-${{ github.run_id }}
+          name: v98-independent-phase143-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
-          path: reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json
+          path: reports/v98_independent_phase143_sp500_data_only.json
