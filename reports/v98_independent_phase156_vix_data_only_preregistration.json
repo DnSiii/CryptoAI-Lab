@@ -1,0 +1,34 @@
+{
+  "engine": "V98 Independent",
+  "phase": "156",
+  "kind": "DATA_ONLY",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_USE",
+  "family": "equity_implied_volatility",
+  "source": "FRED",
+  "series": "VIXCLS",
+  "training_window": ["2023-01-01", "2025-12-31"],
+  "scientific_rationale": "Equity option-implied volatility is orthogonal to the rejected Treasury curve-level family and directly measures priced risk uncertainty rather than rates, commodities, dollar level, or crypto-native state.",
+  "data_gates": {
+    "double_independent_acquisition": true,
+    "canonical_date_value_sha256_equal": true,
+    "global_business_day_coverage_min": 0.95,
+    "annual_business_day_coverage_min": 0.95,
+    "duplicate_dates": 0,
+    "malformed_values": 0,
+    "out_of_window_rows": 0,
+    "positive_values_only": true,
+    "missing_policy": "no imputation/no carry-forward"
+  },
+  "economic_firewall": {
+    "crypto_returns_forbidden": true,
+    "pnl_forbidden": true,
+    "correlation_forbidden": true,
+    "signal_selection_forbidden": true,
+    "validation_forbidden": true,
+    "final_holdout_forbidden": true,
+    "v16_forbidden": true,
+    "v99_forbidden": true
+  },
+  "post_pass_rule": "Only after PASS_DATA_ONLY may a single economically motivated VIX-to-crypto hypothesis be preregistered. No threshold/lookback/sign search is permitted from Phase156 data inspection.",
+  "anti_rescue": true
+}
