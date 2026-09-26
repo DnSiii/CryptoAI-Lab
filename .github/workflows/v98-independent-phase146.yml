@@ -22,6 +22,8 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: python -m pip install numpy pandas pyarrow
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
       - name: Deterministic replay
         run: |
           python scripts/v98_independent_phase146_vix_risk_off.py > /tmp/p146a.json
