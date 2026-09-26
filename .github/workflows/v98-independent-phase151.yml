@@ -1,0 +1,47 @@
+name: V98 Independent Phase151
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: [".github/workflows/v98-independent-phase151.yml", "scripts/v98_independent_phase151_*.py"]
+permissions: {contents: write}
+concurrency: {group: v98-independent-phase151, cancel-in-progress: true}
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: "3.12"}
+      - name: Double independent acquisition
+        run: |
+          python scripts/v98_independent_phase151_hy_spread_data_only.py > /tmp/p151a.json
+          python scripts/v98_independent_phase151_hy_spread_data_only.py > /tmp/p151b.json
+          cmp /tmp/p151a.json /tmp/p151b.json
+          cp /tmp/p151a.json reports/v98_independent_phase151_hy_spread_data_only.json
+      - name: Enforce DATA_ONLY firewall and invariants
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase151_hy_spread_data_only.json'))
+          assert p['phase']=='151' and p['mode']=='DATA_ONLY' and p['series']=='BAMLH0A0HYM2'
+          assert p['decision']=='PASS_DATA_ONLY' and all(p['gates'].values())
+          assert p['reproducibility']['identical_hash'] and p['reproducibility']['identical_integrity_metadata']
+          assert p['counts']['duplicates']==0 and p['counts']['malformed']==0 and p['counts']['outside_window']==0
+          assert p['global_coverage'] >= .95 and all(v >= .95 for v in p['coverage'].values())
+          forbidden=('return','correlation','pnl','profit','drawdown','sharpe','payoff','win_rate','position','signal')
+          def walk(x):
+            if isinstance(x,dict):
+              for k,v in x.items(): assert not any(t in str(k).lower() for t in forbidden), k; walk(v)
+            elif isinstance(x,list):
+              for v in x: walk(v)
+          walk(p)
+          PY
+      - name: Commit Phase151 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reports/v98_independent_phase151_hy_spread_data_only.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase151 HY spread data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
