@@ -1,0 +1,222 @@
+{
+  "asset_positive_contribution_share": {
+    "BNBUSDT": 0.0,
+    "BTCUSDT": 0.0,
+    "ETHUSDT": 0.0,
+    "SOLUSDT": 0.0,
+    "XRPUSDT": 0.0
+  },
+  "concentration_training": {
+    "mean_active_assets": 2.372262773722628,
+    "mean_top1_weight_share": 0.2147021328099387,
+    "p95_top1_weight_share": 0.23716643823905353
+  },
+  "engine": "V98 Independent",
+  "final_holdout": null,
+  "folds": {
+    "2023": {
+      "avg_gross": 0.1220015977268164,
+      "avg_net": -0.1220015977268164,
+      "best_day": 0.02157099058858236,
+      "cagr": -0.15930887724345333,
+      "cvar05_day": -0.013565336582022086,
+      "days": 364,
+      "max_abs_net": 0.37337447312618827,
+      "max_drawdown": -0.19124406700563323,
+      "max_gross": 0.37337447312618827,
+      "negative_days": 82,
+      "p01_day": -0.017432305540706745,
+      "p05_day": -0.00887383357619878,
+      "payoff_daily": 0.6412262363258372,
+      "positive_days": 82,
+      "profit_factor_daily": 0.6412262363258371,
+      "ruin": false,
+      "total_return": -0.15919237344211534,
+      "turnover_sum": 10.431663606237873,
+      "win_rate_daily": 0.22527472527472528,
+      "worst_day": -0.025592856481187698
+    },
+    "2024": {
+      "avg_gross": 0.16168057406738404,
+      "avg_net": -0.16168057406738404,
+      "best_day": 0.02197462557033414,
+      "cagr": -0.05392699181754612,
+      "cvar05_day": -0.013742465539968104,
+      "days": 365,
+      "max_abs_net": 0.3576667862848957,
+      "max_drawdown": -0.1612345661212271,
+      "max_gross": 0.3576667862848957,
+      "negative_days": 112,
+      "p01_day": -0.016732091206467348,
+      "p05_day": -0.010193251346954457,
+      "payoff_daily": 0.9576188144321777,
+      "positive_days": 108,
+      "profit_factor_daily": 0.9234181424881712,
+      "ruin": false,
+      "total_return": -0.054028695580860986,
+      "turnover_sum": 13.009962479918002,
+      "win_rate_daily": 0.2958904109589041,
+      "worst_day": -0.024085440233549416
+    },
+    "2025": {
+      "avg_gross": 0.13701816788869808,
+      "avg_net": -0.13701816788869808,
+      "best_day": 0.044175513952362966,
+      "cagr": -0.013898162885634169,
+      "cvar05_day": -0.017163373487213716,
+      "days": 364,
+      "max_abs_net": 0.3503667217764308,
+      "max_drawdown": -0.1520935026776522,
+      "max_gross": 0.3503667217764308,
+      "negative_days": 101,
+      "p01_day": -0.024300448144258937,
+      "p05_day": -0.008991628549626617,
+      "payoff_daily": 1.100953918864925,
+      "positive_days": 92,
+      "profit_factor_daily": 1.0028491142135951,
+      "ruin": false,
+      "total_return": -0.013887142069998526,
+      "turnover_sum": 11.691959874065233,
+      "win_rate_daily": 0.25274725274725274,
+      "worst_day": -0.04206736706644998
+    }
+  },
+  "gate": {
+    "decision": "REJECT_NO_RESCUE",
+    "failures": [
+      "aggregate_return<=0",
+      "aggregate_pf<1.05",
+      "2023_return<=0",
+      "2023_pf<1.02",
+      "2024_return<=0",
+      "2024_pf<1.02",
+      "2025_return<=0",
+      "2025_pf<1.02",
+      "severe_return<=0",
+      "supersevere_return<=0"
+    ],
+    "passed": false
+  },
+  "hypothesis": "20-observation rising-VIX risk-off short crypto basket",
+  "max_close_gross": 0.37337447312618827,
+  "max_open_gross": 0.3500000000000001,
+  "parameter_search": false,
+  "phase": "146",
+  "phase145_dependency": {
+    "decision": "PASS_DATA_ONLY",
+    "hash": "1a1ecc86330f62fff7151b8073f1312d6085aabeb4fee00d5ab18d9661440898",
+    "reacquisition_hash_verified": true
+  },
+  "preregistration": "reports/v98_independent_phase146_vix_risk_off_preregistration.json",
+  "regimes_training": {
+    "bear": {
+      "hours": 2283,
+      "positive_hour_ratio": 0.20805957074025405,
+      "return_sum_approx": -0.1282281791393154
+    },
+    "bull": {
+      "hours": 12276,
+      "positive_hour_ratio": 0.1965623981753014,
+      "return_sum_approx": -0.14978949118234008
+    },
+    "sideways": {
+      "hours": 11745,
+      "positive_hour_ratio": 0.2676032354193274,
+      "return_sum_approx": 0.053027839824123735
+    }
+  },
+  "rescue_allowed": false,
+  "signal_contract": {
+    "assets": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "SOLUSDT"
+    ],
+    "direction": "VIX_t > VIX_t_minus_20 => short; else flat",
+    "economic_use_lag_days": 1,
+    "hard_gross_cap": 0.35,
+    "lookback_accepted_observations": 20,
+    "target_gross": 0.3
+  },
+  "stress_training": {
+    "severe": {
+      "avg_gross": 0.1402530151079611,
+      "avg_net": -0.1402530151079611,
+      "best_day": 0.04416235287665926,
+      "cagr": -0.08726873642729027,
+      "cvar05_day": -0.01512765538059565,
+      "days": 1095,
+      "max_abs_net": 0.37337447312618827,
+      "max_drawdown": -0.31064427774083925,
+      "max_gross": 0.37337447312618827,
+      "negative_days": 301,
+      "p01_day": -0.02001552833206732,
+      "p05_day": -0.009505722326019017,
+      "payoff_daily": 0.9322246441463364,
+      "positive_days": 277,
+      "profit_factor_daily": 0.857894439961911,
+      "ruin": false,
+      "total_return": -0.2396629387534056,
+      "turnover_sum": 35.133585960221104,
+      "win_rate_daily": 0.25296803652968036,
+      "worst_day": -0.04207861894252496
+    },
+    "supersevere": {
+      "avg_gross": 0.1402530151079611,
+      "avg_net": -0.1402530151079611,
+      "best_day": 0.044141865105888245,
+      "cagr": -0.09991957937967288,
+      "cvar05_day": -0.015189131834194925,
+      "days": 1095,
+      "max_abs_net": 0.37337447312618827,
+      "max_drawdown": -0.33541685350415107,
+      "max_gross": 0.37337447312618827,
+      "negative_days": 303,
+      "p01_day": -0.02014576346151759,
+      "p05_day": -0.009555647788341537,
+      "payoff_daily": 0.9218819196072788,
+      "positive_days": 275,
+      "profit_factor_daily": 0.836691511194725,
+      "ruin": false,
+      "total_return": -0.2708483437676181,
+      "turnover_sum": 35.133585960221104,
+      "win_rate_daily": 0.2511415525114155,
+      "worst_day": -0.04209592831738862
+    }
+  },
+  "tails_training": {
+    "best_day": 0.044175513952362966,
+    "cvar05_day": -0.01508445024444172,
+    "p01_day": -0.01994249840764211,
+    "p05_day": -0.009493722403057847,
+    "top10_positive_day_share": 0.17341629116329343,
+    "worst_day": -0.04206736706644998
+  },
+  "training": {
+    "avg_gross": 0.1402530151079611,
+    "avg_net": -0.1402530151079611,
+    "best_day": 0.044175513952362966,
+    "cagr": -0.0786918871215635,
+    "cvar05_day": -0.01508445024444172,
+    "days": 1095,
+    "max_abs_net": 0.37337447312618827,
+    "max_drawdown": -0.3029298847945745,
+    "max_gross": 0.37337447312618827,
+    "negative_days": 296,
+    "p01_day": -0.01994249840764211,
+    "p05_day": -0.009493722403057847,
+    "payoff_daily": 0.915783469540581,
+    "positive_days": 282,
+    "profit_factor_daily": 0.8724693865217698,
+    "ruin": false,
+    "total_return": -0.21802227245527217,
+    "turnover_sum": 35.133585960221104,
+    "win_rate_daily": 0.25753424657534246,
+    "worst_day": -0.04206736706644998
+  },
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null
+}
