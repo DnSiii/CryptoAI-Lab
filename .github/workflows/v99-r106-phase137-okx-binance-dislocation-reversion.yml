@@ -41,6 +41,19 @@ jobs:
           done
       - name: Prepare canonical V15 replay
         run: python scripts/prepare_dashboard_v15_replay.py
+      - name: Apply preregistered exact-MAD correction
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/run_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.py')
+          s=p.read_text()
+          old='mad = (spread - med).abs().rolling(LOOKBACK, min_periods=LOOKBACK).median()'
+          new='mad = spread.rolling(LOOKBACK, min_periods=LOOKBACK).apply(lambda x: float(__import__("numpy").median(__import__("numpy").abs(x - __import__("numpy").median(x)))), raw=True)'
+          assert s.count(old)==1, 'Exact-MAD patch target missing or ambiguous'
+          p.write_text(s.replace(old,new))
+          assert old not in p.read_text() and new in p.read_text()
+          PY
       - name: Snapshot frozen assets
         run: |
           python - <<'PY'
@@ -48,7 +61,7 @@ jobs:
           files=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts})
           pathlib.Path('/tmp/frozen_before.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},sort_keys=True))
           PY
-      - name: Run Phase137 train-only gate
+      - name: Run Phase137 exact-MAD corrected train-only gate
         run: python scripts/run_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.py
       - name: Verify frozen assets and prereg contract
         if: always()
@@ -77,7 +90,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/candidate_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Record V99 R106 Phase137 cross-venue reversion train gate"
+          git commit -m "Record V99 R106 Phase137 exact-MAD corrected train gate"
           git fetch origin ${RESEARCH_BRANCH}
           git rebase origin/${RESEARCH_BRANCH}
           git push origin HEAD:${RESEARCH_BRANCH}
