@@ -61,7 +61,7 @@ def main():
         if cov<.98: raise RuntimeError(f'{inst}: OKX aligned-valid coverage below 98%')
         okx[b]=s; hashes[inst]=h
     okx_clv=pd.DataFrame(okx).reindex(idx)
-    cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup(); bo=data.open.astype(float).reindex(idx)[list(MAP)]; bh=data.high.astype(float).reindex(idx)[list(MAP)]; bl=data.low.astype(float).reindex(idx)[list(MAP)]; bc=data.close.astype(float).reindex(idx)[list(MAP)]; den=bh-bl; valid=np.isfinite(bo)&np.isfinite(bh)&np.isfinite(bl)&np.isfinite(bc)&(den>0); bin_clv=((bc-bo)/den).where(valid); bin_integrity={}
+    cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup(); bo=data.frames['open'].astype(float).reindex(idx)[list(MAP)]; bh=data.frames['high'].astype(float).reindex(idx)[list(MAP)]; bl=data.frames['low'].astype(float).reindex(idx)[list(MAP)]; bc=data.close.astype(float).reindex(idx)[list(MAP)]; den=bh-bl; valid=np.isfinite(bo)&np.isfinite(bh)&np.isfinite(bl)&np.isfinite(bc)&(den>0); bin_clv=((bc-bo)/den).where(valid); bin_integrity={}
     for sym in MAP:
         cov=float(valid[sym].mean()); bin_integrity[sym]={'valid_rows':int(valid[sym].sum()),'expected_rows':len(idx),'coverage':cov}
         if cov<.98: raise RuntimeError(f'{sym}: Binance aligned-valid coverage below 98%')
