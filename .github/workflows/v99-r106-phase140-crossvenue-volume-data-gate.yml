@@ -1,0 +1,57 @@
+name: V99 R106 Phase140 Cross-Venue Volume Data Gate
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'scripts/run_v99_r106_phase140_crossvenue_volume_data_gate.py'
+      - '.github/workflows/v99-r106-phase140-crossvenue-volume-data-gate.yml'
+permissions:
+  contents: write
+jobs:
+  data-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy pandas
+      - name: Assert frozen/data-only contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/run_v99_r106_phase140_crossvenue_volume_data_gate.py').read_text()
+          q=Path('docs/v99_r106_phase140_crossvenue_volume_participation_preregister.md').read_text()
+          assert "'pnl_computed':False" in p
+          assert "'holdout_rows_used':0" in p
+          assert "no price*base-volume proxy permitted" in p
+          assert 'without proxy substitution' in q
+          assert '>=98%' in q
+          print('Phase140 data-only invariants PASS')
+          PY
+      - name: Run semantic/coverage/integrity gate
+        run: python scripts/run_v99_r106_phase140_crossvenue_volume_data_gate.py
+      - name: Verify evidence is data-only
+        run: |
+          python - <<'PY'
+          import json
+          p='reports/candidate_v99_r106_phase140_crossvenue_volume_data_gate.json'
+          x=json.load(open(p))
+          assert x['pnl_computed'] is False and x['holdout_rows_used']==0
+          assert x['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
+          assert x['anti_overfit']['no_proxy_substitution'] is True
+          print(x['status'],x['passing_instruments'])
+          PY
+      - name: Commit data-gate evidence
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/candidate_v99_r106_phase140_crossvenue_volume_data_gate.json
+          git diff --cached --quiet || git commit -m 'Record V99 R106 Phase140 cross-venue volume data gate'
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
