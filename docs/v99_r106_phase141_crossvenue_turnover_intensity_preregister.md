@@ -8,6 +8,8 @@ Frozen before observing any Phase140 data-gate result or PnL. Phase141 is scient
 
 Use Phase140 direct, semantically comparable hourly USDT quote-notional fields only if its DATA gate passes for all five instruments. No proxy substitution, symbol substitution, forward/back fill, or selective asset removal. If Phase140 data are inadmissible, Phase141 is automatically DATA_INADMISSIBLE.
 
+Because the frozen feature uses a logarithm, **every consumed notional-volume observation must be strictly positive**. A zero/negative/non-finite observation makes Phase141 DATA_INADMISSIBLE; do not add an epsilon, use `log1p`, impute, drop the hour/asset, or otherwise rescue the feature. This zero policy is frozen before any successful Phase140 data-gate result or Phase141 PnL is observed.
+
 ## Frozen feature
 
 For each venue and asset, define `turnover_intensity_t = log(notional_volume_t) - median_168h(log(notional_volume))`, using only completed hours. Define cross-venue innovation as `OKX_turnover_intensity_t - Binance_turnover_intensity_t`. Scale each asset by exact same-window MAD over 168 completed hours, cross-sectionally demean each hour, and freeze **reversion** direction. Shift the complete score exactly t-1 before execution.
