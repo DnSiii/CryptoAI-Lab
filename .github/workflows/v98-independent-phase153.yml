@@ -1,0 +1,45 @@
+name: V98 Independent Phase153
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['scripts/v98_independent_phase153_dff_tightening_risk_off.py','reports/v98_independent_phase153_dff_tightening_risk_off_preregistration.json','.github/workflows/v98-independent-phase153.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  training-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Install dependencies
+        run: python -m pip install numpy pandas pyarrow
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
+      - name: Deterministic replay
+        run: |
+          python scripts/v98_independent_phase153_dff_tightening_risk_off.py > /tmp/p153a.json
+          cp reports/v98_independent_phase153_dff_tightening_risk_off.json /tmp/p153_report_a.json
+          python scripts/v98_independent_phase153_dff_tightening_risk_off.py > /tmp/p153b.json
+          cmp /tmp/p153_report_a.json reports/v98_independent_phase153_dff_tightening_risk_off.json
+      - name: Enforce invariants and closed holdout
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase153_dff_tightening_risk_off.json'))
+          assert p['phase']=='153' and p['phase152_dependency']['decision']=='PASS_DATA_ONLY' and p['phase152_dependency']['reacquisition_hash_verified']
+          assert p['validation'] is None and p['final_holdout'] is None
+          assert p['parameter_search'] is False and p['rescue_allowed'] is False and p['v16_used'] is False and p['v99_used'] is False
+          assert p['max_open_gross'] <= .350000000001
+          assert p['signal_contract']['missing_macro_policy']=='no imputation/no carry-forward'
+          required=('total_return','max_drawdown','profit_factor_daily','payoff_daily','win_rate_daily','positive_days','negative_days','worst_day','best_day','p01_day','p05_day','cvar05_day','turnover_sum')
+          for k in required: assert k in p['training']
+          assert set(p['stress_training'])=={'severe','supersevere'} and len(p['folds'])>=3 and p['regimes_training'] and p['concentration_training'] and p['tails_training']
+          PY
+      - name: Commit Phase153 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reports/v98_independent_phase153_dff_tightening_risk_off.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase153 DFF tightening evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
