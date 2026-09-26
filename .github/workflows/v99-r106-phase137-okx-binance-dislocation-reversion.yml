@@ -41,18 +41,14 @@ jobs:
           done
       - name: Prepare canonical V15 replay
         run: python scripts/prepare_dashboard_v15_replay.py
-      - name: Apply preregistered exact-MAD correction
-        shell: bash
+      - name: Verify exact-MAD implementation
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('scripts/run_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.py')
-          s=p.read_text()
-          old='mad = (spread - med).abs().rolling(LOOKBACK, min_periods=LOOKBACK).median()'
-          new='mad = spread.rolling(LOOKBACK, min_periods=LOOKBACK).apply(lambda x: float(__import__("numpy").median(__import__("numpy").abs(x - __import__("numpy").median(x)))), raw=True)'
-          assert s.count(old)==1, 'Exact-MAD patch target missing or ambiguous'
-          p.write_text(s.replace(old,new))
-          assert old not in p.read_text() and new in p.read_text()
+          s=Path('scripts/run_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.py').read_text()
+          assert 'mad=rolling_exact_mad(spread,LOOKBACK)' in s
+          assert 'np.median(np.abs(x-np.median(x)))' in s
+          assert 'dev.abs().rolling(LOOKBACK' not in s
           PY
       - name: Snapshot frozen assets
         run: |
@@ -68,19 +64,14 @@ jobs:
         run: |
           python - <<'PY'
           import hashlib,json,pathlib
-          before=json.loads(pathlib.Path('/tmp/frozen_before.json').read_text())
-          after={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in before}
-          assert before==after,'Frozen asset mutation detected'
-          p=pathlib.Path('reports/candidate_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.json')
-          assert p.exists(),'Phase137 report missing'
+          before_path=pathlib.Path('/tmp/frozen_before.json');assert before_path.exists(),'Frozen snapshot missing'
+          before=json.loads(before_path.read_text());after={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in before};assert before==after,'Frozen asset mutation detected'
+          p=pathlib.Path('reports/candidate_v99_r106_phase137_okx_binance_dislocation_reversion_train_alpha.json');assert p.exists(),'Phase137 report missing'
           r=json.loads(p.read_text());pc=r['precommitment'];si=r['source_integrity'];ci=r['causality_invariants']
-          assert r['frozen_assets_untouched']['v16'] and r['frozen_assets_untouched']['v99_frozen']
-          assert pc['single_hypothesis_no_grid'] and pc['no_sign_flip'] and pc['no_symbol_substitution']
-          assert pc['lookback_hours']==168 and abs(pc['alpha_gross']-.20)<1e-12
-          assert pc['holdout_rows_used_for_feature_construction']==0 and pc['holdout_rows_used_for_selection']==0
-          assert si['all_phase136_hashes_reproduced'] is True
-          assert ci['complete_score_shift_hours']==1 and ci['feature_inputs_strictly_pre_train_end'] and ci['post_train_targets_zero']
-          assert r['status'] in ('TRAIN_ALPHA_PASS_FREEZE_FOR_DOWNSTREAM','TRAIN_ALPHA_REJECT')
+          assert r['frozen_assets_untouched']['v16'] and r['frozen_assets_untouched']['v99_frozen'];assert pc['single_hypothesis_no_grid'] and pc['no_sign_flip'] and pc['no_symbol_substitution']
+          assert pc['lookback_hours']==168 and abs(pc['alpha_gross']-.20)<1e-12;assert pc['mad_definition']=='median(abs(window - median(window))) on the same 168h spread window'
+          assert pc['holdout_rows_used_for_feature_construction']==0 and pc['holdout_rows_used_for_selection']==0;assert si['all_phase136_hashes_reproduced'] is True
+          assert ci['complete_score_shift_hours']==1 and ci['feature_inputs_strictly_pre_train_end'] and ci['post_train_targets_zero'];assert r['status'] in ('TRAIN_ALPHA_PASS_FREEZE_FOR_DOWNSTREAM','TRAIN_ALPHA_REJECT')
           PY
       - name: Persist evidence
         if: success()
