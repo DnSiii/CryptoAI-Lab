@@ -1,0 +1,37 @@
+{
+  "engine": "V98 Independent",
+  "phase": "155",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "hypothesis": "A negative US 10Y-2Y Treasury spread is a macro risk-off state; after a one-day causal lag, hold a fixed short crypto basket while the spread is below zero.",
+  "dependency": {
+    "phase154_decision": "PASS_DATA_ONLY",
+    "phase154_observations_sha256": "bba97177b3e09995adc47b77582ac0c895dfd86f638c556a6017d528ff408915"
+  },
+  "signal": {
+    "rule": "T10Y2Y_t < 0 => short; else flat",
+    "economic_use_lag_days": 1,
+    "missing_macro_policy": "no imputation/no carry-forward",
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "assets": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT"],
+    "weights": "equal"
+  },
+  "evaluation": {
+    "scope": "training_only",
+    "chronological_folds": ["2023", "2024", "2025"],
+    "costs": ["base", "severe", "supersevere"],
+    "required_diagnostics": ["max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "regimes", "concentration", "tails", "asset_contribution", "reproducibility"]
+  },
+  "gates": "aggregate and every annual fold must have return>0 and PF>1; severe and supersevere must have return>0 and PF>1; gross cap invariant must pass",
+  "anti_overfit": {
+    "parameter_search": false,
+    "rescue_allowed": false,
+    "sign_flip_allowed": false,
+    "asset_deletion_allowed": false,
+    "regime_exclusion_allowed": false
+  },
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false
+}
