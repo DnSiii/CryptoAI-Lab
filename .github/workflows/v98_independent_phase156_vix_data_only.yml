@@ -1,6 +1,11 @@
 name: V98 Independent Phase156 VIX DATA_ONLY
 on:
   workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98_independent_phase156_vix_data_only.yml'
+      - 'scripts/v98_independent_phase156_vix_data_only.py'
 permissions:
   contents: write
 jobs:
