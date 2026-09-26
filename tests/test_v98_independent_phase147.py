@@ -21,7 +21,10 @@ def test_output_has_no_economic_fields():
  forbidden=("return","correlation","pnl","profit_factor","win_rate","drawdown","signal")
  def walk(x):
   if isinstance(x,dict):
-   for k,v in x.items(): assert not any(t in k.lower() for t in forbidden); walk(v)
+   for k,v in x.items():
+    key=str(k).lower()
+    assert not any(t in key for t in forbidden)
+    walk(v)
   elif isinstance(x,list):
    for v in x: walk(v)
  walk(a)
