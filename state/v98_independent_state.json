@@ -1,41 +1,34 @@
 {
   "engine": "V98 Independent",
   "branch": "research/v98-independent-zero",
-  "phase": "phase_143_sp500_data_only",
+  "phase": "phase_145_vix_data_only",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
   "v99_benchmark_locked_until_final": true,
   "last_completed_experiment": {
-    "id": "phase_142_treasury_curve_steepening_strict_pit",
+    "id": "phase_144_sp500_risk_on",
     "status": "reject_no_rescue",
-    "report": "reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json",
-    "audit": "reports/v98_independent_phase142_rejection_mechanism_audit.md",
-    "failures": [
-      "2024_return<=0",
-      "2024_pf<1.02"
-    ]
-  },
-  "inadmissible_experiment": {
-    "id": "phase_141_treasury_curve_steepening_risk_on",
-    "status": "void_precondition_result_unread",
-    "governance_hold": "reports/v98_independent_phase141_governance_hold.md"
+    "report": "reports/v98_independent_phase144_sp500_risk_on.json",
+    "audit": "reports/v98_independent_phase144_rejection_audit.md",
+    "failures": ["2025_return<=0", "2025_pf<1.02"],
+    "diagnosis": "temporal instability; not cost-only or concentration/tail failure"
   },
   "current_experiment": {
-    "id": "phase_143_sp500_data_only",
-    "status": "preregistered_executor_pending",
-    "preregistration": "reports/v98_independent_phase143_sp500_data_only_prereg.md",
-    "executor": "scripts/v98_independent_phase143_sp500_data_only.py",
-    "authorization": "DATA_ONLY only; no economic Phase144 before persisted PASS_DATA_ONLY"
+    "id": "phase_145_vix_data_only",
+    "status": "preregistered_execution_pending",
+    "preregistration": "reports/v98_independent_phase145_vix_data_only_prereg.md",
+    "executor": "scripts/v98_independent_phase145_vix_data_only.py",
+    "authorization": "DATA_ONLY only; no economic Phase146 before persisted PASS_DATA_ONLY"
   },
   "validation_policy": {
     "window": "2026-01-01T00:00:00Z..2026-07-31T23:00:00Z",
-    "access": "only after Phase142 PASS_TRAINING and separate preregistration"
+    "access": "only after a frozen candidate passes training and separate preregistration"
   },
   "final_holdout_policy": {
     "old_phase083_window": "permanently opened/ineligible",
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
     "access": "forbidden until a frozen candidate passes training and separate validation"
   },
-  "next_action": "Persist Phase143 DATA_ONLY executor, run independent double acquisition and reproducibility/integrity gates, persist DATA_ONLY evidence; only PASS_DATA_ONLY may authorize a separately preregistered Phase144 economic hypothesis."
+  "next_action": "Harvest Phase145 VIX DATA_ONLY double-acquisition and invariant evidence. Only persisted PASS_DATA_ONLY may authorize a separately preregistered Phase146 economic hypothesis; no SP500 rescue/tuning."
 }
