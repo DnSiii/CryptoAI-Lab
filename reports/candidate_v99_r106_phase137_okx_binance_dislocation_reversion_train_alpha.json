@@ -8,7 +8,8 @@
   "precommitment": {
     "prereg": "research/v99_r106_phase137_okx_binance_dislocation_reversion_prereg.md",
     "source": "OKX public 1H USDT-SWAP + canonical Binance USD-M closes",
-    "feature": "log(Binance/OKX) minus rolling median168, divided by 1.4826*MAD168; -tanh; cross-sectional demean; complete score t-1; L1",
+    "feature": "log(Binance/OKX) minus rolling median168, divided by 1.4826*exact same-window MAD168; -tanh; cross-sectional demean; complete score t-1; L1",
+    "mad_definition": "median(abs(window - median(window))) on the same 168h spread window",
     "direction": "cross_venue_dislocation_mean_reversion",
     "lookback_hours": 168,
     "alpha_gross": 0.2,
@@ -94,12 +95,12 @@
     "stable_train": false,
     "quality_score": -1000000000.0,
     "train": {
-      "active_hours": 17549,
-      "roi": -0.9857715813379451,
-      "profit_factor": 0.26543752573591817,
-      "max_drawdown_abs": 0.9857624023628828,
-      "positive_hour_ratio": 0.23710752749444414,
-      "robust_mean_without_top1pct": -0.00026680305544362514
+      "active_hours": 18050,
+      "roi": -0.9865277104167834,
+      "profit_factor": 0.2725004808535934,
+      "max_drawdown_abs": 0.9865423370209684,
+      "positive_hour_ratio": 0.2398337950138504,
+      "robust_mean_without_top1pct": -0.00026373514429574253
     },
     "valid_folds": 4,
     "healthy_folds": 0,
@@ -110,12 +111,12 @@
         "end": "2022-06-13T11:00:00+00:00",
         "eligible": true,
         "healthy": false,
-        "active_hours": 3544,
-        "roi": -0.6005115245103679,
-        "profit_factor": 0.25830531721334804,
-        "max_drawdown_abs": 0.6000673707832065,
-        "positive_hour_ratio": 0.2443566591422122,
-        "robust_mean_without_top1pct": -0.0002803714196855702
+        "active_hours": 4045,
+        "roi": -0.6338017911751508,
+        "profit_factor": 0.2686361811127677,
+        "max_drawdown_abs": 0.634004051872264,
+        "positive_hour_ratio": 0.24969097651421507,
+        "robust_mean_without_top1pct": -0.00027008264297505454
       },
       {
         "fold": 2,
@@ -124,11 +125,11 @@
         "eligible": true,
         "healthy": false,
         "active_hours": 4668,
-        "roi": -0.6941167083664872,
-        "profit_factor": 0.29176412909872895,
-        "max_drawdown_abs": 0.6944482155140839,
-        "positive_hour_ratio": 0.24635818337617824,
-        "robust_mean_without_top1pct": -0.00028525732416734815
+        "roi": -0.6917338277067735,
+        "profit_factor": 0.30090229350713743,
+        "max_drawdown_abs": 0.6920289252322319,
+        "positive_hour_ratio": 0.24721508140531276,
+        "robust_mean_without_top1pct": -0.00028512010616665536
       },
       {
         "fold": 3,
@@ -137,11 +138,11 @@
         "eligible": true,
         "healthy": false,
         "active_hours": 4668,
-        "roi": -0.6485039519324506,
-        "profit_factor": 0.24823832371383966,
-        "max_drawdown_abs": 0.6498528585994248,
-        "positive_hour_ratio": 0.2300771208226221,
-        "robust_mean_without_top1pct": -0.0002457352693914383
+        "roi": -0.638895730774417,
+        "profit_factor": 0.2607816484893611,
+        "max_drawdown_abs": 0.6403556441391774,
+        "positive_hour_ratio": 0.23564695801199656,
+        "robust_mean_without_top1pct": -0.0002412392038512906
       },
       {
         "fold": 4,
@@ -150,11 +151,11 @@
         "eligible": true,
         "healthy": false,
         "active_hours": 4669,
-        "roi": -0.6687345224396377,
-        "profit_factor": 0.2578639908094845,
-        "max_drawdown_abs": 0.6682022839402237,
-        "positive_hour_ratio": 0.22938530734632684,
-        "robust_mean_without_top1pct": -0.0002588358730169805
+        "roi": -0.669503624719705,
+        "profit_factor": 0.254774209386313,
+        "max_drawdown_abs": 0.6689649136103075,
+        "positive_hour_ratio": 0.22810023559648748,
+        "robust_mean_without_top1pct": -0.000258915416330108
       }
     ]
   },
