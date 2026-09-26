@@ -1,0 +1,44 @@
+{
+  "engine": "V98 Independent",
+  "phase": "149",
+  "name": "WTI crude oil DATA_ONLY",
+  "status": "PREREGISTERED_BEFORE_DATA_INSPECTION",
+  "scientific_role": "orthogonal commodity/global-growth and inflation input; no economic crypto use in this phase",
+  "source": {
+    "provider": "FRED",
+    "series": "DCOILWTICO",
+    "description": "Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma",
+    "frequency_expected": "daily business-day observations"
+  },
+  "training_window": {
+    "start": "2023-01-01",
+    "end": "2025-12-31"
+  },
+  "data_only_gates": {
+    "two_independent_acquisitions_required": true,
+    "sha256_over_canonical_date_value_rows_must_match": true,
+    "strictly_increasing_unique_dates": true,
+    "finite_positive_values": true,
+    "global_expected_weekday_coverage_min": 0.95,
+    "annual_expected_weekday_coverage_min": 0.95,
+    "zero_imputation": true,
+    "malformed_rows_allowed": 0,
+    "out_of_window_rows_allowed": 0
+  },
+  "economic_firewall": {
+    "crypto_returns_forbidden": true,
+    "correlation_forbidden": true,
+    "pnl_forbidden": true,
+    "signal_direction_forbidden": true,
+    "parameter_search_forbidden": true
+  },
+  "governance": {
+    "phase148": "REJECT_NO_RESCUE",
+    "phase150_blocked_until": "phase149 PASS_DATA_ONLY",
+    "validation": "UNTOUCHED",
+    "final_holdout": "UNTOUCHED",
+    "v16_used": false,
+    "v99_used": false,
+    "rescue_allowed": false
+  }
+}
