@@ -1,0 +1,34 @@
+{
+  "engine": "V98 Independent",
+  "phase": "158",
+  "kind": "DATA_ONLY",
+  "status": "PREREGISTERED",
+  "family": "orthogonal_macro_financial_stress",
+  "series": "STLFSI4",
+  "source": "FRED",
+  "window": ["2023-01-01", "2025-12-31"],
+  "rationale": "Inspect a genuinely orthogonal broad financial-stress data family without using Phase157 economic outcomes for parameter, sign, or threshold selection.",
+  "data_contract": {
+    "frequency_expected": "weekly",
+    "double_acquisition_required": true,
+    "canonical_sha256_required": true,
+    "duplicate_dates_zero": true,
+    "malformed_dates_zero": true,
+    "out_of_window_zero": true,
+    "missing_policy": "no imputation/no carry-forward",
+    "minimum_global_weekly_coverage": 0.95,
+    "minimum_annual_weekly_coverage": 0.90
+  },
+  "economic_firewall": {
+    "crypto_returns_loaded": false,
+    "crypto_pnl_loaded": false,
+    "correlation_inspected": false,
+    "economic_direction_selected": false,
+    "threshold_selected": false,
+    "validation_opened": false,
+    "final_holdout_opened": false,
+    "v16_used": false,
+    "v99_used": false
+  },
+  "next_if_pass": "Only after PASS_DATA_ONLY may one scientifically justified economic hypothesis be preregistered before inspecting crypto outcomes; no threshold/lookback/sign search or rescue."
+}
