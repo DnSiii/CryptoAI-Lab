@@ -1,0 +1,46 @@
+{
+  "phase": "144",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "family": "SP500 cross-asset risk-on",
+  "dependency": {
+    "phase143_required_decision": "PASS_DATA_ONLY",
+    "phase143_observations_sha256": "be8a8c82889b635abceaf71e517ae5c339c0ef8ec8e7be0fb1931c07ae56a734"
+  },
+  "scientific_hypothesis": "A broad US-equity risk-on state may identify periods in which an independent long-only crypto basket has positive net expectancy without using crypto outcomes to define the state.",
+  "signal_contract": {
+    "source_series": "SP500",
+    "accepted_observation_lookback": 20,
+    "state": "SP500_t > SP500_t_minus_20 => risk_on; otherwise flat",
+    "economic_use_lag_calendar_days": 1,
+    "portfolio": "equal-weight long BTCUSDT ETHUSDT BNBUSDT XRPUSDT SOLUSDT when risk_on; flat otherwise",
+    "target_gross": 0.45,
+    "hard_gross_cap": 0.50,
+    "rebalance": "only when lagged risk_on state changes; constituent availability respected causally"
+  },
+  "evaluation": {
+    "training_only_years": [2023, 2024, 2025],
+    "chronological_folds": [2023, 2024, 2025],
+    "validation": null,
+    "final_holdout": null,
+    "metrics_required": ["total_return", "max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "negative_days", "worst_day", "best_day", "p01_day", "p05_day", "cvar05_day", "turnover_sum"],
+    "stress_required": ["base_realistic_costs_and_funding", "severe_costs", "supersevere_costs"],
+    "audits_required": ["regime_attribution", "year_concentration", "tail_concentration", "future_input_invariance", "deterministic_replay"]
+  },
+  "training_gate_frozen": {
+    "each_year_total_return_gt": 0.0,
+    "each_year_profit_factor_daily_gte": 1.02,
+    "full_training_profit_factor_daily_gte": 1.05,
+    "severe_total_return_gt": 0.0,
+    "supersevere_total_return_gt": 0.0,
+    "ruin": false
+  },
+  "anti_overfit": {
+    "parameter_search": false,
+    "rescue_allowed": false,
+    "phase143_values_may_not_be_used_to_change_contract": true,
+    "v16_used": false,
+    "v99_used": false,
+    "validation_or_holdout_selection": false,
+    "if_gate_fails": "REJECT_NO_RESCUE"
+  }
+}
