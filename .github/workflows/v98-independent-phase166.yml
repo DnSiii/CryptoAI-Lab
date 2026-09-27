@@ -20,18 +20,30 @@ jobs:
           python scripts/v98_independent_phase166_hy_spread_reacquisition.py > /tmp/b.json
           cmp /tmp/a.json /tmp/b.json
           cp /tmp/a.json reports/v98_independent_phase166_hy_spread_reacquisition.json
-      - name: Enforce data-only invariants
+      - name: Audit data-only invariants
         run: |
           python - <<'PY'
           import json
           p=json.load(open('reports/v98_independent_phase166_hy_spread_reacquisition.json'))
           assert p['phase']=='166' and p['kind']=='DATA_ONLY' and p['economic_firewall']
-          assert p['status']=='PASS_DATA_ONLY' and all(p['gates'].values())
+          assert p['status'] in {'PASS_DATA_ONLY','REJECT_DATA_QUALITY_NO_RESCUE'}
           assert p['sha256'][0]==p['sha256'][1]
-          assert p['coverage']>=.95 and min(p['annual_coverage'].values())>=.90
+          assert p['qa']['duplicate_dates']==0 and p['qa']['malformed_dates']==0
+          assert p['qa']['out_of_window_rows']==0 and p['qa']['nonfinite_values']==0 and p['qa']['negative_values']==0
+          expected='PASS_DATA_ONLY' if all(p['gates'].values()) else 'REJECT_DATA_QUALITY_NO_RESCUE'
+          assert p['status']==expected
           PY
       - name: Commit Phase166 evidence
         run: |
           git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f reports/v98_independent_phase166_hy_spread_reacquisition.json
           if git diff --cached --quiet; then echo no-evidence-change; else git commit -m 'v98: record phase166 HY spread reacquisition evidence'; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
+      - name: Enforce Phase166 promotion gate
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase166_hy_spread_reacquisition.json'))
+          if p['status']!='PASS_DATA_ONLY':
+              raise SystemExit('Phase166 remains rejected; evidence retained, no economic experiment permitted')
+          assert p['coverage']>=.95 and min(p['annual_coverage'].values())>=.90
+          PY
