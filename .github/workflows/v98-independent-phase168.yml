@@ -1,10 +1,19 @@
 name: V98 Independent Phase168 TGA DATA_ONLY
 on:
   workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase168.yml'
+      - 'scripts/v98_independent_phase168_tga_data_only.py'
 permissions:
   contents: write
+concurrency:
+  group: v98-independent-phase168-tga-data-only
+  cancel-in-progress: false
 jobs:
   phase168:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
