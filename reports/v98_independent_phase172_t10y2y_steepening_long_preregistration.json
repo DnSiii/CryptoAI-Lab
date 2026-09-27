@@ -1,0 +1,49 @@
+{
+  "engine": "V98 Independent",
+  "phase": "172",
+  "kind": "ECONOMIC_PREREGISTRATION",
+  "dependency": {
+    "phase": "171",
+    "series": "T10Y2Y",
+    "status_required": "PASS_DATA_ONLY",
+    "sha256_required": "61a8716a12625cae8603095883ac2bc8daf2ac73dd4375f80b5a25f98eb5d275"
+  },
+  "hypothesis": "Treasury 10Y-2Y curve steepening is a macro-liquidity/risk-appetite condition; when the latest causally available daily T10Y2Y observation is greater than its immediately preceding valid observation, hold the fixed V98 Independent crypto basket long; otherwise flat.",
+  "signal_contract": {
+    "direction": "delta(T10Y2Y) > 0 => long; else flat",
+    "threshold": 0.0,
+    "lookback_valid_observations": 1,
+    "economic_use_lag_days": 1,
+    "missing_observation_policy": "no interpolation/no imputation/no carry-forward; signal changes only from two actual consecutive valid observations and becomes usable one calendar day after the newer observation date",
+    "assets": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT"],
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "weights": "equal among available preregistered basket assets"
+  },
+  "training_window": ["2023-01-01", "2025-12-31"],
+  "chronological_folds": ["2023", "2024", "2025"],
+  "validation": "CLOSED_UNTIL_TRAINING_GATE_PASS",
+  "final_holdout": "UNTOUCHED",
+  "required_metrics": ["total_return", "cagr", "max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "negative_days", "turnover_sum", "p01_day", "p05_day", "cvar05_day", "best_day", "worst_day"],
+  "required_audits": ["chronological_fold_consistency", "base_costs", "severe_costs", "supersevere_costs", "regime_analysis", "asset_contribution_concentration", "top_bottom_tail_concentration", "reproducibility", "causality_no_lookahead"],
+  "training_gate": {
+    "all_year_returns_gt_0": true,
+    "all_year_profit_factor_gt_1": true,
+    "aggregate_return_gt_0": true,
+    "aggregate_profit_factor_gt_1": true,
+    "severe_return_gt_0": true,
+    "supersevere_return_gt_0": true,
+    "ruin_false": true
+  },
+  "anti_overfit": {
+    "parameter_search": false,
+    "threshold_search": false,
+    "lookback_search": false,
+    "rescue_allowed": false,
+    "v16_used": false,
+    "v99_used": false,
+    "validation_used_for_selection": false,
+    "holdout_used_for_selection": false
+  },
+  "status": "PREREGISTERED_NOT_RUN"
+}
