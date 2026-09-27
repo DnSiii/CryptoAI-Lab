@@ -9,7 +9,7 @@ from cryptoai_v13.data import load_data,validate_data
 import v98_independent_phase003_dispersion_neutral as p3
 import v98_independent_phase168_tga_data_only as p168
 CFG=PROJECT/'config'/'v98_independent.json';PRE=PROJECT/'reports'/'v98_independent_phase169_tga_drawdown_long_preregistration.json';P168=PROJECT/'reports'/'v98_independent_phase168_tga_data_only.json';OUT=PROJECT/'reports'/'v98_independent_phase169_tga_drawdown_long.json'
-ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'];LAG_DAYS=1;TARGET=.30;CAP=.35
+ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'];LAG_DAYS=2;TARGET=.30;CAP=.35
 
 def load_macro():
  rows,qa=p168.parse(p168.acquire());g=json.loads(P168.read_text());assert g['status']=='PASS_DATA_ONLY'
@@ -31,7 +31,7 @@ def asset_share(data,t,a,b):
  x=(t.shift(1)*data.close.pct_change(fill_method=None)).loc[a:b,ASSETS].sum().fillna(0.);den=float(x.abs().sum());return {k:(float(v/den) if den else 0.) for k,v in x.items()}
 
 def main():
- pre=json.loads(PRE.read_text());assert pre['phase']=='169';ao=pre['anti_overfit'];assert not any(ao[k] for k in ('parameter_search','threshold_search','lookback_search','sign_flip_allowed','rescue_allowed','v16_used','v99_used'))
+ pre=json.loads(PRE.read_text());assert pre['phase']=='169' and pre['signal']['economic_use_lag_days']==LAG_DAYS;ao=pre['anti_overfit'];assert not any(ao[k] for k in ('parameter_search','threshold_search','lookback_search','sign_flip_allowed','rescue_allowed','v16_used','v99_used'))
  s,h=load_macro();assert h==pre['dependency']['observations_sha256'];cfg=json.loads(CFG.read_text());data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5]
  t=targets(data,s);a=cfg['folds'][0]['start'];b=cfg['training_end'];rs={z:ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base']
  train=p3.metrics(base,a,b);folds={f['name']:p3.metrics(base,f['start'],f['end']) for f in cfg['folds']};stress={z:p3.metrics(rs[z],a,b) for z in ('severe','supersevere')}
@@ -47,6 +47,6 @@ def main():
   if stress[z]['total_return']<=0:fail.append(f'{z}_return<=0')
   if stress[z]['profit_factor_daily']<=1:fail.append(f'{z}_pf<=1')
  if max_open>CAP+1e-12:fail.append('max_open_gross>0.35')
- report={'engine':'V98 Independent','phase':'169','hypothesis':'weekly TGA drawdown liquidity long crypto basket after 1d lag','preregistration':str(PRE.relative_to(PROJECT)),'phase168_dependency':{'status':'PASS_DATA_ONLY','hash':h,'reacquisition_hash_verified':True},'signal_contract':{'direction':'weekly WTREGEN change < 0 => long; else flat','threshold':0.0,'economic_use_lag_days':LAG_DAYS,'target_gross':TARGET,'hard_gross_cap':CAP,'assets':ASSETS},'activation_training':activation,'training':train,'folds':folds,'stress_training':stress,'regimes_training':p3.regime_metrics(base,data,a,b,b),'concentration_training':p3.concentration_metrics(base,a,b),'asset_contribution_share':shares,'tails_training':{'top10_positive_day_share':top10,'bottom10_negative_day_share':bottom10,'p01_day':train['p01_day'],'p05_day':train['p05_day'],'cvar05_day':train['cvar05_day'],'worst_day':train['worst_day'],'best_day':train['best_day']},'max_open_gross':max_open,'max_close_gross':max_close,'validation':None,'final_holdout':None,'parameter_search':False,'threshold_search':False,'lookback_search':False,'rescue_allowed':False,'v16_used':False,'v99_used':False,'gate':{'passed':not fail,'decision':'PASS_TRAINING' if not fail else 'REJECT_NO_RESCUE','failures':fail}}
+ report={'engine':'V98 Independent','phase':'169','hypothesis':'weekly TGA drawdown liquidity long crypto basket after publication-safe 2d lag','preregistration':str(PRE.relative_to(PROJECT)),'phase168_dependency':{'status':'PASS_DATA_ONLY','hash':h,'reacquisition_hash_verified':True},'signal_contract':{'direction':'weekly WTREGEN change < 0 => long; else flat','threshold':0.0,'economic_use_lag_days':LAG_DAYS,'target_gross':TARGET,'hard_gross_cap':CAP,'assets':ASSETS},'activation_training':activation,'training':train,'folds':folds,'stress_training':stress,'regimes_training':p3.regime_metrics(base,data,a,b,b),'concentration_training':p3.concentration_metrics(base,a,b),'asset_contribution_share':shares,'tails_training':{'top10_positive_day_share':top10,'bottom10_negative_day_share':bottom10,'p01_day':train['p01_day'],'p05_day':train['p05_day'],'cvar05_day':train['cvar05_day'],'worst_day':train['worst_day'],'best_day':train['best_day']},'max_open_gross':max_open,'max_close_gross':max_close,'validation':None,'final_holdout':None,'parameter_search':False,'threshold_search':False,'lookback_search':False,'rescue_allowed':False,'v16_used':False,'v99_used':False,'gate':{'passed':not fail,'decision':'PASS_TRAINING' if not fail else 'REJECT_NO_RESCUE','failures':fail}}
  OUT.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n');print(json.dumps(report,indent=2,sort_keys=True))
 if __name__=='__main__':main()
