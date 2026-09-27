@@ -1,0 +1,40 @@
+{
+  "engine": "V98 Independent",
+  "phase": "169",
+  "kind": "ECONOMIC_PREREGISTRATION",
+  "hypothesis": "A weekly decline in the US Treasury General Account releases net Treasury cash into the private system and may support crypto risk assets; after a strict one-day causal lag, hold a fixed equal-weight long crypto basket when WTREGEN weekly change is negative, otherwise remain flat.",
+  "dependency": {
+    "phase": "168",
+    "series": "WTREGEN",
+    "status_required": "PASS_DATA_ONLY",
+    "observations_sha256": "091f89b5a00b0cf18fb068e03917d483c206afc88f5f441afc20cb24cb9b7684"
+  },
+  "signal": {
+    "transform": "native weekly first difference only",
+    "rule": "WTREGEN_t - WTREGEN_t-1 < 0 => long; else flat",
+    "threshold": 0.0,
+    "economic_use_lag_days": 1,
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "assets": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT"]
+  },
+  "evaluation": {
+    "scope": "training folds only",
+    "chronological_folds_required": true,
+    "validation": "closed",
+    "final_holdout": "closed",
+    "costs": ["base", "severe", "supersevere"],
+    "required": ["max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "regimes", "concentration", "tails", "asset_contribution", "reproducibility"]
+  },
+  "promotion_gate": "aggregate and every chronological training fold must have total_return > 0 and profit_factor_daily > 1; severe and supersevere aggregate must also have total_return > 0 and profit_factor_daily > 1; hard gross cap must hold",
+  "anti_overfit": {
+    "parameter_search": false,
+    "threshold_search": false,
+    "lookback_search": false,
+    "sign_flip_allowed": false,
+    "rescue_allowed": false,
+    "v16_used": false,
+    "v99_used": false
+  },
+  "decision_if_fail": "REJECT_NO_RESCUE"
+}
