@@ -1,0 +1,107 @@
+{
+  "study": "V99 R106 Phase161 cross-asset funding-acceleration dispersion REVERSION TRAIN-only",
+  "status": "TRAIN_ALPHA_REJECT",
+  "precommitment": {
+    "lookback_valid_events": 168,
+    "direction": "reversion",
+    "difference_order": 2,
+    "no_grid": true,
+    "no_sign_flip": true,
+    "no_rescue": true,
+    "holdout_rows_used_for_feature_construction": 0,
+    "holdout_rows_used_for_selection": 0
+  },
+  "causality_invariants": {
+    "previous_funding_strictly_prior": true,
+    "normalizer_history_shift_events": 1,
+    "execution_lag_hours": 1,
+    "post_train_targets_zero": true,
+    "max_l1": 1.0000000000000002
+  },
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 15966,
+      "roi": -0.4784339760069255,
+      "profit_factor": 0.8985810313310714,
+      "max_drawdown_abs": 0.5083680068906365,
+      "positive_hour_ratio": 0.46786922209695603,
+      "robust_mean_without_top1pct": -0.00010852884486049495
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 3149,
+        "roi": -0.08410479873645393,
+        "profit_factor": 0.9448387563400087,
+        "max_drawdown_abs": 0.13234519923695065,
+        "positive_hour_ratio": 0.4766592569069546,
+        "robust_mean_without_top1pct": -0.00010926493107015618
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4653,
+        "roi": -0.18161151919032958,
+        "profit_factor": 0.8971798552514737,
+        "max_drawdown_abs": 0.19079197379940416,
+        "positive_hour_ratio": 0.46765527616591446,
+        "robust_mean_without_top1pct": -0.0001240148815451983
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4317,
+        "roi": -0.1734205130864317,
+        "profit_factor": 0.8824258400328635,
+        "max_drawdown_abs": 0.18209494815170468,
+        "positive_hour_ratio": 0.4720870975214269,
+        "robust_mean_without_top1pct": -9.756867365341893e-05
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 3847,
+        "roi": -0.15817973157708798,
+        "profit_factor": 0.8659753086444975,
+        "max_drawdown_abs": 0.19574200542336406,
+        "positive_hour_ratio": 0.45619963608006237,
+        "robust_mean_without_top1pct": -9.931206270708108e-05
+      }
+    ]
+  },
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "selected_train_only": null,
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ],
+  "metadata": {
+    "parent_candidate": "CryptoAI V14 \u00b7 M\u00e1xima Captura",
+    "persistent_universe_size": 159,
+    "ready_universe_size": 157,
+    "liquid_top_n": 30,
+    "latest_direction_regime": "bear",
+    "allocated_opportunity_gross": 0.225
+  }
+}
