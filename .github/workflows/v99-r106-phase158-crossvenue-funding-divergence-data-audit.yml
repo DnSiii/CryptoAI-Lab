@@ -26,7 +26,8 @@ jobs:
           p=Path('scripts/run_v99_r106_phase158_crossvenue_funding_divergence_data_audit.py').read_text(); q=Path('research/v99_r106_phase158_crossvenue_funding_divergence_data_prereg.md').read_text()
           assert 'DATA-ONLY' in q and 'No PnL is computed' in q and '95%' in q and '90%' in q
           assert "'pnl_computed':False" in p and "'holdout_rows_used_for_feature_construction':0" in p and "'v99_frozen':True" in p
-          print('Phase158 data-only frozen contract PASS')
+          assert 'data.binance.vision' in p and 'fapi.binance.com' not in p
+          print('Phase158 data-only frozen contract + archive transport PASS')
           PY
       - name: Run Phase158 orthogonal funding data audit
         run: python scripts/run_v99_r106_phase158_crossvenue_funding_divergence_data_audit.py
@@ -37,6 +38,7 @@ jobs:
           x=json.load(open('reports/candidate_v99_r106_phase158_crossvenue_funding_divergence_data_audit.json'))
           assert x['pnl_computed'] is False and x['holdout_rows_used_for_feature_construction']==0 and x['holdout_rows_used_for_selection']==0
           assert x['frozen_assets_untouched']=={'v16':True,'v99_frozen':True} and len(x['assets'])==5
+          assert 'data.binance.vision' in x['binance_transport']
           print(x['status'])
           PY
       - name: Commit DATA evidence
