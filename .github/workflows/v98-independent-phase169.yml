@@ -36,7 +36,7 @@ jobs:
           assert p['phase168_dependency']['hash']=='091f89b5a00b0cf18fb068e03917d483c206afc88f5f441afc20cb24cb9b7684'
           assert p['validation'] is None and p['final_holdout'] is None
           assert not p['parameter_search'] and not p['threshold_search'] and not p['lookback_search'] and not p['rescue_allowed'] and not p['v16_used'] and not p['v99_used']
-          assert p['max_open_gross'] <= .350000000001 and p['signal_contract']['economic_use_lag_days']==1 and p['signal_contract']['threshold']==0.0
+          assert p['max_open_gross'] <= .350000000001 and p['signal_contract']['economic_use_lag_days']==2 and p['signal_contract']['threshold']==0.0
           required=('total_return','max_drawdown','profit_factor_daily','payoff_daily','win_rate_daily','positive_days','negative_days','worst_day','best_day','p01_day','p05_day','cvar05_day','turnover_sum')
           for k in required: assert k in p['training']
           assert set(p['stress_training'])=={'severe','supersevere'} and len(p['folds'])>=3 and p['regimes_training'] and p['concentration_training'] and p['tails_training'] and 'activation_training' in p
