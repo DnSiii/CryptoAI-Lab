@@ -1,0 +1,25 @@
+{
+  "engine": "V98 Independent",
+  "phase": "170",
+  "kind": "ORTHOGONAL_SOURCE_FEASIBILITY_AUDIT",
+  "candidate_family": "US Treasury implied volatility / MOVE",
+  "economic_firewall": true,
+  "sources_checked": [
+    {
+      "source": "ICE Data Indices MOVE Index",
+      "finding": "Official ICE documentation identifies the ICE BofA U.S. Bond Market Option Volatility Estimate (MOVE) Index as a US fixed-income volatility index with historical daily data available through licensed ICE delivery mechanisms."
+    },
+    {
+      "source": "Yahoo Finance ^MOVE",
+      "finding": "Current public quote page labels ^MOVE as 'Northern Trust iBoxx 5-Year Tar', not the ICE BofA MOVE Index. The symbol therefore fails semantic-identity verification for this research use."
+    }
+  ],
+  "decision": "REJECT_PUBLIC_PROXY_IDENTITY_MISMATCH",
+  "reason": "A ticker-name collision / reassignment creates unacceptable semantic data risk. No acquisition, backfill, proxy substitution, economic test, threshold search, or sign test is allowed from this source.",
+  "rescue_allowed": false,
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false,
+  "next": "Use a genuinely independent, publicly reproducible macro series with verifiable identity; preregister DATA_ONLY before any economic inspection."
+}
