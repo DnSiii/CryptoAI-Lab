@@ -35,6 +35,7 @@ jobs:
           assert 'BEFORE ANY Phase165 PnL' in q and 'DATA ONLY' in q
           assert "'pnl_computed':False" in p
           assert "'holdout_rows_used_for_feature_construction':0" in p
+          assert '/daily/metrics' in p and '.CHECKSUM' in p
           PY
       - name: Run frozen Phase165 DATA-only audit
         run: python scripts/run_v99_r106_phase165_open_interest_data_audit.py
@@ -53,6 +54,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add reports/candidate_v99_r106_phase165_open_interest_data_audit.json
-          git diff --cached --quiet || git commit -m 'Record V99 R106 Phase165 open-interest DATA audit'
+          git diff --cached --quiet || git commit -m 'Record repaired V99 R106 Phase165 daily OI DATA audit'
           git pull --rebase origin research/v99-r106-native-all-regime-engine
           git push origin HEAD:research/v99-r106-native-all-regime-engine
