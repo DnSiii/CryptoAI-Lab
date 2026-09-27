@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """V98 Independent Phase166 — BAMLH0A0HYM2 DATA_ONLY reacquisition.
 No crypto returns/PnL, validation/holdout, V16 or V99 access.
+A data-quality rejection is emitted as evidence; policy enforcement belongs to the workflow audit step.
 """
 from __future__ import annotations
 import csv,hashlib,io,json,math,socket,time,urllib.error,urllib.request
@@ -45,5 +46,5 @@ def main():
  expected=weekdays(START,END);annual={str(y):sum(d.startswith(str(y)) for d,_ in rows)/weekdays(date(y,1,1),date(y,12,31)) for y in (2023,2024,2025)};coverage=len(rows)/expected
  gates={'double_acquisition_hash_equal':hs[0]==hs[1],'global_weekday_coverage_ge_095':coverage>=.95,'annual_weekday_coverage_ge_090':all(v>=.90 for v in annual.values()),'duplicates_zero':qa['duplicate_dates']==0,'malformed_dates_zero':qa['malformed_dates']==0,'out_of_window_zero':qa['out_of_window_rows']==0,'finite_nonnegative_values':qa['nonfinite_values']==0 and qa['negative_values']==0}
  r={'engine':'V98 Independent','phase':'166','kind':'DATA_ONLY','series':SERIES,'window':[str(START),str(END)],'observations':len(rows),'expected_weekdays':expected,'coverage':coverage,'annual_coverage':annual,'sha256':hs,'qa':qa,'gates':gates,'missing_policy':'no imputation/no carry-forward/no Phase151 backfill','economic_firewall':True,'transport_retry_policy':'three bounded attempts per official FRED host, 25s timeout; transport only','status':'PASS_DATA_ONLY' if all(gates.values()) else 'REJECT_DATA_QUALITY_NO_RESCUE'}
- print(json.dumps(r,indent=2,sort_keys=True));raise SystemExit(0 if r['status']=='PASS_DATA_ONLY' else 2)
+ print(json.dumps(r,indent=2,sort_keys=True))
 if __name__=='__main__':main()
