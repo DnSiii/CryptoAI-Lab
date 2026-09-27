@@ -1,0 +1,142 @@
+{
+  "study": "V99 R106 Phase158 \u2014 CROSS-VENUE FUNDING DIVERGENCE DATA-ONLY AUDIT",
+  "status": "FAIL_DATA_ONLY",
+  "train_start": "2021-12-01 00:00:00+00:00",
+  "train_end_exclusive": "2024-01-18 00:00:00+00:00",
+  "binance_transport": "data.binance.vision monthly fundingRate archives (deterministic public archive fallback after independently observed fapi HTTP 451)",
+  "assets": {
+    "BTCUSDT": {
+      "okx": {
+        "rows": 0,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 0.0,
+        "requests": 1,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "binance": {
+        "rows": 2334,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 1.0,
+        "requests": 26,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "aligned_within_60m": 0,
+      "aligned_coverage_of_smaller": 0.0,
+      "pass": false
+    },
+    "ETHUSDT": {
+      "okx": {
+        "rows": 0,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 0.0,
+        "requests": 1,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "binance": {
+        "rows": 2334,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 1.0,
+        "requests": 26,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "aligned_within_60m": 0,
+      "aligned_coverage_of_smaller": 0.0,
+      "pass": false
+    },
+    "SOLUSDT": {
+      "okx": {
+        "rows": 0,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 0.0,
+        "requests": 1,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "binance": {
+        "rows": 2409,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 1.032133676092545,
+        "requests": 26,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "aligned_within_60m": 0,
+      "aligned_coverage_of_smaller": 0.0,
+      "pass": false
+    },
+    "XRPUSDT": {
+      "okx": {
+        "rows": 0,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 0.0,
+        "requests": 1,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "binance": {
+        "rows": 2334,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 1.0,
+        "requests": 26,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "aligned_within_60m": 0,
+      "aligned_coverage_of_smaller": 0.0,
+      "pass": false
+    },
+    "DOGEUSDT": {
+      "okx": {
+        "rows": 0,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 0.0,
+        "requests": 1,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "binance": {
+        "rows": 2334,
+        "expected_8h_events": 2334,
+        "coverage_vs_8h": 1.0,
+        "requests": 26,
+        "missing_monthly_archives": [],
+        "strictly_increasing": true,
+        "all_finite": true,
+        "inside_train": true
+      },
+      "aligned_within_60m": 0,
+      "aligned_coverage_of_smaller": 0.0,
+      "pass": false
+    }
+  },
+  "holdout_rows_used_for_feature_construction": 0,
+  "holdout_rows_used_for_selection": 0,
+  "pnl_computed": false,
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "decision": "Data source fails frozen integrity gates; no alpha test permitted."
+}
