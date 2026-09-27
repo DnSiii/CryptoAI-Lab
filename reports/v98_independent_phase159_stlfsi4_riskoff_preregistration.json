@@ -1,0 +1,40 @@
+{
+  "engine": "V98 Independent",
+  "phase": "159",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "hypothesis": "Above-zero STLFSI4 denotes broad financial stress and predicts adverse crypto risk appetite; short the equal-weight crypto basket only after a conservative 7-day availability lag.",
+  "dependency": {
+    "phase": "158",
+    "series": "STLFSI4",
+    "status": "PASS_DATA_ONLY",
+    "observations_sha256": "b65ded8f03b0797d87b374db98d2411d96b81b06811e031d0bbd30ecb21dc296"
+  },
+  "signal": {
+    "rule": "STLFSI4_t > 0 => short; else flat",
+    "threshold": 0.0,
+    "economic_use_lag_days": 7,
+    "missing_policy": "no imputation/no carry-forward",
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "assets": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT"]
+  },
+  "rationale": "Zero is the index's economically natural stress boundary, not a sample-fitted quantile. Seven calendar days is deliberately conservative for weekly macro availability and prevents same-observation-date use.",
+  "evaluation": {
+    "scope": "training folds only",
+    "chronological_folds": true,
+    "validation": "CLOSED",
+    "final_holdout": "CLOSED",
+    "costs": ["base", "severe", "supersevere"],
+    "required": ["total_return", "max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "regimes", "concentration", "tails", "asset_contribution", "deterministic_replay"]
+  },
+  "gate": "Aggregate and every chronological fold must have return > 0 and daily PF > 1 under base costs; aggregate severe and supersevere must each have return > 0 and daily PF > 1; gross cap and invariants must pass.",
+  "anti_overfit": {
+    "parameter_search": false,
+    "threshold_search": false,
+    "lookback_search": false,
+    "sign_flip_allowed": false,
+    "rescue_allowed": false,
+    "v16_used": false,
+    "v99_used": false
+  }
+}
