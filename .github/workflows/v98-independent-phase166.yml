@@ -1,0 +1,37 @@
+name: V98 Independent Phase166
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['scripts/v98_independent_phase166_hy_spread_reacquisition.py','.github/workflows/v98-independent-phase166.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency: {group: v98-independent-phase166, cancel-in-progress: false}
+jobs:
+  data-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Double execution and reproducibility
+        run: |
+          python scripts/v98_independent_phase166_hy_spread_reacquisition.py > /tmp/a.json
+          python scripts/v98_independent_phase166_hy_spread_reacquisition.py > /tmp/b.json
+          cmp /tmp/a.json /tmp/b.json
+          cp /tmp/a.json reports/v98_independent_phase166_hy_spread_reacquisition.json
+      - name: Enforce data-only invariants
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase166_hy_spread_reacquisition.json'))
+          assert p['phase']=='166' and p['kind']=='DATA_ONLY' and p['economic_firewall']
+          assert p['status']=='PASS_DATA_ONLY' and all(p['gates'].values())
+          assert p['sha256'][0]==p['sha256'][1]
+          assert p['coverage']>=.95 and min(p['annual_coverage'].values())>=.90
+          PY
+      - name: Commit Phase166 evidence
+        run: |
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f reports/v98_independent_phase166_hy_spread_reacquisition.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m 'v98: record phase166 HY spread reacquisition evidence'; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
