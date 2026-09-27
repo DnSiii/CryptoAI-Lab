@@ -22,7 +22,6 @@ def main():
  assert 'PREREGISTERED BEFORE PnL' in q and 'REVERSION only' in q and 'trailing 168 funding-event observations shifted by one event' in q
  assert da['status']=='PASS_DATA_ONLY' and da['cross_section_coverage']>=.90 and da['pnl_computed'] is False
  ser={s:d159.load(s)[0] for s in SYMS}; ev=sorted(set().union(*(set(x.index) for x in ser.values())))
- # At each native event use only observations timestamped <= event and no more than 60m old. Never nearest-future.
  rows=[]
  for t in ev:
   r={}
@@ -37,11 +36,10 @@ def main():
   hist=disp[s].shift(1); med=hist.rolling(LOOKBACK,min_periods=LOOKBACK).median(); mad=exact_mad(hist,LOOKBACK)
   z[s]=(disp[s]-med)/(1.4826*mad).where(mad>1e-12)
  score=-z
- # Bounded cross-sectional allocator at native funding events; no threshold/grid/asset deletion.
  w=score.div(score.abs().sum(axis=1).replace(0,np.nan),axis=0).fillna(0)
  cfg,data,rawv,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup()
  hourly=pd.date_range(START,END-pd.Timedelta(hours=1),freq='h',tz='UTC')
- # Funding known at event t can first affect the next hourly bar: ffill event state, then exact one-hour causal lag.
+ # Causal invariant: current funding state cannot execute until the following hourly bar.
  wh=w.reindex(w.index.union(hourly)).sort_index().ffill().reindex(hourly).shift(1).fillna(0)
  targets=pd.DataFrame(0.,index=data.close.index,columns=data.close.columns); common=targets.index.intersection(wh.index)
  use=[s for s in SYMS if s in targets.columns]; targets.loc[common,use]=wh.loc[common,use]
