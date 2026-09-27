@@ -1,0 +1,57 @@
+name: V99 R106 Phase159 Cross-Asset Funding Dispersion TRAIN Alpha
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'scripts/run_v99_r106_phase159_crossasset_funding_dispersion_train_alpha.py'
+      - '.github/workflows/v99-r106-phase159-crossasset-funding-dispersion-train-alpha.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v99-r106-phase159-funding-alpha
+  cancel-in-progress: false
+jobs:
+  train-alpha:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: research/v99-r106-native-all-regime-engine, fetch-depth: 0}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - run: python -m pip install 'numpy>=1.26,<3' 'pandas>=2.2,<3' pyyaml requests
+      - name: Assert frozen contract and DATA pass
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          q=Path('research/v99_r106_phase159_crossasset_funding_dispersion_prereg.md').read_text()
+          d=json.load(open('reports/candidate_v99_r106_phase159_crossasset_funding_dispersion_data_audit.json'))
+          p=Path('scripts/run_v99_r106_phase159_crossasset_funding_dispersion_train_alpha.py').read_text()
+          assert d['status']=='PASS_DATA_ONLY' and d['pnl_computed'] is False
+          assert 'REVERSION only' in q and 'No holdout rows' in q
+          assert "shift(1).fillna(0)" in p and "future_nearest_match_forbidden':True" in p
+          PY
+      - name: Run frozen Phase159 TRAIN alpha
+        run: python scripts/run_v99_r106_phase159_crossasset_funding_dispersion_train_alpha.py
+      - name: Verify invariants
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/candidate_v99_r106_phase159_crossasset_funding_dispersion_train_alpha.json'))
+          assert x['precommitment']['holdout_rows_used_for_feature_construction']==0
+          assert x['precommitment']['holdout_rows_used_for_selection']==0
+          assert x['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
+          assert x['causality_invariants']['execution_lag_hours']==1 and x['causality_invariants']['max_l1']<=1.000000001
+          PY
+      - name: Commit evidence
+        if: always()
+        run: |
+          test -f reports/candidate_v99_r106_phase159_crossasset_funding_dispersion_train_alpha.json || exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/candidate_v99_r106_phase159_crossasset_funding_dispersion_train_alpha.json
+          git diff --cached --quiet || git commit -m 'Record V99 R106 Phase159 funding TRAIN alpha'
+          git pull --rebase origin research/v99-r106-native-all-regime-engine
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
