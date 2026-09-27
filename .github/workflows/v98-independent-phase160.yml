@@ -1,0 +1,35 @@
+name: V98 Independent Phase160 NFCI Data Only
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase160_nfci_data_only.py'
+      - 'reports/v98_independent_phase160_nfci_data_only_preregistration.json'
+      - '.github/workflows/v98-independent-phase160.yml'
+permissions:
+  contents: write
+jobs:
+  phase160-data-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run deterministic acquisition A
+        run: python scripts/v98_independent_phase160_nfci_data_only.py > /tmp/phase160_a.json
+      - name: Run deterministic acquisition B
+        run: python scripts/v98_independent_phase160_nfci_data_only.py > /tmp/phase160_b.json
+      - name: Reproducibility invariant
+        run: cmp /tmp/phase160_a.json /tmp/phase160_b.json
+      - name: Record V98-only evidence
+        run: |
+          cp /tmp/phase160_a.json reports/v98_independent_phase160_nfci_data_only.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase160_nfci_data_only.json
+          git diff --cached --quiet || git commit -m 'v98: record phase160 NFCI data-only evidence'
+          git push origin HEAD:research/v98-independent-zero
