@@ -28,6 +28,7 @@ def main():
         f,digest,n=p149.acquire(inst); expected=ph136['instruments'][inst]['normalized_full_rows_sha256']
         if digest!=expected: raise RuntimeError(f'{inst}: Phase136 hash mismatch')
         s,valid=expansion(f.high,f.low,f.close); cov=float(valid.mean()); integrity[inst]={'valid_rows':int(valid.sum()),'expected_rows':len(idx),'coverage':cov,'requests':n}
+        print(json.dumps({'phase153_integrity':'OKX','symbol':sym,'instrument':inst,'valid_rows':int(valid.sum()),'expected_rows':len(idx),'coverage':cov}),flush=True)
         if cov<.98: raise RuntimeError(f'{inst}: OKX valid coverage below 98%')
         okx[sym]=s; hashes[inst]=digest
     okx_f=pd.DataFrame(okx).reindex(idx)
@@ -36,10 +37,12 @@ def main():
     bf={}; bi={}
     for sym in MAP:
         s,valid=expansion(bh[sym],bl[sym],bc[sym]); cov=float(valid.mean()); bf[sym]=s; bi[sym]={'valid_rows':int(valid.sum()),'expected_rows':len(idx),'coverage':cov}
+        print(json.dumps({'phase153_integrity':'BINANCE','symbol':sym,'valid_rows':int(valid.sum()),'expected_rows':len(idx),'coverage':cov}),flush=True)
         if cov<.98: raise RuntimeError(f'{sym}: Binance valid coverage below 98%')
     bf=pd.DataFrame(bf,index=idx); aligned=okx_f.notna()&bf.notna()
     for sym,inst in MAP.items():
         cov=float(aligned[sym].mean()); integrity[inst]['aligned_valid_coverage']=cov
+        print(json.dumps({'phase153_integrity':'ALIGNED','symbol':sym,'instrument':inst,'coverage':cov}),flush=True)
         if cov<.98: raise RuntimeError(f'{sym}: aligned valid coverage below 98%')
     divergence=okx_f-bf; med=divergence.shift(1).rolling(LOOKBACK,min_periods=LOOKBACK).median(); mad=p149.exact_mad(divergence.shift(1),LOOKBACK)
     robust=(divergence-med)/(1.4826*mad).where(mad>1e-12); centered=robust.sub(robust.mean(axis=1),axis=0); score=(-centered).shift(1)
