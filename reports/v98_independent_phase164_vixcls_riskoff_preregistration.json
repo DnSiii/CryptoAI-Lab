@@ -1,0 +1,12 @@
+{
+  "engine": "V98 Independent",
+  "phase": "164",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "hypothesis": "A VIX close above the fixed, conventional 30-point high-stress boundary denotes acute equity-market fear and predicts adverse crypto risk appetite; short the equal-weight crypto basket only after a conservative 1-calendar-day availability lag.",
+  "dependency": {"phase":"163","series":"VIXCLS","status":"PASS_DATA_ONLY","observations_sha256":"cd92e7a9b2d2e4eb5ad175e654839a79718f135241877c0606b84c6cf9d85bd3"},
+  "signal": {"rule":"VIXCLS_t >= 30 => short; else flat","threshold":30.0,"economic_use_lag_days":1,"raw_macro_missing_policy":"no imputation/no carry-forward of missing source observations","state_persistence":"after the 1-day lag, the latest actually observed daily state remains in force until the next lagged observed release","target_gross":0.30,"hard_gross_cap":0.35,"assets":["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","SOLUSDT"]},
+  "rationale":"30 is an ex-ante conventional high-volatility/stress boundary, not a quantile or threshold fitted to the 2023-2025 crypto sample. A full calendar-day lag prevents same-close use. No threshold search, sign flip, alternate lag, or rescue is permitted if the ex-ante direction fails or if activation is sparse.",
+  "evaluation":{"scope":"training folds only","chronological_folds":true,"validation":"CLOSED","final_holdout":"CLOSED","costs":["base","severe","supersevere"],"required":["total_return","max_drawdown","profit_factor_daily","payoff_daily","win_rate_daily","positive_days","regimes","concentration","tails","asset_contribution","deterministic_replay","activation_rate"]},
+  "gate":"Aggregate and every chronological fold must have return > 0 and daily PF > 1 under base costs; aggregate severe and supersevere must each have return > 0 and daily PF > 1; gross cap and invariants must pass. Zero/sparse activation is not grounds to change threshold or lag.",
+  "anti_overfit":{"parameter_search":false,"threshold_search":false,"lookback_search":false,"sign_flip_allowed":false,"rescue_allowed":false,"v16_used":false,"v99_used":false}
+}
