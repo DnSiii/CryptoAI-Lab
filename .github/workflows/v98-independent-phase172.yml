@@ -1,0 +1,50 @@
+name: V98 Independent Phase172
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase172_t10y2y_steepening_long.py'
+      - 'reports/v98_independent_phase172_t10y2y_steepening_long_preregistration.json'
+      - 'reports/v98_independent_phase172_causality_audit.json'
+      - '.github/workflows/v98-independent-phase172.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase172:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Execute training-only Phase172 twice
+        run: |
+          python scripts/v98_independent_phase172_t10y2y_steepening_long.py
+          cp reports/v98_independent_phase172_t10y2y_steepening_long.json /tmp/p172_a.json
+          python scripts/v98_independent_phase172_t10y2y_steepening_long.py
+          cmp /tmp/p172_a.json reports/v98_independent_phase172_t10y2y_steepening_long.json
+      - name: Audit invariants
+        run: |
+          python - <<'PY'
+          import json
+          p='reports/v98_independent_phase172_t10y2y_steepening_long.json'
+          x=json.load(open(p))
+          assert x['validation'] is None and x['final_holdout'] is None
+          assert not x['parameter_search'] and not x['threshold_search'] and not x['lookback_search'] and not x['rescue_allowed']
+          assert not x['v16_used'] and not x['v99_used']
+          assert x['signal_contract']['economic_use_lag_days']==1
+          assert x['max_open_gross'] <= .35 + 1e-12
+          assert set(x['folds'])=={'2023','2024','2025'}
+          print(x['gate'])
+          PY
+      - name: Persist V98 evidence
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase172_t10y2y_steepening_long.json
+          git diff --cached --quiet || git commit -m 'v98: persist phase172 training evidence'
+          git push origin HEAD:research/v98-independent-zero
