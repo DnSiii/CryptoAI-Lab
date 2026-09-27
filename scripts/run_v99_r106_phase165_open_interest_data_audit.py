@@ -18,7 +18,7 @@ def get(url,allow404=False):
  last=None
  for k in range(5):
   try:
-   with urlopen(Request(url,headers={'User-Agent':'CryptoAI-Lab-Phase165/2.0'}),timeout=90) as r:return r.read()
+   with urlopen(Request(url,headers={'User-Agent':'CryptoAI-Lab-Phase165/3.0'}),timeout=90) as r:return r.read()
   except HTTPError as e:
    if allow404 and e.code==404:return None
    last=e
@@ -29,7 +29,7 @@ def get(url,allow404=False):
 def days(): return pd.date_range(START,END-pd.Timedelta(days=1),freq='D')
 
 def load(s):
- rows={}; missing=[]; schemas=[]; checksum_verified=0; archives=0
+ rows={}; value_rows={}; missing=[]; schemas=[]; checksum_verified=0; archives=0
  for d in days():
   ds=d.date().isoformat(); stem=f'{s}-metrics-{ds}.zip'; url=f'{BASE}/{s}/{stem}'
   raw=get(url,allow404=True)
@@ -45,24 +45,30 @@ def load(s):
    frame=pd.read_csv(z.open(names[0])); schemas.append(list(map(str,frame.columns)))
   c={str(x).strip().lower():x for x in frame.columns}
   tc=next((c[x] for x in ('create_time','createtime','timestamp','time') if x in c),None)
-  oc=next((c[x] for x in ('sum_open_interest_value','sum_open_interest','sumopeninterest','open_interest','openinterest') if x in c),None)
+  # Binance defines sum_open_interest as native contract OI. The *_value field is
+  # a mark-price-derived notional and is audited separately; it is not the OI gate.
+  oc=next((c[x] for x in ('sum_open_interest','sumopeninterest','open_interest','openinterest') if x in c),None)
+  vc=c.get('sum_open_interest_value')
   if tc is None or oc is None: raise RuntimeError(f'{s} {ds}: schema {list(frame.columns)}')
   tt=pd.to_datetime(frame[tc],utc=True,errors='coerce') if not pd.api.types.is_numeric_dtype(frame[tc]) else pd.to_datetime(pd.to_numeric(frame[tc],errors='coerce'),unit='ms',utc=True,errors='coerce')
-  oo=pd.to_numeric(frame[oc],errors='coerce')
-  for t,o in zip(tt,oo):
+  oo=pd.to_numeric(frame[oc],errors='coerce'); vv=pd.to_numeric(frame[vc],errors='coerce') if vc is not None else pd.Series(np.nan,index=frame.index)
+  for t,o,v in zip(tt,oo,vv):
    if pd.isna(t) or pd.isna(o): continue
    ms=int(t.timestamp()*1000)
-   if A<=ms<B: rows[ms]=float(o)
- return pd.Series(rows,dtype=float).sort_index(),missing,schemas[-1] if schemas else [],checksum_verified,archives
+   if A<=ms<B:
+    rows[ms]=float(o)
+    if not pd.isna(v): value_rows[ms]=float(v)
+ return pd.Series(rows,dtype=float).sort_index(),pd.Series(value_rows,dtype=float).sort_index(),missing,schemas[-1] if schemas else [],checksum_verified,archives
 
 def main():
  q=PRE.read_text(); assert 'BEFORE ANY Phase165 PnL' in q and 'DATA ONLY' in q and '>=90%' in q and '>=85%' in q
  series={}; assets={}; ok=True; cadence_ms=None
  for s in SYMS:
-  x,miss,schema,checks,archives=load(s); idx=np.asarray(x.index,dtype=np.int64); dif=np.diff(idx); native=int(np.median(dif)) if len(dif) else 0
+  x,xv,miss,schema,checks,archives=load(s); idx=np.asarray(x.index,dtype=np.int64); dif=np.diff(idx); native=int(np.median(dif)) if len(dif) else 0
   if cadence_ms is None and native>0: cadence_ms=native
   expected=max(1,int((B-A)//native)) if native>0 else 1
-  vals=x.to_numpy(); st={'rows':len(x),'native_cadence_ms':native,'coverage_native':len(x)/expected,'first_ms':int(idx[0]) if len(idx) else None,'last_ms':int(idx[-1]) if len(idx) else None,'duplicate_timestamps':int(len(idx)-len(set(idx.tolist()))),'strictly_increasing':bool(len(idx)<2 or np.all(dif>0)),'invalid_nonpositive_oi':int((~np.isfinite(vals)|(vals<=0)).sum()),'missing_archives':miss,'archives_loaded':archives,'checksum_verified_archives':checks,'schema':schema}
+  vals=x.to_numpy(); vvals=xv.to_numpy()
+  st={'rows':len(x),'native_cadence_ms':native,'coverage_native':len(x)/expected,'first_ms':int(idx[0]) if len(idx) else None,'last_ms':int(idx[-1]) if len(idx) else None,'duplicate_timestamps':int(len(idx)-len(set(idx.tolist()))),'strictly_increasing':bool(len(idx)<2 or np.all(dif>0)),'invalid_nonpositive_oi':int((~np.isfinite(vals)|(vals<=0)).sum()),'invalid_nonpositive_oi_value_diagnostic':int((~np.isfinite(vvals)|(vvals<=0)).sum()),'oi_field':'sum_open_interest','oi_value_field_diagnostic':'sum_open_interest_value','missing_archives':miss,'archives_loaded':archives,'checksum_verified_archives':checks,'schema':schema}
   st['pass']=bool(st['coverage_native']>=.90 and st['strictly_increasing'] and st['duplicate_timestamps']==0 and st['invalid_nonpositive_oi']==0 and checks==archives); ok &= st['pass']; assets[s]=st; series[s]=x
  if cadence_ms and all(len(x) for x in series.values()):
   grid=np.arange(A,B,cadence_ms,dtype=np.int64); good=0
