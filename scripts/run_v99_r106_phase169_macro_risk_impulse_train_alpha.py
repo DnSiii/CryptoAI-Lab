@@ -1,5 +1,5 @@
 from __future__ import annotations
-import io,json,urllib.request
+import io,json,time,urllib.request
 from pathlib import Path
 import numpy as np,pandas as pd
 import run_v99_r106_native_all_regime_engine as p1
@@ -12,7 +12,15 @@ SERIES=('DGS2','DGS10','DTWEXBGS','VIXCLS'); GROSS=.20
 
 def fetch_series(s):
     u=f'https://fred.stlouisfed.org/graph/fredgraph.csv?id={s}&cosd=2021-12-01&coed=2024-01-17'
-    with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'CryptoAI-v99-r106-phase169'}),timeout=60) as r: raw=r.read()
+    raw=None; last=None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'CryptoAI-v99-r106-phase169'}),timeout=120) as r: raw=r.read()
+            break
+        except Exception as e:
+            last=e
+            if attempt<3: time.sleep(2**attempt)
+    if raw is None: raise RuntimeError(f'FRED fetch failed after 4 attempts for {s}: {type(last).__name__}: {last}')
     d=pd.read_csv(io.BytesIO(raw)); d.columns=['date','value']; d['date']=pd.to_datetime(d['date'],utc=True,errors='raise'); d['value']=pd.to_numeric(d['value'],errors='coerce')
     d=d[(d.date>=TRAIN_START)&(d.date<TRAIN_END)].sort_values('date').drop_duplicates('date',keep=False)
     if d.empty or d.date.max()>=TRAIN_END: raise RuntimeError('TRAIN firewall '+s)
