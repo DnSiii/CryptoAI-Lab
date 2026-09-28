@@ -1,0 +1,108 @@
+{
+  "study": "V99 R106 Phase174 \u2014 MACRO STRESS PERSISTENCE TRAIN-ONLY alpha gate",
+  "status": "TRAIN_ALPHA_REJECT",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "precommitment": {
+    "prereg": "research/v99_r106_phase174_macro_stress_persistence_prereg.md",
+    "series": [
+      "VIXCLS",
+      "DTWEXBGS",
+      "DGS2",
+      "DFF"
+    ],
+    "front_spread": "DGS2-DFF",
+    "direction_change_finite_observations": 1,
+    "persistence_window_finite_observations": 5,
+    "composite": "equal mean of three rolling direction persistence scores",
+    "orientation": "positive persistence short crypto; negative long",
+    "macro_availability": "latest finite observation strictly before current UTC calendar date",
+    "entire_target_shift_hours": 1,
+    "alpha_gross": 0.2,
+    "single_hypothesis_no_grid": true,
+    "selection_train_only": true,
+    "holdout_not_fetched_or_parsed": true
+  },
+  "train_start": "2021-12-01T00:00:00+00:00",
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00",
+  "severe_cost_per_side": 0.0012,
+  "diagnostic": {
+    "stable_train": false,
+    "quality_score": -1000000000.0,
+    "train": {
+      "active_hours": 17687,
+      "roi": 0.005408185439001567,
+      "profit_factor": 1.0089501145064546,
+      "max_drawdown_abs": 0.012472185587293017,
+      "positive_hour_ratio": 0.5053994459207327,
+      "robust_mean_without_top1pct": -5.534581277510885e-06
+    },
+    "valid_folds": 4,
+    "healthy_folds": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "start": "2021-12-01T00:00:00+00:00",
+        "end": "2022-06-13T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4378,
+        "roi": 0.0007534942568248049,
+        "profit_factor": 1.0039660805764261,
+        "max_drawdown_abs": 0.011644475041848068,
+        "positive_hour_ratio": 0.49634536317953404,
+        "robust_mean_without_top1pct": -6.644103546431073e-06
+      },
+      {
+        "fold": 2,
+        "start": "2022-06-13T12:00:00+00:00",
+        "end": "2022-12-24T23:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4500,
+        "roi": -0.004737807999941279,
+        "profit_factor": 0.9724647577223853,
+        "max_drawdown_abs": 0.012472185587293794,
+        "positive_hour_ratio": 0.502,
+        "robust_mean_without_top1pct": -7.98909259233242e-06
+      },
+      {
+        "fold": 3,
+        "start": "2022-12-25T00:00:00+00:00",
+        "end": "2023-07-07T11:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4428,
+        "roi": 0.0004041390552060875,
+        "profit_factor": 1.0037343796013922,
+        "max_drawdown_abs": 0.00929475835717175,
+        "positive_hour_ratio": 0.5065492321589883,
+        "robust_mean_without_top1pct": -3.594511323229353e-06
+      },
+      {
+        "fold": 4,
+        "start": "2023-07-07T12:00:00+00:00",
+        "end": "2024-01-18T00:00:00+00:00",
+        "eligible": true,
+        "healthy": false,
+        "active_hours": 4381,
+        "roi": 0.009025902774549177,
+        "profit_factor": 1.068473450984252,
+        "max_drawdown_abs": 0.0033502914128580308,
+        "positive_hour_ratio": 0.5167769915544397,
+        "robust_mean_without_top1pct": -2.6875305860686125e-06
+      }
+    ]
+  },
+  "selected_train_only": null,
+  "holdout_rows_used_for_feature_construction": 0,
+  "holdout_rows_used_for_selection": 0,
+  "next_gate": "PASS freezes exact spec for supersevere/regime/concentration/benchmark/reproducibility before untouched holdout; FAIL permanent, no retuning.",
+  "quarantined_symbols": [
+    "FTMUSDT",
+    "MKRUSDT",
+    "STORJUSDT"
+  ]
+}
