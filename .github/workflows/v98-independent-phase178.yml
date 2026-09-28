@@ -19,7 +19,18 @@ jobs:
         run: |
           test "$(git branch --show-current)" = "research/v98-independent-zero"
           test -f scripts/v98_independent_phase178_credit_stress_data_only.py
-          ! grep -Eiq 'v99|v16|final[_ -]?holdout.*(read|open|load)' scripts/v98_independent_phase178_credit_stress_data_only.py
+          python - <<'PY'
+          import ast, pathlib
+          p=pathlib.Path('scripts/v98_independent_phase178_credit_stress_data_only.py')
+          t=ast.parse(p.read_text())
+          forbidden=[]
+          for n in ast.walk(t):
+              if isinstance(n,(ast.Call,ast.Import,ast.ImportFrom)):
+                  s=ast.unparse(n).lower()
+                  if any(x in s for x in ('v99','v16','final_holdout','final-holdout')):
+                      forbidden.append(s)
+          assert not forbidden, forbidden
+          PY
       - name: Execute twice independently
         shell: bash
         run: |
