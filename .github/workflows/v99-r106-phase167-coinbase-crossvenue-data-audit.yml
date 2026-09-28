@@ -46,10 +46,14 @@ jobs:
           assert d['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
           assert d['status'] in {'PASS_DATA_ONLY','FAIL_DATA_ONLY'}
           PY
-      - name: Commit evidence only
+      - name: Commit evidence only (race-safe)
         shell: bash
         run: |
           set -euo pipefail
+          cp reports/candidate_v99_r106_phase167_coinbase_crossvenue_data_audit.json /tmp/phase167.json
+          git fetch origin research/v99-r106-native-all-regime-engine
+          git reset --hard origin/research/v99-r106-native-all-regime-engine
+          cp /tmp/phase167.json reports/candidate_v99_r106_phase167_coinbase_crossvenue_data_audit.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add reports/candidate_v99_r106_phase167_coinbase_crossvenue_data_audit.json
