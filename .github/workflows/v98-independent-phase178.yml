@@ -1,0 +1,45 @@
+name: V98 Independent Phase178 Credit Stress DATA_ONLY
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase178_credit_stress_data_only.py'
+      - '.github/workflows/v98-independent-phase178.yml'
+      - 'reports/v98_independent_phase178_preregister_new_orthogonal_data_family.md'
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - name: Branch and namespace guards
+        shell: bash
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          test -f scripts/v98_independent_phase178_credit_stress_data_only.py
+          ! grep -Eiq 'v99|v16|final[_ -]?holdout.*(read|open|load)' scripts/v98_independent_phase178_credit_stress_data_only.py
+      - name: Execute twice independently
+        shell: bash
+        run: |
+          python scripts/v98_independent_phase178_credit_stress_data_only.py > /tmp/phase178_a.json
+          python scripts/v98_independent_phase178_credit_stress_data_only.py > /tmp/phase178_b.json
+          cmp /tmp/phase178_a.json /tmp/phase178_b.json
+          cat /tmp/phase178_a.json
+      - name: Invariant audit
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/phase178_a.json'))
+          assert x['phase']==178 and x['status']=='PASS_DATA_ONLY'
+          assert x['reacquisition_identical'] is True
+          assert x['same_day_use_forbidden'] is True
+          assert x['crypto_pnl_inspected'] is False
+          assert x['validation_inspected'] is False and x['final_holdout_inspected'] is False
+          assert x['v16_used'] is False and x['v99_used'] is False
+          assert set(x['annual_valid'])=={'2023','2024','2025'}
+          assert min(x['annual_valid'].values())>=240
+          assert x['max_calendar_gap_days']<=7
+          PY
