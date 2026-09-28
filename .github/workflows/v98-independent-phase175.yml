@@ -1,0 +1,46 @@
+name: V98 Independent Phase175 DATA_ONLY
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  phase175:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Namespace and forbidden-input guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/research/v98-independent-zero"
+          grep -q 'crypto_pnl_inspected.*False' scripts/v98_independent_phase175_dtwexbgs_data_only.py
+          grep -q 'holdout_inspected.*False' scripts/v98_independent_phase175_dtwexbgs_data_only.py
+      - name: Deterministic double acquisition
+        run: |
+          set -euo pipefail
+          python scripts/v98_independent_phase175_dtwexbgs_data_only.py > /tmp/p175_a.json
+          python scripts/v98_independent_phase175_dtwexbgs_data_only.py > /tmp/p175_b.json
+          cmp /tmp/p175_a.json /tmp/p175_b.json
+          cat /tmp/p175_a.json
+      - name: DATA_ONLY invariant audit
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/p175_a.json'))
+          assert x['series']=='DTWEXBGS'
+          assert x['window']==['2023-01-01','2025-12-31']
+          assert x['reacquisition_identical'] is True
+          assert x['same_day_use_forbidden'] is True
+          assert x['crypto_pnl_inspected'] is False
+          assert x['holdout_inspected'] is False
+          assert x['valid_observations'] > 700
+          assert x['first_valid'][:4]=='2023' and x['last_valid'][:4]=='2025'
+          assert all(x['annual_valid'].get(y,0)>240 for y in ('2023','2024','2025'))
+          print('PASS_DATA_ONLY')
+          PY
