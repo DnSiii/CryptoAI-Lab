@@ -1,0 +1,33 @@
+{
+  "engine": "V98 Independent",
+  "phase": "172",
+  "kind": "REPRODUCIBILITY_INVARIANT_AUDIT",
+  "decision": "PASS_FOR_VALIDATION_EXECUTION",
+  "checks": {
+    "workflow_completed_successfully": true,
+    "deterministic_double_run_cmp": true,
+    "phase171_reacquisition_hash_verified": true,
+    "phase171_sha256": "61a8716a12625cae8603095883ac2bc8daf2ac73dd4375f80b5a25f98eb5d275",
+    "causality_contract": "PASS_CAUSAL_CONTRACT_FOR_TRAINING_ONLY",
+    "economic_use_lag_days": 1,
+    "parameter_search": false,
+    "threshold_search": false,
+    "lookback_search": false,
+    "rescue_allowed": false,
+    "v16_used": false,
+    "v99_used": false,
+    "validation_used_for_training_selection": false,
+    "final_holdout_used": false,
+    "max_open_gross_lte_0_35": true,
+    "max_close_gross_lte_0_35": true,
+    "training_ruin_false": true,
+    "severe_ruin_false": true,
+    "supersevere_ruin_false": true
+  },
+  "notes": [
+    "The successful Phase172 workflow executed the report twice and required byte-identical output before persistence.",
+    "The persisted report reacquired T10Y2Y and verified the frozen Phase171 SHA-256.",
+    "The validation contract is now separately preregistered in Phase173; no validation metrics were inspected in this audit.",
+    "The final holdout 2026-08-01 through 2026-09-15 remains unopened for this candidate."
+  ]
+}
