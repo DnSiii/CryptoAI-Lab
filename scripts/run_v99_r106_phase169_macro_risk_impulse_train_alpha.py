@@ -7,6 +7,7 @@ import run_v99_r106_phase47_downside_semivariance_alpha_audit as p47
 import run_v99_r105_all_regime_structural_audit as audit
 PROJECT=Path(__file__).resolve().parents[1]
 OUT=PROJECT/'reports'/'candidate_v99_r106_phase169_macro_risk_impulse_train_alpha.json'
+SNAP=PROJECT/'data'/'research'/'v99_r106_phase168_external_macro_train.csv'
 TRAIN_START=pd.Timestamp('2021-12-01',tz='UTC'); TRAIN_END=pd.Timestamp('2024-01-18',tz='UTC')
 SERIES=('DGS2','DGS10','DTWEXBGS','VIXCLS'); GROSS=.20
 
@@ -15,8 +16,7 @@ def _get(url,attempts=6):
     for attempt in range(attempts):
         try:
             req=urllib.request.Request(url,headers={'User-Agent':'CryptoAI-v99-r106-phase169','Accept':'text/csv'})
-            with urllib.request.urlopen(req,timeout=180) as r:
-                raw=r.read()
+            with urllib.request.urlopen(req,timeout=180) as r: raw=r.read()
             if len(raw)<100: raise RuntimeError('implausibly short FRED response')
             return raw
         except Exception as e:
@@ -24,27 +24,8 @@ def _get(url,attempts=6):
             if attempt<attempts-1: time.sleep(min(30,2**attempt))
     raise RuntimeError(f'FRED fetch failed after {attempts} attempts: {type(last).__name__}: {last}')
 
-def fetch_panel():
-    # One immutable TRAIN-bounded request is preferred: fewer network round trips and every
-    # series shares the same retrieval boundary. Individual requests are only a transport
-    # fallback; they do not alter data, dates, hypothesis, or selection.
-    ids=','.join(SERIES)
-    base='https://fred.stlouisfed.org/graph/fredgraph.csv'
-    panel=None
-    try:
-        raw=_get(f'{base}?id={ids}&cosd=2021-12-01&coed=2024-01-17')
-        d=pd.read_csv(io.BytesIO(raw)); d.columns=[str(c).strip() for c in d.columns]
-        if all(s in d.columns for s in SERIES): panel=d
-    except Exception:
-        panel=None
-    if panel is None:
-        parts=[]
-        for s in SERIES:
-            raw=_get(f'{base}?id={s}&cosd=2021-12-01&coed=2024-01-17')
-            q=pd.read_csv(io.BytesIO(raw)); q.columns=['date',s]; parts.append(q)
-        panel=parts[0]
-        for q in parts[1:]: panel=panel.merge(q,on='date',how='outer',validate='one_to_one')
-    date_col='DATE' if 'DATE' in panel.columns else ('observation_date' if 'observation_date' in panel.columns else panel.columns[0])
+def _validated(panel):
+    panel=panel.copy(); date_col='date' if 'date' in panel.columns else ('DATE' if 'DATE' in panel.columns else ('observation_date' if 'observation_date' in panel.columns else panel.columns[0]))
     panel=panel.rename(columns={date_col:'date'}); panel['date']=pd.to_datetime(panel['date'],utc=True,errors='raise')
     panel=panel[(panel.date>=TRAIN_START)&(panel.date<TRAIN_END)].sort_values('date')
     if panel.empty or panel.date.max()>=TRAIN_END or panel.date.duplicated().any(): raise RuntimeError('TRAIN panel firewall')
@@ -54,6 +35,23 @@ def fetch_panel():
         v=pd.to_numeric(panel[s],errors='coerce'); out[s]=pd.Series(v.to_numpy(dtype=float),index=panel.date,name=s)
         if out[s].dropna().empty: raise RuntimeError('empty finite FRED series '+s)
     return out
+
+def fetch_panel():
+    # Primary source is the exact TRAIN snapshot persisted by the successful Phase168
+    # DATA-only gate. This removes network nondeterminism without changing observations.
+    if SNAP.exists(): return _validated(pd.read_csv(SNAP))
+    ids=','.join(SERIES); base='https://fred.stlouisfed.org/graph/fredgraph.csv'; panel=None
+    try:
+        raw=_get(f'{base}?id={ids}&cosd=2021-12-01&coed=2024-01-17'); d=pd.read_csv(io.BytesIO(raw)); d.columns=[str(c).strip() for c in d.columns]
+        if all(s in d.columns for s in SERIES): panel=d
+    except Exception: panel=None
+    if panel is None:
+        parts=[]
+        for s in SERIES:
+            raw=_get(f'{base}?id={s}&cosd=2021-12-01&coed=2024-01-17'); q=pd.read_csv(io.BytesIO(raw)); q.columns=['date',s]; parts.append(q)
+        panel=parts[0]
+        for q in parts[1:]: panel=panel.merge(q,on='date',how='outer',validate='one_to_one')
+    return _validated(panel)
 
 def causal_z(x):
     finite=x.dropna(); imp=finite.diff(5); mu=imp.expanding(min_periods=60).mean().shift(1); sd=imp.expanding(min_periods=60).std(ddof=1).shift(1)
