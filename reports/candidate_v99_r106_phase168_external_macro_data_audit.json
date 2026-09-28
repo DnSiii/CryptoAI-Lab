@@ -1,0 +1,78 @@
+{
+  "study": "V99 R106 Phase168 external macro DATA-only audit",
+  "status": "PASS_DATA_ONLY",
+  "train_start": "2021-12-01",
+  "train_end_exclusive": "2024-01-18",
+  "frozen_series": [
+    "DFF",
+    "DGS2",
+    "DGS10",
+    "DTWEXBGS",
+    "VIXCLS"
+  ],
+  "assets": {
+    "DFF": {
+      "rows": 778,
+      "finite_business_days": 556,
+      "expected_business_days": 556,
+      "coverage_business_day": 1.0,
+      "duplicate_dates": 0,
+      "strictly_increasing": true,
+      "rows_outside_train": 0,
+      "longest_missing_business_day_run": 0,
+      "pass": true
+    },
+    "DGS2": {
+      "rows": 556,
+      "finite_business_days": 532,
+      "expected_business_days": 556,
+      "coverage_business_day": 0.9568345323741008,
+      "duplicate_dates": 0,
+      "strictly_increasing": true,
+      "rows_outside_train": 0,
+      "longest_missing_business_day_run": 1,
+      "pass": true
+    },
+    "DGS10": {
+      "rows": 556,
+      "finite_business_days": 532,
+      "expected_business_days": 556,
+      "coverage_business_day": 0.9568345323741008,
+      "duplicate_dates": 0,
+      "strictly_increasing": true,
+      "rows_outside_train": 0,
+      "longest_missing_business_day_run": 1,
+      "pass": true
+    },
+    "DTWEXBGS": {
+      "rows": 556,
+      "finite_business_days": 531,
+      "expected_business_days": 556,
+      "coverage_business_day": 0.9550359712230215,
+      "duplicate_dates": 0,
+      "strictly_increasing": true,
+      "rows_outside_train": 0,
+      "longest_missing_business_day_run": 1,
+      "pass": true
+    },
+    "VIXCLS": {
+      "rows": 556,
+      "finite_business_days": 547,
+      "expected_business_days": 556,
+      "coverage_business_day": 0.9838129496402878,
+      "duplicate_dates": 0,
+      "strictly_increasing": true,
+      "rows_outside_train": 0,
+      "longest_missing_business_day_run": 1,
+      "pass": true
+    }
+  },
+  "pnl_computed": false,
+  "holdout_rows_used_for_feature_construction": 0,
+  "holdout_rows_used_for_selection": 0,
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "decision": "DATA gate passed; alpha still forbidden until separately preregistered."
+}
