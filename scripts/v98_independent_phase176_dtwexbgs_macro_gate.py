@@ -1,5 +1,5 @@
 from __future__ import annotations
-import csv,io,json,sys,urllib.request
+import csv,io,json,sys,urllib.request,urllib.error,time
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -11,8 +11,22 @@ CFG=PROJECT/'config'/'v98_independent.json';OUT=PROJECT/'reports'/'v98_independe
 ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'];A='2023-01-01';B='2025-12-31';TARGET=.30;CAP=.35
 URL='https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXBGS&cosd=2022-01-01&coed=2025-12-31'
 
+def acquire():
+ req=urllib.request.Request(URL,headers={'User-Agent':'CryptoAI-Lab-V98-Independent/1.0','Accept':'text/csv'});errs=[]
+ for attempt in range(4):
+  try:
+   with urllib.request.urlopen(req,timeout=90) as r: raw=r.read()
+   if len(raw)<100: raise RuntimeError(f'implausibly short response: {len(raw)} bytes')
+   return raw.decode('utf-8-sig')
+  except (TimeoutError,urllib.error.URLError,RuntimeError) as e:
+   errs.append(f'{type(e).__name__}: {e}')
+   if attempt<3: time.sleep(2**attempt)
+ raise RuntimeError('FRED acquisition failed after 4 attempts: '+' | '.join(errs))
+
 def macro():
- raw=urllib.request.urlopen(urllib.request.Request(URL,headers={'User-Agent':'CryptoAI-Lab-V98-Independent/1.0'}),timeout=90).read().decode('utf-8-sig');r=csv.DictReader(io.StringIO(raw));fields=r.fieldnames or [];dc='DATE' if 'DATE' in fields else 'observation_date';x=[]
+ r=csv.DictReader(io.StringIO(acquire()));fields=r.fieldnames or [];dc='DATE' if 'DATE' in fields else 'observation_date' if 'observation_date' in fields else None
+ if dc is None or 'DTWEXBGS' not in fields: raise RuntimeError(f'unexpected FRED schema: {fields}')
+ x=[]
  for z in r:
   if z['DTWEXBGS'] not in ('','.') : x.append((pd.Timestamp(z[dc],tz='UTC'),float(z['DTWEXBGS'])))
  s=pd.Series(dict(x)).sort_index();assert s.index.is_unique and s.index.max()<pd.Timestamp('2026-01-01',tz='UTC')
