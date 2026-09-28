@@ -12,15 +12,20 @@ permissions:
   contents: write
 jobs:
   phase172:
-    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           ref: research/v98-independent-zero
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: pip install -e .
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
       - name: Execute training-only Phase172 twice
         run: |
           python scripts/v98_independent_phase172_t10y2y_steepening_long.py
@@ -45,6 +50,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add reports/v98_independent_phase172_t10y2y_steepening_long.json
+          git add -f reports/v98_independent_phase172_t10y2y_steepening_long.json
           git diff --cached --quiet || git commit -m 'v98: persist phase172 training evidence'
+          git pull --rebase --autostash origin research/v98-independent-zero
           git push origin HEAD:research/v98-independent-zero
