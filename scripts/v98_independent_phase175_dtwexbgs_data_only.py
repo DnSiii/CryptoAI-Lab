@@ -3,7 +3,7 @@
 No crypto data/PnL is read. Training era only; final holdout is outside acquisition.
 """
 from __future__ import annotations
-import csv, hashlib, io, json, math, sys, urllib.request
+import csv, hashlib, io, json, math, urllib.request
 from collections import Counter
 from datetime import date
 
@@ -37,22 +37,30 @@ def normalize(raw: bytes):
         x=float(s)
         if not math.isfinite(x): raise RuntimeError(f"nonfinite: {d}")
         valid.append((d.isoformat(), format(x, ".10g")))
+    dates=[date.fromisoformat(d) for d,_ in valid]
+    monotonic=all(b>a for a,b in zip(dates,dates[1:]))
+    if not monotonic: raise RuntimeError("non-monotonic valid dates")
+    gaps=[(b-a).days for a,b in zip(dates,dates[1:])]
+    values=[float(x) for _,x in valid]
     payload=("DATE,"+SERIES+"\n"+"".join(f"{d},{x}\n" for d,x in valid)).encode()
     annual=Counter(d[:4] for d,_ in valid)
-    return payload, valid, missing, dict(sorted(annual.items()))
+    quality={"monotonic_dates":monotonic,"max_calendar_gap_days":max(gaps,default=0),
+             "min_value":min(values,default=float('nan')),"max_value":max(values,default=float('nan'))}
+    return payload, valid, missing, dict(sorted(annual.items())), quality
 
 
 def main():
-    p1,v1,m1,a1=normalize(acquire())
-    p2,v2,m2,a2=normalize(acquire())
+    p1,v1,m1,a1,q1=normalize(acquire())
+    p2,v2,m2,a2,q2=normalize(acquire())
     h1=hashlib.sha256(p1).hexdigest(); h2=hashlib.sha256(p2).hexdigest()
-    if h1 != h2 or p1 != p2: raise RuntimeError("reacquisition mismatch")
+    if h1 != h2 or p1 != p2 or q1 != q2: raise RuntimeError("reacquisition mismatch")
     if not v1: raise RuntimeError("no valid observations")
     out={"phase":175,"series":SERIES,"window":[START.isoformat(),END.isoformat()],
          "valid_observations":len(v1),"explicit_missing_rows":len(m1),
          "first_valid":v1[0][0],"last_valid":v1[-1][0],"annual_valid":a1,
          "normalized_sha256":h1,"reacquisition_identical":True,
-         "same_day_use_forbidden":True,"crypto_pnl_inspected":False,"holdout_inspected":False}
+         "same_day_use_forbidden":True,"crypto_pnl_inspected":False,"holdout_inspected":False,
+         **q1}
     print(json.dumps(out, sort_keys=True, indent=2))
 
 if __name__ == "__main__": main()
