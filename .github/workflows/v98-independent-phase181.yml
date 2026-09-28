@@ -1,0 +1,57 @@
+name: V98 Independent Phase181 Frozen Validation
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase181_validation.py'
+      - 'research/v98_independent_phase181_validation_preregister.md'
+      - '.github/workflows/v98-independent-phase181.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  phase181:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Guard frozen preregistration and final holdout boundary
+        run: |
+          test "$(git hash-object research/v98_independent_phase181_validation_preregister.md)" = "e7e788b0bb75c05c2073210331a142f7133ead9b"
+          python - <<'PY'
+          import json
+          c=json.load(open('config/v98_independent.json'))
+          assert c['validation_start'].startswith('2026-01-01') and c['validation_end'].startswith('2026-07-31')
+          assert c['final_holdout_start'].startswith('2026-08-01')
+          PY
+      - name: Rebuild canonical V98 through validation only
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase082_validation_data.json
+      - name: Execute Phase181 twice and require byte reproducibility
+        run: |
+          python scripts/v98_independent_phase181_validation.py
+          cp reports/v98_independent_phase181_validation.json /tmp/p181a.json
+          python scripts/v98_independent_phase181_validation.py
+          cmp /tmp/p181a.json reports/v98_independent_phase181_validation.json
+      - name: Audit isolation and mandatory outputs
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/v98_independent_phase181_validation.json'))
+          assert x['window'][0].startswith('2026-01-01') and x['window'][1].startswith('2026-07-31')
+          assert x['final_holdout'] is None and x['final_holdout_untouched']
+          assert x['parameters_frozen_from_phase180'] and not x['parameter_search'] and not x['rescue_allowed']
+          assert not x['v16_used'] and not x['v99_used']
+          g=x['variants']['DISINFLATION_GATE'];assert set(g['months'])=={f'2026-{m:02d}' for m in range(1,8)}
+          assert g['max_open_gross']<=.35002
+          for k in ('base','severe','supersevere','regimes','concentration','tails','asset_contribution_share','positions_sha256'): assert k in g
+          print(x['validation_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase181
+          path: reports/v98_independent_phase181_validation.json
