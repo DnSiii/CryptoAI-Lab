@@ -30,12 +30,16 @@ def acquire() -> bytes:
 
 def normalize(raw: bytes):
     text=raw.decode("utf-8-sig")
-    rows=list(csv.DictReader(io.StringIO(text)))
-    if not rows or "DATE" not in rows[0] or SERIES not in rows[0]:
-        raise RuntimeError("unexpected FRED schema")
+    reader=csv.DictReader(io.StringIO(text))
+    rows=list(reader)
+    fields=[(x or "").strip() for x in (reader.fieldnames or [])]
+    # FRED graph CSV historically used DATE; current endpoint may use observation_date.
+    date_col = "DATE" if "DATE" in fields else "observation_date" if "observation_date" in fields else None
+    if not rows or date_col is None or SERIES not in fields:
+        raise RuntimeError(f"unexpected FRED schema: {fields}")
     seen=set(); valid=[]; missing=[]
     for row in rows:
-        d=date.fromisoformat(row["DATE"])
+        d=date.fromisoformat(row[date_col])
         if not (START <= d <= END): raise RuntimeError(f"out-of-window observation: {d}")
         if d in seen: raise RuntimeError(f"duplicate date: {d}")
         seen.add(d)
@@ -53,7 +57,7 @@ def normalize(raw: bytes):
     values=[float(x) for _,x in valid]
     payload=("DATE,"+SERIES+"\n"+"".join(f"{d},{x}\n" for d,x in valid)).encode()
     annual=Counter(d[:4] for d,_ in valid)
-    quality={"monotonic_dates":monotonic,"max_calendar_gap_days":max(gaps,default=0),
+    quality={"source_date_column":date_col,"monotonic_dates":monotonic,"max_calendar_gap_days":max(gaps,default=0),
              "min_value":min(values,default=float('nan')),"max_value":max(values,default=float('nan'))}
     return payload, valid, missing, dict(sorted(annual.items())), quality
 
