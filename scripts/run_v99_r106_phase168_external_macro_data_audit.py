@@ -6,6 +6,7 @@ from datetime import date, timedelta
 START=date(2021,12,1); END=date(2024,1,18)  # exclusive
 SERIES=['DFF','DGS2','DGS10','DTWEXBGS','VIXCLS']
 OUT=Path('reports/candidate_v99_r106_phase168_external_macro_data_audit.json')
+SNAP=Path('data/research/v99_r106_phase168_external_macro_train.csv')
 
 def business_days(a,b):
     out=[]; d=a
@@ -36,10 +37,10 @@ def longest_missing_run(expected, finite_dates):
     return best
 
 def main():
-    exp=business_days(START,END); assets={}; overall=True
+    exp=business_days(START,END); assets={}; raw_by_series={}; overall=True
     for s in SERIES:
         try:
-            rows=fetch_series(s); dates=[d for d,_ in rows]
+            rows=fetch_series(s); raw_by_series[s]=rows; dates=[d for d,_ in rows]
             finite={d for d,v in rows if math.isfinite(v)}
             coverage=len(set(exp)&finite)/len(exp)
             dup=len(dates)-len(set(dates)); increasing=all(a<b for a,b in zip(dates,dates[1:]))
@@ -49,6 +50,14 @@ def main():
         except Exception as e:
             ok=False; assets[s]={'error':type(e).__name__+': '+str(e),'pass':False}
         overall &= ok
-    report={'study':'V99 R106 Phase168 external macro DATA-only audit','status':'PASS_DATA_ONLY' if overall else 'FAIL_DATA_ONLY','train_start':START.isoformat(),'train_end_exclusive':END.isoformat(),'frozen_series':SERIES,'assets':assets,'pnl_computed':False,'holdout_rows_used_for_feature_construction':0,'holdout_rows_used_for_selection':0,'frozen_assets_untouched':{'v16':True,'v99_frozen':True},'decision':'DATA gate passed; alpha still forbidden until separately preregistered.' if overall else 'Reject this frozen macro panel before alpha; no gate rescue.'}
+    if overall:
+        # Persist exactly the TRAIN-bounded observations that passed this DATA-only gate.
+        # This is transport hardening only: downstream alpha must not refetch/reselect data.
+        by={s:{d:v for d,v in raw_by_series[s]} for s in SERIES}; dates=sorted(set().union(*(set(x) for x in by.values())))
+        SNAP.parent.mkdir(parents=True,exist_ok=True)
+        with SNAP.open('w',newline='',encoding='utf-8') as f:
+            w=csv.writer(f); w.writerow(['date',*SERIES])
+            for d in dates: w.writerow([d.isoformat(),*[by[s].get(d,float('nan')) for s in SERIES]])
+    report={'study':'V99 R106 Phase168 external macro DATA-only audit','status':'PASS_DATA_ONLY' if overall else 'FAIL_DATA_ONLY','train_start':START.isoformat(),'train_end_exclusive':END.isoformat(),'frozen_series':SERIES,'assets':assets,'pnl_computed':False,'holdout_rows_used_for_feature_construction':0,'holdout_rows_used_for_selection':0,'frozen_assets_untouched':{'v16':True,'v99_frozen':True},'snapshot_path':str(SNAP) if overall else None,'decision':'DATA gate passed; alpha still forbidden until separately preregistered.' if overall else 'Reject this frozen macro panel before alpha; no gate rescue.'}
     OUT.parent.mkdir(exist_ok=True); OUT.write_text(json.dumps(report,indent=2),encoding='utf-8'); print(json.dumps(report,indent=2))
 if __name__=='__main__': main()
