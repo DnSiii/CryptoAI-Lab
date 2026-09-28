@@ -14,9 +14,11 @@ def main():
  ao=pre['anti_overfit'];assert not any(ao.values())
  s,h=p172.load_macro();assert h==pre['training_evidence_required']['phase171_data_sha256'];cfg=json.loads(CFG.read_text());data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5]
  # Validation must be present through July 2026, while final holdout (2026-08+) remains inaccessible to this evaluator.
+ validation_end=p172.utc_boundary(B)
  for asset in ASSETS:
   last=data.close[asset].dropna().index.max()
-  assert last >= p172.utc_boundary(B),f'validation_data_incomplete:{asset}:{last}'
+  assert last >= validation_end,f'validation_data_incomplete:{asset}:{last}'
+  assert last < p172.utc_boundary('2026-08-01'),f'final_holdout_exposed:{asset}:{last}'
  t=p172.targets(data,s);rs={z:p172.ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,A,B);stress={z:p3.metrics(rs[z],A,B) for z in ('severe','supersevere')}
  assert 'error' not in m,f'validation_metrics_unavailable:{m}'
  for z in stress: assert 'error' not in stress[z],f'{z}_metrics_unavailable:{stress[z]}'
