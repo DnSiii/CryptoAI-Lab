@@ -44,18 +44,23 @@ jobs:
           assert d['holdout_rows_used_for_selection']==0
           assert d['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
           assert d['status'] in {'PASS_DATA_ONLY','FAIL_DATA_ONLY'}
+          if d['status']=='PASS_DATA_ONLY':
+            assert d['snapshot_path']=='data/research/v99_r106_phase168_external_macro_train.csv'
           PY
-      - name: Commit evidence only race-safe
+      - name: Commit evidence and validated TRAIN snapshot race-safe
         shell: bash
         run: |
           set -euo pipefail
           cp reports/candidate_v99_r106_phase168_external_macro_data_audit.json /tmp/phase168.json
+          if test -f data/research/v99_r106_phase168_external_macro_train.csv; then cp data/research/v99_r106_phase168_external_macro_train.csv /tmp/phase168.csv; fi
           git fetch origin research/v99-r106-native-all-regime-engine
           git reset --hard origin/research/v99-r106-native-all-regime-engine
           cp /tmp/phase168.json reports/candidate_v99_r106_phase168_external_macro_data_audit.json
+          if test -f /tmp/phase168.csv; then mkdir -p data/research; cp /tmp/phase168.csv data/research/v99_r106_phase168_external_macro_train.csv; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add reports/candidate_v99_r106_phase168_external_macro_data_audit.json
+          if test -f data/research/v99_r106_phase168_external_macro_train.csv; then git add data/research/v99_r106_phase168_external_macro_train.csv; fi
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Record V99 R106 Phase168 macro DATA audit'
+          git commit -m 'Record V99 R106 Phase168 macro DATA audit and TRAIN snapshot'
           git push origin HEAD:research/v99-r106-native-all-regime-engine
