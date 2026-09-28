@@ -10,11 +10,16 @@ ASSETS=['BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'];A='2026-01-01';B='202
 
 def main():
  pre=json.loads(PRE.read_text());tr=json.loads(P172.read_text());assert pre['status']=='PREREGISTERED_NOT_RUN' and tr['gate']['decision']=='PASS_TRAINING'
- # Freeze identity by the preregistered Git blob SHA semantics: workflow independently verifies the repository blob SHA before execution.
  c=pre['frozen_contract'];assert c['economic_use_lag_days']==1 and c['threshold']==0.0 and c['target_gross']==.30 and c['hard_gross_cap']==CAP and c['assets']==ASSETS
  ao=pre['anti_overfit'];assert not any(ao.values())
  s,h=p172.load_macro();assert h==pre['training_evidence_required']['phase171_data_sha256'];cfg=json.loads(CFG.read_text());data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5]
+ # Validation must be present through July 2026, while final holdout (2026-08+) remains inaccessible to this evaluator.
+ for asset in ASSETS:
+  last=data.close[asset].dropna().index.max()
+  assert last >= p172.utc_boundary(B),f'validation_data_incomplete:{asset}:{last}'
  t=p172.targets(data,s);rs={z:p172.ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,A,B);stress={z:p3.metrics(rs[z],A,B) for z in ('severe','supersevere')}
+ assert 'error' not in m,f'validation_metrics_unavailable:{m}'
+ for z in stress: assert 'error' not in stress[z],f'{z}_metrics_unavailable:{stress[z]}'
  d=p172.daily(base,A,B);pos=d[d>0];neg=d[d<0];top10=float(pos.nlargest(10).sum()/pos.sum()) if float(pos.sum())>0 else 0.;bottom10=float(abs(neg.nsmallest(10).sum())/abs(neg.sum())) if float(neg.sum())<0 else 0.;shares=p172.asset_share(data,t,A,B);max_open=float(base.open_positions.loc[A:B].abs().sum(axis=1).max());max_close=float(base.positions.loc[A:B].abs().sum(axis=1).max())
  fail=[]
  if m['total_return']<=0:fail.append('validation_return<=0')
