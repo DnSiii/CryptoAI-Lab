@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json,sys
 from pathlib import Path
+import pandas as pd
 PROJECT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(PROJECT/'src'));sys.path.insert(0,str(PROJECT/'scripts'))
 from cryptoai_v13.data import load_data,validate_data
 import v98_independent_phase003_dispersion_neutral as p3
@@ -13,12 +14,15 @@ def main():
  c=pre['frozen_contract'];assert c['economic_use_lag_days']==1 and c['threshold']==0.0 and c['target_gross']==.30 and c['hard_gross_cap']==CAP and c['assets']==ASSETS
  ao=pre['anti_overfit'];assert not any(ao.values())
  s,h=p172.load_macro();assert h==pre['training_evidence_required']['phase171_data_sha256'];cfg=json.loads(CFG.read_text());data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5]
- # Validation must be present through July 2026, while final holdout (2026-08+) remains inaccessible to this evaluator.
- validation_end=p172.utc_boundary(B)
+ # Validation data must cover the complete final validation day while never crossing into final holdout.
+ validation_last=pd.Timestamp(f'{B}T23:00:00Z')
+ holdout_start=pd.Timestamp('2026-08-01T00:00:00Z')
  for asset in ASSETS:
   last=data.close[asset].dropna().index.max()
-  assert last >= validation_end,f'validation_data_incomplete:{asset}:{last}'
-  assert last < p172.utc_boundary('2026-08-01'),f'final_holdout_exposed:{asset}:{last}'
+  if last.tzinfo is None:last=last.tz_localize('UTC')
+  else:last=last.tz_convert('UTC')
+  assert last >= validation_last,f'validation_data_incomplete:{asset}:{last}'
+  assert last < holdout_start,f'final_holdout_exposed:{asset}:{last}'
  t=p172.targets(data,s);rs={z:p172.ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,A,B);stress={z:p3.metrics(rs[z],A,B) for z in ('severe','supersevere')}
  assert 'error' not in m,f'validation_metrics_unavailable:{m}'
  for z in stress: assert 'error' not in stress[z],f'{z}_metrics_unavailable:{stress[z]}'
