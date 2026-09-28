@@ -1,0 +1,54 @@
+name: V98 Independent Phase176
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase176_dtwexbgs_macro_gate.py'
+      - 'research/v98_independent_phase176_dtwexbgs_preregister.md'
+      - '.github/workflows/v98-independent-phase176.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase176:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Guard V98 isolation and preregistration
+        run: |
+          test "$(git hash-object research/v98_independent_phase176_dtwexbgs_preregister.md)" = "74de48546327bc10d832d3543e4bc4eab2b9c3e5"
+          grep -q 'PREREGISTERED BEFORE ECONOMIC INSPECTION' research/v98_independent_phase176_dtwexbgs_preregister.md
+      - name: Execute Phase176 twice
+        run: |
+          python scripts/v98_independent_phase176_dtwexbgs_macro_gate.py
+          cp reports/v98_independent_phase176_dtwexbgs_macro_gate.json /tmp/p176.json
+          python scripts/v98_independent_phase176_dtwexbgs_macro_gate.py
+          cmp /tmp/p176.json reports/v98_independent_phase176_dtwexbgs_macro_gate.json
+      - name: Audit invariants
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/v98_independent_phase176_dtwexbgs_macro_gate.json'))
+          assert x['window']==['2023-01-01','2025-12-31'] and x['validation'] is None and x['final_holdout'] is None
+          assert not x['same_day_use'] and not x['parameter_search'] and not x['threshold_search'] and not x['lookback_search'] and not x['rescue_allowed']
+          assert not x['v16_used'] and not x['v99_used']
+          assert x['variants']['MACRO_GATED']['max_open_gross'] <= .35 + 1e-12
+          print(x['gate'])
+          PY
+      - name: Persist V98 Phase176 evidence
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -f reports/v98_independent_phase176_dtwexbgs_macro_gate.json
+          git diff --cached --quiet || git commit -m 'v98: persist phase176 macro gate evidence'
+          git pull --rebase --autostash origin research/v98-independent-zero
+          git push origin HEAD:research/v98-independent-zero
