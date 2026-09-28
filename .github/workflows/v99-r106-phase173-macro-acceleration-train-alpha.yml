@@ -1,0 +1,69 @@
+name: V99 R106 Phase173 Macro Acceleration TRAIN Alpha
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/v99_r106_phase173_macro_acceleration_prereg.md'
+      - 'scripts/run_v99_r106_phase173_macro_acceleration_train_alpha.py'
+      - '.github/workflows/v99-r106-phase173-macro-acceleration-train-alpha.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v99-r106-phase173-macro-acceleration-alpha
+  cancel-in-progress: false
+jobs:
+  alpha:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore canonical market cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: data/canonical
+          key: v99-r106-canonical-market
+          restore-keys: |
+            Linux-paper-v15-market-v1-
+            Linux-paper-v13-market-
+      - run: python -m pip install -e '.'
+      - name: Restore published replay state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin paper-results
+          for path in state/paper_v15_universe.json reports/paper_data_sync_v13.json reports/paper_data_sync_v15.json; do
+            mkdir -p "$(dirname "$path")"; git show "FETCH_HEAD:$path" > "$path"
+          done
+      - run: python scripts/prepare_dashboard_v15_replay.py
+      - name: Frozen firewall precheck
+        run: |
+          grep -Fq 'PREREGISTERED BEFORE ANY Phase173 PnL.' research/v99_r106_phase173_macro_acceleration_prereg.md
+          python - <<'PY'
+          import json
+          fs=[('phase168_external_macro_data_audit','PASS_DATA_ONLY'),('phase169_macro_risk_impulse_train_alpha','TRAIN_ALPHA_REJECT'),('phase170_curve_liquidity_shock_train_alpha','TRAIN_ALPHA_REJECT'),('phase171_vix_rates_interaction_train_alpha','TRAIN_ALPHA_REJECT'),('phase172_macro_breadth_train_alpha','TRAIN_ALPHA_REJECT')]
+          for stem,status in fs:
+              d=json.load(open(f'reports/candidate_v99_r106_{stem}.json')); assert d['status']==status; assert d['holdout_rows_used_for_feature_construction']==d['holdout_rows_used_for_selection']==0; assert d['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
+          PY
+      - run: python scripts/run_v99_r106_phase173_macro_acceleration_train_alpha.py
+      - name: Assert scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('reports/candidate_v99_r106_phase173_macro_acceleration_train_alpha.json')); assert d['status'] in {'TRAIN_ALPHA_PASS_FREEZE_FOR_DOWNSTREAM','TRAIN_ALPHA_REJECT'}; assert d['holdout_rows_used_for_feature_construction']==d['holdout_rows_used_for_selection']==0; assert d['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}; assert d['precommitment']['entire_target_shift_hours']==1 and d['precommitment']['single_hypothesis_no_grid'] is True
+          PY
+      - name: Commit evidence race-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          p=reports/candidate_v99_r106_phase173_macro_acceleration_train_alpha.json; cp "$p" /tmp/phase173.json
+          git fetch origin research/v99-r106-native-all-regime-engine; git reset --hard origin/research/v99-r106-native-all-regime-engine; cp /tmp/phase173.json "$p"
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$p"; if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Record V99 R106 Phase173 macro acceleration TRAIN alpha'; git push origin HEAD:research/v99-r106-native-all-regime-engine
