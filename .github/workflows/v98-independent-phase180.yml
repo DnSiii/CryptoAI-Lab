@@ -3,30 +3,50 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - 'research/v98_independent/scripts/phase180_t10yie_disinflation_gate.py'
-      - 'research/v98_independent/prereg/phase180_t10yie_disinflation_prereg.json'
+      - 'scripts/v98_independent_phase180_t10yie_disinflation_gate.py'
+      - 'research/v98_independent_phase180_t10yie_disinflation_stress_preregister.md'
       - '.github/workflows/v98-independent-phase180.yml'
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   phase180:
-    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-        with: {ref: research/v98-independent-zero}
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
-      - run: pip install pandas numpy
-      - name: Rebuild V98 training-only canonical data
-        run: python research/v98_independent/scripts/phase050_build_canonical_training.py
-      - name: Run Phase180 twice and require reproducibility
-        shell: bash
+      - run: pip install -e .
+      - name: Guard preregistration and isolation
         run: |
-          set -euo pipefail
-          python research/v98_independent/scripts/phase180_t10yie_disinflation_gate.py
-          cp research/v98_independent/reports/phase180_t10yie_disinflation_result.json /tmp/p180a.json
-          python research/v98_independent/scripts/phase180_t10yie_disinflation_gate.py
-          cmp /tmp/p180a.json research/v98_independent/reports/phase180_t10yie_disinflation_result.json
+          test "$(git hash-object research/v98_independent_phase180_t10yie_disinflation_stress_preregister.md)" = "3fd431e3516c30a11b98745fb6adb8876ae5703b"
+          grep -q 'No threshold sweep' research/v98_independent_phase180_t10yie_disinflation_stress_preregister.md
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
+      - name: Execute Phase180 twice and require reproducibility
+        run: |
+          python scripts/v98_independent_phase180_t10yie_disinflation_gate.py
+          cp reports/v98_independent_phase180_t10yie_disinflation_gate.json /tmp/p180a.json
+          python scripts/v98_independent_phase180_t10yie_disinflation_gate.py
+          cmp /tmp/p180a.json reports/v98_independent_phase180_t10yie_disinflation_gate.json
+      - name: Audit invariants
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/v98_independent_phase180_t10yie_disinflation_gate.json'))
+          assert x['window']==['2023-01-01','2025-12-31'] and x['validation'] is None and x['final_holdout'] is None
+          assert not x['same_day_use'] and not x['parameter_search'] and not x['threshold_search'] and not x['lookback_search'] and not x['rescue_allowed']
+          assert not x['v16_used'] and not x['v99_used']
+          assert x['variants']['DISINFLATION_GATE']['max_open_gross'] <= .35002
+          assert set(x['variants']['DISINFLATION_GATE']['folds'])=={'2023','2024','2025'}
+          print(x['gate'])
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: v98-independent-phase180
-          path: research/v98_independent/reports/phase180_t10yie_disinflation_result.json
+          path: reports/v98_independent_phase180_t10yie_disinflation_gate.json
