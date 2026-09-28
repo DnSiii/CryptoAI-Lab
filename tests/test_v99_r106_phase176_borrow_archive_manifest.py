@@ -12,10 +12,16 @@ def test_holdout_row_is_detected_fail_closed():
     r=m.inspect(p)["members"][0]
     assert r["outside_frozen_train_rows"]==1
 
-def test_duplicate_and_nonmonotonic_are_detected():
+def test_duplicate_identity_and_nonmonotonic_are_detected():
     p=write([["2022-01-02T00:00:00Z","BTC","0.1"],["2022-01-01T00:00:00Z","BTC","0.1"],["2022-01-01T00:00:00Z","BTC","0.1"]])
     r=m.inspect(p)["members"][0]
-    assert r["duplicate_timestamps"]==1 and r["monotonic"] is False
+    assert r["duplicate_identities_within_member"]==1 and r["monotonic"] is False
+
+def test_same_timestamp_different_currency_is_not_duplicate():
+    p=write([["2022-01-01T00:00:00Z","BTC","0.1"],["2022-01-01T00:00:00Z","ETH","0.2"]])
+    r=m.inspect(p)["members"][0]
+    assert r["duplicate_identities_within_member"]==0
+    assert r["currencies"]==["BTC","ETH"]
 
 def test_epoch_ms_parsing_is_utc():
     d=m.parse_ts("1640995200000")
