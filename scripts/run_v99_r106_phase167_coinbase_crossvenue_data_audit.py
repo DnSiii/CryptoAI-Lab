@@ -13,6 +13,7 @@ PRE=P/'research'/'v99_r106_phase167_coinbase_crossvenue_data_prereg.md'
 START=pd.Timestamp('2021-12-01T00:00:00Z'); END=pd.Timestamp('2024-01-18T00:00:00Z')
 PRODUCTS=['BTC-USD','ETH-USD','SOL-USD','XRP-USD','DOGE-USD']; GRAN=3600; STEP=pd.Timedelta(hours=300)
 BASE='https://api.exchange.coinbase.com'
+def epoch_s(t): return int(pd.Timestamp(t).timestamp())
 def get_json(url):
  last=None
  for k in range(6):
@@ -35,13 +36,15 @@ def load(product):
   for row in data:
    if not isinstance(row,list) or len(row)<6: continue
    ts=int(row[0]); t=pd.Timestamp(ts,unit='s',tz='UTC')
-   if START<=t<END: rows[ts]=[float(x) for x in row[1:6]] # low high open close volume
+   if START<=t<END: rows[ts]=[float(x) for x in row[1:6]]
   cursor=stop; time.sleep(.12)
  idx=sorted(rows); arr=np.asarray([rows[t] for t in idx],dtype=float) if idx else np.empty((0,5))
  return idx,arr,requests
 def main():
  q=PRE.read_text(); assert 'DATA ONLY. BEFORE ANY Phase167 PnL.' in q
- expected=pd.date_range(START,END-pd.Timedelta(hours=1),freq='h'); expected_s=set((expected.view('int64')//10**9).tolist())
+ expected=pd.date_range(START,END-pd.Timedelta(hours=1),freq='h'); expected_s={epoch_s(t) for t in expected}
+ # Invariant against pandas datetime storage-unit changes (e.g. ns -> us in pandas 3).
+ assert len(expected_s)==len(expected) and min(expected_s)==epoch_s(START) and max(expected_s)==epoch_s(END-pd.Timedelta(hours=1))
  assets={}; sets={}; ok=True
  for product in PRODUCTS:
   idx,a,nreq=load(product); s=set(idx); sets[product]=s
@@ -54,6 +57,6 @@ def main():
   st['pass']=bool(st['coverage_hourly']>=.95 and st['duplicate_timestamps_after_canonicalization']==0 and st['strictly_increasing'] and offgrid==0 and outside==0 and finite and price_bad==0 and vol_bad==0)
   assets[product]=st; ok &= st['pass']
  good=sum(sum(t in sets[p] for p in PRODUCTS)>=4 for t in expected_s); cross=good/len(expected_s); ok &= cross>=.90
- out={'study':'V99 R106 Phase167 Coinbase cross-venue spot DATA-only audit','status':'PASS_DATA_ONLY' if ok else 'FAIL_DATA_ONLY','source':'Coinbase Exchange public hourly candles','train_start':str(START),'train_end_exclusive':str(END),'fixed_products':PRODUCTS,'assets':assets,'cross_section_coverage_ge4':cross,'pnl_computed':False,'holdout_rows_used_for_feature_construction':0,'holdout_rows_used_for_selection':0,'frozen_assets_untouched':{'v16':True,'v99_frozen':True},'decision':'Eligible only for separately preregistered Phase168 cross-venue hypothesis.' if ok else 'Reject this frozen Coinbase source contract before alpha; no gate rescue.'}
+ out={'study':'V99 R106 Phase167 Coinbase cross-venue spot DATA-only audit','status':'PASS_DATA_ONLY' if ok else 'FAIL_DATA_ONLY','source':'Coinbase Exchange public hourly candles','train_start':str(START),'train_end_exclusive':str(END),'fixed_products':PRODUCTS,'assets':assets,'cross_section_coverage_ge4':cross,'pnl_computed':False,'holdout_rows_used_for_feature_construction':0,'holdout_rows_used_for_selection':0,'frozen_assets_untouched':{'v16':True,'v99_frozen':True},'decision':'DATA contract passes, but cross-venue OHLC alpha remains CLOSED by prior Phase149-157 family decision; no Phase168 OHLC alpha.' if ok else 'Reject this frozen Coinbase source contract before alpha; no gate rescue.'}
  OUT.write_text(json.dumps(out,indent=2)+'\n'); print(json.dumps(out,indent=2))
 if __name__=='__main__': main()
