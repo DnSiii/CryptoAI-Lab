@@ -10,39 +10,64 @@ OUT=PROJECT/'reports'/'candidate_v99_r106_phase169_macro_risk_impulse_train_alph
 TRAIN_START=pd.Timestamp('2021-12-01',tz='UTC'); TRAIN_END=pd.Timestamp('2024-01-18',tz='UTC')
 SERIES=('DGS2','DGS10','DTWEXBGS','VIXCLS'); GROSS=.20
 
-def fetch_series(s):
-    u=f'https://fred.stlouisfed.org/graph/fredgraph.csv?id={s}&cosd=2021-12-01&coed=2024-01-17'
-    raw=None; last=None
-    for attempt in range(4):
+def _get(url,attempts=6):
+    last=None
+    for attempt in range(attempts):
         try:
-            with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'CryptoAI-v99-r106-phase169'}),timeout=120) as r: raw=r.read()
-            break
+            req=urllib.request.Request(url,headers={'User-Agent':'CryptoAI-v99-r106-phase169','Accept':'text/csv'})
+            with urllib.request.urlopen(req,timeout=180) as r:
+                raw=r.read()
+            if len(raw)<100: raise RuntimeError('implausibly short FRED response')
+            return raw
         except Exception as e:
             last=e
-            if attempt<3: time.sleep(2**attempt)
-    if raw is None: raise RuntimeError(f'FRED fetch failed after 4 attempts for {s}: {type(last).__name__}: {last}')
-    d=pd.read_csv(io.BytesIO(raw)); d.columns=['date','value']; d['date']=pd.to_datetime(d['date'],utc=True,errors='raise'); d['value']=pd.to_numeric(d['value'],errors='coerce')
-    d=d[(d.date>=TRAIN_START)&(d.date<TRAIN_END)].sort_values('date').drop_duplicates('date',keep=False)
-    if d.empty or d.date.max()>=TRAIN_END: raise RuntimeError('TRAIN firewall '+s)
-    return d.set_index('date').value.astype(float)
+            if attempt<attempts-1: time.sleep(min(30,2**attempt))
+    raise RuntimeError(f'FRED fetch failed after {attempts} attempts: {type(last).__name__}: {last}')
+
+def fetch_panel():
+    # One immutable TRAIN-bounded request is preferred: fewer network round trips and every
+    # series shares the same retrieval boundary. Individual requests are only a transport
+    # fallback; they do not alter data, dates, hypothesis, or selection.
+    ids=','.join(SERIES)
+    base='https://fred.stlouisfed.org/graph/fredgraph.csv'
+    panel=None
+    try:
+        raw=_get(f'{base}?id={ids}&cosd=2021-12-01&coed=2024-01-17')
+        d=pd.read_csv(io.BytesIO(raw)); d.columns=[str(c).strip() for c in d.columns]
+        if all(s in d.columns for s in SERIES): panel=d
+    except Exception:
+        panel=None
+    if panel is None:
+        parts=[]
+        for s in SERIES:
+            raw=_get(f'{base}?id={s}&cosd=2021-12-01&coed=2024-01-17')
+            q=pd.read_csv(io.BytesIO(raw)); q.columns=['date',s]; parts.append(q)
+        panel=parts[0]
+        for q in parts[1:]: panel=panel.merge(q,on='date',how='outer',validate='one_to_one')
+    date_col='DATE' if 'DATE' in panel.columns else ('observation_date' if 'observation_date' in panel.columns else panel.columns[0])
+    panel=panel.rename(columns={date_col:'date'}); panel['date']=pd.to_datetime(panel['date'],utc=True,errors='raise')
+    panel=panel[(panel.date>=TRAIN_START)&(panel.date<TRAIN_END)].sort_values('date')
+    if panel.empty or panel.date.max()>=TRAIN_END or panel.date.duplicated().any(): raise RuntimeError('TRAIN panel firewall')
+    out={}
+    for s in SERIES:
+        if s not in panel: raise RuntimeError('missing FRED series '+s)
+        v=pd.to_numeric(panel[s],errors='coerce'); out[s]=pd.Series(v.to_numpy(dtype=float),index=panel.date,name=s)
+        if out[s].dropna().empty: raise RuntimeError('empty finite FRED series '+s)
+    return out
 
 def causal_z(x):
-    # Preregistered 5 BUSINESS OBSERVATIONS: remove missing native observations before differencing.
-    finite=x.dropna()
-    imp=finite.diff(5); mu=imp.expanding(min_periods=60).mean().shift(1); sd=imp.expanding(min_periods=60).std(ddof=1).shift(1)
+    finite=x.dropna(); imp=finite.diff(5); mu=imp.expanding(min_periods=60).mean().shift(1); sd=imp.expanding(min_periods=60).std(ddof=1).shift(1)
     return ((imp-mu)/sd.replace(0,np.nan)).clip(-4,4)
 
 def hourly_prior(z,index):
-    # Preregistered latest FINITE feature strictly before current UTC date.
-    finite=z.dropna()
-    day=pd.DatetimeIndex(index).normalize()-pd.Timedelta(days=1)
+    finite=z.dropna(); day=pd.DatetimeIndex(index).normalize()-pd.Timedelta(days=1)
     return finite.reindex(day,method='ffill').set_axis(index)
 
 def main():
     assert (PROJECT/'research'/'v99_r106_phase169_macro_risk_impulse_prereg.md').exists()
     d168=json.loads((PROJECT/'reports'/'candidate_v99_r106_phase168_external_macro_data_audit.json').read_text()); assert d168['status']=='PASS_DATA_ONLY'
     cfg,data,raw,ex,guard,gross,quarantined,metadata=p1.r98.r36.v15_setup(); idx=data.close.index; train_idx=idx[(idx>=TRAIN_START)&(idx<TRAIN_END)]
-    zs={s:causal_z(fetch_series(s)) for s in SERIES}; hz=pd.DataFrame({s:hourly_prior(z,train_idx) for s,z in zs.items()},index=train_idx)
+    panel=fetch_panel(); zs={s:causal_z(panel[s]) for s in SERIES}; hz=pd.DataFrame({s:hourly_prior(z,train_idx) for s,z in zs.items()},index=train_idx)
     composite=hz.mean(axis=1).where(hz.notna().all(axis=1)); scalar=(-np.tanh(composite.abs())*np.sign(composite)).shift(1).fillna(0.0)
     targets=pd.DataFrame(0.,index=idx,columns=data.close.columns); common=[c for c in data.close.columns if c not in set(quarantined)]
     if not common: raise RuntimeError('no executable assets')
