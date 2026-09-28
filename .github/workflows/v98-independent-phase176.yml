@@ -27,6 +27,8 @@ jobs:
         run: |
           test "$(git hash-object research/v98_independent_phase176_dtwexbgs_preregister.md)" = "74de48546327bc10d832d3543e4bc4eab2b9c3e5"
           grep -q 'PREREGISTERED BEFORE ECONOMIC INSPECTION' research/v98_independent_phase176_dtwexbgs_preregister.md
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
       - name: Execute Phase176 twice
         run: |
           python scripts/v98_independent_phase176_dtwexbgs_macro_gate.py
