@@ -27,13 +27,16 @@ def fetch_series(s):
     return d.set_index('date').value.astype(float)
 
 def causal_z(x):
-    imp=x.diff(5); mu=imp.expanding(min_periods=60).mean().shift(1); sd=imp.expanding(min_periods=60).std(ddof=1).shift(1)
+    # Preregistered 5 BUSINESS OBSERVATIONS: remove missing native observations before differencing.
+    finite=x.dropna()
+    imp=finite.diff(5); mu=imp.expanding(min_periods=60).mean().shift(1); sd=imp.expanding(min_periods=60).std(ddof=1).shift(1)
     return ((imp-mu)/sd.replace(0,np.nan)).clip(-4,4)
 
 def hourly_prior(z,index):
-    # Strictly prior UTC calendar date: never consume a same-day macro value, regardless of publication time.
+    # Preregistered latest FINITE feature strictly before current UTC date.
+    finite=z.dropna()
     day=pd.DatetimeIndex(index).normalize()-pd.Timedelta(days=1)
-    return z.reindex(day,method='ffill').set_axis(index)
+    return finite.reindex(day,method='ffill').set_axis(index)
 
 def main():
     assert (PROJECT/'research'/'v99_r106_phase169_macro_risk_impulse_prereg.md').exists()
