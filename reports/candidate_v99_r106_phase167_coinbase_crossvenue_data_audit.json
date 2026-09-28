@@ -1,0 +1,90 @@
+{
+  "study": "V99 R106 Phase167 Coinbase cross-venue spot DATA-only audit",
+  "status": "FAIL_DATA_ONLY",
+  "source": "Coinbase Exchange public hourly candles",
+  "train_start": "2021-12-01 00:00:00+00:00",
+  "train_end_exclusive": "2024-01-18 00:00:00+00:00",
+  "fixed_products": [
+    "BTC-USD",
+    "ETH-USD",
+    "SOL-USD",
+    "XRP-USD",
+    "DOGE-USD"
+  ],
+  "assets": {
+    "BTC-USD": {
+      "rows": 18669,
+      "requests": 63,
+      "coverage_hourly": 0.9998393316195373,
+      "duplicate_timestamps_after_canonicalization": 0,
+      "strictly_increasing": true,
+      "off_hour_grid": 0,
+      "rows_outside_train": 0,
+      "all_finite": true,
+      "invalid_ohlc_cells": 0,
+      "invalid_volume_cells": 0,
+      "pass": true
+    },
+    "ETH-USD": {
+      "rows": 18669,
+      "requests": 63,
+      "coverage_hourly": 0.9998393316195373,
+      "duplicate_timestamps_after_canonicalization": 0,
+      "strictly_increasing": true,
+      "off_hour_grid": 0,
+      "rows_outside_train": 0,
+      "all_finite": true,
+      "invalid_ohlc_cells": 0,
+      "invalid_volume_cells": 0,
+      "pass": true
+    },
+    "SOL-USD": {
+      "rows": 18667,
+      "requests": 63,
+      "coverage_hourly": 0.9997322193658955,
+      "duplicate_timestamps_after_canonicalization": 0,
+      "strictly_increasing": true,
+      "off_hour_grid": 0,
+      "rows_outside_train": 0,
+      "all_finite": true,
+      "invalid_ohlc_cells": 0,
+      "invalid_volume_cells": 0,
+      "pass": true
+    },
+    "XRP-USD": {
+      "rows": 4516,
+      "requests": 63,
+      "coverage_hourly": 0.24185946872322195,
+      "duplicate_timestamps_after_canonicalization": 0,
+      "strictly_increasing": true,
+      "off_hour_grid": 0,
+      "rows_outside_train": 0,
+      "all_finite": true,
+      "invalid_ohlc_cells": 0,
+      "invalid_volume_cells": 0,
+      "pass": false
+    },
+    "DOGE-USD": {
+      "rows": 18667,
+      "requests": 63,
+      "coverage_hourly": 0.9997322193658955,
+      "duplicate_timestamps_after_canonicalization": 0,
+      "strictly_increasing": true,
+      "off_hour_grid": 0,
+      "rows_outside_train": 0,
+      "all_finite": true,
+      "invalid_ohlc_cells": 0,
+      "invalid_volume_cells": 0,
+      "pass": true
+    }
+  },
+  "cross_section_coverage_ge4": 0.9997322193658955,
+  "pnl_computed": false,
+  "holdout_rows_used_for_feature_construction": 0,
+  "holdout_rows_used_for_selection": 0,
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "decision": "Reject this frozen Coinbase source contract before alpha; no gate rescue."
+}
