@@ -1,0 +1,57 @@
+name: V98 Independent Phase173
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase173_validation.py'
+      - 'reports/v98_independent_phase173_validation_preregistration.json'
+      - '.github/workflows/v98-independent-phase173.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase173:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Verify frozen training evidence identity
+        run: |
+          test "$(git hash-object reports/v98_independent_phase172_t10y2y_steepening_long.json)" = "03a3baef73ab940e6a503a604cb17287e095f337"
+      - name: Rebuild canonical V98 data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
+      - name: Execute frozen validation twice
+        run: |
+          python scripts/v98_independent_phase173_validation.py
+          cp reports/v98_independent_phase173_validation.json /tmp/p173_a.json
+          python scripts/v98_independent_phase173_validation.py
+          cmp /tmp/p173_a.json reports/v98_independent_phase173_validation.json
+      - name: Audit validation invariants
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/v98_independent_phase173_validation.json'))
+          assert x['final_holdout'] is None
+          assert not x['parameter_search'] and not x['threshold_search'] and not x['lookback_search'] and not x['rescue_allowed'] and not x['training_retune_after_validation']
+          assert not x['v16_used'] and not x['v99_used']
+          assert x['frozen_contract']['economic_use_lag_days']==1 and x['frozen_contract']['target_gross']==.30
+          assert x['max_open_gross'] <= .35 + 1e-12
+          assert x['validation']['ruin'] is False
+          print(x['gate'])
+          PY
+      - name: Persist V98 validation evidence
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -f reports/v98_independent_phase173_validation.json
+          git diff --cached --quiet || git commit -m 'v98: persist phase173 validation evidence'
+          git pull --rebase --autostash origin research/v98-independent-zero
+          git push origin HEAD:research/v98-independent-zero
