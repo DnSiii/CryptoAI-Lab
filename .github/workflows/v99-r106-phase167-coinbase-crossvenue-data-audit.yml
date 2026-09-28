@@ -1,0 +1,58 @@
+name: V99 R106 Phase167 Coinbase Cross-Venue DATA Audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/v99_r106_phase167_coinbase_crossvenue_data_prereg.md'
+      - 'scripts/run_v99_r106_phase167_coinbase_crossvenue_data_audit.py'
+      - '.github/workflows/v99-r106-phase167-coinbase-crossvenue-data-audit.yml'
+permissions:
+  contents: write
+concurrency:
+  group: v99-r106-phase167-coinbase-data
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy pandas
+      - name: Frozen firewall precheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/v99_r106_phase167_coinbase_crossvenue_data_prereg.md
+          grep -Fq 'DATA ONLY. BEFORE ANY Phase167 PnL.' research/v99_r106_phase167_coinbase_crossvenue_data_prereg.md
+          git status --porcelain
+      - name: Run DATA-only audit
+        run: python scripts/run_v99_r106_phase167_coinbase_crossvenue_data_audit.py
+      - name: Assert scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='reports/candidate_v99_r106_phase167_coinbase_crossvenue_data_audit.json'
+          d=json.load(open(p))
+          assert d['pnl_computed'] is False
+          assert d['holdout_rows_used_for_feature_construction']==0
+          assert d['holdout_rows_used_for_selection']==0
+          assert d['frozen_assets_untouched']=={'v16':True,'v99_frozen':True}
+          assert d['status'] in {'PASS_DATA_ONLY','FAIL_DATA_ONLY'}
+          PY
+      - name: Commit evidence only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/candidate_v99_r106_phase167_coinbase_crossvenue_data_audit.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Record V99 R106 Phase167 Coinbase DATA audit'
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
