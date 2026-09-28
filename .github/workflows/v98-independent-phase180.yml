@@ -1,0 +1,32 @@
+name: V98 Independent Phase180 T10YIE Disinflation Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/scripts/phase180_t10yie_disinflation_gate.py'
+      - 'research/v98_independent/prereg/phase180_t10yie_disinflation_prereg.json'
+      - '.github/workflows/v98-independent-phase180.yml'
+  workflow_dispatch:
+jobs:
+  phase180:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install pandas numpy
+      - name: Rebuild V98 training-only canonical data
+        run: python research/v98_independent/scripts/phase050_build_canonical_training.py
+      - name: Run Phase180 twice and require reproducibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/v98_independent/scripts/phase180_t10yie_disinflation_gate.py
+          cp research/v98_independent/reports/phase180_t10yie_disinflation_result.json /tmp/p180a.json
+          python research/v98_independent/scripts/phase180_t10yie_disinflation_gate.py
+          cmp /tmp/p180a.json research/v98_independent/reports/phase180_t10yie_disinflation_result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase180
+          path: research/v98_independent/reports/phase180_t10yie_disinflation_result.json
