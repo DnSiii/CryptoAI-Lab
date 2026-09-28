@@ -1,6 +1,11 @@
 name: V98 Independent Phase175 DATA_ONLY
 on:
   workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase175_dtwexbgs_data_only.py'
+      - '.github/workflows/v98-independent-phase175.yml'
 permissions:
   contents: read
 jobs:
@@ -42,5 +47,8 @@ jobs:
           assert x['valid_observations'] > 700
           assert x['first_valid'][:4]=='2023' and x['last_valid'][:4]=='2025'
           assert all(x['annual_valid'].get(y,0)>240 for y in ('2023','2024','2025'))
+          assert x['monotonic_dates'] is True
+          assert x['max_calendar_gap_days'] <= 4
+          assert x['min_value'] > 0
           print('PASS_DATA_ONLY')
           PY
