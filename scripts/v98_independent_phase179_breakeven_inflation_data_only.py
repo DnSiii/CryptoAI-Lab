@@ -42,7 +42,9 @@ def main():
  p1,v1,m1,a1,q1=normalize(acquire()); p2,v2,m2,a2,q2=normalize(acquire()); h1=hashlib.sha256(p1).hexdigest(); h2=hashlib.sha256(p2).hexdigest()
  if not (h1==h2 and p1==p2 and v1==v2 and m1==m2 and a1==a2 and q1==q2): raise RuntimeError("reacquisition mismatch")
  if set(a1)!={"2023","2024","2025"} or min(a1.values())<240: raise RuntimeError(f"insufficient annual coverage: {a1}")
+ first=date.fromisoformat(v1[0][0]); last=date.fromisoformat(v1[-1][0])
+ if (first-START).days>7 or (END-last).days>7: raise RuntimeError(f"boundary coverage failure: {first}..{last}")
  if q1["max_calendar_gap_days"]>7: raise RuntimeError(f"unexpected calendar gap: {q1}")
- out={"phase":179,"status":"PASS_DATA_ONLY","series":SERIES,"window":[str(START),str(END)],"valid_observations":len(v1),"explicit_missing_rows":len(m1),"first_valid":v1[0][0],"last_valid":v1[-1][0],"annual_valid":a1,"normalized_sha256":h1,"reacquisition_identical":True,"same_day_use_forbidden":True,"causal_availability_floor":"next_US_business_day_or_more_conservative","crypto_pnl_inspected":False,"validation_inspected":False,"final_holdout_inspected":False,"v16_used":False,"v99_used":False,**q1}
+ out={"phase":179,"status":"PASS_DATA_ONLY","series":SERIES,"window":[str(START),str(END)],"valid_observations":len(v1),"explicit_missing_rows":len(m1),"first_valid":v1[0][0],"last_valid":v1[-1][0],"annual_valid":a1,"normalized_sha256":h1,"reacquisition_identical":True,"boundary_coverage_le_7d":True,"same_day_use_forbidden":True,"causal_availability_floor":"next_US_business_day_or_more_conservative","crypto_pnl_inspected":False,"validation_inspected":False,"final_holdout_inspected":False,"v16_used":False,"v99_used":False,**q1}
  print(json.dumps(out,sort_keys=True,indent=2))
 if __name__=="__main__": main()
