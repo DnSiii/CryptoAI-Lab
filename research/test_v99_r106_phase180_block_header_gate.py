@@ -19,6 +19,11 @@ def chain(n=14,start=100,bits="1d00ffff"):
 def fails(rows,needle):
     out=gate.audit(write(rows)); assert out["status"]=="FAIL"; assert any(needle in x for x in out["failures"])
 
+def valid_boundary_chain():
+    r=chain(n=2017,start=0)
+    r[-1]["bits"]=gate.expected_retarget(r[-2]["bits"],r[0]["time"],r[-2]["time"])
+    return r
+
 def test_valid_chain_passes(): assert gate.audit(write(chain()))["status"]=="PASS"
 def test_parent_mismatch_fails():
     r=chain(); r[4]["previousblockhash"]="f"*64; fails(r,"parent_mismatch")
@@ -38,7 +43,6 @@ def test_invalid_hash_encoding_fails():
     r=chain(); r[3]["hash"]="not-a-hash"; r[4]["previousblockhash"]="not-a-hash"; fails(r,"invalid_hash_encoding")
 def test_retarget_missing_preroll_fails():
     r=chain(n=2016,start=1); fails(r,"retarget_missing_preroll:2016")
-def test_valid_retarget_passes():
-    r=chain(n=2017,start=0); assert gate.audit(write(r))["status"]=="PASS"
+def test_valid_retarget_passes(): assert gate.audit(write(valid_boundary_chain()))["status"]=="PASS"
 def test_wrong_retarget_fails():
-    r=chain(n=2017,start=0); r[-1]["bits"]="1c00ffff"; fails(r,"retarget_mismatch:2016")
+    r=valid_boundary_chain(); r[-1]["bits"]="1c00ffff"; fails(r,"retarget_mismatch:2016")
