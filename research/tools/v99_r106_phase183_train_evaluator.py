@@ -5,46 +5,40 @@ from pathlib import Path
 from datetime import datetime,timezone
 CUTOFF=datetime(2024,1,18,tzinfo=timezone.utc); START=datetime(2021,12,1,tzinfo=timezone.utc)
 N=168; THRESH=2.0; GROSS=.20; SEVERE=.0007; SUPERSEVERE=.0014
-
 def ts(x): return datetime.fromisoformat(x.replace('Z','+00:00')).astimezone(timezone.utc)
 def load_train(path):
- out=[]; h=hashlib.sha256()
+ out=[];h=hashlib.sha256()
  with open(path,newline='',encoding='utf-8') as f:
-  rd=csv.DictReader(f); req=('timestamp','open','high','low','close','volume')
-  if not rd.fieldnames or any(x not in rd.fieldnames for x in req): raise ValueError('columns')
+  rd=csv.DictReader(f);req=('timestamp','open','high','low','close','volume')
+  if not rd.fieldnames or any(x not in rd.fieldnames for x in req):raise ValueError('columns')
   for r in rd:
    t=ts(r['timestamp'])
-   if t>=CUTOFF: break
-   vals=tuple(float(r[x]) for x in ('open','high','low','close','volume')); out.append((t,*vals))
-   h.update((r['timestamp']+'|'+'|'.join(r[x] for x in ('open','high','low','close','volume'))+'\n').encode())
+   if t>=CUTOFF:break
+   vals=tuple(float(r[x]) for x in ('open','high','low','close','volume'));out.append((t,*vals));h.update((r['timestamp']+'|'+'|'.join(r[x] for x in ('open','high','low','close','volume'))+'\n').encode())
  return out,h.hexdigest()
 def signal_series(b,e):
- # At index t, beta/z use returns ending t-1 only; position earned on t->t+1.
- rb=[math.log(b[i][4]/b[i-1][4]) for i in range(1,len(b))]; re=[math.log(e[i][4]/e[i-1][4]) for i in range(1,len(e))]
- out=[]
+ rb=[math.log(b[i][4]/b[i-1][4]) for i in range(1,len(b))];re=[math.log(e[i][4]/e[i-1][4]) for i in range(1,len(e))];out=[]
  for t in range(N+1,len(b)-1):
-  xb=rb[t-N-1:t-1]; ye=re[t-N-1:t-1]; mb=sum(xb)/N; me=sum(ye)/N
-  var=sum((x-mb)**2 for x in xb); beta=sum((x-mb)*(y-me) for x,y in zip(xb,ye))/var if var>1e-18 else 0.
-  resid=[y-beta*x for x,y in zip(xb,ye)]; mu=sum(resid)/N; sd=math.sqrt(sum((q-mu)**2 for q in resid)/(N-1))
-  last=re[t-1]-beta*rb[t-1]; z=(last-mu)/sd if sd>1e-12 else 0.
-  pos=(-GROSS if z>=THRESH else GROSS if z<=-THRESH else 0.)
-  out.append((b[t][0],pos,beta,z,b[t][4],e[t][4],b[t+1][4],e[t+1][4]))
+  # rb[k] is row k+1 return. Slice ends at rb[t-2] = market information through row t-1 only.
+  xb=rb[t-N-1:t-1];ye=re[t-N-1:t-1];mb=sum(xb)/N;me=sum(ye)/N
+  var=sum((x-mb)**2 for x in xb);beta=sum((x-mb)*(y-me) for x,y in zip(xb,ye))/var if var>1e-18 else 0.
+  resid=[y-beta*x for x,y in zip(xb,ye)];mu=sum(resid)/N;sd=math.sqrt(sum((q-mu)**2 for q in resid)/(N-1));last=resid[-1];z=(last-mu)/sd if sd>1e-12 else 0.
+  p=-GROSS if z>=THRESH else GROSS if z<=-THRESH else 0.;out.append((b[t][0],p,beta,z,b[t][4],e[t][4],b[t+1][4],e[t+1][4]))
  return out
 def evaluate(b,e,cost):
- s=signal_series(b,e); rs=[]; dates=[]; prev=0.
+ s=signal_series(b,e);rs=[];prev=0.
  for t,p,beta,z,bc,ec,bn,en in s:
-  if t<START: prev=p; continue
-  # beta-adjusted residual PnL; gross refers to ETH leg, BTC hedge scales by |beta|.
-  spread=(en/ec-1)-beta*(bn/bc-1); turnover=abs(p-prev)*(1+abs(beta)); rs.append(p*spread-turnover*cost);dates.append(t);prev=p
- if not rs: raise ValueError('empty train')
+  if t<START:prev=p;continue
+  spread=(en/ec-1)-beta*(bn/bc-1);turnover=abs(p-prev)*(1+abs(beta));rs.append(p*spread-turnover*cost);prev=p
+ if not rs:raise ValueError('empty train')
  eq=peak=1.;mdd=0.
- for r in rs: eq*=1+r;peak=max(peak,eq);mdd=min(mdd,eq/peak-1)
+ for r in rs:eq*=1+r;peak=max(peak,eq);mdd=min(mdd,eq/peak-1)
  folds=[]
  for q in range(5):
   a=q*len(rs)//5;z=(q+1)*len(rs)//5;w=1.
   for r in rs[a:z]:w*=1+r
   folds.append(w-1)
- imax=max(range(len(rs)),key=rs.__getitem__); w=1.
+ imax=max(range(len(rs)),key=rs.__getitem__);w=1.
  for i,r in enumerate(rs):
   if i!=imax:w*=1+r
  return {'return':eq-1,'max_drawdown':mdd,'worst_hour':min(rs),'fold_returns':folds,'healthy_folds':sum(x>0 for x in folds),'remove_best_hour_return':w-1,'hours':len(rs),'active_hours':sum(abs(x[1])>0 for x in s if x[0]>=START),'cost_per_side':cost}
