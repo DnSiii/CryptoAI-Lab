@@ -2,9 +2,14 @@
 """Deterministic Phase180 feature builder. TRAIN-only, no PnL logic.
 
 Causality invariant: row h contains features computed only from inter-block deltas
-whose newest endpoint is h-1.  The current block timestamp is never part of its
+whose newest endpoint is h-1. The current block timestamp is never part of its
 own feature vector; this makes the required one-block (t-1) lag structural rather
 than a downstream convention.
+
+IMPORTANT: Bitcoin header ``time`` is miner-declared consensus data, not an
+observation/availability timestamp. Therefore this artifact is intentionally NOT
+admissible for market-time alpha alignment until a separately provenance-checked
+``observed_at`` source exists. The manifest makes that restriction machine-visible.
 """
 from __future__ import annotations
 import argparse,csv,hashlib,json,statistics
@@ -41,8 +46,6 @@ def build(src:Path,dst:Path,gate_report:Path):
     fields=['height','hash','time']+[f'{m}_{w}' for w in WINDOWS for m in ('mean_stress','median_stress','frac_gt_1200','frac_gt_3600')]
     out=[]; deltas=[]
     for i,r in enumerate(x):
-        # IMPORTANT: compute row i from history available strictly before block i.
-        # Append delta ending at i only after row i has been materialized.
         o={'height':r['height'],'hash':r['hash'],'time':r['time']}
         for w in WINDOWS:
             ds=deltas[-w:]
@@ -53,7 +56,7 @@ def build(src:Path,dst:Path,gate_report:Path):
     with dst.open('w',newline='',encoding='utf-8') as f:
         wr=csv.DictWriter(f,fieldnames=fields); wr.writeheader()
         for r in out: wr.writerow({k:('' if v is None else (format(v,'.17g') if isinstance(v,float) else v)) for k,v in r.items()})
-    return {'rows':len(out),'source_sha256':digest,'gate_report_sha256':sha256(gate_report),'output_sha256':sha256(dst),'windows':list(WINDOWS),'causal_lag_blocks':1,'status':'PASS'}
+    return {'rows':len(out),'source_sha256':digest,'gate_report_sha256':sha256(gate_report),'output_sha256':sha256(dst),'windows':list(WINDOWS),'causal_lag_blocks':1,'time_semantics':'miner_declared_header_time_not_observation_time','market_time_alignment_admissible':False,'required_for_alpha':'independent_point_in_time_observed_at_provenance','status':'PASS_FEATURE_CONSTRUCTION_ONLY'}
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('csv',type=Path); ap.add_argument('--gate-report',type=Path,required=True); ap.add_argument('--out',type=Path,required=True); a=ap.parse_args()
