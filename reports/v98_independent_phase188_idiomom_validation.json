@@ -1,0 +1,139 @@
+{
+  "asset_contribution_share": {
+    "BNBUSDT": -0.223743807081095,
+    "BTCUSDT": -0.1702464593512514,
+    "ETHUSDT": -0.20539495910582442,
+    "SOLUSDT": -0.23259476073262825,
+    "XRPUSDT": -0.1680200137292009
+  },
+  "base": {
+    "avg_gross": 0.21789135743800137,
+    "avg_net": 0.21789135743800137,
+    "best_day": 0.033713534759978625,
+    "cagr": -0.20359582390386777,
+    "cvar05_day": -0.017382270090652054,
+    "days": 211,
+    "max_abs_net": 0.3188343826565477,
+    "max_drawdown": -0.159699424078789,
+    "max_gross": 0.3188343826565477,
+    "negative_days": 109,
+    "p01_day": -0.020510801167562563,
+    "p05_day": -0.009034251137815252,
+    "payoff_daily": 0.8116846189072567,
+    "positive_days": 102,
+    "profit_factor_daily": 0.7595580837480751,
+    "ruin": false,
+    "total_return": -0.12375254545373915,
+    "turnover_sum": 12.664745792878243,
+    "win_rate_daily": 0.4834123222748815,
+    "worst_day": -0.04427165830083413
+  },
+  "candidate": "Phase187 frozen h24_w90_low50",
+  "concentration": {
+    "mean_active_assets": 5.0,
+    "mean_top1_weight_share": 0.20316695271661186,
+    "p95_top1_weight_share": 0.20858245454691804
+  },
+  "engine": "V98 Independent",
+  "final_holdout": null,
+  "final_holdout_untouched": true,
+  "max_open_gross": 0.3188400096730379,
+  "parameter_search": false,
+  "parameters": {
+    "gross_cap": 0.35,
+    "low_dispersion_multiplier": 0.5,
+    "momentum_hours": 24,
+    "reference_days": 90,
+    "target_gross": 0.3
+  },
+  "parameters_frozen_from_phase187": true,
+  "phase": 188,
+  "positions_sha256": "e91e67495b4e0dd6d14b255cae1e056e905c2af53c78e5eb2b9b1494522113a5",
+  "prereg_sha256": "8a306ab8d69b8612a0dec4c9c8b6818c95b7cd42b55355cc7c32011b2e084707",
+  "regimes": {
+    "bear": {
+      "hours": 2816,
+      "positive_hour_ratio": 0.49751420454545453,
+      "return_sum_approx": -0.044022881383728785
+    },
+    "bull": {
+      "hours": 282,
+      "positive_hour_ratio": 0.5177304964539007,
+      "return_sum_approx": -0.008214670104721433
+    },
+    "sideways": {
+      "hours": 1990,
+      "positive_hour_ratio": 0.4979899497487437,
+      "return_sum_approx": -0.07517656217206059
+    }
+  },
+  "rescue_allowed": false,
+  "severe": {
+    "avg_gross": 0.21789135743800137,
+    "avg_net": 0.21789135743800137,
+    "best_day": 0.033675397967563026,
+    "cagr": -0.21451282030851526,
+    "cvar05_day": -0.017430851603683184,
+    "days": 211,
+    "max_abs_net": 0.3188343826565477,
+    "max_drawdown": -0.16505798946117012,
+    "max_gross": 0.3188343826565477,
+    "negative_days": 112,
+    "p01_day": -0.02058917231533496,
+    "p05_day": -0.0090457413568924,
+    "payoff_daily": 0.8446892300882781,
+    "positive_days": 99,
+    "profit_factor_daily": 0.7466449444530314,
+    "ruin": false,
+    "total_return": -0.13074311068462574,
+    "turnover_sum": 12.664745792878243,
+    "win_rate_daily": 0.46919431279620855,
+    "worst_day": -0.04427901091871067
+  },
+  "supersevere": {
+    "avg_gross": 0.21789135743800137,
+    "avg_net": 0.21789135743800137,
+    "best_day": 0.03363677009598165,
+    "cagr": -0.23150665011853067,
+    "cvar05_day": -0.01750459543858208,
+    "days": 211,
+    "max_abs_net": 0.3188343826565477,
+    "max_drawdown": -0.17338214954513165,
+    "max_gross": 0.3188343826565477,
+    "negative_days": 113,
+    "p01_day": -0.02071686164138049,
+    "p05_day": -0.009059343390205699,
+    "payoff_daily": 0.8379388395277433,
+    "positive_days": 98,
+    "profit_factor_daily": 0.7267080201214057,
+    "ruin": false,
+    "total_return": -0.14170658360538502,
+    "turnover_sum": 12.664745792878243,
+    "win_rate_daily": 0.46445497630331756,
+    "worst_day": -0.044289648555837724
+  },
+  "tails": {
+    "bottom10_negative_share": 0.34084708737724584,
+    "top10_positive_share": 0.38504287759711203
+  },
+  "v16_used": false,
+  "v99_used": false,
+  "validation_gate": {
+    "decision": "REJECT_VALIDATION_NO_RESCUE",
+    "failures": [
+      "base_return<=0",
+      "base_pf<=1",
+      "severe_return<=0",
+      "severe_pf<=1",
+      "supersevere_return<=0",
+      "supersevere_pf<=1",
+      "fewer_than_2_nonnegative_regimes"
+    ],
+    "nonnegative_regimes": 0,
+    "passed": false
+  },
+  "window": [
+    "2026-01-01T00:00:00Z",
+    "2026-07-31T23:00:00Z"
+  ]
+}
