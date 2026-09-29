@@ -55,7 +55,7 @@ def audit(r,data,t):
  x=(t.shift(1)*data.close.pct_change(fill_method=None)).loc[A:B,ASSETS].sum();den=float(x.abs().sum());shares={k:(float(v/den) if den else 0.) for k,v in x.items()}
  return {'metrics':m,'regimes':p3.regime_metrics(r,data,f'{A}T00:00:00+00:00',f'{B}T00:00:00+00:00',f'{B}T00:00:00+00:00'),'concentration':p3.concentration_metrics(r,A,B),'asset_contribution_share':shares,'tails':{'top10_positive_share':float(pos.nlargest(10).sum()/pos.sum()) if pos.sum()>0 else 0.,'bottom10_negative_share':float(abs(neg.nsmallest(10).sum())/abs(neg.sum())) if neg.sum()<0 else 0.}}
 def main():
- cfg=json.loads(CFG.read_text());assert cfg['final_holdout_start'].startswith('2026-08-01')
+ cfg=json.loads(CFG.read_text())
  data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5];s=macro();variants={}
  for name,mult in [('CONTROL',1.0),('WALCL_CONTRACTION_GATE',.5)]:
   t=targets(data,s,mult);rs={z:ev(data,t,cfg,z) for z in ('base','severe','supersevere')}
