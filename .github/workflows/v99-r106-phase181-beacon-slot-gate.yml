@@ -1,0 +1,22 @@
+name: V99 R106 Phase181 Beacon Slot Gate
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_r106_phase181_beacon_slot_gate.py'
+      - 'research/tests/test_v99_r106_phase181_beacon_slot_gate.py'
+      - '.github/workflows/v99-r106-phase181-beacon-slot-gate.yml'
+  workflow_dispatch:
+jobs:
+  invariant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pytest
+      - env:
+          PYTHONHASHSEED: '0'
+        run: python -m pytest -q research/tests/test_v99_r106_phase181_beacon_slot_gate.py
