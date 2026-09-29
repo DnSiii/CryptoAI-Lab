@@ -18,7 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Run Phase180 arrival-gate invariants
-        run: python -m pytest -q research/test_v99_r106_phase180_arrival_gate.py
+        with: {python-version: '3.12'}
+      - name: Run Phase180 arrival-gate invariants without third-party test dependencies
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p=Path('research/test_v99_r106_phase180_arrival_gate.py')
+          s=importlib.util.spec_from_file_location('t',p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m)
+          tests=sorted((n,f) for n,f in vars(m).items() if n.startswith('test_') and callable(f))
+          for n,f in tests: f(); print('PASS',n)
+          print(f'{len(tests)} invariants passed')
+          PY
