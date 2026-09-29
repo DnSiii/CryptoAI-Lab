@@ -1,0 +1,24 @@
+name: V99 R106 Phase180 Block Header Gate
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/v99_r106_phase180_block_header_gate.py'
+      - 'research/test_v99_r106_phase180_block_header_gate.py'
+      - '.github/workflows/v99-r106-phase180-block-header-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Run Phase180 fail-closed invariants
+        run: python -m pytest -q research/test_v99_r106_phase180_block_header_gate.py
