@@ -1,0 +1,40 @@
+name: V98 Independent Phase184 WALCL DATA_ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/scripts/phase184_walcl_dataonly.py'
+      - 'research/v98_independent_phase184_walcl_dataonly_preregister.md'
+      - '.github/workflows/v98_independent_phase184_walcl_dataonly.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - name: Branch and namespace guard
+        shell: bash
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          git diff --name-only HEAD~1 HEAD | while read f; do
+            case "$f" in
+              research/v98_independent*|.github/workflows/v98_independent*) ;;
+              *) echo "forbidden path changed: $f"; exit 1;;
+            esac
+          done
+      - name: Run deterministic DATA_ONLY audit twice
+        shell: bash
+        run: |
+          python research/v98_independent/scripts/phase184_walcl_dataonly.py > /tmp/a.json
+          python research/v98_independent/scripts/phase184_walcl_dataonly.py > /tmp/b.json
+          cmp /tmp/a.json /tmp/b.json
+          cat /tmp/a.json
+      - name: Upload audit result
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase184-walcl-dataonly
+          path: /tmp/a.json
