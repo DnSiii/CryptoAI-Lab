@@ -28,9 +28,12 @@ jobs:
           python - <<'PY'
           import json
           c=json.load(open('config/v98_independent.json'))
-          assert c['validation_start']=='2026-01-01'
-          assert c['validation_end']=='2026-07-31'
+          assert c['validation_start'].startswith('2026-01-01')
+          assert c['validation_end'].startswith('2026-07-31')
           assert c['final_holdout_start'].startswith('2026-08-01')
+          assert c['research_rules']['final_holdout_single_open_only'] is True
+          assert c['research_rules']['holdout_used_for_selection'] is False
+          assert c['research_rules']['v99_used_for_selection'] is False
           PY
       - name: Run validation twice deterministically
         run: |
