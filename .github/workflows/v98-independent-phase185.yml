@@ -1,0 +1,48 @@
+name: V98 Independent Phase185 WALCL Contraction Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase185_walcl_contraction_gate.py'
+      - 'research/v98_independent_phase185_walcl_contraction_gate_preregister.md'
+      - '.github/workflows/v98-independent-phase185.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  phase185:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Guard preregistration and isolation
+        run: |
+          test "$(git hash-object research/v98_independent_phase185_walcl_contraction_gate_preregister.md)" = "ad0fb0fc25b99d72ee2a480c6df18b8f17690e93"
+          grep -q 'No alternate lookback, threshold, sign' research/v98_independent_phase185_walcl_contraction_gate_preregister.md
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py
+      - name: Execute twice and require byte identity
+        run: |
+          python scripts/v98_independent_phase185_walcl_contraction_gate.py
+          cp reports/v98_independent_phase185_walcl_contraction_gate.json /tmp/p185a.json
+          python scripts/v98_independent_phase185_walcl_contraction_gate.py
+          cmp /tmp/p185a.json reports/v98_independent_phase185_walcl_contraction_gate.json
+      - name: Audit invariants
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('reports/v98_independent_phase185_walcl_contraction_gate.json'))
+          assert x['window']==['2023-01-01','2025-12-31'] and x['validation'] is None and x['final_holdout'] is None
+          assert not x['same_day_use'] and not x['parameter_search'] and not x['threshold_search'] and not x['lookback_search'] and not x['rescue_allowed']
+          assert not x['v16_used'] and not x['v99_used']
+          assert x['variants']['WALCL_CONTRACTION_GATE']['max_open_gross'] <= .35002
+          assert set(x['variants']['WALCL_CONTRACTION_GATE']['folds'])=={'2023','2024','2025'}
+          print(x['gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: v98-independent-phase185, path: reports/v98_independent_phase185_walcl_contraction_gate.json}
