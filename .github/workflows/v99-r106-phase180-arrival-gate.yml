@@ -1,0 +1,24 @@
+name: V99 R106 Phase180 Arrival Gate
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_r106_phase180_arrival_gate.py'
+      - 'research/test_v99_r106_phase180_arrival_gate.py'
+      - '.github/workflows/v99-r106-phase180-arrival-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  invariant-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Phase180 arrival-gate invariants
+        run: python -m pytest -q research/test_v99_r106_phase180_arrival_gate.py
