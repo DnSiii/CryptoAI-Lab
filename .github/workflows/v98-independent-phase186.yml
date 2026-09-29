@@ -1,0 +1,42 @@
+name: V98 Independent Phase186 WALCL Validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase186:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Guard namespace and frozen boundaries
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          test -f research/v98_independent_phase186_validation_preregister.md
+          python - <<'PY'
+          import json
+          c=json.load(open('config/v98_independent.json'))
+          assert c['validation_start']=='2026-01-01'
+          assert c['validation_end']=='2026-07-31'
+          assert c['final_holdout_start'].startswith('2026-08-01')
+          PY
+      - name: Run validation twice deterministically
+        run: |
+          python scripts/v98_independent_phase186_validation.py
+          cp reports/v98_independent_phase186_validation.json /tmp/a.json
+          python scripts/v98_independent_phase186_validation.py
+          cmp /tmp/a.json reports/v98_independent_phase186_validation.json
+          sha256sum /tmp/a.json reports/v98_independent_phase186_validation.json
+      - name: Commit V98-only report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase186_validation.json
+          git diff --cached --name-only | grep -Ev '^(reports/v98_independent_phase186_validation.json)$' && exit 1 || true
+          git diff --cached --quiet || git commit -m 'V98 Phase186 harvest untouched WALCL validation'
+          git push origin HEAD:research/v98-independent-zero
