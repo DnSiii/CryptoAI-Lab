@@ -31,18 +31,21 @@ def test_nonpositive_delta_is_visible_only_next_block(tmp_path):
 def test_current_block_timestamp_cannot_change_own_features(tmp_path):
     src=write(tmp_path); a=read(build(tmp_path,src,'a.csv')); rows=read(src); k=100; rows[k]['time']=str(int(rows[k]['time'])+99999)
     with src.open('w',newline='') as f: w=csv.DictWriter(f,fieldnames=['height','hash','time']); w.writeheader(); w.writerows(rows)
-    b=read(build(tmp_path,src,'b.csv'))
-    feature_cols=[c for c in a[k] if c not in ('height','hash','time')]
-    assert all(a[k][c]==b[k][c] for c in feature_cols)
-    assert any(a[k+1][c]!=b[k+1][c] for c in feature_cols)
+    b=read(build(tmp_path,src,'b.csv')); feature_cols=[c for c in a[k] if c not in ('height','hash','time')]
+    assert all(a[k][c]==b[k][c] for c in feature_cols); assert any(a[k+1][c]!=b[k+1][c] for c in feature_cols)
 
 def test_no_future_dependency(tmp_path):
     src=write(tmp_path); a=read(build(tmp_path,src,'a.csv')); rows=read(src); rows[-1]['time']=str(int(rows[-1]['time'])+99999)
     with src.open('w',newline='') as f: w=csv.DictWriter(f,fieldnames=['height','hash','time']); w.writeheader(); w.writerows(rows)
     b=read(build(tmp_path,src,'b.csv')); assert all(a[-1][c]==b[-1][c] for c in a[-1] if c not in ('time',))
 
-def test_manifest_declares_structural_lag(tmp_path):
-    src=write(tmp_path); out=tmp_path/'o.csv'; meta=feat.build(src,out,gate(tmp_path,src)); assert meta['causal_lag_blocks']==1
+def test_manifest_declares_structural_lag_and_alignment_firewall(tmp_path):
+    src=write(tmp_path); out=tmp_path/'o.csv'; meta=feat.build(src,out,gate(tmp_path,src))
+    assert meta['causal_lag_blocks']==1
+    assert meta['market_time_alignment_admissible'] is False
+    assert meta['time_semantics']=='miner_declared_header_time_not_observation_time'
+    assert meta['status']=='PASS_FEATURE_CONSTRUCTION_ONLY'
+    assert 'observed_at' in meta['required_for_alpha']
 
 def test_byte_reproducible(tmp_path):
     src=write(tmp_path); a=build(tmp_path,src,'a.csv'); b=build(tmp_path,src,'b.csv'); assert hashlib.sha256(a.read_bytes()).digest()==hashlib.sha256(b.read_bytes()).digest()
