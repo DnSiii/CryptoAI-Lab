@@ -29,7 +29,7 @@ jobs:
           assert c['final_holdout_start'].startswith('2026-08-01')
           PY
       - name: Rebuild canonical V98 training-only data
-        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase051_rebuild_data.json
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
       - name: Assert no 2026 observations exist
         run: |
           python - <<'PY'
