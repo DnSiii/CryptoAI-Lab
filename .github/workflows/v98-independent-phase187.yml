@@ -1,0 +1,57 @@
+name: V98 Independent Phase187 Idiosyncratic Momentum Dispersion Training
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase187.yml'
+      - 'scripts/v98_independent_phase187_idiomom_dispersion.py'
+      - 'research/v98_independent_phase187_orthogonal_training_preregister.md'
+permissions:
+  contents: write
+jobs:
+  phase187:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Guard branch and closed 2026 boundary
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          python - <<'PY'
+          import json
+          c=json.load(open('config/v98_independent.json'))
+          assert c['research_rules']['holdout_used_for_selection'] is False
+          assert c['research_rules']['v99_used_for_selection'] is False
+          assert c['final_holdout_start'].startswith('2026-08-01')
+          PY
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase051_rebuild_data.json
+      - name: Assert no 2026 observations exist
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          fs=sorted(Path('data/canonical').glob('*_1h.csv'));assert fs
+          for p in fs:
+            d=pd.read_csv(p);c='timestamp' if 'timestamp' in d.columns else d.columns[0];t=pd.to_datetime(d[c],utc=True,errors='raise');assert t.max()<pd.Timestamp('2026-01-01',tz='UTC'),(p,t.max())
+          print('training boundary OK',len(fs))
+          PY
+      - name: Run Phase187 twice and require byte identity
+        run: |
+          python scripts/v98_independent_phase187_idiomom_dispersion.py
+          cp reports/v98_independent_phase187_idiomom_dispersion.json /tmp/a.json
+          python scripts/v98_independent_phase187_idiomom_dispersion.py
+          cmp /tmp/a.json reports/v98_independent_phase187_idiomom_dispersion.json
+          sha256sum /tmp/a.json reports/v98_independent_phase187_idiomom_dispersion.json
+      - name: Commit V98-only report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase187_idiomom_dispersion.json
+          git diff --cached --name-only | grep -Ev '^(reports/v98_independent_phase187_idiomom_dispersion.json)$' && exit 1 || true
+          git diff --cached --quiet || git commit -m 'V98 Phase187 harvest training-only dispersion experiment'
+          git push origin HEAD:research/v98-independent-zero
