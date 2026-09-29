@@ -26,7 +26,7 @@ def test_warmup_is_missing_not_imputed(tmp_path):
 def test_nonpositive_delta_is_visible_only_next_block(tmp_path):
     src=write(tmp_path,n=9); rows=read(src); rows[6]['time']=rows[5]['time']
     with src.open('w',newline='') as f: w=csv.DictWriter(f,fieldnames=['height','hash','time']); w.writeheader(); w.writerows(rows)
-    r=read(build(tmp_path,src)); assert float(r[6]['mean_stress_6'])==0; assert float(r[7]['mean_stress_6'])<0
+    r=read(build(tmp_path,src)); assert r[6]['mean_stress_6']==''; assert float(r[7]['mean_stress_6'])<0
 
 def test_current_block_timestamp_cannot_change_own_features(tmp_path):
     src=write(tmp_path); a=read(build(tmp_path,src,'a.csv')); rows=read(src); k=100; rows[k]['time']=str(int(rows[k]['time'])+99999)
