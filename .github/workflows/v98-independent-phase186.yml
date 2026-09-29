@@ -35,6 +35,22 @@ jobs:
           assert c['research_rules']['holdout_used_for_selection'] is False
           assert c['research_rules']['v99_used_for_selection'] is False
           PY
+      - name: Rebuild canonical V98 validation-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase082_validation_data.json
+      - name: Assert canonical data cannot cross final holdout boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          files=sorted(Path('data/canonical').glob('*_1h.csv'))
+          assert files, 'no canonical V98 validation data produced'
+          for p in files:
+              df=pd.read_csv(p)
+              col='timestamp' if 'timestamp' in df.columns else df.columns[0]
+              t=pd.to_datetime(df[col], utc=True, errors='raise')
+              assert t.max() < pd.Timestamp('2026-08-01', tz='UTC'), (p, t.max())
+          print('validation-only canonical boundary OK', len(files))
+          PY
       - name: Run validation twice deterministically
         run: |
           python scripts/v98_independent_phase186_validation.py
