@@ -4,15 +4,14 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths: ['.github/workflows/v99-r106-phase180-arrival-source-audit.yml']
   workflow_dispatch:
-permissions:
-  contents: read
+permissions: {contents: read}
 jobs:
   data-only-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       PYTHONHASHSEED: '0'
-      UPSTREAM_COMMIT: '382f2728d63055fb6db37e60a13ff9ca7d5183dc'
+      UPSTREAM_COMMIT: '1bb1c1b750dcc4633a54f01cbaaed8d789c3f4c0'
       TRAIN_START_MS: '1638316800000'
       TRAIN_END_MS: '1705536000000'
     steps:
@@ -24,19 +23,12 @@ jobs:
       - name: Audit every single-observer source independently
         shell: bash
         run: |
-          mkdir -p phase180-arrival-reports
-          : > phase180-arrival-reports/summary.tsv
+          mkdir -p phase180-arrival-reports; : > phase180-arrival-reports/summary.tsv
           while IFS= read -r f; do
-            n=$(basename "$f" .csv)
-            set +e
+            n=$(basename "$f" .csv); set +e
             python research/tools/v99_r106_phase180_arrival_gate.py "$f" --train-start-ms "$TRAIN_START_MS" --train-end-ms "$TRAIN_END_MS" --min-bucket-coverage 0.99 --report "phase180-arrival-reports/$n.json"
-            rc=$?
-            set -e
-            printf '%s\t%s\n' "$n" "$rc" >> phase180-arrival-reports/summary.tsv
+            rc=$?; set -e; printf '%s\t%s\n' "$n" "$rc" >> phase180-arrival-reports/summary.tsv
           done < <(find /tmp/arrivals/data -maxdepth 1 -type f -name '*.csv' | LC_ALL=C sort)
           cat phase180-arrival-reports/summary.tsv
       - uses: actions/upload-artifact@v4
-        with:
-          name: phase180-arrival-source-audit
-          path: phase180-arrival-reports/
-          retention-days: 30
+        with: {name: phase180-arrival-source-audit, path: phase180-arrival-reports/, retention-days: 30}
