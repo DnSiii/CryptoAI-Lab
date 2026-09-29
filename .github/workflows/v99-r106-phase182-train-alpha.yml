@@ -30,10 +30,8 @@ jobs:
       - name: Require canonical pair
         run: test -s data/canonical/BTCUSDT_1h.csv && test -s data/canonical/ETHUSDT_1h.csv
       - name: Snapshot frozen assets
-        run: python - <<'PY'
-          import hashlib,json,pathlib
-          fs=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts});pathlib.Path('/tmp/frozen.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in fs},sort_keys=True))
-          PY
+        run: |
+          python -c "import hashlib,json,pathlib; fs=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts}); pathlib.Path('/tmp/frozen.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in fs},sort_keys=True))"
       - name: Execute frozen TRAIN gate twice
         run: |
           python research/tools/v99_r106_phase182_train_evaluator.py
@@ -42,10 +40,9 @@ jobs:
           cmp /tmp/first.json reports/candidate_v99_r106_phase182_train_alpha.json
       - name: Verify frozen assets unchanged
         if: always()
-        run: python - <<'PY'
-          import hashlib,json,pathlib
-          b=json.loads(pathlib.Path('/tmp/frozen.json').read_text());a={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in b};assert a==b
-          PY
+        run: |
+          test -s /tmp/frozen.json
+          python -c "import hashlib,json,pathlib; b=json.loads(pathlib.Path('/tmp/frozen.json').read_text()); a={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in b}; assert a==b"
       - name: Persist evidence
         if: success()
         run: |
