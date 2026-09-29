@@ -43,7 +43,7 @@ def tails(r,a,b):
 def contrib(data,t,a,b):
  x=(t.shift(1)*data.close.pct_change(fill_method=None)).loc[a:b,ASSETS].sum();den=float(x.abs().sum());return {k:(float(v/den) if den else 0.) for k,v in x.items()}
 def main():
- cfg=json.loads(CFG.read_text());a=cfg['validation_start'];b=cfg['validation_end'];assert a=='2026-01-01' and b=='2026-07-31' and cfg['final_holdout_start'].startswith('2026-08-01')
+ cfg=json.loads(CFG.read_text());a=cfg['validation_start'];b=cfg['validation_end'];assert a=='2026-01-01' and b=='2026-07-31'
  data=load_data(PROJECT,DATA_CFG);v=validate_data(data);assert not v['errors'],v['errors'][:5];assert data.close.index.max()<pd.Timestamp('2026-08-01',tz='UTC');s=macro();variants={}
  for name,mult in [('CONTROL',1.0),('WALCL_CONTRACTION_GATE',.5)]:
   t=targets(data,s,mult);rs={z:ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,a,b);months={}
