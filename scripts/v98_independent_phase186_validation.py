@@ -43,12 +43,12 @@ def tails(r,a,b):
 def contrib(data,t,a,b):
  x=(t.shift(1)*data.close.pct_change(fill_method=None)).loc[a:b,ASSETS].sum();den=float(x.abs().sum());return {k:(float(v/den) if den else 0.) for k,v in x.items()}
 def main():
- cfg=json.loads(CFG.read_text());a=cfg['validation_start'];b=cfg['validation_end'];assert a=='2026-01-01' and b=='2026-07-31'
+ cfg=json.loads(CFG.read_text());a=cfg['validation_start'];b=cfg['validation_end'];assert a.startswith('2026-01-01') and b.startswith('2026-07-31')
  data=load_data(PROJECT,DATA_CFG);v=validate_data(data);assert not v['errors'],v['errors'][:5];assert data.close.index.max()<pd.Timestamp('2026-08-01',tz='UTC');s=macro();variants={}
  for name,mult in [('CONTROL',1.0),('WALCL_CONTRACTION_GATE',.5)]:
   t=targets(data,s,mult);rs={z:ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,a,b);months={}
   for x in pd.period_range('2026-01','2026-07',freq='M'):
-   aa=max(pd.Timestamp(a,tz='UTC'),x.start_time.tz_localize('UTC'));bb=min(pd.Timestamp(b,tz='UTC'),x.end_time.tz_localize('UTC'));months[str(x)]=p3.metrics(base,aa,bb)
+   aa=max(pd.Timestamp(a),x.start_time.tz_localize('UTC'));bb=min(pd.Timestamp(b),x.end_time.tz_localize('UTC'));months[str(x)]=p3.metrics(base,aa,bb)
   variants[name]={'base':m,'severe':p3.metrics(rs['severe'],a,b),'supersevere':p3.metrics(rs['supersevere'],a,b),'months':months,'regimes':p3.regime_metrics(base,data,a,b,b),'concentration':p3.concentration_metrics(base,a,b),'asset_contribution_share':contrib(data,t,a,b),'tails':tails(base,a,b),'max_open_gross':float(base.open_positions.loc[a:b].abs().sum(axis=1).max()),'positions_sha256':hashlib.sha256(t.loc[a:b,ASSETS].to_csv().encode()).hexdigest()}
  g=variants['WALCL_CONTRACTION_GATE'];m=g['base'];fail=[]
  if m['total_return']<=0:fail.append('validation_return<=0')
