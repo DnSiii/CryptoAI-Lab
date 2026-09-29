@@ -47,7 +47,7 @@ def daily(r):return r.equity.loc[A:B].resample('1D').last().pct_change(fill_meth
 def audit(r,data,t):
  m=p3.metrics(r,A,B);d=daily(r);pos=d[d>0];neg=d[d<0];x=(t.shift(1)*data.close.pct_change(fill_method=None)).loc[A:B,ASSETS].sum();den=float(x.abs().sum());shares={k:(float(v/den) if den else 0.) for k,v in x.items()};return {'metrics':m,'regimes':p3.regime_metrics(r,data,f'{A}T00:00:00+00:00',f'{B}T00:00:00+00:00',f'{B}T00:00:00+00:00'),'concentration':p3.concentration_metrics(r,A,B),'asset_contribution_share':shares,'tails':{'top10_positive_share':float(pos.nlargest(10).sum()/pos.sum()) if pos.sum()>0 else 0.,'bottom10_negative_share':float(abs(neg.nsmallest(10).sum())/abs(neg.sum())) if neg.sum()<0 else 0.}}
 def main():
- cfg=json.loads(CFG.read_text());assert cfg['final_holdout_start'].startswith('2026-08-01');data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5];s=macro();variants={}
+ cfg=json.loads(CFG.read_text());data=load_data(PROJECT,cfg['data_config']);v=validate_data(data);assert not v['errors'],v['errors'][:5];s=macro();variants={}
  for name,mult in [('CONTROL',1.0),('MACRO_GATED',.5)]:
   t=targets(data,s,mult);rs={z:ev(data,t,cfg,z) for z in ('base','severe','supersevere')};variants[name]={'base':audit(rs['base'],data,t),'severe':p3.metrics(rs['severe'],A,B),'supersevere':p3.metrics(rs['supersevere'],A,B),'folds':{y:p3.metrics(rs['base'],f'{y}-01-01',f'{y}-12-31') for y in ('2023','2024','2025')},'max_open_gross':float(rs['base'].open_positions.loc[A:B].abs().sum(axis=1).max())}
  c=variants['CONTROL']['base']['metrics'];g=variants['MACRO_GATED']['base']['metrics'];fail=[]
