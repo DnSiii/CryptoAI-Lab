@@ -1,6 +1,13 @@
 name: V98 Independent Phase186 WALCL Validation
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase186.yml'
+      - 'scripts/v98_independent_phase186_validation.py'
+      - 'research/v98_independent_phase186_validation_preregister.md'
 permissions:
   contents: write
 jobs:
