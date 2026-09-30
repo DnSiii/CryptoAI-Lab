@@ -1,0 +1,56 @@
+name: V99 R106 Phase186 TRAIN alpha
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ['research/V99_R106_PHASE185_REJECTION_AND_PHASE186_PREREG.md','research/tools/v99_r106_phase186_train_evaluator.py','research/tests/test_v99_r106_phase186_train_evaluator.py','.github/workflows/v99-r106-phase186-train-alpha.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency: {group: v99-r106-phase186-train, cancel-in-progress: false}
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v99-r106-native-all-regime-engine, fetch-depth: 0, persist-credentials: true}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m pip install pytest
+      - name: Require preregistration
+        run: test -s research/V99_R106_PHASE185_REJECTION_AND_PHASE186_PREREG.md
+      - name: Invariants first
+        run: python -m pytest -q research/tests/test_v99_r106_phase186_train_evaluator.py research/tests/test_v99_r106_phase182_pair_integrity.py
+      - id: cache_date
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/canonical
+          key: Linux-paper-v15-market-v1-${{ steps.cache_date.outputs.date }}
+          restore-keys: |
+            Linux-paper-v15-market-v1-
+            Linux-paper-v13-market-
+      - name: Require canonical pair
+        run: test -s data/canonical/BTCUSDT_1h.csv && test -s data/canonical/ETHUSDT_1h.csv
+      - name: Snapshot frozen assets
+        run: |
+          python -c "import hashlib,json,pathlib;fs=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts});pathlib.Path('/tmp/frozen.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in fs},sort_keys=True))"
+          test -s /tmp/frozen.json
+      - name: Execute frozen TRAIN gate twice
+        run: |
+          python research/tools/v99_r106_phase186_train_evaluator.py
+          cp reports/candidate_v99_r106_phase186_train_alpha.json /tmp/first.json
+          python research/tools/v99_r106_phase186_train_evaluator.py
+          cmp /tmp/first.json reports/candidate_v99_r106_phase186_train_alpha.json
+      - name: Verify frozen assets unchanged
+        if: always()
+        run: python -c "import hashlib,json,pathlib;b=json.loads(pathlib.Path('/tmp/frozen.json').read_text());a={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in b};assert a==b"
+      - name: Persist evidence
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/candidate_v99_r106_phase186_train_alpha.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Record V99 R106 Phase186 TRAIN alpha gate'
+          git fetch origin research/v99-r106-native-all-regime-engine
+          git rebase origin/research/v99-r106-native-all-regime-engine
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
