@@ -20,11 +20,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Assert frozen trees are not in Phase191 change set
+      - name: Assert frozen trees are not in Phase191 commit
         shell: bash
         run: |
           set -euo pipefail
-          git diff --name-only HEAD^ HEAD | tee /tmp/changed.txt
+          git show --pretty='' --name-only HEAD | tee /tmp/changed.txt
           if grep -Ei '(^|/)(v16.*frozen|v99.*frozen)(/|$)' /tmp/changed.txt; then
             echo 'Frozen path modified by Phase191' >&2
             exit 1
