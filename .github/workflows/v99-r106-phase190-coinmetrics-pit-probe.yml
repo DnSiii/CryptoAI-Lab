@@ -1,0 +1,54 @@
+name: V99 R106 Phase190 CoinMetrics SplyCur PIT probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase190_coinmetrics_supply_pit_probe.py'
+      - '.github/workflows/v99-r106-phase190-coinmetrics-pit-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pit-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Snapshot Frozen trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f \( -iname '*v16*frozen*' -o -iname '*v99*frozen*' \) -print0 | sort -z | xargs -0 -r sha256sum > /tmp/frozen.before
+      - name: Run bounded TRAIN-only PIT probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          python research/tools/v99_phase190_coinmetrics_supply_pit_probe.py > /tmp/pit.json
+          rc=$?
+          set -e
+          cat /tmp/pit.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/pit.json'))
+          assert x['pnl_read'] is False and x['price_read'] is False
+          assert x['holdout_observations_read'] is False
+          assert x['window'] == ['2021-01-01','2021-01-07']
+          assert set(x['assets']) == {'usdt','usdc'}
+          PY
+          exit $rc
+      - name: Verify Frozen trees unchanged
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f \( -iname '*v16*frozen*' -o -iname '*v99*frozen*' \) -print0 | sort -z | xargs -0 -r sha256sum > /tmp/frozen.after
+          diff -u /tmp/frozen.before /tmp/frozen.after
+      - name: Upload PIT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase190-coinmetrics-splycur-pit-probe
+          path: /tmp/pit.json
