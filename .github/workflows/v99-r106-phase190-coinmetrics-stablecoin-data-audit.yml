@@ -1,0 +1,54 @@
+name: V99 R106 Phase190 CoinMetrics stablecoin DATA_ONLY audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase190_coinmetrics_supply_data_audit.py'
+      - '.github/workflows/v99-r106-phase190-coinmetrics-stablecoin-data-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Snapshot Frozen trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f \( -iname '*v16*frozen*' -o -iname '*v99*frozen*' \) -print0 | sort -z | xargs -0 -r sha256sum > /tmp/frozen.before
+      - name: Run DATA_ONLY catalog audit twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase190_coinmetrics_supply_data_audit.py > /tmp/audit1.json
+          sleep 2
+          python research/tools/v99_phase190_coinmetrics_supply_data_audit.py > /tmp/audit2.json
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/audit1.json')); b=json.load(open('/tmp/audit2.json'))
+          for x in (a,b): x.pop('retrieved_at_utc',None)
+          assert a['pnl_read'] is False and a['holdout_observations_read'] is False
+          assert b['pnl_read'] is False and b['holdout_observations_read'] is False
+          # Coverage metadata may advance at max_time; admission-critical fields must agree.
+          for asset in ('usdt','usdc'):
+              for k in ('metric_present','frequency_present','community','min_time','catalog_gate_pass'):
+                  assert a['assets'][asset][k] == b['assets'][asset][k], (asset,k)
+          assert a['catalog_gate_pass'] and b['catalog_gate_pass']
+          print(json.dumps(a,sort_keys=True,indent=2))
+          PY
+      - name: Verify Frozen trees unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f \( -iname '*v16*frozen*' -o -iname '*v99*frozen*' \) -print0 | sort -z | xargs -0 -r sha256sum > /tmp/frozen.after
+          diff -u /tmp/frozen.before /tmp/frozen.after
+      - name: Upload DATA_ONLY evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase190-coinmetrics-stablecoin-data-only-audit
+          path: /tmp/audit1.json
