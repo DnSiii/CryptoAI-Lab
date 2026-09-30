@@ -1,0 +1,55 @@
+{
+  "btc_train_stream_sha256": "33576e741d9fc7201d79967b41fdc80fb3b660335332aaf9019e8c9608280fac",
+  "eth_train_stream_sha256": "563284c8963625e44f08298da304df7b1f4683a737723961c7237d048bf914ee",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "holdout_market_values_parsed": false,
+  "next_gate": "PASS: freeze then regime matrix and benchmark envelope before holdout; FAIL: permanent rejection without retuning.",
+  "preregistered_parameters": {
+    "direction": "relative quote-volume impulse continuation",
+    "gross": 0.2,
+    "horizon_hours": 1,
+    "window_hours": 168,
+    "z_threshold": 2.0
+  },
+  "reproducibility": "deterministic pure-python evaluator",
+  "severe": {
+    "active_hours": 1170,
+    "cost_per_side": 0.0007,
+    "fold_returns": [
+      -0.05583324445923443,
+      -0.06184631615101677,
+      -0.04969657456702037,
+      -0.05238541634007876,
+      -0.04871814788604034
+    ],
+    "healthy_folds": 0,
+    "hours": 18671,
+    "max_drawdown": -0.24331347509045642,
+    "remove_best_hour_return": -0.24423047168111622,
+    "return": -0.241202423472058,
+    "worst_hour": -0.004689657374906936
+  },
+  "status": "TRAIN_ALPHA_REJECT",
+  "study": "V99 R106 Phase189 Binance spot relative quote-volume impulse",
+  "supersevere": {
+    "active_hours": 1170,
+    "cost_per_side": 0.0014,
+    "fold_returns": [
+      -0.10425894266562119,
+      -0.10796771092360702,
+      -0.09388105260492663,
+      -0.1004840952445809,
+      -0.0949778686209155
+    ],
+    "healthy_folds": 0,
+    "hours": 18671,
+    "max_drawdown": -0.41089300344399127,
+    "remove_best_hour_return": -0.4128618238508758,
+    "return": -0.4105916093495944,
+    "worst_hour": -0.004829657374906936
+  },
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00"
+}
