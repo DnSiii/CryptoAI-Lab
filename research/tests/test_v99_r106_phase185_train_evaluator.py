@@ -1,7 +1,7 @@
 import csv,importlib.util,pathlib,tempfile
 P=pathlib.Path(__file__).parents[1]/'tools'/'v99_r106_phase185_train_evaluator.py';S=importlib.util.spec_from_file_location('p185',P);m=importlib.util.module_from_spec(S);S.loader.exec_module(m)
 
-def rows(n=400):
+def rows(n=1000):
  from datetime import datetime,timezone,timedelta
  t=datetime(2021,11,1,tzinfo=timezone.utc);b=[];e=[]
  for i in range(n):
@@ -11,7 +11,6 @@ def rows(n=400):
 def packed(x): return [(t,c,c,c,c,1.) for t,c in x]
 def test_signal_is_t_minus_1_causal():
  b,e=rows();a=m.signal_series(packed(b),packed(e));k=220
- # Mutating close at decision bar k must not change signal stamped k; only future-known calculations may change.
  b2=list(b);b2[k]=(b2[k][0],b2[k][1]*9);z=m.signal_series(packed(b2),packed(e));ta={x[0]:x[1:3] for x in a};tz={x[0]:x[1:3] for x in z};assert ta[b[k][0]]==tz[b[k][0]]
 def test_direction_matches_latest_completed_btc_shock():
  b,e=rows();s=m.signal_series(packed(b),packed(e));assert all((p==0) or (p>0)==(z>0) for _,p,z,_,_ in s)
