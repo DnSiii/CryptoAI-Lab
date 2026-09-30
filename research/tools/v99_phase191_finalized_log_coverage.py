@@ -4,7 +4,8 @@
 Queries finalized Ethereum logs only. No price/PnL/holdout inputs. Windows are
 fixed historical TRAIN-era probes, separated in time, and results contain only
 chain provenance/coverage diagnostics. Transport chunking never changes the
-pre-registered scientific windows.
+pre-registered scientific windows. A single endpoint must serve the entire run
+so block/log provenance cannot be silently mixed across heterogeneous RPCs.
 """
 import json, os, urllib.request, urllib.error
 
@@ -17,42 +18,48 @@ RPCS=[x for x in [os.environ.get("ETH_RPC_URL"),*PUBLIC_RPCS] if x]
 USDC="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 USDT="0xdAC17F958D2ee523a2206206994597C13D831ec7"
 WINDOWS=[(17000000,17000199),(18000000,18000199),(19000000,19000199)]
-CHUNK=50  # transport-only; one audited public RPC explicitly caps eth_getLogs at 50 blocks
+CHUNK=50
 
 class RPCUnavailable(RuntimeError): pass
 
 def call(endpoint, method, params):
     body=json.dumps({"jsonrpc":"2.0","id":1,"method":method,"params":params},separators=(",",":")).encode()
-    req=urllib.request.Request(endpoint,data=body,headers={"Content-Type":"application/json","User-Agent":"CryptoAI-Lab-Phase191/3.0"})
+    req=urllib.request.Request(endpoint,data=body,headers={"Content-Type":"application/json","User-Agent":"CryptoAI-Lab-Phase191/4.0"})
     with urllib.request.urlopen(req,timeout=30) as r: out=json.load(r)
     if "error" in out: raise RuntimeError(out["error"])
     if "result" not in out: raise RuntimeError("missing result")
     return out["result"]
 
-def rpc(method, params):
+def probe_endpoint(endpoint):
+    finalized_obj=call(endpoint,"eth_getBlockByNumber",["finalized",False])
+    if not finalized_obj or "number" not in finalized_obj: raise RuntimeError("invalid finalized block response")
+    # Require archive log service before selecting transport.
+    call(endpoint,"eth_getLogs",[{"address":USDC,"fromBlock":hex(WINDOWS[0][0]),"toBlock":hex(WINDOWS[0][0])}])
+    return int(finalized_obj["number"],16)
+
+def select_endpoint():
     errors=[]
     for endpoint in RPCS:
-        try: return call(endpoint,method,params)
+        try:
+            return endpoint,probe_endpoint(endpoint)
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, RuntimeError, ValueError, json.JSONDecodeError) as e:
             errors.append(type(e).__name__+":"+str(e)[:120])
-    raise RPCUnavailable(method+" unavailable on every configured transport: "+" | ".join(errors))
+    raise RPCUnavailable("no single configured transport passed finalized+archive probes: "+" | ".join(errors))
 
-def get_logs(token,lo,hi):
+def get_logs(endpoint,token,lo,hi):
     out=[]
     for a in range(lo,hi+1,CHUNK):
         b=min(a+CHUNK-1,hi)
-        out.extend(rpc("eth_getLogs",[{"address":token,"fromBlock":hex(a),"toBlock":hex(b)}]))
+        out.extend(call(endpoint,"eth_getLogs",[{"address":token,"fromBlock":hex(a),"toBlock":hex(b)}]))
     return out
 
 def main():
-    finalized_obj=rpc("eth_getBlockByNumber",["finalized",False])
-    if not finalized_obj or "number" not in finalized_obj: raise RuntimeError("invalid finalized block response")
-    finalized=int(finalized_obj["number"],16)
+    endpoint,finalized=select_endpoint()
     rows=[]
     for lo,hi in WINDOWS:
         if hi>=finalized: raise RuntimeError("probe window is not finalized")
         for token in (USDC,USDT):
-            logs=get_logs(token,lo,hi)
+            logs=get_logs(endpoint,token,lo,hi)
             ids=set(); by_height={}
             for x in logs:
                 required=("blockHash","transactionHash","logIndex","blockNumber")
@@ -67,5 +74,6 @@ def main():
                 if old!=bh: raise RuntimeError("conflicting block hash")
             rows.append({"from":lo,"to":hi,"contract":token.lower(),"logs":len(logs),"blocks_with_logs":len(by_height)})
     if any(r["logs"]==0 for r in rows): raise RuntimeError("empty contract/window coverage")
-    print(json.dumps({"schema":"phase191-coverage-v4","windows":rows},sort_keys=True,separators=(",",":")))
+    # Endpoint/finalized tip intentionally omitted: output is scientific coverage only and byte-reproducible.
+    print(json.dumps({"schema":"phase191-coverage-v5","windows":rows},sort_keys=True,separators=(",",":")))
 if __name__=="__main__": main()
