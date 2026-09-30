@@ -19,7 +19,7 @@ jobs:
         with: {python-version: '3.11'}
       - run: pip install -e .
       - name: Rebuild training-only data
-        run: python scripts/download_futures_archive.py --config v98_independent.json
+        run: python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
       - name: Temporal firewall
         run: |
           python - <<'PY'
