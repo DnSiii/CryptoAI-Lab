@@ -13,7 +13,7 @@ HEXDATA = re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
 
 
 def get_json(path: str):
-    req = urllib.request.Request(BASE + path, headers={"User-Agent":"CryptoAI-Lab-Phase191/1.1"})
+    req = urllib.request.Request(BASE + path, headers={"User-Agent":"CryptoAI-Lab-Phase191/1.2"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
 
@@ -26,10 +26,10 @@ def as_int(v):
 
 
 def topic_hash(v):
-    # Blockscout v2 may encode a topic as a hash string or as {hash: 0x...}.
+    if v is None: return None
     if isinstance(v, dict): v = v.get("hash")
-    if not isinstance(v, str) or not HEX64.fullmatch(v):
-        raise ValueError("bad_topic")
+    if v in (None, ""): return None
+    if not isinstance(v, str) or not HEX64.fullmatch(v): raise ValueError("bad_topic")
     return v.lower()
 
 
@@ -46,6 +46,9 @@ def validate_log(log, expected_addr):
     topics = log.get("topics") or []
     if not isinstance(topics, list) or not topics: raise ValueError("bad_topics")
     norm_topics = tuple(topic_hash(x) for x in topics)
+    if norm_topics[0] is None: raise ValueError("missing_topic0")
+    # Ethereum logs may legitimately expose unused topic slots as null; require
+    # all non-null topics to be canonical hashes and never synthesize values.
     data = log.get("data", "")
     if not isinstance(data, str) or not HEXDATA.fullmatch(data): raise ValueError("bad_data")
     return (bh.lower(), th.lower(), li), norm_topics
@@ -55,13 +58,12 @@ def probe_contract(address):
     payload = get_json(f"/addresses/{address}/logs")
     items = payload.get("items", []) if isinstance(payload, dict) else []
     if not items: raise RuntimeError("empty_source_probe")
-    ids=[]
-    topic0=set()
+    ids=[]; topic0=set(); sparse=0
     for log in items[:25]:
         ident, topics = validate_log(log, address)
-        ids.append(ident); topic0.add(topics[0])
+        ids.append(ident); topic0.add(topics[0]); sparse += any(x is None for x in topics[1:])
     if len(ids) != len(set(ids)): raise RuntimeError("duplicate_identity")
-    return {"address":address,"validated":len(ids),"first_identity":ids[0],"topic0_count":len(topic0)}
+    return {"address":address,"validated":len(ids),"first_identity":ids[0],"topic0_count":len(topic0),"sparse_topic_rows":sparse}
 
 
 def main():
