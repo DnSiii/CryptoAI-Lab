@@ -1,0 +1,54 @@
+{
+  "btc_train_stream_sha256": "3e8e833354da96fc2205b995e61b678f74654fc958ade13a4d65f140ee5d35d5",
+  "eth_train_stream_sha256": "9285c4e035dd23316ece22f553028429389350dad320c15b263b366216b4378c",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "holdout_market_values_parsed": false,
+  "next_gate": "PASS: regime/benchmark/tail audit before any holdout; FAIL: permanent rejection without retuning.",
+  "preregistered_parameters": {
+    "abs_z_entry": 2.0,
+    "direction": "continuation",
+    "gross_eth_leg": 0.2,
+    "window_hours": 168
+  },
+  "reproducibility": "deterministic pure-python evaluator",
+  "severe": {
+    "active_hours": 975,
+    "cost_per_side": 0.0007,
+    "fold_returns": [
+      -0.10893750623941534,
+      -0.1022971127430693,
+      -0.1139153169026742,
+      -0.07081582520103025,
+      -0.091779088981355
+    ],
+    "healthy_folds": 0,
+    "hours": 18671,
+    "max_drawdown": -0.4054756313825788,
+    "remove_best_hour_return": -0.40586727488979324,
+    "return": -0.40185108839267636,
+    "worst_hour": -0.00539011535717816
+  },
+  "status": "TRAIN_ALPHA_REJECT",
+  "study": "V99 R106 Phase184 ETH beta-adjusted residual dislocation continuation",
+  "supersevere": {
+    "active_hours": 975,
+    "cost_per_side": 0.0014,
+    "fold_returns": [
+      -0.20185488021679665,
+      -0.20573809908180407,
+      -0.20731037619048664,
+      -0.14270695735834205,
+      -0.175690414408737
+    ],
+    "healthy_folds": 0,
+    "hours": 18671,
+    "max_drawdown": -0.6458824815671167,
+    "remove_best_hour_return": -0.6471523786663829,
+    "return": -0.6448854915251157,
+    "worst_hour": -0.005678295877727652
+  },
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00"
+}
