@@ -1,0 +1,43 @@
+name: V99 R106 Phase189 canonical pre-PnL gate
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ['research/tools/v99_r106_phase189_canonical_schema_gate.py','.github/workflows/v99-r106-phase189-canonical-gate.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v99-r106-native-all-regime-engine, fetch-depth: 0, persist-credentials: true}
+      - id: cache_date
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/canonical
+          key: Linux-paper-v15-market-v1-${{ steps.cache_date.outputs.date }}
+          restore-keys: |
+            Linux-paper-v15-market-v1-
+            Linux-paper-v13-market-
+      - name: Require canonical pair
+        run: test -s data/canonical/BTCUSDT_1h.csv && test -s data/canonical/ETHUSDT_1h.csv
+      - id: schema
+        name: Mandatory canonical native quote-volume gate
+        continue-on-error: true
+        run: python research/tools/v99_r106_phase189_canonical_schema_gate.py
+      - name: Persist pre-PnL evidence
+        if: always()
+        run: |
+          test -s reports/v99_r106_phase189_canonical_schema_gate.json || exit 1
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v99_r106_phase189_canonical_schema_gate.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Record Phase189 canonical pre-PnL schema gate'
+          git fetch origin research/v99-r106-native-all-regime-engine
+          git rebase origin/research/v99-r106-native-all-regime-engine
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
+      - name: Enforce prereg decision
+        if: steps.schema.outcome != 'success'
+        run: exit 42
