@@ -1,0 +1,53 @@
+name: V98 Independent Phase199
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase199_funding_pressure_reversion.py'
+      - 'reports/v98_independent_phase199_prereg.md'
+      - '.github/workflows/v98-independent-phase199.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase199:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only data
+        run: python scripts/download_futures_archive.py --config config/v98_independent.json
+      - name: Temporal firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'src')
+          from cryptoai_v13.data import load_data
+          cfg=json.loads(Path('config/v98_independent.json').read_text())
+          d=load_data(Path('.'),cfg['data_config'])
+          assert d.close.loc['2026-01-01':].empty
+          assert d.funding.loc['2026-01-01':].empty
+          print('training-only firewall OK')
+          PY
+      - name: Deterministic run 1
+        run: |
+          python scripts/v98_independent_phase199_funding_pressure_reversion.py >/tmp/p199a.txt
+          sha256sum reports/v98_independent_phase199_funding_pressure_reversion.json | tee /tmp/hash1
+      - name: Deterministic run 2
+        run: |
+          python scripts/v98_independent_phase199_funding_pressure_reversion.py >/tmp/p199b.txt
+          sha256sum reports/v98_independent_phase199_funding_pressure_reversion.json | tee /tmp/hash2
+          diff -u /tmp/hash1 /tmp/hash2
+      - name: Commit V98-only report
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase199_funding_pressure_reversion.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase199 harvest funding pressure reversion'
+          git push
