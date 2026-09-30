@@ -1,0 +1,54 @@
+{
+  "btc_train_stream_sha256": "3e8e833354da96fc2205b995e61b678f74654fc958ade13a4d65f140ee5d35d5",
+  "eth_train_stream_sha256": "9285c4e035dd23316ece22f553028429389350dad320c15b263b366216b4378c",
+  "frozen_assets_untouched": {
+    "v16": true,
+    "v99_frozen": true
+  },
+  "holdout_market_values_parsed": false,
+  "next_gate": "PASS: freeze then regime/benchmark/tail audit before any holdout; FAIL: permanent rejection without retuning.",
+  "preregistered_parameters": {
+    "direction": "sign(ETH-BTC return t-1), continuation during BTC standardized shock",
+    "gross": 0.2,
+    "shock_threshold": 2.0,
+    "vol_window_hours": 168
+  },
+  "reproducibility": "deterministic pure-python evaluator",
+  "severe": {
+    "active_hours": 1007,
+    "cost_per_side": 0.0007,
+    "fold_returns": [
+      -0.05417524869652535,
+      -0.04813827859946207,
+      -0.057426689358773486,
+      -0.043815144445728316,
+      -0.057695531691818513
+    ],
+    "healthy_folds": 0,
+    "hours": 18671,
+    "max_drawdown": -0.23648594321943595,
+    "remove_best_hour_return": -0.23718567317059536,
+    "return": -0.23540265278403938,
+    "worst_hour": -0.004689657374906936
+  },
+  "status": "TRAIN_ALPHA_REJECT",
+  "study": "V99 R106 Phase186 volatility-shock conditional ETH/BTC relative continuation",
+  "supersevere": {
+    "active_hours": 1007,
+    "cost_per_side": 0.0014,
+    "fold_returns": [
+      -0.10669807677665433,
+      -0.09746485782930392,
+      -0.10577153095445857,
+      -0.08750737593501345,
+      -0.10552672413029751
+    ],
+    "healthy_folds": 0,
+    "hours": 18671,
+    "max_drawdown": -0.4115762168685789,
+    "remove_best_hour_return": -0.4128428787549555,
+    "return": -0.41155264570388395,
+    "worst_hour": -0.004829657374906936
+  },
+  "train_end_exclusive": "2024-01-18T00:00:00+00:00"
+}
