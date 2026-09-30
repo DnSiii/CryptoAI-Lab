@@ -24,8 +24,11 @@ def tails(r,a,b):
 def contrib(data,t,a,b):
  x=(t.shift(1)*data.close.pct_change(fill_method=None)).loc[a:b,ASSETS].sum();den=float(x.abs().sum());return {k:(float(v/den) if den else 0.) for k,v in x.items()}
 def main():
- cfg=json.loads(CFG.read_text());a=cfg['validation_start'];b=cfg['validation_end'];assert a.startswith('2026-01-01') and b.startswith('2026-07-31');assert cfg['final_holdout_start'].startswith('2026-08-01');assert cfg['research_rules']['holdout_used_for_selection'] is False;assert cfg['research_rules']['v99_used_for_selection'] is False
- data=load_data(PROJECT,DATA_CFG);v=validate_data(data);assert not v['errors'],v['errors'][:5];assert data.close.index.max()<pd.Timestamp('2026-08-01',tz='UTC'),'Phase188 final holdout boundary violated'
+ cfg=json.loads(CFG.read_text());a=cfg['validation_start'];b=cfg['validation_end'];assert a.startswith('2026-01-01') and b.startswith('2026-07-31');assert cfg['research_rules']['holdout_used_for_selection'] is False;assert cfg['research_rules']['v99_used_for_selection'] is False
+ # Final-holdout dates are intentionally never read here. This validation script is bounded
+ # by its dedicated validation-data manifest; the generic firewall test reserves final-holdout
+ # configuration access to the single authorized final-holdout script.
+ data=load_data(PROJECT,DATA_CFG);v=validate_data(data);assert not v['errors'],v['errors'][:5];assert data.close.index.max()<=pd.Timestamp(b,tz='UTC')+pd.Timedelta(hours=23,minutes=59,seconds=59),'Phase188 validation-data boundary violated'
  t=overlay(data);rs={z:ev(data,t,cfg,z) for z in ('base','severe','supersevere')};base=rs['base'];m=p3.metrics(base,a,b);asset=contrib(data,t,a,b);ta=tails(base,a,b);reg=p3.regime_metrics(base,data,a,b,b);gross=float(base.open_positions.loc[a:b].abs().sum(axis=1).max())
  rep={'engine':'V98 Independent','phase':188,'candidate':'Phase187 frozen h24_w90_low50','parameters':{'momentum_hours':H,'reference_days':W,'low_dispersion_multiplier':LOW,'target_gross':TARGET,'gross_cap':CAP},'prereg_sha256':hashlib.sha256(PREREG.read_bytes()).hexdigest(),'window':[a,b],'parameters_frozen_from_phase187':True,'parameter_search':False,'rescue_allowed':False,'v16_used':False,'v99_used':False,'final_holdout':None,'final_holdout_untouched':True,'base':m,'severe':p3.metrics(rs['severe'],a,b),'supersevere':p3.metrics(rs['supersevere'],a,b),'regimes':reg,'concentration':p3.concentration_metrics(base,a,b),'asset_contribution_share':asset,'tails':ta,'max_open_gross':gross,'positions_sha256':hashlib.sha256(t.loc[a:b,ASSETS].to_csv().encode()).hexdigest()}
  fail=[]
