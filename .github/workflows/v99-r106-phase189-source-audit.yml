@@ -1,0 +1,36 @@
+name: V99 R106 Phase189 source audit
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ['research/tools/v99_r106_phase189_quote_volume_integrity.py','.github/workflows/v99-r106-phase189-source-audit.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency: {group: v99-r106-phase189-source-audit, cancel-in-progress: false}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v99-r106-native-all-regime-engine, fetch-depth: 0, persist-credentials: true}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Snapshot frozen assets
+        run: |
+          python -c "import hashlib,json,pathlib;fs=sorted({p for pat in ('*v16*frozen*','*v99*frozen*') for p in pathlib.Path('.').rglob(pat) if p.is_file() and '.git' not in p.parts});pathlib.Path('/tmp/frozen.json').write_text(json.dumps({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in fs},sort_keys=True))"
+          test -s /tmp/frozen.json
+      - name: Audit TRAIN-only quote volume source
+        run: python research/tools/v99_r106_phase189_quote_volume_integrity.py
+      - name: Verify frozen assets unchanged
+        if: always()
+        run: python -c "import hashlib,json,pathlib;b=json.loads(pathlib.Path('/tmp/frozen.json').read_text());a={x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest() for x in b};assert a==b"
+      - name: Persist evidence
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v99_r106_phase189_quote_volume_integrity.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Record V99 R106 Phase189 quote-volume source audit'
+          git fetch origin research/v99-r106-native-all-regime-engine
+          git rebase origin/research/v99-r106-native-all-regime-engine
+          git push origin HEAD:research/v99-r106-native-all-regime-engine
