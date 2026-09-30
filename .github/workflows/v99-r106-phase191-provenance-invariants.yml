@@ -1,0 +1,41 @@
+name: V99 R106 Phase191 Provenance Invariants
+
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase191_provenance_invariants.py'
+      - 'research/results/v99_r106_phase191_pre_economic_gate.md'
+      - '.github/workflows/v99-r106-phase191-provenance-invariants.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  data-only-provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Assert Frozen paths untouched by this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only HEAD^ HEAD | tee /tmp/changed.txt
+          if grep -Ei '(^|/)(v16.*frozen|v99.*frozen)(/|$)' /tmp/changed.txt; then
+            echo 'Frozen path modified' >&2
+            exit 1
+          fi
+      - name: Run provenance invariant self-test twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase191_provenance_invariants.py | tee /tmp/run1.txt
+          python research/tools/v99_phase191_provenance_invariants.py | tee /tmp/run2.txt
+          cmp /tmp/run1.txt /tmp/run2.txt
+          sha256sum research/tools/v99_phase191_provenance_invariants.py research/results/v99_r106_phase191_pre_economic_gate.md
