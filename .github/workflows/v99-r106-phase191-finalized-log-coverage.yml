@@ -1,0 +1,26 @@
+name: V99 R106 Phase191 Finalized Log Coverage
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_phase191_finalized_log_coverage.py
+      - .github/workflows/v99-r106-phase191-finalized-log-coverage.yml
+jobs:
+  data-only-coverage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Assert Frozen paths untouched
+        run: |
+          set -euo pipefail
+          git diff --name-only HEAD^ HEAD | tee /tmp/changed.txt
+          ! grep -Ei '(^|/)(v16.*frozen|v99.*frozen)(/|$)' /tmp/changed.txt
+      - name: Collect finalized TRAIN-era coverage twice
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase191_finalized_log_coverage.py | tee /tmp/run1.json
+          python research/tools/v99_phase191_finalized_log_coverage.py | tee /tmp/run2.json
+          cmp /tmp/run1.json /tmp/run2.json
