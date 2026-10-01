@@ -23,14 +23,12 @@ def checkpoint():
 
 def get(url):
     global SNAP,LAST_REQUEST
-    # A restored checkpoint is immutable evidence for an exact URL. Reuse it rather
-    # than refetching and creating needless anonymous-source load.
     if url in SNAP:return SNAP[url]
     if MODE=="replay":raise RuntimeError("snapshot_miss")
     for attempt in range(10):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.6"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.7"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -50,6 +48,12 @@ def qint(v):
     raise ValueError("noncanonical_integer")
 
 def fetch_rows(addr,lo,hi):
+    """Fetch an exact frozen interval, deterministically bisecting only if it is too dense.
+
+    The explorer's page API can saturate at 100 pages. Treating that as a data failure
+    would silently exclude dense TRAIN evidence. Bisection changes only transport
+    partitioning, never the preregistered outer window or event-selection semantics.
+    """
     rows=[]
     for page in range(1,101):
         qs=urllib.parse.urlencode({"module":"logs","action":"getLogs","address":addr,"fromBlock":lo,"toBlock":hi,"page":page,"offset":OFFSET})
@@ -57,7 +61,9 @@ def fetch_rows(addr,lo,hi):
         if not isinstance(batch,list):raise RuntimeError("source_not_log_list")
         rows.extend(batch)
         if len(batch)<OFFSET:return rows
-    raise RuntimeError("pagination_safety_cap")
+    if lo>=hi:raise RuntimeError("single_block_pagination_safety_cap")
+    mid=(lo+hi)//2
+    return fetch_rows(addr,lo,mid)+fetch_rows(addr,mid+1,hi)
 
 def collect(addr,lo,hi):
     rows=fetch_rows(addr,lo,hi)
@@ -98,5 +104,5 @@ def main():
             if not isinstance(SNAP,dict):raise RuntimeError("bad_checkpoint_snapshot")
     out=[collect(addr,lo,hi) for lo,hi in WINDOWS for addr in (USDC,USDT)]
     checkpoint()
-    print(json.dumps({"phase":191,"scope":"DATA_ONLY","economic_trials":0,"source_mode":"snapshot_replay_v2_checkpointed","snapshot_entries":len(SNAP),"windows":out},sort_keys=True,separators=(",",":")))
+    print(json.dumps({"phase":191,"scope":"DATA_ONLY","economic_trials":0,"source_mode":"snapshot_replay_v2_checkpointed_sharded","snapshot_entries":len(SNAP),"windows":out},sort_keys=True,separators=(",",":")))
 if __name__=="__main__":main()
