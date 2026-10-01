@@ -1,0 +1,51 @@
+name: V98 Independent Phase208 Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'reports/v98_independent_phase208_results.json'
+      - '.github/workflows/v98-independent-phase208-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Independent mechanical audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.load(open('reports/v98_independent_phase208_results.json'))
+          rows=[]; coherent=[]
+          for spec,v in sorted(p['specs'].items()):
+              folds=[]
+              for y in ('2023','2024','2025'):
+                  b=v[y]['base']; s=v[y]['severe']; x=v[y]['supersevere']
+                  folds.append((y,b['return'],b['profit_factor'],b['max_drawdown'],b['trades'],b['max_asset_concentration'],b['tail_p01'],s['return'],x['return']))
+              ok=all(r>0 and pf>1 for _,r,pf,*_ in folds)
+              if ok: coherent.append(spec)
+              rows.append((spec,folds,ok))
+          status='PROMOTION_REVIEW_REQUIRED' if coherent else 'REJECT_FAMILY_NO_RESCUE'
+          out=['# V98 Independent — Phase208 result audit','',f'**Decision: {status}**','',f'Deterministic payload SHA256: `{p["deterministic_payload_sha256"]}`',f'Coherent base-cost specs across all three folds: **{len(coherent)}/8**.',f'Passing specs: {coherent if coherent else "none"}.','', '## Fold evidence']
+          for spec,folds,ok in rows:
+              out += ['',f'### {spec} — {"coherent" if ok else "fails gate"}']
+              for y,r,pf,mdd,n,conc,p01,sr,xr in folds:
+                  out.append(f'- {y}: base return {r:.4%}; PF {pf:.4f}; MDD {mdd:.4%}; trades {n}; max-asset concentration {conc:.2%}; p01 full-trade {p01:.4%}; severe {sr:.4%}; supersevere {xr:.4%}.')
+          out += ['', '## Discipline', 'No asset/regime filter, signal inversion, threshold rescue, or parameter expansion is authorized from these results. Validation/final holdout remains unopened.']
+          Path('research/v98_independent/phase208_result_audit.md').write_text('\n'.join(out)+'\n')
+          PY
+      - name: Commit audit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add research/v98_independent/phase208_result_audit.md
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase208 independent result audit'
+          git pull --rebase origin research/v98-independent-zero
+          git push
