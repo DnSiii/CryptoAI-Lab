@@ -23,6 +23,17 @@ jobs:
         run: |
           python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
           python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Normalize funding timestamp serialization
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          root=Path('research/v98_independent/data/phase206_funding')
+          for p in sorted(root.glob('*_funding.csv')):
+              d=pd.read_csv(p); t=pd.to_datetime(d['fundingTime_utc'],utc=True,errors='raise',format='mixed')
+              d['fundingTime_utc']=t.dt.strftime('%Y-%m-%dT%H:%M:%S.%f%z'); d.to_csv(p,index=False)
+          print('semantic timestamp normalization OK')
+          PY
       - name: Price and funding firewall
         run: |
           python - <<'PY'
@@ -54,4 +65,3 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'V98 Phase206 harvest funding dislocation'
           git push
-# trigger: frozen Phase206 evaluation after PIT funding snapshot audit
