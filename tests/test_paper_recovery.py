@@ -85,3 +85,27 @@ def test_recent_running_cycle_prevents_duplicate_dispatch(monkeypatch):
     monkeypatch.setattr(recovery, "gh", fake_gh)
     recovery.main()
     assert not any(args[:2] == ("workflow", "run") for args in calls)
+
+
+def test_successful_cycle_continues_chain_with_fresh_heartbeat(monkeypatch):
+    import base64
+    import json
+    calls = []
+    now = datetime.now(timezone.utc)
+    payload = {"heartbeat_at_utc": now.isoformat(), "latest_official_timestamps": {
+        v: now.isoformat() for v in ("v13", "v14", "v15", "v16", "v99")}}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    monkeypatch.setenv("GITHUB_RUN_ID", "42")
+
+    def fake_gh(*args):
+        calls.append(args)
+        if args[0] == "workflow":
+            return ""
+        if "contents/" in args[-1]:
+            return json.dumps({"content": base64.b64encode(json.dumps(payload).encode()).decode()})
+        run = {"id": 42, "status": "in_progress", "created_at": now.isoformat()}
+        return json.dumps([{"workflow_runs": [run] if "status=in_progress" in args[-1] else []}])
+
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    recovery.main(continue_chain=True)
+    assert any(args[:2] == ("workflow", "run") for args in calls)
