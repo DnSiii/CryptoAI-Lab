@@ -6,19 +6,22 @@ Live snapshots are checkpointed after every successful response so transport fai
 cannot erase already captured immutable historical evidence.
 """
 from __future__ import annotations
-import argparse,json,re,time,urllib.error,urllib.parse,urllib.request
+import argparse,hashlib,json,re,time,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 BASE="https://eth.blockscout.com/api"; V2="https://eth.blockscout.com/api/v2"
 USDC="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; USDT="0xdac17f958d2ee523a2206206994597c13d831ec7"
 WINDOWS=((17000000,17000199),(18000000,18000199),(19000000,19000199)); OFFSET=1000
 HEX64=re.compile(r"^0x[0-9a-fA-F]{64}$"); HEXDATA=re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
 SNAP={}; MODE="live"; LAST_REQUEST=0.0; SNAPSHOT_PATH=None
-MIN_REQUEST_GAP=12.0
+MIN_REQUEST_GAP=12.0; PAGINATION_SPLITS=0
+
+def snapshot_bytes():
+    return json.dumps(SNAP,sort_keys=True,separators=(",",":")).encode()
 
 def checkpoint():
     if MODE!="live" or SNAPSHOT_PATH is None:return
     tmp=SNAPSHOT_PATH.with_suffix(SNAPSHOT_PATH.suffix+".tmp")
-    tmp.write_text(json.dumps(SNAP,sort_keys=True,separators=(",",":")))
+    tmp.write_bytes(snapshot_bytes())
     tmp.replace(SNAPSHOT_PATH)
 
 def get(url):
@@ -28,7 +31,7 @@ def get(url):
     for attempt in range(10):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.10"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.11"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -56,6 +59,7 @@ def canonical_block_hash(bn):
 
 def fetch_rows(addr,lo,hi):
     """Fetch an exact frozen interval, deterministically bisecting only if it is too dense."""
+    global PAGINATION_SPLITS
     rows=[]
     for page in range(1,101):
         qs=urllib.parse.urlencode({"module":"logs","action":"getLogs","address":addr,"fromBlock":lo,"toBlock":hi,"page":page,"offset":OFFSET})
@@ -64,6 +68,7 @@ def fetch_rows(addr,lo,hi):
         rows.extend(batch)
         if len(batch)<OFFSET:return rows
     if lo>=hi:raise RuntimeError("single_block_pagination_safety_cap")
+    PAGINATION_SPLITS+=1
     mid=(lo+hi)//2
     return fetch_rows(addr,lo,mid)+fetch_rows(addr,mid+1,hi)
 
@@ -108,7 +113,7 @@ def collect(addr,lo,hi):
     for bn in sample:
         canonical=canonical_cache.setdefault(bn,canonical_block_hash(bn))
         if canonical!=heights[bn]:raise RuntimeError("block_identity_mismatch")
-    return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"missing_blockhash_verified":missing_blockhash,"trailing_null_topic_rows":trailing_null_topic_rows,"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
+    return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"duplicate_identities":0,"missing_blockhash_verified":missing_blockhash,"trailing_null_topic_rows":trailing_null_topic_rows,"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
 
 def main():
     global MODE,SNAP,SNAPSHOT_PATH
@@ -123,5 +128,6 @@ def main():
             if not isinstance(SNAP,dict):raise RuntimeError("bad_checkpoint_snapshot")
     out=[collect(addr,lo,hi) for lo,hi in WINDOWS for addr in (USDC,USDT)]
     checkpoint()
-    print(json.dumps({"phase":191,"scope":"DATA_ONLY","economic_trials":0,"source_mode":"snapshot_replay_v2_checkpointed_sharded_canonical_identity","snapshot_entries":len(SNAP),"windows":out},sort_keys=True,separators=(",",":")))
+    source_sha256=hashlib.sha256(snapshot_bytes()).hexdigest()
+    print(json.dumps({"phase":191,"scope":"DATA_ONLY","economic_trials":0,"source_mode":"snapshot_replay_v2_checkpointed_sharded_canonical_identity","snapshot_entries":len(SNAP),"snapshot_sha256":source_sha256,"pagination_splits":PAGINATION_SPLITS,"windows":out},sort_keys=True,separators=(",",":")))
 if __name__=="__main__":main()
