@@ -1,0 +1,29 @@
+name: V98 Independent Phase206 Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase206_audit_results.py'
+      - 'reports/v98_independent_phase206_results.json'
+      - '.github/workflows/v98-independent-phase206-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Mechanical all-spec audit
+        run: python research/v98_independent/phase206_audit_results.py
+      - name: Commit V98-only audit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase206_audit.md
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase206 audit frozen funding family'
+          git push
