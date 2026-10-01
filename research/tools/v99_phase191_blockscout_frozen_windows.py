@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Phase191 DATA_ONLY audit over preregistered TRAIN windows.
-No price/PnL/regime/benchmark/holdout access. No provenance repair/inference.
+No price/PnL/regime/benchmark/holdout access. No provenance inference.
 Live mode records an immutable source snapshot; replay mode performs zero network I/O.
 Live snapshots are checkpointed after every successful response so transport failures
 cannot erase already captured immutable historical evidence.
@@ -28,7 +28,7 @@ def get(url):
     for attempt in range(10):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.7"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.8"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -47,13 +47,15 @@ def qint(v):
     if isinstance(v,str) and v.isdigit():return int(v)
     raise ValueError("noncanonical_integer")
 
-def fetch_rows(addr,lo,hi):
-    """Fetch an exact frozen interval, deterministically bisecting only if it is too dense.
+def canonical_block_hash(bn):
+    """Read canonical identity from an independent block endpoint; never infer it."""
+    b=get(V2+f"/blocks/{bn}")
+    h=str(b.get("hash") or "").lower() if isinstance(b,dict) else ""
+    if not HEX64.fullmatch(h):raise RuntimeError("missing_canonical_block_hash")
+    return h
 
-    The explorer's page API can saturate at 100 pages. Treating that as a data failure
-    would silently exclude dense TRAIN evidence. Bisection changes only transport
-    partitioning, never the preregistered outer window or event-selection semantics.
-    """
+def fetch_rows(addr,lo,hi):
+    """Fetch an exact frozen interval, deterministically bisecting only if it is too dense."""
     rows=[]
     for page in range(1,101):
         qs=urllib.parse.urlencode({"module":"logs","action":"getLogs","address":addr,"fromBlock":lo,"toBlock":hi,"page":page,"offset":OFFSET})
@@ -68,15 +70,22 @@ def fetch_rows(addr,lo,hi):
 def collect(addr,lo,hi):
     rows=fetch_rows(addr,lo,hi)
     if not rows:raise RuntimeError("empty_contract_window")
-    ids=set();heights={};topic0=set()
+    ids=set();heights={};topic0=set();canonical_cache={};missing_blockhash=0
     for x in rows:
-        for k in ("blockHash","transactionHash","logIndex","blockNumber","address","topics","data"):
+        for k in ("transactionHash","logIndex","blockNumber","address","topics","data"):
             if k not in x:raise RuntimeError("missing_"+k)
         if str(x["address"]).lower()!=addr:raise RuntimeError("emitter_mismatch")
-        bh=str(x["blockHash"]).lower();th=str(x["transactionHash"]).lower()
-        if not HEX64.fullmatch(bh) or not HEX64.fullmatch(th):raise RuntimeError("bad_hash")
+        th=str(x["transactionHash"]).lower()
+        if not HEX64.fullmatch(th):raise RuntimeError("bad_transaction_hash")
         bn=qint(x["blockNumber"]);li=qint(x["logIndex"])
         if not lo<=bn<=hi:raise RuntimeError("outside_frozen_window")
+        raw_bh=x.get("blockHash")
+        if raw_bh is None or raw_bh=="":
+            missing_blockhash+=1
+            bh=canonical_cache.setdefault(bn,canonical_block_hash(bn))
+        else:
+            bh=str(raw_bh).lower()
+            if not HEX64.fullmatch(bh):raise RuntimeError("bad_hash")
         ts=x["topics"]
         if not isinstance(ts,list) or not ts or any(not HEX64.fullmatch(str(t)) for t in ts):raise RuntimeError("bad_topics")
         if not isinstance(x["data"],str) or not HEXDATA.fullmatch(x["data"]):raise RuntimeError("bad_data")
@@ -87,9 +96,9 @@ def collect(addr,lo,hi):
         if old!=bh:raise RuntimeError("conflicting_block_hash")
     sample=sorted(heights);sample=sample[::max(1,len(sample)//3)][:3]
     for bn in sample:
-        b=get(V2+f"/blocks/{bn}");canonical=str(b.get("hash") or "").lower()
+        canonical=canonical_cache.setdefault(bn,canonical_block_hash(bn))
         if canonical!=heights[bn]:raise RuntimeError("block_identity_mismatch")
-    return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
+    return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"missing_blockhash_verified":missing_blockhash,"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
 
 def main():
     global MODE,SNAP,SNAPSHOT_PATH
@@ -104,5 +113,5 @@ def main():
             if not isinstance(SNAP,dict):raise RuntimeError("bad_checkpoint_snapshot")
     out=[collect(addr,lo,hi) for lo,hi in WINDOWS for addr in (USDC,USDT)]
     checkpoint()
-    print(json.dumps({"phase":191,"scope":"DATA_ONLY","economic_trials":0,"source_mode":"snapshot_replay_v2_checkpointed_sharded","snapshot_entries":len(SNAP),"windows":out},sort_keys=True,separators=(",",":")))
+    print(json.dumps({"phase":191,"scope":"DATA_ONLY","economic_trials":0,"source_mode":"snapshot_replay_v2_checkpointed_sharded_canonical_identity","snapshot_entries":len(SNAP),"windows":out},sort_keys=True,separators=(",",":")))
 if __name__=="__main__":main()
