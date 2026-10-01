@@ -1,0 +1,53 @@
+name: V98 Independent Phase206 Funding PIT
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98_independent_phase206_funding.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  acquire-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Acquire training-only realized funding snapshot A
+        run: |
+          python research/v98_independent/phase206_acquire_funding.py
+          find research/v98_independent/data/phase206_funding -name '*_funding.csv' -print0 | sort -z | xargs -0 sha256sum > /tmp/funding_a.sha256
+      - name: Reacquire and verify deterministic historical payload
+        run: |
+          rm -rf research/v98_independent/data/phase206_funding
+          python research/v98_independent/phase206_acquire_funding.py
+          find research/v98_independent/data/phase206_funding -name '*_funding.csv' -print0 | sort -z | xargs -0 sha256sum > /tmp/funding_b.sha256
+          diff -u /tmp/funding_a.sha256 /tmp/funding_b.sha256
+      - name: Independent firewall and integrity audit
+        run: |
+          python - <<'PY'
+          import csv,glob,json,datetime,pathlib
+          cutoff=int(datetime.datetime(2026,1,1,tzinfo=datetime.timezone.utc).timestamp()*1000)
+          files=sorted(glob.glob('research/v98_independent/data/phase206_funding/*_funding.csv'))
+          assert len(files)==5, files
+          audit={'phase':'206','namespace':'V98 Independent','status':'PASS','cutoff_exclusive_ms':cutoff,'files':{}}
+          for p in files:
+              with open(p,newline='',encoding='utf-8') as f: rows=list(csv.DictReader(f))
+              ts=[int(r['fundingTime_ms']) for r in rows]
+              assert ts and ts==sorted(ts) and len(ts)==len(set(ts)) and max(ts)<cutoff
+              audit['files'][pathlib.Path(p).name]={'rows':len(ts),'first_ms':min(ts),'last_ms':max(ts)}
+          pathlib.Path('research/v98_independent/data/phase206_funding/integrity_audit.json').write_text(json.dumps(audit,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(audit,indent=2))
+          PY
+      - name: Commit V98 Independent funding evidence only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/v98_independent/data/phase206_funding
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'v98 independent: freeze Phase206 training funding snapshot'
+          git push origin HEAD:research/v98-independent-zero
