@@ -6,6 +6,9 @@ on:
       - 'research/tools/v99_phase191_blockscout_frozen_windows.py'
       - '.github/workflows/v99-r106-phase191-blockscout-frozen-windows.yml'
   workflow_dispatch:
+concurrency:
+  group: v99-phase191-blockscout-source-capture
+  cancel-in-progress: true
 jobs:
   audit:
     runs-on: ubuntu-latest
