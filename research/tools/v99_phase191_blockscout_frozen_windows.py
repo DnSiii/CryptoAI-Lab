@@ -28,7 +28,7 @@ def get(url):
     for attempt in range(10):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.8"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.9"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -87,7 +87,11 @@ def collect(addr,lo,hi):
             bh=str(raw_bh).lower()
             if not HEX64.fullmatch(bh):raise RuntimeError("bad_hash")
         ts=x["topics"]
-        if not isinstance(ts,list) or not ts or any(not HEX64.fullmatch(str(t)) for t in ts):raise RuntimeError("bad_topics")
+        if not isinstance(ts,list) or not ts:
+            raise RuntimeError(f"bad_topics_shape type={type(ts).__name__} value={repr(ts)[:240]}")
+        for ti,t in enumerate(ts):
+            if not isinstance(t,str) or not HEX64.fullmatch(t):
+                raise RuntimeError(f"bad_topic index={ti} type={type(t).__name__} value={repr(t)[:120]} bn={bn} tx={th} li={li}")
         if not isinstance(x["data"],str) or not HEXDATA.fullmatch(x["data"]):raise RuntimeError("bad_data")
         ident=(bh,th,li)
         if ident in ids:raise RuntimeError("duplicate_identity")
