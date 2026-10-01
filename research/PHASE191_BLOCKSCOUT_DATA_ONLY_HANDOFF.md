@@ -14,7 +14,7 @@ Status: DATA_ONLY source-integrity phase. No economic candidate is promoted by t
 
 The Blockscout transport has exposed multiple source-pathologies while still upstream of economic evaluation: HTTP 429 rate limits, dense pagination, missing `blockHash`, and right-padded `null` topic entries. The current collector is intentionally fail-closed except for the narrowly evidenced normalization of *trailing* `null` topic padding; internal/leading nulls and malformed topic hashes remain fatal.
 
-Checkpointing is incremental and atomic (`tmp -> os.replace`) and the workflow restores prior DATA_ONLY snapshots before continuing. Recursive block-window bisection is transport-only: it does not change the three externally pre-registered TRAIN windows or select observations using outcomes.
+Checkpointing is incremental and atomic (`tmp -> replace`) and the workflow restores prior DATA_ONLY snapshots before continuing. Recursive block-window bisection is transport-only: it does not change the three externally pre-registered TRAIN windows or select observations using outcomes.
 
 ## Acceptance gates — preregistered before seeing any economic result
 
@@ -25,16 +25,16 @@ A Phase191 source snapshot may advance beyond DATA_ONLY only if all of the follo
 3. Every accepted row has canonical tx hash, block number, log index, address, topic structure, data payload, and a verified/canonical block identity; removed/reorg-ambiguous rows are not silently accepted.
 4. Contract identity and issuer-specific semantics reconcile independently; ambiguous issuer attribution is a rejection, not a tunable branch.
 5. Event timestamps/order used downstream are demonstrably causal and compatible with `t-1`; no same-bar/future information is permitted.
-6. Source diagnostics (pagination splits, repaired block hashes, trailing-null-topic rows, dedupe counts, snapshot SHA256) are persisted so a later audit can reproduce the exact accepted dataset.
+6. Source diagnostics (pagination splits, repaired block hashes, trailing-null-topic rows, duplicate-identity count, snapshot SHA256) are persisted so a later audit can reproduce the exact accepted dataset.
 7. V16 Frozen and V99 Frozen guards remain clean.
 
 Failure of any item keeps the source quarantined and leaves `economic_trials = 0`.
 
 ## Independent failure-mechanism audit
 
-The current code deduplicates only after concatenating transport pages/subwindows, using `(transactionHash, logIndex, address)` and deterministic sorting. This is appropriate for recursive pagination overlap, but the acceptance report must be inspected for concentration: a large dedupe count, repaired-hash concentration, or trailing-null-topic concentration in a narrow block interval can indicate provider-specific pathology rather than harmless formatting.
+The collector is fail-closed on duplicate canonical event identity `(blockHash, transactionHash, logIndex)` after transport pages/subwindows are concatenated; it does **not** silently deduplicate or sort away overlap. A successful window therefore reports `duplicate_identities = 0`. The acceptance report must also be inspected for concentration: repaired-hash or trailing-null-topic concentration in a narrow block interval can indicate provider-specific pathology rather than harmless formatting.
 
-The collector also records a SHA256 of the complete source snapshot. That hash, together with byte-identical offline replay, is the reproducibility anchor; a later run with a different source SHA must be treated as a distinct source realization and must not be silently compared as though it were identical evidence.
+The collector now embeds the SHA256 of the canonical serialized source snapshot and the number of recursive pagination splits in the deterministic replay output. That hash, together with byte-identical offline replay, is the reproducibility anchor; a later run with a different source SHA must be treated as a distinct source realization and must not be silently compared as though it were identical evidence.
 
 ## Next scientifically distinct step after source acceptance
 
