@@ -8,7 +8,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT")
+# Frozen universe must match the Phase050 training-only data contract.
+ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","SOLUSDT")
 FOLDS=(("2023","2023-01-01","2024-01-01"),("2024","2024-01-01","2025-01-01"),("2025","2025-01-01","2026-01-01"))
 SPECS=[(w,e,h) for w in (24,72) for e in (0.35,0.55) for h in (3,6)]
 COSTS={"base":0.0007,"severe":0.0014,"supersevere":0.0028}
@@ -39,7 +40,6 @@ def run(data,w,thr,hold,cost):
     for a,d in data.items():
         c=d["close"].astype(float); ret=c.pct_change().fillna(0)
         disp=c.pct_change(w); path=c.pct_change().abs().rolling(w).sum(); eff=(disp.abs()/path.replace(0,np.nan))
-        # Entire decision state shifted one bar: no contemporaneous close is used for entry.
         state=((eff>=thr)&(disp.abs()>=MIN_DISP)).shift(1).fillna(False)
         direction=np.sign(disp).shift(1).fillna(0)
         pos=pd.Series(0.0,index=d.index); cooldown=0
@@ -55,7 +55,6 @@ def run(data,w,thr,hold,cost):
     panel=pd.concat(pieces,axis=1).fillna(0); port=panel.mean(axis=1)
     m=metrics(port); m["asset_returns"]=by_asset; m["max_asset_concentration"]=float(max(abs(x) for x in by_asset.values())/sum(abs(x) for x in by_asset.values())) if sum(abs(x) for x in by_asset.values()) else 0
     q=np.array(trade_pnls,float); m["tail_p01"]=float(np.quantile(q,.01)) if len(q) else 0; m["tail_p99"]=float(np.quantile(q,.99)) if len(q) else 0; m["trades"]=len(q)
-    # BTC rolling trend proxy, lagged, only for descriptive regime audit.
     btc=data["BTCUSDT"]["close"].reindex(port.index).ffill(); trend=btc.pct_change(168).shift(1)
     regimes={"bull":trend>0.03,"bear":trend<-0.03,"sideways":trend.abs()<=0.03}
     m["regimes"]={k:metrics(port[v.fillna(False)]) for k,v in regimes.items()}
