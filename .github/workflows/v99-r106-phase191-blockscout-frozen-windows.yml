@@ -40,8 +40,13 @@ jobs:
           cmp /tmp/a.json /tmp/b.json
           cat /tmp/a.json
           sha256sum /tmp/a.json
+      - name: Check checkpoint presence
+        if: always()
+        id: checkpoint
+        run: |
+          if test -s /tmp/source.json; then echo 'present=true' >> "$GITHUB_OUTPUT"; else echo 'present=false' >> "$GITHUB_OUTPUT"; fi
       - name: Save partial or complete DATA_ONLY source checkpoint
-        if: always() && hashFiles('/tmp/source.json') != ''
+        if: always() && steps.checkpoint.outputs.present == 'true'
         uses: actions/cache/save@v4
         with:
           path: /tmp/source.json
