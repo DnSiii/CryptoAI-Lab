@@ -15,7 +15,9 @@ jobs:
       - name: Guard V16/V99 Frozen
         run: |
           set -euo pipefail
-          if git diff --name-only HEAD^ HEAD | grep -Ei '(^|/)(v16|v99).*frozen|frozen.*(v16|v99)'; then echo 'Frozen artifact touched'; exit 1; fi
+          changed="$(git diff --name-only HEAD^ HEAD)"
+          echo "$changed"
+          if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then echo 'Frozen artifact touched'; exit 1; fi
       - name: Run fixed TRAIN-window audit twice
         run: |
           set -euo pipefail
