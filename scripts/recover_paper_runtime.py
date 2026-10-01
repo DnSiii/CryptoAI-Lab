@@ -5,6 +5,7 @@ import base64
 import json
 import os
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 
@@ -40,7 +41,7 @@ def gh(*args: str) -> str:
     return subprocess.check_output(["gh", *args], text=True, timeout=60, stderr=subprocess.STDOUT)
 
 
-def main() -> None:
+def main(continue_chain: bool = False) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     now = datetime.now(timezone.utc)
     try:
@@ -87,7 +88,7 @@ def main() -> None:
     active = [run for run in current if classify_run(run, datetime.now(timezone.utc)) == "active"]
     if active:
         print(f"Paper recovery deferred: {len(active)} recent active run(s); data_stale={stale}")
-    elif stale:
+    elif stale or continue_chain:
         gh("workflow", "run", WORKFLOW, "--repo", repo, "--ref", "main")
         print("Dispatched official paper recovery. Publication freshness is not yet confirmed.")
     else:
@@ -95,4 +96,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(continue_chain="--continue-chain" in sys.argv)

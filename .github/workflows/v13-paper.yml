@@ -175,12 +175,14 @@ jobs:
           key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
 
       - name: Upload a compact audit artifact
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: paper-v13-opportunities-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
           path: |
+            reports/published_baseline/
             state/paper_v13_state.json
             reports/paper_v13_snapshot.json
             reports/paper_v13_ledger.json
@@ -300,4 +302,4 @@ jobs:
             sleep 300
           fi
           # gh workflow run v13-paper.yml is dispatched only after excluding expired queues.
-          python scripts/recover_paper_runtime.py
+          python scripts/recover_paper_runtime.py --continue-chain
