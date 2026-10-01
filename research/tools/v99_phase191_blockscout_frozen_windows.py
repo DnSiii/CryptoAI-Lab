@@ -10,34 +10,40 @@ BASE="https://eth.blockscout.com/api"; V2="https://eth.blockscout.com/api/v2"
 USDC="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; USDT="0xdac17f958d2ee523a2206206994597c13d831ec7"
 WINDOWS=((17000000,17000199),(18000000,18000199),(19000000,19000199)); OFFSET=1000
 HEX64=re.compile(r"^0x[0-9a-fA-F]{64}$"); HEXDATA=re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
-SNAP={}; MODE="live"; LAST_REQUEST=0.0; MIN_REQUEST_GAP=3.25
+SNAP={}; MODE="live"; LAST_REQUEST=0.0
+# Anonymous Blockscout is shared infrastructure.  The previous 3.25 s cadence still
+# produced 429 after ~20 min of exponential retries.  A deliberately serialized
+# 12 s cadence costs minutes, not scientific validity, and does not alter any data gate.
+MIN_REQUEST_GAP=12.0
+
 def get(url):
     global SNAP,LAST_REQUEST
     if MODE=="replay":
         if url not in SNAP: raise RuntimeError("snapshot_miss")
         return SNAP[url]
-    for attempt in range(12):
-        # Blockscout's anonymous API is shared infrastructure. Throttle globally rather
-        # than sleeping only after success so retries cannot form a request burst.
+    for attempt in range(10):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0: time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.4"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.5"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r: obj=json.load(r)
             SNAP[url]=obj; return obj
         except urllib.error.HTTPError as e:
-            if e.code!=429 or attempt==11: raise
+            if e.code!=429 or attempt==9: raise
             retry_after=e.headers.get("Retry-After") if e.headers else None
             try: server_wait=float(retry_after) if retry_after is not None else 0.0
             except ValueError: server_wait=0.0
-            time.sleep(max(server_wait,min(180.0,5.0*(2**attempt))))
+            # A 429 resets the anonymous-source cooldown. Keep retries serialized.
+            time.sleep(max(server_wait,min(240.0,30.0*(2**attempt))))
     raise RuntimeError("unreachable")
+
 def qint(v):
     if isinstance(v,int) and not isinstance(v,bool) and v>=0:return v
     if isinstance(v,str) and v.startswith("0x") and len(v)>2:return int(v,16)
     if isinstance(v,str) and v.isdigit():return int(v)
     raise ValueError("noncanonical_integer")
+
 def fetch_rows(addr,lo,hi):
     rows=[]
     for page in range(1,101):
@@ -47,6 +53,7 @@ def fetch_rows(addr,lo,hi):
         rows.extend(batch)
         if len(batch)<OFFSET:return rows
     raise RuntimeError("pagination_safety_cap")
+
 def collect(addr,lo,hi):
     rows=fetch_rows(addr,lo,hi)
     if not rows:raise RuntimeError("empty_contract_window")
@@ -72,6 +79,7 @@ def collect(addr,lo,hi):
         b=get(V2+f"/blocks/{bn}"); canonical=str(b.get("hash") or "").lower()
         if canonical!=heights[bn]:raise RuntimeError("block_identity_mismatch")
     return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
+
 def main():
     global MODE,SNAP
     ap=argparse.ArgumentParser(); ap.add_argument("--snapshot"); ap.add_argument("--replay"); a=ap.parse_args()
