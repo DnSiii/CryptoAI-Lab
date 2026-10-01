@@ -28,7 +28,7 @@ def get(url):
     for attempt in range(10):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.9"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.10"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -70,7 +70,7 @@ def fetch_rows(addr,lo,hi):
 def collect(addr,lo,hi):
     rows=fetch_rows(addr,lo,hi)
     if not rows:raise RuntimeError("empty_contract_window")
-    ids=set();heights={};topic0=set();canonical_cache={};missing_blockhash=0
+    ids=set();heights={};topic0=set();canonical_cache={};missing_blockhash=0;trailing_null_topic_rows=0
     for x in rows:
         for k in ("transactionHash","logIndex","blockNumber","address","topics","data"):
             if k not in x:raise RuntimeError("missing_"+k)
@@ -89,6 +89,12 @@ def collect(addr,lo,hi):
         ts=x["topics"]
         if not isinstance(ts,list) or not ts:
             raise RuntimeError(f"bad_topics_shape type={type(ts).__name__} value={repr(ts)[:240]}")
+        # Blockscout legacy getLogs may right-pad the fixed four-topic response with null.
+        # Normalize ONLY trailing null padding; internal/leading nulls remain fail-closed.
+        raw_topic_len=len(ts)
+        while ts and ts[-1] is None:ts=ts[:-1]
+        if len(ts)!=raw_topic_len:trailing_null_topic_rows+=1
+        if not ts:raise RuntimeError("all_null_topics")
         for ti,t in enumerate(ts):
             if not isinstance(t,str) or not HEX64.fullmatch(t):
                 raise RuntimeError(f"bad_topic index={ti} type={type(t).__name__} value={repr(t)[:120]} bn={bn} tx={th} li={li}")
@@ -102,7 +108,7 @@ def collect(addr,lo,hi):
     for bn in sample:
         canonical=canonical_cache.setdefault(bn,canonical_block_hash(bn))
         if canonical!=heights[bn]:raise RuntimeError("block_identity_mismatch")
-    return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"missing_blockhash_verified":missing_blockhash,"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
+    return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"missing_blockhash_verified":missing_blockhash,"trailing_null_topic_rows":trailing_null_topic_rows,"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
 
 def main():
     global MODE,SNAP,SNAPSHOT_PATH
