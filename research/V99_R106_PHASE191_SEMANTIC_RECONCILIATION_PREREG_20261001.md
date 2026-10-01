@@ -2,34 +2,32 @@
 
 Status: preregistered before frozen-window harvest. Scope: DATA_ONLY. Economic trials: 0. Holdout: untouched.
 
-## Purpose
+## Precedence / anti-retuning rule
 
-The next gate tests whether canonical Ethereum logs can be converted into issuer-specific stablecoin supply-flow observations without price, return, PnL, regime, benchmark, validation, or holdout information. This document freezes the interpretation before seeing the frozen-window output.
+The pre-existing `research/tools/v99_phase191_event_semantics_guard.py` is the controlling semantic specification. This document may make its reporting requirements explicit but MUST NOT redefine those semantics after data are observed. An independent audit caught an initially drafted Transfer-only USDC wording before any frozen-window result was harvested; that wording conflicted with the already-frozen guard and is therefore void. No data result was inspected to make this correction.
 
 ## Fixed inputs
 
 Only canonical USDC (`0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`) and USDT (`0xdac17f958d2ee523a2206206994597c13d831ec7`) logs from the already frozen TRAIN windows 17,000,000–17,000,199; 18,000,000–18,000,199; and 19,000,000–19,000,199 are eligible. No window may be moved, shortened, substituted, or selected after observing results.
 
-## USDC semantics
+## Frozen issuer semantics
 
-USDC supply flow is recognized only from canonical `Transfer(address,address,uint256)` events emitted by the canonical token contract. Mint requires `from == 0x0000000000000000000000000000000000000000`; burn requires `to == 0x0000000000000000000000000000000000000000`. Ordinary transfers are not supply flow. Malformed topic count, noncanonical indexed addresses, ambiguous zero-address decoding, or invalid amount encoding fails closed.
+For USDC, native `Mint`/`Burn` amounts are the supply-flow view encoded by the existing guard. Zero-address `Transfer` amounts are independent reconciliation evidence when present; if both views are present and disagree, the gate fails closed. Ordinary transfers are not supply flow.
 
-## USDT semantics
-
-USDT must be reconciled using its issuer-specific issuance/redemption semantics rather than assuming modern ERC-20 mint/burn behavior. `Issue(uint256)` and `Redeem(uint256)` events from the canonical contract are the primary supply-flow evidence. `Transfer` events may be used only as reconciliation evidence where contract semantics support it; they must not silently replace Issue/Redeem. Unknown or ambiguous topic0 values are classified as unknown, never inferred into issuance/redemption.
+For USDT, `Issue` and `Redeem` are the supply-flow events. A zero-address `Transfer` MUST NOT be silently treated as issuance/redemption; the existing guard explicitly fails that case. Unknown or ambiguous events remain unknown and cannot be inferred into a favorable class.
 
 ## Identity, ordering, and causality
 
-Every accepted event retains `(blockHash, transactionHash, logIndex)` and block number. Duplicate identities or conflicting block hashes fail closed. Aggregation is chronological. Any eventual model feature derived from block/day t becomes eligible no earlier than t+1; same-period information is forbidden. This DATA_ONLY stage does not authorize an economic backtest.
+Every accepted event retains `(blockHash, transactionHash, logIndex)` and block number. Duplicate identities, conflicting block hashes, malformed immutable hashes, nonpositive amounts/timestamps, or non-strict event order fail closed under the existing guard. Aggregation is chronological. `lagged_net_by_block` exposes at block b only cumulative signed flow through blocks strictly before b, preserving causal t-1. This DATA_ONLY stage authorizes no economic backtest.
 
 ## Required reconciliation report
 
-For each asset/window report: raw canonical log count; recognized supply-event count; mint/issue amount; burn/redeem amount; net flow; unknown-topic count; malformed/ambiguous count; duplicate count; block-identity/finality status; and deterministic output hash. Amounts remain integer base units in the integrity layer; decimal conversion is presentation-only and cannot affect identities or sums.
+For each asset/window report: raw canonical log count; recognized supply-event count; native mint/issue amount; native burn/redeem amount; reconciliation evidence where applicable; net flow; unknown/malformed count; duplicate/conflict status; block-identity/finality status; and deterministic output hash. Integrity-layer amounts remain integer base units.
 
 ## PASS / FAIL_CLOSED
 
-PASS requires all six asset-window cells to have canonical identities, complete pagination, no conflicting block hashes, deterministic replay, independently supported block identity/finality, and unambiguous issuer-specific supply semantics. Any missing source evidence, transport truncation, schema ambiguity, unexplained semantic mismatch, or nondeterminism is FAIL_CLOSED and leaves `economic_trials = 0`.
+PASS requires all six asset-window cells to have complete pagination, canonical identity, no conflicting block hashes, deterministic replay, independently supported block identity/finality, and issuer-specific semantic reconciliation consistent with the pre-existing guard. Missing source evidence, transport truncation, schema ambiguity, semantic mismatch, or nondeterminism is FAIL_CLOSED and leaves `economic_trials = 0`.
 
 ## Economic firewall
 
-No direction, threshold, lag beyond mandatory t-1, weighting, regime split, cost assumption, benchmark comparison, or selection rule may be tuned from this gate. A later economic hypothesis must be separately preregistered only after this semantic gate passes. Severe/supersevere costs, temporal folds, chronological train-only selection, benchmark envelope, and untouched holdout remain mandatory for any later authorized trial.
+No direction, threshold, extra lag, weighting, regime split, cost assumption, benchmark comparison, or selection rule may be tuned from this gate. A later economic hypothesis must be separately preregistered only after the semantic/data gate passes. Severe/supersevere costs, temporal folds, chronological train-only selection, benchmark envelope, reproducibility, and untouched holdout remain mandatory for any later authorized trial.
