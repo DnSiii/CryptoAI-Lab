@@ -18,6 +18,13 @@ jobs:
           changed="$(git diff --name-only HEAD^ HEAD)"
           echo "$changed"
           if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then echo 'Frozen artifact touched'; exit 1; fi
+      - name: Restore prior DATA_ONLY source checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/source.json
+          key: phase191-blockscout-${{ github.run_id }}
+          restore-keys: |
+            phase191-blockscout-
       - name: Capture fixed TRAIN source snapshot
         run: |
           set -euo pipefail
@@ -33,3 +40,9 @@ jobs:
           cmp /tmp/a.json /tmp/b.json
           cat /tmp/a.json
           sha256sum /tmp/a.json
+      - name: Save partial or complete DATA_ONLY source checkpoint
+        if: always() && hashFiles('/tmp/source.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/source.json
+          key: phase191-blockscout-${{ github.run_id }}
