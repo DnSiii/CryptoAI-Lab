@@ -22,7 +22,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /tmp/source.json
-          key: phase191-blockscout-${{ github.run_id }}
+          key: phase191-blockscout-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             phase191-blockscout-
       - name: Capture fixed TRAIN source snapshot
@@ -50,4 +50,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: /tmp/source.json
-          key: phase191-blockscout-${{ github.run_id }}
+          key: phase191-blockscout-${{ github.run_id }}-${{ github.run_attempt }}
