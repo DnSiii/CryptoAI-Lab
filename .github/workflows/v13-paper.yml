@@ -83,6 +83,10 @@ jobs:
               fi
             done
           fi
+          mkdir -p reports/published_baseline
+          for path in reports/paper_v13_ledger.json reports/paper_v14_ledger.json reports/paper_v15_ledger.json reports/paper_v16_ledger.json reports/paper_v99_ledger.json reports/paper_core_comparison_v1_ledger.json reports/paper_opportunity_v1_ledger.json reports/paper_combined_v1_ledger.json; do
+            git show "FETCH_HEAD:$path" > "reports/published_baseline/$(basename "$path")"
+          done
 
       - name: Run causal and no-real-order tests
         run: python -m pytest
@@ -119,6 +123,9 @@ jobs:
           python scripts/verify_v15_cycle.py
           python scripts/verify_v16_cycle.py
           python scripts/verify_v99_cycle.py
+
+      - name: Verify published history was not rewritten
+        run: python scripts/verify_published_paper_history.py
 
       - name: Write paper publication heartbeat
         shell: bash
