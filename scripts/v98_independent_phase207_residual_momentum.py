@@ -20,7 +20,7 @@ def load_prices(root):
 def load_funding(root):
  out={}
  for a in ASSETS:
-  d=pd.read_csv(root/f"{a}_funding.csv"); t=pd.to_datetime(d["fundingTime_utc"],utc=True,errors="raise"); r=pd.to_numeric(d["fundingRate"],errors="raise"); x=pd.DataFrame({"rate":r.to_numpy()},index=t).sort_index()
+  d=pd.read_csv(root/f"{a}_funding.csv"); t=pd.to_datetime(d["fundingTime_utc"],utc=True,errors="raise",format="mixed"); r=pd.to_numeric(d["fundingRate"],errors="raise"); x=pd.DataFrame({"rate":r.to_numpy()},index=t).sort_index()
   if x.index.max()>=CUTOFF or x.index.has_duplicates: raise RuntimeError(f"funding invariant {a}")
   out[a]=x
  return out
