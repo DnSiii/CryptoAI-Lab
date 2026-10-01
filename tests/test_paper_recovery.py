@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import recover_paper_runtime as recovery
 from recover_paper_runtime import classify_run, heartbeat_stale
 from verify_published_paper_history import verify
 
@@ -44,3 +45,43 @@ def test_publication_allows_append_but_rejects_rewrites():
     new["equity_curve"][0]["capital_brl"] = 9999
     with pytest.raises(RuntimeError, match="rewritten"):
         verify(old, new)
+
+
+def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch):
+    import json
+    import subprocess
+    calls = []
+    ghost = {"id": 34748927780, "status": "queued", "created_at": "2026-09-13T09:05:49Z"}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    monkeypatch.setattr(recovery.time, "sleep", lambda seconds: None)
+
+    def fake_gh(*args):
+        calls.append(args)
+        if "workflow" == args[0]:
+            return ""
+        if "/cancel" in args[-1] or "/force-cancel" in args[-1]:
+            raise subprocess.CalledProcessError(1, args, output="Cannot cancel (HTTP 409)")
+        if "contents/" in args[-1]:
+            return "{}"
+        return json.dumps([{"workflow_runs": [ghost] if "status=queued" in args[-1] else []}])
+
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    recovery.main()
+    assert any(args[:2] == ("workflow", "run") for args in calls)
+
+
+def test_recent_running_cycle_prevents_duplicate_dispatch(monkeypatch):
+    import json
+    calls = []
+    run = {"id": 42, "status": "in_progress", "created_at": datetime.now(timezone.utc).isoformat()}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+
+    def fake_gh(*args):
+        calls.append(args)
+        if "contents/" in args[-1]:
+            return "{}"
+        return json.dumps([{"workflow_runs": [run] if "status=in_progress" in args[-1] else []}])
+
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    recovery.main()
+    assert not any(args[:2] == ("workflow", "run") for args in calls)

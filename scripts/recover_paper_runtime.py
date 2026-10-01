@@ -37,7 +37,7 @@ def heartbeat_stale(payload: dict, now: datetime) -> bool:
 
 
 def gh(*args: str) -> str:
-    return subprocess.check_output(["gh", *args], text=True, timeout=60)
+    return subprocess.check_output(["gh", *args], text=True, timeout=60, stderr=subprocess.STDOUT)
 
 
 def main() -> None:
@@ -57,13 +57,23 @@ def main() -> None:
         for status in ("queued", "in_progress", "waiting", "pending", "requested"):
             pages = json.loads(gh("api", "--paginate", "--slurp", f"repos/{repo}/actions/workflows/{WORKFLOW}/runs?status={status}&per_page=100"))
             result.extend(run for page in pages for run in page["workflow_runs"])
-        return result
+        return [run for run in result if str(run["id"]) != os.environ.get("GITHUB_RUN_ID")]
 
     current = runs()
     expired = [run for run in current if classify_run(run, now) == "expired"]
     for run in expired:
         print(f"Cancelling expired official paper run {run['id']} ({run['status']}, created {run['created_at']})")
-        gh("api", "--method", "POST", f"repos/{repo}/actions/runs/{run['id']}/cancel")
+        try:
+            gh("api", "--method", "POST", f"repos/{repo}/actions/runs/{run['id']}/cancel")
+        except subprocess.CalledProcessError as error:
+            if "HTTP 409" not in error.output:
+                raise
+            try:
+                gh("api", "--method", "POST", f"repos/{repo}/actions/runs/{run['id']}/force-cancel")
+            except subprocess.CalledProcessError as force_error:
+                if "HTTP 409" not in force_error.output:
+                    raise
+                print(f"WARNING: GitHub refuses cancellation of phantom run {run['id']}; expired run is excluded from active count.")
     if expired:
         for attempt in range(3):
             time.sleep(2)
@@ -72,7 +82,7 @@ def main() -> None:
             if not pending:
                 break
         else:
-            raise RuntimeError("Expired paper runs still pending cancellation; refusing to report recovery as successful")
+            print("WARNING: Expired runs remain in GitHub metadata; they cannot block recovery.")
 
     active = [run for run in current if classify_run(run, datetime.now(timezone.utc)) == "active"]
     if active:
