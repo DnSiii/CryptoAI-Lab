@@ -13,7 +13,9 @@ USDC="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; USDT="0xdac17f958d2ee523a2206
 WINDOWS=((17000000,17000199),(18000000,18000199),(19000000,19000199)); OFFSET=1000
 HEX64=re.compile(r"^0x[0-9a-fA-F]{64}$"); HEXDATA=re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
 SNAP={}; MODE="live"; LAST_REQUEST=0.0; SNAPSHOT_PATH=None
-MIN_REQUEST_GAP=12.0; PAGINATION_SPLITS=0
+# The public legacy endpoint showed sustained 429s after making real progress at 12 s/request.
+# Keep transport policy deliberately conservative; this changes neither frozen windows nor evidence.
+MIN_REQUEST_GAP=20.0; MAX_429_ATTEMPTS=6; PAGINATION_SPLITS=0
 
 def snapshot_bytes():
     return json.dumps(SNAP,sort_keys=True,separators=(",",":")).encode()
@@ -28,20 +30,21 @@ def get(url):
     global SNAP,LAST_REQUEST
     if url in SNAP:return SNAP[url]
     if MODE=="replay":raise RuntimeError("snapshot_miss")
-    for attempt in range(10):
+    for attempt in range(MAX_429_ATTEMPTS):
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.11"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.12"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
             SNAP[url]=obj;checkpoint();return obj
         except urllib.error.HTTPError as e:
-            if e.code!=429 or attempt==9:raise
+            if e.code!=429 or attempt==MAX_429_ATTEMPTS-1:raise
             retry_after=e.headers.get("Retry-After") if e.headers else None
             try:server_wait=float(retry_after) if retry_after is not None else 0.0
             except ValueError:server_wait=0.0
-            time.sleep(max(server_wait,min(240.0,30.0*(2**attempt))))
+            # Bound each cooldown while avoiding the previous ~30 minute retry stall.
+            time.sleep(max(server_wait,min(300.0,45.0*(2**attempt))))
     raise RuntimeError("unreachable")
 
 def qint(v):
