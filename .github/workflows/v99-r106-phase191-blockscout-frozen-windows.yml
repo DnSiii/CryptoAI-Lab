@@ -18,11 +18,18 @@ jobs:
           changed="$(git diff --name-only HEAD^ HEAD)"
           echo "$changed"
           if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then echo 'Frozen artifact touched'; exit 1; fi
-      - name: Run fixed TRAIN-window audit twice
+      - name: Capture fixed TRAIN source snapshot
         run: |
           set -euo pipefail
-          python research/tools/v99_phase191_blockscout_frozen_windows.py > /tmp/a.json
-          python research/tools/v99_phase191_blockscout_frozen_windows.py > /tmp/b.json
+          python research/tools/v99_phase191_blockscout_frozen_windows.py --snapshot /tmp/source.json > /tmp/live.json
+          test -s /tmp/source.json
+          sha256sum /tmp/source.json
+      - name: Deterministic offline replay twice
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase191_blockscout_frozen_windows.py --replay /tmp/source.json > /tmp/a.json
+          python research/tools/v99_phase191_blockscout_frozen_windows.py --replay /tmp/source.json > /tmp/b.json
+          cmp /tmp/live.json /tmp/a.json
           cmp /tmp/a.json /tmp/b.json
           cat /tmp/a.json
           sha256sum /tmp/a.json
