@@ -1,0 +1,26 @@
+name: V99 R106 Phase191 Blockscout Frozen Windows
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase191_blockscout_frozen_windows.py'
+      - '.github/workflows/v99-r106-phase191-blockscout-frozen-windows.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Guard V16/V99 Frozen
+        run: |
+          set -euo pipefail
+          if git diff --name-only HEAD^ HEAD | grep -Ei '(^|/)(v16|v99).*frozen|frozen.*(v16|v99)'; then echo 'Frozen artifact touched'; exit 1; fi
+      - name: Run fixed TRAIN-window audit twice
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase191_blockscout_frozen_windows.py > /tmp/a.json
+          python research/tools/v99_phase191_blockscout_frozen_windows.py > /tmp/b.json
+          cmp /tmp/a.json /tmp/b.json
+          cat /tmp/a.json
+          sha256sum /tmp/a.json
