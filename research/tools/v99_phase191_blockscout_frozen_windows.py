@@ -10,20 +10,28 @@ BASE="https://eth.blockscout.com/api"; V2="https://eth.blockscout.com/api/v2"
 USDC="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; USDT="0xdac17f958d2ee523a2206206994597c13d831ec7"
 WINDOWS=((17000000,17000199),(18000000,18000199),(19000000,19000199)); OFFSET=1000
 HEX64=re.compile(r"^0x[0-9a-fA-F]{64}$"); HEXDATA=re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
-SNAP={}; MODE="live"
+SNAP={}; MODE="live"; LAST_REQUEST=0.0; MIN_REQUEST_GAP=3.25
 def get(url):
-    global SNAP
+    global SNAP,LAST_REQUEST
     if MODE=="replay":
         if url not in SNAP: raise RuntimeError("snapshot_miss")
         return SNAP[url]
-    for attempt in range(8):
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.3"})
+    for attempt in range(12):
+        # Blockscout's anonymous API is shared infrastructure. Throttle globally rather
+        # than sleeping only after success so retries cannot form a request burst.
+        wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
+        if wait>0: time.sleep(wait)
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.4"})
+        LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r: obj=json.load(r)
-            SNAP[url]=obj; time.sleep(1.05); return obj
+            SNAP[url]=obj; return obj
         except urllib.error.HTTPError as e:
-            if e.code!=429 or attempt==7: raise
-            time.sleep(min(60,3*(2**attempt)))
+            if e.code!=429 or attempt==11: raise
+            retry_after=e.headers.get("Retry-After") if e.headers else None
+            try: server_wait=float(retry_after) if retry_after is not None else 0.0
+            except ValueError: server_wait=0.0
+            time.sleep(max(server_wait,min(180.0,5.0*(2**attempt))))
     raise RuntimeError("unreachable")
 def qint(v):
     if isinstance(v,int) and not isinstance(v,bool) and v>=0:return v
