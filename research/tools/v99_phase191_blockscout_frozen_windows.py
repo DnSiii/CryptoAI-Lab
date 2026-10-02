@@ -46,7 +46,7 @@ def get(url):
     while True:
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.13"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.14"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -82,6 +82,12 @@ def canonical_block_hash(bn):
     if not HEX64.fullmatch(h):raise RuntimeError("missing_canonical_block_hash")
     return h
 
+def cached_canonical_block_hash(cache,bn):
+    """Return one independently fetched canonical hash per height without eager setdefault I/O."""
+    if bn not in cache:
+        cache[bn]=canonical_block_hash(bn)
+    return cache[bn]
+
 def fetch_rows(addr,lo,hi):
     """Fetch an exact frozen interval, deterministically bisecting only if it is too dense."""
     global PAGINATION_SPLITS
@@ -112,7 +118,7 @@ def collect(addr,lo,hi):
         raw_bh=x.get("blockHash")
         if raw_bh is None or raw_bh=="":
             missing_blockhash+=1
-            bh=canonical_cache.setdefault(bn,canonical_block_hash(bn))
+            bh=cached_canonical_block_hash(canonical_cache,bn)
         else:
             bh=str(raw_bh).lower()
             if not HEX64.fullmatch(bh):raise RuntimeError("bad_hash")
@@ -136,7 +142,7 @@ def collect(addr,lo,hi):
         if old!=bh:raise RuntimeError("conflicting_block_hash")
     sample=sorted(heights);sample=sample[::max(1,len(sample)//3)][:3]
     for bn in sample:
-        canonical=canonical_cache.setdefault(bn,canonical_block_hash(bn))
+        canonical=cached_canonical_block_hash(canonical_cache,bn)
         if canonical!=heights[bn]:raise RuntimeError("block_identity_mismatch")
     return {"address":addr,"from":lo,"to":hi,"logs":len(rows),"heights":len(heights),"duplicate_identities":0,"missing_blockhash_verified":missing_blockhash,"trailing_null_topic_rows":trailing_null_topic_rows,"finality_identity_samples":len(sample),"topic0":sorted(topic0)}
 
