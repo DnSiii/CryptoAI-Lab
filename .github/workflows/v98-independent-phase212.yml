@@ -1,0 +1,58 @@
+name: V98 Independent Phase212
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['scripts/v98_independent_phase212_range_exhaustion.py','research/v98_independent/phase212_preregister.md','.github/workflows/v98-independent-phase212.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase212:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+              if a!='BTCUSDT':
+                  f=pd.read_csv(Path('research/v98_independent/data/phase206_funding')/f'{a}_funding.csv'); ft=pd.to_datetime(f.fundingTime_utc,utc=True,errors='raise',format='mixed'); assert ft.is_monotonic_increasing and not ft.duplicated().any() and not (ft>=cut).any()
+          print('Phase212 firewall OK')
+          PY
+      - name: Deterministic run 1
+        run: |
+          python scripts/v98_independent_phase212_range_exhaustion.py
+          sha256sum reports/v98_independent_phase212_results.json | tee /tmp/h1
+      - name: Deterministic run 2
+        run: |
+          python scripts/v98_independent_phase212_range_exhaustion.py
+          sha256sum reports/v98_independent_phase212_results.json | tee /tmp/h2
+          diff -u /tmp/h1 /tmp/h2
+      - name: Mechanical gate
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase212_results.json')); assert len(p['specs'])==8
+          passing=[k for k,v in p['specs'].items() if all(v[y]['base']['return']>0 and v[y]['base']['profit_factor']>1 for y in ('2023','2024','2025'))]
+          print('training-fold coherent specs:',passing)
+          PY
+      - name: Commit V98-only report
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase212_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase212 harvest range exhaustion reversal'
+          git pull --rebase origin research/v98-independent-zero
+          git push
