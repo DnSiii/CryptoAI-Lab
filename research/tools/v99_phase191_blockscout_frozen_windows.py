@@ -6,16 +6,17 @@ Live snapshots are checkpointed after every successful response so transport fai
 cannot erase already captured immutable historical evidence.
 """
 from __future__ import annotations
-import argparse,hashlib,json,re,time,urllib.error,urllib.parse,urllib.request
+import argparse,email.utils,hashlib,json,re,sys,time,urllib.error,urllib.parse,urllib.request
+from datetime import datetime,timezone
 from pathlib import Path
 BASE="https://eth.blockscout.com/api"; V2="https://eth.blockscout.com/api/v2"
 USDC="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; USDT="0xdac17f958d2ee523a2206206994597c13d831ec7"
 WINDOWS=((17000000,17000199),(18000000,18000199),(19000000,19000199)); OFFSET=1000
 HEX64=re.compile(r"^0x[0-9a-fA-F]{64}$"); HEXDATA=re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
 SNAP={}; MODE="live"; LAST_REQUEST=0.0; SNAPSHOT_PATH=None
-# The public legacy endpoint showed sustained 429s after making real progress at 12 s/request.
-# Keep transport policy deliberately conservative; this changes neither frozen windows nor evidence.
-MIN_REQUEST_GAP=20.0; MAX_429_ATTEMPTS=6; PAGINATION_SPLITS=0
+# Transport-only policy. Frozen windows, source semantics, evidence and scientific gates are unchanged.
+# The public legacy endpoint can sustain long 429 episodes even at a conservative request cadence.
+MIN_REQUEST_GAP=20.0; MAX_429_TOTAL_WAIT=2700.0; MAX_429_COOLDOWN=600.0; PAGINATION_SPLITS=0
 
 def snapshot_bytes():
     return json.dumps(SNAP,sort_keys=True,separators=(",",":")).encode()
@@ -26,26 +27,47 @@ def checkpoint():
     tmp.write_bytes(snapshot_bytes())
     tmp.replace(SNAPSHOT_PATH)
 
+def retry_after_seconds(value):
+    """Parse Retry-After as delta-seconds or RFC 7231 HTTP-date; fail closed to local backoff."""
+    if value is None:return 0.0
+    try:return max(0.0,float(value))
+    except (TypeError,ValueError):pass
+    try:
+        dt=email.utils.parsedate_to_datetime(str(value))
+        if dt.tzinfo is None:dt=dt.replace(tzinfo=timezone.utc)
+        return max(0.0,(dt-datetime.now(timezone.utc)).total_seconds())
+    except (TypeError,ValueError,OverflowError):return 0.0
+
 def get(url):
     global SNAP,LAST_REQUEST
     if url in SNAP:return SNAP[url]
     if MODE=="replay":raise RuntimeError("snapshot_miss")
-    for attempt in range(MAX_429_ATTEMPTS):
+    attempt=0;total_429_wait=0.0
+    while True:
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.12"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.13"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
             SNAP[url]=obj;checkpoint();return obj
         except urllib.error.HTTPError as e:
-            if e.code!=429 or attempt==MAX_429_ATTEMPTS-1:raise
-            retry_after=e.headers.get("Retry-After") if e.headers else None
-            try:server_wait=float(retry_after) if retry_after is not None else 0.0
-            except ValueError:server_wait=0.0
-            # Bound each cooldown while avoiding the previous ~30 minute retry stall.
-            time.sleep(max(server_wait,min(300.0,45.0*(2**attempt))))
-    raise RuntimeError("unreachable")
+            if e.code!=429:raise
+            server_wait=retry_after_seconds(e.headers.get("Retry-After") if e.headers else None)
+            local_wait=min(MAX_429_COOLDOWN,45.0*(2**min(attempt,4)))
+            cooldown=max(server_wait,local_wait)
+            if total_429_wait+cooldown>MAX_429_TOTAL_WAIT:
+                raise RuntimeError(
+                    f"transport_rate_limit_exhausted attempts={attempt+1} "
+                    f"cooldown_total={total_429_wait:.0f}s snapshot_entries={len(SNAP)}"
+                ) from e
+            attempt+=1;total_429_wait+=cooldown
+            print(
+                f"phase191 transport 429 attempt={attempt} cooldown={cooldown:.0f}s "
+                f"total={total_429_wait:.0f}s snapshot_entries={len(SNAP)}",
+                file=sys.stderr,flush=True,
+            )
+            time.sleep(cooldown)
 
 def qint(v):
     if isinstance(v,int) and not isinstance(v,bool) and v>=0:return v
