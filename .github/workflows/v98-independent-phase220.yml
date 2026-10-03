@@ -37,9 +37,11 @@ jobs:
           s=Path('scripts/v98_independent_phase220_funding_dispersion_rv.py').read_text()
           assert 'SPECS=[(N,S,h) for N in (21,63) for S in (1.0,1.5) for h in (4,8)]' in s
           assert 'pct_change(fill_method=None)' in s and 'pd.Timedelta(hours=1)' in s and '.shift(1)' in s
-          assert 'rolling(N,min_periods=N).mean()' in s and 'median()' in s and 'mad.clip(lower=EPS)' in s
+          assert 'rolling(N,min_periods=N).mean()' in s
+          assert 'rolling(N,min_periods=N).apply(lambda x: float(np.median(np.abs(x-np.median(x)))),raw=True)' in s
+          assert 'mad.clip(lower=EPS)' in s and 'exact_same_window_median_absolute_deviation' in s
           assert '=.5' in s and '=-.5' in s and 'gross exposure invariant' in s
-          print('Phase220 prereg/causality static invariants OK')
+          print('Phase220 exact-MAD prereg/causality invariants OK')
           PY
       - name: Deterministic run 1
         run: |
@@ -55,6 +57,7 @@ jobs:
           python - <<'PY'
           import json
           p=json.load(open('reports/v98_independent_phase220_results.json')); assert len(p['specs'])==8
+          assert p.get('mad_definition')=='exact_same_window_median_absolute_deviation'
           passing=[]
           for k,v in p['specs'].items():
               assert set(v)=={'2023','2024','2025'}
@@ -72,6 +75,6 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add reports/v98_independent_phase220_results.json
           git diff --cached --quiet && exit 0
-          git commit -m 'V98 Phase220 harvest cross-sectional funding dispersion'
+          git commit -m 'V98 Phase220 harvest exact-MAD funding dispersion'
           git pull --rebase origin research/v98-independent-zero
           git push
