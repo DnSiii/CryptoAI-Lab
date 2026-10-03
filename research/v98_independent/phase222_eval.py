@@ -37,7 +37,6 @@ def features(x):
  # Shift completed-bar inputs first. Nothing from high/low/close(t) enters signal(t).
  hi=x.high.shift(1).rolling(24,min_periods=24).max(); lo=x.low.shift(1).rolling(24,min_periods=24).min()
  r24=hi/lo-1.; med=r24.rolling(168,min_periods=168).median()
- # close-to-close 24h return through t-1, used only by preregistered symmetric confirmation.
  mom24=x.close.shift(1)/x.close.shift(25)-1.
  return pd.DataFrame({"prior_hi":hi,"prior_lo":lo,"range24":r24,"range168_median":med,"mom24":mom24},index=x.index)
 
@@ -58,19 +57,20 @@ def run(prices,funding,c,hold,direction,cost,start,stop):
    if direction=="symmetric" and side and np.sign(f.mom24)!=side: side=0
    if side:
     end=min(i+hold,len(idx)); pos.iloc[i:end,pos.columns.get_loc(a)]=side; events.append((i,end,a,side)); until[a]=end
- # Equal-notional portfolio across simultaneously active assets; gross exactly <=1.
  n=pos.abs().sum(axis=1); weights=pos.div(n.where(n>0,1.),axis=0)
  if (weights.abs().sum(axis=1)>1+1e-12).any(): raise RuntimeError("gross exposure invariant")
  mask=(idx>=start)&(idx<stop); panel={}; asset_ret={}; fund_contrib={}
  for a in ASSETS:
-  w=weights[a]; ret=prices[a].open.reindex(idx).pct_change(fill_method=None); turn=w.diff().abs().fillna(w.abs()); fund=-w.shift(1).fillna(0.)*funding_hourly(idx,funding[a]); pnl=w.shift(1).fillna(0.)*ret.fillna(0.)-turn*cost+fund; z=pnl.loc[mask]; panel[a]=z; asset_ret[a]=float((1+z).prod()-1); fund_contrib[a]=float(fund.loc[mask].sum())
- port=pd.DataFrame(panel).sum(axis=1); m=basic_metrics(port); arr=[]
+  w=weights[a]; ret=prices[a].open.reindex(idx).pct_change(fill_method=None); turn=w.diff().abs().fillna(w.abs()); fund=-w.shift(1).fillna(0.)*funding_hourly(idx,funding[a]); pnl=w.shift(1).fillna(0.)*ret.fillna(0.)-turn*cost+fund; z=pnl.loc[mask]; panel[a]=z; asset_ret[a]=float(z.sum()); fund_contrib[a]=float(fund.loc[mask].sum())
+ pnl_panel=pd.DataFrame(panel); port=pnl_panel.sum(axis=1); m=basic_metrics(port); arr=[]; trade_assets=[]
+ # Clean asset-attributed CLOSED-trade tails. Include the exit/rebalance row e so
+ # round-trip turnover cost is represented; exclude fold-boundary-censored trades.
  for j,e,a,side in events:
-  if start<=idx[j]<stop:
-   last=min(idx[e-1],stop-pd.Timedelta(hours=1)); arr.append(float(port.loc[idx[j]:last].sum()))
- arr=np.asarray(arr,float); m["trades"]=int(len(arr))
- for n,q in (("tail_p01",.01),("tail_p05",.05),("tail_p50",.5),("tail_p95",.95),("tail_p99",.99)): m[n]=float(np.quantile(arr,q)) if len(arr) else 0.
- m["worst_trade"]=float(arr.min()) if len(arr) else 0.; m["best_trade"]=float(arr.max()) if len(arr) else 0.; m["asset_returns"]=asset_ret; den=sum(abs(v) for v in asset_ret.values()); m["max_asset_concentration"]=float(max(abs(v) for v in asset_ret.values())/den) if den else 0.; m["funding_contribution"]=fund_contrib
+  if start<=idx[j]<stop and e<len(idx) and idx[e]<stop:
+   trade_pnl=float(pnl_panel[a].loc[idx[j]:idx[e]].sum()); arr.append(trade_pnl); trade_assets.append(a)
+ arr=np.asarray(arr,float); m["trades"]=int(len(arr)); m["tail_definition"]="closed_trade_asset_attributed_including_exit_turnover"
+ for name,q in (("tail_p01",.01),("tail_p05",.05),("tail_p50",.5),("tail_p95",.95),("tail_p99",.99)): m[name]=float(np.quantile(arr,q)) if len(arr) else 0.
+ m["worst_trade"]=float(arr.min()) if len(arr) else 0.; m["best_trade"]=float(arr.max()) if len(arr) else 0.; m["asset_pnl_contribution"]=asset_ret; den=sum(abs(v) for v in asset_ret.values()); m["max_asset_concentration"]=float(max(abs(v) for v in asset_ret.values())/den) if den else 0.; m["funding_contribution"]=fund_contrib
  btc=prices["BTCUSDT"].close.reindex(idx).pct_change(168,fill_method=None).shift(1).loc[port.index]; regs={"bull":btc>0.03,"bear":btc<-0.03,"sideways":btc.abs()<=0.03}; m["regimes"]={k:basic_metrics(port[v.fillna(False)]) for k,v in regs.items()}; return m
 
 def main():
