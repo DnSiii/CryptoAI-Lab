@@ -1,0 +1,47 @@
+name: V99 R106 Phase192 Native Impulse Coverage
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase192_native_impulse_coverage.py'
+      - '.github/workflows/v99-r106-phase192-native-impulse-coverage.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Guard V16/V99 Frozen
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only HEAD^ HEAD)"
+          echo "$changed"
+          if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then echo 'Frozen artifact touched'; exit 1; fi
+      - name: Phase192 invariant self-test
+        run: python research/tools/v99_phase192_native_impulse_coverage.py --self-test
+      - name: Acquire preregistered TRAIN-only native-event snapshot
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase192_native_impulse_coverage.py --snapshot /tmp/phase192-source.json | tee /tmp/live.json
+          test -s /tmp/phase192-source.json
+          sha256sum /tmp/phase192-source.json
+      - name: Deterministic zero-network replay twice
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase192_native_impulse_coverage.py --replay /tmp/phase192-source.json > /tmp/a.json
+          python research/tools/v99_phase192_native_impulse_coverage.py --replay /tmp/phase192-source.json > /tmp/b.json
+          cmp /tmp/live.json /tmp/a.json
+          cmp /tmp/a.json /tmp/b.json
+          cat /tmp/a.json
+      - name: Publish immutable DATA_ONLY evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase192-native-impulse-${{ github.sha }}
+          path: |
+            /tmp/phase192-source.json
+            /tmp/a.json
+          retention-days: 30
