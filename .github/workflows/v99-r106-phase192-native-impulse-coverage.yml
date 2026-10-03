@@ -28,29 +28,31 @@ jobs:
       - name: Restore latest partial TRAIN-only snapshot
         uses: actions/cache/restore@v4
         with:
-          path: /tmp/phase192-source.json
-          key: phase192-source-v1-${{ github.run_id }}
+          path: .phase192-cache/phase192-source.json
+          key: phase192-source-v2-${{ github.run_id }}
           restore-keys: |
-            phase192-source-v1-
+            phase192-source-v2-
       - name: Acquire preregistered TRAIN-only native-event snapshot
         id: acquire
+        continue-on-error: true
         run: |
           set -euo pipefail
-          python research/tools/v99_phase192_native_impulse_coverage.py --snapshot /tmp/phase192-source.json | tee /tmp/live.json
-          test -s /tmp/phase192-source.json
-          sha256sum /tmp/phase192-source.json
+          mkdir -p .phase192-cache
+          python research/tools/v99_phase192_native_impulse_coverage.py --snapshot .phase192-cache/phase192-source.json | tee /tmp/live.json
+          test -s .phase192-cache/phase192-source.json
+          sha256sum .phase192-cache/phase192-source.json
       - name: Persist partial snapshot across transient transport failures
-        if: always() && hashFiles('/tmp/phase192-source.json') != ''
+        if: always() && hashFiles('.phase192-cache/phase192-source.json') != ''
         uses: actions/cache/save@v4
         with:
-          path: /tmp/phase192-source.json
-          key: phase192-source-v1-${{ github.run_id }}
+          path: .phase192-cache/phase192-source.json
+          key: phase192-source-v2-${{ github.run_id }}
       - name: Deterministic zero-network replay twice
         if: steps.acquire.outcome == 'success'
         run: |
           set -euo pipefail
-          python research/tools/v99_phase192_native_impulse_coverage.py --replay /tmp/phase192-source.json > /tmp/a.json
-          python research/tools/v99_phase192_native_impulse_coverage.py --replay /tmp/phase192-source.json > /tmp/b.json
+          python research/tools/v99_phase192_native_impulse_coverage.py --replay .phase192-cache/phase192-source.json > /tmp/a.json
+          python research/tools/v99_phase192_native_impulse_coverage.py --replay .phase192-cache/phase192-source.json > /tmp/b.json
           cmp /tmp/live.json /tmp/a.json
           cmp /tmp/a.json /tmp/b.json
           cat /tmp/a.json
@@ -60,6 +62,11 @@ jobs:
         with:
           name: phase192-native-impulse-${{ github.sha }}
           path: |
-            /tmp/phase192-source.json
+            .phase192-cache/phase192-source.json
             /tmp/a.json
           retention-days: 30
+      - name: Preserve failure semantics after checkpoint
+        if: steps.acquire.outcome != 'success'
+        run: |
+          echo 'TRAIN-only acquisition incomplete; partial snapshot was checkpointed when available.'
+          exit 1
