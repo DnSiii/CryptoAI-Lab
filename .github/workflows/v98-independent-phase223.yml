@@ -1,0 +1,76 @@
+name: V98 Independent Phase223
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['research/v98_independent/phase223_eval.py','research/v98_independent/phase223_prereg.md','research/v98_independent/phase223_pre_execution_code_audit_v2.md','.github/workflows/v98-independent-phase223.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase223:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and frozen-spec invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+          s=Path('research/v98_independent/phase223_eval.py').read_text()
+          assert 'SPECS=[(w,k,h) for w in (168,336) for k in (2.5,3.5) for h in (2,6)]' in s
+          assert 'r1=r.shift(1)' in s and 'sig=r.shift(1).rolling' in s
+          assert 'COSTS={"base":.0007,"severe":.0014,"supersevere":.0028}' in s
+          assert 'gross exposure invariant' in s and 'closed_trade_asset_attributed_including_exit_turnover' in s
+          print('Phase223 firewall/prereg/causality invariants OK')
+          PY
+      - name: Deterministic run 1
+        run: |
+          python research/v98_independent/phase223_eval.py --out /tmp/phase223_run1.json
+          sha256sum /tmp/phase223_run1.json | tee /tmp/h1
+      - name: Deterministic run 2
+        run: |
+          python research/v98_independent/phase223_eval.py --out /tmp/phase223_run2.json
+          sha256sum /tmp/phase223_run2.json | tee /tmp/h2
+          diff -u /tmp/h1 /tmp/h2
+          diff -u /tmp/phase223_run1.json /tmp/phase223_run2.json
+          cp /tmp/phase223_run2.json research/v98_independent/phase223_results.json
+      - name: Mechanical gate, stress, tails and regime invariants
+        run: |
+          python - <<'PY'
+          import json, hashlib
+          p=json.load(open('research/v98_independent/phase223_results.json')); assert p['phase']==223 and p['cutoff']=='<2026-01-01' and len(p['specs'])==8
+          q=dict(p); got=q.pop('deterministic_payload_sha256'); raw=json.dumps(q,sort_keys=True,separators=(',',':')); assert hashlib.sha256(raw.encode()).hexdigest()==got
+          passing=[]
+          for k,v in p['specs'].items():
+              assert set(v)=={'2023','2024','2025'}
+              for y in v:
+                  assert set(v[y])=={'base','severe','supersevere'}
+                  assert v[y]['supersevere']['return'] <= v[y]['severe']['return'] + 1e-12 <= v[y]['base']['return'] + 1e-12
+                  for stress in ('base','severe','supersevere'):
+                      m=v[y][stress]
+                      assert all(x in m for x in ('return','max_drawdown','profit_factor','payoff','win_rate','positive_days','trades','tail_p01','tail_p05','tail_p50','tail_p95','tail_p99','worst_trade','best_trade','max_asset_concentration','funding_contribution','regimes'))
+                      assert m['tail_p01']<=m['tail_p05']<=m['tail_p50']<=m['tail_p95']<=m['tail_p99']
+                      assert set(m['regimes'])=={'bull','bear','sideways'}
+                      assert 0<=m['max_asset_concentration']<=1+1e-12
+              if all(v[y]['base']['return']>0 and v[y]['base']['profit_factor']>1 for y in ('2023','2024','2025')): passing.append(k)
+          print('training-fold coherent specs:',passing)
+          PY
+      - name: Commit V98-only namespaced result
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add research/v98_independent/phase223_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase223 harvest idiosyncratic vol-shock mean reversion'
+          git pull --rebase origin research/v98-independent-zero
+          git push
