@@ -1,0 +1,77 @@
+name: V98 Independent Phase222
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['research/v98_independent/phase222_eval.py','research/v98_independent/phase222_validate.py','research/v98_independent/phase222_prereg.md','.github/workflows/v98-independent-phase222.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase222:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and frozen-contract invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+          s=Path('research/v98_independent/phase222_eval.py').read_text()
+          assert 'SPECS=[(c,h,d) for c in (.55,.70) for h in (4,8) for d in ("continuation","symmetric")]' in s
+          assert 'x.high.shift(1)' in s and 'x.low.shift(1)' in s and 'x.close.shift(1)' in s
+          assert 'COSTS={"base":.0007,"severe":.0014,"supersevere":.0028}' in s
+          assert 'gross exposure invariant' in s and 'closed_trade_asset_attributed_including_exit_turnover' in s
+          print('Phase222 firewall/frozen contract OK')
+          PY
+      - name: Deterministic run 1
+        run: |
+          python research/v98_independent/phase222_eval.py
+          sha256sum research/v98_independent/phase222_results.json | tee /tmp/h1
+      - name: Independent validation run
+        run: |
+          python research/v98_independent/phase222_validate.py
+      - name: Deterministic run 2
+        run: |
+          python research/v98_independent/phase222_eval.py
+          sha256sum research/v98_independent/phase222_results.json | tee /tmp/h2
+          diff -u /tmp/h1 /tmp/h2
+      - name: Mechanical gate and stress/tail invariants
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase222_results.json')); assert len(p['specs'])==8
+          passing=[]
+          for k,v in p['specs'].items():
+              assert set(v)=={'2023','2024','2025'}
+              for y in v:
+                  assert set(v[y])=={'base','severe','supersevere'}
+                  assert v[y]['supersevere']['return'] <= v[y]['severe']['return'] + 1e-12 <= v[y]['base']['return'] + 1e-12
+                  for stress in ('base','severe','supersevere'):
+                      m=v[y][stress]
+                      assert m['tail_definition']=='closed_trade_asset_attributed_including_exit_turnover'
+                      assert m['tail_p01']<=m['tail_p05']<=m['tail_p50']<=m['tail_p95']<=m['tail_p99']
+                      assert 0<=m['max_asset_concentration']<=1+1e-12
+                      assert all(x in m for x in ('return','max_drawdown','profit_factor','payoff','win_rate','positive_days','trades','worst_trade','best_trade','funding_contribution','regimes'))
+              if all(v[y]['base']['return']>0 and v[y]['base']['profit_factor']>1 for y in ('2023','2024','2025')): passing.append(k)
+          print('training-fold coherent specs:',passing)
+          PY
+      - name: Commit V98-only evidence
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add research/v98_independent/phase222_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase222 harvest decision-grade evidence'
+          git pull --rebase origin research/v98-independent-zero
+          git push origin HEAD:research/v98-independent-zero
