@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/tools/v99_phase191_blockscout_frozen_windows.py'
       - 'research/tools/v99_phase191_feature_only_audit.py'
+      - 'research/tools/v99_phase191_snapshot_coverage_audit.py'
       - '.github/workflows/v99-r106-phase191-blockscout-frozen-windows.yml'
   workflow_dispatch:
 concurrency:
@@ -26,6 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           python research/tools/v99_phase191_feature_only_audit.py --self-test
+          python research/tools/v99_phase191_snapshot_coverage_audit.py --self-test
       - name: Restore prior DATA_ONLY source checkpoint
         uses: actions/cache/restore@v4
         with:
@@ -48,12 +50,18 @@ jobs:
           cmp /tmp/a.json /tmp/b.json
           cat /tmp/a.json
           sha256sum /tmp/a.json
+      - name: Audit native-event coverage before any economic trial
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase191_snapshot_coverage_audit.py --snapshot /tmp/source.json | tee /tmp/coverage.json
       - name: Publish immutable DATA_ONLY snapshot bridge
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: phase191-data-only-source-${{ github.sha }}
-          path: /tmp/source.json
+          path: |
+            /tmp/source.json
+            /tmp/coverage.json
           if-no-files-found: error
           retention-days: 30
       - name: Check checkpoint presence
