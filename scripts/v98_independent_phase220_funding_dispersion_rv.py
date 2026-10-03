@@ -34,10 +34,12 @@ def hourly_funding(index,f):
  s=pd.Series(f.rate.to_numpy(),index=f.index.ceil("1h")).groupby(level=0).sum(); return s.reindex(index).fillna(0.)
 
 def funding_score(index,f,N):
- # Every funding event becomes usable only one full hour later: fundingTime <= t-1h.
- r=f.rate.astype(float); mean=r.rolling(N,min_periods=N).mean(); med=r.rolling(N,min_periods=N).median(); mad=(r-med).abs().rolling(N,min_periods=N).median(); score=mean/mad.clip(lower=EPS)
+ # Exact preregistered rolling MAD: median(|x - median(x)|) over the SAME N-event window.
+ r=f.rate.astype(float); mean=r.rolling(N,min_periods=N).mean()
+ mad=r.rolling(N,min_periods=N).apply(lambda x: float(np.median(np.abs(x-np.median(x)))),raw=True)
+ score=mean/mad.clip(lower=EPS)
+ # Every completed funding event becomes usable only one full hour later: fundingTime <= t-1h.
  known=pd.Series(score.to_numpy(),index=score.index.ceil("1h")+pd.Timedelta(hours=1)).groupby(level=0).last().reindex(index).ffill()
- # History is valid only after N observed events; no backfill before first causal score.
  return known
 
 def run(prices,funding,N,S,hold,cost,start,stop):
@@ -63,7 +65,7 @@ def run(prices,funding,N,S,hold,cost,start,stop):
  m["worst_trade"]=float(arr.min()) if len(arr) else 0.; m["best_trade"]=float(arr.max()) if len(arr) else 0.; btc=prices["BTCUSDT"].close.reindex(idx).pct_change(168,fill_method=None).shift(1).loc[port.index]; regs={"bull":btc>0.03,"bear":btc<-0.03,"sideways":btc.abs()<=0.03}; m["regimes"]={k:metrics(port[v.fillna(False)]) for k,v in regs.items()}; return m
 
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--data-root",default="data/canonical"); ap.add_argument("--funding-root",default="research/v98_independent/data/phase206_funding"); ap.add_argument("--out",default="reports/v98_independent_phase220_results.json"); a=ap.parse_args(); prices=load_prices(Path(a.data_root)); funding=load_funding(Path(a.funding_root)); out={"phase":220,"family":"cross_sectional_funding_dispersion_relative_value","cutoff":"<2026-01-01","specs":{}}; assert len(SPECS)==8
+ ap=argparse.ArgumentParser(); ap.add_argument("--data-root",default="data/canonical"); ap.add_argument("--funding-root",default="research/v98_independent/data/phase206_funding"); ap.add_argument("--out",default="reports/v98_independent_phase220_results.json"); a=ap.parse_args(); prices=load_prices(Path(a.data_root)); funding=load_funding(Path(a.funding_root)); out={"phase":220,"family":"cross_sectional_funding_dispersion_relative_value","cutoff":"<2026-01-01","mad_definition":"exact_same_window_median_absolute_deviation","specs":{}}; assert len(SPECS)==8
  for N,S,h in SPECS:
   key=f"funddisp_N{N}_S{int(S*10):02d}_hold{h}"; out["specs"][key]={}
   for fold,s,t in FOLDS:
