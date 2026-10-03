@@ -37,15 +37,15 @@ jobs:
       - name: Deterministic run 1
         run: |
           python research/v98_independent/phase222_eval.py
-          sha256sum research/v98_independent/phase222_results.json | tee /tmp/h1
-      - name: Independent validation run
-        run: |
-          python research/v98_independent/phase222_validate.py
-      - name: Deterministic run 2
+          cp research/v98_independent/phase222_results.json /tmp/phase222_run1.json
+          sha256sum /tmp/phase222_run1.json | tee /tmp/h1
+          python research/v98_independent/phase222_validate.py /tmp/phase222_run1.json
+      - name: Deterministic run 2 and byte comparison
         run: |
           python research/v98_independent/phase222_eval.py
           sha256sum research/v98_independent/phase222_results.json | tee /tmp/h2
           diff -u /tmp/h1 /tmp/h2
+          python research/v98_independent/phase222_validate.py research/v98_independent/phase222_results.json --compare /tmp/phase222_run1.json
       - name: Mechanical gate and stress/tail invariants
         run: |
           python - <<'PY'
