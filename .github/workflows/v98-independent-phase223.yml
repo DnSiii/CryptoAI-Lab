@@ -36,11 +36,11 @@ jobs:
       - name: Deterministic run 1
         run: |
           python research/v98_independent/phase223_eval.py --out /tmp/phase223_run1.json
-          sha256sum /tmp/phase223_run1.json | tee /tmp/h1
+          sha256sum /tmp/phase223_run1.json | awk '{print $1}' | tee /tmp/h1
       - name: Deterministic run 2
         run: |
           python research/v98_independent/phase223_eval.py --out /tmp/phase223_run2.json
-          sha256sum /tmp/phase223_run2.json | tee /tmp/h2
+          sha256sum /tmp/phase223_run2.json | awk '{print $1}' | tee /tmp/h2
           diff -u /tmp/h1 /tmp/h2
           diff -u /tmp/phase223_run1.json /tmp/phase223_run2.json
           cp /tmp/phase223_run2.json research/v98_independent/phase223_results.json
