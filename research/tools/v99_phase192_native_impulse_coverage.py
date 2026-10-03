@@ -7,8 +7,7 @@ issuer-native event topics, so transfer/approval traffic cannot dominate transpo
 No price, PnL, regime, benchmark, cost, direction, threshold, or holdout input exists.
 """
 from __future__ import annotations
-import argparse, hashlib, json, re, time, urllib.parse, urllib.request
-from collections import Counter
+import argparse, hashlib, json, re, time, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
 
 BASE="https://eth.blockscout.com/api"
@@ -31,13 +30,26 @@ def get(url):
     global LAST
     if url in SNAP:return SNAP[url]
     if MODE=="replay":raise RuntimeError("snapshot_miss")
-    wait=5-(time.monotonic()-LAST)
-    if wait>0:time.sleep(wait)
-    LAST=time.monotonic()
-    req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase192/1.0"})
-    with urllib.request.urlopen(req,timeout=45) as r: obj=json.load(r)
-    if not isinstance(obj,dict) or not isinstance(obj.get("result"),list):raise RuntimeError("source_not_log_list")
-    SNAP[url]=obj;_save();return obj
+    # Blockscout is a public transport dependency. Retry only transport failures;
+    # scientific windows/specs remain immutable and retries never inspect outcomes.
+    for attempt in range(9):
+        wait=6-(time.monotonic()-LAST)
+        if wait>0:time.sleep(wait)
+        LAST=time.monotonic()
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase192/1.1"})
+        try:
+            with urllib.request.urlopen(req,timeout=45) as r: obj=json.load(r)
+            if not isinstance(obj,dict) or not isinstance(obj.get("result"),list):raise RuntimeError("source_not_log_list")
+            SNAP[url]=obj;_save();return obj
+        except urllib.error.HTTPError as e:
+            if e.code not in (429,500,502,503,504) or attempt==8:raise
+            retry=e.headers.get("Retry-After") if e.headers else None
+            delay=int(retry) if retry and retry.isdigit() else min(300,15*(2**attempt))
+            time.sleep(delay)
+        except (urllib.error.URLError, TimeoutError):
+            if attempt==8:raise
+            time.sleep(min(180,10*(2**attempt)))
+    raise RuntimeError("transport_retry_exhausted")
 
 def rows(addr,topic,lo,hi):
     out=[]
@@ -46,6 +58,8 @@ def rows(addr,topic,lo,hi):
         b=get(BASE+"?"+q)["result"];out.extend(b)
         if len(b)<1000:return out
     if lo>=hi:raise RuntimeError("single_block_pagination_cap")
+    # A capped parent range is only evidence that the range must be bisected.
+    # Do not append its partial pages to child results (would double count).
     mid=(lo+hi)//2
     return rows(addr,topic,lo,mid)+rows(addr,topic,mid+1,hi)
 
