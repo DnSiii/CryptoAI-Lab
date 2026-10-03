@@ -29,8 +29,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .phase192-cache/phase192-source.json
-          key: phase192-source-v2-${{ github.run_id }}
+          key: phase192-source-v3-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            phase192-source-v3-
             phase192-source-v2-
       - name: Acquire preregistered TRAIN-only native-event snapshot
         id: acquire
@@ -46,7 +47,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .phase192-cache/phase192-source.json
-          key: phase192-source-v2-${{ github.run_id }}
+          key: phase192-source-v3-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Deterministic zero-network replay twice
         if: steps.acquire.outcome == 'success'
         run: |
