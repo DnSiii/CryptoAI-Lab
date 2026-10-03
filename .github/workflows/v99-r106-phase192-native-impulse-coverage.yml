@@ -25,13 +25,28 @@ jobs:
           if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then echo 'Frozen artifact touched'; exit 1; fi
       - name: Phase192 invariant self-test
         run: python research/tools/v99_phase192_native_impulse_coverage.py --self-test
+      - name: Restore latest partial TRAIN-only snapshot
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/phase192-source.json
+          key: phase192-source-v1-${{ github.run_id }}
+          restore-keys: |
+            phase192-source-v1-
       - name: Acquire preregistered TRAIN-only native-event snapshot
+        id: acquire
         run: |
           set -euo pipefail
           python research/tools/v99_phase192_native_impulse_coverage.py --snapshot /tmp/phase192-source.json | tee /tmp/live.json
           test -s /tmp/phase192-source.json
           sha256sum /tmp/phase192-source.json
+      - name: Persist partial snapshot across transient transport failures
+        if: always() && hashFiles('/tmp/phase192-source.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/phase192-source.json
+          key: phase192-source-v1-${{ github.run_id }}
       - name: Deterministic zero-network replay twice
+        if: steps.acquire.outcome == 'success'
         run: |
           set -euo pipefail
           python research/tools/v99_phase192_native_impulse_coverage.py --replay /tmp/phase192-source.json > /tmp/a.json
@@ -40,6 +55,7 @@ jobs:
           cmp /tmp/a.json /tmp/b.json
           cat /tmp/a.json
       - name: Publish immutable DATA_ONLY evidence
+        if: steps.acquire.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: phase192-native-impulse-${{ github.sha }}
