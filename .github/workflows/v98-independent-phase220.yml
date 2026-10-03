@@ -1,0 +1,77 @@
+name: V98 Independent Phase220
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['scripts/v98_independent_phase220_funding_dispersion_rv.py','research/v98_independent/phase220_preregistration.md','.github/workflows/v98-independent-phase220.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase220:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and namespace invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+              if a!='BTCUSDT':
+                  f=pd.read_csv(Path('research/v98_independent/data/phase206_funding')/f'{a}_funding.csv'); ft=pd.to_datetime(f.fundingTime_utc,utc=True,errors='raise',format='mixed'); assert ft.is_monotonic_increasing and not ft.duplicated().any() and not (ft>=cut).any()
+          print('Phase220 firewall OK')
+          PY
+      - name: Static preregistration and causality invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('scripts/v98_independent_phase220_funding_dispersion_rv.py').read_text()
+          assert 'SPECS=[(N,S,h) for N in (21,63) for S in (1.0,1.5) for h in (4,8)]' in s
+          assert 'pct_change(fill_method=None)' in s and 'pd.Timedelta(hours=1)' in s and '.shift(1)' in s
+          assert 'rolling(N,min_periods=N).mean()' in s and 'median()' in s and 'mad.clip(lower=EPS)' in s
+          assert '=.5' in s and '=-.5' in s and 'gross exposure invariant' in s
+          print('Phase220 prereg/causality static invariants OK')
+          PY
+      - name: Deterministic run 1
+        run: |
+          python scripts/v98_independent_phase220_funding_dispersion_rv.py
+          sha256sum reports/v98_independent_phase220_results.json | tee /tmp/h1
+      - name: Deterministic run 2
+        run: |
+          python scripts/v98_independent_phase220_funding_dispersion_rv.py
+          sha256sum reports/v98_independent_phase220_results.json | tee /tmp/h2
+          diff -u /tmp/h1 /tmp/h2
+      - name: Mechanical gate and stress invariant
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase220_results.json')); assert len(p['specs'])==8
+          passing=[]
+          for k,v in p['specs'].items():
+              assert set(v)=={'2023','2024','2025'}
+              for y in v:
+                  assert set(v[y])=={'base','severe','supersevere'}
+                  assert v[y]['supersevere']['return'] <= v[y]['severe']['return'] + 1e-12 <= v[y]['base']['return'] + 1e-12
+                  for stress in ('base','severe','supersevere'):
+                      m=v[y][stress]; assert all(x in m for x in ('return','max_drawdown','profit_factor','payoff','win_rate','positive_days','trades','tail_p01','tail_p05','tail_p50','tail_p95','tail_p99','worst_trade','best_trade','max_asset_concentration','funding_contribution','regimes'))
+              if all(v[y]['base']['return']>0 and v[y]['base']['profit_factor']>1 for y in ('2023','2024','2025')): passing.append(k)
+          print('training-fold coherent specs:',passing)
+          PY
+      - name: Commit V98-only report
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase220_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase220 harvest cross-sectional funding dispersion'
+          git pull --rebase origin research/v98-independent-zero
+          git push
