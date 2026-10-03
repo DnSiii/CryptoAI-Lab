@@ -46,7 +46,7 @@ def get(url):
     while True:
         wait=MIN_REQUEST_GAP-(time.monotonic()-LAST_REQUEST)
         if wait>0:time.sleep(wait)
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.14"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase191/2.15"})
         LAST_REQUEST=time.monotonic()
         try:
             with urllib.request.urlopen(req,timeout=30) as r:obj=json.load(r)
@@ -88,14 +88,29 @@ def cached_canonical_block_hash(cache,bn):
         cache[bn]=canonical_block_hash(bn)
     return cache[bn]
 
+def batch_fingerprint(batch):
+    """Canonical response fingerprint used only to detect a non-advancing legacy paginator."""
+    return hashlib.sha256(json.dumps(batch,sort_keys=True,separators=(",",":")).encode()).digest()
+
 def fetch_rows(addr,lo,hi):
-    """Fetch an exact frozen interval, deterministically bisecting only if it is too dense."""
+    """Fetch an exact frozen interval, deterministically bisecting dense or non-advancing pages."""
     global PAGINATION_SPLITS
-    rows=[]
+    rows=[];seen_full_pages=set()
     for page in range(1,101):
         qs=urllib.parse.urlencode({"module":"logs","action":"getLogs","address":addr,"fromBlock":lo,"toBlock":hi,"page":page,"offset":OFFSET})
         obj=get(BASE+"?"+qs);batch=obj.get("result") if isinstance(obj,dict) else None
         if not isinstance(batch,list):raise RuntimeError("source_not_log_list")
+        if len(batch)==OFFSET:
+            fp=batch_fingerprint(batch)
+            if fp in seen_full_pages:
+                # A correct paginator cannot return the identical full page twice for one
+                # immutable interval. Blockscout legacy has exhibited page-number stagnation;
+                # bisect immediately instead of burning the 100-page safety budget.
+                if lo>=hi:raise RuntimeError("single_block_pagination_stagnation")
+                PAGINATION_SPLITS+=1
+                mid=(lo+hi)//2
+                return fetch_rows(addr,lo,mid)+fetch_rows(addr,mid+1,hi)
+            seen_full_pages.add(fp)
         rows.extend(batch)
         if len(batch)<OFFSET:return rows
     if lo>=hi:raise RuntimeError("single_block_pagination_safety_cap")
