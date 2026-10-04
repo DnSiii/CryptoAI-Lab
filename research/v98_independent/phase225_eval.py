@@ -35,7 +35,11 @@ def run(px,fd,V,R,H,cost,start,stop):
   if t<start or t>=stop: continue
   elig=[a for a in ASSETS if i>=until[a] and np.isfinite(vr[a].iloc[i]) and vr[a].iloc[i]>=V and np.isfinite(resid[a].iloc[i]) and abs(resid[a].iloc[i])>=R]
   if not elig: continue
-  w=1/len(elig)
+  # Mechanical capacity-aware fix preregistered in phase225_exposure_invariant_audit.md.
+  # Existing cohorts keep their original weights; new entrants receive only free gross capacity.
+  gross=float(pos.iloc[i].abs().sum()); capacity=max(0.,1.-gross)
+  if capacity<=1e-12: continue
+  w=capacity/len(elig)
   for a in elig:
    end=min(i+H,len(idx)); pos.iloc[i:end,pos.columns.get_loc(a)]=-np.sign(resid[a].iloc[i])*w; events.append((i,end,a)); until[a]=end
  if (pos.abs().sum(axis=1)>1+1e-12).any(): raise RuntimeError("gross exposure invariant")
