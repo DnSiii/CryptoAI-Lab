@@ -4,6 +4,7 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - 'research/tools/v99_phase192_native_impulse_coverage.py'
+      - 'research/tools/v99_phase192_snapshot_integrity.py'
       - '.github/workflows/v99-r106-phase192-native-impulse-coverage.yml'
   workflow_dispatch:
 permissions:
@@ -23,8 +24,10 @@ jobs:
           changed="$(git diff --name-only HEAD^ HEAD)"
           echo "$changed"
           if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then echo 'Frozen artifact touched'; exit 1; fi
-      - name: Phase192 invariant self-test
-        run: python research/tools/v99_phase192_native_impulse_coverage.py --self-test
+      - name: Phase192 invariant self-tests
+        run: |
+          python research/tools/v99_phase192_native_impulse_coverage.py --self-test
+          python research/tools/v99_phase192_snapshot_integrity.py --self-test
       - name: Restore latest partial TRAIN-only snapshot
         uses: actions/cache/restore@v4
         with:
@@ -33,6 +36,9 @@ jobs:
           restore-keys: |
             phase192-source-v3-
             phase192-source-v2-
+      - name: Audit restored checkpoint before network continuation
+        if: hashFiles('.phase192-cache/phase192-source.json') != ''
+        run: python research/tools/v99_phase192_snapshot_integrity.py .phase192-cache/phase192-source.json | tee /tmp/restored-integrity.json
       - name: Acquire preregistered TRAIN-only native-event snapshot
         id: acquire
         continue-on-error: true
@@ -42,6 +48,9 @@ jobs:
           python research/tools/v99_phase192_native_impulse_coverage.py --snapshot .phase192-cache/phase192-source.json | tee /tmp/live.json
           test -s .phase192-cache/phase192-source.json
           sha256sum .phase192-cache/phase192-source.json
+      - name: Audit partial checkpoint after acquisition
+        if: always() && hashFiles('.phase192-cache/phase192-source.json') != ''
+        run: python research/tools/v99_phase192_snapshot_integrity.py .phase192-cache/phase192-source.json | tee /tmp/post-acquire-integrity.json
       - name: Persist partial snapshot across transient transport failures
         if: always() && hashFiles('.phase192-cache/phase192-source.json') != ''
         uses: actions/cache/save@v4
@@ -65,9 +74,11 @@ jobs:
           path: |
             .phase192-cache/phase192-source.json
             /tmp/a.json
+            /tmp/restored-integrity.json
+            /tmp/post-acquire-integrity.json
           retention-days: 30
       - name: Preserve failure semantics after checkpoint
         if: steps.acquire.outcome != 'success'
         run: |
-          echo 'TRAIN-only acquisition incomplete; partial snapshot was checkpointed when available.'
+          echo 'TRAIN-only acquisition incomplete; partial snapshot was integrity-audited and checkpointed when available.'
           exit 1
