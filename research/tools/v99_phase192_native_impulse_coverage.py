@@ -22,6 +22,7 @@ SPECS=(("USDC",USDC,"mint",USDC_MINT),("USDC",USDC,"burn",USDC_BURN),("USDT",USD
 HEX64=re.compile(r"^0x[0-9a-fA-F]{64}$")
 SNAP={}; MODE="live"; SNAPSHOT=None; LAST=0.0
 MIN_REQUEST_INTERVAL=20.0
+PAGE_SIZE=1000
 
 def _bytes(): return json.dumps(SNAP,sort_keys=True,separators=(",",":")).encode()
 def _save():
@@ -31,13 +32,11 @@ def get(url):
     global LAST
     if url in SNAP:return SNAP[url]
     if MODE=="replay":raise RuntimeError("snapshot_miss")
-    # Conservative pacing is intentional: transport behavior must not alter the
-    # preregistered scientific windows/specs, and successful responses are checkpointed.
     for attempt in range(9):
         wait=MIN_REQUEST_INTERVAL-(time.monotonic()-LAST)
         if wait>0:time.sleep(wait)
         LAST=time.monotonic()
-        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase192/1.2"})
+        req=urllib.request.Request(url,headers={"User-Agent":"CryptoAI-Lab-Phase192/1.3"})
         try:
             with urllib.request.urlopen(req,timeout=45) as r: obj=json.load(r)
             if not isinstance(obj,dict) or not isinstance(obj.get("result"),list):raise RuntimeError("source_not_log_list")
@@ -52,14 +51,18 @@ def get(url):
             time.sleep(min(180,15*(2**attempt)))
     raise RuntimeError("transport_retry_exhausted")
 
+def _url(addr,topic,lo,hi):
+    # Blockscout legacy logs pagination has produced repeated full pages in this source.
+    # Use page 1 only; a full page is treated as censored and split by block range.
+    q=urllib.parse.urlencode({"module":"logs","action":"getLogs","address":addr,"topic0":topic,"fromBlock":lo,"toBlock":hi,"page":1,"offset":PAGE_SIZE})
+    return BASE+"?"+q
+
 def rows(addr,topic,lo,hi):
-    out=[]
-    for page in range(1,101):
-        q=urllib.parse.urlencode({"module":"logs","action":"getLogs","address":addr,"topic0":topic,"fromBlock":lo,"toBlock":hi,"page":page,"offset":1000})
-        b=get(BASE+"?"+q)["result"];out.extend(b)
-        if len(b)<1000:return out
-    if lo>=hi:raise RuntimeError("single_block_pagination_cap")
+    b=get(_url(addr,topic,lo,hi))["result"]
+    if len(b)<PAGE_SIZE:return b
+    if lo>=hi:raise RuntimeError("single_block_page_cap")
     mid=(lo+hi)//2
+    # IMPORTANT: do not include the censored parent page in output. Children replace it.
     return rows(addr,topic,lo,mid)+rows(addr,topic,mid+1,hi)
 
 def audit():
@@ -86,7 +89,9 @@ def audit():
 def self_test():
     assert len(WINDOWS)==3 and all(hi-lo==100000 for lo,hi in WINDOWS)
     assert len({x[3] for x in SPECS})==4 and all(HEX64.fullmatch(x[3]) for x in SPECS)
-    assert MIN_REQUEST_INTERVAL>=20.0
+    assert MIN_REQUEST_INTERVAL>=20.0 and PAGE_SIZE==1000
+    u=urllib.parse.urlparse(_url(USDC,USDC_MINT,*WINDOWS[0])); q=urllib.parse.parse_qs(u.query)
+    assert q["page"]==["1"] and q["offset"]==[str(PAGE_SIZE)]
 
 def main():
     global MODE,SNAP,SNAPSHOT
