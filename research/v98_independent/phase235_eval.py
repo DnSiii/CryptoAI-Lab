@@ -5,7 +5,9 @@ from pathlib import Path
 import numpy as np,pandas as pd
 ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","SOLUSDT")
 FOLDS=(("2023","2023-01-01","2024-01-01"),("2024","2024-01-01","2025-01-01"),("2025","2025-01-01","2026-01-01"))
-SPECS=((168,72,1,4),(168,72,1,8),(168,168,1,4),(168,168,1,8),(336,72,1,4),(336,72,1,8),(336,168,2,4),(336,168,2,8))
+# Frozen preregistration is exactly beta lookback x skew lookback x horizon = 8 specs.
+# Deterministic tail fraction is constant across every spec: one asset per side in a 5-asset universe.
+SPECS=tuple((lb,sh,1,H) for lb in (168,336) for sh in (72,168) for H in (4,8))
 COSTS={"base":.0007,"severe":.0014,"supersevere":.0028}; CUT=pd.Timestamp("2026-01-01",tz="UTC")
 def load_prices(root):
  out={}
@@ -24,12 +26,13 @@ def fund_cash(idx,s):
  d=s.index.ceil("1h"); d=pd.DatetimeIndex([z if z>t else z+pd.Timedelta(hours=1) for t,z in zip(s.index,d)]); return pd.Series(s.to_numpy(),index=d).groupby(level=0).sum().reindex(idx).fillna(0.)
 def metrics(r):
  r=r.dropna(); eq=(1+r).cumprod(); dd=eq/eq.cummax()-1 if len(eq) else r; pos=r[r>0].sum(); neg=-r[r<0].sum(); days=r.resample("1D").sum() if len(r) else r
- return {"return":float(eq.iloc[-1]-1) if len(eq) else 0.,"max_drawdown":float(dd.min()) if len(dd) else 0.,"profit_factor":float(pos/neg) if neg>0 else (999. if pos>0 else 0.),"payoff":float(r[r>0].mean()/(-r[r<0].mean())) if (r>0).any() and (r<0).any() else 0.,"win_rate":float((r>0).mean()) if len(r) else 0.,"positive_days":float((days>0).mean()) if len(days) else 0.}
+ return {"return":float(eq.iloc[-1]-1) if len(eq) else 0.,"max_drawdown":float(dd.min()) if len(dd) else 0.,"profit_factor":float(pos/neg) if neg>0 else (999. if pos>0 else 0.),"payoff":float(r[r>0].mean()/(-r[r<0].mean())) if (r>0).any() and (r<0).any() else 0.,"win_rate":float((r>0).mean()) if len(r) else 0.,"positive_days":float((days>0).mean()) if len(days) else 0.,"worst_day":float(days.min()) if len(days) else 0.,"best_day":float(days.max()) if len(days) else 0.}
 def run(px,fd,lb,sh,k,H,cost,start,stop):
  idx=px["BTCUSDT"].index; op=pd.DataFrame({a:px[a].open.reindex(idx) for a in ASSETS}); rr=op.pct_change(fill_method=None); btc=rr["BTCUSDT"]
  var=btc.rolling(lb,min_periods=lb).var(); beta=pd.DataFrame(index=idx,columns=ASSETS,dtype=float)
  for a in ASSETS: beta[a]=rr[a].rolling(lb,min_periods=lb).cov(btc)/var
- resid=rr.sub(beta.mul(btc,axis=0)); signal=resid.rolling(sh,min_periods=sh).skew()
+ # Residual at u uses beta estimated through u-1, never the same observation being residualized.
+ beta_lag=beta.shift(1); resid=rr.sub(beta_lag.mul(btc,axis=0)); signal=resid.rolling(sh,min_periods=sh).skew()
  pos=pd.DataFrame(0.,index=idx,columns=ASSETS); events=[]
  for i,t in enumerate(idx):
   if i<1 or t<start or t>=stop: continue
@@ -40,18 +43,17 @@ def run(px,fd,lb,sh,k,H,cost,start,stop):
   for a in shorts: pos.iloc[i:end,pos.columns.get_loc(a)]-=w; events.append((i,end,a,-1))
  gross=pos.abs().sum(axis=1); pos=pos.div(gross.where(gross>1,1),axis=0)
  if (pos.abs().sum(axis=1)>1+1e-12).any(): raise RuntimeError("gross exposure invariant")
- mask=(idx>=start)&(idx<stop); panel={}; contrib={}; fcon={}
+ mask=(idx>=start)&(idx<stop); panel={}; contrib={}; fcon={}; total_turn=0.
  for a in ASSETS:
-  w=pos[a]; turn=w.diff().abs().fillna(w.abs()); fund=-w.shift(1).fillna(0.)*fund_cash(idx,fd[a]); pnl=w.shift(1).fillna(0.)*rr[a].fillna(0.)-turn*cost+fund; z=pnl.loc[mask]; panel[a]=z; contrib[a]=float(z.sum()); fcon[a]=float(fund.loc[mask].sum())
- pp=pd.DataFrame(panel); port=pp.sum(axis=1); m=metrics(port); q=[]
- for j,e,a,d in events:
-  if start<=idx[j]<stop and e<len(idx) and idx[e]<stop: q.append(float(d*pp[a].loc[idx[j]:idx[e]].sum()))
- q=np.asarray(q); m["trades"]=len(q)
- for n,p in (("tail_p01",.01),("tail_p05",.05),("tail_p50",.5),("tail_p95",.95),("tail_p99",.99)): m[n]=float(np.quantile(q,p)) if len(q) else 0.
- m["worst_trade"]=float(q.min()) if len(q) else 0.; m["best_trade"]=float(q.max()) if len(q) else 0.; m["asset_pnl_contribution"]=contrib; den=sum(abs(x) for x in contrib.values()); m["max_asset_concentration"]=max(map(abs,contrib.values()))/den if den else 0.; m["funding_contribution"]=fcon
+  w=pos[a]; turn=w.diff().abs().fillna(w.abs()); fund=-w.shift(1).fillna(0.)*fund_cash(idx,fd[a]); pnl=w.shift(1).fillna(0.)*rr[a].fillna(0.)-turn*cost+fund; z=pnl.loc[mask]; panel[a]=z; contrib[a]=float(z.sum()); fcon[a]=float(fund.loc[mask].sum()); total_turn+=float(turn.loc[mask].sum())
+ pp=pd.DataFrame(panel); port=pp.sum(axis=1); m=metrics(port); m["turnover_l1"]=total_turn; m["signal_events"]=len([e for e in events if start<=idx[e[0]]<stop])
+ # Tails are portfolio-hour tails; overlapping sleeve pseudo-trades are deliberately not reported as independent trades.
+ for n,p in (("tail_p01",.01),("tail_p05",.05),("tail_p50",.5),("tail_p95",.95),("tail_p99",.99)): m[n]=float(port.quantile(p)) if len(port) else 0.
+ m["asset_pnl_contribution"]=contrib; den=sum(abs(x) for x in contrib.values()); m["max_asset_concentration"]=max(map(abs,contrib.values()))/den if den else 0.; m["funding_contribution"]=fcon
  br=op["BTCUSDT"].pct_change(168,fill_method=None).shift(1).loc[port.index]; regs={"bull":br>0.03,"bear":br<-0.03,"sideways":br.abs()<=.03}; m["regimes"]={n:metrics(port[v.fillna(False)]) for n,v in regs.items()}; return m
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--data-root",default="data/canonical"); ap.add_argument("--funding-root",default="research/v98_independent/data/phase206_funding"); ap.add_argument("--out",default="research/v98_independent/phase235_results.json"); a=ap.parse_args(); px=load_prices(Path(a.data_root)); fd=load_funding(Path(a.funding_root)); out={"phase":235,"family":"lagged_idiosyncratic_skewness_relative_value","cutoff":"<2026-01-01","information_set":"decision open(t) uses residual-skew signal ending no later than open(t-1)","specs":{}}
+ ap=argparse.ArgumentParser(); ap.add_argument("--data-root",default="data/canonical"); ap.add_argument("--funding-root",default="research/v98_independent/data/phase206_funding"); ap.add_argument("--out",default="research/v98_independent/phase235_results.json"); a=ap.parse_args(); px=load_prices(Path(a.data_root)); fd=load_funding(Path(a.funding_root)); out={"phase":235,"family":"lagged_idiosyncratic_skewness_relative_value","cutoff":"<2026-01-01","information_set":"decision open(t) uses residual-skew signal through open(t-1); each residual at u uses beta estimated through u-1","specs":{}}
+ if len(SPECS)!=8 or len(set(SPECS))!=8 or any(k!=1 for _,_,k,_ in SPECS): raise RuntimeError("frozen grid invariant")
  for lb,sh,k,H in SPECS:
   key=f"idskew_beta{lb}_skew{sh}_k{k}_h{H}"; out["specs"][key]={}
   for fold,s,t in FOLDS:
