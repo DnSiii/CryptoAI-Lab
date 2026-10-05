@@ -7,6 +7,9 @@ on:
       - 'research/tools/v99_phase192_snapshot_integrity.py'
       - '.github/workflows/v99-r106-phase192-native-impulse-coverage.yml'
   workflow_dispatch:
+concurrency:
+  group: v99-r106-phase192-native-impulse-coverage
+  cancel-in-progress: true
 permissions:
   contents: read
 env:
