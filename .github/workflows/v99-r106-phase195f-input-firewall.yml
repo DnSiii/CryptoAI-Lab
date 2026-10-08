@@ -1,0 +1,37 @@
+name: V99 R106 Phase195-F DATA_ONLY Input Firewall
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195f_input_firewall.py'
+      - 'research/tests/test_phase195f_input_firewall.py'
+      - '.github/workflows/v99-r106-phase195f-input-firewall.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONHASHSEED: '0'
+jobs:
+  input-firewall:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard frozen versions
+        run: |
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then exit 1; fi
+      - name: Compile and adversarial synthetic tests
+        run: |
+          set -euo pipefail
+          python -m py_compile research/tools/v99_phase195f_input_firewall.py research/tests/test_phase195f_input_firewall.py
+          python research/tests/test_phase195f_input_firewall.py | tee /tmp/phase195f.json
+      - name: Publish DATA_ONLY test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase195f-input-firewall-${{ github.sha }}
+          path: /tmp/phase195f.json
+          retention-days: 30
+          if-no-files-found: warn
