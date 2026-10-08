@@ -18,6 +18,7 @@ START=pd.Timestamp('2023-01-01T00:00:00Z')
 CUT=pd.Timestamp('2026-01-01T00:00:00Z')
 TIME_NAMES=('open_time','timestamp','time','datetime','date')
 QUOTE_NAMES=('quote_volume','quote_asset_volume','quotevolume')
+BASE_NAMES=('volume','base_volume','base_asset_volume')
 
 
 def audit_price_panel(root:Path, start=START, cut=CUT, *, warmup_hours=336):
@@ -37,8 +38,11 @@ def audit_price_panel(root:Path, start=START, cut=CUT, *, warmup_hours=336):
         raw=path.read_bytes()
         d=pd.read_csv(path)
         names={str(c).lower():c for c in d.columns}
+        if len(names)!=len(d.columns):
+            raise ValueError(f'{asset}: ambiguous duplicate-case column names')
         time=next((names[k] for k in TIME_NAMES if k in names),None)
         quote=next((names[k] for k in QUOTE_NAMES if k in names),None)
+        base=next((names[k] for k in BASE_NAMES if k in names),None)
         if time is None or quote is None or any(k not in names for k in ('open','high','low','close')):
             raise ValueError(f'{asset}: missing canonical OHLC/quote volume fields')
         idx=pd.DatetimeIndex(pd.to_datetime(d[time],utc=True,errors='raise'))
@@ -60,12 +64,25 @@ def audit_price_panel(root:Path, start=START, cut=CUT, *, warmup_hours=336):
         tol=1e-10*np.maximum.reduce([o,h,l,c])
         if np.any(h+tol < np.maximum(o,c)) or np.any(l-tol > np.minimum(o,c)) or np.any(h+tol < l):
             raise ValueError(f'{asset}: invalid OHLC candle geometry')
+        # Decision-grade unit provenance: quote traded notional must agree
+        # with base traded quantity times a VWAP within [low, high].
+        # Fail closed when base volume is absent; cannot validate units.
+        if base is None:
+            raise ValueError(f'{asset}: base volume required for decision-grade quote-volume unit check')
+        base_vol=pd.to_numeric(d.loc[chosen,base],errors='raise').to_numpy(dtype=float)
+        if not np.isfinite(base_vol).all() or np.any(base_vol<0):
+            raise ValueError(f'{asset}: invalid base volume')
+        margin=1e-6*np.maximum(1.,np.abs(v))
+        if np.any(v < base_vol*l-margin) or np.any(v > base_vol*h+margin):
+            raise ValueError(f'{asset}: quote-volume/base-volume unit inconsistency')
         opens[asset]=o;closes[asset]=c;quotes[asset]=v
         manifest['assets'][asset]={
             'sha256_raw_csv':hashlib.sha256(raw).hexdigest(),
             'rows':int(len(a)),
             'first':observed[0].isoformat(),'last':observed[-1].isoformat(),
             'quote_volume_column':str(quote),
+            'base_volume_column':str(base),
+            'quote_base_consistency_checked':True,
             'zero_quote_volume_bars':int(np.sum(v==0)),
             'min_open':float(o.min()),'max_open':float(o.max()),
             'max_abs_open_close_gap':float(np.max(np.abs(c/o-1))),
@@ -73,6 +90,7 @@ def audit_price_panel(root:Path, start=START, cut=CUT, *, warmup_hours=336):
     op=pd.DataFrame(opens,index=expected)
     cl=pd.DataFrame(closes,index=expected)
     qv=pd.DataFrame(quotes,index=expected)
+    manifest['quote_base_unit_gate']='PASS_ALL_FIVE_ASSETS'
     manifest['panel_sha256']=hashlib.sha256(np.column_stack([
         op.to_numpy(dtype='<f8'),cl.to_numpy(dtype='<f8'),qv.to_numpy(dtype='<f8')]).tobytes()).hexdigest()
     return {'manifest':manifest,'opens':op,'closes':cl,'quote_volume':qv}
