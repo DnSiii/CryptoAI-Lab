@@ -61,14 +61,6 @@
     if(!section){section=document.createElement('section');section.id='v99research';section.className='view';const footer=$('.footer');footer?footer.parentElement.insertBefore(section,footer):$('.main')?.appendChild(section)}
     section.innerHTML=`
       <article class="v99-hero"><div><p class="eyebrow">V99 · RESEARCH LAB COMPLETO</p><h2>Cinco versões. Mesma estrutura. Mesmo mercado.</h2><p>R98, R106 F1, F3, F7/F9 e F12 com backtest completo e paper forward no mesmo boundary. Os controles abaixo afetam somente a visualização; nenhuma versão é recalibrada pelos dados do paper.</p></div><div class="v99-badge">PAPER ONLY · 0 ORDENS REAIS</div></article>
-      <div class="v99-note" id="v99-frontier-status" role="status" aria-label="Estado da pesquisa V99">
-        <strong>Fronteira científica · 08/10/2026 · Phase195-E/F · DATA_ONLY</strong><br>
-        Foram publicados e validados no CI os controles de continuidade temporal e de integridade dos dados (commits
-        <a href="https://github.com/DnSiii/CryptoAI-Lab/commit/8d7f244c4dc27f1685d8297a1831e0a8f5966610" target="_blank" rel="noopener noreferrer">8d7f244</a> e
-        <a href="https://github.com/DnSiii/CryptoAI-Lab/commit/45caa284122eda9eb478b21915395ec7617617d4" target="_blank" rel="noopener noreferrer">45caa28</a>).
-        <strong>Nenhum novo campeão validado.</strong> H194A permanece rejeitada antes de PnL; integridade da fonte histórica, consenso independente, latência t-1 e cobertura integral do TRAIN ainda não foram comprovados.
-        Este aviso descreve pesquisa de qualidade de dados, não resultado econômico, holdout ou paper forward.
-      </div>
       <div class="v99-tabs"><button class="v99-tab active" data-v99-tab="backtest">Backtest completo</button><button class="v99-tab" data-v99-tab="paper">Paper completo</button></div>
       <div id="v99-backtest" class="v99-pane active"></div>
       <div id="v99-paper" class="v99-pane"></div>`;
