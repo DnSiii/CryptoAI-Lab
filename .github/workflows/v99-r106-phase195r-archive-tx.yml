@@ -1,0 +1,16 @@
+name: V99 Phase195-R Integrity Audit
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ['research/tools/v99_phase195r_*.py', 'research/tests/test_phase195r_*.py']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install trie==3.1.0 python-snappy==0.7.3 rlp==4.1.0 eth-utils==5.3.1 pycryptodome==3.23.0
+      - run: python research/tests/test_phase195r_transaction_trie.py
+      - run: python research/tools/v99_phase195r_run.py
