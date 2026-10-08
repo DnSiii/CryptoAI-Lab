@@ -21,7 +21,7 @@ class PricePanelTests(unittest.TestCase):
         for j,a in enumerate(ASSETS):
             d=pd.DataFrame({'open_time':self.idx,'open':100+j,
                             'high':101+j,'low':99+j,'close':100.5+j,
-                            'quote_volume':100000+j},index=range(len(self.idx)))
+                            'quote_volume':100000+j,'volume':(100000+j)/(100+j)},index=range(len(self.idx)))
             if edit:d=edit(a,d)
             d.to_csv(self.root/f'{a}_1h.csv',index=False)
     def run_gate(self):
@@ -68,7 +68,7 @@ class PricePanelTests(unittest.TestCase):
         self.write(lambda a,d:d.drop(index=0) if a=='BTCUSDT' else d)
         with self.assertRaisesRegex(ValueError,'hourly price bar'):self.run_gate()
     def test_zero_quote_volume_allowed_but_counted(self):
-        self.write(lambda a,d:d.assign(quote_volume=0) if a=='SOLUSDT' else d)
+        self.write(lambda a,d:d.assign(quote_volume=0,volume=0) if a=='SOLUSDT' else d)
         self.assertEqual(self.run_gate()['manifest']['assets']['SOLUSDT']['zero_quote_volume_bars'],96)
 
 if __name__=='__main__':unittest.main(verbosity=2)
