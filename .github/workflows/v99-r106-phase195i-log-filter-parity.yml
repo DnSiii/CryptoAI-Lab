@@ -1,0 +1,50 @@
+name: V99 R106 Phase195-I Fixed TRAIN Log Filter Parity
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - '.github/workflows/v99-r106-phase195i-log-filter-parity.yml'
+      - 'research/tools/v99_phase195i_log_filter_semantics.py'
+      - 'research/tests/test_phase195i_log_filter_semantics.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixed-train-log-filter:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Frozen version guard
+        run: |
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then exit 1; fi
+      - name: Deterministic adversarial unit tests
+        run: |
+          python -m py_compile research/tools/v99_phase195i_log_filter_semantics.py research/tests/test_phase195i_log_filter_semantics.py
+          python -m unittest -v research/tests/test_phase195i_log_filter_semantics.py
+      - name: Live fixed TRAIN diagnostic — HOLD is expected
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase195i_log_filter_semantics.py | tee phase195i_log_transport.json
+          python - <<'PY'
+          import json
+          x=json.load(open('phase195i_log_transport.json'))
+          assert x['decision'].startswith('HOLD_')
+          assert x['economic_trials']==0 and x['holdout_accessed'] is False
+          assert x['promotion_authorized'] is False
+          assert x['receipt_root_proven'] is False
+          assert x['full_train_coverage_proven'] is False
+          assert x['historical_latency_proven'] is False
+          assert x['provider_independence_proven'] is False
+          if 'fixed_train_height' in x: assert x['fixed_train_height']==17000000
+          PY
+      - name: Preserve DATA_ONLY diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase195i-fixed-train-log-filter-parity
+          path: phase195i_log_transport.json
+          retention-days: 30
+          if-no-files-found: warn
