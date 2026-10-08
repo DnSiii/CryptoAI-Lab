@@ -1,0 +1,35 @@
+name: V99 Phase195-N Two Operator Historical Beacon (DATA_ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195n_*.py'
+      - 'research/tests/test_phase195n_*.py'
+      - '.github/workflows/v99-r106-phase195n-alternate-beacon.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  beacon:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned execution header dependencies
+        run: python -m pip install 'trie==3.1.0' 'rlp==4.1.0' 'eth-utils==5.3.1' 'pycryptodome==3.23.0'
+      - name: Adversarial synthetic provider controls
+        run: python research/tests/test_phase195n_beacon_probe.py
+      - name: Fixed TRAIN two-provider historical beacon probe
+        run: |
+          python research/tools/v99_phase195n_run.py | tee phase195n.json
+          python -c "import json; x=json.load(open('phase195n.json')); assert x['decision'] in ('SAFETY_HALT_BEACON_MISMATCH','PROVISIONAL_TWO_PROVIDER_PARITY_UNANCHORED','PROVISIONAL_ONE_PROVIDER_PARITY_UNANCHORED','HOLD_BEACON_ARCHIVE_UNAVAILABLE','HOLD_EXECUTION_HEADER') and x['economic_trials']==0 and not x['promotion_authorized'] and not x['holdout_accessed'] and not x['independent_consensus_anchor']"
+      - name: Retain evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v99-phase195n-two-provider-beacon
+          path: phase195n.json
+          retention-days: 30
