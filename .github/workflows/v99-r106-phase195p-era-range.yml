@@ -1,0 +1,33 @@
+name: V99 Phase195-P Historical Era Range Audit (DATA_ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195p_*.py'
+      - 'research/tests/test_phase195p_*.py'
+      - '.github/workflows/v99-r106-phase195p-era-range.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  era:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Synthetic Era index and range safety controls
+        run: python research/tests/test_phase195p_era_range.py
+      - name: Fixed TRAIN slot Era archive bounded range check
+        run: |
+          python research/tools/v99_phase195p_era_range.py | tee phase195p.json
+          python -c "import json; x=json.load(open('phase195p.json')); assert x['decision'] in ('PROVISIONAL_ERA_RECORD_AVAILABLE_UNANCHORED','HOLD_ERA_TRANSPORT','HOLD_ERA_STRUCTURE_OR_RANGE') and x['economic_trials']==0 and not x['promotion_authorized'] and not x['holdout_accessed'] and not x['independent_consensus_anchor']"
+      - name: Preserve result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v99-phase195p-era-range
+          path: phase195p.json
+          retention-days: 30
