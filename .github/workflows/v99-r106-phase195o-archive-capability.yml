@@ -1,0 +1,33 @@
+name: V99 Phase195-O Beacon Archive Capability (DATA_ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195o_*.py'
+      - 'research/tests/test_phase195o_*.py'
+      - '.github/workflows/v99-r106-phase195o-archive-capability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Synthetic controls and reproducibility
+        run: python research/tests/test_phase195o_beacon_archive.py
+      - name: Fixed historical header and finalized control
+        run: |
+          python research/tools/v99_phase195o_beacon_archive.py | tee phase195o.json
+          python -c "import json; x=json.load(open('phase195o.json')); assert x['decision'] in ('SAFETY_HALT_SLOT_MISMATCH','PROVISIONAL_HEADER_AVAILABILITY_UNANCHORED','HOLD_HISTORICAL_ARCHIVE_MISSING','HOLD_PROVIDER_TRANSPORT_OR_SCHEMA') and len(x['probes'])==4 and x['economic_trials']==0 and not x['promotion_authorized'] and not x['holdout_accessed'] and not x['independent_consensus_anchor']"
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v99-phase195o-archive-capability
+          path: phase195o.json
+          retention-days: 30
