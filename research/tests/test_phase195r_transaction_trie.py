@@ -18,13 +18,13 @@ def make(txs=None):
 
 class Controls(unittest.TestCase):
  def test_valid_trie(self):
-  s,txs=make();r=transactions(s)
+  s,txs=make();r=transactions(bytes(s))
   t=HexaryTrie(db={})
   for i,x in enumerate(txs):t[rlp.encode(i)]=x
   self.assertEqual(r["computed_transactions_root"],"0x"+t.root_hash.hex())
   self.assertEqual(r["transaction_count"],102)
  def test_reproducible(self):
-  s,_=make();self.assertEqual(transactions(s),transactions(s))
+  s,_=make();self.assertEqual(transactions(bytes(s)),transactions(bytes(s)))
  def test_count_mismatch(self):
   s,_=make([bytes([2,i]) for i in range(101)])
   with self.assertRaisesRegex(ValueError,"transaction_count_mismatch"):transactions(s)
