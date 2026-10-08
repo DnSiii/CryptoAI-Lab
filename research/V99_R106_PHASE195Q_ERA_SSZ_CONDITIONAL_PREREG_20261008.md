@@ -1,0 +1,3 @@
+# Phase195-Q conditional prereg: independent Era payload SSZ verification
+
+Only if Phase195-P retrieves the exact fixed-slot Era record through bounded byte ranges: decompress the Snappy-framed SignedBeaconBlock using pinned libraries; decode the Capella SSZ schema and compare execution payload block number, hash, timestamp and receipts root with the already fixed TRAIN execution header. Include adversarial mutation tests. A matching payload is still unanchored until historical-root/SSZ ancestry and a trusted finalized checkpoint are verified. No alternative slot, economic trial, promotion, holdout access or Frozen edits. If Phase195-P fails, keep Phase195-Q unexecuted.
