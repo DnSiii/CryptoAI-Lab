@@ -1,0 +1,40 @@
+name: V99 R106 Phase195 DATA_ONLY Archive Transport Preflight
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - '.github/workflows/v99-r106-phase195-archive-preflight.yml'
+      - 'research/tools/v99_phase195_archive_preflight.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  archive-source-probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static TRAIN-only scope
+        env:
+          PHASE195_NO_NETWORK: '1'
+        run: python research/tools/v99_phase195_archive_preflight.py
+      - name: Live archival transport evidence (DATA_ONLY)
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase195_archive_preflight.py | tee /tmp/phase195-transport.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/phase195-transport.json'))
+          assert x['economic_trials']==0
+          assert x['no_complete_day_or_economic_trial_authorized']
+          if not x['matching_public_transport_probes']:
+              raise SystemExit('HOLD: archival source transport not independently matched')
+          PY
+      - name: Preserve provisional evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase195-transport-${{ github.sha }}
+          path: /tmp/phase195-transport.json
+          retention-days: 30
+          if-no-files-found: warn
