@@ -69,9 +69,17 @@ def fetch_individual(call,endpoint,txs):
     # Preflight fixed indices prevents wasting 102 RPC requests on an unsupported method.
     indices=sorted({0,len(txs)//2,len(txs)-1})
     found={}
+    missing=[]
     for i in indices:
-        found[i]=result(call,endpoint,"eth_getTransactionReceipt",[txs[i]])
-        if not isinstance(found[i],dict):raise ValueError("missing_individual_receipt")
+        try:
+            found[i]=result(call,endpoint,"eth_getTransactionReceipt",[txs[i]])
+        except ValueError as exc:
+            missing.append(str(i)+":"+str(exc)[:55])
+            continue
+        if not isinstance(found[i],dict):
+            missing.append(str(i)+":null_receipt")
+    if missing:
+        raise ValueError("fixed_probe_unavailable:"+",".join(missing))
     pending=[i for i in range(len(txs)) if i not in found]
     def one(i):
         rec=result(call,endpoint,"eth_getTransactionReceipt",[txs[i]])
