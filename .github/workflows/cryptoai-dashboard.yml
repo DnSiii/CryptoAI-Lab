@@ -105,6 +105,7 @@ jobs:
           node --check dashboard/backtest_only.js
           node --check dashboard/paper_classic.js
           node --check dashboard/v99_research.js
+          node --check dashboard/v98_research.js
       - name: Prepare V15 historical replay boundary
         run: python scripts/prepare_dashboard_v15_replay.py
       - name: Build dashboard snapshot and V99 research overlay
@@ -156,6 +157,7 @@ jobs:
           cp dashboard/paper_classic.css "$results_dir/dashboard/paper_classic.css"
           cp dashboard/paper_classic.js "$results_dir/dashboard/paper_classic.js"
           cp dashboard/v99_research.js "$results_dir/dashboard/v99_research.js"
+          cp dashboard/v98_research.js "$results_dir/dashboard/v98_research.js"
           cp dashboard/app_v2.js "$results_dir/dashboard/app.js"
           cp dashboard/nevryn.css "$results_dir/dashboard/styles.css"
           git -C "$results_dir" add dashboard
