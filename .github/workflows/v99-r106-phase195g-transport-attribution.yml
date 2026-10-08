@@ -1,0 +1,45 @@
+name: V99 R106 Phase195-G Fixed TRAIN Transport Attribution
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - '.github/workflows/v99-r106-phase195g-transport-attribution.yml'
+      - 'research/tools/v99_phase195g_transport_stage_audit.py'
+      - 'research/tests/test_phase195g_transport_stage_audit.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-transport-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard frozen versions
+        run: |
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then exit 1; fi
+      - name: Synthetic adversarial controls
+        run: |
+          python -m py_compile research/tools/v99_phase195g_transport_stage_audit.py research/tests/test_phase195g_transport_stage_audit.py
+          python -m unittest -v research/tests/test_phase195g_transport_stage_audit.py
+      - name: Live fixed TRAIN transport attribution (HOLD by design)
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase195g_transport_stage_audit.py | tee phase195g_transport.json
+          python - <<'PY'
+          import json
+          x=json.load(open('phase195g_transport.json'))
+          assert x['economic_trials']==0 and not x['promotion_authorized']
+          assert x['decision']=='HOLD_DATA_ONLY_NOT_A_COVERAGE_GATE'
+          assert x['height']==17000000
+          PY
+      - name: Preserve untrusted DATA_ONLY evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase195g-fixed-train-transport
+          path: phase195g_transport.json
+          retention-days: 30
+          if-no-files-found: warn
