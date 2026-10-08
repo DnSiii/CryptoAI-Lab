@@ -63,8 +63,11 @@ def test_dashboard_has_backtest_and_official_paper_views() -> None:
     builder = (PROJECT / "scripts" / "build_cryptoai_dashboard.py").read_text()
     augment = (PROJECT / "scripts" / "augment_dashboard_v13.py").read_text()
     workflow = (PROJECT / ".github" / "workflows" / "cryptoai-dashboard.yml").read_text()
+    # Candidatos is one sidebar destination; Backtest and Paper are internal tabs.
     assert 'data-view="backtest"' in html
-    assert 'data-view="paper"' in html
+    assert 'data-view="paper"' not in html
+    assert html.count('data-candidate-tab="backtest"') == 2
+    assert html.count('data-candidate-tab="paper"') == 2
     assert 'id="backtest"' in html
     assert 'id="paper"' in html
     assert "CryptoAI Paper Dashboard" in html
@@ -81,3 +84,22 @@ def test_dashboard_has_backtest_and_official_paper_views() -> None:
         assert "America/Sao_Paulo" in source
     assert "Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())" not in app
     assert "Desde 00:00 UTC" not in paper
+
+
+def test_v98_research_is_separate_and_has_no_fabricated_paper() -> None:
+    html = (PROJECT / "dashboard" / "index.html").read_text()
+    v98 = (PROJECT / "dashboard" / "v98_research.js").read_text()
+    app = (PROJECT / "dashboard" / "app_v2.js").read_text()
+    workflow = (PROJECT / ".github" / "workflows" / "cryptoai-dashboard.yml").read_text()
+    assert 'data-view="v99research"' in html
+    assert 'data-view="v98research"' in html
+    assert 'id="v98research"' in html
+    assert 'data-v98-tab="backtest"' in html
+    assert 'data-v98-tab="paper"' in html
+    assert 'data-candidate-tab' in app
+    assert "research/v98-independent-zero" in v98
+    assert "state/v98_independent_state.json" in v98
+    assert "NÃO INICIADA" in v98
+    assert "v99Research" not in v98
+    assert "node --check dashboard/v98_research.js" in workflow
+    assert 'cp dashboard/v98_research.js "$results_dir/dashboard/v98_research.js"' in workflow
