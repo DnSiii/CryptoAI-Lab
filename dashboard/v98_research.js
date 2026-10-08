@@ -55,6 +55,8 @@
     if(title)title.textContent='V98 · Independent Lab';
     if(sub)sub.textContent='Pesquisa independente · arquitetura e validações do motor V98';
     if(kick)kick.textContent='CRYPTOAI · V98 RESEARCH';
+    const foot=$('.footer span:first-child');
+    if(foot)foot.textContent='CryptoAI · V98 Independent Lab · RESEARCH ONLY';
   }
   function summaryCard(title,value,caption){
     return '<article class="v99-insight"><span>'+safe(title)+'</span><strong>'+safe(value)+'</strong><small>'+safe(caption)+'</small></article>';
