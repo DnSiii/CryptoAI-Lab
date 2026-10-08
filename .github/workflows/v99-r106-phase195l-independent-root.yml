@@ -18,8 +18,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install pinned independent Ethereum libraries
-        run: python -m pip install 'trie==3.1.0' 'rlp==4.1.0' 'eth-utils==5.3.1'
+      - name: Install pinned independent Ethereum libraries with Keccak backend
+        run: python -m pip install 'trie==3.1.0' 'rlp==4.1.0' 'eth-utils==5.3.1' 'pycryptodome==3.23.0'
       - name: Known vectors and synthetic negative controls
         run: |
           PYTHONPATH=research/tools python -c "from v99_phase195l_core import oracle; assert oracle() == 'PASS_INDEPENDENT_LIBRARY_VECTORS'"
