@@ -1,0 +1,37 @@
+name: V99 Phase195-L Independent Trie Root (DATA_ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195l_*.py'
+      - 'research/tests/test_phase195l_*.py'
+      - '.github/workflows/v99-r106-phase195l-independent-root.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  root:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned independent Ethereum libraries
+        run: python -m pip install 'trie==3.1.0' 'rlp==4.1.0' 'eth-utils==5.3.1'
+      - name: Known vectors and synthetic negative controls
+        run: |
+          PYTHONPATH=research/tools python -c "from v99_phase195l_core import oracle; assert oracle() == 'PASS_INDEPENDENT_LIBRARY_VECTORS'"
+          python research/tests/test_phase195l_root_mutation.py
+      - name: Execute fixed TRAIN independent receipt root replay
+        run: |
+          python research/tools/v99_phase195l_run.py | tee phase195l.json
+          python -c "import json; x=json.load(open('phase195l.json')); assert x['decision'] in ('HOLD_ROOT_OR_TRANSPORT','PROVISIONAL_ROOT_MATCH_UNANCHORED') and x['economic_trials']==0 and not x['promotion_authorized'] and not x['holdout_accessed'] and not x['independent_consensus_anchor']"
+      - name: Save diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v99-phase195l-independent-root
+          path: phase195l.json
+          retention-days: 30
