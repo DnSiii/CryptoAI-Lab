@@ -8,6 +8,7 @@ successful result is DATA_ONLY, not a profitable trading system.
 from __future__ import annotations
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import numpy as np
@@ -36,7 +37,8 @@ def audit_price_panel(root:Path, start=START, cut=CUT, *, warmup_hours=336):
     for asset in ASSETS:
         path=Path(root)/f'{asset}_1h.csv'
         raw=path.read_bytes()
-        d=pd.read_csv(path)
+        # Parse exactly the bytes that are hashed: no second filesystem read.
+        d=pd.read_csv(io.BytesIO(raw))
         names={str(c).lower():c for c in d.columns}
         if len(names)!=len(d.columns):
             raise ValueError(f'{asset}: ambiguous duplicate-case column names')
