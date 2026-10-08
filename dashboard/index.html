@@ -5,10 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050812" />
   <meta name="color-scheme" content="dark" />
-  <title>Backtest CryptoAI</title>
+  <title>CryptoAI · Candidatos</title>
   <link rel="stylesheet" href="nevryn.css?v=20260916c" />
   <link rel="stylesheet" href="layout_fix.css?v=20260916c" />
   <link rel="stylesheet" href="paper_classic.css?v=20260916c" />
+  <style>
+    .candidate-switch{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 19px;padding:13px 16px;border:1px solid rgba(148,163,184,.15);border-radius:18px;background:rgba(8,13,25,.76)}
+    .candidate-switch-label{margin-right:auto;font-size:12px;font-weight:850;color:#dce7f5;letter-spacing:.03em}
+    .candidate-tab{border:1px solid rgba(148,163,184,.19);border-radius:11px;padding:11px 20px;background:#0b1320;color:#93a4b8;font-size:12px;font-weight:800;cursor:pointer}
+    .candidate-tab:hover{color:#ecf3fb;border-color:rgba(183,255,74,.25)}
+    .candidate-tab.active{background:rgba(183,255,74,.11);border-color:rgba(183,255,74,.45);color:#dfffaa}
+    .v98-source-link{color:#b7ff4a;text-decoration:none}.v98-source-link:hover{text-decoration:underline}
+    .v98-slot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0 16px}
+    .v98-slot{border:1px solid rgba(148,163,184,.14);border-radius:14px;padding:14px;background:rgba(255,255,255,.022)}
+    .v98-slot strong,.v98-slot small{display:block}.v98-slot small{color:#93a4b8;margin-top:7px;line-height:1.45}
+    .v98-state-note{margin-bottom:16px;color:#8ea0b6;font-size:12px;line-height:1.6}
+    .v98-status-pending{color:#a9c1dd}.v98-status-risk{color:#ffb18d}
+    @media(max-width:720px){.candidate-switch-label{width:100%}.candidate-tab{flex:1}}
+  </style>
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -21,9 +35,9 @@
       </div>
       <div class="nav-caption">PAINÉIS</div>
       <nav class="nav">
-        <button class="nav-btn active" data-view="backtest"><span class="nav-symbol">↗</span><div><strong>Visão Geral</strong><small>Backtest</small></div></button>
-        <button class="nav-btn" data-view="paper"><span class="nav-symbol">◉</span><div><strong>Paper</strong><small>Ao vivo</small></div></button>
-        <button class="nav-btn v99r-nav" data-view="v99research"><span class="nav-symbol">V</span><div><strong>V99</strong><small>Research Lab</small></div></button>
+        <button class="nav-btn active" data-view="backtest"><span class="nav-symbol">◈</span><div><strong>Candidatos</strong><small>Backtest e Paper</small></div></button>
+        <button class="nav-btn v99r-nav" data-view="v99research"><span class="nav-symbol">99</span><div><strong>V99</strong><small>Research Lab</small></div></button>
+        <button class="nav-btn v98r-nav" data-view="v98research"><span class="nav-symbol">98</span><div><strong>V98</strong><small>Independent Lab</small></div></button>
       </nav>
       <div class="sidebar-status">
         <div class="status-dot"></div>
@@ -35,7 +49,7 @@
       <header class="topbar">
         <div>
           <p class="top-kicker">BACKTEST · CRYPTOAI</p>
-          <h1 id="page-title">Backtest CryptoAI</h1>
+          <h1 id="page-title">Candidatos · Backtest</h1>
           <p id="page-subtitle">Análise histórica comparativa dos engines V13, V14, V15, V16 e V99 · calendário America/Sao_Paulo.</p>
         </div>
         <div class="runtime-pill"><i></i><span id="runtime-text">Carregando dados…</span></div>
@@ -44,6 +58,11 @@
       <div id="loading" class="loading"><span class="loader"></span>Carregando dados do CryptoAI…</div>
 
       <section id="backtest" class="view active">
+        <div class="candidate-switch" aria-label="Alternar as visões dos candidatos">
+          <span class="candidate-switch-label">Candidatos · V13, V14, V15, V16 e V99 oficial</span>
+          <button class="candidate-tab active" data-candidate-tab="backtest" type="button">Backtest</button>
+          <button class="candidate-tab" data-candidate-tab="paper" type="button">Paper</button>
+        </div>
         <article class="hero hero-backtest">
           <div class="hero-copy">
             <p class="eyebrow">HISTORICAL REPLAY · ANÁLISE</p>
@@ -100,6 +119,11 @@
       </section>
 
       <section id="paper" class="view paper-classic">
+        <div class="candidate-switch" aria-label="Alternar as visões dos candidatos">
+          <span class="candidate-switch-label">Candidatos · V13, V14, V15, V16 e V99 oficial</span>
+          <button class="candidate-tab" data-candidate-tab="backtest" type="button">Backtest</button>
+          <button class="candidate-tab active" data-candidate-tab="paper" type="button">Paper</button>
+        </div>
         <article class="pc-hero">
           <div>
             <p class="pc-kicker">PAPER TRADING · SIMULAÇÃO APENAS</p>
@@ -153,6 +177,19 @@
         <div id="v99r-paper" class="v99r-pane"><div class="v99r-empty">Carregando paper V99…</div></div>
       </section>
 
+      <section id="v98research" class="view">
+        <article class="v99-hero">
+          <div><p class="eyebrow">V98 · INDEPENDENT LAB</p><h2>V98 — laboratório independente</h2><p>Desenvolvimento e acompanhamento de um novo motor, com resultados de pesquisa separados dos candidatos e do V99.</p></div>
+          <div class="v99-badge">EM PESQUISA · HOLDOUT BLOQUEADO</div>
+        </article>
+        <div class="v99-tabs" role="tablist" aria-label="Visões V98">
+          <button class="v99-tab active" data-v98-tab="backtest" type="button">Backtest completo</button>
+          <button class="v99-tab" data-v98-tab="paper" type="button">Paper completo</button>
+        </div>
+        <div id="v98-backtest" class="v99-pane active"><div class="v99-empty">Carregando informações da pesquisa V98…</div></div>
+        <div id="v98-paper" class="v99-pane"><div class="v99-empty">Verificando o status do paper V98…</div></div>
+      </section>
+
       <footer class="footer"><span>Backtest CryptoAI · Historical Replay · America/Sao_Paulo</span><span id="footer-generated">Snapshot</span></footer>
     </main>
   </div>
@@ -160,6 +197,7 @@
   <script src="layout_fix.js?v=20260916c" defer></script>
   <script src="paper_classic.js?v=20260916c" defer></script>
   <script src="backtest_only.js?v=20260916c" defer></script>
-  <script src="v99_research.js?v=20260916e" defer></script>
+  <script src="v99_research.js?v=20261008f" defer></script>
+  <script src="v98_research.js?v=20261008a" defer></script>
 </body>
 </html>
