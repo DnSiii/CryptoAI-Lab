@@ -67,6 +67,15 @@ class PricePanelTests(unittest.TestCase):
     def test_warmup_gap(self):
         self.write(lambda a,d:d.drop(index=0) if a=='BTCUSDT' else d)
         with self.assertRaisesRegex(ValueError,'hourly price bar'):self.run_gate()
+    def test_missing_base_volume_rejected(self):
+        self.write(lambda a,d:d.drop(columns='volume') if a=='BTCUSDT' else d)
+        with self.assertRaisesRegex(ValueError,'base volume required'):self.run_gate()
+    def test_quote_base_unit_swap_rejected(self):
+        self.write(lambda a,d:d.assign(volume=d.quote_volume) if a=='BTCUSDT' else d)
+        with self.assertRaisesRegex(ValueError,'unit inconsistency'):self.run_gate()
+    def test_base_volume_alias_passes(self):
+        self.write(lambda a,d:d.rename(columns={'volume':'base_asset_volume'}))
+        self.assertEqual(self.run_gate()['manifest']['assets']['BTCUSDT']['base_volume_column'],'base_asset_volume')
     def test_zero_quote_volume_allowed_but_counted(self):
         self.write(lambda a,d:d.assign(quote_volume=0,volume=0) if a=='SOLUSDT' else d)
         self.assertEqual(self.run_gate()['manifest']['assets']['SOLUSDT']['zero_quote_volume_bars'],96)
