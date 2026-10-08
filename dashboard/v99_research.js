@@ -73,6 +73,10 @@
     const title=$('#page-title'), sub=$('#page-subtitle');
     if(title) title.textContent='V99 · Research Lab';
     if(sub) sub.textContent='Backtest e paper completos das cinco versões de pesquisa do V99.';
+    const kicker=$('.top-kicker'),foot=$('.footer span:first-child');
+    if(kicker)kicker.textContent='CRYPTOAI · V99 RESEARCH';
+    if(foot)foot.textContent='CryptoAI · V99 Research Lab · PAPER ONLY';
+    document.title='CryptoAI · V99 Research Lab';
     render();
   }
 
