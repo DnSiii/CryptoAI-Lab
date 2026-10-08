@@ -1,34 +1,39 @@
 {
   "engine": "V98 Independent",
   "branch": "research/v98-independent-zero",
-  "phase": "phase_145_vix_data_only",
+  "objective": "Build the strongest engine in the project: maximize compounded wealth with no artificial return ceiling, then prove material superiority to all prior engines only after V98 is frozen and independently validated.",
+  "north_star": "research/v98_independent/V98_NORTH_STAR.md",
+  "phase": "phase_243_engine_architecture_reset",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
-  "v99_benchmark_locked_until_final": true,
-  "last_completed_experiment": {
-    "id": "phase_144_sp500_risk_on",
-    "status": "reject_no_rescue",
-    "report": "reports/v98_independent_phase144_sp500_risk_on.json",
-    "audit": "reports/v98_independent_phase144_rejection_audit.md",
-    "failures": ["2025_return<=0", "2025_pf<1.02"],
-    "diagnosis": "temporal instability; not cost-only or concentration/tail failure"
+  "external_benchmark_policy": "V14/V15/V99 are locked external benchmarks; never use their internals/performance to tune V98. Open only after a V98 candidate passes its own training + validation and is frozen.",
+  "superseded_top_level_process": {
+    "phase241": "remains valid isolated-alpha research evidence; no performance-driven modification",
+    "phase242": "remains preregistered backlog; not the top-level V98 objective"
+  },
+  "architecture_slots": {
+    "growth_core": "needs_inventory",
+    "opportunity": "needs_inventory",
+    "relative_value": "needs_inventory",
+    "stress_recovery": "needs_inventory",
+    "regime_router": "needs_new_research_or_inventory",
+    "dynamic_allocator": "needs_new_research_or_inventory",
+    "risk_governor": "needs_new_research_or_inventory"
   },
   "current_experiment": {
-    "id": "phase_145_vix_data_only",
-    "status": "preregistered_execution_pending",
-    "preregistration": "reports/v98_independent_phase145_vix_data_only_prereg.md",
-    "executor": "scripts/v98_independent_phase145_vix_data_only.py",
-    "authorization": "DATA_ONLY only; no economic Phase146 before persisted PASS_DATA_ONLY"
+    "id": "phase_243_engine_architecture_reset",
+    "mode": "ARCHITECTURE_AND_EVIDENCE_INVENTORY_NO_SYSTEM_PNL",
+    "preregistration": "research/v98_independent/phase243_engine_architecture_prereg.md",
+    "inventory_builder": "research/v98_independent/phase243_evidence_inventory.py"
   },
+  "next_action": "Build the V98-only evidence inventory, assign admissible candidates to architecture slots, then preregister the first complete V98 system specification before system-level PnL.",
   "validation_policy": {
-    "window": "2026-01-01T00:00:00Z..2026-07-31T23:00:00Z",
-    "access": "only after a frozen candidate passes training and separate preregistration"
+    "access": "locked until a complete frozen V98 engine passes chronological training and stress gates"
   },
   "final_holdout_policy": {
     "old_phase083_window": "permanently opened/ineligible",
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
-    "access": "forbidden until a frozen candidate passes training and separate validation"
-  },
-  "next_action": "Harvest Phase145 VIX DATA_ONLY double-acquisition and invariant evidence. Only persisted PASS_DATA_ONLY may authorize a separately preregistered Phase146 economic hypothesis; no SP500 rescue/tuning."
+    "access": "forbidden until a complete frozen V98 engine passes separate validation"
+  }
 }
