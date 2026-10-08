@@ -30,8 +30,11 @@
   const dt = (v) => v ? new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:TZ}).format(new Date(v)) : '—';
   const shortDate = (v) => v ? new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',timeZone:TZ}).format(new Date(v)) : '—';
   const hourLabel = (v) => v ? new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:TZ}).format(new Date(v)) : '—';
-  const dateKeyFmt = new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:TZ});
-  const dateKey = (v) => dateKeyFmt.format(new Date(v));
+  const dateKeyFmt = new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:TZ});
+  const dateKey = (v) => {
+    const parts=Object.fromEntries(dateKeyFmt.formatToParts(new Date(v)).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
 
   function installStyles(){
     if ($('#v99-full-styles')) return;
@@ -88,8 +91,19 @@
     return ['Pesquisa',''];
   }
 
+  // Paper controls redraw often; parse/sort each immutable snapshot curve only once.
+  // Cache is keyed by the array identity, so new hourly snapshots cannot reuse stale data.
+  const curveCache=new WeakMap();
   function curvePoints(curve,valueKey){
-    return (curve||[]).map(p=>({time:new Date(p.time).getTime(),value:Number(p[valueKey])})).filter(p=>Number.isFinite(p.time)&&Number.isFinite(p.value)).sort((a,b)=>a.time-b.time);
+    if(!Array.isArray(curve))return [];
+    let variants=curveCache.get(curve);
+    if(!variants){variants=new Map();curveCache.set(curve,variants)}
+    if(!variants.has(valueKey)){
+      variants.set(valueKey,curve.map(p=>({time:new Date(p.time).getTime(),value:Number(p[valueKey])}))
+        .filter(p=>Number.isFinite(p.time)&&Number.isFinite(p.value)&&p.value>0)
+        .sort((a,b)=>a.time-b.time));
+    }
+    return variants.get(valueKey);
   }
 
   function rangeFilter(points,start,end,days=null,hours=null){
@@ -165,7 +179,18 @@
   function lastHoursReturn(item,hours){const pts=curvePoints(item?.curve,'capital');if(pts.length<2)return 0;const cutoff=pts.at(-1).time-hours*3600000;let base=pts[0];for(const p of pts){if(p.time<=cutoff)base=p;else break}return (pts.at(-1).value/base.value-1)*100}
   function todayReturn(item){const pts=curvePoints(item?.curve,'capital');if(pts.length<2)return 0;const key=dateKey(pts.at(-1).time);const today=pts.filter(p=>dateKey(p.time)===key);if(!today.length)return 0;let base=today[0];const prev=pts.filter(p=>p.time<today[0].time).at(-1);if(prev)base=prev;return(pts.at(-1).value/base.value-1)*100}
   function paperDaily(k){const pts=paperCurve(k);if(!pts.length)return[];const by=new Map;pts.forEach(p=>by.set(dateKey(p.time),p));const arr=[...by.values()].sort((a,b)=>a.time-b.time),out=[];for(let i=0;i<arr.length;i++){const base=i?arr[i-1].value:pts[0].value;out.push({time:arr[i].time,value:(arr[i].value/base-1)*100,capital:arr[i].value})}return out}
-  function paperLineSeries(mode){return paperKeys().map(k=>{const pts=paperCurve(k);if(!pts.length)return null;const first=pts[0].value;return{key:k,label:LABELS[k],color:COLORS[k],points:pts.map(p=>({time:p.time,value:mode==='money'?p.value:(p.value/first-1)*100}))}}).filter(Boolean)}
+  function paperLineSeries(mode){
+    return paperKeys().map(k=>{
+      const pts=paperCurve(k);if(!pts.length)return null;
+      const first=pts[0].value,byDay=new Map();
+      // Daily closing marks preserve the full paper path without allocating
+      // an enormous canvas for every hourly observation in "Tudo".
+      pts.forEach(p=>byDay.set(dateKey(p.time),p));
+      const daily=[...byDay.values()].sort((a,b)=>a.time-b.time);
+      return{key:k,label:LABELS[k],color:COLORS[k],
+        points:daily.map(p=>({time:p.time,value:mode==='money'?p.value:(p.value/first-1)*100}))};
+    }).filter(Boolean);
+  }
   function paperDailySeries(){return paperKeys().map(k=>({key:k,label:LABELS[k],color:COLORS[k],points:paperDaily(k).slice(1).map(p=>({time:p.time,value:p.value}))})).filter(s=>s.points.length)}
   function paperHourlySeries(){return paperKeys().map(k=>{const pts=rangeFilter(curvePoints(state.data.v99Research.paper[k]?.curve,'capital'),'','',null,24),out=[];for(let i=1;i<pts.length;i++)out.push({time:pts[i].time,value:(pts[i].value/pts[i-1].value-1)*100});return{key:k,label:LABELS[k],color:COLORS[k],points:out}}).filter(s=>s.points.length)}
 
@@ -181,12 +206,31 @@
     renderPaperControls($('#v99-paper-controls'));const keys=paperKeys();$('#v99-paper-cards').innerHTML=keys.map(paperCard).join('');const vals=keys.map(k=>({k,item:paper[k],h24:lastHoursReturn(paper[k],24),today:todayReturn(paper[k])}));const total=[...vals].sort((a,b)=>b.item.roiPct-a.item.roiPct)[0],h24=[...vals].sort((a,b)=>b.h24-a.h24)[0],today=[...vals].sort((a,b)=>b.today-a.today)[0],exp=[...vals].sort((a,b)=>b.item.grossExposurePct-a.item.grossExposurePct)[0];$('#v99-paper-summary').innerHTML=`<div class="v99-insight"><span>Melhor total</span><strong>${total?LABELS[total.k]+' · '+pct(total.item.roiPct,3):'—'}</strong><small>${total?brl(total.item.currentCapitalBrl):''}</small></div><div class="v99-insight"><span>Melhor 24h</span><strong>${h24?LABELS[h24.k]+' · '+pct(h24.h24,3):'—'}</strong><small>janela móvel</small></div><div class="v99-insight"><span>Melhor hoje</span><strong>${today?LABELS[today.k]+' · '+pct(today.today,3):'—'}</strong><small>00:00–agora · São Paulo</small></div><div class="v99-insight"><span>Maior exposição</span><strong>${exp?LABELS[exp.k]+' · '+pct(exp.item.grossExposurePct,1):'—'}</strong><small>gross exposure</small></div>`;
     const loser=[...vals].sort((a,b)=>a.item.roiPct-b.item.roiPct)[0];$('#v99-analysis-text').textContent=total?`${LABELS[total.k]} lidera o paper total com ${pct(total.item.roiPct,3)} (${brl(total.item.currentCapitalBrl)}). ${h24?LABELS[h24.k]+' teve o melhor desempenho nas últimas 24h com '+pct(h24.h24,3)+'. ':''}${loser&&loser.k!==total.k?LABELS[loser.k]+' está na última posição do total com '+pct(loser.item.roiPct,3)+'. ':''}Todas as cinco versões seguem o mesmo boundary e continuam sem ordens reais.`:'Aguardando dados suficientes.';
     $('#v99-paper-charts').innerHTML=`<article class="v99-panel"><div class="v99-panel-head"><div><p>% POR HORA</p><h3>Resultado % por hora · últimas 24h</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-hour-stage" class="v99-stage daily"><canvas id="v99-paper-hour"></canvas></div></div><div class="v99-foot">Cada barra representa somente aquela hora, não o acumulado.</div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>% POR DIA</p><h3>Resultado % de cada dia · não acumulado</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-day-stage" class="v99-stage daily"><canvas id="v99-paper-day"></canvas></div></div></article><div class="grid-2 visual-grid"><article class="v99-panel"><div class="v99-panel-head"><div><p>PATRIMÔNIO</p><h3>Evolução do capital</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-money-stage" class="v99-stage"><canvas id="v99-paper-money"></canvas></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>ROI ACUMULADO</p><h3>Evolução % na janela</h3></div><div class="v99-legend">${legendHtml(keys)}</div></div><div class="v99-scroll"><div id="v99-paper-pct-stage" class="v99-stage"><canvas id="v99-paper-pct"></canvas></div></div></article></div><article class="v99-panel"><div class="v99-panel-head"><div><p>OPERAÇÕES SIMULADAS</p><h3>O que cada versão fez</h3></div><small>horário de São Paulo</small></div><div class="v99-ops-layout"><div class="v99-op-filter">${ORDER.filter(k=>paper[k]).map(k=>`<button data-v99-op-engine="${k}" class="${state.selectedPaperEngine===k?'active':''}">${LABELS[k]}</button>`).join('')}</div><div id="v99-ops-body"></div></div></article><article class="v99-panel"><div class="v99-panel-head"><div><p>HISTÓRICO DIÁRIO</p><h3>Resultado diário das versões V99</h3></div><small>mais recente primeiro</small></div><div class="v99-table-wrap"><table class="v99-table"><thead><tr><th>Data</th>${keys.map(k=>`<th>${LABELS[k]}</th>`).join('')}<th>Melhor do dia</th></tr></thead><tbody id="v99-paper-table"></tbody></table></div></article>`;
-    $$('[data-v99-op-engine]').forEach(b=>b.addEventListener('click',()=>{state.selectedPaperEngine=b.dataset.v99OpEngine;renderOperations()}));renderOperations();const maxPts=Math.max(1,...keys.map(k=>paperCurve(k).length));setStageWidth('#v99-paper-hour-stage',24,42);setStageWidth('#v99-paper-day-stage',Math.max(1,...keys.map(k=>paperDaily(k).length)),38);setStageWidth('#v99-paper-money-stage',maxPts,18);setStageWidth('#v99-paper-pct-stage',maxPts,18);requestAnimationFrame(()=>{drawBars('#v99-paper-hour',paperHourlySeries(),'pct');drawBars('#v99-paper-day',paperDailySeries(),'pct');drawLine('#v99-paper-money',paperLineSeries('money'),'money');drawLine('#v99-paper-pct',paperLineSeries('pct'),'pct',true)});
+    $$('[data-v99-op-engine]').forEach(b=>b.addEventListener('click',()=>{state.selectedPaperEngine=b.dataset.v99OpEngine;renderOperations()}));renderOperations();const maxPts=Math.max(1,...keys.map(k=>new Set(paperCurve(k).map(p=>dateKey(p.time))).size));setStageWidth('#v99-paper-hour-stage',24,42);setStageWidth('#v99-paper-day-stage',maxPts,38);setStageWidth('#v99-paper-money-stage',maxPts,34);setStageWidth('#v99-paper-pct-stage',maxPts,34);requestAnimationFrame(()=>{drawBars('#v99-paper-hour',paperHourlySeries(),'pct');drawBars('#v99-paper-day',paperDailySeries(),'pct');drawLine('#v99-paper-money',paperLineSeries('money'),'money');drawLine('#v99-paper-pct',paperLineSeries('pct'),'pct',true)});
     const dailyMaps={},times=new Set;keys.forEach(k=>{const arr=paperDaily(k),m=new Map(arr.map(x=>[x.time,x.value]));dailyMaps[k]=m;arr.forEach(x=>times.add(x.time))});$('#v99-paper-table').innerHTML=[...times].sort((a,b)=>b-a).map(t=>{const vals2=keys.map(k=>({k,v:dailyMaps[k].get(t)})).filter(x=>Number.isFinite(x.v)),win=[...vals2].sort((a,b)=>b.v-a.v)[0];return `<tr><td>${shortDate(t)}</td>${keys.map(k=>{const v=dailyMaps[k].get(t);return `<td class="${Number(v)>=0?'v99-positive':'v99-negative'}">${Number.isFinite(v)?pct(v,3):'—'}</td>`}).join('')}<td>${win?LABELS[win.k]+' · '+pct(win.v,3):'—'}</td></tr>`}).join('');
   }
 
   function render(){if(!state.data)return;state.tab==='backtest'?renderBacktest():renderPaper()}
-  async function load(){try{const r=await fetch(`${DATA_URL}?t=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`${r.status}`);state.data=await r.json()}catch(e){console.warn('V99 research remote snapshot failed',e);try{const r=await fetch(`dashboard_data.json?t=${Date.now()}`,{cache:'no-store'});state.data=await r.json()}catch(e2){console.warn('V99 local snapshot failed',e2)}}render()}
+  async function load(){
+    // The published JSON lives beside this script; avoid a redundant 5 MB
+    // cross-origin request before trying the copy already on GitHub Pages.
+    let failure=null;
+    for(const url of [`dashboard_data.json?t=${Date.now()}`,`${DATA_URL}?t=${Date.now()}`]){
+      try{
+        const response=await fetch(url,{cache:'no-store'});
+        if(!response.ok)throw new Error(`HTTP ${response.status}`);
+        const snapshot=await response.json();
+        if(!snapshot?.v99Research)throw new Error('Snapshot sem V99 Research');
+        state.data=snapshot;break;
+      }catch(error){failure=error;console.warn('V99 Research snapshot unavailable:',url,error)}
+    }
+    if(!state.data){
+      const message='Não foi possível carregar o V99 Research. Recarregue a página para tentar novamente.';
+      for(const id of ['#v99-backtest','#v99-paper']){const root=$(id);if(root)root.innerHTML=`<div class="v99-empty">${message}</div>`;}
+      return;
+    }
+    render();
+  }
 
   installStyles();ensureNavigation();ensureView();load();
   window.addEventListener('resize',()=>{if($('#v99research')?.classList.contains('active'))requestAnimationFrame(render)});
