@@ -1,0 +1,3 @@
+# Phase195-S prereg: authenticated consensus ancestry gate
+
+The fixed Era754 archive record and its execution payload now match the independent execution header and transaction/receipt tries. Next investigate a trusted finalized beacon checkpoint and the SSZ historical_summaries proof binding Era754 historical root to canonical consensus. Require explicit trust provenance and independently checkable proof bytes, not merely an operator-reported canonical flag or a filename suffix. Do not infer anchoring from structural parity. No alternate slot, no economics, no promotion, no holdout access or Frozen changes. If trusted proof inputs are unavailable, HOLD and pursue separate data-coverage work.
