@@ -1,0 +1,3 @@
+# Phase195-R prereg: independent archive transaction trie
+
+For the same fixed TRAIN slot 6173989, decode the Bellatrix SSZ ExecutionPayload transaction list from the Phase195-Q archive record. Require canonical offsets and bound every transaction. Reconstruct the Ethereum transaction Merkle Patricia Trie from raw EIP-2718 transaction bytes indexed by RLP integer positions; compare the resulting transactionsRoot and count to the independently verified execution header. Test synthetic and adversarial list mutations before the real run. This adds orthogonal payload integrity evidence but does not authenticate consensus ancestry. No other slot, no economic trial, no promotion, no holdout or Frozen modifications.
