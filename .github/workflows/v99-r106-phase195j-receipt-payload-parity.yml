@@ -1,0 +1,30 @@
+name: V99 Phase195-J Fixed TRAIN Receipt Parity
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195j_receipt_payload_parity.py'
+      - 'research/tests/test_phase195j_receipt_payload_parity.py'
+      - '.github/workflows/v99-r106-phase195j-receipt-payload-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: python -m unittest -v research/tests/test_phase195j_receipt_payload_parity.py
+      - name: Run fixed TRAIN receipt comparison
+        run: |
+          python research/tools/v99_phase195j_receipt_payload_parity.py | tee phase195j_payload.json
+          python -c "import json; x=json.load(open('phase195j_payload.json')); assert x['decision'].startswith('HOLD_') and x['economic_trials']==0 and not x['promotion_authorized'] and not x['holdout_accessed']"
+      - name: Save evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase195j-fixed-train-receipts
+          path: phase195j_payload.json
+          retention-days: 30
