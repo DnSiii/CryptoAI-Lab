@@ -1,23 +1,23 @@
 function applyBacktestBranding(){
-  document.title="Backtest CryptoAI";
+  document.title="CryptoAI · Candidatos · Backtest";
   const brandStrong=document.querySelector(".brand-copy strong");
   const brandSmall=document.querySelector(".brand-copy small");
   const kicker=document.querySelector(".top-kicker");
   const title=document.querySelector("#page-title");
   const subtitle=document.querySelector("#page-subtitle");
   const footer=document.querySelector(".footer span:first-child");
-  if(brandStrong)brandStrong.textContent="BACKTEST";
-  if(brandSmall)brandSmall.textContent="CRYPTOAI";
-  if(kicker)kicker.textContent="BACKTEST · CRYPTOAI";
-  if(title)title.textContent="Backtest CryptoAI";
-  if(subtitle)subtitle.textContent="Análise histórica comparativa dos engines V13, V14, V15, V16 e V99.";
-  if(footer)footer.textContent="Backtest CryptoAI · Historical Replay";
+  if(brandStrong)brandStrong.textContent="CRYPTOAI";
+  if(brandSmall)brandSmall.textContent="LAB";
+  if(kicker)kicker.textContent="CANDIDATOS · BACKTEST";
+  if(title)title.textContent="Candidatos · Backtest";
+  if(subtitle)subtitle.textContent="Histórico comparativo dos motores oficiais V13, V14, V15, V16 e V99.";
+  if(footer)footer.textContent="CryptoAI · Candidatos · Backtest histórico";
 }
 
 function applyViewBranding(view){
   if(view==="paper"){
     if(typeof pcApplyPaperBranding==="function")pcApplyPaperBranding();
-  }else{
+  }else if(view==="backtest"){
     applyBacktestBranding();
   }
 }
