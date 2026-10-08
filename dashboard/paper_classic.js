@@ -123,8 +123,8 @@ function renderPaperClassic(){
   const status=document.querySelector("#pc-live-status"),note=document.querySelector("#pc-live-note");if(status)status.textContent="PAPER ATUALIZADO";if(note)note.textContent=`Snapshot ${pcTime(state.data.generatedAt)} · São Paulo`;
 }
 function pcApplyPaperBranding(){
-  document.title="CryptoAI Paper Dashboard · Backtest CryptoAI";const k=document.querySelector("#page-title"),s=document.querySelector("#page-subtitle"),kick=document.querySelector(".top-kicker"),foot=document.querySelector(".footer span:first-child");
-  if(k)k.textContent="CryptoAI Paper Dashboard";if(s)s.textContent="Última hora, últimas 24h, total, histórico por hora/dia e operações simples · America/Sao_Paulo.";if(kick)kick.textContent="CRYPTOAI · PAPER TRADING";if(foot)foot.textContent="CryptoAI Paper Dashboard · PAPER ONLY";
+  document.title="CryptoAI · Candidatos · Paper";const k=document.querySelector("#page-title"),s=document.querySelector("#page-subtitle"),kick=document.querySelector(".top-kicker"),foot=document.querySelector(".footer span:first-child");
+  if(k)k.textContent="Candidatos · Paper";if(s)s.textContent="Última hora, últimas 24h, total, histórico por hora/dia e operações simples · America/Sao_Paulo.";if(kick)kick.textContent="CANDIDATOS · PAPER TRADING";if(foot)foot.textContent="CryptoAI · Candidatos · PAPER ONLY";
 }
 function pcActivateFromNav(button){
   if(button.dataset.view==="paper"){setTimeout(()=>{pcApplyPaperBranding();renderPaperClassic()},0)}else if(button.dataset.view==="backtest"){setTimeout(()=>{if(typeof applyBacktestBranding==="function")applyBacktestBranding()},0)}
