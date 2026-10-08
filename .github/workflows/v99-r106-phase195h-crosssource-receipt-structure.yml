@@ -1,0 +1,45 @@
+name: V99 R106 Phase195-H Fixed TRAIN Cross-Source Receipt Structure
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - '.github/workflows/v99-r106-phase195h-crosssource-receipt-structure.yml'
+      - 'research/tools/v99_phase195h_crosssource_receipt_structure.py'
+      - 'research/tests/test_phase195h_crosssource_receipt_structure.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-receipt-structure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard frozen versions
+        run: |
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          if echo "$changed" | grep -Ei '(^|/)(V16_FROZEN|V99_FROZEN)(/|\.|_)|(^|/)frozen/(v16|v99)(/|$)'; then exit 1; fi
+      - name: Adversarial synthetic tests
+        run: |
+          python -m py_compile research/tools/v99_phase195h_crosssource_receipt_structure.py research/tests/test_phase195h_crosssource_receipt_structure.py
+          python -m unittest -v research/tests/test_phase195h_crosssource_receipt_structure.py
+      - name: Fixed TRAIN live structural audit (not root proof)
+        run: |
+          set -euo pipefail
+          python research/tools/v99_phase195h_crosssource_receipt_structure.py | tee phase195h_result.json
+          python - <<'PY'
+          import json
+          x=json.load(open('phase195h_result.json'))
+          assert x['economic_trials']==0 and not x['promotion_authorized']
+          assert not x['receipts_root_recomputed']
+          assert x['fixed_train_height']==17000000
+          PY
+      - name: Preserve DATA_ONLY evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase195h-fixed-train-receipt-structure
+          path: phase195h_result.json
+          retention-days: 30
+          if-no-files-found: warn
