@@ -5,7 +5,9 @@ import pathlib
 import sys
 import unittest
 
-path=pathlib.Path(__file__).resolve().parents[1]/'tools'/'v99_phase195h_crosssource_receipt_structure.py'
+tools_dir=pathlib.Path(__file__).resolve().parents[1]/'tools'
+sys.path.insert(0,str(tools_dir))
+path=tools_dir/'v99_phase195h_crosssource_receipt_structure.py'
 spec=importlib.util.spec_from_file_location('phase195h',path)
 h=importlib.util.module_from_spec(spec)
 sys.modules[spec.name]=h
