@@ -1,0 +1,2 @@
+# Phase195-E paired TRAIN continuity (2026-10-08)
+DATA_ONLY. Two provider streams, fixed 778-day TRAIN with 776 interior days and six chronological folds. Input claims never establish canonical consensus or economic eligibility. No holdout or frozen version changes. Nine synthetic adversarial controls reject incomplete sources. The next step is independent historical receipts and latency verification.

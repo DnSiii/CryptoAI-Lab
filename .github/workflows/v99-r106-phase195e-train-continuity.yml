@@ -1,0 +1,31 @@
+name: V99 R106 Phase195-E TRAIN Structural Audit
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195_train_coverage_structural.py'
+      - 'research/tests/test_phase195_train_coverage_structural.py'
+      - '.github/workflows/v99-r106-phase195e-train-continuity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-structural-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen files unchanged
+        run: |
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          if echo "$changed" | grep -Ei 'V16_FROZEN|V99_FROZEN'; then exit 1; fi
+      - name: Run DATA_ONLY synthetic checks
+        run: |
+          python -m py_compile research/tools/v99_phase195_train_coverage_structural.py
+          python research/tests/test_phase195_train_coverage_structural.py | tee phase195e_result.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase195e-${{ github.sha }}
+          path: phase195e_result.json
+          retention-days: 30
