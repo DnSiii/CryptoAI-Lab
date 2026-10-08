@@ -1,0 +1,21 @@
+name: V99 Phase195-S/T Safety and Paper Forensics
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_phase195s_*.py'
+      - 'research/tools/v99_phase195t_*.py'
+      - 'research/tests/test_phase195s_*.py'
+      - 'research/tests/test_phase195t_*.py'
+      - '.github/workflows/v99-r106-phase195st-safety.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python research/tests/test_phase195s_historical_roots.py
+      - run: python research/tools/v99_phase195s_historical_roots.py
+      - run: python research/tests/test_phase195t_paper_replay_forensics.py
