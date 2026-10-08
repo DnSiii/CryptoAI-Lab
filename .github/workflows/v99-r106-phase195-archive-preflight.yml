@@ -18,6 +18,21 @@ jobs:
         env:
           PHASE195_NO_NETWORK: '1'
         run: python research/tools/v99_phase195_archive_preflight.py
+      - name: Classify independent source HTTP status without trusting response bodies
+        run: |
+          python - <<'PY'
+          import runpy
+          import urllib.error
+          source=runpy.run_path('research/tools/v99_phase195_archive_preflight.py')
+          for label, endpoint in source['ENDPOINTS']:
+              try:
+                  chain=source['rpc'](endpoint,'eth_chainId',[])
+                  print(label,'HTTP_200',str(chain)[:30])
+              except urllib.error.HTTPError as exc:
+                  print(label,'HTTP_'+str(exc.code))
+              except Exception as exc:
+                  print(label,type(exc).__name__)
+          PY
       - name: Live archival transport evidence (DATA_ONLY)
         run: |
           set -euo pipefail
