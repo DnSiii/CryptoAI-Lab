@@ -18,8 +18,47 @@ function localInputDate(value){const p=tzParts(value);return `${String(p.year).p
 function inputDateMs(value,endOfDay=false){if(!value)return null;const [year,month,day]=value.split("-").map(Number);return zonedMs(year,month,day,endOfDay?23:0,endOfDay?59:0,endOfDay?59:0)}
 async function fetchJson(url){const r=await fetch(`${url}${url.includes("?")?"&":"?"}t=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`${r.status} ${r.statusText}`);return r.json()}
 async function loadData(){try{return await fetchJson(REMOTE_DATA)}catch(e){console.warn("remote snapshot failed",e);return fetchJson("dashboard_data.json")}}
-function setView(id){state.view=id;document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===id));document.querySelector("#page-title").textContent=id==="paper"?"Visão Geral · Paper":"Visão Geral · Backtest";document.querySelector("#page-subtitle").textContent=id==="paper"?"O que os engines estão fazendo depois do boundary independente.":"Como os engines se comportaram no mesmo recorte histórico.";requestAnimationFrame(()=>id==="paper"?renderPaper():renderBacktest())}
-function bindNavigation(){document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)))}
+function setView(id){
+  if(!["backtest","paper","v99research","v98research"].includes(id))return;
+  state.view=id;
+  const candidate=(id==="backtest"||id==="paper");
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",
+    candidate ? b.dataset.view==="backtest" : b.dataset.view===id));
+  document.querySelectorAll("[data-candidate-tab]").forEach(b=>{
+    const selected=b.dataset.candidateTab===id;
+    b.classList.toggle("active",selected);
+    b.setAttribute("aria-pressed",String(selected));
+  });
+  const title=document.querySelector("#page-title"),subtitle=document.querySelector("#page-subtitle");
+  if(candidate){
+    if(title)title.textContent=id==="paper"?"Candidatos · Paper":"Candidatos · Backtest";
+    if(subtitle)subtitle.textContent=id==="paper"?
+      "Acompanhamento simulado dos cinco motores oficiais, sem misturar com a pesquisa independente.":
+      "Comparação histórica dos motores V13, V14, V15, V16 e V99 oficial.";
+    requestAnimationFrame(()=>{
+      if(id==="paper"){
+        renderPaper();
+        if(typeof renderPaperClassic==="function")renderPaperClassic();
+        if(typeof pcApplyPaperBranding==="function")pcApplyPaperBranding();
+      }else{
+        renderBacktest();
+        if(typeof applyBacktestBranding==="function")applyBacktestBranding();
+      }
+    });
+  }else{
+    if(title)title.textContent=id==="v98research"?"V98 · Independent Lab":"V99 · Research Lab";
+    if(subtitle)subtitle.textContent="Pesquisa separada dos candidatos oficiais, sem modificar os motores Frozen.";
+    requestAnimationFrame(()=>{
+      if(id==="v98research"&&window.V98Research)window.V98Research.render();
+    });
+  }
+}
+function bindNavigation(){
+  document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)));
+  document.querySelectorAll("[data-candidate-tab]").forEach(b=>
+    b.addEventListener("click",()=>setView(b.dataset.candidateTab)));
+}
 function paperEngines(){return ENGINE_ORDER.map(k=>state.data?.paper?.engines?.[k]).filter(Boolean)}
 function btEngine(k){return state.data?.backtest?.engines?.[k]}
 function paperCard(e){const badge=e.track==="v99"?"FROZEN":(e.role||"ENGINE");return `<article class="engine-card ${e.track} ${state.selectedPaperEngine===e.track?"selected":""}" data-paper-engine="${e.track}"><div class="engine-head"><div><small>${e.label} · ${e.role||"Engine"}</small><strong>${e.name}</strong></div><span class="tag">${badge}</span></div><div class="engine-roi ${cls(e.roiPct)}">${pct(e.roiPct)}</div><div class="engine-capital">${brl(e.currentCapitalBrl)} <span>de ${brl(e.baseCapitalBrl)}</span></div><div class="engine-meta"><div><span>Forward</span><strong>${e.newForwardHours||0}h</strong></div><div><span>Exposição</span><strong>${Number(e.grossExposurePct||0).toFixed(1).replace(".",",")}%</strong></div></div></article>`}
