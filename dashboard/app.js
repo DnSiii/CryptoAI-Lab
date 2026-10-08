@@ -3,7 +3,7 @@ const ENGINE_ORDER=["v13","v14","v15","v16","v99"];
 const COLORS={v13:"#93a4b8",v14:"#5f8cff",v15:"#a477ff",v16:"#35d6e8",v99:"#b7ff4a"};
 const LABELS={v13:"V13",v14:"V14",v15:"V15",v16:"V16",v99:"V99"};
 const DASHBOARD_TIMEZONE="America/Sao_Paulo";
-const state={data:null,view:"paper",selectedPaperEngine:"v99",selectedBacktest:new Set(ENGINE_ORDER),btDays:365};
+const state={data:null,view:"backtest",selectedPaperEngine:"v99",selectedBacktest:new Set(ENGINE_ORDER),btDays:365};
 const brl=(v,d=2)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:d,maximumFractionDigits:d});
 const pct=(v,d=2)=>`${Number(v||0)>=0?"+":""}${Number(v||0).toFixed(d).replace(".",",")}%`;
 const date=v=>v?new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:DASHBOARD_TIMEZONE}).format(new Date(v)):"—";
@@ -18,8 +18,47 @@ function localInputDate(value){const p=tzParts(value);return `${String(p.year).p
 function inputDateMs(value,endOfDay=false){if(!value)return null;const [year,month,day]=value.split("-").map(Number);return zonedMs(year,month,day,endOfDay?23:0,endOfDay?59:0,endOfDay?59:0)}
 async function fetchJson(url){const r=await fetch(`${url}${url.includes("?")?"&":"?"}t=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`${r.status} ${r.statusText}`);return r.json()}
 async function loadData(){try{return await fetchJson(REMOTE_DATA)}catch(e){console.warn("remote snapshot failed",e);return fetchJson("dashboard_data.json")}}
-function setView(id){state.view=id;document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===id));document.querySelector("#page-title").textContent=id==="paper"?"Visão Geral · Paper":"Visão Geral · Backtest";document.querySelector("#page-subtitle").textContent=id==="paper"?"O que os engines estão fazendo depois do boundary independente.":"Como os engines se comportaram no mesmo recorte histórico.";requestAnimationFrame(()=>id==="paper"?renderPaper():renderBacktest())}
-function bindNavigation(){document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)))}
+function setView(id){
+  if(!["backtest","paper","v99research","v98research"].includes(id))return;
+  state.view=id;
+  const candidate=(id==="backtest"||id==="paper");
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",
+    candidate ? b.dataset.view==="backtest" : b.dataset.view===id));
+  document.querySelectorAll("[data-candidate-tab]").forEach(b=>{
+    const selected=b.dataset.candidateTab===id;
+    b.classList.toggle("active",selected);
+    b.setAttribute("aria-pressed",String(selected));
+  });
+  const title=document.querySelector("#page-title"),subtitle=document.querySelector("#page-subtitle");
+  if(candidate){
+    if(title)title.textContent=id==="paper"?"Candidatos · Paper":"Candidatos · Backtest";
+    if(subtitle)subtitle.textContent=id==="paper"?
+      "Acompanhamento simulado dos cinco motores oficiais, sem misturar com a pesquisa independente.":
+      "Comparação histórica dos motores V13, V14, V15, V16 e V99 oficial.";
+    requestAnimationFrame(()=>{
+      if(id==="paper"){
+        renderPaper();
+        if(typeof renderPaperClassic==="function")renderPaperClassic();
+        if(typeof pcApplyPaperBranding==="function")pcApplyPaperBranding();
+      }else{
+        renderBacktest();
+        if(typeof applyBacktestBranding==="function")applyBacktestBranding();
+      }
+    });
+  }else{
+    if(title)title.textContent=id==="v98research"?"V98 · Independent Lab":"V99 · Research Lab";
+    if(subtitle)subtitle.textContent="Pesquisa separada dos candidatos oficiais, sem modificar os motores Frozen.";
+    requestAnimationFrame(()=>{
+      if(id==="v98research"&&window.V98Research)window.V98Research.render();
+    });
+  }
+}
+function bindNavigation(){
+  document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)));
+  document.querySelectorAll("[data-candidate-tab]").forEach(b=>
+    b.addEventListener("click",()=>setView(b.dataset.candidateTab)));
+}
 function paperEngines(){return ENGINE_ORDER.map(k=>state.data?.paper?.engines?.[k]).filter(Boolean)}
 function btEngine(k){return state.data?.backtest?.engines?.[k]}
 function paperCard(e){const badge=e.track==="v99"?"FROZEN":(e.role||"ENGINE");return `<article class="engine-card ${e.track} ${state.selectedPaperEngine===e.track?"selected":""}" data-paper-engine="${e.track}"><div class="engine-head"><div><small>${e.label} · ${e.role||"Engine"}</small><strong>${e.name}</strong></div><span class="tag">${badge}</span></div><div class="engine-roi ${cls(e.roiPct)}">${pct(e.roiPct)}</div><div class="engine-capital">${brl(e.currentCapitalBrl)} <span>de ${brl(e.baseCapitalBrl)}</span></div><div class="engine-meta"><div><span>Forward</span><strong>${e.newForwardHours||0}h</strong></div><div><span>Exposição</span><strong>${Number(e.grossExposurePct||0).toFixed(1).replace(".",",")}%</strong></div></div></article>`}
@@ -47,5 +86,5 @@ function renderBacktestCards(bounds,capital){const n=document.querySelector("#ba
 function renderBacktest(){if(!state.data?.backtest)return;const capital=Math.max(1,Number(document.querySelector("#bt-capital")?.value||10000)),bounds=btBounds();if(!bounds.start)return;renderBacktestCards(bounds,capital);const money=btSeries(bounds,"money",capital),perc=btSeries(bounds,"pct",capital),daily=btDailyRows(bounds),dd=ddSeries(bounds),pointCount=Math.max(1,...money.map(s=>s.points.length));ensureStage("#bt-money-stage",pointCount);ensureStage("#bt-pct-stage",pointCount);ensureStage("#bt-daily-stage",Math.max(1,daily.length),86);ensureStage("#bt-dd-stage",pointCount);renderLegend("#bt-money-legend",money);renderLegend("#bt-pct-legend",perc);renderLegend("#bt-daily-legend",money);renderLegend("#bt-dd-legend",dd);drawLineChart(document.querySelector("#bt-money-chart"),money,{money:true});drawLineChart(document.querySelector("#bt-pct-chart"),perc,{includeZero:true});drawBars(document.querySelector("#bt-daily-chart"),daily,[...state.selectedBacktest]);drawLineChart(document.querySelector("#bt-dd-chart"),dd,{includeZero:true});renderDailyTable("#bt-daily-table",daily)}
 function bindBacktest(){document.querySelectorAll(".preset").forEach(b=>b.addEventListener("click",()=>{state.btDays=Number(b.dataset.days);document.querySelectorAll(".preset").forEach(x=>x.classList.toggle("active",x===b));document.querySelector("#bt-start").value="";document.querySelector("#bt-end").value="";renderBacktest()}));document.querySelectorAll(".engine-toggle").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.engine;if(state.selectedBacktest.has(k)&&state.selectedBacktest.size>1)state.selectedBacktest.delete(k);else state.selectedBacktest.add(k);b.classList.toggle("active",state.selectedBacktest.has(k));renderBacktest()}));document.querySelector("#bt-capital")?.addEventListener("input",renderBacktest);document.querySelector("#bt-start")?.addEventListener("change",renderBacktest);document.querySelector("#bt-end")?.addEventListener("change",renderBacktest)}
 function initDates(){const times=ENGINE_ORDER.flatMap(k=>(btEngine(k)?.curve||[]).map(p=>new Date(p.time).getTime())).filter(Number.isFinite);if(!times.length)return;const end=Math.max(...times),start=end-state.btDays*86400000;document.querySelector("#bt-start").placeholder=localInputDate(start);document.querySelector("#bt-end").placeholder=localInputDate(end)}
-async function init(){try{state.data=await loadData();document.querySelector("#loading").style.display="none";document.querySelector("#runtime-text").textContent=`Snapshot ${dateTime(state.data.generatedAt)} · São Paulo`;document.querySelector("#footer-generated").textContent=`Atualizado ${dateTime(state.data.generatedAt)} · São Paulo`;bindNavigation();bindBacktest();initDates();renderPaper();window.addEventListener("resize",()=>state.view==="paper"?renderPaper():renderBacktest())}catch(e){console.error(e);document.querySelector("#loading").innerHTML=`<span class="error-dot"></span>Falha ao carregar os dados: ${e.message}`}}
+async function init(){try{state.data=await loadData();document.querySelector("#loading").style.display="none";document.querySelector("#runtime-text").textContent=`Snapshot ${dateTime(state.data.generatedAt)} · São Paulo`;document.querySelector("#footer-generated").textContent=`Atualizado ${dateTime(state.data.generatedAt)} · São Paulo`;bindNavigation();bindBacktest();initDates();renderBacktest();window.addEventListener("resize",()=>{if(state.view==="paper")renderPaper();else if(state.view==="backtest")renderBacktest()})}catch(e){console.error(e);document.querySelector("#loading").innerHTML=`<span class="error-dot"></span>Falha ao carregar os dados: ${e.message}`}}
 document.addEventListener("DOMContentLoaded",init);
