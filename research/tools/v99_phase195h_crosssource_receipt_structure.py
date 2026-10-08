@@ -19,7 +19,7 @@ def fetch(call,endpoint,method,params):
             'rpc_unavailable:'+method+':'+str(response.get('status')))
     return response['result']
 
-def validate(public_header,drpc_header,receipts,logs_by_topic):
+def validate(public_header,drpc_header,receipts,logs_by_topic,*,allow_missing_logs=False):
     require(isinstance(public_header,dict) and isinstance(drpc_header,dict),'header_type')
     for h in (public_header,drpc_header):
         require(g.qty(h['number'])==HEIGHT,'wrong_height')
@@ -51,15 +51,22 @@ def validate(public_header,drpc_header,receipts,logs_by_topic):
                     native[topic].append([i,next_log,tx.lower(),log['data'].lower()])
             next_log+=1
     require(last_gas==g.qty(drpc_header['gasUsed']),'block_gas_used_mismatch')
+    log_parity_proven=True
     for topic in g.TOPICS.values():
         rows=logs_by_topic.get(topic)
-        require(isinstance(rows,list),'missing_eth_getLogs')
+        if rows is None:
+            require(allow_missing_logs,'missing_eth_getLogs')
+            log_parity_proven=False
+            continue
+        require(isinstance(rows,list),'invalid_eth_getLogs_type')
         actual=[]
         for log in rows:
             require(log['address'].lower()==g.USDC and log['topics'][0].lower()==topic,'eth_getLogs_topic_mismatch')
             actual.append([g.qty(log['transactionIndex']),g.qty(log['logIndex']),log['transactionHash'].lower(),log['data'].lower()])
         require(actual==native[topic],'eth_getLogs_receipts_mismatch')
-    return {'status':'PROVISIONAL_CROSS_SOURCE_STRUCTURAL_MATCH_NOT_ROOT_PROOF',
+    return {'status':('PROVISIONAL_CROSS_SOURCE_STRUCTURAL_MATCH_NOT_ROOT_PROOF'
+                      if log_parity_proven else 'HOLD_LOG_TRANSPORT_UNVERIFIED'),
+            'eth_getLogs_parity_proven':log_parity_proven,
             'fixed_train_height':HEIGHT,'tx_count':len(txs),'receipt_count':len(receipts),
             'all_logs_count':next_log,
             'native_event_counts':{name:len(native[topic]) for name,topic in g.TOPICS.items()},
@@ -79,9 +86,18 @@ def run(call=g.rpc):
     a=fetch(call,public,'eth_getBlockByNumber',[hex(HEIGHT),False])
     b=fetch(call,drpc,'eth_getBlockByNumber',[hex(HEIGHT),False])
     receipts=fetch(call,drpc,'eth_getBlockReceipts',[hex(HEIGHT)])
-    logs={topic:fetch(call,drpc,'eth_getLogs',[{'address':g.USDC,'topics':[topic],
-        'fromBlock':hex(HEIGHT),'toBlock':hex(HEIGHT)}]) for topic in g.TOPICS.values()}
-    return validate(a,b,receipts,logs)
+    logs={};failures={}
+    for name,topic in g.TOPICS.items():
+        response=call(drpc,'eth_getLogs',[{'address':g.USDC,'topics':[topic],
+            'fromBlock':hex(HEIGHT),'toBlock':hex(HEIGHT)}])
+        if response.get('status')=='HTTP_200_RPC_RESULT':
+            logs[topic]=response['result']
+        else:
+            logs[topic]=None
+            failures[name]={k:v for k,v in response.items() if k!='result'}
+    out=validate(a,b,receipts,logs,allow_missing_logs=True)
+    out['eth_getLogs_transport_failures']=failures
+    return out
 
 def main():
     try: result=run()
@@ -91,5 +107,6 @@ def main():
                 'economic_trials':0,'holdout_accessed':False,'promotion_authorized':False}
         print(json.dumps(result,sort_keys=True));raise SystemExit(2)
     print(json.dumps(result,sort_keys=True))
+    if result['status'].startswith('HOLD_'): raise SystemExit(2)
 
 if __name__=='__main__': main()
