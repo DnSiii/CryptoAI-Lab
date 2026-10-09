@@ -1,0 +1,67 @@
+name: V98 Independent Phase243 Training Source Acquisition
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase243_source_acquisition.py'
+      - 'research/v98_independent/test_phase243_source_acquisition_ci.py'
+      - '.github/workflows/v98-independent-phase243-source-acquisition.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase243-training-sources
+  cancel-in-progress: false
+jobs:
+  source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas
+      - name: Offline synthetic source falsification (normal and optimized)
+        working-directory: research/v98_independent
+        env:
+          PYTHONHASHSEED: '1'
+        run: |
+          python -m unittest -q test_phase243_source_acquisition_ci test_phase243_archive_integrity_ci test_phase243_price_source_integrity
+          python -O -m unittest -q test_phase243_source_acquisition_ci test_phase243_archive_integrity_ci test_phase243_price_source_integrity
+      - name: Acquire only frozen training ZIPs and verify provider checksums
+        run: |
+          python research/v98_independent/phase243_source_acquisition.py \
+            --root research/v98_independent/phase243_archives \
+            --out research/v98_independent/phase243_acquisition_manifest.json \
+            --attempts 3
+      - name: Canonicalize independently and validate exact 744h warmup
+        run: |
+          python research/v98_independent/phase243_binance_archive_ingest.py \
+            --archive-root research/v98_independent/phase243_archives \
+            --output-root research/v98_independent/phase243_canonical_prices
+          python research/v98_independent/phase243_price_source_integrity.py \
+            --data-root research/v98_independent/phase243_canonical_prices \
+            --warmup-hours 744 \
+            --out research/v98_independent/phase243_price_source_integrity_results.json
+      - name: Validate V98-only native funding source
+        run: |
+          python research/v98_independent/phase243_funding_source_gate.py \
+            --funding-root research/v98_independent/data/phase206_funding \
+            --out research/v98_independent/phase243_funding_source_gate_results.json
+      - name: Preserve training-only originals, hashes, and source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase243-training-source-only
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            research/v98_independent/phase243_archives/
+            research/v98_independent/phase243_canonical_prices/
+            research/v98_independent/phase243_acquisition_manifest.json
+            research/v98_independent/phase243_price_source_integrity_results.json
+            research/v98_independent/phase243_funding_source_gate_results.json
