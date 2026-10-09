@@ -1,0 +1,3 @@
+# Phase195-AW — forward-paper independence addendum
+
+DATA_ONLY/HOLD; no promotion. Independently compared the 2026-10-09 20:00 UTC research paper artifact, common 560-hour window since 2026-09-16 13:00 UTC. R98, F7/F9 and F12 have **identical full equity curves and identical operation histories** (SHA-256 of canonical JSON agrees). F1 and F3 are distinct, so five displayed tracks represent only **three distinct realized forward trajectories**. The F7 `research_leader` label is historical research metadata, not independent forward outperformance or validation. Do not count these three matching curves as independent corroboration. Frozen, holdout and dashboard champion unchanged.
