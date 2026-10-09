@@ -7,6 +7,8 @@ on:
       - 'research/v98_independent/test_phase243_inventory_isolation.py'
       - 'research/v98_independent/phase243_sell_residual_conservation.py'
       - 'research/v98_independent/test_phase243_sell_residual_conservation_smoke.py'
+      - 'research/v98_independent/phase243_binance_archive_ingest.py'
+      - 'research/v98_independent/test_phase243_archive_integrity_ci.py'
       - '.github/workflows/v98-independent-phase243-integrity.yml'
   workflow_dispatch:
 permissions:
@@ -25,9 +27,9 @@ jobs:
         working-directory: research/v98_independent
         env:
           PYTHONHASHSEED: '1'
-        run: python -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_price_source_integrity
+        run: python -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_archive_integrity_ci test_phase243_price_source_integrity
       - name: Optimized deterministic V98-only checks
         working-directory: research/v98_independent
         env:
           PYTHONHASHSEED: '777'
-        run: python -O -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_price_source_integrity
+        run: python -O -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_archive_integrity_ci test_phase243_price_source_integrity
