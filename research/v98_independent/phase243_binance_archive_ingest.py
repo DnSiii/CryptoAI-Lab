@@ -85,7 +85,7 @@ def _parse_month(zip_path: Path, asset: str, month: str):
     expected = pd.date_range(month+'-01', periods=1, tz='UTC')
     next_month = expected[0] + pd.offsets.MonthBegin(1)
     hours = pd.date_range(expected[0], next_month-pd.Timedelta(hours=1),freq='h')
-    expected_ms = (hours.asi8 // 1_000_000).astype(np.int64)
+    expected_ms = (hours.as_unit('ns').asi8 // 1_000_000).astype(np.int64)
     observed_ms = (ts / (scale/1000)).astype(np.int64)
     if len(observed_ms) != len(hours) or not np.array_equal(observed_ms, expected_ms):
         raise ValueError(f'{name}: missing/duplicate/shifted hourly bar or wrong month')

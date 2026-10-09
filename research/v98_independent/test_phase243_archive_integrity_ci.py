@@ -14,7 +14,7 @@ class ArchiveGateTests(unittest.TestCase):
         self.tmp.cleanup()
     def fixture(self, corrupt=False):
         idx=pd.date_range('2023-01-01T00:00:00Z', '2023-01-31T23:00:00Z', freq='h')
-        ts=idx.asi8//1000000
+        ts=idx.as_unit('ns').asi8//1000000
         df=pd.DataFrame({'open_time':ts,'open':100.,'high':101.,'low':99.,
             'close':100.5,'volume':10.,'close_time':ts+3599999,
             'quote_volume':1000.,'trade_count':50,'taker_buy_base':9.9 if corrupt else 5.,
