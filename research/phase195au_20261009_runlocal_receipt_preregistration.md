@@ -1,0 +1,9 @@
+# V99 Phase195-AU — run-local provenance receipt preregistration (2026-10-09)
+
+Status: DATA_ONLY/HOLD; no promotion, no holdout selection, no V16/V99 Frozen modification.
+
+Observed GitHub Actions official paper run 37986881482 failed on `Verify published history was not rewritten` with `Published equity_curve was rewritten; recovery publication blocked`. Run 37988144660 was still in progress when inspected; running is not success. The 37959807730 research artifact contains only state, snapshot, and ledger; no exact run-local `state/paper_v15_universe.json` or `reports/paper_data_sync_v15.json`. Its paper latest timestamp is 2026-10-09T15:00:00Z, whereas the durable manifest was last updated 2026-10-01. It is scientifically invalid to substitute that older manifest as proof of per-symbol availability for the October 9 run.
+
+Preregister: capture the exact same-run public manifest and sync receipt bytes (including SHA-256 and UTC clock consistency) in a research-ledger provenance section. Audit retained operations against the run-local symbol eligibility/discovery timestamps using decision-time t-1; quarantine unknown symbols, absent receipts, mismatched hashes, and malformed timestamps. The metadata receipt is NOT an authenticated source-first-seen record or immutable OHLC/funding snapshot. Its passing cannot promote a candidate. Keep pre-paper backtest, untouched holdout, forward paper, and current frontier distinct.
+
+Independent next experiment remains a train-only, pre-registered 2x2 comparison: legacy vs PIT-admission-masked universe, crossed with REST-updated vs immutable funding on identical source bytes; compare prefix invariance, decisions, tails, regimes, temporal folds and severe/supersevere costs. Do not repair or overwrite historical paper rows. Dashboard champion history stays unchanged until independently validated improvement.
