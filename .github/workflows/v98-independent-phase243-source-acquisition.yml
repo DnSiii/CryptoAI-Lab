@@ -53,11 +53,11 @@ jobs:
             --funding-root research/v98_independent/data/phase206_funding \
             --out research/v98_independent/phase243_funding_source_gate_results.json
       - name: Preserve training-only originals, hashes, and source evidence
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: v98-phase243-training-source-only
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
           path: |
             research/v98_independent/phase243_archives/
