@@ -1,0 +1,33 @@
+name: V98 Independent Phase243 Integrity
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase243_evidence_inventory.py'
+      - 'research/v98_independent/test_phase243_inventory_isolation.py'
+      - 'research/v98_independent/phase243_sell_residual_conservation.py'
+      - 'research/v98_independent/test_phase243_sell_residual_conservation_smoke.py'
+      - '.github/workflows/v98-independent-phase243-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas
+      - name: Normal deterministic V98-only checks
+        working-directory: research/v98_independent
+        env:
+          PYTHONHASHSEED: '1'
+        run: python -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_price_source_integrity
+      - name: Optimized deterministic V98-only checks
+        working-directory: research/v98_independent
+        env:
+          PYTHONHASHSEED: '777'
+        run: python -O -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_price_source_integrity
