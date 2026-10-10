@@ -26,6 +26,44 @@ class ArchiveGateTests(unittest.TestCase):
         rows,manifest=_parse_month(self.path,'BTCUSDT','2023-01')
         self.assertEqual(len(rows),744)
         self.assertEqual(len(manifest['archive_sha256']),64)
+    def _with_header(self, header, *, bom=False):
+        self.fixture()
+        with zipfile.ZipFile(self.path,'r') as z:
+            raw=z.read('BTCUSDT-1h-2023-01.csv')
+        prefix=b'\xef\xbb\xbf' if bom else b''
+        with zipfile.ZipFile(self.path,'w',compression=zipfile.ZIP_DEFLATED) as z:
+            z.writestr('BTCUSDT-1h-2023-01.csv',prefix+(','.join(header)+'\n').encode()+raw)
+
+    def test_usdm_historical_header(self):
+        header=('open_time','open','high','low','close','volume','close_time',
+                'quote_asset_volume','count','taker_buy_volume','taker_buy_quote_volume','ignore')
+        self._with_header(header)
+        rows,ev=_parse_month(self.path,'BTCUSDT','2023-01')
+        self.assertEqual(len(rows),744)
+        self.assertTrue(ev['header_present'])
+
+    def test_usdm_quote_volume_header_with_bom(self):
+        header=('open_time','open','high','low','close','volume','close_time',
+                'quote_volume','count','taker_buy_volume','taker_buy_quote_volume','ignore')
+        self._with_header(header,bom=True)
+        rows,ev=_parse_month(self.path,'BTCUSDT','2023-01')
+        self.assertEqual(len(rows),744)
+        self.assertTrue(ev['header_present'])
+
+    def test_usdm_header_reordering_rejected(self):
+        header=('open_time','open','high','low','close','volume','close_time',
+                'quote_asset_volume','taker_buy_volume','count','taker_buy_quote_volume','ignore')
+        self._with_header(header)
+        with self.assertRaisesRegex(ValueError,'unrecognized or reordered CSV header'):
+            _parse_month(self.path,'BTCUSDT','2023-01')
+
+    def test_usdm_unknown_header_rejected(self):
+        header=('open_time','open','high','low','close','volume','close_time',
+                'quote_asset_volume','count','mystery','taker_buy_quote_volume','ignore')
+        self._with_header(header)
+        with self.assertRaisesRegex(ValueError,'unrecognized or reordered CSV header'):
+            _parse_month(self.path,'BTCUSDT','2023-01')
+
     def test_invalid_seller(self):
         self.fixture(corrupt=True)
         with self.assertRaisesRegex(ValueError,'seller VWAP'):

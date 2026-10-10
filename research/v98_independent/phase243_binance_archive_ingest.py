@@ -53,14 +53,26 @@ def _parse_month(zip_path: Path, asset: str, month: str):
         raise ValueError(f'{name}: oversized decoded CSV')
     if not raw_csv or b'\x00' in raw_csv:
         raise ValueError(f'{name}: empty/binary CSV')
-    first = raw_csv.splitlines()[0].split(b',')[0].strip().strip(b'"').lower()
-    has_header = first in (b'open_time', b'opentime')
+    # BOM may prefix an otherwise exact provider header; do not treat it as data.
+    first = raw_csv.splitlines()[0].split(b',')[0].decode('utf-8-sig').strip().strip('"').lower()
+    has_header = first in ('open_time', 'opentime')
     # Do not allow arbitrary headers, silently dropped lines, or unknown schema.
     d = pd.read_csv(io.BytesIO(raw_csv), header=0 if has_header else None,
                     dtype=str, keep_default_na=False, on_bad_lines='error')
     if has_header:
         hdr = tuple(x.strip().strip('\"').lower() for x in raw_csv.splitlines()[0].decode('utf-8-sig').split(','))
-        allowed = (COLUMNS, ('open_time','open','high','low','close','volume','close_time','quote_asset_volume','number_of_trades','taker_buy_base_asset_volume','taker_buy_quote_asset_volume','ignore'))
+        # Historical USD-M 1h ZIPs also use count/taker_buy_volume labels.
+        # Exact positional allowlist: reject unknown/reordered schemas.
+        provider_tail = ('count','taker_buy_volume','taker_buy_quote_volume','ignore')
+        provider_prefix = ('open_time','open','high','low','close','volume','close_time')
+        allowed = (
+            COLUMNS,
+            ('open_time','open','high','low','close','volume','close_time',
+             'quote_asset_volume','number_of_trades','taker_buy_base_asset_volume',
+             'taker_buy_quote_asset_volume','ignore'),
+            provider_prefix + ('quote_asset_volume',) + provider_tail,
+            provider_prefix + ('quote_volume',) + provider_tail,
+        )
         if hdr not in allowed:
             raise ValueError(f'{name}: unrecognized or reordered CSV header')
     if d.shape[1] != len(COLUMNS):
