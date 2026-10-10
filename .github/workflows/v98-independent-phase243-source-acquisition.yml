@@ -67,3 +67,13 @@ jobs:
             research/v98_independent/phase243_acquisition_manifest.json
             research/v98_independent/phase243_price_source_integrity_results.json
             research/v98_independent/phase243_funding_source_gate_results.json
+
+      - name: Preserve rejected-source originals even on failure (V98-only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase243-rejected-source-forensic
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            research/v98_independent/phase243_archives/quarantine/
