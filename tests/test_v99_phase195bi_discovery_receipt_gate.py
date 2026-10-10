@@ -2,7 +2,7 @@ import copy
 import unittest
 from scripts.v99_phase195bi_discovery_receipt_gate import audit, first_safe_hour, strict_json, utc
 
-def dynamic(discovered="2026-10-10T10:11:55+00:00", eligible="2026-10-10T11:00:00+00:00"):
+def dynamic(discovered="2026-10-10T10:11:55+00:00", eligible="2026-10-10T12:00:00+00:00"):
     return {"source": "dynamic_binance_discovery", "start_month": "2026-06",
             "onboard_date": "2026-06-01T00:00:00+00:00",
             "discovered_at_utc": discovered, "eligible_after_timestamp": eligible}
@@ -14,7 +14,7 @@ def snap(symbols, new=(), decisions=()):
 class TestDiscoveryReceipt(unittest.TestCase):
     def test_strictly_after_receipt(self):
         self.assertEqual(first_safe_hour("2026-10-10T10:00:00Z").isoformat(),
-                         "2026-10-10T11:00:00+00:00")
+                         "2026-10-10T12:00:00+00:00")
     def test_valid_append_is_observation_only(self):
         r = audit(snap({}), snap({"AAA": dynamic()}, ["AAA"]))
         self.assertEqual(r["status"], "OBSERVED_ONLY_NOT_CERTIFIED")
@@ -34,8 +34,12 @@ class TestDiscoveryReceipt(unittest.TestCase):
         event = {"timestamp": "2026-10-10T10:00:00Z", "adjustments": [{"symbol": "AAA"}]}
         r = audit(snap({}), snap({"AAA": dynamic()}, ["AAA"], [event]))
         self.assertEqual(len(r["premature_observed_actions"]), 1)
-    def test_safe_observed_action_not_certification(self):
+    def test_next_hour_not_full_post_discovery_bar(self):
         event = {"timestamp": "2026-10-10T11:00:00Z", "adjustments": [{"symbol": "AAA"}]}
+        r = audit(snap({}), snap({"AAA": dynamic()}, ["AAA"], [event]))
+        self.assertEqual(len(r["premature_observed_actions"]), 1)
+    def test_safe_observed_action_not_certification(self):
+        event = {"timestamp": "2026-10-10T12:00:00Z", "adjustments": [{"symbol": "AAA"}]}
         r = audit(snap({}), snap({"AAA": dynamic()}, ["AAA"], [event]))
         self.assertFalse(r["premature_observed_actions"])
         self.assertFalse(r["publication_authorized"])

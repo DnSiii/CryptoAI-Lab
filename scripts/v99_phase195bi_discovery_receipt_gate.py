@@ -22,8 +22,9 @@ def utc(value):
 
 
 def first_safe_hour(receipt):
+    """Conservative t-1: require a full post-discovery bar to close."""
     t = utc(receipt)
-    return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=2)
 
 
 def strict_json(raw):
