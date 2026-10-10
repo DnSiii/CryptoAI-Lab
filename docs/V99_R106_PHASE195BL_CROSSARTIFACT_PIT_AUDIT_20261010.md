@@ -1,0 +1,7 @@
+# Phase195-BL — cross-artifact MINAUSDT point-in-time conflict (2026-10-10)
+
+**DATA_ONLY/HOLD, not a proven exchange-time causal violation.** Paired V99 research ledgers (published vs run 38032784420, created 06:58 UTC) contain 13 new-only MINAUSDT operations in F1 and 7 in F3, dated 2026-09-28 through 2026-10-08. The corresponding 1500-row operation logs are capped: F1 1283 changed shared operations, F3 1379. R98/F7/F12 have zero changed shared operations. These observations explain why the new candidate cannot be treated as an immutable forward paper record.
+
+Three later independent official V15 archives record MINAUSDT as dynamic discovery at 10:11:55, 10:23:46, and 10:35:25 UTC on 2026-10-10, each with eligibility retroactively set to 09:00 UTC. These **later** snapshots are NOT authenticated proof of the original as-of receipt in the earlier V99 run. They do establish that the recorded first-seen field is being reissued. Twelve symbols have changing first-seen receipts across the three official snapshots.
+
+The read-only cross-artifact script reports potential temporal conflicts but never authorizes publication or promotion. Before any replay, obtain immutable original first-observed receipts for V99 and V15, freeze source hashes and market universe, and rerun paired funding/universe counterfactuals under t-1, chronological train-only selection, temporal folds, severe/supersevere costs, regime matrix and benchmark envelope. Keep historical paper prefix, holdout, V16 Frozen, V99 Frozen and public champion unchanged.
