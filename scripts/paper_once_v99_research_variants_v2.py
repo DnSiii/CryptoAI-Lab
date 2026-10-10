@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 import paper_once_v99_research_variants as base
+from v99_phase195bj_paper_publication_guard import enforce_published
 
 PROJECT = Path(__file__).resolve().parents[1]
 MAX_OPERATIONS = 1500
@@ -158,6 +159,8 @@ def main() -> None:
         "backtest_reference": backtest_reference,
         "disclosure": "Backtest curves are frozen historical replays of the five preselected research versions; paper curves contain only observations after the shared boundary.",
     }
+    # Fail closed before writing ANY candidate state/ledger to disk.
+    enforce_published(ledger)
     base.write_json(base.STATE_PATH, state)
     base.write_json(base.SNAPSHOT_PATH, state)
     base.write_json(base.LEDGER_PATH, ledger)
