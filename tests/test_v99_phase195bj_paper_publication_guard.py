@@ -119,6 +119,10 @@ class TestPhase195BJ(unittest.TestCase):
         with self.assertRaises(ValueError):
             strict_json('{"bad":NaN}')
 
+    def test_duplicate_json_keys(self):
+        with self.assertRaises(ValueError):
+            strict_json('{"paper_start_after_timestamp":"valid","paper_start_after_timestamp":"altered"}')
+
     def test_nonfinite_exponent(self):
         with self.assertRaises(ValueError):
             strict_json('{"bad":1e999}')

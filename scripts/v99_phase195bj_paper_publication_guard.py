@@ -18,7 +18,14 @@ MAX_OPERATIONS = 1500
 def strict_json(raw):
     def reject(value):
         raise ValueError("nonfinite JSON constant " + value)
-    result = json.loads(raw, parse_constant=reject)
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON key: " + key)
+            result[key] = value
+        return result
+    result = json.loads(raw, parse_constant=reject, object_pairs_hook=unique)
     def walk(value):
         if isinstance(value, float) and not math.isfinite(value):
             raise ValueError("nonfinite numeric value")
