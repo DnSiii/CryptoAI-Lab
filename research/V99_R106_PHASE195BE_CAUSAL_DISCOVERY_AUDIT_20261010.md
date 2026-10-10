@@ -1,0 +1,2 @@
+# Phase195-BE — DATA_ONLY/HOLD (2026-10-10)
+Read-only audit of official runs 38030666709 and 38031446874: 173 symbols, 125 dynamic first-seen receipts not causally authenticated; eight discovery timestamps changed across runs. 403 V15 decision rows / 1,285 adjustments inspected; zero unsafe dynamic adjustments observed in that partial window. F3 research paper is historically mutable and top 72h block accounts for 116.05% of its paired log-excess vs R98. No champion promotion, no frozen engine or holdout changes. See local Phase195-BE evidence package for SHA-256 and tests.
