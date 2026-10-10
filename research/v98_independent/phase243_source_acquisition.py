@@ -76,6 +76,32 @@ def _fetch_with_retry(getter, url: str, cap: int, *, attempts: int = 3, sleeper=
     raise RuntimeError('unreachable transport retry state')
 
 
+def _quarantine_rejected_checksum_verified(root: Path, asset: str, month: str,
+                                          raw: bytes, sidecar_bytes: bytes,
+                                          error: Exception) -> None:
+    """Preserve checksum-matching rejected originals outside the verified input grid."""
+    name = f'{asset}-1h-{month}.zip'
+    folder = root / 'quarantine' / asset / month
+    digest = hashlib.sha256(raw).hexdigest()
+    metadata = {'engine': 'V98 Independent', 'phase': 243, 'asset': asset,
+                'month': month, 'archive_sha256': digest,
+                'source_authentication': 'provider checksum sidecar; not a signature',
+                'validation': 'REJECTED_NO_ALPHA', 'holdout_accessed': False,
+                'promotion_eligible': False, 'error_type': type(error).__name__,
+                'error': str(error)[:1200]}
+    contents = ((folder / name, raw),
+                (folder / (name + '.CHECKSUM'), sidecar_bytes),
+                (folder / 'rejection.json',
+                 (json.dumps(metadata, sort_keys=True, indent=2) + '\n').encode()))
+    for path, payload in contents:
+        _inside(root, path)
+        if path.exists():
+            if not path.is_file() or path.read_bytes() != payload:
+                raise ValueError('quarantine immutable evidence conflict')
+        else:
+            _atomic(path, payload)
+
+
 def acquire_one(root: Path, asset: str, month: str, *, getter=_download,
                 attempts: int = 3, sleeper=time.sleep) -> dict:
     if asset not in ASSETS or month not in MONTHS:
@@ -100,12 +126,16 @@ def acquire_one(root: Path, asset: str, month: str, *, getter=_download,
         raw = _fetch_with_retry(getter, url, MAX_MEMBER_BYTES, attempts=attempts, sleeper=sleeper)
         if hashlib.sha256(raw).hexdigest() != digest:
             raise ValueError('ZIP does not match publisher checksum')
-    with tempfile.TemporaryDirectory(prefix='v98_source_parse_') as tmp:
-        candidate = Path(tmp) / name
-        candidate.write_bytes(raw)
-        rows, evidence = _parse_month(candidate, asset, month)
-    if evidence['archive_sha256'] != digest:
-        raise ValueError('parse/source SHA256 divergence')
+    try:
+        with tempfile.TemporaryDirectory(prefix='v98_source_parse_') as tmp:
+            candidate = Path(tmp) / name
+            candidate.write_bytes(raw)
+            rows, evidence = _parse_month(candidate, asset, month)
+            if evidence['archive_sha256'] != digest:
+                raise ValueError('parse/source SHA256 divergence')
+    except Exception as exc:
+        _quarantine_rejected_checksum_verified(root, asset, month, raw, check, exc)
+        raise
     for p in (path, sidecar):
         _inside(root, p)
     if not cache_ok:
