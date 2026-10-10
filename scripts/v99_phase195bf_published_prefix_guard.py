@@ -15,6 +15,8 @@ def strict_index(rows):
             raise ValueError('UTC required')
         if last is not None and t <= last:
             raise ValueError('duplicate or unordered equity timestamps')
+        if last is not None and t - last != timedelta(hours=1):
+            raise ValueError('non-hourly equity gap')
         last = t
         out[row['timestamp']] = row
     return out

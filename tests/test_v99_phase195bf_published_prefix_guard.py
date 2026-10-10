@@ -26,6 +26,9 @@ class PrefixGuardTests(unittest.TestCase):
         self.assertEqual(audit(fixture(missing=True))['status'],'DATA_ONLY_HOLD')
     def test_duplicate_fails(self):
         with self.assertRaises(ValueError):strict_index([{'timestamp':'2026-10-01T16:00:00Z'}]*2)
+    def test_hour_gap_fails(self):
+        with self.assertRaises(ValueError):strict_index([{'timestamp':'2026-10-01T16:00:00Z'},
+                                                         {'timestamp':'2026-10-01T18:00:00Z'}])
     def test_naive_timestamp_fails(self):
         with self.assertRaises(ValueError):strict_index([{'timestamp':'2026-10-01T16:00:00'}])
 
