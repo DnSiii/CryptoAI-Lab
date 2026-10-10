@@ -64,6 +64,19 @@ class ArchiveGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'unrecognized or reordered CSV header'):
             _parse_month(self.path,'BTCUSDT','2023-01')
 
+    def test_quote_volume_violation_has_bounded_source_witness(self):
+        self.fixture()
+        with zipfile.ZipFile(self.path,'r') as z:
+            raw=z.read('BTCUSDT-1h-2023-01.csv')
+        lines=raw.decode().splitlines()
+        first=lines[0].split(',')
+        first[7]='2000'
+        lines[0]=','.join(first)
+        with zipfile.ZipFile(self.path,'w',compression=zipfile.ZIP_DEFLATED) as z:
+            z.writestr('BTCUSDT-1h-2023-01.csv','\n'.join(lines)+'\n')
+        with self.assertRaisesRegex(ValueError,'row=0 .*base=10 .*quote=2000 .*violations=1'):
+            _parse_month(self.path,'BTCUSDT','2023-01')
+
     def test_invalid_seller(self):
         self.fixture(corrupt=True)
         with self.assertRaisesRegex(ValueError,'seller VWAP'):

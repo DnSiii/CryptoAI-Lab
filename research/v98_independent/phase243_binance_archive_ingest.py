@@ -116,8 +116,17 @@ def _parse_month(zip_path: Path, asset: str, month: str):
     tol = 1e-9 * np.maximum.reduce([o,h,l,c])
     if np.any(h+tol < np.maximum(o,c)) or np.any(l-tol > np.minimum(o,c)) or np.any(h+tol < l):
         raise ValueError(f'{name}: invalid OHLC geometry')
-    if np.any(q < v*l - 1e-6*np.maximum(1,q)) or np.any(q > v*h + 1e-6*np.maximum(1,q)):
-        raise ValueError(f'{name}: quote/base VWAP units inconsistent')
+    lower = v*l - 1e-6*np.maximum(1,q)
+    upper = v*h + 1e-6*np.maximum(1,q)
+    bad_vwap = (q < lower) | (q > upper)
+    if np.any(bad_vwap):
+        j = int(np.flatnonzero(bad_vwap)[0])
+        raise ValueError(
+            f'{name}: quote/base VWAP units inconsistent; row={j} '
+            f'open_time={d.open_time.iloc[j]} base={v[j]:.17g} '
+            f'quote={q[j]:.17g} low={l[j]:.17g} high={h[j]:.17g} '
+            f'lower={lower[j]:.17g} upper={upper[j]:.17g} '
+            f'violations={int(np.sum(bad_vwap))}')
     if np.any(tb > v + 1e-6*np.maximum(1,v)) or np.any(tq > q + 1e-6*np.maximum(1,q)):
         raise ValueError(f'{name}: taker-buy exceeds total traded volume')
     # No executed base volume can generate nonzero quote turnover; likewise
