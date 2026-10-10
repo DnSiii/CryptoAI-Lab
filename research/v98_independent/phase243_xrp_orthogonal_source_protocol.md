@@ -1,0 +1,3 @@
+# Phase243 XRP source triangulation execution protocol
+
+Read-only, training-only V98 Independent. Compare authenticated Binance XRPUSDT monthly 1h 2023-11, daily 1h 2023-11-14, and daily 1m 2023-11-14. Preserve original ZIP and CHECKSUM SHA256. Require all 1440 minute bars and 24 hourly bars, independently validate quote/base VWAP and chronology, aggregate 11:00–11:59 UTC, and classify conflict without changing any source row. No 2026+ data, V99, V16, alpha evaluation, or champion promotion. If source conflict, block Phase243 pending provenance-preserving decision. This protocol adds no new experiment selection criteria.
