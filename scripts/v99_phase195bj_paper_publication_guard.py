@@ -104,6 +104,10 @@ def audit(old, new):
         if next(iter(p)) != boundary or next(iter(q)) != boundary:
             raise ValueError(name + ": paper must start at boundary")
         faults = []
+        stable_fields = ("track", "label", "name", "status", "base_capital_brl",
+                         "paper_start_after_timestamp", "effective_base_timestamp")
+        if any(before.get(field) != after.get(field) for field in stable_fields):
+            faults.append("variant_identity_or_status_changed")
         missing = set(p)-set(q)
         changed = [t for t in p.keys() & q.keys() if p[t] != q[t]]
         if missing:
@@ -116,8 +120,8 @@ def audit(old, new):
         after_boundary = sum(t >= boundary for t in h) + sum(t >= boundary for t in k)
         if after_boundary:
             faults.append("forward_mislabeled_as_backtest:" + str(after_boundary))
-        if h != k:
-            faults.append("historical_backtest_changed")
+        if old["backtest_reference"][name] != new["backtest_reference"][name]:
+            faults.append("historical_backtest_or_metrics_changed")
         op, oq = operations(before.get("operations", [])), operations(after.get("operations", []))
         if len(op) >= MAX_OPERATIONS or len(oq) >= MAX_OPERATIONS:
             faults.append("operations_capped_unverifiable")

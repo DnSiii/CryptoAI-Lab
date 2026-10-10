@@ -67,8 +67,22 @@ class TestPhase195BJ(unittest.TestCase):
     def test_historical_rewrite(self):
         b = extended()
         b["backtest_reference"]["f1"]["curve"][0]["equity_multiple"] = 2
-        self.assertIn("historical_backtest_changed",
+        self.assertIn("historical_backtest_or_metrics_changed",
                       audit(fixture(), b)["variants"]["f1"])
+
+    def test_historical_roi_metadata_tamper(self):
+        a, b = fixture(), extended()
+        a["backtest_reference"]["f3"]["historicalRoiPct"] = 123
+        b["backtest_reference"]["f3"]["historicalRoiPct"] = 999999
+        self.assertIn("historical_backtest_or_metrics_changed",
+                      audit(a, b)["variants"]["f3"])
+
+    def test_rejected_status_relabel_tamper(self):
+        a, b = fixture(), extended()
+        a["variants"]["f1"]["status"] = "research_rejected"
+        b["variants"]["f1"]["status"] = "champion"
+        self.assertIn("variant_identity_or_status_changed",
+                      audit(a, b)["variants"]["f1"])
 
     def test_operations_rewrite(self):
         b = extended()
