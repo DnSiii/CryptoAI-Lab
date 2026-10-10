@@ -1,0 +1,3 @@
+# V98 Independent Phase243 — harvested quarantine
+
+GitHub run 38053620316 uploaded artifact 11670362663 after the expected source-integrity rejection. Original November 2023 XRPUSDT 1h ZIP SHA256: `29b7a4a3b9360f7b3be131af6b1fd619f18e7344eea99b5c964e955e667027a7`, matching its provider checksum sidecar. Independent Decimal replay across all 720 hourly bars found one offending bar (2023-11-14 11:00 UTC): total quote/base VWAP 0.827506448 exceeds high 0.6556; seller residual VWAP 1.028386156 is also impossible, while taker-buy VWAP 0.651013509 is within bounds. Source remains rejected, no alpha, no champion, holdout untouched. Next: daily 1h/1m independent witness.
