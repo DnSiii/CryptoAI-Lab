@@ -14,14 +14,14 @@ import re
 import zipfile
 from phase243_source_acquisition import _download, _fetch_with_retry, _inside, _atomic
 
-ROOT = Path('research/v98_independent')
+ROOT = Path(__file__).resolve().parent
 URLS = {
     'monthly_1h': 'https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/1h/XRPUSDT-1h-2023-11.zip',
     'daily_1h': 'https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2023-11-14.zip',
     'daily_1m': 'https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1m/XRPUSDT-1m-2023-11-14.zip',
 }
 CAP = 12_000_000
-CHECKSUM = re.compile(rb'([0-9a-fA-F]{64})[ \t]+\\*?([^\\s]+)[\\r\\n]*\\Z')
+CHECKSUM = re.compile(rb'([0-9a-fA-F]{64})[ \t]+\*?([^\s]+)[\r\n]*\Z')
 
 
 def capture(root: Path, *, getter=_download, sleeper=None) -> dict:
@@ -40,10 +40,14 @@ def capture(root: Path, *, getter=_download, sleeper=None) -> dict:
             if sleeper is not None:
                 kwargs['sleeper'] = sleeper
             sidecar = _fetch_with_retry(getter, url + '.CHECKSUM', 2048, **kwargs)
+            if not isinstance(sidecar, bytes) or not 0 < len(sidecar) <= 2048:
+                raise ValueError(f'{key}: invalid checksum response size')
             match = CHECKSUM.fullmatch(sidecar)
             if not match or match.group(2) != name.encode('ascii'):
                 raise ValueError(f'{key}: invalid publisher checksum sidecar')
             raw = _fetch_with_retry(getter, url, CAP, **kwargs)
+            if not isinstance(raw, bytes) or not 0 < len(raw) <= CAP:
+                raise ValueError(f'{key}: invalid ZIP response size')
             digest = hashlib.sha256(raw).hexdigest()
             if digest != match.group(1).decode('ascii').lower():
                 raise ValueError(f'{key}: checksum mismatch')
@@ -65,6 +69,7 @@ def capture(root: Path, *, getter=_download, sleeper=None) -> dict:
                 'archive_sha256': digest,
                 'member_sha256': hashlib.sha256(member).hexdigest(),
                 'bytes': len(raw), 'checksum_verified': True,
+                'source_authentication': 'provider checksum; not a digital signature',
                 'schema_and_economic_validity': 'NOT_YET_ADJUDICATED'}
         result['status'] = 'CAPTURED_UNADJUDICATED_NO_ALPHA'
     except Exception as exc:
@@ -78,7 +83,7 @@ def capture(root: Path, *, getter=_download, sleeper=None) -> dict:
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--out', default='research/v98_independent/phase243_xrp_daily_source_capture')
+    p.add_argument('--out', default=str(ROOT / 'phase243_xrp_daily_source_capture'))
     a = p.parse_args()
     report = capture(Path(a.out))
     print(json.dumps({'status': report['status'], 'sources': len(report['sources']),
