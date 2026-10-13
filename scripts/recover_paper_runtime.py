@@ -49,7 +49,9 @@ def main(continue_chain: bool = False) -> None:
         envelope = json.loads(gh("api", f"repos/{repo}/contents/reports/paper_runtime_status.json?ref=paper-results"))
         payload = json.loads(base64.b64decode(envelope["content"]))
         stale = heartbeat_stale(payload, now)
-        publication_age = (now-timestamp(payload["heartbeat_at_utc"])).total_seconds()/60
+        ages = [(now-timestamp(payload["heartbeat_at_utc"])).total_seconds()/60]
+        ages += [(now-timestamp(t)).total_seconds()/60 for t in payload.get("latest_official_timestamps", {}).values()]
+        publication_age = max(ages)
     except (KeyError, ValueError, subprocess.SubprocessError) as error:
         print(f"heartbeat_unavailable={error}; recovery required")
         stale = True

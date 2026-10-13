@@ -109,3 +109,22 @@ def test_successful_cycle_continues_chain_with_fresh_heartbeat(monkeypatch):
     monkeypatch.setattr(recovery, "gh", fake_gh)
     recovery.main(continue_chain=True)
     assert any(args[:2] == ("workflow", "run") for args in calls)
+
+
+def test_active_retry_does_not_hide_stale_official_data(monkeypatch):
+    import base64,json
+    import pytest
+    import recover_paper_runtime as recovery
+    from datetime import datetime,timezone
+    now=datetime.now(timezone.utc)
+    payload={'heartbeat_at_utc':now.isoformat(),'latest_official_timestamps':{
+        v:'2026-09-16T14:00:00Z' for v in ('v13','v14','v15','v16','v99')}}
+    monkeypatch.setenv('GITHUB_REPOSITORY','owner/repo')
+    def fake_gh(*args):
+        if 'contents/' in args[-1]:
+            return json.dumps({'content':base64.b64encode(json.dumps(payload).encode()).decode()})
+        run={'id':71,'status':'in_progress','created_at':now.isoformat()}
+        return json.dumps([{'workflow_runs':[run] if 'status=in_progress' in args[-1] else []}])
+    monkeypatch.setattr(recovery,'gh',fake_gh)
+    with pytest.raises(RuntimeError,match='stale'):
+        recovery.main()
