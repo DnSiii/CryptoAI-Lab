@@ -2,9 +2,11 @@ name: CryptoAI dashboard refresh
 
 on:
   workflow_run:
-    workflows: ["CryptoAI multi-engine paper refresh", "V99 five-variant research paper refresh"]
+    workflows: ["V99 five-variant research paper refresh"]
     types: [completed]
   workflow_dispatch:
+  schedule:
+    - cron: "13,43 * * * *"
   push:
     branches: [main]
     paths:

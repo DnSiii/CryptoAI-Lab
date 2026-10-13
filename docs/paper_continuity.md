@@ -9,3 +9,5 @@ Legacy files did not contain the full internal execution state. The one-time mig
 A catch-up longer than three hours is marked RETROSPECTIVE_GAP_RECOVERY, with its old boundary, new boundary and computation time. An independent forward validation boundary is recorded at migration/catch-up time. These catch-up hours are not uninterrupted contemporaneous forward evidence.
 
 The freshness monitor checks actual published timestamps and reports a failed check if publication remains stale for over three hours, even when retries are active. Missing market hours, held symbols or changed execution parameters stop publication. Repeated execution of the same hour is idempotent. No real orders are enabled.
+
+The official paper explicitly dispatches its dashboard after every successful publication. The dashboard also has a twice-hourly fallback schedule; frontend refresh does not rely exclusively on completion-event chaining.

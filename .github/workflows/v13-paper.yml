@@ -288,6 +288,11 @@ jobs:
             git -C "$results_dir" push origin HEAD:paper-results
           fi
 
+      - name: Refresh dashboard after successful official publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run cryptoai-dashboard.yml --repo "$GITHUB_REPOSITORY" --ref main
+
       - name: Queue the next paper refresh
         if: always()
         # GitHub's cron scheduler is best-effort. Each paper cycle queues its
