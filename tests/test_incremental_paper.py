@@ -134,3 +134,6 @@ def test_ledger_append_is_idempotent_and_reconciles_asset_attribution(tmp_path,m
     again=build_ledger(d,t,repeated,d.close.index[0],'test')
     assert again['equity_curve']==new['equity_curve']
     assert again['summary']==new['summary']
+    assert again['assets']==new['assets']
+    assert again['candles']==new['candles']
+    assert len(new['candles']['BTCUSDT'])==len(d.close)

@@ -65,9 +65,37 @@ def main(continue_chain: bool = False) -> None:
         return [run for run in result if str(run["id"]) != os.environ.get("GITHUB_RUN_ID")]
 
     current = runs()
-    expired = [run for run in current if classify_run(run, now) == "expired"]
+    runtime_paths = ("src/cryptoai_v13/paper_execution.py", "scripts/paper_continuation.py", "scripts/paper_once_v13_incremental.py")
+    def signature(ref):
+        parts = []
+        for path in runtime_paths:
+            try:
+                parts.append(json.loads(gh("api", f"repos/{repo}/contents/{path}?ref={ref}"))["sha"])
+            except subprocess.CalledProcessError as error:
+                if "HTTP 404" not in error.output:
+                    raise
+                parts.append("missing")
+        return tuple(parts)
+    obsolete = []
+    if any(run.get("head_sha") for run in current):
+        latest_signature = signature("main")
+        signatures = {}
+        for run in current:
+            head = run.get("head_sha")
+            if not head:
+                continue
+            if head not in signatures:
+                signatures[head] = signature(head)
+            if signatures[head] != latest_signature:
+                # Publication is short and must finish atomically before cancellation.
+                jobs = json.loads(gh("api", f"repos/{repo}/actions/runs/{run['id']}/jobs"))["jobs"]
+                publishing = any(step.get("name") == "Publish durable paper results" and step.get("status") == "in_progress"
+                                 for job in jobs for step in job.get("steps", []))
+                if not publishing:
+                    obsolete.append(run)
+    expired = [run for run in current if classify_run(run, now) == "expired" or run in obsolete]
     for run in expired:
-        print(f"Cancelling expired official paper run {run['id']} ({run['status']}, created {run['created_at']})")
+        print(f"Cancelling expired or obsolete official paper run {run['id']} ({run['status']}, created {run['created_at']})")
         try:
             gh("api", "--method", "POST", f"repos/{repo}/actions/runs/{run['id']}/cancel")
         except subprocess.CalledProcessError as error:

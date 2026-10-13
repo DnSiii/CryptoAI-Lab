@@ -149,6 +149,10 @@ def merge_ledger(old, segment, execution_state):
             latest['inherited_at_paper_start'] = prior.get('inherited_at_paper_start', False)
         assets[symbol] = latest
     new['assets'] = assets
+    candles = copy.deepcopy(old.get('candles', {}))
+    for symbol, rows in segment.get('candles', {}).items():
+        candles[symbol] = (candles.get(symbol, [])+[r for r in rows if r['timestamp'] > cutoff])[-240:]
+    new['candles'] = candles
     summary = scaled(segment['summary'])
     for key in amounts:
         summary[key] = round(old['summary'].get(key, 0.0)+summary.get(key, 0.0), 2)

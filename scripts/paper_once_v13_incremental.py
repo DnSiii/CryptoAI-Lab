@@ -433,6 +433,11 @@ def build_ledger(data, targets, result, paper_start, candidate):
         return ledger
     old = result.paper_baseline
     cutoff = pd.Timestamp(old["latest_data_timestamp"])
+    if data.close.index[-1] == cutoff:
+        import copy
+        ledger = copy.deepcopy(old)
+        ledger["execution_checkpoint"] = result.execution_state
+        return ledger
     segment = _build_ledger_replay(data, targets, result, cutoff, candidate)
     return merge_ledger(old, segment, result.execution_state)
 

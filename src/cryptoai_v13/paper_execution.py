@@ -266,6 +266,7 @@ def exact_fast(data: FuturesData, targets: pd.DataFrame,
         drawdown_guard_until = int(initial_state["guard_remaining_hours"])
         ruined = bool(initial_state.get("ruined", False))
         position_values[0] = weights
+        open_position_values[0] = weights
         for c, value in initial_state.get("last_prices", {}).items():
             if c in columns:
                 close_values = close_values.copy()
