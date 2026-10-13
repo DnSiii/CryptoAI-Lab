@@ -118,9 +118,17 @@ async function pcRenderOperations(){
 }
 function pcSyncFilters(){document.querySelectorAll("[data-pc-engine]").forEach(b=>b.classList.toggle("active",b.dataset.pcEngine===pcSelectedEngine))}
 function pcBindFilters(){document.querySelectorAll("[data-pc-engine]").forEach(b=>b.addEventListener("click",()=>{pcSelectedEngine=b.dataset.pcEngine;pcSyncFilters();pcEngineCards();pcRenderOperations()}));pcSyncFilters()}
+function pcPublicationHealth(engines, now=Date.now()){
+  const list=Object.values(engines||{}),times=list.map(e=>Date.parse(e.latest));
+  const latest=times.length&&times.every(Number.isFinite)?Math.min(...times):0;
+  return{latest,fresh:latest>0&&now-(latest+3600000)<=90*60000,hasRecovery:list.some(e=>(e.continuity?.segments||[]).length>0)};
+}
 function renderPaperClassic(){
   if(!state?.data?.paper)return;pcSummary();pcEngineCards();pcAnalysis();pcRenderCharts();pcRenderTable();pcRenderOperations();
-  const status=document.querySelector("#pc-live-status"),note=document.querySelector("#pc-live-note");if(status)status.textContent="PAPER ATUALIZADO";if(note)note.textContent=`Snapshot ${pcTime(state.data.generatedAt)} · São Paulo`;
+  const health=pcPublicationHealth(state.data.paper.engines);
+  const status=document.querySelector("#pc-live-status"),note=document.querySelector("#pc-live-note");
+  if(status){status.textContent=health.fresh?"PAPER ATUALIZADO":"PAPER ATRASADO";status.style.color=health.fresh?"":"#ef4444"}
+  if(note)note.textContent=`Último dado oficial: ${health.latest?pcTime(health.latest):"indisponível"} · São Paulo.${health.hasRecovery?" Histórico inclui intervalos recuperados retrospectivamente; esses intervalos não são paper contínuo observado em tempo real.":""}`;
 }
 function pcApplyPaperBranding(){
   document.title="CryptoAI · Candidatos · Paper";const k=document.querySelector("#page-title"),s=document.querySelector("#page-subtitle"),kick=document.querySelector(".top-kicker"),foot=document.querySelector(".footer span:first-child");
