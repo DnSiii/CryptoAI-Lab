@@ -1,0 +1,3 @@
+# V98 Independent — native funding timestamp audit (2026-10-13)
+
+On 2023-2025 training data, each of BTC, ETH, BNB, SOL and XRP has 3,288 funding events; the complete raw millisecond timestamp vectors are identical across all five. Each asset has 2,234 events exactly on the 8h grid and 1,054 at +1 to +29 ms. All are unique, monotone, and native interval=8h. Exact grid joins omit 32.06% of events; accounting-slot rounding recovers them but must NOT be used to make those rates available to a decision at the earlier grid time. Source authenticity remains pending. No strategy or holdout evaluation.
