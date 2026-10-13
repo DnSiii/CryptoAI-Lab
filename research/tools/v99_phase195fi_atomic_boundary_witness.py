@@ -107,8 +107,15 @@ def inspect(universe, sync, ledgers, snapshots=None):
         if not isinstance(ledger, dict):
             warnings.append(name+':ledger_not_object')
             continue
-        if ledger.get('mode') != 'PAPER_ONLY' or ledger.get('real_orders_enabled') is not False:
+        if ledger.get('mode') != 'PAPER_ONLY':
             warnings.append(name+':paper_only_required')
+        order_flag = ledger.get('real_orders_enabled', None)
+        # Seven legacy ledger schemas omit this flag; the companion snapshot
+        # explicitly carries it. Never treat missing as evidence of True or
+        # as authorization: insist on a false snapshot flag in that case.
+        if order_flag is True or (order_flag is not False and
+                (snapshots is None or snapshots[name].get('real_orders_enabled') is not False)):
+            warnings.append(name+':real_orders_not_proven_disabled')
         try:
             end = hour(ledger.get('latest_data_timestamp'))
         except (ValueError, TypeError, OverflowError) as exc:
