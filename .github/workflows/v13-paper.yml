@@ -302,7 +302,7 @@ jobs:
           if [ "$PREVIOUS_RESULT" != "success" ]; then
             # Prevent an infrastructure or test failure from creating a tight
             # retry loop while still recovering much faster than an hourly cron.
-            sleep 300
+            sleep 60
           fi
           # gh workflow run v13-paper.yml is dispatched only after excluding expired queues.
           python scripts/recover_paper_runtime.py --continue-chain

@@ -113,6 +113,7 @@ def test_operational_executor_matches_frozen_strategy_before_checkpoint():
 
 def test_ledger_append_is_idempotent_and_reconciles_asset_attribution(tmp_path,monkeypatch):
     import paper_continuation as continuation
+    monkeypatch.setattr(continuation, "PROJECT", tmp_path)
     from paper_once_v13_incremental import build_ledger
     d=market();t=d.close*0+.8
     first_data=trim(d,d.close.index[:26]);first=exact_fast(first_data,t)
