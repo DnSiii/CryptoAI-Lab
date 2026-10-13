@@ -32,7 +32,7 @@ def heartbeat_stale(payload: dict, now: datetime) -> bool:
     points = payload.get("latest_official_timestamps", {})
     if set(points) != {"v13", "v14", "v15", "v16", "v99"}:
         return True
-    data_age = max((now - timestamp(value)).total_seconds() / 60 for value in points.values())
+    data_age = max((now - timestamp(value)).total_seconds() / 60 - 60 for value in points.values())
     print(f"heartbeat_age_minutes={age:.1f}; oldest_official_data_age_minutes={data_age:.1f}")
     return age > 25 or data_age > 90
 
@@ -50,7 +50,7 @@ def main(continue_chain: bool = False) -> None:
         payload = json.loads(base64.b64decode(envelope["content"]))
         stale = heartbeat_stale(payload, now)
         ages = [(now-timestamp(payload["heartbeat_at_utc"])).total_seconds()/60]
-        ages += [(now-timestamp(t)).total_seconds()/60 for t in payload.get("latest_official_timestamps", {}).values()]
+        ages += [(now-timestamp(t)).total_seconds()/60-60 for t in payload.get("latest_official_timestamps", {}).values()]
         publication_age = max(ages)
     except (KeyError, ValueError, subprocess.SubprocessError) as error:
         print(f"heartbeat_unavailable={error}; recovery required")

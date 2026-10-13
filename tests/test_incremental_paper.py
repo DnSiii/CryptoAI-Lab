@@ -80,7 +80,7 @@ def test_merge_preserves_old_points_and_decisions_exactly():
 def test_v99_component_checkpoints_preserve_monthly_transfers(monkeypatch):
     from cryptoai_v13.v99_paper_execution import FrozenV99Result, combine_dynamic_results
     from paper_continuation import continue_frozen
-    d=market(900);pt=d.close*0+.8;st=d.close*0-.3
+    d=market(1600);pt=d.close*0+.8;st=d.close*0-.3
     params={'cost_per_side':.001}
     parent=exact_fast(d,pt,**params);sat=exact_fast(d,st,**params)
     desired=pd.Series(.1,index=d.close.index)
