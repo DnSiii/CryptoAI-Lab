@@ -44,10 +44,12 @@ def gh(*args: str) -> str:
 def main(continue_chain: bool = False) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     now = datetime.now(timezone.utc)
+    publication_age = None
     try:
         envelope = json.loads(gh("api", f"repos/{repo}/contents/reports/paper_runtime_status.json?ref=paper-results"))
         payload = json.loads(base64.b64decode(envelope["content"]))
         stale = heartbeat_stale(payload, now)
+        publication_age = (now-timestamp(payload["heartbeat_at_utc"])).total_seconds()/60
     except (KeyError, ValueError, subprocess.SubprocessError) as error:
         print(f"heartbeat_unavailable={error}; recovery required")
         stale = True
@@ -93,6 +95,9 @@ def main(continue_chain: bool = False) -> None:
         print("Dispatched official paper recovery. Publication freshness is not yet confirmed.")
     else:
         print("Official paper heartbeat and data are fresh.")
+
+    if not continue_chain and publication_age is not None and publication_age > 180:
+        raise RuntimeError(f"Official paper publication has been stale for {publication_age:.0f} minutes. An active retry is not evidence of healthy publication.")
 
 
 if __name__ == "__main__":

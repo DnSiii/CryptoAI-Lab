@@ -8,7 +8,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 def test_v99_is_frozen_forward_only_and_orderless() -> None:
     config = json.loads((PROJECT / "config" / "candidate_v99_asymmetric.json").read_text())
-    runner = (PROJECT / "scripts" / "paper_once_v99.py").read_text()
+    runner = (PROJECT / "scripts" / "paper_once_v99_incremental.py").read_text()
     assert config["mode"] == "PAPER_ONLY"
     assert config["real_orders"] is False
     assert config["strict_research_gate"] == "BACKTEST_VALIDATED_FORWARD_PENDING"
@@ -44,11 +44,11 @@ def test_v99_frozen_module_has_consensus_and_persistence_contract() -> None:
 def test_paper_workflow_runs_and_publishes_v99_without_removing_existing_tracks() -> None:
     workflow = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
     for required in (
-        "paper_once_v13.py",
-        "paper_once_v14.py",
-        "paper_once_v15.py",
-        "paper_once_v16.py",
-        "paper_once_v99.py",
+        "paper_once_v13_incremental.py",
+        "paper_once_v14_incremental.py",
+        "paper_once_v15_incremental.py",
+        "paper_once_v16_incremental.py",
+        "paper_once_v99_incremental.py",
         "verify_v99_cycle.py",
         "paper_v99_state.json",
         "paper_v99_ledger.json",

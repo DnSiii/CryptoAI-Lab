@@ -33,7 +33,7 @@ class OpportunityPaperTests(unittest.TestCase):
 
     def test_workflow_runs_and_publishes_all_comparison_tracks(self) -> None:
         workflow = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
-        self.assertIn("paper_once_opportunity_v1.py", workflow)
+        self.assertIn("paper_once_opportunity_v1_incremental.py", workflow)
         self.assertIn("verify_opportunity_cycle_v1.py", workflow)
         for name in (
             "paper_core_comparison_v1_ledger.json",
@@ -44,7 +44,7 @@ class OpportunityPaperTests(unittest.TestCase):
             self.assertIn(name, workflow)
 
     def test_runner_has_no_exchange_order_method(self) -> None:
-        source = (PROJECT / "scripts" / "paper_once_opportunity_v1.py").read_text()
+        source = (PROJECT / "scripts" / "paper_once_opportunity_v1_incremental.py").read_text()
         for forbidden in ("create_order", "create_market_order", "apiKey", "secret"):
             self.assertNotIn(forbidden, source)
 

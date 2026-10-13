@@ -18,14 +18,14 @@ class V14PaperTests(unittest.TestCase):
         self.assertTrue(config["objective"]["no_return_ceiling"])
 
     def test_runner_has_no_exchange_order_method(self) -> None:
-        source = (PROJECT / "scripts" / "paper_once_v14.py").read_text()
+        source = (PROJECT / "scripts" / "paper_once_v14_incremental.py").read_text()
         for forbidden in ("create_order", "create_market_order", "apiKey", "secret"):
             self.assertNotIn(forbidden, source)
 
     def test_workflow_runs_and_publishes_v14(self) -> None:
         source = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
         for value in (
-            "paper_once_v14.py",
+            "paper_once_v14_incremental.py",
             "verify_v14_cycle.py",
             "paper_v14_state.json",
             "paper_v14_ledger.json",

@@ -98,13 +98,13 @@ class V15PaperTests(unittest.TestCase):
         self.assertEqual([row["symbol"] for row in selected], ["GOODUSDT"])
 
     def test_runner_and_workflow_keep_v15_paper_only(self) -> None:
-        runner = (PROJECT / "scripts" / "paper_once_v15.py").read_text()
+        runner = (PROJECT / "scripts" / "paper_once_v15_incremental.py").read_text()
         for forbidden in ("create_order", "create_market_order", "apiKey", "secret"):
             self.assertNotIn(forbidden, runner)
         workflow = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
         for value in (
             "sync_paper_data_v15.py",
-            "paper_once_v15.py",
+            "paper_once_v15_incremental.py",
             "verify_v15_cycle.py",
             "paper_v15_state.json",
             "paper_v15_ledger.json",

@@ -11,7 +11,7 @@ def test_v16_paper_is_independent_experimental_and_orderless() -> None:
     config = json.loads(
         (PROJECT / "config" / "candidate_v16_experimental_balanced_relaxed.json").read_text()
     )
-    runner = (PROJECT / "scripts" / "paper_once_v16.py").read_text()
+    runner = (PROJECT / "scripts" / "paper_once_v16_incremental.py").read_text()
     assert config["mode"] == "PAPER_ONLY"
     assert config["real_orders"] is False
     assert config["strict_research_gate"] == "REJECTED"
@@ -35,10 +35,10 @@ def test_v16_paper_freezes_the_balanced_relaxed_candidate() -> None:
 def test_workflow_runs_and_publishes_v16_without_removing_existing_tracks() -> None:
     workflow = (PROJECT / ".github" / "workflows" / "v13-paper.yml").read_text()
     for required in (
-        "paper_once_v13.py",
-        "paper_once_v14.py",
-        "paper_once_v15.py",
-        "paper_once_v16.py",
+        "paper_once_v13_incremental.py",
+        "paper_once_v14_incremental.py",
+        "paper_once_v15_incremental.py",
+        "paper_once_v16_incremental.py",
         "verify_v16_cycle.py",
         "paper_v16_state.json",
         "paper_v16_ledger.json",
