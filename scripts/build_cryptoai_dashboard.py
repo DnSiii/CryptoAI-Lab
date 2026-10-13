@@ -234,6 +234,7 @@ def paper_payload(engine: str) -> dict:
             "candidate", ledger.get("candidate", meta["name"])
         ),
         "status": snapshot.get("status", "pending"),
+        "continuity": ledger.get("continuity", {}),
         "paperStart": snapshot.get(
             "paper_start_after_timestamp", ledger.get("paper_start_after_timestamp")
         ),

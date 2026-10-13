@@ -132,6 +132,7 @@ def paper_payload() -> dict:
         "track": "v13",
         "candidate": snapshot.get("candidate", ledger.get("candidate", META["name"])),
         "status": snapshot.get("status", "pending"),
+        "continuity": ledger.get("continuity", {}),
         "paperStart": snapshot.get(
             "paper_start_after_timestamp", ledger.get("paper_start_after_timestamp")
         ),
