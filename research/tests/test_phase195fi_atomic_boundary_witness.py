@@ -104,7 +104,20 @@ class BoundaryWitness(unittest.TestCase):
 
     def test_wrong_trade_mode(self):
         x=fixture();x[2]['v16']['real_orders_enabled']=True
-        self.assertIn('v16:paper_only_required',verdict(*x)['boundary_issues'])
+        self.assertIn('v16:real_orders_not_proven_disabled',verdict(*x)['boundary_issues'])
+
+    def test_legacy_ledger_missing_flag_companion_snapshot_false(self):
+        x=fixture();del x[2]['v14']['real_orders_enabled']
+        self.assertFalse(verdict(*x)['boundary_issues'])
+
+    def test_legacy_ledger_missing_flag_no_companion_fails_closed(self):
+        x=fixture();del x[2]['v14']['real_orders_enabled']
+        self.assertIn('v14:real_orders_not_proven_disabled',
+                      witness.inspect(x[0],x[1],x[2])['boundary_issues'])
+
+    def test_snapshot_true_flag_always_rejected(self):
+        x=fixture();x[3]['v15']['real_orders_enabled']=True
+        self.assertIn('v15:snapshot_not_paper_only',verdict(*x)['boundary_issues'])
 
     def test_capture_timestamp_too_early(self):
         x=fixture();x[1]['generated_at_utc']=H1
