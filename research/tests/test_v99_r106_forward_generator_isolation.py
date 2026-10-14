@@ -156,7 +156,7 @@ class TestFullForwardOperationEvidence(unittest.TestCase):
         first_write=text.index("    base.write_json(base.STATE_PATH, state)")
         self.assertLess(gate,first_write)
         self.assertNotIn("operations[-MAX_OPERATIONS:]",text)
-        self.assertIn('daily_backtest_curve(result, paper_start, p1.TRAIN_END)',text)
+        self.assertIn('daily_backtest_curve(result, paper_start, base.p1.TRAIN_END)',text)
 
 
 if __name__=="__main__":unittest.main()
