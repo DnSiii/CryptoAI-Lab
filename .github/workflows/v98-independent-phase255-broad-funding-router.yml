@@ -1,0 +1,79 @@
+name: V98 Independent Phase255 Broad Funding Router
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase255-broad-funding-router.yml'
+      - 'research/v98_independent/phase255_broad_funding_router.py'
+      - 'research/v98_independent/test_phase255_broad_funding_router.py'
+      - 'research/v98_independent/phase255_broad_funding_router_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase255-broad-funding-router
+  cancel-in-progress: false
+jobs:
+  training:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Restore/save authenticated Clean-4 archive cache
+        uses: ./.github/actions/v98-independent-clean4-cache
+      - name: Phase255 causality and invariant tests
+        run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase255_broad_funding_router.py
+      - name: Rebuild and revalidate authenticated Clean-4 training source
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute frozen Phase255 twice
+        run: |
+          python research/v98_independent/phase255_broad_funding_router.py --out /tmp/phase255_a.json
+          python research/v98_independent/phase255_broad_funding_router.py --out /tmp/phase255_b.json
+          cmp /tmp/phase255_a.json /tmp/phase255_b.json
+          cp /tmp/phase255_a.json research/v98_independent/phase255_broad_funding_router_results.json
+      - name: Enforce Phase255 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase255_broad_funding_router_results.json'))
+          assert p['phase']==255
+          assert p['training_only'] is True and p['validation'] is None
+          assert p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['parameters']['funding_window_hours']==168
+          assert p['parameters']['breadth_required']==3
+          assert p['parameters']['sleeve_per_asset']==0.0625
+          assert p['parameters']['core_per_asset']==0.25
+          assert p['parameters']['system_gross_cap']==1.25
+          assert p['gate']['decision'] in {'BROAD_FUNDING_ROUTER_CANDIDATE','REJECT_BROAD_FUNDING_ROUTER_NO_RESCUE'}
+          assert p['diagnostics']['max_open_gross']<=1.250000001
+          assert p['router_activity']['routed_active_hour_ratio'] < p['router_activity']['phase252_active_hour_ratio']
+          print('Phase255',p['gate']['decision'])
+          PY
+      - name: Commit Phase255 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase255_broad_funding_router_results.json
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase255: record Broad Funding Router evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - name: Upload Phase255 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase255-broad-funding-router-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase255_broad_funding_router_results.json
