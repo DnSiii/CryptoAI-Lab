@@ -23,9 +23,8 @@ def daily_backtest_curve(result, paper_start: pd.Timestamp) -> list[dict]:
         return []
     idx = pd.DatetimeIndex(equity.index)
     if idx.tz is None:
-        idx = idx.tz_localize("UTC")
-    else:
-        idx = idx.tz_convert("UTC")
+        raise ValueError("equity index must carry explicit UTC timezone")
+    idx = idx.tz_convert("UTC")
     cutoff = pd.Timestamp(paper_start)
     if cutoff.tzinfo is None:
         raise ValueError("explicit timezone required for paper boundary")
