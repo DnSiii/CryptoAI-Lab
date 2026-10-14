@@ -47,6 +47,20 @@ class InventoryIsolationTests(unittest.TestCase):
         r = {x['phase']:x['status'] for x in inventory(self.root)['phases']}
         self.assertEqual(r, {200:'rejected',201:'unknown'})
 
+    def test_nested_gate_is_structured_evidence(self):
+        self.put('reports/v98_independent_phase081_results.json',
+                 '{"training_gate":{"decision":"PASS_TRAINING_FREEZE_FOR_VALIDATION"}}')
+        self.put('reports/v98_independent_phase082_results.json',
+                 '{"validation_gate":{"decision":"PASS_VALIDATION"}}')
+        r = {x['phase']:x['status'] for x in inventory(self.root)['phases']}
+        self.assertEqual(r, {81:'training_pass',82:'validation_pass'})
+
+    def test_reject_token_aliases_are_exact(self):
+        self.assertEqual(classify('Status: **REJECT_NO_RESCUE**'), 'rejected')
+        self.assertEqual(classify('Status: REJECT_VALIDATION_NO_RESCUE'), 'rejected')
+        self.assertEqual(classify('{"training_gate":{"decision":"REJECT_FAMILY_NO_RESCUE"}}',
+                                  suffix='.json'), 'rejected')
+
     def test_conflicting_status_is_unresolved(self):
         self.put('reports/v98_independent_phase100_decision.md', 'Status: PROMOTED')
         self.put('reports/v98_independent_phase100_audit.md', 'Status: REJECTED')
