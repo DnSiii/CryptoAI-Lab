@@ -12,13 +12,16 @@ on:
       - '.github/workflows/v98-independent-phase243-integrity.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   integrity:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
@@ -33,3 +36,39 @@ jobs:
         env:
           PYTHONHASHSEED: '777'
         run: python -O -m unittest -q test_phase243_inventory_isolation test_phase243_sell_residual_conservation_smoke test_phase243_archive_integrity_ci test_phase243_price_source_integrity
+      - name: Build V98-only evidence inventory
+        run: python research/v98_independent/phase243_evidence_inventory.py
+      - name: Enforce inventory firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase243_evidence_inventory.json'))
+          assert p['engine']=='V98 Independent'
+          assert p['phase']==243 and p['mode']=='EVIDENCE_INVENTORY_NO_PNL'
+          assert p['external_benchmarks_read'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          for row in p['phases']:
+              for path in row['files']:
+                  low=path.lower()
+                  assert 'v99' not in low and 'v16' not in low and 'v15' not in low and 'v14' not in low
+          print('inventory phases',p['phase_count'])
+          PY
+      - name: Commit inventory evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase243_evidence_inventory.json
+          if git diff --cached --quiet; then
+            echo no-inventory-change
+          else
+            git commit -m "v98 phase243: persist V98-only evidence inventory"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - name: Upload inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase243-evidence-inventory-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase243_evidence_inventory.json
