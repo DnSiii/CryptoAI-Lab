@@ -1,0 +1,146 @@
+{
+  "access": "all-access",
+  "agent": "user",
+  "alpha_executed": false,
+  "asset_article_mapping": {
+    "BNBUSDT": "BNB_Smart_Chain_(blockchain_platform)",
+    "BTCUSDT": "Bitcoin",
+    "ETHUSDT": "Ethereum",
+    "SOLUSDT": "Solana_(blockchain_platform)"
+  },
+  "asset_stats": {
+    "BNBUSDT": {
+      "coverage": 0.07755474452554745,
+      "duplicates": 0,
+      "first_date": "2025-10-08",
+      "last_date": "2025-12-31",
+      "max_gap_days": 0,
+      "nonnegative_integer_views": true,
+      "rows": 85,
+      "unique_days": 85
+    },
+    "BTCUSDT": {
+      "coverage": 1.0,
+      "duplicates": 0,
+      "first_date": "2023-01-01",
+      "last_date": "2025-12-31",
+      "max_gap_days": 0,
+      "nonnegative_integer_views": true,
+      "rows": 1096,
+      "unique_days": 1096
+    },
+    "ETHUSDT": {
+      "coverage": 1.0,
+      "duplicates": 0,
+      "first_date": "2023-01-01",
+      "last_date": "2025-12-31",
+      "max_gap_days": 0,
+      "nonnegative_integer_views": true,
+      "rows": 1096,
+      "unique_days": 1096
+    },
+    "SOLUSDT": {
+      "coverage": 1.0,
+      "duplicates": 0,
+      "first_date": "2023-01-01",
+      "last_date": "2025-12-31",
+      "max_gap_days": 0,
+      "nonnegative_integer_views": true,
+      "rows": 1096,
+      "unique_days": 1096
+    }
+  },
+  "crypto_price_join": false,
+  "decision": "FAIL_DATA_NO_ALPHA",
+  "direction_selected": false,
+  "engine": "V98 Independent",
+  "expected_days_per_asset": 1096,
+  "gates": {
+    "all_fixed_mappings_present": true,
+    "all_requests_succeeded": false,
+    "coverage_ge_99pct_each": false,
+    "end_boundary_each": true,
+    "no_duplicate_asset_date": true,
+    "no_gap_gt_3_days_each": true,
+    "response_hashes_recorded": false,
+    "start_boundary_each": false,
+    "training_boundary_enforced": true,
+    "views_nonnegative_integer": true
+  },
+  "granularity": "daily",
+  "holdout_accessed": false,
+  "kind": "DATA_ONLY_PUBLIC_ATTENTION",
+  "normalized_csv_sha256": "c2d9ca96685e3b4d7794d4f3759c6e5cb2ecafd5bbcb989eddd3d2c9fd556a9d",
+  "normalized_rows": 3373,
+  "parameter_search": false,
+  "period_utc": [
+    "2023-01-01",
+    "2025-12-31"
+  ],
+  "phase": 257,
+  "phase083_selection_use": false,
+  "pnl_executed": false,
+  "preregistration": "research/v98_independent/phase257_wikimedia_attention_prereg.md",
+  "project": "en.wikipedia.org",
+  "request_errors": {
+    "BNBUSDT:2023": "HTTPError: HTTP Error 404: Not Found",
+    "BNBUSDT:2024": "HTTPError: HTTP Error 404: Not Found"
+  },
+  "request_hashes": {
+    "BNBUSDT:2025": {
+      "raw_bytes": 14592,
+      "raw_sha256": "ee4ee123916a8226c7f1c795ddc1368df3348b6c5c85ac5e0a5cd95d7af90d08",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/BNB_Smart_Chain_%28blockchain_platform%29/daily/2025010100/2025123100"
+    },
+    "BTCUSDT:2023": {
+      "raw_bytes": 52574,
+      "raw_sha256": "242a6462623b32e67ba065e6a9e7c29e0a6aeded16ac252f5f1daae0b887de1e",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/2023010100/2023123100"
+    },
+    "BTCUSDT:2024": {
+      "raw_bytes": 52780,
+      "raw_sha256": "bfbbedf074b647344bf7c7f851e457ff7074b9b0ee5c1ea72342fb89c4019121",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/2024010100/2024123100"
+    },
+    "BTCUSDT:2025": {
+      "raw_bytes": 52581,
+      "raw_sha256": "ebc6ea804ec8e3f5e31581749db20e50a9f384d8a308a1e8a556f1aea1addcf2",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/2025010100/2025123100"
+    },
+    "ETHUSDT:2023": {
+      "raw_bytes": 52868,
+      "raw_sha256": "88dc2d2bf409fddb9d4a1eb43d2ebd1b6198230e75f55d77a7bfc2e9e3e90d45",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Ethereum/daily/2023010100/2023123100"
+    },
+    "ETHUSDT:2024": {
+      "raw_bytes": 53072,
+      "raw_sha256": "17f52a6c7ebd33e929d11e60a82136e1f0fa11fdad14f752cfad5fe39deae218",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Ethereum/daily/2024010100/2024123100"
+    },
+    "ETHUSDT:2025": {
+      "raw_bytes": 52901,
+      "raw_sha256": "20ca578cb828cd8491c57d19c3d58bf97310f13eeb06e79c6a6859079c429867",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Ethereum/daily/2025010100/2025123100"
+    },
+    "SOLUSDT:2023": {
+      "raw_bytes": 59882,
+      "raw_sha256": "f1cbbd67c3a20f5d8c2d73bfe5464ae1b72d126d13489509ee7add93f96f0354",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Solana_%28blockchain_platform%29/daily/2023010100/2023123100"
+    },
+    "SOLUSDT:2024": {
+      "raw_bytes": 60112,
+      "raw_sha256": "22b2d5b508db00ebf9d87dbaf1121eff5ea9982d9d58922959bb70e1b4e5ab53",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Solana_%28blockchain_platform%29/daily/2024010100/2024123100"
+    },
+    "SOLUSDT:2025": {
+      "raw_bytes": 59965,
+      "raw_sha256": "b0f286199d145db3c34af88630e805a3cfbfe901c418a8202461f68c15cae398",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Solana_%28blockchain_platform%29/daily/2025010100/2025123100"
+    }
+  },
+  "source": "Wikimedia Pageviews REST API",
+  "v14_used": false,
+  "v15_used": false,
+  "v99_used": false,
+  "validation_accessed": false
+}
