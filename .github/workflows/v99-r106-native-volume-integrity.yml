@@ -59,6 +59,26 @@ jobs:
           assert d['promotion_authorized'] is False
           print('25 confirmed source bars verified; DATA_ONLY, no trading')
           PY
+      - name: Independently reparse native contract and funding notice raw bytes
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from research.tools import v99_r106_okx_terms_asof as native
+          root=Path(os.environ['RUNNER_TEMP'])/'v99-r106-immutable-receipts'/'receipts'/'v99_r106_okx_terms'/'2026-10-14T20'
+          manifest=json.loads((root/'manifest.json').read_text())
+          assert len(manifest['contracts'])==5
+          for inst,entry in sorted(manifest['contracts'].items()):
+              original_contract={'raw':(root/('metadata_'+inst+'.raw.json')).read_bytes()}
+              original_funding={'raw':(root/('funding_'+inst+'.raw.json')).read_bytes(),
+                                'received_utc':entry['funding_received_utc']}
+              assert native.verify_contract(original_contract,inst)==entry['contract']
+              assert native.verify_current_funding(original_funding,inst)==entry['funding_notice']
+          assert manifest['funding_cashflows_settled_and_pit_authenticated'] is False
+          assert manifest['paper_publication_authorized'] is False
+          print('Five raw native contract and forecast receipts semantically reconciled; DATA_ONLY')
+          PY
       - name: Preserve read-only integrity result
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
