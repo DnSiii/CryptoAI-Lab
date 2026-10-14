@@ -48,3 +48,18 @@ It displays **“PAPER EXPERIMENTAL EM QUARENTENA”** and **“SIMULAÇÃO · N
 4. Run preregistered TRAIN-only replay, severe/supersevere costs, temporal folds, regimes, benchmark envelope, tails/DD/concentration, reproducibility. Promote only if the frozen candidate objectively passes all relevant gates.
 
 **Research leader is still R106 F7/F9 Core. F1/F3's larger numbers from the stale/capped paper do not supersede the recorded scientific rejections.**
+
+
+## Independently executed current-paper witness (later in the same cycle)
+
+- New read-only witness source: `research/tools/v99_r106_published_epoch_witness.py`.
+- New adversarial tests: `research/tests/test_v99_r106_published_epoch_witness.py`.
+- Protected GitHub Actions run **38617614735**, job **116036644167**, status **success**.
+- **73 automated tests passed:** 17 generator boundary/operation regressions + 20 immutable publication-guard tests + 27 epoch-quarantine tests + 9 witness-contract tests.
+- The CI fetched the actual current `paper-results:reports/paper_v99_research_ledger.json` without modifying the branch. **SHA-256 of exact published ledger bytes: `f188c4d95761c4ddf4719f4d86bfab0faa54a65f79d576f42ce3cc4f09e17089`.** Independently hashed and archived in the signed workflow artifact.
+- Official generated artifact ID **11920048384**, archive SHA-256 **`10c3fba557979c32080c853db137f03dde5d396d7b70da7adaf91c08b391262d`**. Its payload includes `published_witness.json` and `published_raw_sha256.txt`; no private exchange information or full ledger dump in the artifact.
+- Exact published read-only result: **`DATA_ONLY_HOLD`**, 109.7387 hours stale at execution, **3 distinct forward traces**, duplicate group `r98/f7/f12`, both `f1/f3` capped, backtest references after the paper boundary, and **zero variants with complete independent canonical financial decomposition**.
+- All required booleans remain false: `publication_authorized`, `promotion_authorized`, `independent_exchange_receipts_authenticated`, and `full_trading_costs_authenticated`; `economic_trials=0`.
+- GitHub Pages successful build **38616839038** for the truthful on-screen V99 quality notice. The main dashboard refresh **38616665903** also completed successfully. File SHA parity of updated `dashboard/index.html` and `dashboard/v99_research.js` was checked across `main`, `paper-results`, and `gh-pages`.
+
+**Audit GREEN means the evidence-integrity checks ran and gave the expected HOLD outcome, NOT that the R106 five-variant paper has been repaired or authorized.**
