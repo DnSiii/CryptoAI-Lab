@@ -17,7 +17,16 @@ from research.tools.v99_phase195gb_paper_epoch_audit import audit, canonical
 def inspect(raw: bytes, captured_at_utc: str) -> dict:
     if not isinstance(raw, bytes):
         raise ValueError("raw ledger bytes are required")
-    ledger = json.loads(raw, parse_constant=lambda x: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON key: " + key)
+            result[key] = value
+        return result
+    def reject_constant(value):
+        raise ValueError("nonfinite JSON constant: " + value)
+    ledger = json.loads(raw, object_pairs_hook=unique, parse_constant=reject_constant)
     if not isinstance(ledger, dict):
         raise ValueError("published ledger must be object")
     result = audit(ledger, captured_at_utc)
