@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 import re
 import zipfile
-from phase243_source_acquisition import _download, _fetch_with_retry, _inside, _atomic
+from phase243_xrp_transport_stdlib import _download, _fetch_with_retry, _inside, _atomic
 
 ROOT = Path(__file__).resolve().parent
 URLS = {
