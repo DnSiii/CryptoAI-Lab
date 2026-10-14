@@ -50,7 +50,7 @@ class TestOKXReceipts(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"duplicate"):o.validate_candles(response(o.candle_path(o.INSTS[0]),a),o.INSTS[0])
 
     def test_gap_rejected(self):
-        a=series();a[2][0]=str(int(a[2][0])-3600000)
+        a=series();a.pop(2)
         with self.assertRaisesRegex(ValueError,"gapped"):o.validate_candles(response(o.candle_path(o.INSTS[0]),a),o.INSTS[0])
 
     def test_future_confirmed_candle_rejected(self):
