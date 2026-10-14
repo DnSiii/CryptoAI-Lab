@@ -3,7 +3,7 @@
   "branch": "research/v98-independent-zero",
   "objective": "Build the strongest engine in the project: maximize compounded wealth with no artificial return ceiling, then prove material superiority to all prior engines only after V98 is frozen and independently validated.",
   "north_star": "research/v98_independent/V98_NORTH_STAR.md",
-  "phase": "phase_256_rejected_next_distinct_module",
+  "phase": "phase_262_developer_activity_data_only",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
@@ -52,22 +52,17 @@
     "risk_governor": "Phase246 and Phase254 exact governors rejected; needs distinct mechanism"
   },
   "last_completed_experiment": {
-    "id": "phase_256_vol_normalization_recovery",
-    "status": "REJECT_VOL_NORMALIZATION_RECOVERY_NO_RESCUE",
-    "integrated_base_return": 5.45298373883542,
-    "baseline_phase252_return": 5.505672021361592,
-    "failures": [
-      "base_marginal_return<3pct_relative",
-      "base_cagr_not_above_phase252",
-      "base_pf_below_phase252",
-      "marginal_positive_in_fewer_than_2_folds",
-      "fold_underperformance>5pp",
-      "severe_not_above_phase252",
-      "supersevere_not_above_phase252"
-    ]
+    "id": "phase_261_btc_nvt_data_only",
+    "status": "FAIL_DATA_NO_ALPHA",
+    "source_error": "HTTP 404",
+    "pnl_executed": false
   },
-  "current_experiment": null,
-  "next_action": "Keep Phase252 frozen; develop a genuinely distinct module family with positive marginal wealth contribution. Do not rescue Phases253-256. Validation and holdout remain locked.",
+  "current_experiment": {
+    "id": "phase_262_developer_activity_data_only",
+    "status": "workflow_running_or_queued",
+    "purpose": "Establish orthogonal monthly ecosystem developer-activity data before any alpha/PnL."
+  },
+  "next_action": "Harvest Phase262. If PASS_DATA_ONLY, preregister one causal developer-activity economic mechanism; if FAIL_DATA_NO_ALPHA, close without repo/source rescue and move to a distinct frontier. Phase252 remains frozen; validation/holdout locked.",
   "validation_policy": {
     "access": "locked until a complete frozen V98 engine passes chronological training and stress gates"
   },
@@ -75,5 +70,13 @@
     "old_phase083_window": "permanently opened/ineligible",
     "next_forward_window": "2026-09-16T00:00:00Z..2026-10-15T23:00:00Z",
     "access": "forbidden until complete frozen V98 engine passes separate validation and entire reserved window has elapsed"
+  },
+  "frontier_evidence": {
+    "phase257": "Wikimedia public attention FAIL_DATA_NO_ALPHA; fixed BNB ecosystem article only 85/1096 days; no title/source rescue.",
+    "phase258": "BTC hashrate PASS_DATA_ONLY; 1093/1096 days, 99.73%, deterministic.",
+    "phase259": "Hashrate expansion economic sleeve REJECT_NO_RESCUE despite +626.52% BASE; PF, DD and 2025 fold gates failed.",
+    "phase260": "BTC MVRV fixed endpoint FAIL_DATA_NO_ALPHA HTTP404.",
+    "phase261": "BTC NVT fixed endpoint FAIL_DATA_NO_ALPHA HTTP404; evidence push collision reconciled from workflow logs.",
+    "phase262": "Developer activity DATA_ONLY in progress; fixed repos bitcoin/bitcoin, ethereum/go-ethereum, bnb-chain/bsc, anza-xyz/agave."
   }
 }
