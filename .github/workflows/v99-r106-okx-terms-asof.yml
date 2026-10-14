@@ -7,6 +7,8 @@ on:
     paths:
       - 'research/tools/v99_r106_okx_terms_asof.py'
       - 'research/tests/test_v99_r106_okx_terms_asof.py'
+      - 'research/tools/v99_r106_terms_append.py'
+      - 'research/tests/test_v99_r106_terms_append.py'
       - '.github/workflows/v99-r106-okx-terms-asof.yml'
   workflow_dispatch:
 
@@ -35,6 +37,8 @@ jobs:
           python-version: '3.12'
       - name: Test native terms and funding receipt guard offline
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_okx_terms_asof.py' -v
+      - name: Check immutable terms-receipt archive invariants
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_terms_append.py' -v
       - name: Capture official contract multipliers, tick/lot and funding notices
         run: python -m research.tools.v99_r106_okx_terms_asof --out research_evidence/okx_terms
       - name: Verify five full first-party native instrument/funding receipts
