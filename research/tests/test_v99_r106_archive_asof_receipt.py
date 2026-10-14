@@ -55,7 +55,7 @@ class TestSourceArchive(unittest.TestCase):
     def test_checksum_payload_mismatch(self):
         data=makezip()
         with self.assertRaisesRegex(ValueError,"checksum mismatch"):
-            m.check_checksum(data,checksum(data)+b'xx',SYMBOL,DAY) if False else m.check_checksum(data,checksum(b'other'),SYMBOL,DAY)
+            m.check_checksum(data,checksum(b'other'),SYMBOL,DAY)
 
     def test_checksum_filename_must_match(self):
         data=makezip()
