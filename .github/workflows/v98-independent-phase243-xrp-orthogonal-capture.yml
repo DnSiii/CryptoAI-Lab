@@ -1,0 +1,46 @@
+name: V98 Independent Phase243 XRP Orthogonal Source Capture
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase243-xrp-orthogonal-capture.yml'
+      - 'research/v98_independent/phase243_xrp_source_capture.py'
+      - 'research/v98_independent/test_phase243_xrp_capture_release_gate.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase243-xrp-orthogonal-capture
+  cancel-in-progress: false
+jobs:
+  xrp-source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify frozen source-capture contract in both Python modes
+        working-directory: research/v98_independent
+        env:
+          PYTHONHASHSEED: '1'
+        run: |
+          python -m unittest -q test_phase243_xrp_capture_release_gate
+          python -O -m unittest -q test_phase243_xrp_capture_release_gate
+      - name: Capture immutable original monthly 1h and daily 1h/1m XRP sources
+        run: |
+          python research/v98_independent/phase243_xrp_source_capture.py \
+            --out research/v98_independent/phase243_xrp_daily_source_capture
+      - name: Preserve original ZIPs, sidecars and capture manifest on all outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase243-xrp-orthogonal-originals
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            research/v98_independent/phase243_xrp_daily_source_capture/
