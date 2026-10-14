@@ -6,20 +6,22 @@ spec=importlib.util.spec_from_file_location("p264",ROOT/"research/v98_independen
 P=importlib.util.module_from_spec(spec);spec.loader.exec_module(P)
 
 def make_zip(rows,year=2023):
-    fields=["Market_and_Exchange_Names","As_of_Date_In_Form_MM/DD/YYYY","CFTC_Contract_Market_Code",
-      "Open_Interest_All","NonComm_Positions_Long_All","NonComm_Positions_Short_All","NonComm_Postions_Spread_All",
-      "Comm_Positions_Long_All","Comm_Positions_Short_All","NonRept_Positions_Long_All","NonRept_Positions_Short_All"]
+    fields=["Market and Exchange Names","As of Date in Form YYMMDD","CFTC Contract Market Code",
+      "Open Interest (All)","Noncommercial Positions-Long (All)","Noncommercial Positions-Short (All)",
+      "Noncommercial Positions-Spreading (All)","Commercial Positions-Long (All)","Commercial Positions-Short (All)",
+      "Nonreportable Positions-Long (All)","Nonreportable Positions-Short (All)"]
     s=io.StringIO(newline="");w=csv.DictWriter(s,fieldnames=fields,lineterminator="\n");w.writeheader()
     for r in rows:w.writerow(r)
     b=io.BytesIO()
     with zipfile.ZipFile(b,"w",zipfile.ZIP_DEFLATED) as z:z.writestr("annual.txt",s.getvalue())
     return b.getvalue()
 
-def btc_row(date="01/03/2023",code="133741"):
-    return {"Market_and_Exchange_Names":"BITCOIN - CHICAGO MERCANTILE EXCHANGE","As_of_Date_In_Form_MM/DD/YYYY":date,
-      "CFTC_Contract_Market_Code":code,"Open_Interest_All":"1000","NonComm_Positions_Long_All":"500",
-      "NonComm_Positions_Short_All":"400","NonComm_Postions_Spread_All":"100","Comm_Positions_Long_All":"50",
-      "Comm_Positions_Short_All":"500","NonRept_Positions_Long_All":"350","NonRept_Positions_Short_All":"100"}
+def btc_row(date="230103",code="133741"):
+    return {"Market and Exchange Names":"BITCOIN - CHICAGO MERCANTILE EXCHANGE","As of Date in Form YYMMDD":date,
+      "CFTC Contract Market Code":code,"Open Interest (All)":"1000","Noncommercial Positions-Long (All)":"500",
+      "Noncommercial Positions-Short (All)":"400","Noncommercial Positions-Spreading (All)":"100",
+      "Commercial Positions-Long (All)":"50","Commercial Positions-Short (All)":"500",
+      "Nonreportable Positions-Long (All)":"350","Nonreportable Positions-Short (All)":"100"}
 
 def test_urls_and_contract_frozen():
     assert P.CONTRACT_CODE=="133741"
@@ -31,7 +33,7 @@ def test_parse_filters_contract():
     assert len(out)==1 and out[0]["contract_code"]=="133741" and member=="annual.txt" and member_sha and invalid==0
 
 def test_wrong_year_bitcoin_row_is_invalid():
-    out,_,_,invalid=P.parse_zip(make_zip([btc_row("01/03/2024")]),2023)
+    out,_,_,invalid=P.parse_zip(make_zip([btc_row("240103")]),2023)
     assert out==[] and invalid==1
 
 def test_multiple_text_members_rejected():
