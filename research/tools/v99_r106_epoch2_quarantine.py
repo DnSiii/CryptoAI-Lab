@@ -47,9 +47,15 @@ def verify(legacy_raw:bytes, new:dict, receipt_raw:bytes) -> dict:
         raise ValueError("immutable legacy paper anchor mismatch")
     try:
         legacy=json.loads(legacy_raw)
+        if legacy.get("mode")!="PAPER_ONLY" or legacy.get("real_orders_enabled") is not False:
+            raise ValueError("legacy paper-only mode required")
+        if set(legacy.get("variants",{}))!=set(TRACKS):
+            raise ValueError("legacy five variants required")
         old_latest=parse_utc(legacy["latest_data_timestamp"])
+        if parse_utc(legacy["paper_start_after_timestamp"])>=old_latest:
+            raise ValueError("legacy boundary invalid")
     except (KeyError,TypeError,ValueError) as exc:
-        raise ValueError("invalid legacy end boundary") from exc
+        raise ValueError("invalid legacy historical anchor") from exc
     start=parse_utc(new.get("new_forward_start_utc"))
     if start<=old_latest or start.minute or start.second or start.microsecond:
         raise ValueError("new epoch must begin strictly after old and on UTC hour")
@@ -61,8 +67,33 @@ def verify(legacy_raw:bytes, new:dict, receipt_raw:bytes) -> dict:
     safe=received.replace(minute=0,second=0,microsecond=0)+timedelta(hours=2)
     if start<safe:
         raise ValueError("causal t-1 source-eligibility violation")
-    if not receipt_raw:
-        raise ValueError("empty raw receipt")
+    if new.get("first_source_url") != "https://fapi.binance.com/fapi/v1/exchangeInfo":
+        raise ValueError("verified first-party endpoint identifier required")
+    def distinct_pairs(pairs):
+        obj={}
+        for k,v in pairs:
+            if k in obj: raise ValueError("duplicate source field")
+            obj[k]=v
+        return obj
+    def fail_constant(x):
+        raise ValueError("non-finite source payload")
+    try:
+        exchange=json.loads(receipt_raw, object_pairs_hook=distinct_pairs,
+                            parse_constant=fail_constant)
+    except (TypeError,ValueError) as exc:
+        raise ValueError("malformed first-party raw receipt") from exc
+    if not isinstance(exchange,dict) or not isinstance(exchange.get("symbols"),list):
+        raise ValueError("first-party exchangeInfo shape required")
+    server_time=exchange.get("serverTime")
+    if type(server_time) is not int or abs(server_time-int(received.timestamp()*1000))>60000:
+        raise ValueError("first-party server clock not consistent with receipt")
+    # Binance-provided onboardDate is NOT proof of historical first seen;
+    # all admissible symbols start no earlier than this prospective receipt.
+    active={r.get("symbol") for r in exchange["symbols"] if isinstance(r,dict) and
+            r.get("quoteAsset")=="USDT" and r.get("contractType")=="PERPETUAL" and
+            r.get("status")=="TRADING"}
+    if not {"BTCUSDT","ETHUSDT"}.issubset(active):
+        raise ValueError("expected original core symbols not in as-of observation")
 
     engines=new.get("variants")
     if not isinstance(engines,dict) or set(engines)!=set(TRACKS):
@@ -109,6 +140,7 @@ def verify(legacy_raw:bytes, new:dict, receipt_raw:bytes) -> dict:
             previous_time,previous_cap=t,cap
 
         last_key=None
+        seen=set()
         for op in operations:
             if not isinstance(op,dict) or not isinstance(op.get("symbol"),str) or not op["symbol"]:
                 raise ValueError(name+": invalid operation event")
@@ -116,8 +148,9 @@ def verify(legacy_raw:bytes, new:dict, receipt_raw:bytes) -> dict:
             if t<=start or t>previous_time:
                 raise ValueError(name+": operation outside new epoch")
             key=(t,op["symbol"])
-            if last_key is not None and (t<last_key[0] or key==last_key):
+            if (last_key is not None and t<last_key[0]) or key in seen:
                 raise ValueError(name+": reordered or duplicate operation")
+            seen.add(key)
             last_key=key
 
         summary[name]={"hours":len(curve),"operations":len(operations),
