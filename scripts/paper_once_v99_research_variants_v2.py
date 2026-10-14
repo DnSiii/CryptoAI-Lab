@@ -136,7 +136,7 @@ def main() -> None:
         backtest_reference[key] = {
             **base.VARIANT_META[key],
             **base.REFERENCE_BACKTEST[key],
-            "curve": daily_backtest_curve(result, paper_start, p1.TRAIN_END),
+            "curve": daily_backtest_curve(result, paper_start, base.p1.TRAIN_END),
         }
 
     state_variants = {
