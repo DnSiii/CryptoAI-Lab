@@ -56,7 +56,6 @@ class TestHistoricalReferenceBoundary(unittest.TestCase):
             [100,110,120,125])
         rows=backtest(result,BOUNDARY)
         self.assertEqual(len(rows),2)
-        self.assertEqual(rows[0]["timestamp"],"2026-09-16T02:00:00+00:00") if False else None
         self.assertTrue(all(pd.Timestamp(x["timestamp"])<BOUNDARY for x in rows))
         self.assertEqual(rows[-1]["timestamp"],"2026-09-16T12:00:00+00:00")
 
