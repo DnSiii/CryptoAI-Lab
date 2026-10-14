@@ -29,10 +29,13 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('research/v98_independent/phase243_aggtrades_tape_audit.py').read_text()
-          forbidden=['v99','final_holdout','phase083_final_holdout','exact_fast(','backtest','profit_factor','sharpe']
+          p=Path('research/v98_independent/phase243_aggtrades_tape_audit.py').read_text().lower()
+          forbidden=['research/v99','reports/v99','state/paper_v99','final_holdout','phase083_final_holdout',
+                     'exact_fast(','backtest','profit_factor','sharpe']
           for token in forbidden:
-              assert token not in p.lower(), token
+              assert token not in p, token
+          assert '"v99_used":false' in p.replace(' ','')
+          assert '"v16_used":false' in p.replace(' ','')
           print('DATA_ONLY static firewall passed')
           PY
       - name: Execute frozen XRP aggTrades tape audit
