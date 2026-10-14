@@ -42,6 +42,31 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      - name: Fail fast on intrinsically blocked legacy R106 paper epoch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin paper-results
+          mkdir -p "$RUNNER_TEMP/v99-r106-preflight"
+          git show FETCH_HEAD:reports/paper_v99_research_ledger.json > "$RUNNER_TEMP/v99-r106-preflight/old_published.json"
+          python -m research.tools.v99_r106_legacy_epoch_feasibility \
+            --ledger "$RUNNER_TEMP/v99-r106-preflight/old_published.json" \
+            --out "$RUNNER_TEMP/v99-r106-preflight/verdict.json"
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'v99-r106-preflight/verdict.json').read_text())
+          if report['status']=='NEW_VERSIONED_EPOCH_REQUIRED':
+              print('::error title=V99 R106 historical epoch is immutable::Legacy F1/F3 operation histories are capped and the five historical references cross the paper boundary. No append is permitted. A separate source-verified forward epoch is required.')
+              for name,item in report['variants'].items():
+                  if item['candidate_independent_rejection_reasons']:
+                      print(name,':',','.join(item['candidate_independent_rejection_reasons']))
+              sys.exit(2)
+          if report['status']!='OLD_PREFIX_NOT_STRUCTURALLY_IMPOSSIBLE':
+              raise SystemExit('unknown old-epoch feasibility verdict')
+          print('No candidate-independent blockers; ordinary independent prefix gate remains mandatory.')
+          PY
+
       - name: Resolve UTC cache date
         id: utc
         shell: bash
@@ -73,31 +98,6 @@ jobs:
               fi
             done
           fi
-
-      - name: Fail fast on intrinsically blocked legacy R106 paper epoch
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --no-tags origin paper-results
-          mkdir -p "$RUNNER_TEMP/v99-r106-preflight"
-          git show FETCH_HEAD:reports/paper_v99_research_ledger.json > "$RUNNER_TEMP/v99-r106-preflight/old_published.json"
-          python -m research.tools.v99_r106_legacy_epoch_feasibility \
-            --ledger "$RUNNER_TEMP/v99-r106-preflight/old_published.json" \
-            --out "$RUNNER_TEMP/v99-r106-preflight/verdict.json"
-          python - <<'PY'
-          import json,os,sys
-          from pathlib import Path
-          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'v99-r106-preflight/verdict.json').read_text())
-          if report['status']=='NEW_VERSIONED_EPOCH_REQUIRED':
-              print('::error title=V99 R106 historical epoch is immutable::Legacy F1/F3 operation histories are capped and the five historical references cross the paper boundary. No append is permitted. A separate source-verified forward epoch is required.')
-              for name,item in report['variants'].items():
-                  if item['candidate_independent_rejection_reasons']:
-                      print(name,':',','.join(item['candidate_independent_rejection_reasons']))
-              sys.exit(2)
-          if report['status']!='OLD_PREFIX_NOT_STRUCTURALLY_IMPOSSIBLE':
-              raise SystemExit('unknown old-epoch feasibility verdict')
-          print('No candidate-independent blockers; ordinary independent prefix gate remains mandatory.')
-          PY
 
       - name: Synchronize official public market data
         run: |
