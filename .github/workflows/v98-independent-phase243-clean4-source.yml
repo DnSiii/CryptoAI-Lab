@@ -1,0 +1,75 @@
+name: V98 Independent Phase243 Clean-4 Source Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase243-clean4-source.yml'
+      - 'research/v98_independent/phase243_clean4_source_pipeline.py'
+      - 'research/v98_independent/phase243_clean4_source_prereg_20261014.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase243-clean4-source
+  cancel-in-progress: false
+jobs:
+  clean4-data-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas
+      - name: Existing Phase243 deterministic source tests
+        working-directory: research/v98_independent
+        env:
+          PYTHONHASHSEED: '1'
+        run: |
+          python -m unittest -q test_phase243_source_acquisition_ci test_phase243_archive_integrity_ci test_phase243_price_source_integrity
+          python -O -m unittest -q test_phase243_source_acquisition_ci test_phase243_archive_integrity_ci test_phase243_price_source_integrity
+      - name: Execute preregistered Clean-4 source gate
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Enforce Clean-4 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase243_clean4_source_manifest.json'))
+          assert p['status']=='PASS_CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA'
+          assert p['universe']==['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT']
+          assert p['quarantined']==['XRPUSDT']
+          assert p['expected_archives']==148 and p['expected_asset_hours']==108192
+          assert p['acquisition']['archives']==148 and p['acquisition']['asset_hours']==108192
+          assert p['holdout_accessed'] is False and p['alpha_or_pnl_computed'] is False
+          assert p['v16_used'] is False and p['v99_used'] is False and p['promotion_eligible'] is False
+          assert len(p['prices'])==4 and len(p['funding'])==4
+          print('Clean-4 source gate PASS')
+          PY
+      - name: Commit Clean-4 decision manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase243_clean4_source_manifest.json
+          if git diff --cached --quiet; then
+            echo no-manifest-change
+          else
+            git commit -m "v98 phase243: record Clean-4 authenticated source gate"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - name: Preserve Clean-4 original and canonical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase243-clean4-source-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase243_clean4_source_manifest.json
+            research/v98_independent/phase243_clean4_archives/
+            research/v98_independent/phase243_clean4_canonical/
