@@ -10,16 +10,16 @@ CONTRACT_CODE="133741"
 MARKET_NEEDLES=("BITCOIN","CHICAGO MERCANTILE EXCHANGE")
 UA="CryptoAI-Lab-V98-Phase264/1.0 (https://github.com/DnSiii/CryptoAI-Lab)"
 NUMERIC_FIELDS={
- "open_interest":"Open_Interest_All",
- "noncommercial_long":"NonComm_Positions_Long_All",
- "noncommercial_short":"NonComm_Positions_Short_All",
- "noncommercial_spreading":"NonComm_Postions_Spread_All",
- "commercial_long":"Comm_Positions_Long_All",
- "commercial_short":"Comm_Positions_Short_All",
- "nonreportable_long":"NonRept_Positions_Long_All",
- "nonreportable_short":"NonRept_Positions_Short_All",
+ "open_interest":"openinterestall",
+ "noncommercial_long":"noncommercialpositionslongall",
+ "noncommercial_short":"noncommercialpositionsshortall",
+ "noncommercial_spreading":"noncommercialpositionsspreadingall",
+ "commercial_long":"commercialpositionslongall",
+ "commercial_short":"commercialpositionsshortall",
+ "nonreportable_long":"nonreportablepositionslongall",
+ "nonreportable_short":"nonreportablepositionsshortall",
 }
-DATE_FIELDS=("As_of_Date_In_Form_MM/DD/YYYY","Report_Date_as_YYYY_MM_DD","As_of_Date_Form_YYYY-MM-DD")
+DATE_KEYS=("asofdateinformyymmdd","asofdateinformyyyymmdd","reportdateasyyyymmdd")
 
 def sha(b:bytes)->str:return hashlib.sha256(b).hexdigest()
 
@@ -36,11 +36,14 @@ def fetch(url,attempts=3,timeout=60):
 
 def clean(v):return str(v or "").strip().strip('"').strip()
 
+def canon(v):
+    return "".join(ch.lower() for ch in str(v or "") if ch.isalnum())
+
 def parse_date(row):
-    for field in DATE_FIELDS:
-        v=clean(row.get(field))
+    for key in DATE_KEYS:
+        v=clean(row.get(key))
         if not v:continue
-        for fmt in ("%m/%d/%Y","%Y-%m-%d"):
+        for fmt in ("%y%m%d","%Y%m%d","%m/%d/%Y","%Y-%m-%d"):
             try:return dt.datetime.strptime(v[:10],fmt).date()
             except ValueError:pass
     raise ValueError("no supported report-date field")
@@ -54,14 +57,18 @@ def parse_zip(raw:bytes,year:int):
     body=z.read(member)
     text=body.decode("utf-8-sig",errors="strict")
     reader=csv.DictReader(io.StringIO(text))
-    required={"Market_and_Exchange_Names","CFTC_Contract_Market_Code",*NUMERIC_FIELDS.values()}
-    if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
-        raise ValueError("legacy COT required headers missing")
+    if not reader.fieldnames:
+        raise ValueError("legacy COT header missing")
+    header_map={canon(h):h for h in reader.fieldnames if h is not None}
+    required={"marketandexchangenames","cftccontractmarketcode",*NUMERIC_FIELDS.values()}
+    if not required.issubset(set(header_map)):
+        raise ValueError(f"legacy COT required headers missing: {sorted(set(required)-set(header_map))}")
     rows=[];invalid=0
-    for row in reader:
-        if clean(row.get("CFTC_Contract_Market_Code"))!=CONTRACT_CODE:continue
+    for raw_row in reader:
+        row={canon(k):v for k,v in raw_row.items() if k is not None}
+        if clean(row.get("cftccontractmarketcode"))!=CONTRACT_CODE:continue
         try:
-            market=clean(row["Market_and_Exchange_Names"])
+            market=clean(row["marketandexchangenames"])
             day=parse_date(row)
             vals={k:int(float(clean(row[v]))) for k,v in NUMERIC_FIELDS.items()}
             if day.year!=year:raise ValueError("row year mismatch")
