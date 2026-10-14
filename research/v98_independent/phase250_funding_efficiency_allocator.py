@@ -81,8 +81,9 @@ def main():
     dg=P.diag(ar["base"],data,alloc)
 
     mask=(alloc.index>=P.START)&(alloc.index<P.CUT)
-    active=alloc.loc[mask].abs().sum(axis=1)>0
-    weights=alloc.loc[mask & active,P.ASSETS]
+    weights=alloc.loc[mask,P.ASSETS]
+    active=weights.abs().sum(axis=1)>0
+    weights=weights.loc[active]
 
     b=am["base"]; cb=cm["base"]
     failures=[]
