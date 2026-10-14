@@ -15,13 +15,16 @@ OUT = ROOT / 'research' / 'v98_independent' / 'phase243_evidence_inventory.json'
 PHASE = re.compile(r'phase[_-]?(\d{3})', re.I)
 STATUS = re.compile(r'^\s*(?:status|decision)\s*:\s*(.+?)\s*$', re.I | re.M)
 TOKENS = {
-    'rejected': {'REJECT', 'REJECTED', 'REJECT_FAMILY_NO_RESCUE',
-                 'REJECTED_NO_RESCUE', 'REJECT_FINAL_HOLDOUT'},
+    'rejected': {'REJECT', 'REJECTED', 'REJECT_NO_RESCUE', 'REJECTED_NO_RESCUE',
+                 'REJECT_FAMILY_NO_RESCUE', 'REJECT_VALIDATION_NO_RESCUE',
+                 'REJECT_FINAL_HOLDOUT', 'REJECT_FINAL_HOLDOUT_NO_RESCUE'},
     'data_failed': {'FAIL_DATA', 'FAIL_DATA_NO_ALPHA'},
-    'validation_pass': {'PASS_VALIDATION'},
-    'training_pass': {'PASS_TRAINING'},
+    'validation_pass': {'PASS_VALIDATION', 'PASS_VALIDATION_FREEZE_FOR_HOLDOUT'},
+    'training_pass': {'PASS_TRAINING', 'PASS_TRAINING_FREEZE_FOR_VALIDATION'},
     'promoted_or_frozen': {'PROMOTED', 'FROZEN_CANDIDATE'},
-    'data_only_pass': {'PASS_DATA_ONLY', 'PASS_SOURCE_INTEGRITY_DATA_ONLY_NO_ALPHA'},
+    'data_only_pass': {'PASS_DATA_ONLY', 'PASS_SOURCE_INTEGRITY_DATA_ONLY_NO_ALPHA',
+                       'PASS_TRAINING_ARCHIVES_DATA_ONLY_NO_ALPHA',
+                       'PASS_CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA'},
 }
 PRIORITY = ('rejected', 'data_failed', 'validation_pass', 'training_pass',
             'promoted_or_frozen', 'data_only_pass')
@@ -49,7 +52,20 @@ def classify(text: str, *, suffix: str = '.md'):
             return 'unknown'
         if not isinstance(obj, dict):
             return 'unknown'
-        return classify_token(str(obj.get('decision', obj.get('status', ''))))
+        vals = []
+        for key in ('decision', 'status', 'gate'):
+            value = obj.get(key)
+            if isinstance(value, str):
+                vals.append(value)
+        for key in ('training_gate', 'validation_gate', 'final_holdout_gate'):
+            block = obj.get(key)
+            if isinstance(block, dict):
+                for sub in ('decision', 'status', 'gate'):
+                    value = block.get(sub)
+                    if isinstance(value, str):
+                        vals.append(value)
+        found = {classify_token(v) for v in vals} - {'unknown'}
+        return next(iter(found)) if len(found) == 1 else 'unknown'
     matches = STATUS.findall('\n'.join(text.splitlines()[:45]))
     found = {classify_token(v) for v in matches} - {'unknown'}
     if len(found) == 1:
