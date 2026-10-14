@@ -52,6 +52,7 @@ def fetch(path):
     req=Request(url,headers={"User-Agent":"CryptoAI-Lab-R106-OKX-asof/1.0","Accept":"application/json"})
     with urlopen(req,timeout=30) as response:
         if response.status!=200:raise ValueError("non-200 OKX source response")
+        if response.geturl()!=url:raise ValueError("redirected/untrusted OKX response")
         body=response.read(MAX_BODY+1)
         headers={k.lower():response.headers.get(k) for k in ("Date","Content-Type")}
     end=now()
@@ -161,6 +162,9 @@ def acquire():
         summaries[inst]=validate_candles(reply,inst)
     time_after=fetch(TIME)
     clock=corroborate(time_before,time_after,list(replies.values()))
+    closes={item["latest_confirmed_close_utc"] for item in summaries.values()}
+    if len(closes)!=1:
+        raise ValueError("five assets lack a common closed UTC bar")
     last_received=max(as_utc(x["received_utc"]) for x in (time_before,time_after,*replies.values()))
     manifest={
         "schema":"V99_R106_OKX_PROSPECTIVE_ASOF_V1",
