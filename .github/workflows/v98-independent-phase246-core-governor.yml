@@ -1,0 +1,72 @@
+name: V98 Independent Phase246 Core Governor
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase246-core-governor.yml'
+      - 'research/v98_independent/phase246_core_governor.py'
+      - 'research/v98_independent/test_phase246_core_governor.py'
+      - 'research/v98_independent/phase246_core_governor_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase246-core-governor
+  cancel-in-progress: false
+jobs:
+  training:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Phase246 causality and invariant tests
+        run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase246_core_governor.py
+      - name: Rebuild authenticated Clean-4 training source
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute frozen Phase246 twice
+        run: |
+          python research/v98_independent/phase246_core_governor.py --out /tmp/phase246_a.json
+          python research/v98_independent/phase246_core_governor.py --out /tmp/phase246_b.json
+          cmp /tmp/phase246_a.json /tmp/phase246_b.json
+          cp /tmp/phase246_a.json research/v98_independent/phase246_core_governor_results.json
+      - name: Enforce Phase246 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase246_core_governor_results.json'))
+          assert p['phase']==246
+          assert p['architecture']==['growth_core_structural_beta','crash_risk_governor']
+          assert p['training_only'] is True and p['validation'] is None and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['parameters']['peak_hours']==2160 and p['parameters']['confirmation_hours']==168
+          assert p['parameters']['crash_drawdown']==-0.20 and p['parameters']['gross_cap']==1.0
+          assert p['gate']['decision'] in {'CORE_GOVERNOR_ARCHITECTURE_CANDIDATE','REJECT_CORE_GOVERNOR_NO_RESCUE'}
+          assert p['diagnostics']['max_open_gross']<=1.000000001
+          print('Phase246',p['gate']['decision'])
+          PY
+      - name: Commit Phase246 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase246_core_governor_results.json
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase246: record core-governor architecture evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase246-core-governor-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase246_core_governor_results.json
