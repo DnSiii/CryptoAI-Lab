@@ -7,6 +7,8 @@ on:
     paths:
       - 'research/tools/v99_r106_okx_prospective_receipt.py'
       - 'research/tests/test_v99_r106_okx_prospective_receipt.py'
+      - 'research/tools/v99_r106_receipt_append.py'
+      - 'research/tests/test_v99_r106_receipt_append.py'
       - '.github/workflows/v99-r106-okx-asof-receipts.yml'
   workflow_dispatch:
 
@@ -35,6 +37,8 @@ jobs:
           python-version: '3.12'
       - name: Run synthetic time, market and no-trade adversarial tests
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_okx_prospective_receipt.py' -v
+      - name: Verify append-only receipt-store invariants
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_receipt_append.py' -v
       - name: Acquire current first-party OKX 1H receipts with OKX server time
         run: |
           python -m research.tools.v99_r106_okx_prospective_receipt \
