@@ -13,8 +13,8 @@
 
 - V99 initial simulated BRL 10,000.00 → **8,525.60**; **−14.744% / −BRL 1,474.40**, observed peak BRL 10,205.76; max observed drawdown from that peak **−16.692%**.
 - V99 negative hours **487/903** and positive hours **416/903**. **21 negative days out of 39 UTC calendar days** in the sample.
-- Worst five UTC day contributions: Sep 23 **−BRL 592.14**; Oct 5 **−BRL 482.30**; Sep 15 **−BRL 415.22**; Sep 7 **−BRL 360.03**; Oct 13 **−BRL 295.43**. They sum to **−BRL 2,145.12**; other days together contributed roughly **+BRL 670.72**. Consequently the loss is mainly *tail concentration*, not a steady small hourly leak.
-- Ten worst hourly results sum to **−BRL 1,995.41**, while all other hours together contribute roughly **+BRL 521.01**. Largest V99 hour: **2026-09-23T15:00Z −BRL 256.81 (−2.638%)**, second largest **2026-10-05T14:00Z −BRL 248.81 (−2.691%)**.
+- Worst five UTC day contributions: Sep 23 **−BRL 592.14**; Oct 5 **−BRL 482.30**; Sep 15 **−BRL 415.22**; Sep 7 **−BRL 360.03**; Oct 13 **−BRL 295.43**. They sum to **−BRL 2,145.12**; other days together contributed roughly **+BRL 670.77**. Consequently the loss is mainly *tail concentration*, not a steady small hourly leak.
+- Ten worst hourly results sum to **−BRL 1,995.41**, while all other hours together contribute roughly **+BRL 521.06**. Largest V99 hour: **2026-09-23T15:00Z −BRL 256.81 (−2.638%)**, second largest **2026-10-05T14:00Z −BRL 248.81 (−2.691%)**.
 - V99 and V16 same-window hourly return Pearson correlation is **0.99876** (903 matched hours); V99 **−14.744%** vs V16 **−15.346%** normalized from the same starting timestamp. The small V99 benefit does not establish a robust edge, only near-identical risk structure.
 - Same-period reference returns (rebased to 2026-09-06T22:00Z, descriptive only, no selection): V13 **−5.505%**, V14 **−8.204%**, V15 **−6.821%**, V16 **−15.346%**, V99 **−14.744%**. Different legacy strategies/capital states remain; this is NOT a validated benchmark envelope.
 
