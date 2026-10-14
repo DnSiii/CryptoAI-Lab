@@ -1,0 +1,72 @@
+name: V98 Independent Phase258 BTC Hashrate DATA ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase258-btc-hashrate.yml'
+      - 'research/v98_independent/phase258_btc_hashrate.py'
+      - 'research/v98_independent/test_phase258_btc_hashrate.py'
+      - 'research/v98_independent/phase258_btc_hashrate_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase258-btc-hashrate
+  cancel-in-progress: false
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check pytest
+      - name: Phase258 invariants
+        run: python -m pytest -q research/v98_independent/test_phase258_btc_hashrate.py
+      - name: Acquire BTC hashrate twice
+        run: |
+          python research/v98_independent/phase258_btc_hashrate.py --out-dir /tmp/p258a --manifest /tmp/p258a.json
+          python research/v98_independent/phase258_btc_hashrate.py --out-dir /tmp/p258b --manifest /tmp/p258b.json
+          cmp /tmp/p258a/hashrate_daily.csv /tmp/p258b/hashrate_daily.csv
+          cmp /tmp/p258a.json /tmp/p258b.json
+          mkdir -p research/v98_independent/data/phase258_btc_hashrate
+          cp /tmp/p258a/hashrate_daily.csv research/v98_independent/data/phase258_btc_hashrate/hashrate_daily.csv
+          cp /tmp/p258a.json research/v98_independent/phase258_btc_hashrate_manifest.json
+      - name: Enforce DATA_ONLY firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase258_btc_hashrate_manifest.json'))
+          assert p['phase']==258 and p['kind']=='DATA_ONLY_NETWORK_SECURITY'
+          assert p['decision'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          assert p['alpha_executed'] is False and p['pnl_executed'] is False
+          assert p['crypto_price_join'] is False and p['direction_selected'] is False and p['parameter_search'] is False
+          assert p['validation_accessed'] is False and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['expected_days']==1096
+          print('Phase258',p['decision'])
+          PY
+      - name: Commit Phase258 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase258_btc_hashrate_manifest.json research/v98_independent/data/phase258_btc_hashrate/hashrate_daily.csv
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase258: record BTC hashrate DATA_ONLY evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase258-btc-hashrate-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            research/v98_independent/phase258_btc_hashrate_manifest.json
+            research/v98_independent/data/phase258_btc_hashrate/hashrate_daily.csv
