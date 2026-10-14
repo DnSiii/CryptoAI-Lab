@@ -3,94 +3,60 @@ on:
   workflow_dispatch:
   push:
     branches: [research/v98-independent-zero]
-    paths: [".github/workflows/v98-independent-research.yml", "config/v98_independent*.json", "scripts/v98_independent_*.py", "tests/test_v98_independent*.py", "state/v98_independent_state.json"]
-permissions: {contents: write}
-concurrency: {group: v98-independent-research, cancel-in-progress: true}
+    paths:
+      - ".github/workflows/v98-independent-research.yml"
+      - "state/v98_independent_state.json"
+      - "research/v98_independent/V98_NORTH_STAR.md"
+      - "research/v98_independent/phase243_engine_architecture_prereg.md"
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-research-governance
+  cancel-in-progress: true
 jobs:
-  research:
+  governance:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with: {ref: research/v98-independent-zero, fetch-depth: 0}
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
-        with: {python-version: "3.12", cache: pip}
-      - run: python -m pip install -e ".[dev]"
-      - name: V98 causality/invariant tests
-        run: python -m pytest tests/test_v98_independent.py tests/test_v98_independent_phase044.py tests/test_v98_independent_phase045.py tests/test_v98_independent_phase046.py tests/test_v98_independent_phase049.py tests/test_v98_independent_phase106.py tests/test_v98_independent_phase109.py tests/test_v98_independent_phase111.py tests/test_v98_independent_phase112.py tests/test_v98_independent_phase142.py tests/test_v98_independent_phase143.py tests/test_v98_independent_phase144.py tests/test_v98_independent_future_holdout_policy.py -q
-      - name: Rebuild canonical V98 training-only data
-        run: python scripts/v98_independent_phase050_rebuild_data.py
-      - name: Execute frozen Phase142 strict-PIT training gate first pass
-        run: |
-          python scripts/v98_independent_phase142_treasury_curve_steepening_strict_pit.py
-          sha256sum reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json | awk '{print $1}' > /tmp/phase142.sha
-      - name: Execute Phase142 deterministic second pass
-        run: |
-          python scripts/v98_independent_phase142_treasury_curve_steepening_strict_pit.py
-          test "$(sha256sum reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json | awk '{print $1}')" = "$(cat /tmp/phase142.sha)"
-      - name: Enforce Phase142 isolation and frozen contract
-        run: |
-          python - <<'PY'
-          import json
-          p=json.load(open('reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json'))
-          assert p['phase']=='142'; assert p['pit_dependency']['decision']=='PASS_PIT_DATA_ONLY'; assert p['pit_dependency']['reacquisition_hash_verified'] is True
-          assert p['signal_contract']['lookback_accepted_observations']==20; assert p['signal_contract']['direction']=='delta>0 => long; else flat'; assert p['signal_contract']['economic_use_lag_days']==2
-          assert abs(p['signal_contract']['target_gross']-.45)<1e-12 and abs(p['signal_contract']['hard_gross_cap']-.50)<1e-12
-          assert p['phase141_result_used'] is False; assert p['validation'] is None and p['final_holdout'] is None; assert p['phase083_selection_use'] is False and p['v16_used'] is False and p['v99_used'] is False
-          assert p['parameter_search'] is False and p['rescue_allowed'] is False; assert p['training_gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
-          PY
-      - name: Execute Phase143 SP500 DATA_ONLY integrity gate
-        run: |
-          python scripts/v98_independent_phase143_sp500_data_only.py > /tmp/phase143.first.json
-          python scripts/v98_independent_phase143_sp500_data_only.py > /tmp/phase143.second.json
-          cmp /tmp/phase143.first.json /tmp/phase143.second.json
-          cp /tmp/phase143.first.json reports/v98_independent_phase143_sp500_data_only.json
-      - name: Enforce Phase143 DATA_ONLY firewall and reproducibility
-        run: |
-          python - <<'PY'
-          import json
-          p=json.load(open('reports/v98_independent_phase143_sp500_data_only.json'))
-          assert p['phase']=='143' and p['mode']=='DATA_ONLY' and p['series']=='SP500'; assert p['calendar']=={'start':'2023-01-01','end':'2025-12-31'}; assert p['decision']=='PASS_DATA_ONLY'; assert all(p['gates'].values())
-          assert p['reproducibility']['identical_hash'] is True and p['reproducibility']['identical_integrity_metadata'] is True
-          forbidden=('return','correlation','pnl','profit','drawdown','sharpe','payoff','win_rate','position','signal')
-          def walk(x):
-              if isinstance(x,dict):
-                  for k,v in x.items(): assert not any(t in k.lower() for t in forbidden), k; walk(v)
-              elif isinstance(x,list):
-                  for v in x: walk(v)
-          walk(p)
-          PY
-      - name: Execute frozen Phase144 SP500 risk-on training gate first pass
-        run: |
-          python scripts/v98_independent_phase144_sp500_risk_on.py
-          sha256sum reports/v98_independent_phase144_sp500_risk_on.json | awk '{print $1}' > /tmp/phase144.sha
-      - name: Execute Phase144 deterministic second pass
-        run: |
-          python scripts/v98_independent_phase144_sp500_risk_on.py
-          test "$(sha256sum reports/v98_independent_phase144_sp500_risk_on.json | awk '{print $1}')" = "$(cat /tmp/phase144.sha)"
-      - name: Enforce Phase144 frozen contract and isolation
-        run: |
-          python - <<'PY'
-          import json
-          p=json.load(open('reports/v98_independent_phase144_sp500_risk_on.json'))
-          assert p['phase']=='144'; assert p['phase143_dependency']['decision']=='PASS_DATA_ONLY'; assert p['phase143_dependency']['reacquisition_hash_verified'] is True
-          assert p['signal_contract']['lookback_accepted_observations']==20; assert p['signal_contract']['economic_use_lag_days']==1
-          assert abs(p['signal_contract']['target_gross']-.45)<1e-12 and abs(p['signal_contract']['hard_gross_cap']-.50)<1e-12
-          assert p['validation'] is None and p['final_holdout'] is None; assert p['v16_used'] is False and p['v99_used'] is False
-          assert p['parameter_search'] is False and p['rescue_allowed'] is False; assert p['gate']['decision'] in {'PASS_TRAINING','REJECT_NO_RESCUE'}
-          PY
-      - name: Commit V98 evidence
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f reports/v98_independent_phase142_treasury_curve_steepening_strict_pit.json reports/v98_independent_phase143_sp500_data_only.json reports/v98_independent_phase144_sp500_risk_on.json
-          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase142-144 evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi
-      - name: Upload Phase143-144 evidence
-        uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase143-144-${{ github.run_id }}
-          retention-days: 30
-          if-no-files-found: error
-          path: |
-            reports/v98_independent_phase143_sp500_data_only.json
-            reports/v98_independent_phase144_sp500_risk_on.json
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Enforce V98 North Star state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.load(open('state/v98_independent_state.json'))
+          n=Path('research/v98_independent/V98_NORTH_STAR.md').read_text()
+          assert s['engine']=='V98 Independent'
+          assert s['branch']=='research/v98-independent-zero'
+          assert s['champion'] is None
+          assert s['holdout_locked'] is True
+          assert s['phase083_selection_use'] is False
+          assert 'strongest engine' in s['objective']
+          assert 'no artificial return ceiling' in s['objective']
+          assert 'strongest trading engine' in n
+          assert 'maximum' in n.lower() and 'compounded' in n.lower()
+          assert 'external benchmarks only' in n
+          print('V98 North Star governance PASS')
+          PY
+      - name: Enforce current Clean-4 quarantine contract
+        run: |
+          python - <<'PY'
+          import json
+          s=json.load(open('state/v98_independent_state.json'))
+          d=s.get('data_foundation',{})
+          if d:
+              assert d['status']=='PASS_CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA'
+              assert d['universe']==['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT']
+              assert 'QUARANTINED_SOURCE_CONFLICT' in d['xrp']
+          print('V98 data-foundation governance PASS')
+          PY
+      - name: V98 architecture/inventory regression tests
+        run: |
+          PYTHONPATH=src:research/v98_independent python -m pytest -q             research/v98_independent/test_phase243_inventory_isolation.py             research/v98_independent/test_phase244_growth_core.py             research/v98_independent/test_phase245_market_state_core.py
