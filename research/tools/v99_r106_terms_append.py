@@ -54,7 +54,7 @@ def validate(source:Path):
             raise ValueError("wrong native contract/funding semantics")
         for key,original in (("metadata","contract"),("funding","funding")):
             expected[f"{key}_{inst}.raw.json"]=entry[original+"_raw_sha256"]
-            if utc(entry[key if key=="funding" else "contract"+"_received_utc"])>observed:
+            if utc(entry[("funding" if key=="funding" else "contract")+"_received_utc"])>observed:
                 raise ValueError("native term observation after manifest final clock")
     for path,digest in expected.items():
         if not isinstance(digest,str) or not re.fullmatch("[a-f0-9]{64}",digest):
