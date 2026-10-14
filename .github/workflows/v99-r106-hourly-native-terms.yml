@@ -1,0 +1,80 @@
+name: V99 R106 hourly OKX native terms and funding receipts
+
+on:
+  schedule:
+    - cron: '43 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v99-r106-hourly-native-terms.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v99-r106-appendonly-source-persistence
+  cancel-in-progress: false
+
+jobs:
+  first-party-terms-only:
+    if: github.repository == 'DnSiii/CryptoAI-Lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout research source scripts (not paper-results)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Python 3.12 standard library
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Prove native contract/funding and append-only invariants
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_terms_asof.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_terms_append.py' -v
+      - name: Collect five native swaps and current first-party funding notices
+        run: |
+          python -m research.tools.v99_r106_okx_terms_asof \
+            --out "$RUNNER_TEMP/okx-terms-asof"
+      - name: Append approved raw evidence to isolated receipt branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin \
+            refs/heads/research/v99-r106-live-receipts:refs/remotes/origin/research/v99-r106-live-receipts
+          worktree="$RUNNER_TEMP/v99-r106-terms-worktree"
+          git worktree add --detach "$worktree" refs/remotes/origin/research/v99-r106-live-receipts
+          git -C "$worktree" switch -C research/v99-r106-live-receipts
+          python -m research.tools.v99_r106_terms_append \
+            --source "$RUNNER_TEMP/okx-terms-asof" \
+            --root "$worktree/receipts/v99_r106_okx_terms" \
+            --run-id "$GITHUB_RUN_ID"
+          git -C "$worktree" add -- receipts/v99_r106_okx_terms
+          unexpected="$(git -C "$worktree" diff --cached --name-only | grep -v '^receipts/v99_r106_okx_terms/' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "::error::Attempted changes outside terms receipt directory: $unexpected"
+            exit 3
+          fi
+          if git -C "$worktree" diff --cached --quiet; then
+            echo 'ALREADY_RECORDED: never modify native terms from an existing UTC hour.'
+          else
+            git -C "$worktree" config user.name 'github-actions[bot]'
+            git -C "$worktree" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git -C "$worktree" commit -m "receipt(v99): native OKX contract/funding terms from run $GITHUB_RUN_ID"
+            git -C "$worktree" push origin HEAD:research/v99-r106-live-receipts
+            echo 'Native contract/funding receipts durably appended to separate research branch.'
+          fi
+      - name: Mirror original raw responses as 90-day workflow artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-hourly-terms-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/okx-terms-asof/
