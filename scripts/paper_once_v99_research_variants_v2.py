@@ -12,11 +12,11 @@ PROJECT = Path(__file__).resolve().parents[1]
 MAX_OPERATIONS = 1500
 
 
-def daily_backtest_curve(result, paper_start: pd.Timestamp) -> list[dict]:
+def daily_backtest_curve(result, paper_start: pd.Timestamp, train_end: pd.Timestamp) -> list[dict]:
     """Historical reference ONLY: strictly earlier than immutable paper boundary.
 
-    A calendar-day close computed after the boundary is forward evidence, never
-    historical/backtest evidence. No interpolation or forward inclusion.
+    Never include validation, final holdout or forward paper in a TRAIN
+    reference curve. No interpolation, backfill or forward inclusion.
     """
     equity = result.equity.dropna()
     if equity.empty:
@@ -29,6 +29,13 @@ def daily_backtest_curve(result, paper_start: pd.Timestamp) -> list[dict]:
     if cutoff.tzinfo is None:
         raise ValueError("explicit timezone required for paper boundary")
     cutoff = cutoff.tz_convert("UTC")
+    train_cutoff = pd.Timestamp(train_end)
+    if train_cutoff.tzinfo is None:
+        raise ValueError("explicit timezone required for TRAIN boundary")
+    train_cutoff = train_cutoff.tz_convert("UTC")
+    if train_cutoff >= cutoff:
+        raise ValueError("TRAIN boundary must precede paper boundary")
+    cutoff = train_cutoff
     series = pd.Series(equity.to_numpy(dtype=float), index=idx).sort_index()
     series = series.loc[series.index < cutoff]
     if series.empty:
@@ -129,7 +136,7 @@ def main() -> None:
         backtest_reference[key] = {
             **base.VARIANT_META[key],
             **base.REFERENCE_BACKTEST[key],
-            "curve": daily_backtest_curve(result, paper_start),
+            "curve": daily_backtest_curve(result, paper_start, p1.TRAIN_END),
         }
 
     state_variants = {
