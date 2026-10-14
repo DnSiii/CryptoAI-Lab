@@ -103,3 +103,21 @@ def test_v98_research_is_separate_and_has_no_fabricated_paper() -> None:
     assert "v99Research" not in v98
     assert "node --check dashboard/v98_research.js" in workflow
     assert 'cp dashboard/v98_research.js "$results_dir/dashboard/v98_research.js"' in workflow
+
+
+def test_v99_research_paper_labels_stale_and_uncertified_evidence() -> None:
+    """A stale/contaminated R106 snapshot must never appear as a certified live winner."""
+    html = (PROJECT / "dashboard" / "index.html").read_text()
+    js = (PROJECT / "dashboard" / "v99_research.js").read_text()
+    assert "v99_research.js?v=20261014g" in html
+    assert "paperQuality(lab)" in js
+    assert "PAPER EXPERIMENTAL EM QUARENTENA" in js
+    assert "não possui certificação independente" in js
+    assert "Último snapshot há" in js
+    assert "Operações truncadas em" in js
+    assert "Referências de backtest incluem observações após o fim do TRAIN" in js
+    assert "Curvas e operações idênticas" in js
+    assert "Não usar como ranking validado".lower() in js.lower()
+    assert "SIMULAÇÃO · NÃO VALIDADA" in js
+    assert "2024-01-18T00:00:00Z" in js
+    assert "Resultado forward real da simulação" not in js
