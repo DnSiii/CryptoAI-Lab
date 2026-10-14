@@ -18,14 +18,14 @@ def test_expanding_hashrate_turns_signal_on_after_warmup():
     with tempfile.TemporaryDirectory() as td:
         p=Path(td)/"x.csv";write_csv(p,range(1,121))
         expansion,_,_,_=P.daily_expansion(p)
-        assert bool(expansion.iloc[-1]) is True
-        assert expansion.iloc[:59].sum()==0
+        assert bool(expansion.loc[pd.Timestamp("2023-04-30",tz="UTC")]) is True
+        assert expansion.loc[:"2023-02-28"].sum()==0
 
 def test_declining_hashrate_turns_signal_off():
     with tempfile.TemporaryDirectory() as td:
         p=Path(td)/"x.csv";write_csv(p,list(range(200,80,-1)))
         expansion,_,_,_=P.daily_expansion(p)
-        assert bool(expansion.iloc[-1]) is False
+        assert bool(expansion.loc[pd.Timestamp("2023-04-30",tz="UTC")]) is False
 
 def test_three_day_gap_is_forward_filled_but_not_interpolated():
     with tempfile.TemporaryDirectory() as td:
@@ -40,7 +40,7 @@ def test_future_hashrate_mutation_does_not_change_past_signal():
         p=Path(td)/"a.csv";q=Path(td)/"b.csv";vals=list(range(1,121));write_csv(p,vals)
         vals2=vals[:90]+[x*100 for x in vals[90:]];write_csv(q,vals2)
         a=P.daily_expansion(p)[0];b=P.daily_expansion(q)[0]
-        pd.testing.assert_series_equal(a.iloc[:90],b.iloc[:90])
+        pd.testing.assert_series_equal(a.loc[:"2023-03-31"],b.loc[:"2023-03-31"])
 
 def test_external_engine_firewall():
     text=(ROOT/"research/v98_independent/phase259_network_security_expansion.py").read_text().lower()
