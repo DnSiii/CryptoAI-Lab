@@ -1,0 +1,89 @@
+name: V99 R106 paired source and funding gate
+
+on:
+  schedule:
+    - cron: '50 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v99-r106-asof-pair-audit.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v99-r106-readonly-asof-pair-gate
+  cancel-in-progress: false
+
+jobs:
+  paired-source-only:
+    if: github.repository == 'DnSiii/CryptoAI-Lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout R106 research source only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Setup Python 3.12 without exchange credentials
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Run forensic paired-source tests with synthetic receipts
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_asof_pair_gate.py' -v
+      - name: Attach immutable GitHub receipt branch read-only
+        shell: bash
+        run: |
+          git fetch --no-tags origin research/v99-r106-live-receipts
+          git worktree add --detach "$RUNNER_TEMP/okx-receipt-archive" FETCH_HEAD
+      - name: Resolve most recent common receipt hour (never backfill)
+        shell: bash
+        id: bucket
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'okx-receipt-archive'/'receipts'
+          price={p.name for p in (root/'v99_r106_okx').iterdir() if p.is_dir() and p.name[:4].isdigit()}
+          terms={p.name for p in (root/'v99_r106_okx_terms').iterdir() if p.is_dir() and p.name[:4].isdigit()}
+          common=sorted(price&terms)
+          if not common:raise SystemExit('No real same-hour market+terms receipts; refuse')
+          print('bucket='+common[-1])
+          PY
+      - name: Audit true source provenance, raw checksums and aligned first-safe decisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          bucket="${{ steps.bucket.outputs.bucket }}"
+          root="$RUNNER_TEMP/okx-receipt-archive/receipts"
+          python -m research.tools.v99_r106_asof_pair_gate \
+            --market "$root/v99_r106_okx/$bucket" \
+            --terms "$root/v99_r106_okx_terms/$bucket" \
+            --out "$RUNNER_TEMP/v99-r106-paired-gate.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'v99-r106-paired-gate.json'
+          r=json.loads(p.read_text())
+          assert r['status']=='TWO_FIRST_PARTY_SOURCE_STREAMS_CONSISTENT_DATA_ONLY'
+          assert len(r['assets'])==5
+          assert r['paper_publication_authorized'] is False
+          assert r['promotion_authorized'] is False
+          assert r['native_fee_tiers_attested'] is False
+          assert r['funding_settlements_attested'] is False
+          print('SOURCE PAIR VERIFIED:',r['market_source_run'],r['terms_source_run'],
+                'earliest',r['earliest_safe_decision_utc'])
+          PY
+      - name: Retain pair consistency result (not a paper return)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-asof-pair-gate-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/v99-r106-paired-gate.json
