@@ -42,6 +42,15 @@ def test_future_funding_mutation_cannot_change_past_targets():
     b=P.targets(FuturesData(frames={k:v.copy() for k,v in d.frames.items()},funding=f,symbols=d.symbols))
     pd.testing.assert_frame_equal(a.loc[:cut],b.loc[:cut])
 
+def test_training_mask_alignment_regression():
+    t=P.targets(synthetic())
+    mask=(t.index>=P.P.START)&(t.index<P.P.CUT)
+    weights=t.loc[mask,P.P.ASSETS]
+    active=weights.abs().sum(axis=1)>0
+    selected=weights.loc[active]
+    assert len(selected)<=len(weights)
+    assert selected.index.equals(active.index[active.to_numpy()])
+
 def test_frozen_parameters_and_firewall():
     text=(ROOT/"research/v98_independent/phase250_funding_efficiency_allocator.py").read_text().lower()
     assert P.WINDOW_H==168 and P.CHEAP_W==.30 and P.EXPENSIVE_W==.20
