@@ -1,0 +1,10 @@
+name: V98 Independent Clean-4 authenticated archive cache
+description: Restore/save only Phase243 Clean-4 training ZIPs; source pipeline revalidates publisher checksums and schema on every use.
+runs:
+  using: composite
+  steps:
+    - name: Cache immutable Clean-4 training archives
+      uses: actions/cache@v4
+      with:
+        path: research/v98_independent/phase243_clean4_archives
+        key: v98-independent-clean4-binance-usdm-1h-202212-202512-v1-${{ runner.os }}
