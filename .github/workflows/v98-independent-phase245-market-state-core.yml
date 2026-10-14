@@ -1,0 +1,72 @@
+name: V98 Independent Phase245 Market-State Growth Core
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase245-market-state-core.yml'
+      - 'research/v98_independent/phase245_market_state_core.py'
+      - 'research/v98_independent/test_phase245_market_state_core.py'
+      - 'research/v98_independent/phase245_market_state_core_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase245-market-state-core
+  cancel-in-progress: false
+jobs:
+  training:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Phase245 causality and invariant tests
+        run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase245_market_state_core.py
+      - name: Rebuild authenticated Clean-4 training source
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute frozen Phase245 twice
+        run: |
+          python research/v98_independent/phase245_market_state_core.py --out /tmp/phase245_a.json
+          python research/v98_independent/phase245_market_state_core.py --out /tmp/phase245_b.json
+          cmp /tmp/phase245_a.json /tmp/phase245_b.json
+          cp /tmp/phase245_a.json research/v98_independent/phase245_market_state_core_results.json
+      - name: Enforce Phase245 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase245_market_state_core_results.json'))
+          assert p['phase']==245 and p['role']=='growth_core'
+          assert p['training_only'] is True and p['validation'] is None and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['parameters']['assets']==['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT']
+          assert p['parameters']['fast_hours']==720 and p['parameters']['slow_hours']==2880
+          assert p['parameters']['breadth_assets_required']==3 and p['parameters']['gross_cap']==1.0
+          assert p['gate']['decision'] in {'GROWTH_CORE_CANDIDATE','REJECT_GROWTH_CORE_NO_RESCUE'}
+          assert p['diagnostics']['max_open_gross']<=1.000000001
+          print('Phase245',p['gate']['decision'])
+          PY
+      - name: Commit Phase245 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase245_market_state_core_results.json
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase245: record market-state Growth Core evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase245-market-state-core-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase245_market_state_core_results.json
