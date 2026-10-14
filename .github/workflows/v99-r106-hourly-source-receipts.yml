@@ -1,0 +1,80 @@
+name: V99 R106 hourly OKX as-of source receipts
+
+on:
+  schedule:
+    - cron: '37 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v99-r106-hourly-source-receipts.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v99-r106-hourly-source-persistence
+  cancel-in-progress: false
+
+jobs:
+  source-receipt-only:
+    if: github.repository == 'DnSiii/CryptoAI-Lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout immutable V99 R106 source-only code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Prepare isolated Python 3.12 (no credentials for OKX)
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify hourly OKX native source and ordering contracts
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_prospective_receipt.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_receipt_append.py' -v
+      - name: Observe fresh OKX public closed 1H candles and UTC server time
+        run: |
+          python -m research.tools.v99_r106_okx_prospective_receipt \
+            --out "$RUNNER_TEMP/okx-asof"
+      - name: Store in separate permanent append-only receipt branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin \
+            refs/heads/research/v99-r106-live-receipts:refs/remotes/origin/research/v99-r106-live-receipts
+          worktree="$RUNNER_TEMP/v99-r106-receipt-branch"
+          git worktree add --detach "$worktree" refs/remotes/origin/research/v99-r106-live-receipts
+          git -C "$worktree" switch -C research/v99-r106-live-receipts
+          python -m research.tools.v99_r106_receipt_append \
+            --source "$RUNNER_TEMP/okx-asof" \
+            --root "$worktree/receipts/v99_r106_okx" \
+            --run-id "$GITHUB_RUN_ID"
+          git -C "$worktree" add -- receipts/v99_r106_okx
+          unexpected="$(git -C "$worktree" diff --cached --name-only | grep -v '^receipts/v99_r106_okx/' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "::error::Unexpected changes outside isolated receipts directory: $unexpected"
+            exit 3
+          fi
+          if git -C "$worktree" diff --cached --quiet; then
+            echo 'NO_CHANGE: source hour already persisted. Never overwrite an existing UTC hour.'
+          else
+            git -C "$worktree" config user.name 'github-actions[bot]'
+            git -C "$worktree" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git -C "$worktree" commit -m "receipt(v99): append independently observed OKX hour from run $GITHUB_RUN_ID"
+            git -C "$worktree" push origin HEAD:research/v99-r106-live-receipts
+            echo 'APPEND_COMMITTED: first-party raw source hashes and server clock preserved.'
+          fi
+      - name: Archive raw acquisition evidence separately
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-hourly-okx-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/okx-asof/
