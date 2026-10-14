@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/paper_once_v99_research_variants_v2.py'
       - 'research/tests/test_v99_r106_forward_generator_isolation.py'
+      - 'research/tests/test_v99_r106_runner_integration.py'
       - 'research/tools/v99_r106_published_epoch_witness.py'
       - 'research/tests/test_v99_r106_published_epoch_witness.py'
       - '.github/workflows/v99-r106-forward-isolation.yml'
@@ -39,6 +40,8 @@ jobs:
         run: python -m pip install pandas==2.2.3
       - name: Run protected forward/backtest and operation-history invariants
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_forward_generator_isolation.py' -v
+      - name: Run actual five-variant runner with isolated synthetic inputs
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_runner_integration.py' -v
       - name: Re-run immutable V99 research publication guard tests
         run: python -m unittest discover -s tests -p 'test_v99_phase195bj_paper_publication_guard.py' -v
       - name: Re-run five-variant research epoch quarantine tests
