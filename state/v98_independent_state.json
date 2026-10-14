@@ -3,7 +3,7 @@
   "branch": "research/v98-independent-zero",
   "objective": "Build the strongest engine in the project: maximize compounded wealth with no artificial return ceiling, then prove material superiority to all prior engines only after V98 is frozen and independently validated.",
   "north_star": "research/v98_independent/V98_NORTH_STAR.md",
-  "phase": "phase_253_relative_value_evaluation",
+  "phase": "phase_256_rejected_next_distinct_module",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
@@ -44,30 +44,30 @@
   },
   "architecture_slots": {
     "growth_core": "structural Clean-4 beta primitive retained",
-    "opportunity": "Phase252 candidate frozen",
-    "relative_value": "Phase253 all-pairs mean-reversion sleeve queued/in evaluation",
-    "stress_recovery": "empty_needs_distinct_positive_convex_research",
-    "regime_router": "defer_until_multiple_modules_are_frozen",
-    "dynamic_allocator": "defer_until_multiple_module_streams_are_frozen",
-    "risk_governor": "Phase246 rejected; needs scientifically distinct mechanism"
+    "opportunity": "Phase252 CARRY_SUBSIDIZED_OPPORTUNITY_CANDIDATE frozen",
+    "relative_value": "Phase253 exact all-pairs mean-reversion rejected no rescue; needs genuinely distinct family",
+    "stress_recovery": "Phase248 and Phase256 exact families rejected no rescue; needs genuinely distinct positive-convex mechanism",
+    "regime_router": "Phase255 exact broad-funding router rejected no rescue; needs distinct non-rescue mechanism",
+    "dynamic_allocator": "Phase249/250 exact allocators rejected; defer until another module stream passes",
+    "risk_governor": "Phase246 and Phase254 exact governors rejected; needs distinct mechanism"
   },
   "last_completed_experiment": {
-    "id": "phase_252_carry_subsidized_opportunity",
-    "status": "CARRY_SUBSIDIZED_OPPORTUNITY_CANDIDATE",
-    "failures": [],
-    "marginal_return_by_fold": {
-      "2023": -0.04660339117211976,
-      "2024": 0.15181071914784727,
-      "2025": 0.15316488914302318
-    }
+    "id": "phase_256_vol_normalization_recovery",
+    "status": "REJECT_VOL_NORMALIZATION_RECOVERY_NO_RESCUE",
+    "integrated_base_return": 5.45298373883542,
+    "baseline_phase252_return": 5.505672021361592,
+    "failures": [
+      "base_marginal_return<3pct_relative",
+      "base_cagr_not_above_phase252",
+      "base_pf_below_phase252",
+      "marginal_positive_in_fewer_than_2_folds",
+      "fold_underperformance>5pp",
+      "severe_not_above_phase252",
+      "supersevere_not_above_phase252"
+    ]
   },
-  "current_experiment": {
-    "id": "phase_253_all_pairs_relative_value",
-    "status": "queued_for_training_gate",
-    "preregistration": "research/v98_independent/phase253_all_pairs_relative_value_prereg.md",
-    "purpose": "Test a net-zero all-six-pairs relative-price mean-reversion overlay for positive marginal contribution to the frozen Phase252 architecture."
-  },
-  "next_action": "Harvest Phase253. PASS => freeze Relative-Value candidate and proceed to next missing module. FAIL => reject no rescue and move to a scientifically distinct module hypothesis.",
+  "current_experiment": null,
+  "next_action": "Keep Phase252 frozen; develop a genuinely distinct module family with positive marginal wealth contribution. Do not rescue Phases253-256. Validation and holdout remain locked.",
   "validation_policy": {
     "access": "locked until a complete frozen V98 engine passes chronological training and stress gates"
   },
