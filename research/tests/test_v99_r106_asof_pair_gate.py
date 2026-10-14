@@ -61,8 +61,10 @@ class PairedSource(unittest.TestCase):
             gate.audit(self.p,self.t)
 
     def test_wrong_bucket_rejected(self):
+        moved=self.tdir/"2026-10-14T19"
+        self.t.rename(moved)
         with self.assertRaisesRegex(ValueError,"wrong UTC bucket"):
-            gate.audit(self.p,self.tdir)
+            gate.audit(self.p,moved)
 
     def test_native_contracts_are_not_binance_fees(self):
         r=gate.audit(self.p,self.t)
