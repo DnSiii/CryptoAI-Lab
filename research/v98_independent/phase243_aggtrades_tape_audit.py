@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "phase243_aggtrades_tape_result.json"
 CAPTURE = ROOT / "phase243_aggtrades_tape_capture"
 DAY = "2023-11-14"
-HOUR_MS = 1699969200000  # 2023-11-14 11:00:00 UTC
+HOUR_MS = 1699959600000  # 2023-11-14 11:00:00 UTC
 HOUR_END_MS = HOUR_MS + 3_600_000
 
 URLS = {
