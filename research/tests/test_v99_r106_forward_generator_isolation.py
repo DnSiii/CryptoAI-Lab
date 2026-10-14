@@ -25,6 +25,7 @@ backtest=ns["daily_backtest_curve"]
 operations=ns["paper_operations"]
 
 BOUNDARY=pd.Timestamp("2026-09-16T13:00:00Z")
+SYNTHETIC_TRAIN_END=pd.Timestamp("2026-09-16T12:30:00Z")
 
 def frame_equity(times, values):
     idx=pd.to_datetime(times,utc=True)
@@ -37,7 +38,7 @@ class TestHistoricalReferenceBoundary(unittest.TestCase):
             ["2026-09-15T23:00:00Z","2026-09-16T12:00:00Z",
              "2026-09-16T13:00:00Z","2026-09-16T14:00:00Z"],
             [100,110,300,450])
-        rows=backtest(result,BOUNDARY)
+        rows=backtest(result,BOUNDARY,SYNTHETIC_TRAIN_END)
         self.assertEqual(len(rows),2)
         self.assertTrue(all(pd.Timestamp(x["timestamp"])<BOUNDARY for x in rows))
         self.assertEqual(rows[-1]["timestamp"],"2026-09-16T12:00:00+00:00")
@@ -47,32 +48,59 @@ class TestHistoricalReferenceBoundary(unittest.TestCase):
         result=frame_equity(
             ["2026-09-16T13:00:00Z","2026-09-16T14:00:00Z"],
             [1,1.01])
-        self.assertEqual(backtest(result,BOUNDARY),[])
+        self.assertEqual(backtest(result,BOUNDARY,SYNTHETIC_TRAIN_END),[])
 
     def test_pre_boundary_only_daily_close(self):
         result=frame_equity(
             ["2026-09-15T14:00:00Z","2026-09-15T22:00:00Z",
              "2026-09-15T23:00:00Z","2026-09-16T12:00:00Z"],
             [100,110,120,125])
-        rows=backtest(result,BOUNDARY)
+        rows=backtest(result,BOUNDARY,SYNTHETIC_TRAIN_END)
         self.assertEqual(len(rows),2)
         self.assertTrue(all(pd.Timestamp(x["timestamp"])<BOUNDARY for x in rows))
         self.assertEqual(rows[-1]["timestamp"],"2026-09-16T12:00:00+00:00")
+
+    def test_true_2024_train_boundary_excludes_holdout_and_paper(self):
+        train_end=pd.Timestamp("2024-01-18T00:00:00Z")
+        result=frame_equity(
+            ["2024-01-16T18:00:00Z","2024-01-17T23:00:00Z",
+             "2024-01-18T00:00:00Z","2025-06-10T13:00:00Z",
+             "2026-09-15T22:00:00Z"],
+            [100,105,1000,2000,5000])
+        rows=backtest(result,BOUNDARY,train_end)
+        self.assertEqual(len(rows),2)
+        self.assertTrue(all(pd.Timestamp(x["timestamp"])<train_end for x in rows))
+        self.assertEqual(rows[-1]["timestamp"],"2024-01-17T23:00:00+00:00")
+        self.assertAlmostEqual(rows[-1]["equity_multiple"],1.05)
+
+    def test_train_boundary_must_precede_paper(self):
+        result=frame_equity(["2026-09-15T11:00:00Z"],[1])
+        with self.assertRaisesRegex(ValueError,"TRAIN boundary must precede paper"):
+            backtest(result,BOUNDARY,BOUNDARY)
+
+    def test_naive_train_timestamp_rejected(self):
+        result=frame_equity(["2026-09-15T11:00:00Z"],[1])
+        with self.assertRaisesRegex(ValueError,"TRAIN boundary"):
+            backtest(result,BOUNDARY,pd.Timestamp("2026-09-14T13:00:00"))
+
+    def test_no_train_history_returns_empty(self):
+        result=frame_equity(["2024-01-18T00:00:00Z","2025-01-01T00:00:00Z"],[1,2])
+        self.assertEqual(backtest(result,BOUNDARY,pd.Timestamp("2024-01-18T00:00:00Z")),[])
 
     def test_naive_equity_timestamp_is_rejected(self):
         result=SimpleNamespace(equity=pd.Series([1.,2.],index=pd.to_datetime([
             "2026-09-14T11:00:00","2026-09-15T11:00:00"])))
         with self.assertRaisesRegex(ValueError,"explicit UTC"):
-            backtest(result,BOUNDARY)
+            backtest(result,BOUNDARY,SYNTHETIC_TRAIN_END)
 
     def test_naive_paper_start_is_rejected(self):
         result=frame_equity(["2026-09-15T11:00:00Z"],[1])
         with self.assertRaisesRegex(ValueError,"explicit timezone"):
-            backtest(result,pd.Timestamp("2026-09-16T13:00:00"))
+            backtest(result,pd.Timestamp("2026-09-16T13:00:00"),SYNTHETIC_TRAIN_END)
 
     def test_empty_equity_returns_empty(self):
         result=SimpleNamespace(equity=pd.Series(dtype=float,index=pd.DatetimeIndex([],tz="UTC")))
-        self.assertEqual(backtest(result,BOUNDARY),[])
+        self.assertEqual(backtest(result,BOUNDARY,SYNTHETIC_TRAIN_END),[])
 
 
 class TestFullForwardOperationEvidence(unittest.TestCase):
@@ -128,7 +156,7 @@ class TestFullForwardOperationEvidence(unittest.TestCase):
         first_write=text.index("    base.write_json(base.STATE_PATH, state)")
         self.assertLess(gate,first_write)
         self.assertNotIn("operations[-MAX_OPERATIONS:]",text)
-        self.assertIn('daily_backtest_curve(result, paper_start)',text)
+        self.assertIn('daily_backtest_curve(result, paper_start, p1.TRAIN_END)',text)
 
 
 if __name__=="__main__":unittest.main()
