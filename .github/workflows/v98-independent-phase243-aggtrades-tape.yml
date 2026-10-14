@@ -1,0 +1,76 @@
+name: V98 Independent Phase243 XRP AggTrades Tape Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase243-aggtrades-tape.yml'
+      - 'research/v98_independent/phase243_aggtrades_tape_audit.py'
+      - 'research/v98_independent/phase243_prereg_20261014_0847_aggtrades_tape.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase243-aggtrades-tape
+  cancel-in-progress: false
+jobs:
+  data-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Static DATA_ONLY firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/v98_independent/phase243_aggtrades_tape_audit.py').read_text()
+          forbidden=['v99','final_holdout','phase083_final_holdout','exact_fast(','backtest','profit_factor','sharpe']
+          for token in forbidden:
+              assert token not in p.lower(), token
+          print('DATA_ONLY static firewall passed')
+          PY
+      - name: Execute frozen XRP aggTrades tape audit
+        run: python research/v98_independent/phase243_aggtrades_tape_audit.py
+      - name: Enforce result firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase243_aggtrades_tape_result.json'))
+          assert p['engine']=='V98 Independent' and p['phase']==243
+          assert p['mode']=='DATA_ONLY_NO_ALPHA_NO_PNL'
+          assert p['holdout_accessed'] is False
+          assert p['alpha_or_pnl_computed'] is False
+          assert p['promotion_eligible'] is False
+          assert p['source_repair_performed'] is False
+          assert p['v16_used'] is False and p['v99_used'] is False
+          assert p['status'] in {'CONSISTENT_SAME_PROVIDER_UNAUTHENTICATED','QUARANTINED_SOURCE_CONFLICT'}
+          print('Phase243 tape decision:',p['status'],p.get('supported_references'))
+          PY
+      - name: Commit DATA_ONLY decision evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase243_aggtrades_tape_result.json
+          if git diff --cached --quiet; then
+            echo no-evidence-change
+          else
+            git commit -m "v98 phase243: record XRP aggTrades tape integrity evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - name: Preserve immutable tape/source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase243-xrp-aggtrades-tape-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase243_aggtrades_tape_result.json
+            research/v98_independent/phase243_aggtrades_tape_capture/
