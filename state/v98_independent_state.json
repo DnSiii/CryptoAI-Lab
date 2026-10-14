@@ -3,11 +3,11 @@
   "branch": "research/v98-independent-zero",
   "objective": "Build the strongest engine in the project: maximize compounded wealth with no artificial return ceiling, then prove material superiority to all prior engines only after V98 is frozen and independently validated.",
   "north_star": "research/v98_independent/V98_NORTH_STAR.md",
-  "phase": "phase_247_opportunity_sleeve_next",
+  "phase": "phase_253_relative_value_evaluation",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
-  "external_benchmark_policy": "V14/V15/V99 are locked external benchmarks; never use their internals/performance to tune V98. Open only after a complete V98 candidate passes its own training + validation and is frozen.",
+  "external_benchmark_policy": "V14/V15/V99 remain locked external benchmarks and are not used to tune/select V98.",
   "data_foundation": {
     "status": "PASS_CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA",
     "universe": [
@@ -19,43 +19,55 @@
     "archives": 148,
     "asset_hours": 108192,
     "funding_assets": 4,
-    "xrp": "QUARANTINED_SOURCE_CONFLICT before system PnL; no performance-based deletion"
+    "xrp": "QUARANTINED_SOURCE_CONFLICT before system PnL"
+  },
+  "frozen_partial_architecture": {
+    "growth_core": {
+      "status": "structural_beta_primitive",
+      "rule": "+0.25 each BTC/ETH/BNB/SOL",
+      "base_return": 4.042126273036445,
+      "base_cagr": 0.7145890746845396,
+      "base_pf": 1.1779422463161637,
+      "base_max_drawdown": -0.5639279505819967
+    },
+    "opportunity": {
+      "status": "CARRY_SUBSIDIZED_OPPORTUNITY_CANDIDATE_FROZEN",
+      "phase": 252,
+      "rule": "add +0.0625 per asset when cross-asset mean trailing 168h realized funding sum <=0",
+      "base_return": 5.505672021361592,
+      "base_cagr": 0.8665767618880731,
+      "base_pf": 1.2168815211298845,
+      "base_max_drawdown": -0.5264408127130289,
+      "severe_return": 4.936567787959862,
+      "supersevere_return": 4.087987786546987
+    }
   },
   "architecture_slots": {
-    "growth_core": "Clean-4 structural beta primitive retained for complete-engine construction; BASE +404.21%, CAGR 71.46%, DD -56.39%; not a champion/finished module",
-    "opportunity": "next priority: preregister positive-marginal-wealth Opportunity Sleeve on frozen structural beta core",
-    "relative_value": "empty_needs_new_research",
-    "stress_recovery": "empty_needs_new_research",
-    "regime_router": "defer_until_multiple_modules_exist",
+    "growth_core": "structural Clean-4 beta primitive retained",
+    "opportunity": "Phase252 candidate frozen",
+    "relative_value": "Phase253 all-pairs mean-reversion sleeve queued/in evaluation",
+    "stress_recovery": "empty_needs_distinct_positive_convex_research",
+    "regime_router": "defer_until_multiple_modules_are_frozen",
     "dynamic_allocator": "defer_until_multiple_module_streams_are_frozen",
-    "risk_governor": "Phase246 exact crash governor rejected no rescue; needs scientifically distinct mechanism"
-  },
-  "historical_inventory": {
-    "direct_alpha_candidates": 0,
-    "rule": "Rejected or failed-validation/final-holdout candidates are ineligible; historical phases remain negative evidence/data capability."
+    "risk_governor": "Phase246 rejected; needs scientifically distinct mechanism"
   },
   "last_completed_experiment": {
-    "id": "phase_246_core_governor",
-    "status": "REJECT_CORE_GOVERNOR_NO_RESCUE",
-    "governed_base_return": 3.842786658873856,
-    "governed_base_cagr": 0.6916935831784556,
-    "governed_base_max_drawdown": -0.45761731730863464,
-    "passive_base_return": 4.042126273036445,
-    "passive_base_cagr": 0.7145890746845396,
-    "passive_base_max_drawdown": -0.5639279505819967,
-    "failures": [
-      "base_return_not_above_passive",
-      "base_cagr_not_above_passive",
-      "severe_return_not_above_passive",
-      "supersevere_return_not_above_passive"
-    ]
+    "id": "phase_252_carry_subsidized_opportunity",
+    "status": "CARRY_SUBSIDIZED_OPPORTUNITY_CANDIDATE",
+    "failures": [],
+    "marginal_return_by_fold": {
+      "2023": -0.04660339117211976,
+      "2024": 0.15181071914784727,
+      "2025": 0.15316488914302318
+    }
   },
   "current_experiment": {
-    "id": "phase_247_opportunity_sleeve",
-    "status": "next_preregistration_pending",
-    "purpose": "Add convex positive marginal wealth on top of frozen Clean-4 structural beta primitive without using external engines or holdout."
+    "id": "phase_253_all_pairs_relative_value",
+    "status": "queued_for_training_gate",
+    "preregistration": "research/v98_independent/phase253_all_pairs_relative_value_prereg.md",
+    "purpose": "Test a net-zero all-six-pairs relative-price mean-reversion overlay for positive marginal contribution to the frozen Phase252 architecture."
   },
-  "next_action": "Preregister a genuinely distinct Opportunity Sleeve and evaluate marginal contribution versus the frozen +404.21% structural beta primitive; do not rescue Phase246.",
+  "next_action": "Harvest Phase253. PASS => freeze Relative-Value candidate and proceed to next missing module. FAIL => reject no rescue and move to a scientifically distinct module hypothesis.",
   "validation_policy": {
     "access": "locked until a complete frozen V98 engine passes chronological training and stress gates"
   },
