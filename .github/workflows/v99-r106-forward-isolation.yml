@@ -10,6 +10,8 @@ on:
       - 'research/tests/test_v99_r106_runner_integration.py'
       - 'research/tools/v99_r106_legacy_epoch_feasibility.py'
       - 'research/tests/test_v99_r106_legacy_epoch_feasibility.py'
+      - 'research/tools/v99_r106_epoch2_quarantine.py'
+      - 'research/tests/test_v99_r106_epoch2_quarantine.py'
       - 'research/tools/v99_r106_published_epoch_witness.py'
       - 'research/tests/test_v99_r106_published_epoch_witness.py'
       - '.github/workflows/v99-r106-forward-isolation.yml'
@@ -49,6 +51,8 @@ jobs:
       - name: Re-run five-variant research epoch quarantine tests
         run: python -m unittest discover -s research/tests -p 'test_v99_phase195gb_paper_epoch_audit.py' -v
 
+      - name: Validate fresh R106 epoch schema, causal receipts and exact PnL
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_epoch2_quarantine.py' -v
       - name: Prove immutable-prefix feasibility offline
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_legacy_epoch_feasibility.py' -v
       - name: Run published-epoch witness invariants
