@@ -12,7 +12,12 @@ PROJECT = Path(__file__).resolve().parents[1]
 MAX_OPERATIONS = 1500
 
 
-def daily_backtest_curve(result) -> list[dict]:
+def daily_backtest_curve(result, paper_start: pd.Timestamp) -> list[dict]:
+    """Historical reference ONLY: strictly earlier than immutable paper boundary.
+
+    A calendar-day close computed after the boundary is forward evidence, never
+    historical/backtest evidence. No interpolation or forward inclusion.
+    """
     equity = result.equity.dropna()
     if equity.empty:
         return []
@@ -21,7 +26,14 @@ def daily_backtest_curve(result) -> list[dict]:
         idx = idx.tz_localize("UTC")
     else:
         idx = idx.tz_convert("UTC")
+    cutoff = pd.Timestamp(paper_start)
+    if cutoff.tzinfo is None:
+        raise ValueError("explicit timezone required for paper boundary")
+    cutoff = cutoff.tz_convert("UTC")
     series = pd.Series(equity.to_numpy(dtype=float), index=idx).sort_index()
+    series = series.loc[series.index < cutoff]
+    if series.empty:
+        return []
     local = series.tz_convert("America/Sao_Paulo")
     daily = local.groupby(local.index.date).tail(1)
     if daily.empty:
@@ -86,7 +98,10 @@ def paper_operations(targets: pd.DataFrame, paper_start: pd.Timestamp, latest: p
                 }
             )
         previous = current
-    return operations[-MAX_OPERATIONS:]
+    # Never silently discard old operations. The existing publisher guard
+    # correctly quarantines a ledger if legacy history is capped at 1,500.
+    # A future epoch needs a separately authenticated complete operation log.
+    return operations
 
 
 def main() -> None:
@@ -115,7 +130,7 @@ def main() -> None:
         backtest_reference[key] = {
             **base.VARIANT_META[key],
             **base.REFERENCE_BACKTEST[key],
-            "curve": daily_backtest_curve(result),
+            "curve": daily_backtest_curve(result, paper_start),
         }
 
     state_variants = {
