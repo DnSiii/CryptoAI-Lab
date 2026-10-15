@@ -128,6 +128,20 @@ class TestDualHour(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"repeated_or_reversed"):
             witness.evaluate(witness.load(prior),witness.load(current))
 
+    def test_second_capture_same_closed_hour_remains_hold(self):
+        prior,current=self.roots(old=20,new=20)
+        p=current/"manifest.json";m=json.loads(p.read_text())
+        later=okx.iso(hour(20)+timedelta(minutes=20))
+        m["last_received_utc"]=later
+        for inst in okx.INSTS:
+            m["instruments"][inst]["received_utc"]=later
+        p.write_text(json.dumps(m))
+        result=witness.evaluate(witness.load(prior),witness.load(current))
+        self.assertEqual(result["status"],"DATA_ONLY_HOLD_SAME_CONFIRMED_HOUR")
+        self.assertEqual(result["elapsed_source_hours"],0)
+        self.assertFalse(result["publication_authorized"] if "publication_authorized" in result else result["paper_publication_authorized"])
+        self.assertIn("REPEAT_SAME_CONFIRMED_HOUR_NOT_INDEPENDENT_EVIDENCE",result["issues"])
+
     def test_reverse_chronology_rejected(self):
         prior,current=self.roots(old=21,new=20)
         with self.assertRaisesRegex(ValueError,"repeated_or_reversed"):
