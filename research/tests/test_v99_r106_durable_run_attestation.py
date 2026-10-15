@@ -18,7 +18,7 @@ class TestProvenance(unittest.TestCase):
         self.repo = "DnSiii/CryptoAI-Lab"
 
     def stub(self, path):
-        run_id = int(path.split("/")[4])
+        run_id = int(path.split("/")[5])
         if path.endswith("/artifacts?per_page=100"):
             prefix = "v99-r106-okx-firstparty-" if run_id == 38744649527 else "v99-r106-okx-terms-"
             return {"artifacts": [{"name": prefix + str(run_id), "id": run_id,

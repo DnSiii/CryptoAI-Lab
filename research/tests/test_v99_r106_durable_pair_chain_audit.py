@@ -7,7 +7,8 @@ from research.tools import v99_r106_durable_pair_chain_audit as audit
 
 
 def fake(*hours):
-    return {value: {"verified": {"time": value}} for value in hours}
+    return {value: {"verified": {"time": value}, "claimed_run_id": str(10000000 + i)}
+            for i, value in enumerate(hours)}
 
 
 class TestDurableSourceChain(unittest.TestCase):

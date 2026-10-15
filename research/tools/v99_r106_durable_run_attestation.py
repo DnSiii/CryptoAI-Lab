@@ -56,7 +56,7 @@ def attest(report, repository, fetcher):
             match = [a for a in artifacts.get("artifacts", [])
                      if a.get("name") == prefix + str(run_id)
                      and a.get("expired") is False
-                     and a.get("workflow_run", {}).get("id", int(run_id)) == int(run_id)]
+                     and (a.get("workflow_run") or {}).get("id", int(run_id)) == int(run_id)]
             if len(match) != 1:
                 raise ValueError("missing_or_ambiguous_github_source_artifact:" + str(run_id))
             artifact = match[0]
