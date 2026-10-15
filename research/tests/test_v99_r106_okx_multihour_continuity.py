@@ -139,8 +139,28 @@ class TestDualHour(unittest.TestCase):
         result=witness.evaluate(witness.load(prior),witness.load(current))
         self.assertEqual(result["status"],"DATA_ONLY_HOLD_SAME_CONFIRMED_HOUR")
         self.assertEqual(result["elapsed_source_hours"],0)
+        self.assertEqual(result["overlap_observations"],25)
+        self.assertEqual(result["revised_confirmed_hours"],0)
         self.assertFalse(result["publication_authorized"] if "publication_authorized" in result else result["paper_publication_authorized"])
         self.assertIn("REPEAT_SAME_CONFIRMED_HOUR_NOT_INDEPENDENT_EVIDENCE",result["issues"])
+
+    def test_second_capture_same_hour_revisions_cannot_hide(self):
+        prior,current=self.roots(old=20,new=20,revised=True)
+        p=current/"manifest.json";m=json.loads(p.read_text())
+        later=okx.iso(hour(20)+timedelta(minutes=20))
+        m["last_received_utc"]=later
+        for inst in okx.INSTS:
+            m["instruments"][inst]["received_utc"]=later
+        p.write_text(json.dumps(m))
+        result=witness.evaluate(witness.load(prior),witness.load(current))
+        self.assertEqual(result["status"],"DATA_ONLY_HOLD_SAME_CONFIRMED_HOUR")
+        self.assertEqual(result["overlap_observations"],25)
+        self.assertEqual(result["revised_confirmed_hours"],5)
+        self.assertIn("REPEAT_SAME_CONFIRMED_HOUR_NOT_INDEPENDENT_EVIDENCE",result["issues"])
+        self.assertIn("CONFIRMED_SOURCE_REVISIONS:5",result["issues"])
+        self.assertFalse(result["promotion_authorized"])
+        self.assertFalse(result["paper_publication_authorized"])
+        self.assertEqual(result["economic_trials"],0)
 
     def test_reverse_chronology_rejected(self):
         prior,current=self.roots(old=21,new=20)
