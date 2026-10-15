@@ -25,3 +25,13 @@ The source evidence is contemporaneous first-party HTTPS plus server time observ
 Wait for a second **different confirmed 1H market close** to be collected and independently compared. A same-hour repeat is neither a new research fold nor valid forward profit evidence. Require valid sequential as-of raw hashes, consistent market-contract/terms semantics, settled rather than projected funding, and a separate versioned new-epoch ledger. Keep all old five-track `paper-results` bytes unchanged.
 
 **Outcome: pipeline now captures prospectively at hour cadence, but no model improvement, no verified two-distinct-hour continuity result, and no authorized new five-variant paper PnL.**
+
+## Verified default-branch scheduling and two-source operational smoke test
+
+Research-branch cron alone is not sufficient: GitHub Actions runs `schedule` events from the **repository default branch**. Installed the definitive read-only scheduler on `main` at `.github/workflows/v99-r106-asof-hourly.yml` (commit `24c71e9bef1f1da6c621480cc9a23ed392cde655`), with market receipts at `:27` UTC and native contract/funding notices at `:39` UTC. The job checks out research branch code without write credentials and grants `contents:read` and `actions:read` only. Captures are stored as immutable, 90-day-retained GitHub Actions artifacts.
+
+**Real end-to-end smoke execution:** GitHub Actions run `38734893117`, on the default branch, completed **both jobs successfully**.
+- `market-hourly`: 19 native market source tests + 13 multi-hour continuity regression tests passed. Five first-party OKX candles were fetched; SHA-256 of the raw source bytes was verified and continuity compared to the latest archive. It correctly returned **`DATA_ONLY_HOLD_SAME_CONFIRMED_HOUR`**, not a false two-hour PASS. Archived artifact `11972815451`, SHA-256 `28a4c0801cd4ba34ffe7db6a6d3064d90db615aeee80506b865c3428ce26bd71`.
+- `terms-hourly`: 13 native contract/funding-notice tests + 11 terms append-store tests passed. Authentic first-party responses were acquired and byte-verified; these are **projected funding notices, not realized funding payments**. Archived artifact `11971776401`, SHA-256 `a10657575d918caef332da2e9e1786c299b37df0344a4463746339c4b05f520b`.
+
+**57 source/integrity tests passed across both live jobs**, and 0 economic trials. The hourly schedules are configured on the default branch but their future timed executions were not yet observed during this checkpoint; the demonstrated success is from the `push` smoke trigger. Pending the next *different* confirmed 1H source bar and an uncompromised cross-venue economic/source contract, the R106 epoch-2 paper stays **DATA_ONLY/HOLD**. No new model is promoted and old ledger bytes stay unchanged.
