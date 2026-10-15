@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from research.tools import v99_r106_okx_prospective_receipt as okx
 
@@ -51,7 +51,7 @@ def load(root):
         bars={}
         for bar in okx.parse(reply):
             if bar[8]!="1":continue
-            key=okx.iso(okx.as_utc(item["received_utc"]).fromtimestamp(int(bar[0])/1000,okx.UTC))
+            key=okx.iso(datetime.fromtimestamp(int(bar[0])/1000,okx.UTC))
             bars[key]=bar
         results[symbol]={
             "received_utc":item["received_utc"],
