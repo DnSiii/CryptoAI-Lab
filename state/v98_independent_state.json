@@ -3,7 +3,7 @@
   "branch": "research/v98-independent-zero",
   "objective": "Build the strongest engine in the project: maximize compounded wealth with no artificial return ceiling, then prove material superiority to all prior engines only after V98 is frozen and independently validated.",
   "north_star": "research/v98_independent/V98_NORTH_STAR.md",
-  "phase": "phase_262_developer_activity_data_only",
+  "phase": "phase_272_utxo_data_only",
   "champion": null,
   "holdout_locked": true,
   "phase083_selection_use": false,
@@ -45,24 +45,32 @@
   "architecture_slots": {
     "growth_core": "structural Clean-4 beta primitive retained",
     "opportunity": "Phase252 CARRY_SUBSIDIZED_OPPORTUNITY_CANDIDATE frozen",
-    "relative_value": "Phase253 exact all-pairs mean-reversion rejected no rescue; needs genuinely distinct family",
-    "stress_recovery": "Phase248 and Phase256 exact families rejected no rescue; needs genuinely distinct positive-convex mechanism",
-    "regime_router": "Phase255 exact broad-funding router rejected no rescue; needs distinct non-rescue mechanism",
-    "dynamic_allocator": "Phase249/250 exact allocators rejected; defer until another module stream passes",
-    "risk_governor": "Phase246 and Phase254 exact governors rejected; needs distinct mechanism"
+    "relative_value": "Phase253 all-pairs mean-reversion and Phase263 developer-acceleration RV rejected no rescue",
+    "stress_recovery": "Phase248 and Phase256 exact families rejected no rescue",
+    "regime_router": "Phase255 broad-funding router rejected no rescue",
+    "dynamic_allocator": "Phase249/250 allocators rejected; defer until another independent module passes",
+    "risk_governor": "Phase246 and Phase254 governors rejected; needs distinct mechanism"
   },
   "last_completed_experiment": {
-    "id": "phase_261_btc_nvt_data_only",
-    "status": "FAIL_DATA_NO_ALPHA",
-    "source_error": "HTTP 404",
-    "pnl_executed": false
+    "id": "phase_271_blockspace_opportunity",
+    "status": "REJECT_BLOCKSPACE_OPPORTUNITY_NO_RESCUE",
+    "integrated_base_return": 4.955267365021908,
+    "baseline_phase252_return": 5.505672021361592,
+    "failures": [
+      "base_marginal_return<3pct_relative",
+      "base_cagr_not_above_phase252",
+      "base_pf_below_phase252",
+      "marginal_positive_in_fewer_than_2_folds",
+      "severe_not_above_phase252",
+      "supersevere_not_above_phase252"
+    ]
   },
   "current_experiment": {
-    "id": "phase_262_developer_activity_data_only",
-    "status": "workflow_running_or_queued",
-    "purpose": "Establish orthogonal monthly ecosystem developer-activity data before any alpha/PnL."
+    "id": "phase_272_utxo_data_only",
+    "status": "workflow_running",
+    "purpose": "Establish deterministic historical Bitcoin UTXO-set-size data before any economic hypothesis or PnL."
   },
-  "next_action": "Harvest Phase262. If PASS_DATA_ONLY, preregister one causal developer-activity economic mechanism; if FAIL_DATA_NO_ALPHA, close without repo/source rescue and move to a distinct frontier. Phase252 remains frozen; validation/holdout locked.",
+  "next_action": "Harvest Phase272. PASS_DATA_ONLY => preregister exactly one causal UTXO economic hypothesis before price/PnL inspection. FAIL_DATA_NO_ALPHA => close exact source path without rescue and move to a distinct frontier. Phase252 remains frozen; validation/holdout locked.",
   "validation_policy": {
     "access": "locked until a complete frozen V98 engine passes chronological training and stress gates"
   },
@@ -72,11 +80,20 @@
     "access": "forbidden until complete frozen V98 engine passes separate validation and entire reserved window has elapsed"
   },
   "frontier_evidence": {
-    "phase257": "Wikimedia public attention FAIL_DATA_NO_ALPHA; fixed BNB ecosystem article only 85/1096 days; no title/source rescue.",
+    "phase257": "Wikimedia public attention FAIL_DATA_NO_ALPHA; fixed BNB article had only 85/1096 days.",
     "phase258": "BTC hashrate PASS_DATA_ONLY; 1093/1096 days, 99.73%, deterministic.",
-    "phase259": "Hashrate expansion economic sleeve REJECT_NO_RESCUE despite +626.52% BASE; PF, DD and 2025 fold gates failed.",
+    "phase259": "Hashrate-expansion sleeve REJECT_NO_RESCUE despite +626.52% BASE; PF, DD and 2025 fold gates failed.",
     "phase260": "BTC MVRV fixed endpoint FAIL_DATA_NO_ALPHA HTTP404.",
-    "phase261": "BTC NVT fixed endpoint FAIL_DATA_NO_ALPHA HTTP404; evidence push collision reconciled from workflow logs.",
-    "phase262": "Developer activity DATA_ONLY in progress; fixed repos bitcoin/bitcoin, ethereum/go-ethereum, bnb-chain/bsc, anza-xyz/agave."
+    "phase261": "BTC NVT fixed endpoint FAIL_DATA_NO_ALPHA HTTP404.",
+    "phase262": "Developer activity PASS_DATA_ONLY; 144/144 repository-months acquired deterministically.",
+    "phase263": "Developer-acceleration RV REJECT_NO_RESCUE; integrated +482.07% versus Phase252 +550.57%.",
+    "phase264": "CFTC BTC positioning PASS_DATA_ONLY; 157 weekly rows 2023-2025.",
+    "phase265_266": "CFTC causal/revision provenance remains insufficient for promotion; Phase266 not promoted.",
+    "phase267": "BTC BVOL closed before PnL because independent historical PIT/revision provenance is unresolved.",
+    "phase268": "Mempool congestion PASS_DATA_ONLY 1096/1096 but blocked from alpha by retrospective non-immutable provenance.",
+    "phase269": "Formal mempool PIT audit FAIL_CAUSAL_PROVENANCE_NO_ALPHA.",
+    "phase270": "Confirmed blockspace PASS_DATA_ONLY; 1093/1096 days, 99.73%.",
+    "phase271": "Confirmed blockspace opportunity REJECT_NO_RESCUE; +495.53% versus Phase252 +550.57%.",
+    "phase272": "UTXO-set-size DATA_ONLY currently executing."
   }
 }
