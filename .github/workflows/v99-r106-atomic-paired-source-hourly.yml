@@ -1,0 +1,99 @@
+name: V99 R106 atomic paired OKX market and terms DATA_ONLY
+on:
+  schedule:
+    - cron: '12 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v99-r106-atomic-paired-source-hourly.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v99-r106-appendonly-source-persistence
+  cancel-in-progress: false
+
+jobs:
+  same-hour-paired-observation:
+    if: github.repository == 'DnSiii/CryptoAI-Lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout isolated R106 source branch only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Install Python 3.12 without extra packages
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Enforce atomicity, t-minus-1 and original receipt SHA rules
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_atomic_source_pair.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_receipt_append.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_terms_append.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_prospective_receipt.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_terms_asof.py' -v
+      - name: Acquire original first-party OKX 1H five-asset market receipt
+        run: |
+          python -m research.tools.v99_r106_okx_prospective_receipt \
+            --out "$RUNNER_TEMP/v99-atomic-market"
+      - name: Immediately capture native contract terms and projected funding
+        run: |
+          python -m research.tools.v99_r106_okx_terms_asof \
+            --out "$RUNNER_TEMP/v99-atomic-terms"
+      - name: Append both original source receipts into one isolated commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin \
+            refs/heads/research/v99-r106-live-receipts:refs/remotes/origin/research/v99-r106-live-receipts
+          worktree="$RUNNER_TEMP/v99-r106-paired-receipt-worktree"
+          git worktree add --detach "$worktree" refs/remotes/origin/research/v99-r106-live-receipts
+          git -C "$worktree" switch -C research/v99-r106-live-receipts
+          python -m research.tools.v99_r106_atomic_source_pair \
+            --market "$RUNNER_TEMP/v99-atomic-market" \
+            --terms "$RUNNER_TEMP/v99-atomic-terms" \
+            --receipts-root "$worktree/receipts" \
+            --run-id "$GITHUB_RUN_ID"
+          git -C "$worktree" add -- receipts/v99_r106_okx receipts/v99_r106_okx_terms
+          if git -C "$worktree" diff --cached --name-only | grep -Ev '^receipts/v99_r106_okx(_terms)?/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}/'; then
+            echo "::error::Unexpected path: source evidence namespace confinement failed"
+            exit 3
+          fi
+          if git -C "$worktree" diff --cached --quiet; then
+            echo "::notice::No commit: existing hour preserved or incomplete original pair. NO BACKFILL."
+          else
+            market_changed="$(git -C "$worktree" diff --cached --name-only | grep -c '^receipts/v99_r106_okx/' || true)"
+            terms_changed="$(git -C "$worktree" diff --cached --name-only | grep -c '^receipts/v99_r106_okx_terms/' || true)"
+            if [ "$market_changed" -lt 8 ] || [ "$terms_changed" -lt 13 ]; then
+              echo "::error::Partial source pair must never be persisted"
+              exit 4
+            fi
+            git -C "$worktree" config user.name 'github-actions[bot]'
+            git -C "$worktree" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git -C "$worktree" commit -m "receipt(v99): atomic same-hour first-party OKX market plus terms from run $GITHUB_RUN_ID"
+            git -C "$worktree" push origin HEAD:research/v99-r106-live-receipts
+            echo 'ATOMIC_PAIR_PERSISTED: original source data only, never authorized for paper or trading.'
+          fi
+      - name: Archive independent original market bytes and server clock
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-hourly-okx-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/v99-atomic-market/
+      - name: Archive independent original terms/funding notice bytes
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-hourly-terms-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/v99-atomic-terms/
