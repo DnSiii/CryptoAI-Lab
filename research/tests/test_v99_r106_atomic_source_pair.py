@@ -10,6 +10,11 @@ class TestAtomicPair(unittest.TestCase):
         tmp=tempfile.TemporaryDirectory();self.addCleanup(tmp.cleanup)
         root=Path(tmp.name);self.m=root/"market";self.t=root/"terms";self.dest=root/"receipt"
         mfix.source(self.m);tfix.prepare(self.t)
+        for source_dir in (self.m, self.t):
+            file=source_dir/"manifest.json";original=json.loads(file.read_text())
+            original["economic_trials"]=0
+            original["holdout_accessed"]=False
+            file.write_text(json.dumps(original))
         # Pair must be observed inside the same narrow real-time acquisition window.
         # The standalone terms fixture is deliberately 8 minutes after the market
         # fixture; re-time its synthetic receipts to model one sequential job.
