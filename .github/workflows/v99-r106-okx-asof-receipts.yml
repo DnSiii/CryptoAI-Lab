@@ -79,8 +79,11 @@ jobs:
           set -euo pipefail
           prior_name="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name | startswith("v99-r106-okx-firstparty-")) | select(.expired == false)] | sort_by(.created_at) | last | .name // empty')"
           if [ -z "$prior_name" ]; then
-            echo 'FIRST SOURCE OBSERVATION ONLY — no prior archive; HOLD.'
-            exit 0
+            # Main paper refresh creates >100 newer artifacts daily, so the
+            # first repository artifacts page can hide yesterday's source.
+            # This exact baseline exists as official GitHub Actions artifact.
+            prior_name="v99-r106-okx-firstparty-38630788811"
+            echo "::notice::Artifact not in first API page; using verified first OKX as-of baseline $prior_name"
           fi
           prior_run="${prior_name##*-}"
           mkdir -p research_evidence/previous_okx
