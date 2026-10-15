@@ -80,6 +80,31 @@ class TestDurableSourceChain(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "provenance_digest"):
                 audit.verify_proof(folder, manifest, "2026-10-15T13", "market")
 
+    def test_bucket_label_alone_cannot_pass_crosssource_gate(self):
+        original={"status":"DATA_ONLY_HOLD","promotion_authorized":False,
+                  "paper_publication_authorized":False,"holdout_accessed":False,
+                  "economic_trials":0,"assets":{}}
+        with patch.object(audit.pair_gate, "audit", return_value=original):
+            with self.assertRaisesRegex(ValueError, "crosssource_gate_failed"):
+                audit.verify_aligned_source_pairs(Path("/sample"),
+                    fake("2026-10-15T20"), fake("2026-10-15T20"))
+
+    def test_native_source_pair_requires_no_trading_claims(self):
+        original={
+            "status":"TWO_FIRST_PARTY_SOURCE_STREAMS_CONSISTENT_DATA_ONLY",
+            "promotion_authorized":False,"paper_publication_authorized":False,
+            "holdout_accessed":False,"economic_trials":0,
+            "market_source_run":"38804778835","terms_source_run":"38804778835",
+            "earliest_safe_decision_utc":"2026-10-15T22:00:00+00:00",
+            "assets":{key:{} for key in audit.okx.INSTS},
+        }
+        with patch.object(audit.pair_gate, "audit", return_value=original):
+            pairs=audit.verify_aligned_source_pairs(Path("/sample"),
+                fake("2026-10-15T20"), fake("2026-10-15T20"))
+        self.assertEqual(len(pairs),1)
+        self.assertFalse(pairs["2026-10-15T20"]["funding_cashflows_proven"])
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -16,6 +16,7 @@ from research.tools import v99_r106_okx_prospective_receipt as okx
 from research.tools import v99_r106_okx_terms_asof as terms
 from research.tools import v99_r106_receipt_append as market_store
 from research.tools import v99_r106_terms_append as terms_store
+from research.tools import v99_r106_asof_pair_gate as pair_gate
 
 MARKET = Path("receipts/v99_r106_okx")
 TERMS = Path("receipts/v99_r106_okx_terms")
@@ -153,6 +154,28 @@ def summarize(market, native_terms):
             "real_orders_enabled": False, "holdout_accessed": False, "economic_trials": 0}
 
 
+def verify_aligned_source_pairs(root, market, native):
+    """UTC bucket co-location is insufficient without raw cross-source checks."""
+    result = {}
+    for bucket in sorted(set(market) & set(native)):
+        witness = pair_gate.audit(root / MARKET / bucket, root / TERMS / bucket)
+        if (witness.get("status") != "TWO_FIRST_PARTY_SOURCE_STREAMS_CONSISTENT_DATA_ONLY"
+                or witness.get("promotion_authorized") is not False
+                or witness.get("paper_publication_authorized") is not False
+                or witness.get("economic_trials") != 0
+                or witness.get("holdout_accessed") is not False
+                or set(witness.get("assets", {})) != set(okx.INSTS)):
+            raise ValueError("crosssource_gate_failed:" + bucket)
+        result[bucket] = {
+            "market_run": witness["market_source_run"],
+            "terms_run": witness["terms_source_run"],
+            "earliest_safe_decision_utc": witness["earliest_safe_decision_utc"],
+            "exchange_signed": False, "funding_cashflows_proven": False,
+            "native_fee_tier_proven": False,
+        }
+    return result
+
+
 def audit(root):
     market = {name: verify_market(path, name) for name, path in scan(root / MARKET).items()}
     terms_ = {name: verify_terms(path, name) for name, path in scan(root / TERMS).items()}
@@ -160,7 +183,11 @@ def audit(root):
         ids = [value["claimed_run_id"] for value in group.values()]
         if len(ids) != len(set(ids)):
             raise ValueError("same_run_id_recorded_for_multiple_hours")
-    return summarize(market, terms_)
+    summary = summarize(market, terms_)
+    summary["native_crosssource_pairs"] = verify_aligned_source_pairs(root, market, terms_)
+    if len(summary["native_crosssource_pairs"]) != summary["paired_hours"]:
+        raise ValueError("crosssource_pair_count_mismatch")
+    return summary
 
 
 def main():
