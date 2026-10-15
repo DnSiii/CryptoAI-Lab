@@ -1,0 +1,51 @@
+name: V98 Independent Phase273 UTXO Acceleration
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase273-utxo-acceleration.yml'
+      - 'research/v98_independent/phase273_utxo_acceleration.py'
+      - 'research/v98_independent/test_phase273_utxo_acceleration.py'
+      - 'research/v98_independent/phase273_utxo_acceleration_prereg.md'
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - uses: ./.github/actions/v98-independent-clean4-cache
+      - run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase273_utxo_acceleration.py
+      - run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute twice
+        run: |
+          python research/v98_independent/phase273_utxo_acceleration.py --out /tmp/a.json
+          python research/v98_independent/phase273_utxo_acceleration.py --out /tmp/b.json
+          cmp /tmp/a.json /tmp/b.json
+          cp /tmp/a.json research/v98_independent/phase273_utxo_acceleration_results.json
+      - run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase273_utxo_acceleration_results.json'))
+          assert p['phase']==273 and p['training_only'] is True and p['validation'] is None
+          assert p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['gate']['decision'] in {'UTXO_ACCELERATION_OPPORTUNITY_CANDIDATE','REJECT_UTXO_ACCELERATION_NO_RESCUE'}
+          assert p['diagnostics']['max_open_gross']<=1.500000001
+          print('Phase273',p['gate']['decision'])
+          PY
+      - name: Commit evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase273_utxo_acceleration_results.json
+          if ! git diff --cached --quiet; then
+            git commit -m "v98 phase273: record UTXO acceleration evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
