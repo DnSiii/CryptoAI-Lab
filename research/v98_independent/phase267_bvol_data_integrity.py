@@ -75,14 +75,14 @@ def audit_folder(folder:Path):
                           'coverage':len(observed)/days,
                           'min_second_coverage':min((r['second_coverage'] for r in observed),default=0),
                           'causal_hourly_observations':sum(r['causal_hourly_observations'] for r in observed)}
-    valid=all(z['coverage']>=.95 and z['min_second_coverage']>=.95 for z in byyear.values())
+    valid=all(z['coverage']>=.95 and z['min_second_coverage']>=.95 and z['causal_hourly_observations']>=.95*z['expected_days']*24 for z in byyear.values())
     return {'engine':'V98 Independent','phase':267,'kind':'BVOL_DATA_ONLY',
-            'decision':'PASS_DATA_ONLY' if valid else 'FAIL_DATA_COVERAGE',
+            'decision':'PENDING_INDEPENDENT_PIT_PROVENANCE' if valid else 'FAIL_DATA_COVERAGE',
             'training_only':True,'validation_accessed':False,'holdout_accessed':False,
             'v14_used':False,'v15_used':False,'v99_used':False,
             'crypto_price_join':False,'pnl_computed':False,'alpha_computed':False,
             'yearly':byyear,'missing_days':missing,'daily':records,
-            'source_pit_revision_provenance':'UNRESOLVED: coverage alone does not authorize alpha'}
+            'source_pit_revision_provenance':'UNRESOLVED: no independent historical source snapshot; never auto-PASS'}
 
 if __name__=='__main__':
     ap=argparse.ArgumentParser()
