@@ -1,0 +1,119 @@
+name: V99 R106 hourly first-party OKX source-only receipts
+
+on:
+  schedule:
+    - cron: '27 * * * *'
+    - cron: '39 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v99-r106-asof-hourly.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: cryptoai-v99-r106-asof-dataonly-${{ github.event.schedule || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  market-hourly:
+    if: github.event_name != 'schedule' || github.event.schedule == '27 * * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout research code without write credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          persist-credentials: false
+      - name: Setup Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify market source and continuity invariants
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_prospective_receipt.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_multihour_continuity.py' -v
+      - name: Capture five first-party OKX swap market receipts
+        run: python -m research.tools.v99_r106_okx_prospective_receipt --out research_evidence/okx_live_receipt
+      - name: Retrieve last archived OKX market receipt and quarantine continuity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          recent="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name | startswith("v99-r106-okx-firstparty-")) | select(.expired == false)] | sort_by(.created_at) | last | .name // empty')"
+          if [ -z "$recent" ]; then
+            recent="v99-r106-okx-firstparty-38630788811"
+            echo "::notice::Using the archived first OKX market source receipt as fallback"
+          fi
+          runid="${recent##*-}"
+          mkdir -p research_evidence/previous_okx
+          gh run download "$runid" --repo "$GITHUB_REPOSITORY" --name "$recent" --dir research_evidence/previous_okx
+          python -m research.tools.v99_r106_okx_multihour_continuity \
+            --previous research_evidence/previous_okx \
+            --current research_evidence/okx_live_receipt \
+            --out research_evidence/okx_live_receipt/continuity_witness.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/okx_live_receipt/continuity_witness.json').read_text())
+          assert r['paper_publication_authorized'] is False
+          assert r['promotion_authorized'] is False
+          print('OKX HOURLY DATA_ONLY:',r['status'],r['issues'])
+          PY
+      - name: Upload raw market source and continuity evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-okx-firstparty-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: research_evidence/okx_live_receipt/
+
+  terms-hourly:
+    if: github.event_name != 'schedule' || github.event.schedule == '39 * * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout R106 research read-only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          persist-credentials: false
+      - name: Setup Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify native terms and funding-notice invariants
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_terms_asof.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_terms_append.py' -v
+      - name: Capture first-party contract multipliers and projected funding notices
+        run: python -m research.tools.v99_r106_okx_terms_asof --out research_evidence/okx_terms
+      - name: Verify raw terms body digests and explicit research-only flags
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('research_evidence/okx_terms')
+          m=json.loads((root/'manifest.json').read_text())
+          assert m['paper_publication_authorized'] is False
+          assert m['promotion_authorized'] is False
+          assert m['funding_cashflows_settled_and_pit_authenticated'] is False
+          assert len(m['contracts'])==5
+          for inst,info in m['contracts'].items():
+              for typ,field in [('metadata','contract_raw_sha256'),('funding','funding_raw_sha256')]:
+                  raw=(root/(typ+'_'+inst+'.raw.json')).read_bytes()
+                  assert hashlib.sha256(raw).hexdigest()==info[field]
+          print('DATA_ONLY native OKX terms receipt; forecast funding is NOT cashflow')
+          PY
+      - name: Archive source contract and funding-notice receipts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-okx-terms-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: research_evidence/okx_terms/
