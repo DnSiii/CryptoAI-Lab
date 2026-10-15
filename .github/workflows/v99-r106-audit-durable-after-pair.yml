@@ -1,0 +1,96 @@
+name: V99 R106 durable paired-source provenance audit DATA_ONLY
+
+on:
+  workflow_run:
+    workflows:
+      - V99 R106 atomic paired OKX market and terms DATA_ONLY
+    types: [completed]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v99-r106-audit-durable-after-pair.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: v99-r106-durable-chain-source-audit-readonly
+  cancel-in-progress: false
+
+jobs:
+  offline-chain-with-independent-run-attestation:
+    if: github.repository == 'DnSiii/CryptoAI-Lab' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Read isolated research source without write credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          persist-credentials: false
+      - name: Read durable original market and terms bytes without write credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-live-receipts
+          persist-credentials: false
+          path: durable_receipts
+      - name: Prepare standard Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Run synthetic chronology, tampering and GitHub provenance tests
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_durable_pair_chain_audit.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_durable_run_attestation.py' -v
+          python -m unittest discover -s research/tests -p 'test_v99_r106_okx_multihour_continuity.py' -v
+      - name: Verify entire immutable market plus native-terms receipt chain
+        run: |
+          python -m research.tools.v99_r106_durable_pair_chain_audit \
+            --root durable_receipts \
+            --out research_evidence/durable_pair_chain.json
+      - name: Attest recorded GitHub workflow run IDs and original artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m research.tools.v99_r106_durable_run_attestation \
+            --report research_evidence/durable_pair_chain.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --out research_evidence/durable_run_attestation.json
+      - name: Explicitly prohibit economic publication or trading claims
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          base=Path('research_evidence')
+          chain=json.loads((base/'durable_pair_chain.json').read_bytes())
+          att=json.loads((base/'durable_run_attestation.json').read_bytes())
+          assert chain['schema']=='V99_R106_DURABLE_PAIRED_SOURCE_CHAIN_V1'
+          assert att['schema']=='V99_R106_GITHUB_RUN_PROVENANCE_V1'
+          assert att['verified']==len(chain['market_recorded_run_ids'])+len(chain['terms_recorded_run_ids'])
+          for doc in (chain,att):
+              assert doc['economic_trials']==0
+              assert doc['promotion_authorized'] is False
+              assert doc['paper_publication_authorized'] is False
+              assert doc['holdout_accessed'] is False
+          assert chain['real_orders_enabled'] is False
+          assert chain['cross_venue_economic_transfer_authorized'] is False
+          print('DATA_ONLY:', chain['status'],
+                'paired_hours=',chain['paired_hours'],
+                'missing_hours=',len(chain['missing_paired_hours']),
+                'adjacent_verified=',chain['verified_adjacent_links'],
+                'actions_attested=',att['verified'])
+          PY
+      - name: Save independent DATA_ONLY audit evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-durable-paired-chain-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            research_evidence/durable_pair_chain.json
+            research_evidence/durable_run_attestation.json
