@@ -10,6 +10,15 @@ class TestAtomicPair(unittest.TestCase):
         tmp=tempfile.TemporaryDirectory();self.addCleanup(tmp.cleanup)
         root=Path(tmp.name);self.m=root/"market";self.t=root/"terms";self.dest=root/"receipt"
         mfix.source(self.m);tfix.prepare(self.t)
+        # Pair must be observed inside the same narrow real-time acquisition window.
+        # The standalone terms fixture is deliberately 8 minutes after the market
+        # fixture; re-time its synthetic receipts to model one sequential job.
+        p=self.t/"manifest.json";j=json.loads(p.read_text())
+        j["acquisition_last_utc"]="2026-10-14T20:14:28+00:00"
+        for entry in j["contracts"].values():
+            entry["contract_received_utc"]=j["acquisition_last_utc"]
+            entry["funding_received_utc"]=j["acquisition_last_utc"]
+        p.write_text(json.dumps(j))
     def test_append_both_same_hour_and_run_id(self):
         out=pair.append_pair(self.m,self.t,self.dest,"38800000000")
         self.assertEqual(out["status"],"ATOMIC_PAIRED_RECEIPT_APPENDED")
