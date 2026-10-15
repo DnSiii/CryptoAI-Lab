@@ -1,0 +1,51 @@
+name: V98 Independent Phase272 UTXO DATA ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase272-utxo.yml'
+      - 'research/v98_independent/phase272_utxo_dataonly.py'
+      - 'research/v98_independent/test_phase272_utxo_dataonly.py'
+      - 'research/v98_independent/phase272_utxo_dataonly_prereg.md'
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: python -m pip install --disable-pip-version-check pytest
+      - run: python -m pytest -q research/v98_independent/test_phase272_utxo_dataonly.py
+      - name: Acquire twice
+        run: |
+          python research/v98_independent/phase272_utxo_dataonly.py --out-dir /tmp/a --manifest /tmp/a.json
+          python research/v98_independent/phase272_utxo_dataonly.py --out-dir /tmp/b --manifest /tmp/b.json
+          cmp /tmp/a/utxo_daily.csv /tmp/b/utxo_daily.csv
+          cmp /tmp/a.json /tmp/b.json
+          mkdir -p research/v98_independent/data/phase272_utxo
+          cp /tmp/a/utxo_daily.csv research/v98_independent/data/phase272_utxo/utxo_daily.csv
+          cp /tmp/a.json research/v98_independent/phase272_utxo_manifest.json
+      - run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase272_utxo_manifest.json'))
+          assert p['phase']==272 and p['decision'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          assert p['alpha_executed'] is False and p['pnl_executed'] is False
+          assert p['validation_accessed'] is False and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          print('Phase272',p['decision'])
+          PY
+      - name: Commit evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase272_utxo_manifest.json research/v98_independent/data/phase272_utxo/utxo_daily.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "v98 phase272: record UTXO DATA_ONLY evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
