@@ -72,7 +72,29 @@ def evaluate(previous,current):
     if newer<=older:raise ValueError("repeated_or_reversed_acquisition")
     old_close=okx.as_utc(next(iter(a.values()))["latest_close"])
     new_close=okx.as_utc(next(iter(b.values()))["latest_close"])
-    if new_close<=old_close:raise ValueError("source_confirmed_close_not_advanced")
+    if new_close<old_close:raise ValueError("source_confirmed_close_regressed")
+    if new_close==old_close:
+        return {
+            "schema":"V99_R106_OKX_MULTIHOUR_CONTINUITY_V1",
+            "status":"DATA_ONLY_HOLD_SAME_CONFIRMED_HOUR",
+            "issues":["REPEAT_SAME_CONFIRMED_HOUR_NOT_INDEPENDENT_EVIDENCE"],
+            "previous_capture_utc":previous["manifest"]["last_received_utc"],
+            "current_capture_utc":current["manifest"]["last_received_utc"],
+            "previous_confirmed_close_utc":okx.iso(old_close),
+            "current_confirmed_close_utc":okx.iso(new_close),
+            "elapsed_source_hours":0,
+            "overlap_observations":0,
+            "revised_confirmed_hours":0,
+            "instruments":{},
+            "source_independently_exchange_signed":False,
+            "historical_first_seen_authenticated":False,
+            "binance_to_okx_strategy_transfer_authorized":False,
+            "full_native_fee_funding_settlement_authenticated":False,
+            "paper_publication_authorized":False,
+            "promotion_authorized":False,
+            "holdout_accessed":False,
+            "economic_trials":0,
+        }
     diff=(new_close-old_close).total_seconds()/3600
     if int(diff)!=diff:raise ValueError("nonhourly_source_advancement")
     report={}
