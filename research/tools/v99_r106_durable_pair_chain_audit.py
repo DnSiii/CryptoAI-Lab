@@ -136,6 +136,8 @@ def summarize(market, native_terms):
             "status": ("DATA_ONLY_SOURCE_CONTINUITY_OBSERVED_ONLY" if valid
                        else "DATA_ONLY_HOLD_NO_CONSECUTIVE_PAIRS"),
             "market_utc_buckets": sorted(market), "terms_utc_buckets": sorted(native_terms),
+            "market_recorded_run_ids": {k: v["claimed_run_id"] for k, v in sorted(market.items())},
+            "terms_recorded_run_ids": {k: v["claimed_run_id"] for k, v in sorted(native_terms.items())},
             "paired_utc_buckets": pair, "total_utc_hours": span,
             "paired_hours": len(pair),
             "missing_paired_hours": [x for x in expected if x not in pair],
