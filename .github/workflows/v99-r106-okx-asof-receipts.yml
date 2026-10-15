@@ -9,11 +9,16 @@ on:
       - 'research/tests/test_v99_r106_okx_prospective_receipt.py'
       - 'research/tools/v99_r106_receipt_append.py'
       - 'research/tests/test_v99_r106_receipt_append.py'
+      - 'research/tools/v99_r106_okx_multihour_continuity.py'
+      - 'research/tests/test_v99_r106_okx_multihour_continuity.py'
       - '.github/workflows/v99-r106-okx-asof-receipts.yml'
+  schedule:
+    - cron: '27 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: v99-r106-okx-prospective-receipts
@@ -39,6 +44,8 @@ jobs:
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_okx_prospective_receipt.py' -v
       - name: Verify append-only receipt-store invariants
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_receipt_append.py' -v
+      - name: Test successive-hour immutable continuity and revisions
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_okx_multihour_continuity.py' -v
       - name: Acquire current first-party OKX 1H receipts with OKX server time
         run: |
           python -m research.tools.v99_r106_okx_prospective_receipt \
@@ -63,6 +70,33 @@ jobs:
               assert item['confirmed_candles']>=3
               print(name,item['latest_confirmed_close_utc'],item['source_raw_sha256'])
           print('OKX live prospective DATA_ONLY receipt passed; NO PAPER publication')
+          PY
+      - name: Audit against most recent distinct archived OKX capture
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          prior_name="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name | startswith("v99-r106-okx-firstparty-")) | select(.expired == false)] | sort_by(.created_at) | last | .name // empty')"
+          if [ -z "$prior_name" ]; then
+            echo 'FIRST SOURCE OBSERVATION ONLY — no prior archive; HOLD.'
+            exit 0
+          fi
+          prior_run="${prior_name##*-}"
+          mkdir -p research_evidence/previous_okx
+          gh run download "$prior_run" --repo "$GITHUB_REPOSITORY" --name "$prior_name" --dir research_evidence/previous_okx
+          python -m research.tools.v99_r106_okx_multihour_continuity \
+            --previous research_evidence/previous_okx \
+            --current research_evidence/okx_live_receipt \
+            --out research_evidence/okx_live_receipt/continuity_witness.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research_evidence/okx_live_receipt/continuity_witness.json')
+          r=json.loads(p.read_text())
+          assert r['paper_publication_authorized'] is False
+          assert r['promotion_authorized'] is False
+          print('DATA_ONLY consecutive acquisition witness:',r['status'],r['issues'])
           PY
       - name: Save original first-party acquisition receipts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
