@@ -33,8 +33,8 @@ def attest(report, repository, fetcher):
         raise ValueError("non_data_only_chain")
     results = []
     for label, ids, prefix in (
-        ("market", report["market_recorded_run_ids"], "v99-r106-okx-firstparty-"),
-        ("terms", report["terms_recorded_run_ids"], "v99-r106-okx-terms-"),
+        ("market", report["market_recorded_run_ids"], ("v99-r106-okx-firstparty-", "v99-r106-hourly-okx-")),
+        ("terms", report["terms_recorded_run_ids"], ("v99-r106-okx-terms-", "v99-r106-hourly-terms-")),
     ):
         for bucket, run_id in sorted(ids.items()):
             if not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d", bucket) or not RUN_ID.fullmatch(str(run_id)):
@@ -54,7 +54,7 @@ def attest(report, repository, fetcher):
                 raise ValueError("run_outside_claimed_capture_hour:" + str(run_id))
             artifacts = fetcher("repos/" + repository + "/actions/runs/" + str(run_id) + "/artifacts?per_page=100")
             match = [a for a in artifacts.get("artifacts", [])
-                     if a.get("name") == prefix + str(run_id)
+                     if a.get("name") in {p + str(run_id) for p in prefix}
                      and a.get("expired") is False
                      and (a.get("workflow_run") or {}).get("id", int(run_id)) == int(run_id)]
             if len(match) != 1:

@@ -20,7 +20,7 @@ class TestProvenance(unittest.TestCase):
     def stub(self, path):
         run_id = int(path.split("/")[5])
         if path.endswith("/artifacts?per_page=100"):
-            prefix = "v99-r106-okx-firstparty-" if run_id == 38744649527 else "v99-r106-okx-terms-"
+            prefix = "v99-r106-hourly-okx-" if run_id == 38744649527 else "v99-r106-hourly-terms-"
             return {"artifacts": [{"name": prefix + str(run_id), "id": run_id,
                                    "expired": False, "workflow_run": {"id": run_id}}]}
         return {"id": run_id, "status": "completed", "conclusion": "success",
