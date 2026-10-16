@@ -9,6 +9,8 @@ on:
       - research/tests/test_v99_r106_c1_engine.py
       - research/tools/v99_r106_c1_journal_oracle.py
       - research/tests/test_v99_r106_c1_journal_oracle.py
+      - research/tools/v99_r106_c1_failure_forensics.py
+      - research/tests/test_v99_r106_c1_failure_forensics.py
       - .github/workflows/v99-r106-c1-complete-engine-train.yml
   workflow_dispatch:
 permissions:
@@ -61,6 +63,10 @@ jobs:
         run: |
           python -m unittest discover -s research/tests -p 'test_v99_r106_c1_journal_oracle.py' -v
           python -m research.tools.v99_r106_c1_journal_oracle
+      - name: Post-rejection paired-scenario path and tail forensics, no new economic trial
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_c1_failure_forensics.py' -v
+          python -m research.tools.v99_r106_c1_failure_forensics
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: v99-r106-c1-engine-train-evidence
@@ -71,3 +77,4 @@ jobs:
             research_evidence/v99_r106_c1_severe.csv
             research_evidence/v99_r106_c1_supersevere.csv
             research_evidence/v99_r106_c1_oracle.json
+            research_evidence/v99_r106_c1_failure_forensics.json
