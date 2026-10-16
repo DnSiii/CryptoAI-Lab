@@ -1,5 +1,6 @@
 """C1 transparent preliminary accounting; hourly PF is NOT trade PF."""
-import math
+import math,csv,hashlib
+from pathlib import Path
 from research.tools import v99_r106_c1_core as c
 
 def summary(hourly):
@@ -56,7 +57,7 @@ def benchmark(b,e,indices,cost,weights):
         q*=1+weights[0]*rb+weights[1]*re-(cost*sum(weights) if j==0 else 0)
     return q-1
 
-def simulate(b,e,cost):
+def simulate(b,e,cost,journal_path=None):
     if cost not in (c.SEVERE,c.SUPERSEVERE):raise ValueError("unfrozen_cost")
     if len(b)!=len(e) or any(x[0]!=y[0] for x,y in zip(b,e)):
         raise ValueError("unaligned_train_hours")
@@ -64,13 +65,13 @@ def simulate(b,e,cost):
     fb=c.features(b);fe=c.features(e)
     indices=[i for i in fb if b[i][0]>=c.START]
     if not indices:raise ValueError("no_train_evaluation")
-    eq=peak=1.;lock=0;desired=(0.,0.);prior=(0.,0.);hourly=[]
+    eq=peak=1.;lock=0;armed=True;desired=(0.,0.);prior=(0.,0.);hourly=[]
     for i in indices:
         t=b[i][0]
         if t.hour==0:
             desired=(c.signal(fb[i]),c.signal(fe[i]))
         state=c.regime(fb[i])
-        weights,lock=c.governor(desired,state,eq/peak-1,lock)
+        weights,lock,armed=c.governor(desired,state,eq/peak-1,lock,armed)
         turnover=sum(abs(x-y) for x,y in zip(weights,prior))
         fee=cost*turnover
         rb=b[i+1][1]/b[i][1]-1
@@ -79,10 +80,23 @@ def simulate(b,e,cost):
         if not math.isfinite(net) or net<=-1:raise ValueError("bad_net_return")
         eq*=1+net;peak=max(eq,peak)
         hourly.append({"time":t,"net":net,"fee":fee,"turnover":turnover,
-                       "regime":state,"active":int(any(abs(x)>0 for x in weights))})
+                       "regime":state,"active":int(any(abs(x)>0 for x in weights)),
+                       "btc_weight":weights[0],"eth_weight":weights[1],
+                       "equity":eq,"peak":peak,"lock_remaining":lock})
         prior=weights
     report=summary(hourly)
     report["cost_per_side"]=cost
+    if journal_path is not None:
+        path=Path(journal_path);path.parent.mkdir(parents=True,exist_ok=True)
+        fields=("time","regime","btc_weight","eth_weight","turnover","fee",
+                "net","equity","peak","lock_remaining")
+        with path.open("w",newline="",encoding="utf-8") as file:
+            writer=csv.writer(file);writer.writerow(fields)
+            for row in hourly:
+                writer.writerow([row[k].isoformat() if k=="time" else row[k] for k in fields])
+        report["simulated_journal_sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+        report["simulated_journal_rows"]=len(hourly)
+        report["simulated_journal_type"]="ASSUMED_COST_PRE_FUNDING_NOT_EXCHANGE_FILLS"
     report["benchmark_proxies"]={
         "btc_100pct":benchmark(b,e,indices,cost,(1.,0.)),
         "btc_eth_equal":benchmark(b,e,indices,cost,(.5,.5))}

@@ -58,9 +58,11 @@ def regime(f):
     d="BULL" if mom>.04 else "BEAR" if mom<-.04 else "SIDEWAYS"
     return d+"__"+("HIGH_VOLATILITY" if vol>.85 else "LOW_VOLATILITY")
 
-def governor(weights,state,drawdown,lock):
-    if lock>0:return (0.,0.),lock-1
-    if drawdown<=-.20:return (0.,0.),167
+def governor(weights,state,drawdown,lock,armed):
+    """Finite 168h cash lock: only re-arm after portfolio drawdown recovery."""
+    if lock>0:return (0.,0.),lock-1,False
+    if drawdown>-.12:armed=True
+    if armed and drawdown<=-.20:return (0.,0.),167,False
     w=list(weights)
     if state=="BULL__HIGH_VOLATILITY":
         w=[x*.5 if x<0 else x for x in w]
@@ -68,4 +70,14 @@ def governor(weights,state,drawdown,lock):
         w=[x*.5 if x>0 else x for x in w]
     if drawdown<=-.12:w=[x*.5 for x in w]
     if sum(map(abs,w))>1.30+1e-12:raise ValueError("gross_cap")
-    return tuple(w),0
+    return tuple(w),0,armed
+
+def assert_train_coverage(rows):
+    """Fail closed on shortened or shifted canonical historical TRAIN inputs."""
+    if not rows or rows[0][0]>START-timedelta(hours=721):
+        raise ValueError("missing_preregistered_warmup")
+    if rows[-1][0]!=END-timedelta(hours=1):
+        raise ValueError("incomplete_preregistered_train_end")
+    if rows[0][0]>=START or rows[-1][0]>=END:
+        raise ValueError("train_boundary_violation")
+    return True
