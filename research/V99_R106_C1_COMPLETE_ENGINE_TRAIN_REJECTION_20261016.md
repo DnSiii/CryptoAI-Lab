@@ -31,3 +31,11 @@ Seven pre-committed economic gates failed: both total ROI signs, severe >=4/5 fo
 The shortest credible next path is a *scientifically distinct pre-registered complete-engine economic mechanism*, protected from 2023-10-01→2024-01-18 sealed validation until it passes all TRAIN gates, and from final holdout until independently frozen. Native OKX fee-tier/funding-settlement/fills must be independently sourced and accounted for before declaring a deployable version. Building yet more isolated feature variants is not sufficient.
 
 The V99 hourly research automation and prospective first-party receipt workflows continue separately. **Software test green ≠ profitable trading engine.**
+
+## Independent paired-cost failure attribution — archived after original rejection
+
+- Actual GitHub Actions [38916545664](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/38916545664) **SUCCESS**: 9 C1 invariants + 5 original-price journal accounting oracle adversarial tests + 4 no-retune scenario-tail forensic tests, all passed, with the original frozen strategy unchanged.
+- **16,055 exactly aligned hourly observations per scenario**, not reconstructed history.
+- **392 hours differ in actual BTC/ETH exposure between severe and supersevere runs**, despite identical signals/parameters; **501 governor cash-lock hours in each**. The different exposure timing helps explain why a larger modeled per-turnover cost can coincidentally produce a less negative compounded result. It does NOT vindicate the higher-cost strategy and must never be used to optimize the governor.
+- Hash-grounded forensic output and both hourly journals remain archived in the GitHub Actions artifact. No new C1 economic hypothesis, no final holdout, no validation data, no new champion.
+- Architecture-level lesson, not a rescue: any future independently preregistered integrated system must explicitly report **both fixed-target counterfactual costs and causal path-dependent live risk controls** to avoid misleading cost robustness comparisons. The cost-path divergence evidence is descriptive ONLY; it cannot justify retuning C1, backtesting a family of ad hoc fixes, or claiming net real-market returns.
