@@ -25,7 +25,7 @@ class TestFixedRotation(unittest.TestCase):
                 self.assertEqual(target[i][1].hour,0)
     def test_same_hour_close_mutation_cannot_change_target(self):
         b,e=market()
-        idx=950
+        idx=1600
         target=x.signals(b,e)
         k=next((j for j,(i,*_) in enumerate(target) if i==idx))
         b2=list(b);e2=list(e)
@@ -46,7 +46,7 @@ class TestFixedRotation(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"unaligned_market_hours"):
             x.signals(b,other)
     def test_future_ohlcv_not_parsed(self):
-        b,_=market(920)
+        b,_=market(1000)
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/"b.csv"
             with path.open("w",newline="") as file:
@@ -56,7 +56,7 @@ class TestFixedRotation(unittest.TestCase):
             values,_=x.load_train(path)
             self.assertEqual(len(values),len(b))
     def test_duplicate_hour_rejected(self):
-        b,_=market(920)
+        b,_=market(1000)
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/"b.csv"
             with path.open("w",newline="") as file:
