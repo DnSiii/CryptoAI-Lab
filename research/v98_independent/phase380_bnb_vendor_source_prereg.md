@@ -1,0 +1,3 @@
+# V98 Independent Phase380 preregistration — BNB funding source integrity
+
+Registered 2026-10-16 02:53 BRT. Read-only comparison of BNBUSDT funding events for Dec 2022 through Dec 2025, with exact Decimal rates and 8-hour settlement buckets, using authenticated CSV and independent Binance historical endpoint. Native SHA256: 229c8eeaef1b0b0dd34d78aeb8584ea471b360344bc3c1e0f4158f3cf06f5484. Pass requires exactly 3381 unique matching events and zero missing, extra, or differing rates. Transport error or any mismatch fails closed and preserves a report. This is source-only, not a trading backtest. All other engines and future holdout are outside scope.
