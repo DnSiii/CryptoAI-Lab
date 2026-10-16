@@ -1,0 +1,14 @@
+# V99 R106 — One-shot TRAIN-only high-growth breakout challenger (2026-10-16)
+
+**PRECOMMITTED before any new PnL run.** Research challenger P1, no sweep, not a recovery of rejected Phase182–189 mappings. This is an isolated directional 7-day break-out/trend-following sleeve, NOT the existing R106 multi-sleeve composition and NOT a promotion.
+
+## Hypothesis
+After price breaks its preceding 168 completed hourly highs/lows, continuation can carry positive net-of-stressed-transaction-cost expectancy for BTCUSDT and ETHUSDT independently. Trend exit is price crossing midpoint of the last 72 completed 1H high/low range. Calendar decisions only at 00:00 UTC, using completed data through the previous bar. No dynamic parameter fitting or parameter search.
+
+**Freeze:** symbols BTCUSDT, ETHUSDT; TRAIN warmup no later than 2021-12-01; end exclusive 2024-01-18T00:00Z; decision UTC 00:00; 168h breakout history excludes the current decision's prior-close bar; prior-close breakout long/short; 72h trailing midrange exit; per-asset allocation = min(0.625, 0.35 / annualized previous-168h realized hourly return volatility), maximum portfolio absolute gross 1.25. No leverage optimization, no regime or side threshold search. Reevaluate cash positions daily only; hold otherwise. Sizing uses realized close-to-close vol only from completed 168h, always finite, with missing/gapped data rejected.
+
+**Execution:** position decided with closes through t−1, enters at hour-t *open*, earns next-hour open/open price move, pays cost on turnover at hour-t open. Severe fee/slippage allowance 0.0007 per side, supersevere 0.0014. Original exchange funding, fee tier, live fills, mark/index, latency and real slippage are **not authenticated** here. This is preliminary net-of-assumed-cost (but BEFORE funding) research, **NOT certified futures net profit**.
+
+**Gate (fixed before PnL):** run synthetic t−1 mutation, timestamp/duplicate/gap and forbidden-after-cutoff parser tests; exact deterministic rerun; five chronological folds; positive total return under severe AND supersevere, >=4/5 positive severe folds, >=3/5 positive supersevere folds, remove-best-hour positive under both, profit factor >1 under both, >=30 active trading days. Any failure means permanent REJECT of THIS preregistered rule with no rescue by sign/window/gross/fee tweaking. Even TRAIN pass is only *research alpha*, never production/paper promotion without independently validated native funding/costs, regime matrix, benchmarks, separate validation and untouched holdout. Never tune from existing forward paper or R106 holdout diagnostics.
+
+**No hard promises:** maximizing return under survival constraints remains the north star. Test is selected as a recognizable alternative economic mechanism to many unprofitable relative-value signals; its profitability is unknown until the CI run. Preserve V16 Frozen, V99 Frozen, all published ledgers, and existing candidate decisions unchanged.
