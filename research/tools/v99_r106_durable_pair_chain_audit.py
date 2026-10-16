@@ -119,17 +119,30 @@ def summarize(market, native_terms):
     if not all_buckets:
         raise ValueError("empty_durable_evidence_chain")
     pair = sorted(set(market) & set(native_terms))
+    # Same-run IDs are only untrusted candidate atomicity claims.
+    same_run_claim = {k: market[k]["claimed_run_id"] == native_terms[k]["claimed_run_id"]
+                      for k in pair}
     beginning, end = parse_bucket(all_buckets[0]), parse_bucket(all_buckets[-1])
     span = int((end-beginning).total_seconds()//3600) + 1
     expected = [(beginning + timedelta(hours=n)).strftime("%Y-%m-%dT%H") for n in range(span)]
     links = []
     valid = 0
+    atomic_claim_links = 0
+    current_atomic_streak = int(bool(pair) and same_run_claim[pair[0]])
+    longest_atomic_streak = current_atomic_streak
     for left, right in zip(pair, pair[1:]):
         if parse_bucket(right)-parse_bucket(left) != timedelta(hours=1):
+            current_atomic_streak = int(same_run_claim[right])
+            longest_atomic_streak = max(longest_atomic_streak, current_atomic_streak)
             continue
         result = continuity.evaluate(market[left]["verified"], market[right]["verified"])
         passed = result["status"] == "SOURCE_CONTINUITY_OBSERVED_ONLY"
         valid += int(passed)
+        atomic_claim_link = passed and same_run_claim[left] and same_run_claim[right]
+        atomic_claim_links += int(atomic_claim_link)
+        current_atomic_streak = (current_atomic_streak + 1 if atomic_claim_link
+                                 else int(same_run_claim[right]))
+        longest_atomic_streak = max(longest_atomic_streak, current_atomic_streak)
         links.append({"from": left, "to": right, "status": result["status"],
                       "issues": result["issues"], "revisions": result["revised_confirmed_hours"],
                       "overlap_observations": result["overlap_observations"]})
@@ -145,6 +158,11 @@ def summarize(market, native_terms):
             "market_only_hours": sorted(set(market)-set(native_terms)),
             "terms_only_hours": sorted(set(native_terms)-set(market)),
             "verified_adjacent_links": valid, "adjacent_audits": links,
+            "claimed_same_run_pair_hours": sum(same_run_claim.values()),
+            "source_continuity_links_between_same_run_claims": atomic_claim_links,
+            "longest_same_run_claimed_continuity_streak_hours": longest_atomic_streak,
+            "same_run_claims_require_independent_actions_attestation": True,
+            "minimum_two_consecutive_atomic_hours_authenticated": False,
             "claimed_run_ids_not_independently_github_authenticated": True,
             "retroactive_missing_hour_backfill": False,
             "exchange_signed_receipts": False, "native_fee_tier_authenticated": False,

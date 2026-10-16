@@ -54,6 +54,10 @@ jobs:
           r=json.loads(Path('research_evidence/durable_pair_chain.json').read_text())
           assert r['schema']=='V99_R106_DURABLE_PAIRED_SOURCE_CHAIN_V1'
           assert r['economic_trials']==0
+          assert r['minimum_two_consecutive_atomic_hours_authenticated'] is False
+          assert r['longest_same_run_claimed_continuity_streak_hours'] <= r['paired_hours']
+          print('Claimed same-run source streak (NOT authenticated):',
+                r['longest_same_run_claimed_continuity_streak_hours'])
           for f in ('paper_publication_authorized','promotion_authorized',
                     'holdout_accessed','real_orders_enabled','cross_venue_economic_transfer_authorized'):
               assert r[f] is False

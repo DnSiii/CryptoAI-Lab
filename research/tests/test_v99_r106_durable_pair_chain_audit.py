@@ -22,6 +22,8 @@ class TestDurableSourceChain(unittest.TestCase):
         self.assertEqual(report["market_only_hours"], ["2026-10-15T18"])
         self.assertEqual(report["terms_only_hours"], ["2026-10-15T17"])
         self.assertEqual(report["verified_adjacent_links"], 0)
+        self.assertEqual(report["longest_same_run_claimed_continuity_streak_hours"], 1)
+        self.assertFalse(report["minimum_two_consecutive_atomic_hours_authenticated"])
         self.assertFalse(report["paper_publication_authorized"])
 
     def test_clean_adjacent_pair_never_promotes_economic_model(self):
@@ -32,10 +34,38 @@ class TestDurableSourceChain(unittest.TestCase):
         with patch.object(audit.continuity, "evaluate", return_value=good):
             report = audit.summarize(market, terms)
         self.assertEqual(report["verified_adjacent_links"], 1)
+        self.assertEqual(report["source_continuity_links_between_same_run_claims"], 1)
+        self.assertEqual(report["longest_same_run_claimed_continuity_streak_hours"], 2)
+        self.assertFalse(report["minimum_two_consecutive_atomic_hours_authenticated"])
         self.assertEqual(report["status"], "DATA_ONLY_SOURCE_CONTINUITY_OBSERVED_ONLY")
         self.assertFalse(report["promotion_authorized"])
         self.assertFalse(report["holdout_accessed"])
         self.assertEqual(report["economic_trials"], 0)
+
+    def test_different_run_claims_never_count_as_atomic_even_with_good_market(self):
+        good = {"status": "SOURCE_CONTINUITY_OBSERVED_ONLY",
+                "issues": [], "revised_confirmed_hours": 0, "overlap_observations": 20}
+        market = fake("2026-10-15T13", "2026-10-15T14")
+        native = fake("2026-10-15T13", "2026-10-15T14")
+        native["2026-10-15T14"]["claimed_run_id"] = "99999999999"
+        with patch.object(audit.continuity, "evaluate", return_value=good):
+            report = audit.summarize(market, native)
+        self.assertEqual(report["verified_adjacent_links"], 1)
+        self.assertEqual(report["source_continuity_links_between_same_run_claims"], 0)
+        self.assertEqual(report["longest_same_run_claimed_continuity_streak_hours"], 1)
+        self.assertFalse(report["promotion_authorized"])
+
+    def test_three_clean_claimed_atomic_hours_are_still_not_promoted(self):
+        good = {"status": "SOURCE_CONTINUITY_OBSERVED_ONLY",
+                "issues": [], "revised_confirmed_hours": 0, "overlap_observations": 20}
+        stamps = ("2026-10-15T13", "2026-10-15T14", "2026-10-15T15")
+        with patch.object(audit.continuity, "evaluate", return_value=good):
+            report = audit.summarize(fake(*stamps), fake(*stamps))
+        self.assertEqual(report["source_continuity_links_between_same_run_claims"], 2)
+        self.assertEqual(report["longest_same_run_claimed_continuity_streak_hours"], 3)
+        self.assertTrue(report["same_run_claims_require_independent_actions_attestation"])
+        self.assertFalse(report["minimum_two_consecutive_atomic_hours_authenticated"])
+        self.assertFalse(report["paper_publication_authorized"])
 
     def test_revision_never_counts_as_valid_link(self):
         revised = {"status": "DATA_ONLY_HOLD_CONTINUITY",
