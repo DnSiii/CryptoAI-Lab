@@ -40,7 +40,7 @@ def load_train(path):
                 raise ValueError("gapped_repeated_or_out_of_order_train_hour")
             vals=tuple(float(row[x]) for x in ("open","high","low","close","volume"))
             if (not all(math.isfinite(q) for q in vals)
-                    or min(vals[0:4])<=0 or vals[4]<vals[2] or vals[4]>vals[1]
+                    or min(vals[0:4])<=0 or vals[3]<vals[2] or vals[3]>vals[1]
                     or vals[2]>min(vals[0],vals[3]) or vals[1]<max(vals[0],vals[3])
                     or vals[4]<0):
                 raise ValueError("invalid_canonical_train_ohlcv")
