@@ -2,7 +2,7 @@
 import argparse,json,re
 from collections import Counter
 from pathlib import Path
-PAT=re.compile(r"candidate_v99_r106_phase\d+_[a-z0-9_]*train_alpha\.json\Z")
+PAT=re.compile(r"candidate_v99_r106_phase\d+(?:_[a-z0-9]+)*_train_alpha\.json\Z")
 def scan(root):
     rows=[]
     for p in sorted(root.glob("candidate_v99_r106_phase*_train_alpha.json")):
