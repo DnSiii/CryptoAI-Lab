@@ -1,0 +1,3 @@
+# V98 Independent — Phase578 source-only recovery
+
+On 2026-10-18 the pinned Phase206 artifact ZIP was verified against the previously recorded artifact SHA256. Its embedded `manifest.json` has Git blob SHA `ca6a6301782746dc5392391c5acdebe2cc74fcc3`, matching the existing Phase497 immutable pin. The four Clean-4 funding CSV canonical SHA256 values match the Phase243 manifest; 37 monthly funding archives per asset (148 total) and 3381 records per asset are declared. This is internal GitHub/Actions lineage only, not independent Binance-origin attestation. The four native CSV files still require a full independent source check. No trading signals, historical PnL, 2026+ market data, XRP trading data, holdout or external engine were used. No strategy candidate was promoted.
