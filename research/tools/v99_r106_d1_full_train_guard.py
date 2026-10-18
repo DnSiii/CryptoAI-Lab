@@ -9,6 +9,7 @@ UTC = timezone.utc
 START = datetime(2021, 12, 9, tzinfo=UTC)
 END = datetime(2023, 10, 1, tzinfo=UTC)
 HOURS = 15864
+EXPECTED_FUNDING_FIXES = HOURS // 8  # fixed 8-hour preregistered cadence
 FOLD_EDGES = (
     START,
     datetime(2022, 4, 20, 4, tzinfo=UTC),
@@ -59,11 +60,13 @@ def check_complete_train(audit):
         if (type(count) is not int or count != HOURS or first != START or
             last != END - timedelta(hours=1)):
             raise ValueError('D1_INCOMPLETE_OR_SHIFTED_TRAIN_GRID')
-        if type(item.get('funding_rows')) is not int or item['funding_rows'] < 3:
+        if (type(item.get('funding_rows')) is not int or
+            item['funding_rows'] != EXPECTED_FUNDING_FIXES):
             raise ValueError('D1_FUNDING_HISTORY_INSUFFICIENT')
     return {
         'status': 'COMPLETE_CALENDAR_STRUCTURAL_ONLY',
         'paired_hours_per_asset': HOURS,
+        'expected_funding_fixes_per_asset': EXPECTED_FUNDING_FIXES,
         'five_chronological_folds': True,
         'exchange_authenticated': False,
         'historical_economics_authorized': False,
