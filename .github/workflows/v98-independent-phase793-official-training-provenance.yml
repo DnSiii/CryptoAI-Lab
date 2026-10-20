@@ -1,0 +1,68 @@
+name: V98 Independent Phase793 Official Training Provenance
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase793-official-training-provenance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase793-official-training-provenance
+  cancel-in-progress: false
+jobs:
+  training-source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Strict V98 Clean-4 training-only source preflight
+        run: |
+          python - <<'PY'
+          import pathlib,sys
+          root=pathlib.Path('research/v98_independent')
+          sys.path.insert(0,str(root))
+          from phase751_official_archive_gate import ASSETS,MONTHS,START,END,native
+          assert tuple(ASSETS)==('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')
+          assert len(MONTHS)==25 and MONTHS[0]=='2022-12' and MONTHS[-1]=='2024-12'
+          assert END==1735689600000 and START==1669852800000
+          assert all(len(native(a))==2286 for a in ASSETS)
+          print('PASS training-only native source preflight; no PnL')
+          PY
+      - name: Fresh official 100 archive and CHECKSUM verification
+        run: python research/v98_independent/phase751_official_archive_gate.py
+      - name: Fresh same-run 100 archive and 9144 API mark verification
+        run: python research/v98_independent/phase752_official_api_mark_gate.py
+      - name: Verify source-only receipt cannot authorize PnL or promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('research/v98_independent')
+          a=json.loads((root/'phase751_official_archive_result.json').read_text())
+          b=json.loads((root/'phase752_official_api_mark_result.json').read_text())
+          assert a['decision']=='PASS_OFFICIAL_100_TRAINING_ARCHIVES_NATIVE_ONLY'
+          assert b['decision']=='PASS_OFFICIAL_100_ARCHIVES_9144_API_MARKS_SOURCE_ONLY'
+          assert b['vendor_origin_attested'] is True
+          assert sum(x['events'] for x in b['assets'].values())==9144
+          assert sum(x['fresh_archives_verified'] for x in b['assets'].values())==100
+          assert all(x['historical_pnl_computed'] is False and x['promotion_eligible'] is False and x['validation_2025_read'] is False for x in (a,b))
+          print('PASS official training source only, not an economic candidate')
+          PY
+      - name: Preserve V98 source receipts on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase793-training-provenance-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase751_official_archive_result.json
+            research/v98_independent/phase752_official_api_mark_result.json
