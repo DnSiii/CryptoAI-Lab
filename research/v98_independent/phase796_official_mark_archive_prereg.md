@@ -1,0 +1,9 @@
+# V98 Independent Phase796 — conservative official mark-price archive protocol
+
+Pre-registered on 2026-10-20 before any Phase796 market observations or economic ledgers. Phase793 confirmed all 100 official Dec-2022..Dec-2024 USD-M funding ZIP/CHECKSUM pairs, but the historical funding API mark endpoint returned HTTP 451. No PnL has been calculated.
+
+The independent source alternative is the official Binance USD-M monthly `markPriceKlines` **1h** ZIP plus matching official SHA256 `.CHECKSUM`, exactly 25 months (2022-12..2024-12) and four Clean-4 assets BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT: 100 mark ZIPs in total. Strictly verify complete 1h UTC candle calendar, 12-field OHLC geometry, exact settlement-hour alignment, 2,286 funding slots per asset (9,144 total), and the separately fresh-authenticated 100 native funding ZIPs. Never read 2025+ or XRP; never use a proxy or unofficial data source.
+
+At a settlement timestamp in the first 29ms of an 8h UTC slot, exact API mark may be unavailable. For a **long-only** position, use that hour's official mark candle **high** for positive funding rates (worst debit) and **low** for negative funding rates (least credit). This is a pre-specified conservative bound, NOT an assertion that 1h open or close equals the exact settlement mark. Zero rate has zero cash effect. Fail closed on missing/misaligned/invalid bars, funding mismatches or source failures.
+
+The alternative has a distinct receipt; it MUST NOT impersonate the original 9,144 API mark PASS. Source verification alone never authorizes PnL or promotion. H's seven-slot targets, frozen hashes, chronological training, separate 2025 validation, three cost tiers, two funding orderings, 30 immediate and conditional 60 capacity ledgers, growth hurdles, tails and drawdown constraints remain unchanged. No post-result threshold, sign, window or gross rescue. I is a separate complete architecture preregistered independently.
