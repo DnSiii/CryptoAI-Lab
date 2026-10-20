@@ -3,6 +3,7 @@
 No 2025/2026 reads, external benchmarks, signals, PnL or promotion.
 """
 import csv,hashlib,json,sys
+from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 from phase206_acquire_funding_archive import fetch,checksum_expected,parse_archive,BASE
@@ -45,7 +46,7 @@ def audit(a,expected):
   rows=parse_archive(raw,filename)
   for t,interval,rate in rows:
    slot=(t//STEP)*STEP
-   if not START<=slot<END or slot in seen or not slot<=t<=slot+29 or Decimal(interval)!=8 or expected.get(slot)!=(t,Decimal(rate)):
+   if not START<=slot<END or slot in seen or not slot<=t<=slot+29 or Decimal(interval)!=8 or expected.get(slot)!=(t,Decimal(rate)) or datetime.fromtimestamp(slot/1000,timezone.utc).strftime("%Y-%m")!=month:
     raise ValueError(filename+": archive/native discrepancy")
    seen[slot]=(t,Decimal(rate))
   digests[month]=digest
