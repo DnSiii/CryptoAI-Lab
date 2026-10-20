@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 from decimal import Decimal
 from pathlib import Path
-from phase751_official_archive_gate import ROOT, ASSETS, START, END, STEP, native
+from phase751_official_archive_gate import ROOT, ASSETS, START, END, STEP, native, audit as fresh_archive_audit
 
 API = 'https://fapi.binance.com/fapi/v1/fundingRate'
 PASS_ARCHIVES = 'PASS_OFFICIAL_100_TRAINING_ARCHIVES_NATIVE_ONLY'
@@ -82,8 +82,17 @@ def run(root=ROOT):
                 sum(v.get('archives', 0) for v in receipt['assets'].values()) != 100 or
                 sum(v.get('settlements', 0) for v in receipt['assets'].values()) != 9144):
             raise PermissionError('Phase751 official archive receipt not complete')
+        # Cached Phase751 receipts alone cannot attest vendor origin. Re-fetch
+        # every official monthly ZIP and CHECKSUM in this invocation.
         for asset in ASSETS:
-            result['assets'][asset] = verify_asset(asset, native(asset))
+            expected = native(asset)
+            fresh = fresh_archive_audit(asset, expected)
+            if fresh.get('archives') != 25 or fresh.get('settlements') != 2286:
+                raise ValueError('fresh archive verification incomplete')
+            result['assets'][asset] = verify_asset(asset, expected)
+            result['assets'][asset]['fresh_archives_verified'] = fresh['archives']
+        if sum(v['fresh_archives_verified'] for v in result['assets'].values()) != 100:
+            raise ValueError('fresh archive count mismatch')
         if sum(x['events'] for x in result['assets'].values()) != 9144:
             raise ValueError('official API event count mismatch')
         result.update(decision=PASS_ALL, vendor_origin_attested=True)
