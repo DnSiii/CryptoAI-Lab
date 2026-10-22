@@ -1,0 +1,32 @@
+name: V98 Independent Phase962 Mark Month Locator
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: [.github/workflows/v98-independent-phase962-mark-month-locator.yml]
+permissions:
+  contents: read
+jobs:
+  source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Locate strict official mark month failure without PnL
+        working-directory: research/v98_independent
+        run: python phase961_n_mark_month_locator.py
+      - name: Upload V98-only source diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase962-mark-month
+          if-no-files-found: warn
+          retention-days: 30
+          path: research/v98_independent/phase961_n_mark_month_locator_result.json
