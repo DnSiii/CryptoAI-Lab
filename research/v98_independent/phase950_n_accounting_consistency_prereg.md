@@ -1,0 +1,7 @@
+# V98 Independent Phase950 — Frozen N accounting consistency gate (PRE-PNL)
+
+Scope: branch research/v98-independent-zero; only V98 namespaced files. No V16/V99 reads or changes, no XRP, no 2025 validation, no 2026+, no external benchmark access. No engine weights or risk thresholds may be changed.
+
+Before a Phase948 training freeze can authorize separate 2025 validation, independently audit all 90 preregistered N scenarios. Verify exact 5x3x2x3 registry, full 2023/2024 hourly/daily coverage, initial capital per scenario, terminal NAV/initial capital = total wealth multiple, total log wealth = log(terminal/initial) = sum of chronological fold log wealth, total wealth multiple = product of fold multiples, each fold multiple = exp(fold log wealth), fold CAGR = expm1(log wealth/(days/365.25)), hourly drawdown <= daily drawdown <= 0, all-sample hourly drawdown <= both fold hourly drawdowns, finite nonnegative fees/turnover, repair turnover <= total turnover, and finite signed funding. Any mismatch fails closed. Never reconstruct missing values or cherry-pick a scenario.
+
+This is an additive evidence-integrity check, not a strategy selection or economic result. Passing algebra alone cannot authenticate the vendor sources or prove profitability. The existing frozen N targets, Phase940 90-cell gate, and Phase948 validation firewall remain unchanged. No promotion or 2025 access without ALL predeclared checks passing.
