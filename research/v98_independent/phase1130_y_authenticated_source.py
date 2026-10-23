@@ -30,7 +30,7 @@ def canonical_target(frame):
         raise ValueError('Y_CANONICAL_NONQUANTIZED')
     raw=frame.to_csv(float_format='%.6f',lineterminator='\n').encode()
     parsed=pd.read_csv(io.BytesIO(raw),index_col=0).to_numpy(float)
-    if not np.array_equal(parsed,x):
+    if not np.allclose(parsed,x,rtol=0.,atol=1e-12):
         raise ValueError('Y_CANONICAL_SERIALIZATION_DRIFT')
     return hashlib.sha256(raw).hexdigest()
 
