@@ -2,6 +2,7 @@
 """V98 AJ1261 frozen chronological 2023/2024 90-cell training; no holdout."""
 from __future__ import annotations
 import argparse
+import hashlib
 import itertools
 import json
 import math
@@ -206,7 +207,7 @@ def run(path):
     return {'phase':1261,'architecture':'AJ','path':path,
         'cells':cells,'cells_expected':18,'historical_training_only':True,
         'validation_2025_read':False,'external_benchmarks_used':False,
-        'source_manifest_sha256':manifest['calendar_sha256'],
+        'source_manifest_sha256':hashlib.sha256(json.dumps(manifest,sort_keys=True,separators=(',',':')).encode()).hexdigest(),
         'decision':('PASS_AJ1261_PATH_18_TRAINING_CELLS' if
             len(cells)==18 and all(x['passed'] for x in cells) else
             'REJECT_AJ1261_PATH_TRAINING_SURVIVAL')}
