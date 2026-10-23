@@ -1,4 +1,4 @@
-name: V98 Independent Phase1123 Y Continuous Feedback Synthetic
+name: V98 Independent Phase1123-1124 Y Continuous Growth Synthetic
 on:
   push:
     branches:
@@ -8,13 +8,15 @@ on:
       - 'research/v98_independent/phase1123_y_continuous_feedback.py'
       - 'research/v98_independent/test_phase1123_y_continuous_feedback.py'
       - 'research/v98_independent/test_phase1123_y_causality.py'
+      - 'research/v98_independent/phase1124_y_pretrade_growth.py'
+      - 'research/v98_independent/test_phase1124_y_pretrade_growth.py'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  y-feedback-causal-oracle:
+  y-causal-feedback-and-growth:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: research/v98_independent
@@ -27,5 +29,5 @@ jobs:
           python-version: '3.11'
       - name: Install pinned numpy
         run: python -m pip install 'numpy==1.26.4'
-      - name: Y 3000 adverse feedback books and strict t-1 plan causality
-        run: python -m unittest -v test_phase1123_y_continuous_feedback.py test_phase1123_y_causality.py
+      - name: Y 5000 adversarial books, causal feedback, 81-state pretrade
+        run: python -m unittest -v test_phase1123_y_continuous_feedback.py test_phase1123_y_causality.py test_phase1124_y_pretrade_growth.py
