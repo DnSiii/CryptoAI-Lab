@@ -40,6 +40,20 @@ class TestY1135(unittest.TestCase):
         result=adverse_signed_mark(units,rate,marks,
             np.zeros(4,dtype=bool),np.full(4,101.))
         np.testing.assert_array_equal(result,[101.]*4)
+    def test_signed_funding_reconciles_with_live_inventory(self):
+        for order in ORDERS:
+            w,o,h,l,c,q,r,m,e,years=fixture()
+            w[744,0]=.10
+            l[745:,0]=99.5
+            r[746,0]=.01
+            e[746,0]=True
+            m[746,0]=[90.,110.]
+            result=simulate_y(w,o,h,l,c,q,r,m,e,fee=.0007,
+                order=order,mode='immediate',years=years,strict=False)
+            self.assertTrue(result['survived'],(order,result['first_failure']))
+            self.assertGreater(result['funding_debit_usd'],100.)
+            self.assertGreater(result['active_hours'],0)
+            self.assertGreater(result['filled_orders'],0)
     def test_2025_and_2026_are_forbidden(self):
         a=list(fixture())
         a[-1]=np.full(len(a[-1]),2025)
