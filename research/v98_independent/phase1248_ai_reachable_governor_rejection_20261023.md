@@ -1,0 +1,7 @@
+# V98 Independent Phase1248 — reachable safe-set governor hypothesis REJECTED (2026-10-23)
+
+Official [dual-OS run 40015514368](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40015514368) executed 11 preregistered tests per Ubuntu 22.04/24.04. Both passed **10/11**, but `test_next_hour_after_fees` failed identically with `AI1248_CARRIED_FUNDING_UNSAFE`. The analytically forward-reachable position still could not be held through the next ordinary open because the governor demanded another hypothetical full funding/risk reserve before allowing any executable adjustment.
+
+**Decision: REJECT_AI1248_REACHABLE_GOVERNOR_NO_RESCUE.** Freeze code, tests, assumptions and failed receipts. Do not alter its shock size, reserve horizon, fees, target fraction, test or sign after seeing this result. AI's four independent signed source modules remain unit-valid (12/12 per OS, exact matching hashes) but AI complete-system survival and historical CAGR remain entirely untested.
+
+Distinct next hypothesis must model **controlled viability**: settle actual carried gap at next open, check actual current maintenance/collateral, then permit real liquidity-bounded risk-reducing orders BEFORE evaluating future severe shock exposure of the post-trade portfolio. It must not pretend to exit before the gap or create free collateral. A new separately preregistered module and tests are required. No 2025 validation, 2026+, XRP, Phase083, V14/V15/V99 or frozen engine changes.
