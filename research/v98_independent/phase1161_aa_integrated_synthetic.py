@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """AA 90-cell synthetic source->t-1 targets->inventory integration, NO market PnL."""
 import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from phase1157_aa_sevenslot_source import ASSETS,CAPITAL,compose_aa,prior_bounds
@@ -52,6 +53,7 @@ def run():
         'cells':90,'full_path_cells':passed,'fail_closed_cells':blocked,
         'first_failure_counts':{r:sum(x['blocked_reason']==r for x in results.values()) for r in reasons},
         'by_cell':results,'promotion_eligible':False}
+    Path(__file__).with_name('phase1161_aa_integrated_synthetic_receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
     print(json.dumps({k:v for k,v in receipt.items() if k!='by_cell'},sort_keys=True))
     return receipt
 if __name__=='__main__':run()
