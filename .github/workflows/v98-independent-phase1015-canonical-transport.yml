@@ -1,0 +1,135 @@
+name: V98 Independent Phase1015 Canonical O Cross-Runner Transport
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1015-canonical-transport.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1015-canonical-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  authenticate:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Test no-increase canonicalization and 3000 independent synthetic states
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1015_canonical_transport.py
+      - name: Fresh official 100 Clean-4 OHLC ZIP authentication
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1015-source
+          retention-days: 7
+          if-no-files-found: error
+          path: research/v98_independent/phase243_clean4_canonical/*_1h.csv
+  canonical:
+    needs: authenticate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            tag: ubuntu22a
+          - os: ubuntu-22.04
+            tag: ubuntu22b
+          - os: ubuntu-24.04
+            tag: ubuntu24a
+          - os: ubuntu-24.04
+            tag: ubuntu24b
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install identical numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1015-source
+          path: research/v98_independent/phase243_clean4_canonical
+      - name: Construct unchanged O and canonical transport with strict corners
+        working-directory: research/v98_independent
+        run: |
+          python phase1015_canonical_transport.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('phase1015_canonical_transport_result.json').read_text())
+          cpu=next((z.split(':',1)[1].strip() for z in Path('/proc/cpuinfo').read_text().splitlines() if z.startswith('model name')),'')
+          x['cpu_model']=cpu
+          Path('phase1015_canonical_transport_result.json').write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'cpu':cpu,'canonical_hashes':x['paths_sha256']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1015-canonical-${{ matrix.tag }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase1015_canonical_transport_result.json
+  compare:
+    needs: canonical
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1015-canonical-ubuntu22a
+          path: ubuntu22a
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1015-canonical-ubuntu22b
+          path: ubuntu22b
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1015-canonical-ubuntu24a
+          path: ubuntu24a
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1015-canonical-ubuntu24b
+          path: ubuntu24b
+      - name: Fail-closed cross-runner canonical O target hash agreement
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          tags=('ubuntu22a','ubuntu22b','ubuntu24a','ubuntu24b')
+          data={tag:json.loads(Path(tag,'phase1015_canonical_transport_result.json').read_text()) for tag in tags}
+          hashes=[json.dumps(v['paths_sha256'],sort_keys=True) for v in data.values()]
+          equal=len(set(hashes))==1
+          cpus={tag:v['cpu_model'] for tag,v in data.items()}
+          result={'phase':1015,'source_only':True,'historical_pnl_computed':False,
+                  'economic_clearance':False,'cpu_models':cpus,'all_four_hashes_equal':equal,
+                  'canonical_hashes':data[tags[0]]['paths_sha256'],
+                  'decision':'CANONICAL_SOURCE_ONLY_REPRODUCIBLE_NOT_ECONOMIC' if equal else 'CANONICAL_CROSS_RUNNER_DRIFT_BLOCKED'}
+          Path('phase1015_cross_runner_summary.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(result,sort_keys=True))
+          if not equal: raise SystemExit(2)
+          PY
+      - name: Preserve canonical source-only reproducibility receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1015-canonical-summary
+          retention-days: 30
+          if-no-files-found: warn
+          path: phase1015_cross_runner_summary.json
