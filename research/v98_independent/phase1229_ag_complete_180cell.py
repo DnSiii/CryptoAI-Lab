@@ -108,7 +108,7 @@ def run():
         name='crisis' if crisis else 'benign'
         frames=fixture(crisis)
         slots=causal_sources(frames[3],frames[4])
-        risk=prior_risk(*frames[:7])
+        risk=prior_risk(frames[0],frames[1],frames[2],frames[4],frames[5],frames[6])
         for path,mode,fee,order in itertools.product(
                 PATHS,CAPITAL,COSTS,ORDERS):
             try:
