@@ -27,6 +27,7 @@ def oracle(cash, units, opening, quote, fee):
 
 def postcheck(cash, units, opening, quote, fee, sold):
     v = np.asarray(units)*np.asarray(opening)
+    quote = np.asarray(quote, dtype=float)
     eq = float(cash+v.sum()-fee*sum(sold))
     post = v-sold
     tol = 1e-8*max(1.,eq)
