@@ -1,0 +1,13 @@
+# V98 Independent Phase1009 — O full 90-cell authenticated training preregistration
+
+Registered **before O historical economic PnL**. O target code and all five source-only target SHA256 are frozen in Phase1008 after authenticated two-process reproducibility. Do not modify them to rescue outcomes. N_full was rejected on all 90 cells and stays rejected; O is a genuinely distinct complete seven-slot growth engine, with a Phase1002 exact-LP opening repair, not an N rerun.
+
+**Source firewall:** fresh same-run Phase803 official 100 Clean-4 OHLC ZIPs and SHA pins; fresh Phase1000 official 100 mark monthly ZIPs plus 112 vendor-checksummed Feb-2023 daily ZIPs and 100 native funding ZIPs (9144 events). Require 4 complete Feb exception manifests, zero overlap differences, exact bound CSV hash and 2022-12 to 2024-12 hourly chronology. No XRP, 2025+ data, contaminated Phase083 holdout, external benchmarks or cached-source fallback. Freeze O source blob and five targets must verify *before* calling any O ledger.
+
+**Fixed economic matrix:** 5 paths (O_core_only, O_full, O_minus_opportunity, O_minus_relative_value, O_minus_recovery) x 3 fees (base .0007, severe .0012, supersevere .0020) x 2 funding orderings x 3 capital modes (immediate, capacity_1m, capacity_10m) = exactly 90 cells. Use t-1 signals and quote volume, open(t) fills, fee-inclusive cash, native funding and conservative mark, exact-LP opening sell-only repair, no fabricated intrabar orders, ex-post OHLC 16-corner risk rejection. Require complete 2023/2024 hourly and daily folds; all failed cells reported, never hidden.
+
+**Survival and growth gates:** all 90 cells must survive; report per-fold CAGR, log wealth, MDD hourly and daily, PF, payoff, win rate, positive days, CVaR, concentration, fees, funding, turnover and LP repair. On both 2023 and 2024 folds, base and severe fees, both funding orderings and all three capital modes: O_full log wealth must be >0 and its marginal log wealth must be >0 versus every registered ablation. Supersevere cells must survive and are disclosed even if return negative. No grid or post-result sign/window/gross rescue. Reject O outright if survival or required growth/marginals fail.
+
+**Validation firewall:** even passing training is NOT promotion. Freeze economic candidate and separately validate untouched 2025 chronology; only after validation may external V14/V15/V99 benchmarks be opened. Long-run compounded growth/CAGR is the objective, with drawdown/tail/causality constraints, not minimization of risk for its own sake.
+
+**Status:** preregistered, no O historical PnL at registration.
