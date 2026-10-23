@@ -72,6 +72,10 @@ def cell(path,mode,fee,order,frames,slots,bounds,fixture_name):
     nav=cash
     old=np.zeros(4)
     pending=np.zeros(4)
+    pending_components=np.zeros((4,4))
+    marginal_exec=np.zeros(4,dtype=int)
+    audit_marginal=(path=='AH_full' and mode=='immediate' and
+        fee=='base' and order=='carried_before_fill' and fixture_name=='crisis')
     stress=AHStressHedge()
     allocator=AHOnlineGrowthAllocator()
     turnovers=fees=slippage=funding=0.
@@ -88,6 +92,15 @@ def cell(path,mode,fee,order,frames,slots,bounds,fixture_name):
                 target=ah_governor_target(cash,old,c[t-1],o[t],
                     pending,down[t],up[t],f[t],q[t-1],qmin[t],
                     fee_mode=fee,order=order)
+                if audit_marginal:
+                    for k in (1,2,3):
+                        if np.max(np.abs(pending_components[k]))<=1e-12:
+                            continue
+                        cf=ah_governor_target(cash,old,c[t-1],o[t],
+                            pending-pending_components[k],down[t],up[t],
+                            f[t],q[t-1],qmin[t],fee_mode=fee,order=order)
+                        marginal_exec[k]+=int(np.max(np.abs(
+                            target['units']-cf['units']))>1e-9)
                 out=settle_hour(cash,old,c[t-1],o[t],h[t],l[t],c[t],
                     target['units'],q[t-1],qmin[t],down[t],up[t],
                     f[t],r[t],e[t],ml[t],mh[t],fee_mode=fee,order=order)
@@ -120,6 +133,8 @@ def cell(path,mode,fee,order,frames,slots,bounds,fixture_name):
         allocator.observe(log_return,r[t],e[t])
         proposal=allocator.decide(s,str(regime['state'][t]))
         pending=proposal['signed_target']
+        pending_components=(proposal['growth_scale']*
+            proposal['sleeve_weights'][:,None]*s)
     return {'fixture':fixture_name,'path':path,'mode':mode,
             'fee':fee,'order':order,'passed':True,'synthetic_only':True,
             'historical_system_pnl_computed':False,
@@ -132,6 +147,7 @@ def cell(path,mode,fee,order,frames,slots,bounds,fixture_name):
             'opportunity_source_hours':opportunity_source_hours,
             'rv_source_hours':rv_source_hours,
             'active_sleeves':active_sleeves.tolist(),
+            'marginal_executable_hours':marginal_exec.tolist(),
             'allocator_observations':allocator.observations}
 
 def run():
@@ -157,7 +173,8 @@ def run():
     excited=bool(full.get('rebalances',0)>0 and
         full.get('opportunity_source_hours',0)>0 and
         full.get('rv_source_hours',0)>0 and
-        full.get('stress_source_hours',0)>0)
+        full.get('stress_source_hours',0)>0 and
+        all(x>0 for x in full.get('marginal_executable_hours',[0,0,0,0])[1:]))
     passed=complete and excited
     return {'phase':1243,'architecture':'AH',
         'decision':('PASS_AH_180_SYNTHETIC_NOT_ECONOMIC' if passed
