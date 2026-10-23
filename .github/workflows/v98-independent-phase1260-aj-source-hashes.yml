@@ -1,5 +1,9 @@
 name: V98 Independent Phase1260 AJ Authenticated Source Only Hashes
 on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1260-aj-source-hashes.yml'
   workflow_dispatch:
 permissions:
   actions: read
