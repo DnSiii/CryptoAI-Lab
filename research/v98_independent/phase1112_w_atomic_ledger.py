@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""W atomic signed t-1 hourly OCO execution; synthetic only, no PnL research.
+"""W atomic signed t-1 hourly OCO execution; synthetic-only pre-economic oracle.
 
-Target indexed t-1 may enter at hour t open. Stop-first when both touched,
-gap-aware adverse fills, no same-hour reversal entry, native signed funding.
-Unexpected range/capacity or post-stop concentration rejects fail-closed.
+12h rebalance; hourly carried-risk checks without refilling stops. Stop-first
+when both touched; gap-aware adverse fills; no same-hour reversal entry.
+Unanticipated exposed gaps or liquidity/cap failures reject fail-closed.
 """
 from __future__ import annotations
 import numpy as np
@@ -26,7 +26,7 @@ def _book_ok(cash,units,price,equity_reference):
 
 def execute_hour(prevclose,opening,high,low,closing,carried_units,desired_weights,
                  cash,down,up,prior_quote,fee,slip,*,funding_rate=None,
-                 funding_mark=None,funding_event=None):
+                 funding_mark=None,funding_event=None,rebalance=True):
     p,o,h,l,c,u,w,d,a,q=[_arr(x) for x in
         (prevclose,opening,high,low,closing,carried_units,
          desired_weights,down,up,prior_quote)]
@@ -46,13 +46,15 @@ def execute_hour(prevclose,opening,high,low,closing,carried_units,desired_weight
     equity0=float(cash+np.dot(u,p))
     if equity0<=0:
         return {'ok':False,'reason':'W_PRIOR_EQUITY_NONPOSITIVE'}
-    if (l<p*(1-d)-1e-9).any() or (h>p*(1+a)+1e-9).any():
+    # Flat unrelated assets cannot cause a failure; exposed assets must survive.
+    at_risk=(np.abs(u)>1e-12)|((np.abs(w)>1e-12)&bool(rebalance))
+    if np.any(at_risk&((l<p*(1-d)-1e-9)|(h>p*(1+a)+1e-9))):
         return {'ok':False,'reason':'W_UNANTICIPATED_GAP_OR_RANGE'}
     prior_side=np.where(u!=0,u,w)
     stop=np.where((u!=0)|(w!=0),
         np.where(prior_side>0,p*(1-d),p*(1+a)),np.nan)
     capacity=q*PARTICIPATION
-    target_units=w*equity0/p
+    target_units=w*equity0/p if rebalance else u.copy()
     new=u.copy();balance=float(cash);fees=turnover=0.;events=[]
     def fill(j,delta,px,action):
         nonlocal balance,fees,turnover
