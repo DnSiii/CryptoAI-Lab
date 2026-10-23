@@ -1,0 +1,81 @@
+name: V98 Independent Phase1260 AJ Authenticated Source Only Hashes
+on:
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source-only:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Retrieve independently authenticated source artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-${{ matrix.os }}
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage ONLY pinned V98 Clean4 canonical inputs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in
+                    ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              matches=list(root.rglob(name))
+              assert len(matches)==1,(name,matches)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(matches[0],dest)
+              print('AJ1260_STAGE',name,dest.stat().st_size)
+          PY
+      - name: Compute exact source and 15 static AJ path capital digests
+        working-directory: research/v98_independent
+        run: python phase1260_aj_authenticated_source_digest.py --output aj1260_source_only_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1260-source-only-${{ matrix.os }}
+          path: research/v98_independent/aj1260_source_only_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  reconcile:
+    if: always()
+    needs: source-only
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aj1260-source-only-*
+          path: receipts
+      - name: Fail closed on ANY source hash or 15-path crossrunner difference
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=sorted(glob.glob('receipts/*/*.json'))
+          assert len(files)==2,files
+          a,b=[json.load(open(p)) for p in files]
+          assert a==b,(a,b)
+          assert a['hours']==18288 and a['native_events']==9144
+          assert len(a['static_path_capital_sha256'])==15
+          assert a['decision']=='PASS_AJ1260_OFFICIAL_SOURCE_ONLY_NOT_ECONOMIC'
+          print('AJ1260_EXACT_SOURCE_AND_15_PATH_HASH_PASS',a['manifest_sha256'])
+          print('AJ1260_YEAR_ACTIVITY',json.dumps(a['year_activity'],sort_keys=True))
+          PY
