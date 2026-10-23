@@ -1,0 +1,83 @@
+name: V98 Independent Phase1229 AG Complete Seven Slot 180 Cell Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1228_ag_actual_ledger.py'
+      - 'research/v98_independent/test_phase1228_ag_actual_ledger.py'
+      - 'research/v98_independent/phase1229_ag_complete_180cell.py'
+      - '.github/workflows/v98-independent-phase1229-ag-complete.yml'
+  workflow_dispatch:
+jobs:
+  ag-full-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Test native signed funding and actual ledger
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1228_ag_actual_ledger
+      - name: Execute frozen complete 180-cell AG synthetic gate
+        id: synthetic
+        continue-on-error: true
+        working-directory: research/v98_independent
+        run: python phase1229_ag_complete_180cell.py --output ag_phase1229_receipt.json
+      - name: Preserve full 180-cell receipts regardless of gate result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ag-phase1229-receipt-${{ matrix.os }}
+          path: research/v98_independent/ag_phase1229_receipt.json
+          if-no-files-found: error
+      - name: Enforce original complete AG structural preregistration
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('ag_phase1229_receipt.json'))
+          cells=r['cells']
+          passed=sum(x['passed'] for x in cells)
+          print('AG1229_CELLS',len(cells),'PASS',passed,'FAIL',len(cells)-passed)
+          print('AG1229_DECISION',r['decision'])
+          assert len(cells)==180 and passed==180
+          assert r['decision']=='PASS_AG_180_SYNTHETIC_NOT_ECONOMIC'
+          PY
+  ag-crossrunner:
+    needs: [ag-full-synthetic]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ag-phase1229-receipt-*
+          path: receipts
+      - name: Compare all independent discrete and numeric receipts
+        run: |
+          python - <<'PY'
+          import json,glob,math
+          paths=sorted(glob.glob('receipts/*/*.json'))
+          print('AG1229_RUNNER_RECEIPTS',paths)
+          assert len(paths)==2
+          a,b=[json.load(open(p)) for p in paths]
+          assert a['decision']==b['decision']
+          assert len(a['cells'])==len(b['cells'])==180
+          for x,y in zip(a['cells'],b['cells']):
+              assert x.keys()==y.keys()
+              for k in x:
+                  u,v=x[k],y[k]
+                  if isinstance(u,float):
+                      assert math.isclose(u,v,rel_tol=1e-8,abs_tol=1e-7),(k,u,v)
+                  else:
+                      assert u==v,(k,u,v)
+          print('AG1229_CROSSRUNNER_AGREEMENT',180)
+          print('AG1229_PASSED',sum(x['passed'] for x in a['cells']))
+          PY
