@@ -1,0 +1,27 @@
+name: V98 Independent Phase1054 Q Economic Receipt Integrity Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1054_q_economic_receipt_audit.py'
+      - 'research/v98_independent/test_phase1054_q_economic_receipt_audit.py'
+      - '.github/workflows/v98-independent-phase1054-q-receipt-oracle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q-receipt-oracle-synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Test complete Q receipt and rejection/promotion contracts without historical PnL
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1054_q_economic_receipt_audit.py
