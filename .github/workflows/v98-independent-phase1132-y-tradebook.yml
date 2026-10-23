@@ -1,0 +1,31 @@
+name: V98 Independent Phase1132 Y Signed FIFO Trade Accounting
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1132-y-tradebook.yml'
+      - 'research/v98_independent/phase1132_y_closed_trade_accounting.py'
+      - 'research/v98_independent/test_phase1132_y_closed_trade_accounting.py'
+      - 'research/v98_independent/phase1126_y_hourly_ledger.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  y-fifo-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Verify 400h two-order NAV identity and realized FIFO trade PnL
+        run: python -m unittest -v test_phase1132_y_closed_trade_accounting.py
