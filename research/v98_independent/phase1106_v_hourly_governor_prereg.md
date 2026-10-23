@@ -1,0 +1,7 @@
+# V98 Independent Phase1106 — V hourly survival governor execution clarification
+
+2026-10-23. PRE-ECONOMIC, before any authenticated V PnL. Phase1100 defines portfolio-first governor, Phase1102 fixes 32-corner bisection and 12h alpha allocation. These are **different clocks**: alpha allocation decisions occur every 12h, but the survival governor must verify **carried positions every completed hour**. Otherwise stale inventory can breach asset/net limits between signal decisions despite a safe original target.
+
+At each close t-1, use only close[t-1], previously completed 336h high/low shock bounds and prior native funding maximum. Convert carried inventory to current equity weights. If all 16 ex-ante stressed corners pass, carry unchanged and avoid needless turnover. If any fails, compute the **maximum feasible common positive scale** via the already preregistered 32-iteration governor and preplace a reduce-only market reduction for open t, subject to 1% prior quote-volume capacity. Do not increase a stale signal. On a new 12h signal, apply the same robust governor to the desired joint target. A t opening gap before risk reduction is audited and may reject; no retroactive rescue. The governor never sees OHLC[t] or funding[t] to decide the order.
+
+This is a structural implementation gate BEFORE V freeze and historical PnL, not a post-return change of alpha, fees, signs, lookbacks, gross or leverage. Reject V if a fully integrated pre-economic synthetic execution gate still fails, rather than adjusting return parameters.
