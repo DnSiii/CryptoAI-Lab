@@ -1,0 +1,55 @@
+name: V99 R106 D1 C164 original C127 C128 C135 C129 C140 integrated ledger (SOURCE ONLY)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_native_fee_binding_cycle127.py'
+      - 'research/tools/v99_r106_d1_cash_inventory_oracle_cycle128.py'
+      - 'research/tools/v99_r106_d1_mark_fill_bridge_cycle135.py'
+      - 'research/tools/v99_r106_d1_hourly_account_bridge_cycle129.py'
+      - 'research/tools/v99_r106_d1_c140_hourly_journal.py'
+      - 'research/tests/test_v99_r106_d1_cash_inventory_oracle_cycle128.py'
+      - 'research/tests/test_v99_r106_d1_hourly_account_bridge_cycle129.py'
+      - 'research/tests/test_v99_r106_d1_c140_hourly_journal.py'
+      - '.github/workflows/v99-r106-d1-c164-integrated-ledger.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test runner
+        run: python -m pip install 'pytest==8.3.5'
+      - name: Original C128 C129 C140 ledger tests (cash, mark, funding, causal decisions)
+        run: |
+          python -m pytest -q research/tests/test_v99_r106_d1_cash_inventory_oracle_cycle128.py research/tests/test_v99_r106_d1_hourly_account_bridge_cycle129.py research/tests/test_v99_r106_d1_c140_hourly_journal.py
+      - name: Prior C163 through C153 independent source regression
+        run: |
+          python -m unittest research.tests.test_v99_r106_d1_target_rebalance_cycle139 research.tests.test_v99_r106_d1_c163_c139_c151_integration research.tests.test_v99_r106_d1_c162_exact_native_fee_reexecution research.tests.test_v99_r106_d1_c161_causal_decision_oracle research.tests.test_v99_r106_d1_c160_integrated_structural_chain research.tests.test_v99_r106_d1_c159_full_funding_closure research.tests.test_v99_r106_d1_c158_risk_folds research.tests.test_v99_r106_d1_c157_accounting_cold_start research.tests.test_v99_r106_d1_c156_native_lot_smoke research.tests.test_v99_r106_d1_c153_pair_lattice research.tests.test_v99_r106_d1_c155_prereg_source research.tests.test_v99_r106_d1_full_train_guard -v
+      - name: Independent cold-cash 48-hour synthetic chain and sealed partition check
+        run: |
+          python - <<'PY'
+          from research.tests.test_v99_r106_d1_c140_hourly_journal import build_inputs
+          from research.tools.v99_r106_d1_c140_hourly_journal import build_journal
+          from research.tools.v99_r106_d1_basis_carry_preregistered import report_permissions
+          for scenario in ('severe_model_only','supersevere_model_only'):
+              proof=build_journal(scenario=scenario,**build_inputs())
+              assert proof['account_proof']['hours_replayed']==48
+              assert proof['funding_proof']['observed_fixes']==12
+              assert proof['account_proof']['funding_events_modeled']==12
+              assert not any(proof[k] for k in ('economic_roi_authorized',
+                  'first_party_receipts_authenticated','validation_opened',
+                  'holdout_opened','promotion_authorized','orders_enabled'))
+          p=report_permissions()
+          assert all(not p[k] for k in ('historical_train_economics_run',
+              'validation_opened','final_holdout_opened','promotion_authorized',
+              'real_orders_enabled','paper_publication_authorized'))
+          print('C164 integrated SOURCE_ONLY / DATA_ONLY HOLD / NO PROMOTION')
+          PY
