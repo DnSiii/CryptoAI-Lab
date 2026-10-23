@@ -42,7 +42,7 @@ def fixture(scenario, trade=False, inherited=False):
                     'quote_notional':'100','native_fee_quote':'0',
                     'stress_fee_quote':str(one_fee),'base_fee_units':'0',
                     'booked_total_fee_quote':str(one_fee),
-                    'before':a,'after':b}
+                    'before':deepcopy(a),'after':deepcopy(b)}
         frames.append({'time':t,'marks':deepcopy(marks),
                        'before':before,'after_mark':deepcopy(before),
                        'after_funding':deepcopy(before),'after':deepcopy(after_perp),
