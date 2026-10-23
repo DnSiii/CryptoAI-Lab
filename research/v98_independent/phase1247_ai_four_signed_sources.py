@@ -80,7 +80,7 @@ def relative_value(close):
         neutral=raw-A.T@(np.linalg.pinv(A@A.T,rcond=1e-12)@(A@raw))
         gross=float(np.abs(neutral).sum())
         if gross>1e-10:
-            out[t]=np.round(neutral/gross,12)
+            out[t]=np.round(neutral/gross,9)
             if abs(out[t].sum())>1e-8 or abs(out[t]@beta)>1e-8:
                 raise ValueError('AI1247_RV_NEUTRALITY')
     return out,betas
