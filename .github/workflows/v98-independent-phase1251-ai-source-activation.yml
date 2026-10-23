@@ -1,0 +1,42 @@
+name: V98 Independent Phase1251 AI Source Activation Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1251-ai-source-activation.yml'
+  workflow_dispatch:
+jobs:
+  source-only:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Audit source activation without system PnL or tuning
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib,collections
+          from phase1251_ai_complete_180cell import fixture,WARMUP
+          from phase1247_ai_four_signed_sources import source_bundle
+          for crisis in (False,True):
+              f=fixture(crisis)
+              s=source_bundle(f[3],f[1],f[2],f[5],f[6])
+              name='crisis' if crisis else 'benign'
+              active=[int(np.count_nonzero(np.abs(x[WARMUP:]).sum(axis=1)>1e-12)) for x in s[:4]]
+              regimes=dict(sorted(collections.Counter(s[4]['state'][WARMUP:]).items()))
+              print('AI1251_SOURCE_ONLY',name,'active_hours',active,'regimes',regimes)
+              for i in range(4):
+                  print('AI1251_SOURCE_SHA256',name,i,hashlib.sha256(
+                      np.asarray(s[i],dtype='<f8').tobytes()).hexdigest())
+              print('AI1251_ROUTER_SHA256',name,hashlib.sha256(
+                  '|'.join(s[4]['state']).encode()).hexdigest())
+          print('AI1251_HISTORICAL_SYSTEM_PNL_COMPUTED',False)
+          PY
