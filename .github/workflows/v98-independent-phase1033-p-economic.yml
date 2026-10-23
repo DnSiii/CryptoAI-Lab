@@ -1,0 +1,54 @@
+name: V98 Independent Phase1033 P Frozen 90-Cell Authenticated Economics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1033-p-economic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1033-p-economics-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  p-90cell-economics:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Assert P frozen code, five targets and synthetic risk/accounting tests
+        working-directory: research/v98_independent
+        run: |
+          python -m unittest -v test_phase1024_1025_p_source_and_governor.py test_phase1026_p_canonical_transport.py test_phase1027_p_funded_ledger_hourly.py test_phase1029_p_training_gate_contract.py
+          python - <<'PY'
+          from phase1029_p_training_gate import verify_p_code,FROZEN_P,PATHS,FEE_TIERS,ORDERS,CAPITAL_MODES
+          assert verify_p_code()
+          assert tuple(FROZEN_P)==PATHS
+          assert len(PATHS)*len(FEE_TIERS)*len(ORDERS)*len(CAPITAL_MODES)==90
+          PY
+      - name: Authenticate same-run official Clean-4 source and run frozen P 90-cell training
+        working-directory: research/v98_independent
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1029_p_training_gate.py --execute
+      - name: Preserve all P official source and 90-cell receipts including rejections
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1033-p-frozen-economic-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1000_four_asset_conservative_bounds_source_only.csv
+            research/v98_independent/phase1029_p_training_gate_result.json
