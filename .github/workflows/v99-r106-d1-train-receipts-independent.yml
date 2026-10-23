@@ -1,0 +1,44 @@
+name: V99 D1 independent verification of actual TRAIN four-leg receipts (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/verification/independent_d1_native_train_receipts.py'
+      - '.github/workflows/v99-r106-d1-train-receipts-independent.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-source-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Download actual first-party historical source artifact without refetching
+        shell: bash
+        run: |
+          set -euo pipefail
+          runid=40019588739
+          for attempt in $(seq 1 60); do
+            if gh run download "$runid" --repo "$GITHUB_REPOSITORY" \
+              --name "d1-train-four-leg-backfill-$runid" \
+              --dir research_evidence/d1_train_four_legs; then
+              break
+            fi
+            if [ "$attempt" = 60 ]; then
+              echo "::error::Historical source artifact unavailable after bounded wait"
+              exit 2
+            fi
+            sleep 15
+          done
+      - name: Independently verify every original OKX page, cursor and 15,864-hour common grid
+        run: python -m research.verification.independent_d1_native_train_receipts research_evidence/d1_train_four_legs
