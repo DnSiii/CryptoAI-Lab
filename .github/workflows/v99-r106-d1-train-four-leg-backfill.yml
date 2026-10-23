@@ -1,0 +1,32 @@
+name: V99 D1 full native OKX four-leg TRAIN-only backfill (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_train_four_leg_backfill.py'
+      - '.github/workflows/v99-r106-d1-train-four-leg-backfill.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-four-leg-train-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Retrieve actual OKX 2021-2023 four-leg TRAIN history only
+        run: python -m research.tools.v99_r106_d1_train_four_leg_backfill research_evidence/d1_train_four_legs
+      - name: Preserve all raw first-party HTTP pages, exact grid and manifest even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d1-train-four-leg-backfill-${{ github.run_id }}
+          path: research_evidence/d1_train_four_legs/
+          retention-days: 90
+          if-no-files-found: warn
