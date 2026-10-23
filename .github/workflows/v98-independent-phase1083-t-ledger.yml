@@ -24,7 +24,8 @@ jobs:
           python-version: '3.11'
       - name: Install pinned runtime
         run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
-      - name: Run synthetic causal source, canonical, event-ledger and 90-cell audit tests
+      - name: Verify immutable T freeze and synthetic causal, event-ledger and 90-cell audit
         run: |
           python -m py_compile phase1084_t_frozen_training_path.py phase1085_t_90cell_audit.py
           python -m unittest -q test_phase1081_t_sevenslot_source.py test_phase1082_t_authenticated_source.py test_phase1083_t_event_driven_ledger.py test_phase1085_t_90cell_audit.py
+          python -c 'from phase1084_t_frozen_training_path import verify_freeze; assert verify_freeze()["decision"]=="FROZEN_T_PRE_ECONOMIC"'
