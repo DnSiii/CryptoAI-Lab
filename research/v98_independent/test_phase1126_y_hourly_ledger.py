@@ -7,13 +7,14 @@ P=np.ones(4)*100;Z=np.zeros(4);D=np.ones(4)*.05
 Q=np.ones(4)*1e9;F=np.ones(4)*.0002
 
 def run(*,u=Z,w=Z,cash=10000.,o=P,h=None,l=None,c=P,rebalance=False,
-        rate=Z,event=None,quote=Q):
+        rate=Z,event=None,quote=Q,funding_order='new_after_fill'):
     o=np.asarray(o,float);c=np.asarray(c,float)
     if h is None:h=np.maximum(o,c)*1.001
     if l is None:l=np.minimum(o,c)*.999
     return execute_hour(P,o,h,l,c,u,w,cash,D,D,F,quote,.002,.002,
         rebalance=rebalance,funding_rate=rate,funding_mark=c,
-        funding_event=np.zeros(4,bool) if event is None else event)
+        funding_event=np.zeros(4,bool) if event is None else event,
+        funding_order=funding_order)
 
 class TestYHourlyLedger(unittest.TestCase):
     def test_flat_no_false_pnl(self):
@@ -39,6 +40,14 @@ class TestYHourlyLedger(unittest.TestCase):
         self.assertTrue(x['ok'],x);self.assertAlmostEqual(x['funding_cash_delta'],0.)
         y=run(u=np.array([10.,0,0,0]),cash=9000.,rate=rate,event=e)
         self.assertTrue(y['ok'],y);self.assertAlmostEqual(y['funding_cash_delta'],-1.)
+    def test_two_preregistered_funding_orders(self):
+        u=np.array([10.,0,0,0]);w=np.array([-.1,0,0,0]);rate=np.array([.001,0,0,0])
+        a=run(u=u,cash=9000.,w=w,rebalance=True,rate=rate,event=np.ones(4,bool),
+              funding_order='carried_before_fill')
+        b=run(u=u,cash=9000.,w=w,rebalance=True,rate=rate,event=np.ones(4,bool),
+              funding_order='new_after_fill')
+        self.assertAlmostEqual(a['funding_cash_delta'],-1.)
+        self.assertAlmostEqual(b['funding_cash_delta'],1.)
     def test_adverse_gap_exit_precedes_alpha(self):
         u=np.array([20.,0,0,0]);o=np.array([94.,100.,100.,100.])
         r=run(u=u,cash=8000.,o=o,c=o,w=np.array([.3,0,0,0]),rebalance=True)
