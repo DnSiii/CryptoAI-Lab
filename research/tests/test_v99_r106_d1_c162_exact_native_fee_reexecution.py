@@ -8,7 +8,7 @@ from research.tools.v99_r106_d1_basis_carry_preregistered import (
 from research.tools.v99_r106_d1_native_fee_veto_cycle136 import (
     CausalFeeTier, fee_bound_intent,
 )
-from research.tools.v99_r106_d1_full_train_guard import START, TRAIN_END
+from research.tools.v99_r106_d1_full_train_guard import START, END
 from research.verification.independent_d1_c162_exact_native_fee_reexecution import (
     verify_exact_fee_veto as check,
     SCENARIOS,
@@ -18,7 +18,7 @@ from research.verification.independent_d1_c162_exact_native_fee_reexecution impo
 def setup():
     _, _, _, _, evidence = fixture()
     fee = FeeEvidence('OKX', .001, .0005,
-                      START-timedelta(days=60), TRAIN_END,
+                      START-timedelta(days=60), END,
                       'SYNTHETIC_NOT_FIRST_PARTY')
     tier = CausalFeeTier(fee, START-timedelta(days=61))
     fees = {t:{a:tier for a in ('BTC','ETH')} for t in evidence}
