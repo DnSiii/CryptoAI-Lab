@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from test_phase1189_ad_online_core_router import sample
-from phase1193_ad_stateful_stress import stress_targets
+from phase1193_ad_stateful_stress import stress_targets,StressMachine
 
 
 def fixture(n=1000):
@@ -54,6 +54,13 @@ class StressTests(unittest.TestCase):
         f,nav=fixture(1200)
         out=stress_targets(*f,nav)
         np.testing.assert_array_equal(self.out,out[:1000])
+
+    def test_incremental_state_matches_batch_exactly(self):
+        machine=StressMachine()
+        out=np.asarray([machine.step(self.nav[t],
+            float(np.log(self.f[3].iloc[t].to_numpy(float)).mean()))
+            for t in range(len(self.nav))])
+        np.testing.assert_array_equal(out,self.out)
 
     def test_invalid_nav_rejected(self):
         nav=self.nav.copy();nav[900]=0
