@@ -28,17 +28,19 @@ frames = (o, h, l, c, q, r, e, c * .995, c * 1.005)
 sources = source_bundle(c, h, l, r, e)
 risks = engine.prepare_risk(frames)
 for path in engine.PATHS:
-    out = engine.cell(path, 'immediate', 'base',
-                      'carried_before_fill', frames, sources, risks)
-    assert out['passed']
-    assert out['executed_hours'] == H - engine.START_EXECUTION
-    assert out['rebalances'] > 0
-    assert out['initial_nav'] == 10000.
-    assert out['final_nav'] > 0
-    assert out['validation_2025_read'] is False
-    assert out['annual']['2023']['total_utc_days'] > 0
-    assert out['annual']['2024']['total_utc_days'] > 0
-    assert all(math.isfinite(out[k]) for k in
-               ('final_nav','turnover','fees','slippage','funding',
-                'max_drawdown','two_year_cagr'))
-print('AK_COMPLETE_FIVE_PATH_SYNTHETIC_LEDGER_PASS')
+    for fee in engine.FEES:
+        for order in engine.ORDERS:
+            out = engine.cell(path, 'immediate', fee, order,
+                              frames, sources, risks)
+            assert out['passed'], (path, fee, order)
+            assert out['executed_hours'] == H - engine.START_EXECUTION
+            assert out['rebalances'] > 0
+            assert out['initial_nav'] == 10000.
+            assert out['final_nav'] > 0
+            assert out['validation_2025_read'] is False
+            assert out['annual']['2023']['total_utc_days'] > 0
+            assert out['annual']['2024']['total_utc_days'] > 0
+            assert all(math.isfinite(out[k]) for k in
+                       ('final_nav','turnover','fees','slippage','funding',
+                        'max_drawdown','two_year_cagr'))
+print('AK_COMPLETE_30_PATH_COST_FUNDING_SYNTHETIC_LEDGER_PASS')
