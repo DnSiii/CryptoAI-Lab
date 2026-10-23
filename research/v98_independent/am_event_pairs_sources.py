@@ -37,15 +37,15 @@ def source_bundle(close,high,low,funding_rate,funding_event,quote_volume):
         exit_hi=np.max(h[t-240:t],axis=0)
         exit_lo=np.min(l[t-240:t],axis=0)
         for j in range(4):
-            if trend_position[j]>0 and t-trend_entry[j]>=168 and c[t]<exit_lo[j]:
+            if trend_position[j]>0 and t-trend_entry[j]>=168 and c[t,j]<exit_lo[j]:
                 trend_position[j]=0.
-            elif trend_position[j]<0 and t-trend_entry[j]>=168 and c[t]>exit_hi[j]:
+            elif trend_position[j]<0 and t-trend_entry[j]>=168 and c[t,j]>exit_hi[j]:
                 trend_position[j]=0.
             if trend_position[j]==0:
-                if c[t]>upper[j]:
+                if c[t,j]>upper[j]:
                     trend_position[j]=1.
                     trend_entry[j]=t
-                elif c[t]<lower[j]:
+                elif c[t,j]<lower[j]:
                     trend_position[j]=-1.
                     trend_entry[j]=t
         gross=float(np.abs(trend_position).sum())
