@@ -66,6 +66,18 @@ class TestZSource(unittest.TestCase):
                 self.assertLessEqual(abs(new.sum()),.75+1e-8)
                 cap=.8*.01*src[4].iloc[t].to_numpy()/(CAPITAL[mode]*1.002)
                 self.assertTrue(np.all(abs(new-old)<=cap+1e-6))
+    def test_phase1149_infeasible_inventory_reduce_only_or_hard_block(self):
+        old=np.array([.44,-.44,.3,0.]);dn=np.full(4,.3);up=np.full(4,.4)
+        fund=np.full(4,.002);alpha=np.array([.02,-.02,.01,0.])
+        self.assertFalse(corner_gate(old,dn,up,fund,old))
+        w=optimize_joint(alpha,np.eye(4)*.001,old,dn,up,fund,
+                         np.full(4,1e9),10000.)
+        self.assertTrue(corner_gate(w,dn,up,fund,old))
+        self.assertLess(np.abs(w).sum(),np.abs(old).sum())
+        with self.assertRaisesRegex(ValueError,'UNEXECUTABLE_PRIOR_INVENTORY'):
+            optimize_joint(alpha,np.eye(4)*.001,old,dn,up,fund,
+                           np.zeros(4),10000.)
+
     def test_zero_quote_cannot_open_position(self):
         w=optimize_joint(np.ones(4)*.1,np.eye(4)*.01,np.zeros(4),
             np.full(4,.1),np.full(4,.1),np.zeros(4),np.zeros(4),10000)
