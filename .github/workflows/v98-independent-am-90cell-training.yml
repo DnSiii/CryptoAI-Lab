@@ -26,8 +26,8 @@ jobs:
       - name: AM causal-source, allocator and syntax gates
         working-directory: research/v98_independent
         run: |
-          python -m py_compile am_rotation_sources.py am_growth_allocator.py am_90cell_training.py am_90cell_reconcile.py
-          python am_rotation_sources.py
+          python -m py_compile am_event_pairs_sources.py am_growth_allocator.py am_90cell_training.py am_90cell_reconcile.py
+          python am_event_pairs_sources.py
           python am_growth_allocator.py
       - name: Retrieve pinned vendor-attested 2023-24 Clean4 ONLY
         uses: actions/download-artifact@v4
