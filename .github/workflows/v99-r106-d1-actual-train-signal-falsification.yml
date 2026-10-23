@@ -1,0 +1,62 @@
+name: V99 D1 real TRAIN causal entry falsification (NO PNL / NO ORDERS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_actual_train_signal_falsification.py'
+      - '.github/workflows/v99-r106-d1-actual-train-signal-falsification.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-train-causal-signal-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Fetch archived original first-party TRAIN source receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" --name d1-train-four-leg-backfill-40019588739 --dir research_evidence/d1_train_four_legs
+          gh run download 40019980953 --repo "$GITHUB_REPOSITORY" --name d1-bulk-funding-train-40019980953 --dir research_evidence/d1_bulk_funding
+      - name: Independently verify originals and execute actual causal D1 TRAIN entry decisions
+        run: |
+          python -m research.tools.v99_r106_d1_actual_train_signal_falsification \
+            research_evidence/d1_train_four_legs research_evidence/d1_bulk_funding \
+            research_evidence/d1_actual_train_signal_probe
+      - name: Verify frozen threshold arithmetic, five folds and hard no-promotion
+        run: |
+          python - <<'PY'
+          import json
+          from decimal import Decimal
+          from pathlib import Path
+          p=Path('research_evidence/d1_actual_train_signal_probe/d1_actual_train_signal_probe.json')
+          r=json.loads(p.read_text())
+          assert r['train_end_exclusive_ms']==1696118400000
+          assert len(r['optimistic_observed_funding_envelope'])==5
+          assert r['original_d1_paired_decisions_independently_checked']==2*r['both_assets_funding_valid_days']
+          assert Decimal(r['fee_thresholds_four_leg_round_trip_x2']['severe_model_only'])==Decimal('0.0056')
+          assert Decimal(r['fee_thresholds_four_leg_round_trip_x2']['supersevere_model_only'])==Decimal('0.0112')
+          assert all(r[k] is False for k in ('historical_economic_trial_run',
+              'native_fee_tier_authenticated','actual_account_fills_authenticated',
+              'actual_account_funding_cash_authenticated','validation_opened',
+              'holdout_opened','paper_publication_authorized','orders_enabled',
+              'promotion_authorized'))
+          print('ACTUAL_TRAIN_CAUSAL_SIGNAL_PROBE_VERIFIED / NO PNL / NO PROMOTION')
+          PY
+      - name: Archive actual TRAIN signal envelope and all veto counts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d1-actual-train-signal-probe-${{ github.run_id }}
+          path: research_evidence/d1_actual_train_signal_probe/
+          retention-days: 90
+          if-no-files-found: warn
