@@ -40,7 +40,7 @@ class AHOnlineGrowthAllocator:
             or not np.isfinite(e).all() or not np.isin(e,(0.,1.)).all()):
             raise ValueError('AH1241_OBSERVATION')
         # All signed returns are from signals decided at the PREVIOUS close.
-        paper=self.signals@(lr-r*e)-self.pending_cost
+        paper=np.round(self.signals@(lr-r*e)-self.pending_cost,12)
         self.paper.append(paper.copy())
         self.pending_cost[:]=0.
         self.observations+=1
@@ -69,7 +69,11 @@ class AHOnlineGrowthAllocator:
             scale=max(0.,min(3.,.5*positive_mu/variance))
         # The proposed scalar is only an intent. The separate risk governor
         # must approve collateral, all 81 corners, exit depth and funding.
-        target=scale*(w@s)
+        # Canonical IEEE-754 receipts across runners; <=1e-10 intent delta.
+        w=np.round(w,12)
+        w[3]=float(np.round(1.-float(np.sum(w[:3])),12))
+        scale=float(np.round(scale,12))
+        target=np.round(scale*(w@s),12)
         self.pending_cost=PAPER_FRICTION*np.abs(s-self.signals).sum(axis=1)
         self.signals=s.copy()
         self.last_weights=w.copy()
