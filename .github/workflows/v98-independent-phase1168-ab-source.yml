@@ -76,7 +76,7 @@ jobs:
               assert r['typed_mark_shape']==[18288,4,2] and r['native_funding_events']==9144
               assert len(r['canonical_sha256'])==15
           for key in ('canonical_sha256','typed_mark_csv_sha256','native_funding_events',
-                      'official_hours','diagnostics','governor_calls'):
+                      'official_hours','diagnostics','nonzero_intent_hours'):
               assert all(r[key]==receipts[0][key] for r in receipts),'AB_CROSSRUNNER_DRIFT_'+key
           print(json.dumps({'decision':'PASS_AB_FOUR_FRESH_SOURCE_RECOMPOSITIONS_NOT_FROZEN',
                             'canonical_sha256':receipts[0]['canonical_sha256'],
