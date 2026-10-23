@@ -100,6 +100,9 @@ def independently_verify(root,out):
         best=max(math.log1p(x) for x in daily)
         close(metrics["remove_best_day_roi"],math.expm1(math.log(navs[-1])-best),"BEST_DAY_MISMATCH")
         summaries[scenario]={"roi":navs[-1]-1,"folds":fold_returns,"maxdd":dd,
+                             "pf":positives/negatives if negatives else None,
+                             "best_day_removed":math.expm1(math.log(navs[-1])-best),
+                             "worst_day":min(daily),
                              "fee":total_fee,"slippage":total_slip,"trades":sum(r["rebalanced"] for r in rows)}
     # Independently derive buy-once benchmarks analytically from ORIGINAL first/last opens.
     b_ratio=spot[0][-1]/spot[0][0]
