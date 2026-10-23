@@ -1,0 +1,39 @@
+name: V98 Independent Phase1183 AC Official Growth Gate Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1183-ac-official-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  ac-independent-growth-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned independent audit runtime
+        run: python -m pip install numpy==1.26.4
+      - name: Download all five official immutable path receipts from run 39999569281
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 39999569281
+          github-token: ${{ github.token }}
+          pattern: v98-ac-1182-AC_*
+          path: /tmp/v98-ac-1182
+          merge-multiple: false
+      - name: Strict independent 90-cell survival, CAGR and marginal growth gate
+        run: python research/v98_independent/phase1183_ac_growth_gate_audit.py /tmp/v98-ac-1182
+      - name: Preserve honest rejection receipt even on failed gate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ac-1183-official-economic-audit
+          path: phase1183_ac_growth_gate_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
