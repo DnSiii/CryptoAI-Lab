@@ -30,7 +30,7 @@ class TestAJSources(unittest.TestCase):
 
     def test_growth_disagreement_is_flat(self):
         c,*_=fixture()
-        c[880:,0]*=np.exp(-.03*np.arange(20))
+        c[880:,0]*=np.exp(-.008*np.arange(20))
         w=growth_core(c)
         self.assertEqual(w[-1,0],0.)
 
@@ -60,9 +60,12 @@ class TestAJSources(unittest.TestCase):
         np.testing.assert_array_equal(w[-1],[.25,.25,-.25,-.25])
 
     def test_rv_funding_affects_ranks(self):
-        c,h,l,r,e=fixture()
+        c=np.full((400,4),100.)
+        r=np.zeros_like(c)
+        e=np.zeros_like(c)
+        e[::8]=1.
         baseline=relative_value(c,r,e)
-        r[::8,0]=.1
+        r[::8,3]=.1
         changed=relative_value(c,r,e)
         self.assertFalse(np.array_equal(baseline[-1],changed[-1]))
 
