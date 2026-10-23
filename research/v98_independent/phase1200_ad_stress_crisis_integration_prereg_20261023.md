@@ -1,0 +1,9 @@
+# V98 Independent Phase1200 — AD stress-activated 90-cell adversarial integration gate (2026-10-23)
+
+Phase1198 passed **90/90 benign synthetic cells** in two OS runs, but Stress/Recovery was not activated in that fixture. That is insufficient evidence for a complete seven-slot engine. This separate **preregistered adversarial** gate forces a major synthetic Clean-4 selloff and recovery **after** the first executable hours, so actual realized AD NAV (not an injected fake NAV) must drive Phase1193 stateful insurance.
+
+Freeze fixture: Phase1198 synthetic 900-hour Clean-4, multiply all close prices from t=810 onward by **0.55**, then multiply prices from t=850 onward by **1.80** (partial recovery). Reconstruct open as prior close, high as max(open,close)*1.003, low as min(open,close)*0.997; rederive signed conservative native mark bounds on 8h settlement slots. No 2025, historical PnL, external benchmarks or future signals. Execute all five paths x three capital modes x three fee schedules x two funding orders = **90 crisis synthetic cells** with actual cash/units, native funding and 81 intrabar corners.
+
+Pass only if 90/90 survive, actual NAV accounting holds and AD_full immediate/base/carried activates Stress for >0 completed hours; do not count a synthetic market shock without actual NAV activation as success. All failures and first reasons preserved. No historical CAGR or economic promotion.
+
+For cross-OS synthetic receipt comparison, preserve raw float fields and require **exact** path/mode/fee/order/pass/active-hour/flags plus numeric absolute difference <=1e-8 for NAV, fees, turnover, funding. This tolerance is declared before Phase1200 runs and applies **only** to synthetic float observer reconciliation; source hashes must remain exact and economic validation must retain raw precision.
