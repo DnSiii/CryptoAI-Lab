@@ -1,0 +1,69 @@
+name: V98 Independent Phase1255 AJ Distinct Signed Source Unit Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1255-aj-sources.yml'
+  workflow_dispatch:
+jobs:
+  aj-source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Run 12 preregistered AJ source and router unit tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1255_aj_signed_sources
+      - name: Hash exact causal signed sources on independent OS
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          import numpy as np
+          from test_phase1255_aj_signed_sources import fixture
+          from phase1255_aj_signed_sources import source_bundle
+          c,h,l,r,e=fixture()
+          src=source_bundle(c,h,l,r,e)
+          digest=lambda x:hashlib.sha256(np.asarray(x,dtype='<f8').tobytes()).hexdigest()
+          out={'phase':1255,'synthetic_only':True,
+               'historical_system_pnl_computed':False,
+               'signed_sources':[digest(x) for x in src[:4]],
+               'router':hashlib.sha256('|'.join(src[4]['state']).encode()).hexdigest(),
+               'active':[int(np.count_nonzero(np.abs(x[720:]).sum(axis=1)>1e-10))
+                         for x in src[:4]]}
+          with open('aj1255_source_digest.json','w') as f:json.dump(out,f,sort_keys=True)
+          print('AJ1255_SOURCE_DIGEST',json.dumps(out,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1255-source-${{ matrix.os }}
+          path: research/v98_independent/aj1255_source_digest.json
+          retention-days: 30
+          if-no-files-found: warn
+  reconcile:
+    needs: aj-source
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aj1255-source-*
+          path: receipts
+      - name: Exact independent OS source SHA256 equality
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=sorted(glob.glob('receipts/*/*.json'))
+          assert len(files)==2,files
+          a,b=[json.load(open(f)) for f in files]
+          assert a==b,(a,b)
+          print('AJ1255_EXACT_CROSSRUNNER_PASS',json.dumps(a,sort_keys=True))
+          PY
