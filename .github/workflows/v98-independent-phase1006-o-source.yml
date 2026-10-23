@@ -1,0 +1,77 @@
+name: V98 Independent Phase1006 O Seven-Slot Source-Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1006-o-source.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1006-o-source-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  o-source:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deterministic numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: O seven-slot source-only synthetic contract tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1006_o_sevenslot_source.py
+      - name: Fresh official Clean-4 100 OHLC source authentication
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: O process A complete five-path source-only construction
+        working-directory: research/v98_independent
+        run: |
+          python phase1006_o_sevenslot_source.py
+          cp phase1006_o_sevenslot_source_result.json phase1006_o_process_a.json
+      - name: O process B and independent-process frozen-target reproducibility
+        working-directory: research/v98_independent
+        run: |
+          python phase1006_o_sevenslot_source.py
+          cp phase1006_o_sevenslot_source_result.json phase1006_o_process_b.json
+          python - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+          a = json.loads(Path('phase1006_o_process_a.json').read_text())
+          b = json.loads(Path('phase1006_o_process_b.json').read_text())
+          equal = a == b
+          hashes = a.get('diagnostics',{}).get('paths',{})
+          result = {
+              'phase':1006, 'source_only':True, 'historical_pnl_computed':False,
+              'validation_2025_read':False, 'holdout_accessed':False,
+              'external_benchmarks_used':False,
+              'all_five_paths_reproducible':equal and len(hashes)==5,
+              'process_a_sha256':hashlib.sha256(Path('phase1006_o_process_a.json').read_bytes()).hexdigest(),
+              'process_b_sha256':hashlib.sha256(Path('phase1006_o_process_b.json').read_bytes()).hexdigest(),
+              'paths':{k:v['sha256'] for k,v in hashes.items()},
+              'decision':'SOURCE_ONLY_REPRODUCIBLE_NOT_FROZEN' if equal and len(hashes)==5 else 'BLOCKED_SOURCE_DRIFT',
+          }
+          Path('phase1006_o_repro_summary.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(result,sort_keys=True))
+          if result['decision'] != 'SOURCE_ONLY_REPRODUCIBLE_NOT_FROZEN':
+              raise SystemExit(2)
+          PY
+      - name: Preserve source-only evidence on all outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1006-o-seven-slot-source
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1006_o_process_a.json
+            research/v98_independent/phase1006_o_process_b.json
+            research/v98_independent/phase1006_o_repro_summary.json
