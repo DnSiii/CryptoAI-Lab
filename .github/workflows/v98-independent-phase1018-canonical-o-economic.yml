@@ -1,0 +1,55 @@
+name: V98 Independent Phase1018 Canonical O Authenticated 90-Cell Economics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1018-canonical-o-economic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1018-o-economics-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  frozen-o-economics:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical research runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Assert canonical O code, 90 preregistered cells and fail-closed tests
+        working-directory: research/v98_independent
+        run: |
+          python -m unittest -v test_phase1015_canonical_transport.py test_phase1017_o_canonical_90cell_training.py test_phase1009_o_90cell_training.py
+          python - <<'PY'
+          from phase1016_o_canonical_freeze import verify_canonical_source, FROZEN_CANONICAL_O
+          from phase1009_o_90cell_training import PATHS, FEE_TIERS, ORDERS, CAPITAL_MODES
+          assert verify_canonical_source()
+          assert tuple(FROZEN_CANONICAL_O) == PATHS
+          assert len(PATHS)*len(FEE_TIERS)*len(ORDERS)*len(CAPITAL_MODES) == 90
+          PY
+      - name: Authenticate Clean-4 official sources and execute immutable canonical O 90 cells
+        working-directory: research/v98_independent
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1017_o_canonical_90cell_training.py
+      - name: Preserve all official source and O economic receipts including rejections
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1018-o-canonical-economic-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1000_four_asset_conservative_bounds_source_only.csv
+            research/v98_independent/phase1017_o_canonical_90cell_result.json
