@@ -1,0 +1,82 @@
+name: V99 D1 actual TRAIN source join and hard economic gate (NO ORDERS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_real_train_source_join.py'
+      - '.github/workflows/v99-r106-d1-real-train-source-join.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  historical-source-join:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Download actual archived OKX four-leg TRAIN and original funding ZIPs
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/d1_train_four_legs
+          gh run download 40019980953 --repo "$GITHUB_REPOSITORY" \
+            --name d1-bulk-funding-train-40019980953 \
+            --dir research_evidence/d1_bulk_funding
+      - name: Independently reparse receipts and join 15864 original TRAIN hours
+        run: |
+          set +e
+          python -m research.tools.v99_r106_d1_real_train_source_join \
+            research_evidence/d1_train_four_legs \
+            research_evidence/d1_bulk_funding \
+            research_evidence/d1_joined_source
+          rc=$?
+          set -e
+          if [ "$rc" -ne 2 ]; then
+            echo "Expected strict source/fee block; got unexpected exit code $rc"
+            exit 1
+          fi
+      - name: Independently check joined file digest, UTC grid and hard NO PROMOTION
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('research_evidence/d1_joined_source')
+          report=json.loads((root/'source_join_gate.json').read_text())
+          raw=(root/'train_joined_source_only.jsonl').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()==report['joined_sha256']
+          rows=raw.splitlines()
+          assert len(rows)==15864==report['joined_hours']
+          start=1639008000000
+          # Derive UTC start from report rather than trusting a hardcoded label.
+          from datetime import datetime
+          start=int(datetime.fromisoformat(report['full_preregistered_train_start_utc']).timestamp()*1000)
+          for i,line in enumerate(rows):
+            row=json.loads(line)
+            assert row['hour_ms']==start+i*3600000
+            assert set(row['market_open'])=={'BTC-USDT','BTC-USDT-SWAP','ETH-USDT','ETH-USDT-SWAP'}
+            assert set(row['venue_settlement_at_hour_not_t_minus_1'])=={'BTC-USDT-SWAP','ETH-USDT-SWAP'}
+          assert all(report[k] is False for k in (
+              'historical_economic_trial_run','native_fee_tier_authenticated',
+              'actual_account_fills_authenticated','actual_account_funding_cash_authenticated',
+              'validation_opened','holdout_opened','orders_enabled',
+              'paper_publication_authorized','promotion_authorized'))
+          assert all(x['exact_8h_slots_missing']>0 for x in report['funding'].values())
+          print('REAL_SOURCE_JOIN_VERIFIED / TRAIN ONLY / ECONOMICS BLOCKED / NO PROMOTION')
+          PY
+      - name: Preserve exact joined TRAIN, missing funding timestamps and hard gate
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d1-real-train-source-join-${{ github.run_id }}
+          path: research_evidence/d1_joined_source/
+          retention-days: 90
+          if-no-files-found: warn
