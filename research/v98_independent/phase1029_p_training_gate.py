@@ -24,7 +24,7 @@ FROZEN_CODE_BLOBS={
     'phase1024_p_sevenslot_source.py':'bcaffb8cfc5331841b885b13cb64ba78eff9751e',
     'phase1025_p_state_aware_governor.py':'c588ac85666b617dff76e9fca8ef2a68e4e1ee4b',
     'phase1026_p_canonical_transport.py':'e2b4c2d0873b68f99f23e776a5abb19d85e5be5f',
-    'phase1027_p_funded_ledger_hourly.py':'ee9640b3849848ef1e137c1a96daa78ee4790769',
+    'phase1027_p_funded_ledger_hourly.py':'ba9c8346f68996f3d9d103cd21968269a9eb81bb',
 }
 FROZEN_P={
     'P_core_only':'1cec522d2bc11f9cfec08680d99efa9e96aa1db842bdee62cd93a170a584d342',
