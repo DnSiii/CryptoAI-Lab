@@ -1,0 +1,46 @@
+name: V98 Independent Phase1008 O Frozen Five-Path Pins
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1008-o-freeze.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1008-o-freeze-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  o-freeze:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned source-only runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fail closed on any O source-code byte drift
+        working-directory: research/v98_independent
+        run: python -c 'from phase1008_o_frozen_paths import verify_o_source; assert verify_o_source()'
+      - name: Authenticate fresh official 100 Clean-4 OHLC ZIPs
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: Enforce five frozen O target hashes before any economics
+        working-directory: research/v98_independent
+        run: python phase1008_o_frozen_paths.py
+      - name: Preserve immutable target freeze evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1008-o-five-frozen-targets
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1008_o_target_freeze_result.json
