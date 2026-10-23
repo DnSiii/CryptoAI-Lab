@@ -1,0 +1,40 @@
+name: V99 R106 D1 C154 structural preflight (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/verification/independent_d1_c153_pair_lattice.py'
+      - 'research/tests/test_v99_r106_d1_c153_pair_lattice.py'
+      - 'research/tools/v99_r106_d1_full_train_guard.py'
+      - 'research/tests/test_v99_r106_d1_full_train_guard.py'
+      - '.github/workflows/v99-r106-d1-c154-structural-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  structural-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Exact-rational lot lattice (declared specs only)
+        run: python -m unittest research.tests.test_v99_r106_d1_c153_pair_lattice -v
+      - name: TRAIN partition and sealed-data structural guard
+        run: python -m unittest research.tests.test_v99_r106_d1_full_train_guard -v
+      - name: Assert this workflow cannot authorize economic promotion
+        run: |
+          python - <<'PY'
+          from research.verification.independent_d1_c153_pair_lattice import pair_lattice
+          p=pair_lattice(spot_lot_base='0.000001', swap_contract_base='0.01',
+            swap_lot_contracts='1', spot_fee_rate='0.001', spot_fee_currency='BASE',
+            spot_side='buy', spot_min_base='0.000001', swap_min_contracts='1',
+            max_pair_base='0.5')
+          assert not any(p[k] for k in (
+            'exchange_authenticated','historical_roi_authorized',
+            'validation_opened','holdout_opened','promotion_authorized','orders_enabled'))
+          print('DATA_ONLY/HOLD — NO PROMOTION; no market economics evaluated')
+          PY
