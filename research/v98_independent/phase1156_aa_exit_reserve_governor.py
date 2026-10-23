@@ -81,7 +81,27 @@ def allocate(alpha,cov,carried,down,up,funding,entry_quote,minimum_72h_quote,cap
                 if check(w+mid*(candidate-w)):left=mid
                 else:right=mid
             w=w+left*(candidate-w)
-    out=np.sign(w)*np.floor(np.abs(w)*1e6+1e-9)/1e6
-    if not check(out):
+    # Signed truncation may worsen net risk near a tight boundary.
+    # Test the 16 adjacent six-decimal lattice vertices; this is a
+    # numerical representation fix, NOT a risk threshold relaxation.
+    trunc=np.sign(w)*np.floor(np.abs(w)*1e6+1e-9)/1e6
+    if check(trunc):return trunc
+    low=np.floor(w*1e6)/1e6;high=np.ceil(w*1e6)/1e6
+    feasible=[]
+    for bits in itertools.product((0,1),repeat=4):
+        trial=np.where(bits,high,low)
+        if check(trial):feasible.append(trial)
+    if feasible:
+        return min(feasible,key=lambda x:(float(np.sum((x-w)**2)),tuple(x)))
+    # Preserve original feasible inventory; otherwise quantized reduce-only
+    # is charged against ORIGINAL carried units, never a fictitious free exit.
+    if check(old):return old.copy()
+    left,right=0.,1.;fallback=np.zeros(4)
+    for _ in range(24):
+        mid=(left+right)/2
+        trial=np.sign(old)*np.floor(np.abs(old*mid)*1e6)/1e6
+        if check(trial):left=mid;fallback=trial
+        else:right=mid
+    if not check(fallback):
         raise ValueError('AA1156_UNEXECUTABLE_QUANTIZATION')
-    return out
+    return fallback
