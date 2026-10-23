@@ -44,7 +44,7 @@ def evaluate(retention,prior,opening,units,cash,down,up,funding,quote,fee,slip,
     adverse=np.where(after>=0,p*(1-d),p*(1+h))
     exit_delta=-after
     exit_fill=adverse*(1+np.sign(exit_delta)*slip)
-    basket_cash=balance-float(np.sum(exit_delta*exit_fill+fee*np.abs(exit_delta)*exit_fill))
+    basket_cash=balance-float(np.sum(exit_delta*exit_fill+fee*np.abs(exit_delta)*exit_fill))-float(reserve)
     ok=(capacity_ok and prior_equity>0 and np.isfinite(equity).all()
         and np.all(equity>=FLOOR*prior_equity-1e-8)
         and basket_cash>=FLOOR*prior_equity-1e-8
@@ -55,7 +55,7 @@ def evaluate(retention,prior,opening,units,cash,down,up,funding,quote,fee,slip,
     return {'ok':bool(ok),'retention':float(retention),'units':after,
         'cash':balance,'fees':float(fee*traded.sum()),
         'turnover':float(traded.sum()),'capacity_ok':capacity_ok,
-        'worst_equity':float(equity.min()),'basket_exit_equity':float(basket_cash),
+        'worst_equity':float(equity.min()),'basket_exit_equity':float(basket_cash),'reserved_funding':float(reserve),
         'states':len(STATES),'prior_equity':prior_equity}
 
 def max_safe_retention(prior,opening,units,cash,down,up,funding,quote,fee,slip):
