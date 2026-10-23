@@ -32,7 +32,7 @@ class OGovernorOracleTests(unittest.TestCase):
         up=rng.uniform(0,.8,(n,4))
         k=robust_scale(w,dn,up)
         self.assertTrue(verify_corners(w*k[:,None],dn,up))
-        self.assertTrue(independent_safe(w,dn,up,k))
+        self.assertTrue(independent_safe(w,dn,up,k).all())
         left=np.zeros(n)
         right=np.ones(n)
         for _ in range(40):
