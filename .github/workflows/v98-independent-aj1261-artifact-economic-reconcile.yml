@@ -28,7 +28,7 @@ jobs:
           expected_paths=('AJ_core_only','AJ_full','AJ_minus_opportunity','AJ_minus_RV','AJ_minus_stress')
           expected_modes=('immediate','capacity_1m','capacity_10m')
           expected_fees=('base','severe','supersevere')
-          expected_orders=('carried_before_fill','filled_before_funding')
+          expected_orders=('carried_before_fill','new_after_fill')
           expected_keys={(m,f,o) for m in expected_modes for f in expected_fees for o in expected_orders}
           grouped=defaultdict(dict)
           structural_errors=[]
