@@ -1,0 +1,9 @@
+# V98 Independent Phase1223 — AF_full structural rejection, no rescue (2026-10-23)
+
+GitHub Actions [run 40009768961](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40009768961) executed the preregistered **complete seven-slot** AF 180-cell synthetic gate on independent Ubuntu 22.04 and 24.04 runners. Full 180-cell receipts from both runners were preserved as artifacts. Discrete failure reasons matched across OS before the crossrunner correctly failed the mandatory pass gate.
+
+**Result: 0/180 cells survived**; failures occurred already in the benign synthetic fixture, not only the crisis fixture. The first observed AF_full structural issue was a carried post-sell inventory concentration violation, with early errors `AF1223_T722_AF1220_UNEXECUTABLE_POST_SELL_ASSET_CONCENTRATION` or `AF1223_T723_AF1220_UNEXECUTABLE_POST_SELL_ASSET_CONCENTRATION`, depending on path/cost/funding mode. The sell-then-buy lifecycle cannot guarantee a feasible retained position under its own preregistered 81-corner stress constraints. No historical AF system PnL or valid CAGR was computed.
+
+**Decision: REJECT_AF_FULL_STRUCTURAL_NO_RESCUE.** The earlier Phase1214–1222 source/allocator/governor/ledger component tests passed but cannot override complete-system rejection. Do not modify AF sell amounts, cap, fee, sign, gross, risk window, synthetic fixture or order timing after this failure. Preserve AF code, tests, preregistration and receipts. The conditional Phase1224 AF official vendor/hash gate is **ineligible**; do not run it or attempt official AF PnL.
+
+No 2025 validation, 2026+ data, XRP, Phase083 or external V14/V15/V99 benchmark was accessed. V16/V99 Frozen, V99 research/workflows/reports and paper state remain untouched. Next: a genuinely new composed architecture with an **atomic jointly feasible portfolio-level growth rebalance**, not a patched AF two-stage lifecycle.
