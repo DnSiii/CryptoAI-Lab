@@ -1,0 +1,42 @@
+name: V98 Independent Phase1238 AH Actual NAV Stress Hedge
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1238_ah_actual_nav_stress_hedge.py'
+      - 'research/v98_independent/test_phase1238_ah_actual_nav_stress_hedge.py'
+      - '.github/workflows/v98-independent-phase1238-ah-stress.yml'
+  workflow_dispatch:
+jobs:
+  ah-stress:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numpy
+        run: python -m pip install numpy==1.26.4
+      - name: Verify actual NAV signed hedge and recovery
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1238_ah_actual_nav_stress_hedge
+      - name: Deterministic actual NAV hedge digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import hashlib,numpy as np
+          from phase1238_ah_actual_nav_stress_hedge import AHStressHedge
+          s=AHStressHedge()
+          rows=[]
+          for t in range(100):
+              rows.append(s.step(8000. if t==60 else 10000.,
+                                 -.2 if t==60 else 0.))
+          a=np.asarray(rows)
+          print('AH1238_SHA256',hashlib.sha256(a.astype('<f8').tobytes()).hexdigest())
+          print('AH1238_HEDGE_ACTIVE_HOURS',s.active_hours)
+          PY
