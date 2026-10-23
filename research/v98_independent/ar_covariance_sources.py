@@ -94,7 +94,7 @@ def source_bundle(close,high,low,funding_rate,funding_event,quote_volume):
             states[t]="PANIC"
         elif m720<0:
             states[t]="DRAWDOWN"
-        elif m2160>0 and np.count_nonzero(r168>0)>=3:
+        elif float(np.median(r2160))>0 and np.count_nonzero(r168>0)>=3:
             states[t]="RISK_ON"
     return growth,opportunity,relative,stress,{"state":states}
 
