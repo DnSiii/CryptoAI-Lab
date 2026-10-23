@@ -24,12 +24,25 @@ class TestAGSources(unittest.TestCase):
         self.assertEqual(rv.shape,(400,4))
         self.assertEqual(r.shape,(400,))
         self.assertGreater(np.count_nonzero(g),0)
-        self.assertGreater(np.count_nonzero(op),0)
+        self.assertEqual(np.count_nonzero(op),0)  # no coincident breakout/volume in this fixture
         self.assertGreater(np.count_nonzero(rv),0)
         self.assertGreater(np.count_nonzero(r),0)
         self.assertTrue(np.all(g>=0))
         self.assertTrue(np.all(op>=0))
         self.assertTrue(np.all(rv>=0))
+
+    def test_opportunity_requires_both_price_and_volume(self):
+        c,q=self.fixture()
+        c[250,0]*=1.25
+        q[250,0]*=8.
+        _,op,_,_=causal_sources(c,q)
+        self.assertGreater(op[250,0],0)
+        self.assertTrue(np.all(op[249]==0))
+        # A pure volume spike without a price breakout must not trigger.
+        c2,q2=self.fixture()
+        q2[250,0]*=8.
+        _,op2,_,_=causal_sources(c2,q2)
+        self.assertEqual(op2[250,0],0)
 
     def test_future_perturbation_invariance(self):
         c,q=self.fixture()
