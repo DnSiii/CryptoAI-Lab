@@ -1,0 +1,11 @@
+# V98 Independent AQ — official 90-cell paired-marginal rejection (2026-10-23)
+
+**Decision: REJECT_AQ_HISTORICAL_MARGINAL; no post-result rescue.** Preregistered, full 7-slot code and workflow pinned BEFORE AQ PnL at commit `2af126664661ba5677443c9eb5fb91dfb371c8f4`. Official run https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40036622547. No 2025/2026+, XRP, Phase083, V14/V15/V99, Frozen or paper.
+
+**Authenticated Clean-4 Dec2022 warmup + 2023/24 only**, exact native funding and mark bounds. 90/90 historical funded actual-open cells mechanically survived. Ubuntu 22.04 and 24.04 ten jobs and independent numeric reconciliation PASS; max normalized delta 0.000183 of permitted tolerance.
+
+**AQ_full USD10k base, carried-before-fill:** 2023 CAGR **+119.4499%**, 2024 **+41.7431%**, two-year **+76.3148%**; max drawdown **43.1916%**. Funding **-USD4,618.77**, fees **USD151.48**, slippage **USD151.48**, turnover **USD302,955.87**, 821 nonzero-turnover hours. PF **1.02882**, payoff **0.97850**, win rate **51.253%**, positive days **330/731**, peak single-asset concentration **43.03%**, peak gross/NAV **1.40535**. Severe 2023 **+112.145%**, 2024 **+36.857%**, 2y **+70.341%**; supersevere 2023 **+103.940%**, 2024 **+26.554%**, 2y **+60.601%**. These are historical training results only.
+
+**Annual growth gates PASS** under base/severe and both funding orders, but all three required marginal gates FAIL. USD10k base full-minus-ablation net log wealth: Opportunity 2023 **+0.037050**, 2024 **-0.003009**; RV 2023 **-0.004442**, 2024 **+0.000216**; Stress 2023 **+0.006994**, 2024 **-0.000342**. Severe same signs: Opportunity +0.032872/-0.004415, RV -0.005020/+0.000325, Stress +0.005023/-0.000329.
+
+**Finding:** causal paired 360h+360h marginal gating improved the economic profile of the diversified growth engine but still did not make the three overlays robustly additive in *both* training years. The incremental failures are small but binding, not permission to lower a gate or select ablations. AQ remains permanently rejected. No complete V98 candidate has earned access to 2025 validation or external benchmarks; future research must test a genuinely distinct joint portfolio hypothesis, not tune AQ thresholds.
