@@ -1,0 +1,7 @@
+# V98 Independent AK — source reproducibility caveat recorded before historical PnL harvest (2026-10-23)
+
+Original two-OS official source-only run `40021477324`: the 12-decimal rounded **Growth Core** SHA differed across Ubuntu 22.04 (`72732d2438506607dfef70af5e80ba5b22765172bb54f1b7f0e692c8ba06c7f4`) and 24.04 (`271291fc719685adf08b1cb0e6e1c0bdcebb47364f3e8063e31e3cc898c8f690`). Opportunity, RV, Stress, Router and authenticated source-manifest SHA were exact. This first gate **FAILED**; do not conceal or call it exact.
+
+Independent forensic rerun `40021606510`, using unchanged AK strategy/source code and original pinned vendor bytes, produced exact matching 12-decimal hashes on both OS. The independently uploaded **unrounded Growth Core arrays** had maximum absolute element difference **0.0** across these two runners; 0 elements differed by more than 1e-12. All four slots had positive activation: Growth 11,091h; Opportunity 8,119h; RV 16,272h; Stress 2,367h. The second two-OS source gate **PASSED**.
+
+**Interpretation:** exact equality was demonstrated in the second two-OS execution, but the earlier intermittent SHA discrepancy remains an explicit reproducibility caveat. It is not evidence of economic alpha or validation. Frozen strategy/parameters remain unchanged. Historical 2023/24 dual-OS training `40021783909` must independently pass its numerical economic reconciliation; any unexplained material divergence blocks promotion. 2025 remains sealed, V16/V99 untouched.
