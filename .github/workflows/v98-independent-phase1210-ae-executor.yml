@@ -1,0 +1,28 @@
+name: V98 Independent Phase1210 AE Actual Open Executor Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1210_ae_actual_open_executor.py'
+      - 'research/v98_independent/test_phase1210_ae_actual_open_executor.py'
+      - '.github/workflows/v98-independent-phase1210-ae-executor.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ae-executor:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4
+      - name: Verify nine self-financing actual-open and native funding invariants
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1210_ae_actual_open_executor.py' -v
