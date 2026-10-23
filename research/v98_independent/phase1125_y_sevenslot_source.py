@@ -87,8 +87,10 @@ def compose_y(op,hi,lo,cl,quote,funding,*,capital_usd=1e6,diagnostics=False):
             pair=np.zeros(4)
             if np.isfinite(scores[t]).all() and np.isfinite(beta[t]).all() and np.ptp(scores[t])>1e-12:
                 winner=int(np.argmax(scores[t]));loser=int(np.argmin(scores[t]))
-                a=max(abs(beta[t,winner]),1e-6);b=max(abs(beta[t,loser]),1e-6)
-                pair[winner]=-b/(a+b);pair[loser]=a/(a+b);expiry=t+48
+                # Opposite signed betas cannot be neutralized by a long/short pair.
+                if beta[t,winner]*beta[t,loser]>1e-12:
+                    a=abs(beta[t,winner]);b=abs(beta[t,loser])
+                    pair[winner]=-b/(a+b);pair[loser]=a/(a+b);expiry=t+48
         rv[t]=pair
     relative_value=normalize(rv)
     # 4 Stress: 48h downside skew and 24h rebound.
