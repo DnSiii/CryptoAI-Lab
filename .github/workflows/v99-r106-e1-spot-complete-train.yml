@@ -1,0 +1,78 @@
+name: V99 E1 original OKX spot-only complete economic TRAIN + independent oracle (NO ORDERS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_e1_spot_engine.py'
+      - 'research/verification/independent_v99_r106_e1_spot_oracle.py'
+      - '.github/workflows/v99-r106-e1-spot-complete-train.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preregistered-e1-one-shot-train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Pin ex-ante E1 preregistration, sealed partition and rejected predecessors
+        run: |
+          test -s research/V99_R106_E1_SPOT_RISK_PREMIUM_PREREG_20261023.md
+          test -s research/V99_R106_D1_ACTUAL_OKX_FUNDING_SIGNAL_REJECTION_20261023.md
+          test -s research/V99_R106_C1_COMPLETE_ENGINE_TRAIN_REJECTION_20261016.md
+          test -s research/V99_R106_C2_COMPLETE_ENGINE_TRAIN_REJECTION_20261016.md
+          python - <<'PY'
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,HOURS
+          assert START==1639008000000 and END==1696118400000 and HOURS==15864
+          print('E1 PREREG PINNED; VALIDATION/HOLDOUT UNTOUCHED')
+          PY
+      - name: Download previously verified original OKX TRAIN four-leg receipt archive
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/e1_original_train
+      - name: Execute complete self-financing preregistered E1 TRAIN (no orders)
+        run: |
+          python -m research.tools.v99_r106_e1_spot_engine \
+            research_evidence/e1_original_train research_evidence/e1_train
+      - name: Independently reconstruct all original hourly positions, cash, costs, folds and risk
+        run: |
+          python -m research.verification.independent_v99_r106_e1_spot_oracle \
+            research_evidence/e1_original_train research_evidence/e1_train
+      - name: Independently check hard no-promotion, one-shot gate and two cost scenarios
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research_evidence/e1_train')
+          r=json.loads((p/'e1_train_report.json').read_text())
+          v=json.loads((p/'e1_independent_oracle.json').read_text())
+          assert v['status']=='INDEPENDENT_ORIGINAL_PRICE_TO_CASH_LEDGER_VERIFIED'
+          assert v['hours_per_scenario']==15864
+          assert r['start_ms']==1639008000000 and r['end_exclusive_ms']==1696118400000
+          assert r['model_only'] and not r['promotion_authorized']
+          assert not r['validation_opened'] and not r['holdout_opened'] and not r['orders_enabled']
+          assert not v['promotion_authorized'] and not v['validation_opened'] and not v['holdout_opened']
+          assert r['status']==('PERMANENT_TRAIN_REJECT_NO_RETUNE' if not all(r['gates'].values())
+            else 'PROVISIONAL_TRAIN_PASS_PENDING_NATIVE_PROVENANCE_AND_INDEPENDENT_ORACLE')
+          assert v['economic_train_gate_passed']==all(r['gates'].values())
+          print('E1 TRAIN DECISION:',r['status'],'FAILED GATES:',[k for k,v in r['gates'].items() if not v])
+          print('E1 MODELED ONLY / NO PROMOTION / NO PAPER / NO ORDERS')
+          PY
+      - name: Preserve E1 original-source economic journals, independent audit and gate verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-e1-original-spot-complete-train-${{ github.run_id }}
+          path: research_evidence/e1_train/
+          retention-days: 90
+          if-no-files-found: warn
