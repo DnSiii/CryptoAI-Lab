@@ -1,5 +1,9 @@
 name: V98 Independent Phase1261 AJ Chronological 90 Cell Training
 on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1261-aj-90cell.yml'
   workflow_dispatch:
 permissions:
   actions: read
