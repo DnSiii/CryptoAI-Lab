@@ -1,0 +1,101 @@
+name: V98 Independent AR Covariance Log-Growth 90-Cell Historical Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-aq-90cell-training.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  train:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [AR_core_only, AR_full, AR_minus_opportunity, AR_minus_RV, AR_minus_stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: AR causal-source, allocator, syntax and signed-settlement preflight
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile ar_covariance_sources.py ar_log_wealth_allocator.py ar_90cell_training.py ar_90cell_reconcile.py
+          python ar_covariance_sources.py
+          python ar_log_wealth_allocator.py
+      - name: Retrieve pinned vendor-attested 2023-24 Clean4 ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-${{ matrix.os }}
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage original Dec2022-Dec2024 training bytes ONLY
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Execute AR complete actual-open funded chronological path x18
+        working-directory: research/v98_independent
+        run: |
+          python ar_90cell_training.py \
+            --path ${{ matrix.path }} \
+            --output ar90_${{ matrix.path }}.json || echo 'AR_REJECTION_OR_FAILURE_PRESERVED'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ar90-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/ar90_${{ matrix.path }}.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Check complete 18-cell receipt, without suppressing failed gates
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('ar90_AR_*.json')
+          assert len(files)==1,files
+          a=json.load(open(files[0]))
+          assert len(a['cells'])==18
+          print('AR_PATH_MECHARICAL',a['path'],sum(c['passed'] for c in a['cells']),'/',len(a['cells']))
+          PY
+  reconcile:
+    if: always()
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ar90-ubuntu-*
+          path: receipts
+      - name: Independent two-OS numeric and 90-cell economic reconciliation
+        run: python research/v98_independent/ar_90cell_reconcile.py --root receipts --output ar90_official_economic_summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ar90-official-economic-summary
+          path: ar90_official_economic_summary.json
+          retention-days: 30
+          if-no-files-found: warn
