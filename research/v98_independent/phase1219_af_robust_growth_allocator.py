@@ -55,8 +55,8 @@ class AFGrowthAllocator:
         if len(self.history)==WINDOW:
             blocks=np.stack(self.history).reshape(BLOCKS,BLOCK_SIZE,3)
             means=blocks.mean(axis=1)
-            score=np.median(means,axis=0)-
-                  UNCERTAINTY_PENALTY*means.std(axis=0,ddof=0)
+            score=(np.median(means,axis=0)-
+                   UNCERTAINTY_PENALTY*means.std(axis=0,ddof=0))
             multiplier=1+SCORE_MULTIPLIER*np.maximum(score,0)
         raw=PRIOR*multiplier*ROUTE[int(np.argmax(route))]
         budget=raw/raw.sum()
