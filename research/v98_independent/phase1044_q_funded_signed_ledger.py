@@ -38,10 +38,13 @@ def _fold(days,initial):
             'cvar_5pct':float(np.mean(np.sort(ret)[:max(1,int(np.ceil(len(ret)*.05)))]))}
 
 
-def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,order,mode,years,require_full_sample=True):
+def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,order,mode,years,regimes=None,require_full_sample=True):
     fields=[np.asarray(x) for x in (target,op,hi,lo,cl,quote,rate,mark,event,down,up)]
     w,o,h,l,c,q,fr,mk,ev,dn,sh=fields
     n=len(w);yy=np.asarray(years)
+    states=np.ones(n,dtype=int) if regimes is None else np.asarray(regimes)
+    if states.shape!=(n,) or not np.isin(states,(0,1,2)).all():
+        raise ValueError('Q_INVALID_CAUSAL_REGIME_LABELS')
     if n<1600 or any(x.shape!=(n,4) for i,x in enumerate(fields) if i!=7) or mk.shape!=(n,4,2) or yy.shape!=(n,):
         raise ValueError('Q_ALIGNED_CLEAN4_HOURLY_SOURCE_REQUIRED')
     if not np.isin(yy,(2022,2023,2024)).all() or order not in ORDERS or mode not in CAPITAL_MODES or fee not in FEE_TIERS.values():
@@ -57,6 +60,7 @@ def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
     max_rate=pd.DataFrame(np.abs(fr)).rolling(1440,min_periods=1).max().to_numpy()
     initial=CAPITAL_MODES[mode];cash=initial;units=np.zeros(4)
     fees=funding=turnover=0.;fills=0;daily=[];hourly=[];reason=None;breach_index=None
+    exposures=[];regime_returns={0:[],1:[],2:[]};prior_nav=initial
     for t in range(1,n):
         if yy[t]==2022:continue
         pre_eq=cash+float(np.dot(units,o[t]))
@@ -90,6 +94,11 @@ def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
                 reason='Q_CLOSE_'+close_audit['reason'];breach_index=t;break
             terminal=cash+float(np.dot(units,c[t]))
             hourly.append((int(yy[t]),terminal))
+            v=units*c[t]
+            exposures.append(np.abs(v)/terminal)
+            if prior_nav>0 and terminal>0:
+                regime_returns[int(states[t-1])].append(float(math.log(terminal/prior_nav)))
+            prior_nav=terminal
             if t==n-1 or yy[t+1]!=yy[t] or t%24==23:
                 daily.append((int(yy[t]),terminal))
         except Exception as e:
@@ -113,4 +122,19 @@ def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
         result['total_log_wealth']=float(math.log(prev/initial))
         result['total_wealth_multiple']=float(prev/initial)
         result['all_hourly_max_drawdown']=_drawdown([v for _,v in hourly],initial)
+        xp=np.asarray(exposures,float)
+        if len(xp):
+            asset_time=xp.sum(axis=0)
+            shares=asset_time/asset_time.sum() if asset_time.sum()>0 else np.zeros(4)
+            result['concentration']={'asset_exposure_shares':shares.tolist(),
+                'asset_hhi':float(np.square(shares).sum()),
+                'max_asset_weight':float(xp.max()),
+                'max_gross':float(xp.sum(axis=1).max()),
+                'mean_gross':float(xp.sum(axis=1).mean())}
+        result['regime_log_wealth']={str(k):float(sum(v)) for k,v in regime_returns.items()}
+        result['regime_hours']={str(k):len(v) for k,v in regime_returns.items()}
+        hv=np.asarray([v for _,v in hourly],float)
+        hr=hv/np.r_[initial,hv[:-1]]-1
+        result['hourly_cvar_5pct']=float(np.mean(np.sort(hr)[:max(1,int(np.ceil(len(hr)*.05)))]))
+        result['positive_hours']=int((hr>0).sum())
     return result
