@@ -1,0 +1,32 @@
+name: V99 D1 actual OKX bulk monthly funding archive TRAIN only (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_okx_bulk_funding_train.py'
+      - '.github/workflows/v99-r106-d1-okx-bulk-funding-train.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  firstparty-funding-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Attempt original OKX monthly funding archives March 2022 to September 2023
+        run: python -m research.tools.v99_r106_d1_okx_bulk_funding_train research_evidence/d1_bulk_funding
+      - name: Preserve all original listing and archive bytes even on partial coverage
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d1-bulk-funding-train-${{ github.run_id }}
+          path: research_evidence/d1_bulk_funding/
+          retention-days: 90
+          if-no-files-found: warn
