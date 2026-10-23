@@ -1,0 +1,77 @@
+name: V98 Independent Phase1259b AJ Immutable Source Artifact Reconcile
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1259b-aj-artifact-reconcile.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download BOTH completed independent official source artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40018746960
+          pattern: aj1259-official-source-*
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Verify exact source manifests and immutable canonical bytes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          roots=[Path('receipts')/('aj1259-official-source-'+os)
+                 for os in ('ubuntu-22.04','ubuntu-24.04')]
+          assert all(r.is_dir() for r in roots),roots
+          def find(root,name):
+              matches=list(root.rglob(name))
+              assert len(matches)==1,(root,name,matches)
+              return matches[0]
+          names=('phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json')
+          for name in names:
+              a,b=[json.loads(find(r,name).read_text()) for r in roots]
+              assert a==b,(name,a,b)
+              assert a['decision'].startswith('PASS_'),(name,a['decision'])
+              print('AJ1259B_SOURCE_MANIFEST_MATCH',name,a['decision'])
+          native=json.loads(find(roots[0],names[1]).read_text())
+          pins={'BTCUSDT':('5fecf1d58c8f998c9bba2a3f937c384896bf8d794b98a2755b17af807b3f0190',1451038),
+                'ETHUSDT':('541748f469cddf34579a3f7865bdec04dab86f886dbd029e90b69ae24ab1325f',1479522),
+                'BNBUSDT':('f0776970a530a37fe8f5c434b080fe46919ddb5194d3aa98d02589fed0a2d058',1384866),
+                'SOLUSDT':('fa7b07c0892370da2375fb4be2ba1dc82fe700173f0eb8b0807ef16b303ca085',1371664)}
+          checked={}
+          for asset,(pin,size) in pins.items():
+              blobs=[find(r,asset+'_1h.csv').read_bytes() for r in roots]
+              assert blobs[0]==blobs[1],asset
+              assert len(blobs[0])==size
+              assert hashlib.sha256(blobs[0]).hexdigest()==pin
+              checked[asset]={'sha256':pin,'bytes':size,'hours':18288}
+          blobs=[find(r,'phase1000_four_asset_conservative_bounds_source_only.csv').read_bytes()
+                 for r in roots]
+          assert blobs[0]==blobs[1]
+          bounds_sha=hashlib.sha256(blobs[0]).hexdigest()
+          assert bounds_sha==native['bounds_csv_sha256']
+          assert native['verified_asset_events']==9144
+          out={'phase':'1259b','decision':'PASS_AJ1259B_EXACT_TWO_OS_VENDOR_SOURCE_BYTES',
+               'historical_system_pnl_computed':False,
+               'assets':checked,'native_events':9144,
+               'bounds_sha256':bounds_sha,
+               'mark_manifest_sha256':native['mark_zip_manifest_sha256'],
+               'funding_manifest_sha256':native['funding_manifest_sha256']}
+          dest=Path('research/v98_independent/aj1259b_reconciled_receipt.json')
+          dest.write_text(json.dumps(out,sort_keys=True,indent=2))
+          print('AJ1259B_EXACT_OFFICIAL_SOURCE_PASS',json.dumps(out,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1259b-official-source-reconciled
+          path: research/v98_independent/aj1259b_reconciled_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
