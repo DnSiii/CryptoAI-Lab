@@ -22,7 +22,7 @@ def compare(a,b):
             if type(x.get(key)) is not type(value) or x.get(key)!=value:
                 raise ValueError('S_RUNNER_CONTRACT_'+label+'_'+key)
         h=x.get('canonical_sha256',{})
-        if not isinstance(h,dict) or tuple(h)!=PATHS or any(not isinstance(v,str) or len(v)!=64 for v in h.values()):
+        if not isinstance(h,dict) or set(h)!=set(PATHS) or any(not isinstance(v,str) or len(v)!=64 for v in h.values()):
             raise ValueError('S_RUNNER_FIVE_HASHES_'+label)
         code=x.get('source_code_git_blob_sha1',{})
         if (not isinstance(code,dict) or len(code)!=3 or
