@@ -1,0 +1,7 @@
+# V98 Independent Phase1221 — AF actual-open fully collateralized native funding ledger prereg (2026-10-23)
+
+AF is seven-slot architecturally specified but requires an **actual self-financing executor**. At hour t open, value prior long inventory at prior close and actual open, reject gap insolvency or negative free cash. If native signed funding is `carried_before_fill`, settle old contracts at conservative native mark before orders; if `new_after_fill`, settle new contracts after fills. Payer uses mark high, receiver mark low. Never invent funding at non-events.
+
+Use frozen Phase1220 sell-then-buy plan with **strict t-1** 336/720 risk, quote and funding inputs. Execute actual sells/buys at open +/-0.003 slippage with fees **base 0.0007, severe 0.0012, supersevere 0.002** per notional, booking cash and nonnegative contracts exactly. Plan's 0.002 conservative fee reserve must dominate actual schedule. No margin loan, short, hidden leverage, free stop, same-bar hindsight or fictional exit.
+
+Audit every post-fill hour against **actual** 81 combinations of hour t high/low/open: equity floor 0.35 of opening NAV, asset cap 0.32, gross/net 0.88; actual t high/low used only **after** orders. Reject any actual intrabar breach and close insolvency; reconcile cash + long contracts*close NAV exactly. Persist actual turnover, fee, slippage, signed native funding, worst intrabar equity and growth fraction. No historical system PnL, 2025/2026+, XRP or external benchmarks. Independent tests before complete 180-cell synthetic integration.
