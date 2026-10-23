@@ -1,0 +1,9 @@
+# V98 Independent Phase1017 — canonical O 90-cell economic dispatch preregistration addendum
+
+Registered **before the first O historical PnL**, after Phase1015 source-only canonical target hashes were identical on four runners across AMD EPYC 7763, AMD EPYC 9V74 and Intel Xeon 8370C, with 16-corner stress gates and no-increase exposure checks passing. This is an explicit addendum to the pre-economic Phase1009 90-cell training preregistration, not a return-driven change.
+
+The only difference from Phase1009 is target **numeric transport**: execute the immutable Phase1006 seven-slot O signal architecture through the immutable Phase1015 8-significant-digit-minus-one-quantum canonical adapter and verify the five Phase1016 canonical target SHA256 pins. This resolves demonstrated ~1.67e-13 cross-CPU raw float drift and cannot increase any position. Do not change O signal windows, signs, sleeve budgets, regime routing, gross targets, LP execution, fees, funding, participation, risk caps, fold split or marginal growth criteria.
+
+Same-run official source gate: fresh Phase803 100 Clean-4 OHLC ZIPs and Phase1000 100 mark monthly + 112 Feb daily + 100 native funding ZIPs, 9144 events, checksum-bound. Then exact 90 fixed O cells: 5 paths x 3 costs x 2 funding orderings x 3 capital modes, all 2023/2024 chronological hours, fee/funding-inclusive, t-1 execution, ex-post intrabar survival, full CAGR/MDD/PF/payoff/win rate/positive days/CVaR and marginal ablations. If any cell fails hard survival, REJECT O; no threshold/window/gross rescue. If full training and marginal gates pass, only then separately freeze economic candidate and validate untouched 2025; external V14/V15/V99 comparisons strictly afterward.
+
+Do not execute this workflow until the independent Phase1015 cross-runner comparison succeeds and Phase1016 canonical source-only freeze verifies on fresh pinned data. No 2025+, holdout, XRP, V16/V99 writes.
