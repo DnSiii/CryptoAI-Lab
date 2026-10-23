@@ -1,0 +1,43 @@
+name: V98 Independent Phase1226 AG Atomic Joint Growth Governor
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1226_ag_atomic_portfolio.py'
+      - 'research/v98_independent/test_phase1226_ag_atomic_portfolio.py'
+      - '.github/workflows/v98-independent-phase1226-ag-atomic.yml'
+  workflow_dispatch:
+jobs:
+  ag-atomic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned solver
+        run: python -m pip install numpy==1.26.4 scipy==1.13.1
+      - name: Verify AG atomic governor and adversarial tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1226_ag_atomic_portfolio
+      - name: Emit independent numeric digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import hashlib,numpy as np
+          from phase1226_ag_atomic_portfolio import joint_plan
+          p=np.array([100.,150.,50.,200.])
+          r=joint_plan(np.array([85.,0.,0.,0.]),p,1500.,
+            np.array([.04,.035,.025,.03]),np.array([.4,.35,.45,.3]),
+            np.array([.3,.3,.35,.3]),np.full(4,.004),
+            np.full(4,1e12),np.full(4,1e12))
+          x=np.r_[r['units'],r['cash'],r['turnover']]
+          print('AG1226_SHA256',hashlib.sha256(np.round(x,8).astype('<f8').tobytes()).hexdigest())
+          print('AG1226_OPEN_EQUITY',r['open_equity'])
+          print('AG1226_FINAL_CASH',r['cash'])
+          PY
