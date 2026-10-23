@@ -1,0 +1,173 @@
+name: V98 Independent Phase1261 AJ Chronological 90 Cell Training
+on:
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  train:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [AJ_core_only, AJ_full, AJ_minus_opportunity, AJ_minus_RV, AJ_minus_stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Retrieve independently vendor-authenticated Clean4 training data
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-${{ matrix.os }}
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage pinned Dec2022-Dec2024 inputs ONLY
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in
+                    ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              matches=list(root.rglob(name))
+              assert len(matches)==1,(name,matches)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(matches[0],dest)
+          PY
+      - name: Execute preregistered 18 chronological AJ training cells for path
+        working-directory: research/v98_independent
+        run: |
+          python phase1261_aj_chronological_90cell.py \
+            --path ${{ matrix.path }} \
+            --output aj1261_${{ matrix.path }}_receipt.json || echo 'AJ1261_ECONOMIC_REJECTION: preserve all raw cells'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1261-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/aj1261_${{ matrix.path }}_receipt.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Enforce explicit 18-cell survival for path
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import glob,json
+          paths=glob.glob('aj1261_AJ_*_receipt.json')
+          assert len(paths)==1,paths
+          a=json.load(open(paths[0]))
+          cells=a['cells']
+          print('AJ1261_PATH_DECISION',a['path'],a['decision'])
+          print('AJ1261_PATH_PASS',sum(c['passed'] for c in cells),'of',len(cells))
+          assert len(cells)==18 and all(c['passed'] for c in cells)
+          PY
+  reconcile:
+    if: always()
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aj1261-ubuntu-*
+          path: receipts
+      - name: Reconcile all 90 chronological cells and quantify AJ sleeve marginals
+        run: |
+          python - <<'PY'
+          import glob,json,math,hashlib
+          paths=glob.glob('receipts/*/*.json')
+          assert len(paths)==10,paths
+          grouped={}
+          for p in paths:
+              a=json.load(open(p))
+              grouped.setdefault(a['path'],[]).append(a)
+          assert len(grouped)==5,grouped.keys()
+          money={'initial_nav','final_nav','min_nav','turnover','fees',
+                 'slippage','funding','start_nav','end_nav'}
+          ratios={'max_drawdown','annualized_cagr','two_year_cagr',
+                  'net_total_return','net_return','net_log_growth',
+                  'max_gross_to_nav','max_abs_net_to_nav',
+                  'max_single_asset_gross_concentration',
+                  'hourly_net_profit_factor','hourly_net_payoff',
+                  'hourly_net_win_rate','positive_day_fraction',
+                  'worst_hour_net_return','hourly_var_1pct','hourly_cvar_1pct'}
+          def check(x,y,path=''):
+              assert type(x)==type(y),(path,type(x),type(y))
+              if isinstance(x,dict):
+                  assert set(x)==set(y),(path,set(x)^set(y))
+                  for k in x:check(x[k],y[k],path+'.'+k)
+              elif isinstance(x,list):
+                  assert len(x)==len(y),(path,len(x),len(y))
+                  for i,(u,v) in enumerate(zip(x,y)):check(u,v,path+'.'+str(i))
+              elif isinstance(x,float):
+                  key=path.split('.')[-1]
+                  tol=(max(1e-5,1e-12*max(abs(x),abs(y))) if key in money
+                       else 1e-10 if key in ratios else 1e-12)
+                  assert math.isfinite(x) and math.isfinite(y) and abs(x-y)<=tol,(path,x,y,tol)
+              else:assert x==y,(path,x,y)
+          representative={}
+          for path,items in grouped.items():
+              assert len(items)==2,(path,len(items))
+              check(items[0],items[1],path)
+              representative[path]=items[0]
+              print('AJ1261_CROSS_OS_PATH',path,items[0]['decision'])
+          cells={path:{(x['mode'],x['fee'],x['order']):x
+                       for x in a['cells']} for path,a in representative.items()}
+          assert all(len(v)==18 for v in cells.values())
+          all_cells=[c for p in cells.values() for c in p.values()]
+          survived=sum(c['passed'] for c in all_cells)
+          print('AJ1261_TOTAL_SURVIVAL',survived,'of',len(all_cells))
+          full=cells['AJ_full']
+          key=('immediate','base','carried_before_fill')
+          if full[key]['passed']:
+              x=full[key]
+              print('AJ1261_FULL_10K_BASE',json.dumps({
+                  'cagr_2y':x['two_year_cagr'],'max_dd':x['max_drawdown'],
+                  '2023_cagr':x['annual']['2023']['annualized_cagr'],
+                  '2024_cagr':x['annual']['2024']['annualized_cagr'],
+                  'profit_factor_hourly':x['hourly_net_profit_factor'],
+                  'positive_days':x['positive_utc_days']},sort_keys=True))
+          marginal={}
+          for sleeve,removed in [('Opportunity','AJ_minus_opportunity'),
+                                  ('RV','AJ_minus_RV'),
+                                  ('Stress','AJ_minus_stress')]:
+              marginal[sleeve]={}
+              for key,x in full.items():
+                  y=cells[removed][key]
+                  if not x['passed'] or not y['passed']:
+                      continue
+                  label='|'.join(key)
+                  marginal[sleeve][label]={
+                      yr:float(x['annual'][yr]['net_log_growth']-
+                               y['annual'][yr]['net_log_growth'])
+                      for yr in ('2023','2024')}
+              print('AJ1261_SLEEVE_MARGINAL',sleeve,json.dumps(marginal[sleeve],sort_keys=True))
+          result={'phase':1261,'architecture':'AJ',
+              'historical_training_only':True,'validation_2025_read':False,
+              'cells_total':len(all_cells),'cells_survived':survived,
+              'full_10k_base':full[key] if key in full else None,
+              'marginal_net_log_growth':marginal,
+              'decision':('PASS_AJ1261_90_TRAINING_SURVIVAL_NEEDS_ECONOMIC_ANALYSIS'
+                          if survived==90 else 'REJECT_AJ1261_90_TRAINING_SURVIVAL')}
+          with open('aj1261_crossrunner_summary.json','w') as f:
+              json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
+          if survived!=90:raise SystemExit(2)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1261-crossrunner-economic-summary
+          path: aj1261_crossrunner_summary.json
+          retention-days: 30
+          if-no-files-found: warn
