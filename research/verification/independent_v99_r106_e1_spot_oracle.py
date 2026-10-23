@@ -133,7 +133,11 @@ def independently_verify(root,out):
     # Negative control: intentionally corrupt an observed cash record, and prove the identity rejects it.
     tampered_cash=1.0
     first=json.loads((out/"e1_severe_hourly.jsonl").open().readline())
-    if abs((first["cash"]+0.01)-first["cash"])<1e-9:
+    try:
+        close(first["cash"]+0.01,first["cash"],"INJECTED_CASH_TAMPER")
+    except ValueError as exc:
+        if str(exc)!="INJECTED_CASH_TAMPER":raise
+    else:
         raise ValueError("NEGATIVE_CONTROL_NOT_EFFECTIVE")
     result={"status":"INDEPENDENT_ORIGINAL_PRICE_TO_CASH_LEDGER_VERIFIED",
             "scenarios":summaries,"hours_per_scenario":15864,
