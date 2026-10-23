@@ -170,10 +170,22 @@ def optimize_joint(alpha,cov,prior_w,down,up,funding_bound,quote,capital):
         not np.isfinite(sigma).all() or not np.isfinite(q).all() or (q<0).any()
         or capital<=0 or not np.isfinite(capital)):
         raise ValueError('Z1143_ALLOCATOR_INPUT')
-    if not corner_gate(old,down,up,funding_bound,old):
-        raise ValueError('Z1143_PREVIOUS_INVENTORY_INFEASIBLE')
     # A fixed 80% participation budget leaves a 20% execution-gap reserve.
     turnover_cap=.8*PARTICIPATION*q/(capital*(1+SLIPPAGE))
+    base=old.copy()
+    if not corner_gate(old,down,up,funding_bound,old):
+        # Phase1149 preregistered pre-PnL inventory-first reduce-only feedback.
+        # No risk-cap relaxation and no impossible liquidity assumption.
+        if not corner_gate(np.zeros(4),down,up,funding_bound,old):
+            raise ValueError('Z1149_NO_FEASIBLE_REDUCE_ONLY_BASE')
+        left,right=0.,1.
+        for _ in range(24):
+            mid=(left+right)/2
+            if corner_gate(old*mid,down,up,funding_bound,old,margin=.98):left=mid
+            else:right=mid
+        base=old*left
+        if np.any(np.abs(base-old)>turnover_cap+1e-10):
+            raise ValueError('Z1149_UNEXECUTABLE_PRIOR_INVENTORY')
     lower=np.maximum(-ASSET_CAP,old-turnover_cap)
     upper=np.minimum( ASSET_CAP,old+turnover_cap)
     # PSD regularization is numerical, not a fitted signal parameter.
@@ -181,7 +193,7 @@ def optimize_joint(alpha,cov,prior_w,down,up,funding_bound,quote,capital):
     if eig[0]<-1e-10:raise ValueError('Z1143_NON_PSD_COV')
     sigma=sigma+np.eye(4)*1e-7
     step=1/max(.05,float(np.linalg.eigvalsh(sigma)[-1])*8)
-    w=old.copy()
+    w=base.copy()
     for _ in range(12):
         # Subgradient of quadratic log-growth approximation.
         grad=mu-sigma@w-(SLIPPAGE+BASE_FEE)*np.sign(w-old)-np.asarray(funding_bound)*np.sign(w)
@@ -189,24 +201,30 @@ def optimize_joint(alpha,cov,prior_w,down,up,funding_bound,quote,capital):
         # Preserve signed net/gross bounds via deterministic scalar projection.
         gross=np.abs(candidate).sum();net=abs(candidate.sum())
         scale=min(1.,GROSS_CAP/max(gross,1e-12),NET_CAP/max(net,1e-12))
-        candidate*=scale
+        candidate=np.clip(candidate*scale,lower,upper)
         if corner_gate(candidate,down,up,funding_bound,old,margin=.98):
             w=candidate
         else:
-            # Fixed 12 bisection rounds toward the known feasible old inventory.
+            # Fixed 12 bisection rounds toward the feasible reduce-only base.
             a,b=0.,1.
             for _ in range(12):
-                mid=(a+b)/2;probe=old+mid*(candidate-old)
+                mid=(a+b)/2;probe=base+mid*(candidate-base)
                 if corner_gate(probe,down,up,funding_bound,old,margin=.98):a=mid
                 else:b=mid
-            w=old+a*(candidate-old)
+            w=base+a*(candidate-base)
     if not corner_gate(w,down,up,funding_bound,old):
         raise AssertionError('Z1143_GOVERNOR_FAILED')
     if np.any(np.abs(w-old)>turnover_cap+1e-10):
         raise AssertionError('Z1143_CAPACITY_FAILED')
-    out=np.sign(w)*np.floor(np.abs(w)*1e6+1e-9)/1e6
+    # Quantize to six decimals WITHOUT crossing original capacity limits.
+    loq=np.ceil(lower*1e6-1e-9)/1e6
+    hiq=np.floor(upper*1e6+1e-9)/1e6
+    if np.any(loq>hiq):raise AssertionError('Z1149_NO_EXECUTABLE_QUANTUM')
+    out=np.clip(np.sign(w)*np.floor(np.abs(w)*1e6+1e-9)/1e6,loq,hiq)
     if not corner_gate(out,down,up,funding_bound,old):
         raise AssertionError('Z1143_QUANTIZED_GOVERNOR_FAILED')
+    if np.any(np.abs(out-old)>turnover_cap+1e-10):
+        raise AssertionError('Z1149_QUANTIZED_CAPACITY_FAILED')
     return out
 
 def compose_z(op,hi,lo,cl,quote,funding,*,diagnostics=False):
