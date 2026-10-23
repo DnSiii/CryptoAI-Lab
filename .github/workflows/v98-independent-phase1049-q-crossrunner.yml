@@ -1,0 +1,54 @@
+name: V98 Independent Phase1049 Q Cross-Runner Official Source Reproducibility
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1049-q-crossrunner.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q-source-ubuntu22:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Authenticate fresh 2022-2024 Clean-4 and reproduce all five frozen-source-only Q hashes
+        working-directory: research/v98_independent
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: |
+          python phase1043_q_source_auth_and_canonical.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('phase1043_q_source_only_receipt.json').read_text())
+          expected={
+          'Q_core_only':'13d414829693af8128b67d815f5d9995ca76b4154d19bb41418e3a5582773138',
+          'Q_full':'26633df84b0545b8d695b1b314cd7abb62083979b0287aa40067cd134e5ca966',
+          'Q_minus_opportunity':'85298d70f630d8b64f7d15c1a2671b09993b16c368a6e622e9219d66d7f35a3f',
+          'Q_minus_relative_value':'9bfd10be42059d524dac5804e0a79e3a1a170fe8c945315e36f673b16acda948',
+          'Q_minus_recovery':'7024c57c282100c7638d0cd19cdeed345377508f2b63f6b9f66675dacc46e644'}
+          assert r['decision']=='PASS_Q_SOURCE_ONLY_NOT_ECONOMICALLY_APPROVED'
+          assert r['canonical_sha256']==expected
+          assert r['historical_pnl_computed'] is False and r['validation_2025_read'] is False
+          print('Q_FIVE_CANONICAL_HASHES_REPRODUCED_ON_UBUNTU_22_04')
+          PY
+      - name: Preserve cross-runner source-only receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1049-q-crossrunner-source-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1043_q_source_only_receipt.json
