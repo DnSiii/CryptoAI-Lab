@@ -1,0 +1,44 @@
+name: V98 Independent Phase1249 AI Multiplicative Growth Allocator
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1249_ai_multiplicative_allocator.py'
+      - 'research/v98_independent/test_phase1249_ai_multiplicative_allocator.py'
+      - '.github/workflows/v98-independent-phase1249-ai-allocator.yml'
+  workflow_dispatch:
+jobs:
+  ai-allocator:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Verify causal multiplicative compounded growth allocation
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1249_ai_multiplicative_allocator
+      - name: Raw allocator digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib
+          from phase1249_ai_multiplicative_allocator import AIMultiplicativeAllocator
+          a=AIMultiplicativeAllocator()
+          s=np.zeros((4,4));s[0,0]=1.;s[1,1]=-1.
+          rows=[]
+          for t in range(300):
+              a.observe(np.array([.001*np.sin(t),.002,0,0]),
+                  np.zeros(4),np.zeros(4))
+              x=a.decide(s,'DISPERSION')
+              rows.extend(x['weights']);rows.append(x['growth_scale'])
+          print('AI1249_SHA256',hashlib.sha256(
+              np.asarray(rows,dtype='<f8').tobytes()).hexdigest())
+          print('AI1249_OBSERVATIONS',a.observations)
+          PY
