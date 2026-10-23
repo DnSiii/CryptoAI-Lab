@@ -1,0 +1,66 @@
+{
+  "phase": 1050,
+  "decision": "FROZEN_Q_PRE_ECONOMIC",
+  "branch": "research/v98-independent-zero",
+  "architecture": "Q_signed_seven_slot",
+  "preregistration": "research/v98_independent/phase1039_q_signed_sevenslot_growth_prereg.md",
+  "training_window": "2022-12-01 warmup; 2023-01-01 through 2024-12-31 training",
+  "assets": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT"
+  ],
+  "source_only_runs": [
+    39941983921,
+    39942534673
+  ],
+  "source_only_artifacts": [
+    12497335053,
+    12496493621
+  ],
+  "path_order": [
+    "Q_core_only",
+    "Q_full",
+    "Q_minus_opportunity",
+    "Q_minus_relative_value",
+    "Q_minus_recovery"
+  ],
+  "canonical_sha256": {
+    "Q_core_only": "13d414829693af8128b67d815f5d9995ca76b4154d19bb41418e3a5582773138",
+    "Q_full": "26633df84b0545b8d695b1b314cd7abb62083979b0287aa40067cd134e5ca966",
+    "Q_minus_opportunity": "85298d70f630d8b64f7d15c1a2671b09993b16c368a6e622e9219d66d7f35a3f",
+    "Q_minus_relative_value": "9bfd10be42059d524dac5804e0a79e3a1a170fe8c945315e36f673b16acda948",
+    "Q_minus_recovery": "7024c57c282100c7638d0cd19cdeed345377508f2b63f6b9f66675dacc46e644"
+  },
+  "code_blob_sha1": {
+    "phase1040_q_signed_margin_oracle.py": "bb7d53c3a30f5890523ae51d32ac412a1a578da9",
+    "phase1042_q_signed_sevenslot_source.py": "54b6d1daea6e8dce26f6a8a9708209003ec0c0c5",
+    "phase1043_q_source_auth_and_canonical.py": "bfc4dc5b0b7dcbc8dc58fe4e3f0a2119e7494b14",
+    "phase1044_q_funded_signed_ledger.py": "51efc8e3a98a0d9d3418442229111f4d50665fb7",
+    "phase1048_q_signed_funding_bounds.py": "8add1e052a49d71c66818451146f9a3eeab79310",
+    "phase1051_q_training_gate.py": "ea05322f9c4a33fd64c8f5c4a4a0d1631e8acb34"
+  },
+  "economic_cells_required": 90,
+  "fee_tiers": [
+    "base",
+    "severe",
+    "supersevere"
+  ],
+  "funding_orders": [
+    "carried_before_fill",
+    "new_after_fill"
+  ],
+  "capital_modes": [
+    "immediate",
+    "capacity_1m",
+    "capacity_10m"
+  ],
+  "historical_pnl_computed": false,
+  "validation_2025_read": false,
+  "holdout_accessed": false,
+  "external_benchmarks_used": false,
+  "promotion_eligible": false,
+  "source_policy": "Phase243 Clean-4; fresh official OHLC and mark/native funding provenance; 2025+ forbidden",
+  "decision_rule": "90/90 survival; base/severe positive Q_full 2023 and 2024 log growth and positive marginal against four ablations; untouched 2025 only after PASS"
+}
