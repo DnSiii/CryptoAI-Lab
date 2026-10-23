@@ -67,6 +67,10 @@ jobs:
           pattern: ah-numeric-*
           merge-multiple: false
           path: receipts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
       - name: Compare component receipts without concealing raw mismatch
         run: |
           python - <<'PY'
