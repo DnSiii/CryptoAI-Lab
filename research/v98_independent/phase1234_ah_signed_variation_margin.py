@@ -67,6 +67,8 @@ def settle_hour(cash_previous,old_units,prior_close,opening,high,low,closing,
         np.any(q<0) or np.any(qmin<0) or np.any(d<0) or np.any(d>=1) or
         np.any(u<0) or np.any(f<0)):
         raise ValueError('AH1234_BAD_COLLATERAL')
+    if np.any(l>np.minimum(p,c)) or np.any(h<np.maximum(p,c)):
+        raise ValueError('AH1234_BAD_OHLC_GEOMETRY')
     fee,slip=FEE_MODES[fee_mode]
     # Old futures settle overnight open gap into real cash; no spot notional
     # purchases, no unrealized PnL hidden outside the account.
