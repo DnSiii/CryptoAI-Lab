@@ -1,0 +1,32 @@
+name: V99 D1 historical TRAIN first-party source retrieval attempt (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_train_firstparty_source_attempt.py'
+      - '.github/workflows/v99-r106-d1-train-firstparty-source-attempt.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-historical-source-attempt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Attempt actual first-party OKX TRAIN-only four-leg bars and settled funding history
+        run: python -m research.tools.v99_r106_d1_train_firstparty_source_attempt research_evidence/d1_train_probe
+      - name: Preserve original historical API response bytes and failure manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d1-train-firstparty-source-attempt-${{ github.run_id }}
+          path: research_evidence/d1_train_probe/
+          retention-days: 90
+          if-no-files-found: warn
