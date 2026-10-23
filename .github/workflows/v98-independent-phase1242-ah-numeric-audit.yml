@@ -1,0 +1,86 @@
+name: V98 Independent Phase1242 AH Numeric Crossrunner Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1242-ah-numeric-audit.yml'
+  workflow_dispatch:
+jobs:
+  numerical:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Generate component-level raw and canonical receipts
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib,json
+          from phase1240_ah_regime_router import ah_regime_router
+          from phase1241_ah_online_growth_allocator import AHOnlineGrowthAllocator
+          from phase1242_ah_signed_governor import ah_governor_target
+          t=np.arange(200,dtype=float)
+          c=100*np.exp(t[:,None]*np.array([.001,-.001,.0005,-.0003]))
+          z=np.zeros_like(c)
+          states=ah_regime_router(c,z,z)
+          a=AHOnlineGrowthAllocator()
+          s=np.zeros((4,4));s[0,0]=1.;s[1,1]=-1.
+          rows=[]
+          for k in range(200):
+              a.observe(np.array([.001*np.sin(k),.002,0.,0.]),np.zeros(4),np.zeros(4))
+              v=a.decide(s,str(states['state'][k]))
+              rows.extend(v['sleeve_weights']);rows.append(v['growth_scale'])
+          q=ah_governor_target(10000.,np.zeros(4),np.full(4,100.),
+              np.full(4,100.),np.array([3.,-3.,0.,0.]),
+              np.full(4,.45),np.full(4,.8),np.full(4,.0005),
+              np.full(4,1e9),np.full(4,1e9))
+          rows.extend(q['units']);rows.append(q['fraction'])
+          def sha(a):
+              return hashlib.sha256(np.asarray(a,dtype='<f8').tobytes()).hexdigest()
+          a=np.asarray(rows)
+          out={'rows':a.tolist(),'raw_sha':sha(a),
+              'rounded12_sha':sha(np.round(a,12)),
+              'governor_raw_sha':sha(np.r_[q['units'],q['fraction']]),
+              'router_state_sha':hashlib.sha256('|'.join(states['state']).encode()).hexdigest()}
+          with open('ah_numeric_receipt.json','w') as f:json.dump(out,f,sort_keys=True)
+          print({k:v for k,v in out.items() if k!='rows'})
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ah-numeric-${{ matrix.os }}
+          path: research/v98_independent/ah_numeric_receipt.json
+          retention-days: 14
+  reconcile:
+    needs: numerical
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ah-numeric-*
+          merge-multiple: false
+          path: receipts
+      - name: Compare component receipts without concealing raw mismatch
+        run: |
+          python - <<'PY'
+          import json,glob,numpy as np
+          files=sorted(glob.glob('receipts/*/*.json'))
+          assert len(files)==2,files
+          a,b=[json.load(open(p)) for p in files]
+          x,y=np.asarray(a['rows']),np.asarray(b['rows'])
+          print('RAW_EQUAL',a['raw_sha']==b['raw_sha'])
+          print('ROUNDED12_EQUAL',a['rounded12_sha']==b['rounded12_sha'])
+          print('GOVERNOR_RAW_EQUAL',a['governor_raw_sha']==b['governor_raw_sha'])
+          print('ROUTER_EQUAL',a['router_state_sha']==b['router_state_sha'])
+          print('MAX_ABS_DELTA',float(np.max(np.abs(x-y))))
+          print('MISMATCH_COUNT',int(np.count_nonzero(x!=y)))
+          assert x.shape==y.shape
+          assert np.allclose(x,y,atol=1e-11,rtol=0), 'numeric divergence beyond tolerance'
+          PY
