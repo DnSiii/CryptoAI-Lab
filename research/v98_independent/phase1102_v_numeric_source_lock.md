@@ -1,0 +1,15 @@
+# V98 Independent Phase1102 — V numerical implementation lock before source code and historical PnL
+
+2026-10-23. Supplements Phase1100, no U/V historical economic results, no 2025, XRP, Phase083 or external engines.
+
+Fix these V choices BEFORE implementation or economic observation:
+
+- Growth raw conviction = .4*tanh(168h log momentum / (168h return std*sqrt(168))) + .4*tanh(720h log momentum / (720h std*sqrt(720))) + .2*tanh(72h momentum acceleration / (168h std*sqrt(72))). No channel breakout, no PnL-trained parameters.
+- Opportunity: 48h return std below *prior* 336h median 48h std (compression); current 24h quote-volume sum exceeds prior 24h sum; 24h signed log momentum nonzero. Direction is sign of 24h momentum; fixed 24h hold, 96h cooldown.
+- Relative value: native signed funding 72h rolling mean per asset, cross-sectional high-minus-low dispersion above its prior 336h rolling median; long lowest funding, short highest, equal dollar notionals, 48h hold; no return-based leader/laggard sign rescue.
+- Stress/recovery: negative 72h market momentum and >=3 negative 24h breadth -> short basket weighted by each asset's 168h downside semivolatility; recovery requires >=3 positive 24h breadth, positive 48h market momentum and current 48h volatility below prior 168h mean -> long basket weighted by each asset's positive 168h semivolatility. All overlays normalized gross=1, no uniform equal-weight crash hedge.
+- Router: 3 states from 168h std of 24h market realized volatility versus its prior 720h median and 24h breadth; stress if vol-of-vol above median and >=3 negative; expansion if below median and >=3 positive; neutral otherwise; minimum dwell 48h. Funding dispersion affects allocator sleeve conviction, not router state, avoiding circular selection.
+- Allocator: every 12 hours recompute signed joint vector; each active sleeve receives a deterministic positive score equal to min(1, L1(raw sleeve signal)) with relative-value score additionally multiplied by min(1, funding dispersion / prior median dispersion) where available. Normalize scores across active sleeves; sum scored signed sleeves, no fixed budget matrix. Persist last nonzero target for at most 36h; zero thereafter.
+- Governor: 336 completed-bar trailing max down/up shock, 720 completed-hour max absolute native funding, exact 32-iteration 16-corner quantized bisection, worst fee/slippage .002 each, asset/net/gross .45/.75/1.35, equity floor .25. All data known at close t; execute only t+1. The optimizer maximizes joint feasible scalar, not safety slack or a risk-only utility.
+
+If a pre-economic synthetic gate exposes a correctness defect, document and fix the implementation *before freeze*. A failed economic or frozen hypothesis is rejected without parameter rescue. All 90 cells and 2025 firewall remain as in Phase1100.
