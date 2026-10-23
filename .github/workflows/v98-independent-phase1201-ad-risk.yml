@@ -1,0 +1,27 @@
+name: V98 Independent Phase1201 AD Causal Risk Inputs Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1201_ad_causal_risk_inputs.py'
+      - 'research/v98_independent/test_phase1201_ad_causal_risk_inputs.py'
+      - '.github/workflows/v98-independent-phase1201-ad-risk.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-risk-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Validate strict previous-hour OHLC, quote and funding risk
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1201_ad_causal_risk_inputs.py' -v
