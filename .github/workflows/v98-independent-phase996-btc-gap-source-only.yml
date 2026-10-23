@@ -1,0 +1,41 @@
+name: V98 Independent Phase996 Checksum-Bound BTC Feb Source Gap
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase996-btc-gap-source-only.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase996-btc-gap-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  provenance:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Nine deterministic source-only negative and positive tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase996_btc_feb_gap_resolution.py
+      - name: Re-fetch and reconcile authenticated official daily/monthly archives
+        working-directory: research/v98_independent
+        run: python phase996_btc_feb_gap_resolution.py
+      - name: Upload provenance manifest and derivative (never used for PnL)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase996-source-only-reconciliation
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase996_btc_feb_gap_resolution_receipt.json
+            research/v98_independent/phase996_btc_feb_gap_reconstructed_source_only.csv
