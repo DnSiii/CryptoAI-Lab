@@ -40,6 +40,7 @@ class TestAGSources(unittest.TestCase):
         self.assertTrue(np.all(op[249]==0))
         # A pure volume spike without a price breakout must not trigger.
         c2,q2=self.fixture()
+        c2[250,0]*=.5  # explicitly remove price breakout from negative control
         q2[250,0]*=8.
         _,op2,_,_=causal_sources(c2,q2)
         self.assertEqual(op2[250,0],0)
