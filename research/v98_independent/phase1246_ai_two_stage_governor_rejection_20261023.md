@@ -1,0 +1,7 @@
+# V98 Independent Phase1246 — AI two-stage governor hypothesis REJECTED (2026-10-23)
+
+Official [unit gate 40015098489](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40015098489) independently executed 12 preregistered tests on Ubuntu 22.04 and 24.04. **11/12 passed on each; one identical critical failure**: `test_next_hour_ordinary_carry` raised `ValueError: AI1246_CARRIED_NEXT_HOUR_UNSAFE`. The new two-stage governor selected an apparently viable position at t, but that carried inventory was infeasible at t+1 even with unchanged prices and only actual opening fees. This is exactly the failure class that invalidated AH; no claim of solved forward invariance is justified.
+
+**Decision: REJECT_AI1246_TWO_STAGE_GOVERNOR_NO_RESCUE.** Do not adjust its target scale, buffer, shocks, fee settings, thresholds or test to force a pass. Freeze its code, tests, failed official receipts and hypothesis. The generic signed cash-settled ledger portions that passed unit tests remain separately identifiable accounting primitives, not economic evidence or an approved risk governor.
+
+The overall AI seven-slot architecture has NOT undergone a complete synthetic run, and no AI historical PnL/CAGR has been computed. A genuinely distinct *forward-reachable safe-set* governor hypothesis must be preregistered separately, using explicit next-open carried-inventory feasibility as part of the optimization, before implementation or tests. V16/V99 and AH rejected files untouched.
