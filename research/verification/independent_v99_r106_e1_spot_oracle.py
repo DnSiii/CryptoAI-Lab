@@ -101,6 +101,31 @@ def independently_verify(root,out):
         close(metrics["remove_best_day_roi"],math.expm1(math.log(navs[-1])-best),"BEST_DAY_MISMATCH")
         summaries[scenario]={"roi":navs[-1]-1,"folds":fold_returns,"maxdd":dd,
                              "fee":total_fee,"slippage":total_slip,"trades":sum(r["rebalanced"] for r in rows)}
+    # Independently derive buy-once benchmarks analytically from ORIGINAL first/last opens.
+    b_ratio=spot[0][-1]/spot[0][0]
+    e_ratio=spot[1][-1]/spot[1][0]
+    for scenario in ("severe","supersevere"):
+        fee,slip=PARAMS[scenario]
+        c=fee+slip
+        expected_bench={"btc":b_ratio/(1+c)-1,
+                        "eth":e_ratio/(1+c)-1,
+                        "buy_once_45_45_10":(0.1+0.45*b_ratio+0.45*e_ratio)/(1+0.9*c)-1}
+        for label,expected in expected_bench.items():
+            close(report["benchmarks"][label][scenario],expected,"BENCHMARK_ENVELOPE_MISMATCH")
+    s=summaries["severe"];u=summaries["supersevere"]
+    oracle_gates={
+        "severe_positive":s["roi"]>0,
+        "supersevere_positive":u["roi"]>0,
+        "severe_4_of_5_folds":sum(x>0 for x in s["folds"])>=4,
+        "supersevere_3_of_5_folds":sum(x>0 for x in u["folds"])>=3,
+        "both_maxdd_above_minus35pct":min(s["maxdd"],u["maxdd"])>=-0.35,
+        "both_daily_pf_above_one":all(z["pf"] is not None and z["pf"]>1 for z in (s,u)),
+        "both_remove_best_day_positive":min(s["best_day_removed"],u["best_day_removed"])>0,
+        "both_worst_day_above_minus15pct":min(s["worst_day"],u["worst_day"])>=-0.15,
+        "supersevere_beats_buy_once_by_2pp":u["roi"]-report["benchmarks"]["buy_once_45_45_10"]["supersevere"]>=0.02,
+    }
+    if oracle_gates!=report["gates"]:
+        raise ValueError("INDEPENDENT_ECONOMIC_GATES_DISAGREE")
     if not (summaries["severe"]["roi"]>=summaries["supersevere"]["roi"]-1e-10 and
             summaries["severe_shock"]["roi"]<=summaries["severe"]["roi"]+1e-10 and
             summaries["supersevere_shock"]["roi"]<=summaries["supersevere"]["roi"]+1e-10):
@@ -113,7 +138,7 @@ def independently_verify(root,out):
     result={"status":"INDEPENDENT_ORIGINAL_PRICE_TO_CASH_LEDGER_VERIFIED",
             "scenarios":summaries,"hours_per_scenario":15864,
             "synthetic_adversarial_control":"CASH_CORRUPTION_DETECTABLE",
-            "economic_train_gate_passed":all(report["gates"].values()),
+            "economic_train_gate_passed":all(oracle_gates.values()),\n            "independent_benchmark_and_gate_recomputation":True,
             "native_fee_tier_authenticated":False,"real_account_fills":False,
             "validation_opened":False,"holdout_opened":False,"promotion_authorized":False}
     (out/"e1_independent_oracle.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
