@@ -71,8 +71,8 @@ def relative_value(close):
         beta=np.clip(np.mean(y*center[:,None],axis=0)/var,-3.,3.)
         beta[0]=1.
         betas[t]=beta
-        residual=(logc[t]-logc[t-72])-
-            beta*(logc[t,0]-logc[t-72,0])
+        residual=((logc[t]-logc[t-72])-
+            beta*(logc[t,0]-logc[t-72,0]))
         resid=x-beta[None,:]*market[:,None]
         sigma=np.maximum(np.sqrt(72*np.mean(resid**2,axis=0)),1e-4)
         raw=-residual/sigma
