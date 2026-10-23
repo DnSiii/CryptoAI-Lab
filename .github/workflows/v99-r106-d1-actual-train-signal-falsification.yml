@@ -6,6 +6,7 @@ on:
     paths:
       - 'research/tools/v99_r106_d1_actual_train_signal_falsification.py'
       - '.github/workflows/v99-r106-d1-actual-train-signal-falsification.yml'
+      - 'research/verification/independent_d1_actual_train_signal_falsification.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -52,6 +53,11 @@ jobs:
               'promotion_authorized'))
           print('ACTUAL_TRAIN_CAUSAL_SIGNAL_PROBE_VERIFIED / NO PNL / NO PROMOTION')
           PY
+      - name: Independently recompute funding-entry impossibility from original ZIP bytes
+        run: |
+          python -m research.verification.independent_d1_actual_train_signal_falsification \
+            research_evidence/d1_bulk_funding \
+            research_evidence/d1_actual_train_signal_probe/d1_actual_train_signal_probe.json
       - name: Archive actual TRAIN signal envelope and all veto counts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
