@@ -1,0 +1,41 @@
+name: V98 Independent Phase1250 AI Controlled Viability Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1250_ai_controlled_governor.py'
+      - 'research/v98_independent/test_phase1250_ai_controlled_governor.py'
+      - '.github/workflows/v98-independent-phase1250-ai-controlled.yml'
+  workflow_dispatch:
+jobs:
+  ai-controlled:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Actual-open solvency, funded reduction, six modes, real ledger
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1250_ai_controlled_governor
+      - name: Raw controlled-governor digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib
+          from phase1250_ai_controlled_governor import ai_controlled_governor
+          r=ai_controlled_governor(10000.,np.zeros(4),
+              np.full(4,100.),np.full(4,100.),
+              np.array([3.,-3.,0.,0.]),np.full(4,.45),
+              np.full(4,.8),np.full(4,.0005),
+              np.full(4,1e9),np.full(4,1e9))
+          print('AI1250_SHA256',hashlib.sha256(
+              np.r_[r['units'],r['fraction']].astype('<f8').tobytes()).hexdigest())
+          print('AI1250_FRACTION',r['fraction'])
+          PY
