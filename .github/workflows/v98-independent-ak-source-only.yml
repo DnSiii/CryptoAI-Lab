@@ -1,0 +1,78 @@
+name: V98 Independent AK Official Source-Only Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ak-source-only.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download exact original vendor-attested Clean4 source bytes
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-${{ matrix.os }}
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage immutable Dec2022-Dec2024 only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dst=(target/'phase243_clean4_canonical'/name
+                   if name.endswith('_1h.csv') else target/name)
+              dst.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dst)
+          PY
+      - name: Authenticate AK source-only signed sleeves and router
+        working-directory: research/v98_independent
+        run: python ak_source_only_digest.py --output ak_source_only_receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ak-source-${{ matrix.os }}
+          path: research/v98_independent/ak_source_only_receipt.json
+          retention-days: 30
+  reconcile:
+    needs: source
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ak-source-ubuntu-*
+          path: source-receipts
+      - name: Require exact independent OS source hashes and activation
+        run: |
+          python - <<'PY'
+          import glob,json
+          paths=sorted(glob.glob('source-receipts/*/*.json'))
+          assert len(paths)==2,paths
+          a,b=(json.load(open(x)) for x in paths)
+          assert a==b,(a,b)
+          assert a['hours']==18288,a['hours']
+          assert all(v>0 for v in a['active_hours'].values()),a['active_hours']
+          print('AK_OFFICIAL_SOURCE_TWO_OS_EXACT_PASS',json.dumps(a,sort_keys=True))
+          PY
