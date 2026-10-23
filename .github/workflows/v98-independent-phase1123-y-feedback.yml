@@ -1,4 +1,4 @@
-name: V98 Independent Phase1123-1124 Y Continuous Growth Synthetic
+name: V98 Independent Phase1123-1125 Y Seven-Slot Synthetic
 on:
   push:
     branches:
@@ -10,11 +10,13 @@ on:
       - 'research/v98_independent/test_phase1123_y_causality.py'
       - 'research/v98_independent/phase1124_y_pretrade_growth.py'
       - 'research/v98_independent/test_phase1124_y_pretrade_growth.py'
+      - 'research/v98_independent/phase1125_y_sevenslot_source.py'
+      - 'research/v98_independent/test_phase1125_y_sevenslot_source.py'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  y-causal-feedback-and-growth:
+  y-complete-seven-slot:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
@@ -27,7 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install pinned numpy
-        run: python -m pip install 'numpy==1.26.4'
-      - name: Y 5000 adversarial books, causal feedback, 81-state pretrade
-        run: python -m unittest -v test_phase1123_y_continuous_feedback.py test_phase1123_y_causality.py test_phase1124_y_pretrade_growth.py
+      - name: Install pinned runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Y 5000 adversarial books, feedback, growth and seven-slot chronology
+        run: python -m unittest -v test_phase1123_y_continuous_feedback.py test_phase1123_y_causality.py test_phase1124_y_pretrade_growth.py test_phase1125_y_sevenslot_source.py
