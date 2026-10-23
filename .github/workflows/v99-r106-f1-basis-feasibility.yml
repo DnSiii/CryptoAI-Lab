@@ -1,0 +1,101 @@
+name: V99 F1 original OKX paired basis mechanism feasibility (NO ORDERS, NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_f1_basis_feasibility.py'
+      - '.github/workflows/v99-r106-f1-basis-feasibility.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-shot-f1-original-train-structural-falsification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Confirm pre-PNL F1 prereg and sealed historical partitions
+        run: |
+          test -s research/V99_R106_F1_BASIS_CONVERGENCE_STRUCTURAL_PREREG_20261023.md
+          python - <<'PY'
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,HOURS
+          assert (START,END,HOURS)==(1639008000000,1696118400000,15864)
+          print('F1 ORIGINAL TRAIN ONLY / PREREG PINNED / SEALED VALIDATION + HOLDOUT')
+          PY
+      - name: Download independently verified first-party original OKX four-leg TRAIN
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \\
+            --name d1-train-four-leg-backfill-40019588739 \\
+            --dir research_evidence/f1_original_train
+      - name: Execute single fixed-hurdle causal basis feasibility test (NOT PNL)
+        run: |
+          python -m research.tools.v99_r106_f1_basis_feasibility \\
+            research_evidence/f1_original_train research_evidence/f1_screen
+      - name: Independently recompute all daily eligibility counts and negative control
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,HOUR,FOLD_EDGES
+          from research.verification.independent_d1_native_train_receipts import verify
+          root=Path('research_evidence/f1_original_train')
+          report=json.loads(Path('research_evidence/f1_screen/f1_basis_screen.json').read_text())
+          assert verify(root)['status']=='INDEPENDENT_FOUR_LEG_TRAIN_SOURCE_COMPLETE_NO_ECONOMICS'
+          opens={}
+          for a in ('BTC','ETH'):
+            for suffix in ('-USDT','-USDT-SWAP'):
+              name=a+suffix
+              rows=json.loads((root/name/'train_opens.json').read_text())
+              assert len(rows)==15864
+              assert all(r['ts']==START+i*HOUR for i,r in enumerate(rows))
+              opens[name]=[float(r['open']) for r in rows]
+          days={str(f):{s:set() for s in ('severe','supersevere')} for f in range(1,6)}
+          asset_counts={str(f):{a:{s:0 for s in ('severe','supersevere')} for a in ('BTC','ETH')} for f in range(1,6)}
+          midnights=0
+          for i in range(1,15864):
+            now=START+i*HOUR
+            if now%(24*HOUR):continue
+            midnights+=1
+            fold=next((str(j) for j,(lo,hi) in enumerate(zip(FOLD_EDGES,FOLD_EDGES[1:]),1) if lo<=now<hi),None)
+            assert fold is not None
+            for asset in ('BTC','ETH'):
+              ratio=opens[asset+'-USDT-SWAP'][i-1]/opens[asset+'-USDT'][i-1]
+              for scenario,hurdle in (('severe',0.0048),('supersevere',0.0096)):
+                if ratio>1+hurdle:
+                  days[fold][scenario].add(now)
+                  asset_counts[fold][asset][scenario]+=1
+          assert midnights==report['utc_midnight_decisions']
+          assert {f:{s:len(v) for s,v in d.items()} for f,d in days.items()}==report['unique_qualifying_days_by_fold']
+          for f in asset_counts:
+            for a in ('BTC','ETH'):
+              assert asset_counts[f][a]==report['fold_asset_diagnostics'][f][a]['eligible_days']
+          eligible={s:sum(len(days[f][s])>=5 for f in days) for s in ('severe','supersevere')}
+          assert eligible==report['folds_with_at_least_five_days']
+          assert report['structural_go_for_separate_complete_engine']==(eligible['severe']>=4 and eligible['supersevere']>=3)
+          assert report['status']==('STRUCTURAL_SCREEN_PASS_NOT_ECONOMIC_TRAIN' if report['structural_go_for_separate_complete_engine'] else 'F1_STRUCTURAL_REJECT_NO_RETUNE')
+          # Negative control: an injected +20% swap quote must alter the computed premium.
+          original=opens['BTC-USDT-SWAP'][23]/opens['BTC-USDT'][23]-1
+          altered=(opens['BTC-USDT'][23]*1.2)/opens['BTC-USDT'][23]-1
+          assert abs(altered-original)>0.01
+          assert not report['roi_computed'] and not report['historical_economic_train_run']
+          assert not report['promotion_authorized'] and not report['validation_opened'] and not report['holdout_opened']
+          print('INDEPENDENT ORIGINAL-PRICE F1 FEASIBILITY VERIFIED:',eligible,report['status'])
+          print('NO PNL / NO ORDERS / NO PROMOTION')
+          PY
+      - name: Preserve F1 mechanism verdict and independent verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-f1-basis-structural-screen-${{ github.run_id }}
+          path: research_evidence/f1_screen/
+          retention-days: 90
+          if-no-files-found: warn
