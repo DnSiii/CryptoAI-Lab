@@ -51,7 +51,7 @@ class ReceiptQuarantine(unittest.TestCase):
                 hashes[kind] = hashlib.sha256(raw).hexdigest()
             self.t["contracts"][inst] = dict(
                 contract=dict(instId=inst, ctType="linear", ctVal=value,
-                              ctValCcy=asset, lotSz="0.01",
+                              ctValCcy=asset, lotSz="0.01", minSz="0.01",
                               settleCcy="USDT", state="live"),
                 funding_notice=dict(instId=inst, settled_cashflow_authenticated=False),
                 contract_received_utc=OBS, funding_received_utc=OBS,
@@ -116,6 +116,15 @@ class ReceiptQuarantine(unittest.TestCase):
     def test_no_unauthorized_economic_claim(self):
         self.m["promotion_authorized"] = True
         with self.assertRaisesRegex(ValueError, "UNAUTHORIZED_ECONOMIC_CLAIM"):
+            self.proof()
+
+    def test_minimum_order_quantity_above_lot_step(self):
+        self.t["contracts"]["BTC-USDT-SWAP"]["contract"]["minSz"] = "0.03"
+        self.assertEqual(self.proof()["observed_2026_min_swap_base_by_asset_not_historical"]["BTC"], "0.0003")
+
+    def test_missing_native_minimum_rejected(self):
+        del self.t["contracts"]["ETH-USDT-SWAP"]["contract"]["minSz"]
+        with self.assertRaisesRegex(ValueError, "BAD_CONTRACT_QUANTITY"):
             self.proof()
 
     def test_invalid_contract_currency_rejected(self):
