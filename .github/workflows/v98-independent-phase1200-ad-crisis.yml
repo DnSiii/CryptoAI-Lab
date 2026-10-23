@@ -1,0 +1,88 @@
+name: V98 Independent Phase1200 AD Ninety Crisis Cells Crossrunner
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1200_ad_crisis_90cell.py'
+      - 'research/v98_independent/test_phase1200_ad_crisis_90cell.py'
+      - '.github/workflows/v98-independent-phase1200-ad-crisis.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-crisis:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Test 90 crisis cells with actual NAV stress activation
+        run: python -m unittest -q test_phase1200_ad_crisis_90cell.py
+      - name: Persist full 90-cell crisis synthetic receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from phase1200_ad_crisis_90cell import run
+          r=run()
+          Path('phase1200_ad_crisis_90cell_receipt.json').write_text(
+              json.dumps(r,sort_keys=True,indent=2,allow_nan=False)+'\n')
+          print(r['decision'],sum(x['passed'] for x in r['cells']),len(r['cells']))
+          assert r['decision']=='PASS_AD_90_CRISIS_SYNTHETIC_NOT_ECONOMIC'
+          PY
+      - name: Preserve all crisis receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ad-1200-${{ matrix.os }}
+          path: research/v98_independent/phase1200_ad_crisis_90cell_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  ad-crisis-crossrunner:
+    needs: ad-crisis
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-ad-1200-*
+          path: /tmp/v98-ad-1200
+      - name: Strict preregistered cross-OS 90-cell crisis reconciliation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/v98-ad-1200')
+          paths=[root/('v98-ad-1200-'+os)/'phase1200_ad_crisis_90cell_receipt.json'
+                 for os in ('ubuntu-22.04','ubuntu-24.04')]
+          if not all(p.is_file() for p in paths):
+              raise SystemExit('AD1200_MISSING_CRISIS_RECEIPT')
+          a,b=[json.loads(p.read_text()) for p in paths]
+          for r in (a,b):
+              assert r['decision']=='PASS_AD_90_CRISIS_SYNTHETIC_NOT_ECONOMIC'
+              assert r['historical_system_pnl_computed'] is False
+              assert r['validation_2025_read'] is False and len(r['cells'])==90
+          for x,y in zip(a['cells'],b['cells']):
+              for k in ('path','mode','fee','order','passed','active_hours','hours_executed'):
+                  assert x[k]==y[k], 'AD1200_DISCRETE_DRIFT_'+k
+              for k in ('synthetic_final_nav','synthetic_turnover','synthetic_fees',
+                        'synthetic_funding','nonzero_execution_fraction'):
+                  assert abs(x[k]-y[k])<=1e-8, 'AD1200_NUMERIC_DRIFT_'+k
+          full=next(c for c in a['cells'] if c['path']=='AD_full' and c['mode']=='immediate'
+                    and c['fee']=='base' and c['order']=='carried_before_fill')
+          assert full['active_hours']['stress']>0
+          print(json.dumps({'decision':'PASS_AD_90_CRISIS_CROSSRUNNER_SYNTHETIC_ONLY',
+                            'stress_active_hours':full['active_hours']['stress']},sort_keys=True))
+          PY
