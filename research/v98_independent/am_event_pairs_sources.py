@@ -16,6 +16,7 @@ def source_bundle(close,high,low,funding_rate,funding_event,quote_volume):
     n=len(c)
     logc=np.log(c)
     lr=np.diff(logc,axis=0,prepend=logc[:1])
+    ratios=(logc[:,0]-logc[:,1],logc[:,2]-logc[:,3])
     growth=np.zeros_like(c)
     opportunity=np.zeros_like(c)
     relative=np.zeros_like(c)
@@ -67,7 +68,7 @@ def source_bundle(close,high,low,funding_rate,funding_event,quote_volume):
             opportunity[t]=opp_position/gross
         # Signed beta-agnostic dollar-neutral ratio pairs; independent histories.
         for pair,(i,j) in enumerate(((0,1),(2,3))):
-            ratio=logc[:,i]-logc[:,j]
+            ratio=ratios[pair]
             hist=ratio[t-504:t]
             mu=float(hist.mean())
             sigma=max(float(hist.std()),1e-5)
