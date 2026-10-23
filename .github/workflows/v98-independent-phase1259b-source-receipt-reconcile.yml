@@ -1,0 +1,99 @@
+name: V98 Independent Phase1259b AJ Reconcile Pinned Official Receipts
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1259b-source-receipt-reconcile.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  reconcile-original-source-archives:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Load original Ubuntu 22.04 source attestations
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-ubuntu-22.04
+          repository: DnSiii/CryptoAI-Lab
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: original/ubuntu-22.04
+      - name: Load original Ubuntu 24.04 source attestations
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-ubuntu-24.04
+          repository: DnSiii/CryptoAI-Lab
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: original/ubuntu-24.04
+      - name: Resolve artifact stripped paths and reconcile exact source bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          roots=(Path('original/ubuntu-22.04'),Path('original/ubuntu-24.04'))
+          def unique(r,name):
+              matches=list(r.rglob(name))
+              assert len(matches)==1,(str(r),name,[str(x) for x in matches])
+              return matches[0]
+          receipts=('phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json')
+          evidence={}
+          for name in receipts:
+              sources=[unique(r,name) for r in roots]
+              data=[p.read_bytes() for p in sources]
+              assert data[0]==data[1],name+'_original_bytes_different'
+              one,two=map(json.loads,data)
+              assert one==two and one['decision'].startswith('PASS_'),name+'_original_receipt_inconsistent'
+              assert one['historical_pnl_computed'] is False and one['holdout_accessed'] is False
+              evidence[name]={'sha256':hashlib.sha256(data[0]).hexdigest(),'decision':one['decision']}
+          a=json.loads(unique(roots[0],receipts[0]).read_bytes())
+          b=json.loads(unique(roots[0],receipts[1]).read_bytes())
+          assert a['vendor_origin_attested'] is True and len(a['assets'])==4
+          assert b['verified_asset_events']==9144
+          assert b['verified_mark_monthly_archives']==100
+          assert b['verified_funding_monthly_archives']==100
+          assert b['verified_mark_daily_archives']==112
+          assert b['vendor_archive_checksum_attested'] is True
+          checks=[]
+          for asset in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT'):
+              name=asset+'_1h.csv'
+              source=[unique(r,name).read_bytes() for r in roots]
+              assert source[0]==source[1],name+'_cross_os_difference'
+              sha=hashlib.sha256(source[0]).hexdigest()
+              assert sha==a['assets'][asset]['sha256'] and a['assets'][asset]['hours']==18288
+              checks.append({'name':name,'sha256':sha,'bytes':len(source[0])})
+          name='phase1000_four_asset_conservative_bounds_source_only.csv'
+          source=[unique(r,name).read_bytes() for r in roots]
+          assert source[0]==source[1],name+'_cross_os_difference'
+          sha=hashlib.sha256(source[0]).hexdigest()
+          assert sha==b['bounds_csv_sha256']
+          checks.append({'name':name,'sha256':sha,'bytes':len(source[0])})
+          evidence.update({
+              'original_attestation_run_id':40018746960,
+              'verified_four_18288_hour_sources':True,
+              'verified_9144_original_funding_events':True,
+              'cross_os_exact_same_bytes':True,
+              'canonical_files':checks,
+              'status':'PASS_AJ1259B_SOURCE_RECEIPTS_CROSSRUNNER_EXACT_NO_ECONOMICS',
+              'train_pnl_executed':False,
+              'validation_or_holdout_read':False,
+              'promotion_authorized':False,
+          })
+          out=Path('v98_aj1259b_source_reconcile.json')
+          out.write_text(json.dumps(evidence,sort_keys=True,indent=2)+'\n')
+          print(evidence['status'])
+          print('ORIGINAL_FILES_ATTESTED',len(checks))
+          print('SHA_256',hashlib.sha256(out.read_bytes()).hexdigest())
+          PY
+      - name: Preserve read-only official source evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-aj1259b-official-source-reconcile
+          retention-days: 30
+          if-no-files-found: error
+          path: v98_aj1259b_source_reconcile.json
