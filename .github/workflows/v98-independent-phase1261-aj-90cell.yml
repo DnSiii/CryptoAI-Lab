@@ -129,9 +129,9 @@ jobs:
           survived=sum(c['passed'] for c in all_cells)
           print('AJ1261_TOTAL_SURVIVAL',survived,'of',len(all_cells))
           full=cells['AJ_full']
-          key=('immediate','base','carried_before_fill')
-          if full[key]['passed']:
-              x=full[key]
+          base_key=('immediate','base','carried_before_fill')
+          if full[base_key]['passed']:
+              x=full[base_key]
               print('AJ1261_FULL_10K_BASE',json.dumps({
                   'cagr_2y':x['two_year_cagr'],'max_dd':x['max_drawdown'],
                   '2023_cagr':x['annual']['2023']['annualized_cagr'],
@@ -156,7 +156,7 @@ jobs:
           result={'phase':1261,'architecture':'AJ',
               'historical_training_only':True,'validation_2025_read':False,
               'cells_total':len(all_cells),'cells_survived':survived,
-              'full_10k_base':full[key] if key in full else None,
+              'full_10k_base':full[base_key] if base_key in full else None,
               'marginal_net_log_growth':marginal,
               'decision':('PASS_AJ1261_90_TRAINING_SURVIVAL_NEEDS_ECONOMIC_ANALYSIS'
                           if survived==90 else 'REJECT_AJ1261_90_TRAINING_SURVIVAL')}
