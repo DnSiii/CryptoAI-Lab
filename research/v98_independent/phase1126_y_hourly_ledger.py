@@ -22,12 +22,15 @@ def _vec(x, label):
 
 def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
                  cash,prior_down,prior_up,prior_funding_bound,prior_quote,
-                 fee,slip,*,rebalance,funding_rate,funding_mark,funding_event):
+                 fee,slip,*,rebalance,funding_rate,funding_mark,funding_event,
+                 funding_order='new_after_fill'):
     p,o,h,l,c,u,w,d,a,f,q,rate,mark=[_vec(v,name) for v,name in (
         (prior,'PRIOR'),(opening,'OPEN'),(high,'HIGH'),(low,'LOW'),
         (closing,'CLOSE'),(carried_units,'UNITS'),(desired_weights,'WEIGHTS'),
         (prior_down,'DOWN'),(prior_up,'UP'),(prior_funding_bound,'FUNDING_BOUND'),
         (prior_quote,'QUOTE'),(funding_rate,'RATE'),(funding_mark,'MARK'))]
+    if funding_order not in ('new_after_fill','carried_before_fill'):
+        raise ValueError('Y1126_FUNDING_ORDER')
     events=np.asarray(funding_event,dtype=bool)
     if (events.shape!=(N,) or not np.isfinite(cash) or (p<=0).any()
         or (o<=0).any() or (l<=0).any() or (h<np.maximum(o,c)).any()
@@ -87,7 +90,8 @@ def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
                     'planned_units':planned_snapshot.tolist()}
     # On a stop, never count favorable funding credits that may have arrived
     # after the liquidation. Charges are reserved conservatively.
-    funding_by_asset=-np.where(events,prestop_units*mark*rate,0.)
+    funded_units=u if funding_order=='carried_before_fill' else prestop_units
+    funding_by_asset=-np.where(events,funded_units*mark*rate,0.)
     if touched or gap:funding_by_asset=np.minimum(funding_by_asset,0.)
     funding_cash=float(funding_by_asset.sum())
     before_funding=balance
@@ -112,6 +116,6 @@ def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
     result={'ok':reason is None,'reason':reason,'planned_units':planned_snapshot.tolist(),
         'units':units.copy(),'cash':float(balance),'equity':final_equity,
         'fees':fees,'turnover':turnover,'funding_cash_delta':funding_cash,'funding_by_asset':funding_by_asset.tolist(),
-        'basket_stop':bool(touched or gap),'worst_intrabar_equity':float(equities.min()),
+        'basket_stop':bool(touched or gap),'funding_order':funding_order,'worst_intrabar_equity':float(equities.min()),
         'events':records,'self_financing':True,'synthetic_only':True}
     return result
