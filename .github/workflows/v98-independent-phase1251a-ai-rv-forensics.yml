@@ -1,0 +1,75 @@
+name: V98 Independent Phase1251a AI RV Numeric Crossrunner Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1251a-ai-rv-forensics.yml'
+  workflow_dispatch:
+jobs:
+  rv-forensic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Preserve unmodified benign and crisis RV arrays
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib
+          from phase1251_ai_complete_180cell import fixture
+          from phase1247_ai_four_signed_sources import relative_value
+          rows={}
+          for crisis in (False,True):
+              f=fixture(crisis)
+              w,b=relative_value(f[3])
+              key='crisis' if crisis else 'benign'
+              rows[key+'_weights']=w
+              rows[key+'_betas']=b
+              print('RV_RAW',key,hashlib.sha256(w.astype('<f8').tobytes()).hexdigest())
+              for decimals in (12,10,9,8,7):
+                  print('RV_ROUND',key,decimals,hashlib.sha256(
+                      np.round(w,decimals).astype('<f8').tobytes()).hexdigest())
+          np.savez('ai_rv_forensic.npz',**rows)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-rv-${{ matrix.os }}
+          path: research/v98_independent/ai_rv_forensic.npz
+          retention-days: 14
+  compare:
+    needs: rv-forensic
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ai-rv-*
+          path: receipts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Quantify raw source discrepancy before any canonicalization
+        run: |
+          python - <<'PY'
+          import numpy as np,glob,hashlib
+          files=sorted(glob.glob('receipts/*/*.npz'))
+          assert len(files)==2,files
+          a,b=[np.load(p) for p in files]
+          for key in a.files:
+              x,y=a[key],b[key]
+              assert x.shape==y.shape
+              print('RV_KEY',key,'MAX_ABS',float(np.max(np.abs(x-y))),
+                  'MISMATCH',int(np.count_nonzero(x!=y)))
+              for d in (12,10,9,8,7):
+                  xx,yy=np.round(x,d),np.round(y,d)
+                  print('RV_ROUND_EQUAL',key,d,np.array_equal(xx,yy))
+              assert np.allclose(x,y,atol=1e-8,rtol=0), 'material RV numerical divergence'
+          PY
