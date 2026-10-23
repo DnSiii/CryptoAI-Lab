@@ -1,0 +1,47 @@
+name: V98 Independent Phase995 BTC February 2023 Source Diagnosis
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase995-source-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase995-source-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-diagnosis:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Official BTCUSDT 2023-02 row attribution only
+        working-directory: research/v98_independent
+        run: |
+          python phase965_n_mark_row_locator.py
+      - name: Monthly daily and API source triangulation (diagnostic exit 2 expected)
+        working-directory: research/v98_independent
+        run: |
+          set +e
+          python phase991_source_triangulation.py
+          status=$?
+          echo "triangulation_status=$status" >> "$GITHUB_STEP_SUMMARY"
+          test "$status" -eq 2
+      - name: Persist source-only evidence even on failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase995-btc-202302-source-only
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase965_n_mark_row_locator_result.json
+            research/v98_independent/phase991_source_triangulation_result.json
