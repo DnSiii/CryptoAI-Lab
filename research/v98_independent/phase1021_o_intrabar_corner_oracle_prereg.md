@@ -1,0 +1,5 @@
+# V98 Independent Phase1021 — exact long-only intrabar corner equivalence oracle (synthetic only)
+
+Preregistered before Phase1018 O historical economic result. The immutable Phase1007 ledger checks six adverse OHLC corners (all low, all high, and four single-asset highs against all other lows). This test independently enumerates all sixteen corners to determine whether the six-corner shortcut is exact for the permitted **long-only, nonnegative units** ledger state. Sample 3,000 deterministic seeded 4-asset states with positive open, low and high, explicit 0–1.75 gross and per-asset targets, fee-inclusive cash including possible negative cash, and random large OHLC shocks. Compare the production shortcut decision to independent scalar equity/gross/asset tests at every one of 16 corners. Zero mismatches required. Any mismatch quarantines the historical economic survival conclusion for forensic investigation, not a change of strategy, gross cap, costs or post-result rescue.
+
+The test is source-only synthetic and must not read 2025+, historical PnL, contaminated holdout, V14/V15/V16/V99 or paper state. Only V98 namespaced files on research/v98-independent-zero.
