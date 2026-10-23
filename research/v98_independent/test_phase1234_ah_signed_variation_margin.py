@@ -44,7 +44,8 @@ class TestAHVariationMargin(unittest.TestCase):
         old=np.array([2.,-1.,0.,0.])
         p=np.array([110.,140.,50.,200.])
         c=np.array([110.22,139.72,50.,200.])
-        r=self.hour(old=old,target=old,p=p,close=c)
+        r=self.hour(old=old,target=old,p=p,close=c,
+                    high=np.maximum(p,c)*1.0001,low=np.minimum(p,c)*.9999)
         self.assertAlmostEqual(r['overnight_pnl'],30.,places=6)
         self.assertAlmostEqual(r['intrabar_pnl'],.72,places=6)
         self.assertAlmostEqual(r['cash'],10030.72,places=5)
@@ -77,7 +78,7 @@ class TestAHVariationMargin(unittest.TestCase):
 
     def test_short_squeeze_expost_audit(self):
         with self.assertRaisesRegex(ValueError,'REALIZED_'):
-            self.hour(target=np.array([0.,-40.,0.,0.]),
+            self.hour(target=np.array([0.,-60.,0.,0.]),
                       high=self.p*np.array([1.,2.,1.,1.]))
 
     def test_causal_same_open_different_benign_extremes(self):
