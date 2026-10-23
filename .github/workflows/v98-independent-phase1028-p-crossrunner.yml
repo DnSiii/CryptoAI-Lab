@@ -1,0 +1,51 @@
+name: V98 Independent Phase1028 P Cross-Runner Canonical Reproducibility
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1028-p-crossrunner.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1028-p-crossrunner-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  p-canonical-crossrunner:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install identical pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fresh official 2022-2024 Clean-4 source attestation
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: Recompute P five canonical targets and compare independent runner hashes
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          from phase1026_p_canonical_transport import canonical_p_paths
+          _,out=canonical_p_paths()
+          expected={
+            'P_core_only':'1cec522d2bc11f9cfec08680d99efa9e96aa1db842bdee62cd93a170a584d342',
+            'P_full':'f8f0004f96c3a20a2ed12e4eafa54e45e5575f66e22166c55067cb5976d87a41',
+            'P_minus_opportunity':'9dc6f4f5666016549e3335f1a22e154747988e04da4b8811265bebe68dfc2db7',
+            'P_minus_relative_value':'87704b441218b03ee09cf7c5db9ca2a75cb437eae9eca6cf54c57738800507a6',
+            'P_minus_recovery':'4c60fcd2135309dc57caa14a8b9edab1e672cb0230d537c9dbe59b88f50b032a',
+          }
+          print('P_CROSSRUNNER_HASHES',out['paths_sha256'])
+          assert out['paths_sha256']==expected,'P_CROSSRUNNER_CANONICAL_TARGET_DRIFT'
+          assert out['historical_pnl_computed'] is False
+          PY
