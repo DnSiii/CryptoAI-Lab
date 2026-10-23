@@ -24,7 +24,7 @@ def vec(v, positive=False):
 
 
 def corner_audit(z, old_z, equity, ratios, funding_bound, exit_cost, cost,
-                 quote, quote_min, tol=1e-7):
+                 quote, quote_min, cash_floor=0., tol=1e-7):
     """Audit one *final* jointly netted portfolio under all 81 corners."""
     z, old_z = vec(z, True), vec(old_z, True)
     f, q, qmin = vec(funding_bound, True), vec(quote, True), vec(quote_min, True)
@@ -32,8 +32,8 @@ def corner_audit(z, old_z, equity, ratios, funding_bound, exit_cost, cost,
         return False, 'BAD_EQUITY_OR_CORNER'
     turnover = np.abs(z - old_z)
     cash = equity - z.sum() - cost * turnover.sum()
-    if cash < -tol:
-        return False, 'NEGATIVE_CASH'
+    if cash < cash_floor*equity - tol:
+        return False, 'CASH_RESERVE'
     if np.any(turnover > ORDER_SHARE*q + tol):
         return False, 'ORDER_CAPACITY'
     if np.any(EXIT_MULT*z*np.max(ratios, axis=0) >
@@ -51,12 +51,12 @@ def corner_audit(z, old_z, equity, ratios, funding_bound, exit_cost, cost,
 
 
 def joint_plan(old_units, opening, cash, growth_mu, down, up,
-               funding_bound, quote, quote_min, fee_mode='base'):
+               funding_bound, quote, quote_min, fee_mode='base', cash_floor=0.):
     """Solve one portfolio-wide net rebalance; no post-sell intermediate state."""
     old, p = vec(old_units, True), vec(opening)
     mu, d, u = vec(growth_mu), vec(down, True), vec(up, True)
     f, q, qmin = vec(funding_bound, True), vec(quote, True), vec(quote_min, True)
-    if np.any(p <= 0) or np.any(d >= 1) or cash < 0 or fee_mode not in COSTS:
+    if np.any(p <= 0) or np.any(d >= 1) or cash < 0 or fee_mode not in COSTS or not 0 <= cash_floor < 1:
         raise ValueError('AG1226_BAD_INPUT')
     old_z = old*p
     equity = float(cash + old_z.sum())
@@ -82,7 +82,7 @@ def joint_plan(old_units, opening, cash, growth_mu, down, up,
         add(a, ORDER_SHARE*q[i] - old_z[i])
         a = np.zeros(8); a[i] = EXIT_MULT*(1+u[i])
         add(a, ORDER_SHARE*qmin[i])
-    add(np.r_[np.ones(4), np.full(4, cost)], equity)  # real cash >=0
+    add(np.r_[np.ones(4), np.full(4, cost)], equity*(1-cash_floor))  # prefunded real cash
     for r in ratios:
         s = r-1-f-exit_cost
         # stress_equity = equity + s @ z - cost * turnover
@@ -104,7 +104,7 @@ def joint_plan(old_units, opening, cash, growth_mu, down, up,
         raise ValueError('AG1226_NO_JOINT_FEASIBLE_PORTFOLIO_'+str(res.status))
     z = np.maximum(res.x[:4], 0.)
     ok, reason = corner_audit(z, old_z, equity, ratios, f, exit_cost,
-                              cost, q, qmin, tol=2e-5)
+                              cost, q, qmin, cash_floor=cash_floor, tol=2e-5)
     if not ok:
         raise ValueError('AG1226_POST_OPT_'+reason)
     delta = z-old_z
