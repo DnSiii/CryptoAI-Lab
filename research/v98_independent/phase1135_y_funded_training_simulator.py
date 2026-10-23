@@ -59,7 +59,7 @@ def validate_inputs(w,o,h,l,c,q,rate,marks,event,years,fee,order,mode,strict):
         or (h<np.maximum(o,c)).any() or (l>np.minimum(o,c)).any()
         or (q<0).any() or np.any(rate[~event]!=0)
         or np.any(~np.isfinite(marks[event])) or np.any(marks[event]<=0)
-        or np.any(marks[event,0]>marks[event,1])
+        or np.any(marks[:,:,0][event]>marks[:,:,1][event])
         or np.isfinite(marks[~event]).any()):
         raise ValueError('Y1135_INVALID_AUTHENTICATED_INPUT')
     if (np.abs(w).max()>ASSET+1e-10 or
@@ -89,23 +89,26 @@ def simulate_y(target,opening,high,low,closing,quote,rate,signed_mark,event,
         try:
             # All controls, including capacity, use prior-bar information only.
             # Funding settlement uses adverse signed vendor bounds at hour t.
-            held=units if order=='carried_before_fill' else (
-                w[t-1]*(cash+np.dot(units,c[t-1]))/c[t-1]
-                if (t-1)%REBALANCE_HOURS==0 else units)
+            args=(c[t-1],o[t],h[t],l[t],c[t],units,w[t-1],cash,
+                dn[t-1],up[t-1],fund[t-1],q[t-1],fee,SLIPPAGE)
+            kw={'rebalance':((t-1)%REBALANCE_HOURS==0),
+                'funding_rate':fr[t],'funding_event':ev[t],
+                'funding_order':order}
+            # First pass obtains the deterministic t-1 planned inventory;
+            # its mark is provisional and its success is NOT a selection gate.
+            # Settlement replays the same decision with signed vendor extremes.
+            provisional=np.where(ev[t],mk[t,:,1],c[t])
+            probe=execute_hour(*args,funding_mark=provisional,**kw)
+            planned=np.asarray(probe['planned_units'],float)
+            prior_stop=c[t-1]*np.where(units>=0,1-dn[t-1],1+up[t-1])
+            gap=bool(np.any(((units>1e-12)&(o[t]<=prior_stop))|
+                            ((units<-1e-12)&(o[t]>=prior_stop))))
+            held=units if order=='carried_before_fill' or gap else planned
             signed=held*fr[t]
             mark=np.where(ev[t],np.where(signed>=0,mk[t,:,1],mk[t,:,0]),c[t])
-            # For the new-after-fill ordering, the actual post-open inventory
-            # may differ from target due to gap-stop. Use a two-pass *accounting*
-            # mark bound independent of execution choices: worst signed endpoint
-            # for either inventory sign. Both endpoints are passed through the
-            # ledger's signed funding selection, without favorable lookahead.
-            if order=='new_after_fill':
-                mark=np.where(ev[t],np.maximum(mk[t,:,0],mk[t,:,1]),c[t])
-            x=execute_hour(c[t-1],o[t],h[t],l[t],c[t],units,w[t-1],cash,
-                dn[t-1],up[t-1],fund[t-1],q[t-1],fee,SLIPPAGE,
-                rebalance=((t-1)%REBALANCE_HOURS==0),
-                funding_rate=fr[t],funding_mark=mark,funding_event=ev[t],
-                funding_order=order)
+            x=execute_hour(*args,funding_mark=mark,**kw)
+            if not np.array_equal(np.asarray(x['planned_units']),planned):
+                raise ArithmeticError('Y1135_MARK_CHANGED_PRETRADE_DECISION')
             if not x['ok']:
                 first_failure={'hour_index':t,'timestamp':idx[t].isoformat(),
                     'reason':x['reason']}
@@ -144,7 +147,7 @@ def simulate_y(target,opening,high,low,closing,quote,rate,signed_mark,event,
     if len(equity)!=17544:
         raise ValueError('Y1135_INCOMPLETE_FOLDS')
     closed=[{'timestamp':x['timestamp'],'pnl_usd':x['pnl_usd']} for x in book.closed]
-    metrics=summarize(pd.DatetimeIndex(timestamps),equity,exposure,closed,regime_seq)
+    metrics=summarize(pd.DatetimeIndex([idx[FIRST_TRAINING_HOUR-1]]+timestamps),\n        [initial]+equity,[np.zeros(4)]+exposure,closed,[1]+regime_seq)
     result.update(metrics)
     result['total_log_wealth']=float(math.log(equity[-1]/initial))
     result['total_wealth_multiple']=float(equity[-1]/initial)
