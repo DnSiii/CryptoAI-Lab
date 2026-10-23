@@ -1,0 +1,38 @@
+name: V98 Independent Phase1096 U Synthetic Safety Gate
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1096-u-synthetic.yml'
+      - 'research/v98_independent/phase1092_u_sevenslot_source.py'
+      - 'research/v98_independent/phase1093_u_contingent_execution.py'
+      - 'research/v98_independent/phase1095_u_integrated_ledger.py'
+      - 'research/v98_independent/phase1096_u_safety_oracle.py'
+      - 'research/v98_independent/test_phase1092_u_sevenslot_source.py'
+      - 'research/v98_independent/test_phase1096_u_remote_gate.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  u-pre-economic-synthetic-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Run U causal and 90-cell synthetic gates
+        run: |
+          python -m unittest -v test_phase1092_u_sevenslot_source.py test_phase1096_u_remote_gate.py
+      - name: No historical economic approval
+        run: |
+          python -c 'from phase1095_u_integrated_ledger import simulate_synthetic_u; assert simulate_synthetic_u.__doc__ is None or "historical" not in (simulate_synthetic_u.__doc__ or "").lower()'
