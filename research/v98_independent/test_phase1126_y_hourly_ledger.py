@@ -26,6 +26,12 @@ class TestYHourlyLedger(unittest.TestCase):
         self.assertGreater(r['fees'],0)
         self.assertLess(r['equity'],10000.)
         self.assertAlmostEqual(r['cash']+np.dot(r['units'],P),r['equity'])
+    def test_event_ledger_reconciles_to_cash(self):
+        w=np.array([.2,-.1,0,0]);r=run(w=w,rebalance=True)
+        self.assertTrue(r['ok'])
+        self.assertAlmostEqual(sum(x['fee_usd'] for x in r['events']),r['fees'])
+        self.assertAlmostEqual(sum(x['notional'] for x in r['events']),r['turnover'])
+        self.assertEqual({x['asset'] for x in r['events']},{0,1})
     def test_funding_signed_long_pays_short_receives(self):
         e=np.ones(4,bool);rate=np.array([.001,.001,0,0])
         u=np.array([10.,-10.,0,0]);cash=10000.
