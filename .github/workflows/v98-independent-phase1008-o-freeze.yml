@@ -31,6 +31,21 @@ jobs:
       - name: Authenticate fresh official 100 Clean-4 OHLC ZIPs
         working-directory: research/v98_independent
         run: python phase803_training_ohlc_official_replay.py
+      - name: Diagnose exact observed O hashes and CPU before unchanged fail-closed gate
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from phase1006_o_sevenslot_source import run_source_only
+          from phase1008_o_frozen_paths import FROZEN_O
+          result=run_source_only()
+          observed={k:v['sha256'] for k,v in result['diagnostics']['paths'].items()}
+          cpu=next((x.split(':',1)[1].strip() for x in Path('/proc/cpuinfo').read_text().splitlines() if x.startswith('model name')),'')
+          print(json.dumps({'cpu':cpu,'observed':observed,'frozen':FROZEN_O,
+                            'per_path_equal':{k:observed[k]==FROZEN_O[k] for k in FROZEN_O},
+                            'source_only':True,'historical_pnl_computed':False},sort_keys=True))
+          PY
       - name: Enforce five frozen O target hashes before any economics
         working-directory: research/v98_independent
         run: python phase1008_o_frozen_paths.py
