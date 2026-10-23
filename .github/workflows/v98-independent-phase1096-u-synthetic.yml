@@ -11,6 +11,8 @@ on:
       - 'research/v98_independent/phase1096_u_safety_oracle.py'
       - 'research/v98_independent/test_phase1092_u_sevenslot_source.py'
       - 'research/v98_independent/test_phase1096_u_remote_gate.py'
+      - 'research/v98_independent/phase1098_u_precommitted_shocks.py'
+      - 'research/v98_independent/test_phase1098_u_precommitted_shocks.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,7 +34,7 @@ jobs:
         run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
       - name: Run U causal and 90-cell synthetic gates
         run: |
-          python -m unittest -v test_phase1092_u_sevenslot_source.py test_phase1096_u_remote_gate.py
+          python -m unittest -v test_phase1092_u_sevenslot_source.py test_phase1096_u_remote_gate.py test_phase1098_u_precommitted_shocks.py
       - name: No historical economic approval
         run: |
           python -c 'from phase1095_u_integrated_ledger import simulate_synthetic_u; assert simulate_synthetic_u.__doc__ is None or "historical" not in (simulate_synthetic_u.__doc__ or "").lower()'
