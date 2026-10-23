@@ -58,7 +58,7 @@ class OLedgerTests(unittest.TestCase):
         a = list(synthetic())
         a[0] = a[0].copy()
         a[0][:,:] = 0
-        a[0][:,0] = .7
+        a[0][:,0] = .65
         a[2] = a[2].copy()
         a[2][3,0] = 250
         r = run(a)
