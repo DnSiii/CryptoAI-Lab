@@ -1,0 +1,158 @@
+name: V98 Independent AJ1261 Artifact-Only Economic Reconciliation
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-aj1261-artifact-economic-reconcile.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aj1261-ubuntu-*
+          run-id: 40019549401
+          github-token: \${{ github.token }}
+          path: receipts
+      - name: Independent immutable 90-cell economic reconciliation
+        run: |
+          python - <<'PY'
+          import glob,json,math,sys
+          from collections import defaultdict
+          paths=sorted(glob.glob('receipts/*/*.json'))
+          expected_paths=('AJ_core_only','AJ_full','AJ_minus_opportunity','AJ_minus_RV','AJ_minus_stress')
+          expected_modes=('immediate','capacity_1m','capacity_10m')
+          expected_fees=('base','severe','supersevere')
+          expected_orders=('carried_before_fill','filled_before_funding')
+          expected_keys={(m,f,o) for m in expected_modes for f in expected_fees for o in expected_orders}
+          grouped=defaultdict(dict)
+          structural_errors=[]
+          for p in paths:
+              a=json.load(open(p))
+              parts=p.split('/')
+              os=parts[1].split('-AJ_')[0].replace('aj1261-','')
+              path=a.get('path')
+              if os not in ('ubuntu-22.04','ubuntu-24.04') or path not in expected_paths or os in grouped[path]:
+                  structural_errors.append(('artifact_name_or_duplicate',p,os,path))
+                  continue
+              grouped[path][os]=a
+          if len(paths)!=10 or set(grouped)!=set(expected_paths):
+              structural_errors.append(('artifact_inventory',len(paths),sorted(grouped)))
+          monetary={'initial_nav','final_nav','min_nav','turnover','fees','slippage','funding','start_nav','end_nav'}
+          deltas=[]
+          mismatches=[]
+          def compare(a,b,p):
+              if type(a)!=type(b):
+                  mismatches.append((p,'type',str(type(a)),str(type(b))));return
+              if isinstance(a,dict):
+                  if set(a)!=set(b):
+                      mismatches.append((p,'keys',sorted(set(a)^set(b))));return
+                  for k in sorted(a):compare(a[k],b[k],p+'.'+k)
+              elif isinstance(a,list):
+                  if len(a)!=len(b):
+                      mismatches.append((p,'length',len(a),len(b)));return
+                  for i,(x,y) in enumerate(zip(a,b)):compare(x,y,p+'.'+str(i))
+              elif isinstance(a,float):
+                  key=p.rsplit('.',1)[-1]
+                  scale=max(abs(a),abs(b),1.)
+                  tol=max(1e-8,1e-10*scale) if key in monetary else 1e-10
+                  err=abs(a-b)
+                  deltas.append((err/tol,p,a,b,err,tol))
+                  if not(math.isfinite(a) and math.isfinite(b) and err<=tol):
+                      mismatches.append((p,'float',a,b,err,tol))
+              elif a!=b:
+                  mismatches.append((p,'value',a,b))
+          representative={}
+          for path in expected_paths:
+              group=grouped.get(path,{})
+              if set(group)!={'ubuntu-22.04','ubuntu-24.04'}:
+                  structural_errors.append(('missing_os',path,sorted(group)))
+                  continue
+              a,b=group['ubuntu-22.04'],group['ubuntu-24.04']
+              compare(a,b,path)
+              representative[path]=a
+          cells={}
+          for path,a in representative.items():
+              arr=a.get('cells',[])
+              mapping={(x['mode'],x['fee'],x['order']):x for x in arr}
+              if len(arr)!=18 or set(mapping)!=expected_keys:
+                  structural_errors.append(('cell_grid',path,len(arr),len(mapping)))
+              cells[path]=mapping
+          total=sum(len(v) for v in cells.values())
+          survived=sum(bool(x.get('passed')) for v in cells.values() for x in v.values())
+          max_deltas=sorted(deltas,reverse=True)[:15]
+          print('AJ1261_CROSS_OS_TOP_NORMALIZED_DELTAS',json.dumps(max_deltas))
+          print('AJ1261_CROSS_OS_MISMATCHES',json.dumps(mismatches[:30]))
+          print('AJ1261_STRUCTURE_ERRORS',json.dumps(structural_errors[:30]))
+          print('AJ1261_TRAINING_SURVIVAL',survived,'/',total)
+          full=cells.get('AJ_full',{})
+          base_key=('immediate','base','carried_before_fill')
+          base=full.get(base_key,{})
+          if base.get('passed'):
+              print('AJ1261_10K_BASE_2023_2024',json.dumps({
+                '2023':base['annual']['2023'],'2024':base['annual']['2024'],
+                'two_year_cagr':base['two_year_cagr'],
+                'two_year_net_log_growth':base['net_log_growth'],
+                'max_drawdown':base['max_drawdown'],
+                'funding':base['funding'],'fees':base['fees'],
+                'slippage':base['slippage']},sort_keys=True))
+          marginal={}
+          growth_gates={}
+          for fee in ('base','severe'):
+              for order in expected_orders:
+                  key=('immediate',fee,order)
+                  x=full.get(key,{})
+                  label='|'.join(key)
+                  growth_gates[label]=bool(x.get('passed') and all(
+                      x['annual'][y]['net_log_growth']>0 for y in ('2023','2024')))
+          for sleeve,path in (('Opportunity','AJ_minus_opportunity'),('RV','AJ_minus_RV'),('Stress','AJ_minus_stress')):
+              marginal[sleeve]={}
+              for key,x in full.items():
+                  y=cells.get(path,{}).get(key,{})
+                  if not x.get('passed') or not y.get('passed'):continue
+                  label='|'.join(key)
+                  marginal[sleeve][label]={yr:x['annual'][yr]['net_log_growth']-
+                      y['annual'][yr]['net_log_growth'] for yr in ('2023','2024')}
+          sleeve_gates={s:all(marginal[s].get(k,{}).get(yr,float('-inf'))>0
+                       for k in growth_gates for yr in ('2023','2024'))
+                       for s in marginal}
+          reproducible=(not structural_errors and not mismatches and len(representative)==5)
+          eligible=bool(reproducible and survived==90 and total==90 and
+                        all(growth_gates.values()) and all(sleeve_gates.values()))
+          if not reproducible:
+              decision='BLOCKED_AJ1261_CROSS_OS_REPRODUCIBILITY'
+          elif survived!=90:
+              decision='REJECT_AJ1261_HISTORICAL_SURVIVAL'
+          elif not all(growth_gates.values()) or not all(sleeve_gates.values()):
+              decision='REJECT_AJ1261_ECONOMIC_GROWTH_OR_MARGINAL'
+          else:
+              decision='PASS_AJ1261_ELIGIBLE_FOR_FURTHER_TRAINING_ANALYSIS_NOT_2025_YET'
+          result={'architecture':'AJ','phase':1261,'immutable_original_run_id':40019549401,
+                  'reconciliation_only_no_reexecution':True,'historical_training_only':True,
+                  'validation_2025_read':False,'external_benchmarks_used':False,
+                  'cross_os_reproducible':reproducible,
+                  'structural_errors':structural_errors,'cross_os_mismatches':mismatches,
+                  'top_normalized_deltas':max_deltas,'cells_total':total,'cells_survived':survived,
+                  'full_10k_base':base if base else None,
+                  'growth_gates_10k':growth_gates,'sleeve_gates_10k':sleeve_gates,
+                  'sleeve_marginal_log_growth':marginal,'2025_gate_eligible':eligible,
+                  'decision':decision}
+          with open('aj1261_immutable_reconciliation.json','w') as f:
+              json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
+          print('AJ1261_FINAL_DECISION',decision)
+          print('AJ1261_GROWTH_GATES',json.dumps(growth_gates,sort_keys=True))
+          print('AJ1261_SLEEVE_GATES',json.dumps(sleeve_gates,sort_keys=True))
+          if not reproducible:sys.exit(2)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1261-immutable-economic-reconciliation
+          path: aj1261_immutable_reconciliation.json
+          retention-days: 30
+          if-no-files-found: error
