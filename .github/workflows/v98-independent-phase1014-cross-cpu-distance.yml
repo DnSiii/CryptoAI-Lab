@@ -1,0 +1,106 @@
+name: V98 Independent Phase1014 Cross-CPU Float64 O Distance
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1014-cross-cpu-distance.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1014-cross-cpu-distance-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  fresh-source:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned source-only runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fresh official 100 Clean-4 OHLC ZIP authentication
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1014-canonical-source
+          retention-days: 7
+          if-no-files-found: error
+          path: research/v98_independent/phase243_clean4_canonical/*_1h.csv
+  capture:
+    needs: fresh-source
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            tag: a
+          - os: ubuntu-24.04
+            tag: b
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install identical numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1014-canonical-source
+          path: research/v98_independent/phase243_clean4_canonical
+      - name: Capture exact five O float64 target arrays and CPU fingerprint
+        working-directory: research/v98_independent
+        run: python phase1010_cross_runner_numeric_forensic.py --tag ${{ matrix.tag }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1014-target-${{ matrix.tag }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            research/v98_independent/phase1010_o_targets_${{ matrix.tag }}.npz
+            research/v98_independent/phase1010_o_${{ matrix.tag }}.json
+  compare:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1014-target-a
+          path: research/v98_independent/phase1014_compare/a
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1014-target-b
+          path: research/v98_independent/phase1014_compare/b
+      - name: Compare exact cross-CPU O float64 arrays (economic clearance always false)
+        working-directory: research/v98_independent
+        run: python phase1010_cross_runner_numeric_forensic.py --compare phase1014_compare
+      - name: Preserve cross-CPU direct numeric evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1014-float64-comparison
+          retention-days: 30
+          if-no-files-found: warn
+          path: research/v98_independent/phase1014_compare/phase1010_cross_runner_comparison.json
