@@ -1,0 +1,103 @@
+name: V98 Independent Phase1182 AC Official Frozen 90-Cell Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1182-ac-official.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ac-training:
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        path: [AC_core_only, AC_full, AC_minus_opportunity, AC_minus_relative_value, AC_minus_stress]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fresh official vendor provenance, five frozen blob pins and fifteen source hashes before any AC PnL
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1182_ac_official_training.py "${{ matrix.path }}"
+      - name: Preserve all economic receipts even on rejection or source failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ac-1182-${{ matrix.path }}
+          path: research/v98_independent/phase1182_ac_official_${{ matrix.path }}.json
+          retention-days: 30
+          if-no-files-found: warn
+  ac-harvest:
+    needs: ac-training
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-ac-1182-*
+          path: /tmp/v98-ac-1182
+          merge-multiple: false
+      - name: Aggregate all 90 cells without concealing failures
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/v98-ac-1182')
+          paths=('AC_core_only','AC_full','AC_minus_opportunity',
+                 'AC_minus_relative_value','AC_minus_stress')
+          cells=[];blocked=[];sources=[]
+          for path in paths:
+              p=root/('v98-ac-1182-'+path)/('phase1182_ac_official_'+path+'.json')
+              if not p.is_file():
+                  blocked.append({'path':path,'reason':'MISSING_OFFICIAL_RECEIPT'})
+                  continue
+              r=json.loads(p.read_text())
+              if r.get('path')!=path or r.get('validation_2025_read') is not False or r.get('external_benchmarks_used') is not False:
+                  blocked.append({'path':path,'reason':'INVALID_RECEIPT_SCOPE'})
+                  continue
+              sources.append(r.get('official_source_mark_sha256'))
+              if len(r.get('cells',[]))!=18:
+                  blocked.append({'path':path,'reason':r.get('reason',r.get('decision'))})
+              cells.extend(r.get('cells',[]))
+          passed=sum(c.get('passed') is True for c in cells)
+          decision=('PASS_AC_90_OF_90_TRAINING_ONLY_PENDING_FIFO_AND_VALIDATION'
+                    if len(cells)==90 and passed==90 and not blocked and len(set(sources))==1
+                    else 'REJECT_OR_BLOCK_AC_OFFICIAL_90CELL_NO_PROMOTION')
+          summary={'phase':1182,'decision':decision,'cells_attempted':len(cells),
+                   'cells_passed':passed,'blocked_paths':blocked,
+                   'failed_cells':[{'path':c.get('path'),'mode':c.get('mode'),
+                                    'fee':c.get('fee'),'order':c.get('funding_order'),
+                                    'reason':c.get('reason'),'first_failure':c.get('first_failure_utc')}
+                                   for c in cells if not c.get('passed')],
+                   'source_mark_hashes':sources,
+                   'historical_pnl_computed':any(c.get('historical_pnl_computed') for c in cells),
+                   'validation_2025_read':False,'external_benchmarks_used':False,
+                   'promotion_eligible':False}
+          out=Path('phase1182_ac_90cell_harvest.json')
+          out.write_text(json.dumps(summary,indent=2,sort_keys=True,allow_nan=False)+'\n')
+          print(json.dumps(summary,sort_keys=True))
+          if decision.startswith('REJECT_'):raise SystemExit(2)
+          PY
+      - name: Preserve aggregate receipt even when rejected
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ac-1182-harvest
+          path: phase1182_ac_90cell_harvest.json
+          retention-days: 30
+          if-no-files-found: warn
