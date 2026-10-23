@@ -51,10 +51,23 @@ jobs:
       - name: Authenticate AK source-only signed sleeves and router
         working-directory: research/v98_independent
         run: python ak_source_only_digest.py --output ak_source_only_receipt.json
+      - name: Preserve unrounded growth arrays for cross-OS numeric forensics
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np
+          from phase1260_aj_authenticated_source_digest import load_official
+          from ak_slow_compound_sources import source_bundle
+          frames,_=load_official()
+          growth=source_bundle(frames[3],frames[1],frames[2],frames[5],frames[6])[0]
+          np.save('ak_growth_forensic.npy',growth)
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: ak-source-${{ matrix.os }}
-          path: research/v98_independent/ak_source_only_receipt.json
+          path: |
+            research/v98_independent/ak_source_only_receipt.json
+            research/v98_independent/ak_growth_forensic.npy
           retention-days: 30
   reconcile:
     needs: source
@@ -64,10 +77,19 @@ jobs:
         with:
           pattern: ak-source-ubuntu-*
           path: source-receipts
-      - name: Require exact independent OS source hashes and activation
+      - run: python -m pip install numpy==1.26.4
+      - name: Forensic numeric comparison before exact hash gate
         run: |
           python - <<'PY'
-          import glob,json
+          import glob,json,numpy as np
+          npys=sorted(glob.glob('source-receipts/*/*.npy'))
+          assert len(npys)==2,npys
+          ga,gb=(np.load(x) for x in npys)
+          diff=np.abs(ga-gb)
+          print('AK_GROWTH_CROSS_OS_MAX_ABS',float(diff.max()))
+          print('AK_GROWTH_CROSS_OS_COUNT_GT_1E12',int((diff>1e-12).sum()))
+          print('AK_GROWTH_CROSS_OS_COUNT_GT_1E10',int((diff>1e-10).sum()))
+          print('AK_GROWTH_CROSS_OS_COUNT_GT_1E8',int((diff>1e-8).sum()))
           paths=sorted(glob.glob('source-receipts/*/*.json'))
           assert len(paths)==2,paths
           a,b=(json.load(open(x)) for x in paths)
