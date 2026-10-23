@@ -43,4 +43,25 @@ class URemoteGate(unittest.TestCase):
         a=audit_bracket_paths(b,1000,u,p,hi,lo,.0007,buffer=reserve)
         self.assertFalse(a['ok']);self.assertEqual(a['reason'],'U_PATH_ASSET')
 
+    def test_preplaced_signed_reversal_fails_closed(self):
+        n=40;data=self.fixture(n)
+        target=np.zeros((n,4));target[1:15,0]=.05;target[15:,0]=-.05
+        z=simulate_synthetic_u(target,*data)
+        self.assertFalse(z['survived'])
+        self.assertEqual(z['reason'],'U_UNSUPPORTED_PREPLACED_REVERSAL')
+    def test_invalid_event_mark_rejected(self):
+        n=40;data=self.fixture(n)
+        data[7][10,0]=True;data[5][10,0]=.001
+        target=np.zeros((n,4));target[1:,0]=.03
+        with self.assertRaisesRegex(ValueError,'FUNDING'):
+            simulate_synthetic_u(target,*data)
+    def test_signed_short_funding_debit(self):
+        n=40;data=self.fixture(n)
+        data[7][10,0]=True;data[5][10,0]=-.001
+        data[6][10,0]=[99.,101.]
+        target=np.zeros((n,4));target[1:,0]=-.03
+        z=simulate_synthetic_u(target,*data)
+        self.assertTrue(z['survived'],z['reason'])
+        self.assertGreater(z['funding_debit_usd'],0)
+
 if __name__=='__main__':unittest.main()
