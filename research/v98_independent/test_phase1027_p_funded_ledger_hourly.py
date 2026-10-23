@@ -17,7 +17,7 @@ try:import phase876_k_funded_ledger
 except ImportError:
     s=types.ModuleType('phase876_k_funded_ledger')
     s.CAP_GROSS=1.75;s.CAP_ASSET=.7
-    s.FEE_TIERS={'base':.001};s.ORDERS=('carried_before_fill','after_fill')
+    s.FEE_TIERS={'base':.0007};s.ORDERS=('carried_before_fill','after_fill')
     s.CAPITAL_MODES={'immediate':1000.,'capacity_1m':1000.,'capacity_10m':10000.}
     def within(c,u,o):
         v=u*o;eq=c+v.sum()
@@ -43,7 +43,7 @@ class PAccounting(unittest.TestCase):
         a={k:getattr(self,k) for k in ('w','o','h','l','c','q','fr','mk','ev','dn','up')}
         a.update(override)
         return simulate_p_hourly(*(a[k] for k in ('w','o','h','l','c','q','fr','mk','ev','dn','up')),
-                                 .001,order='carried_before_fill',mode='immediate',years=self.years)
+                                 .0007,order='carried_before_fill',mode='immediate',years=self.years)
     def test_flat_cash_conservation_full_chronology(self):
         out=self.run_case()
         self.assertTrue(out['survived'],out)
@@ -54,7 +54,7 @@ class PAccounting(unittest.TestCase):
     def test_reject_future_calendar(self):
         years=self.years.copy();years[-1]=2025
         with self.assertRaises(ValueError):simulate_p_hourly(self.w,self.o,self.h,self.l,self.c,self.q,self.fr,self.mk,self.ev,self.dn,self.up,
-                                                              .001,order='carried_before_fill',mode='immediate',years=years)
+                                                              .0007,order='carried_before_fill',mode='immediate',years=years)
     def test_reject_invalid_native_funding(self):
         mark=self.mk.copy();mark[1000,0]=100
         with self.assertRaises(ValueError):self.run_case(mk=mark)
