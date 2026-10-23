@@ -4,6 +4,7 @@ on:
     branches: [research/v98-independent-zero]
     paths:
       - '.github/workflows/v98-independent-phase1242-ah-numeric-audit.yml'
+      - 'research/v98_independent/phase1241_ah_online_growth_allocator.py'
   workflow_dispatch:
 jobs:
   numerical:
@@ -87,4 +88,5 @@ jobs:
           print('MISMATCH_COUNT',int(np.count_nonzero(x!=y)))
           assert x.shape==y.shape
           assert np.allclose(x,y,atol=1e-11,rtol=0), 'numeric divergence beyond tolerance'
+          assert a['raw_sha']==b['raw_sha'], 'bitwise digest mismatch: cannot freeze AH'
           PY
