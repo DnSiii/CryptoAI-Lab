@@ -46,10 +46,18 @@ class TestWLedger(unittest.TestCase):
         x=run(u=[20,0,0,0],w=[-.2,0,0,0],cash=8000.)
         self.assertTrue(x['ok']);self.assertEqual(x['units'][0],0.)
         self.assertTrue(any(e['action']=='ATOMIC_FLAT_REVERSAL' for e in x['events']))
-    def test_unexpected_range_rejected(self):
-        x=run(h=[120,100,100,100])
+    def test_unexpected_exposed_range_rejected(self):
+        x=run(h=[120,100,100,100],w=[.2,0,0,0])
         self.assertFalse(x['ok'])
         self.assertEqual(x['reason'],'W_UNANTICIPATED_GAP_OR_RANGE')
+    def test_flat_unrelated_range_does_not_fail(self):
+        x=run(h=[120,100,100,100],w=[0,.2,0,0])
+        self.assertTrue(x['ok'])
+    def test_no_hourly_replenishment(self):
+        x=run(u=[10,0,0,0],w=[.3,0,0,0],cash=9000.,rebalance=False)
+        self.assertTrue(x['ok'])
+        self.assertEqual(x['units'][0],10)
+        self.assertEqual(x['events'],[])
     def test_mandatory_capacity_rejected(self):
         x=execute_hour(P,P,P,P,P,Z,np.array([.2,0,0,0]),
                        10000.,D,H,np.zeros(4),.002,.002)
