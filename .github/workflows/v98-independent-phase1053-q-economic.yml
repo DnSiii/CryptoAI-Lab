@@ -1,0 +1,51 @@
+name: V98 Independent Phase1053 Q Frozen 90-Cell Authenticated Training Economics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1053-q-economic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q-frozen-90cell-economics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Assert frozen Q code/targets, signed margin, native funding and training gate contracts
+        working-directory: research/v98_independent
+        run: |
+          python -m unittest -q test_phase1040_q_signed_margin_oracle.py test_phase1042_q_signed_sevenslot_source.py test_phase1043_q_canonical.py test_phase1044_q_funded_signed_ledger.py test_phase1045_q_signed_independent_oracle.py test_phase1048_q_signed_funding_bounds.py test_phase1051_q_training_gate_contract.py
+          python - <<'PY'
+          from phase1051_q_training_gate import verify_freeze
+          from phase1042_q_signed_sevenslot_source import PATHS
+          from phase1044_q_funded_signed_ledger import FEE_TIERS,ORDERS,CAPITAL_MODES
+          assert verify_freeze()['decision']=='FROZEN_Q_PRE_ECONOMIC'
+          assert len(PATHS)*len(FEE_TIERS)*len(ORDERS)*len(CAPITAL_MODES)==90
+          print('Q_FROZEN_90CELL_SOURCE_CODE_CONTRACT_PASSED')
+          PY
+      - name: Fresh official Clean-4 provenance and full frozen Q 90-cell 2023-2024 training
+        working-directory: research/v98_independent
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1051_q_training_gate.py --execute
+      - name: Preserve official Q source, native funding and 90-cell receipts including rejections
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1053-q-frozen-economic-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1043_q_source_only_receipt.json
+            research/v98_independent/phase1051_q_training_gate_receipt.json
