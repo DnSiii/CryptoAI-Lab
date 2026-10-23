@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from phase1042_q_signed_sevenslot_source import ASSETS,PATHS,compose_q
+from phase1042_q_signed_sevenslot_source import ASSETS,PATHS,compose_q,_regime
 from phase1043_q_source_auth_and_canonical import run as fresh_q_source,OUT as SOURCE_OUT,canonicalize,ROOT
 from phase1044_q_funded_signed_ledger import simulate_q_hourly,FEE_TIERS,ORDERS,CAPITAL_MODES
 from phase1048_q_signed_funding_bounds import signed_bounds
@@ -61,10 +61,12 @@ def authenticated_inputs():
     o,h,l=(arrays[k] for k in ('open','high','low'))
     down=pd.DataFrame(1-l/o).rolling(1440,min_periods=1440).max().to_numpy()
     up=pd.DataFrame(h/o-1).rolling(1440,min_periods=1440).max().to_numpy()
-    return targets,arrays,rate,bounds,event,years,down,up
+    market=np.log(frames[3]).diff().mean(axis=1)
+    states=_regime(market)
+    return targets,arrays,rate,bounds,event,years,down,up,states
 
 
-def complete_matrix(targets,arrays,rate,mark,event,years,down,up):
+def complete_matrix(targets,arrays,rate,mark,event,years,down,up,states):
     cases={};failures=[];count=0
     for name in PATHS:
         cases[name]={}
@@ -75,7 +77,7 @@ def complete_matrix(targets,arrays,rate,mark,event,years,down,up):
                 for mode in CAPITAL_MODES:
                     count+=1
                     try:
-                        r=simulate_q_hourly(targets[name],arrays['open'],arrays['high'],arrays['low'],arrays['close'],arrays['quote_volume'],rate,mark,event,down,up,fee,order=order,mode=mode,years=years,require_full_sample=True)
+                        r=simulate_q_hourly(targets[name],arrays['open'],arrays['high'],arrays['low'],arrays['close'],arrays['quote_volume'],rate,mark,event,down,up,fee,order=order,mode=mode,years=years,regimes=states,require_full_sample=True)
                     except Exception as e:
                         r={'survived':False,'reason':type(e).__name__+': '+str(e)[:200],'breach_index':None}
                     cases[name][tier][order][mode]=r
@@ -126,8 +128,8 @@ def run(execute=False):
         if not execute:
             result['decision']='PASS_Q_FROZEN_SOURCE_ONLY_NO_ECONOMICS'
         else:
-            targets,arrays,rate,mark,event,years,down,up=authenticated_inputs()
-            matrix=complete_matrix(targets,arrays,rate,mark,event,years,down,up)
+            targets,arrays,rate,mark,event,years,down,up,states=authenticated_inputs()
+            matrix=complete_matrix(targets,arrays,rate,mark,event,years,down,up,states)
             result['historical_pnl_computed']=True
             result['ledger_invocations']=matrix['cells_attempted']
             result['matrix']=matrix
