@@ -14,6 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
+        repeat: [a, b]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     defaults:
@@ -38,7 +39,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-t-1082-${{ matrix.os }}
+          name: v98-t-1082-${{ matrix.os }}-${{ matrix.repeat }}
           path: |
             research/v98_independent/phase803_official_training_ohlc_receipt.json
             research/v98_independent/phase1000_four_asset_source_policy_receipt.json
@@ -56,25 +57,25 @@ jobs:
           pattern: v98-t-1082-*
           path: /tmp/v98-t-1082
           merge-multiple: false
-      - name: Compare independently authenticated T hashes and fail closed
+      - name: Compare four independent authenticated T hashes and fail closed
         shell: bash
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           root=Path('/tmp/v98-t-1082')
-          paths=[root/('v98-t-1082-'+os)/'phase1082_t_authenticated_source_receipt.json'
-                 for os in ('ubuntu-22.04','ubuntu-24.04')]
+          paths=[root/('v98-t-1082-'+os+'-'+repeat)/'phase1082_t_authenticated_source_receipt.json'
+                 for os in ('ubuntu-22.04','ubuntu-24.04') for repeat in ('a','b')]
           if not all(p.is_file() for p in paths):raise SystemExit('T_CROSSRUNNER_MISSING_RECEIPT')
-          a,b=[json.loads(p.read_text()) for p in paths]
-          for r in (a,b):
+          receipts=[json.loads(p.read_text()) for p in paths]
+          for r in receipts:
               assert r['decision']=='PASS_T_AUTHENTICATED_SOURCE_ONLY_NOT_FROZEN'
               assert r['historical_pnl_computed'] is False and r['validation_2025_read'] is False
               assert r['typed_mark_shape']==[18288,4,2] and r['native_funding_events']==9144
               assert len(r['canonical_sha256'])==5
           for k in ('canonical_sha256','typed_mark_csv_sha256','native_funding_events','official_hours','diagnostics'):
-              assert a[k]==b[k], 'T_CROSSRUNNER_DRIFT_'+k
-          print(json.dumps({'decision':'PASS_T_TWO_RUNNER_SOURCE_ONLY_NOT_FROZEN',
-                            'canonical_sha256':a['canonical_sha256'],
-                            'typed_mark_csv_sha256':a['typed_mark_csv_sha256']},sort_keys=True))
+              assert all(r[k]==receipts[0][k] for r in receipts), 'T_CROSSRUNNER_DRIFT_'+k
+          print(json.dumps({'decision':'PASS_T_FOUR_INDEPENDENT_FRESH_SOURCE_RECOMPOSITIONS_NOT_FROZEN',
+                            'canonical_sha256':receipts[0]['canonical_sha256'],
+                            'typed_mark_csv_sha256':receipts[0]['typed_mark_csv_sha256']},sort_keys=True))
           PY
