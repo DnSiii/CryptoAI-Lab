@@ -28,6 +28,10 @@ class TestYGrowthMetrics(unittest.TestCase):
     def test_folds_no_future_and_no_lookahead(self):
         with self.assertRaises(ValueError):
             summarize(self.idx+pd.Timedelta(days=366),self.nav,self.exp)
+    def test_single_year_cherry_pick_rejected(self):
+        mask=self.idx.year!=2024
+        with self.assertRaises(ValueError):
+            summarize(self.idx[mask],self.nav[mask],self.exp[mask])
     def test_gap_rejected(self):
         with self.assertRaises(ValueError):
             summarize(self.idx.delete(50),np.delete(self.nav,50),np.delete(self.exp,50,axis=0))
