@@ -121,7 +121,7 @@ def collect(inst, out):
                     raise ValueError("BAD_ARCHIVE_LISTING")
                 if not filename.startswith(inst + "-") or "funding" not in filename.lower():
                     raise ValueError("WRONG_INSTRUMENT_OR_ARCHIVE_MODULE")
-                match = re.search(r"(20\\d{2})-(\\d{2})\\.zip$", filename)
+                match = re.search(r"(20\d{2})-(\d{2})\.zip$", filename)
                 if not match or not ("2022-03" <= match.group(1) + "-" + match.group(2) <= "2023-09"):
                     raise ValueError("ARCHIVE_MONTH_OUTSIDE_ALLOWED_TRAIN")
                 parsed = urlsplit(url)
