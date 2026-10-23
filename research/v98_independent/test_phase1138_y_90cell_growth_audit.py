@@ -58,7 +58,7 @@ class TestY1138(unittest.TestCase):
         a[0]['cells_survived']=17
         self.assertTrue(audit(a)['decision'].startswith('BLOCKED_'))
     def test_no_positive_marginal_rejected(self):
-        a=fixture();a[1]['cases']['base'][ORDERS[0]]['immediate']['folds']['2023']['log_wealth']=.3
+        a=fixture();a[0]['cases']['base'][ORDERS[0]]['immediate']['folds']['2023']['log_wealth']=.3
         self.assertEqual(audit(a)['decision'],'REJECT_Y_TRAINING_NO_RESCUE')
     def test_nonpositive_growth_rejected(self):
         a=fixture();a[1]['cases']['severe'][ORDERS[0]]['immediate']['folds']['2024']['log_wealth']=-.1
