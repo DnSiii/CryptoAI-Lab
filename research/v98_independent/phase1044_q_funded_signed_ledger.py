@@ -42,7 +42,7 @@ def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
     fields=[np.asarray(x) for x in (target,op,hi,lo,cl,quote,rate,mark,event,down,up)]
     w,o,h,l,c,q,fr,mk,ev,dn,sh=fields
     n=len(w);yy=np.asarray(years)
-    if n<1600 or any(x.shape!=(n,4) for x in fields) or yy.shape!=(n,):
+    if n<1600 or any(x.shape!=(n,4) for i,x in enumerate(fields) if i!=7) or mk.shape!=(n,4,2) or yy.shape!=(n,):
         raise ValueError('Q_ALIGNED_CLEAN4_HOURLY_SOURCE_REQUIRED')
     if not np.isin(yy,(2022,2023,2024)).all() or order not in ORDERS or mode not in CAPITAL_MODES or fee not in FEE_TIERS.values():
         raise ValueError('Q_TRAINING_ONLY_ECONOMIC_CELL')
@@ -50,7 +50,7 @@ def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
         raise ValueError('Q_NONFINITE_OR_UNBOUNDED_TARGET')
     if (o<=0).any() or (l<=0).any() or (l>np.minimum(o,c)).any() or (h<np.maximum(o,c)).any() or (q<0).any():
         raise ValueError('Q_INVALID_OHLC_VOLUME')
-    if np.asarray(ev).dtype!=bool or np.any(~np.isfinite(mk[ev])) or np.any(mk[ev]<=0) or np.isfinite(mk[~ev]).any() or np.any(fr[~ev]!=0):
+    if np.asarray(ev).dtype!=bool or np.any(~np.isfinite(mk[ev])) or np.any(mk[ev]<=0) or np.any(mk[ev,0]>mk[ev,1]) or np.isfinite(mk[~ev]).any() or np.any(fr[~ev]!=0):
         raise ValueError('Q_INVALID_NATIVE_FUNDING')
     if np.any(~np.isfinite(dn[1439:])) or np.any(~np.isfinite(sh[1439:])) or np.any(dn[1439:]<0) or np.any(dn[1439:]>=1) or np.any(sh[1439:]<0):
         raise ValueError('Q_INVALID_PRIOR_SHOCK')
@@ -76,7 +76,10 @@ def simulate_q_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
             fees+=post['fee_usd'];turnover+=post['turnover_usd'];fills+=int(np.count_nonzero(np.abs(post['trade_usd'])>1e-8))
             if ev[t].any():
                 held=carried if order=='carried_before_fill' else units
-                debit=float(np.sum(held[ev[t]]*mk[t,ev[t]]*fr[t,ev[t]]))
+                signed_rate=held[ev[t]]*fr[t,ev[t]]
+                # Worst-case native mark for either sign: high for debit, low for credit.
+                adverse_mark=np.where(signed_rate>=0,mk[t,ev[t],1],mk[t,ev[t],0])
+                debit=float(np.sum(signed_rate*adverse_mark))
                 cash-=debit;funding+=debit
             # Actual current OHLC used EX POST only, never for order selection.
             audit=corner_audit(cash,units,o[t],1-l[t]/o[t],h[t]/o[t]-1,baseline=pre_eq)
