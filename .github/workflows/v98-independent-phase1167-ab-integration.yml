@@ -1,0 +1,37 @@
+name: V98 Independent Phase1167 AB 90-Cell Synthetic Integration
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1167_ab_integrated_synthetic.py'
+      - '.github/workflows/v98-independent-phase1167-ab-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ab-90cell-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Execute 90 independent AB synthetic inventory cells
+        run: python research/v98_independent/phase1167_ab_integrated_synthetic.py
+      - name: Strict 90-of-90 and no historical PnL
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'research/v98_independent')
+          from phase1167_ab_integrated_synthetic import run
+          r=run()
+          assert r['cells']==90 and r['full_path_cells']==90
+          assert r['historical_pnl_computed'] is False
+          print('AB_90_SYNTHETIC_CELLS_PASS_NOT_FROZEN')
+          PY
