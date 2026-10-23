@@ -1,0 +1,114 @@
+name: V98 Independent Phase1012 Heterogeneous CPU Source Hash
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1012-cpu-fingerprint.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1012-cpu-fingerprint-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  authenticate-source:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fresh 100 official Clean-4 OHLC ZIP attestation
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: Upload exact four canonical source CSVs for same-run CPU comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1012-pinned-clean4-source
+          retention-days: 7
+          if-no-files-found: error
+          path: research/v98_independent/phase243_clean4_canonical/*_1h.csv
+  cpu-fingerprint:
+    needs: authenticate-source
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            tag: ubuntu22
+          - os: ubuntu-24.04
+            tag: ubuntu24
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install identical numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1012-pinned-clean4-source
+          path: research/v98_independent/phase243_clean4_canonical
+      - name: Source-only O/M CPU fingerprint on unchanged pinned CSVs
+        working-directory: research/v98_independent
+        run: python phase1012_cpu_fingerprint.py --tag ${{ matrix.tag }}
+      - name: Preserve independent CPU fingerprint
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1012-cpu-${{ matrix.tag }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase1012_cpu_${{ matrix.tag }}.json
+  compare:
+    needs: cpu-fingerprint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1012-cpu-ubuntu22
+          path: cpu22
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1012-cpu-ubuntu24
+          path: cpu24
+      - name: Fail-closed classification of unchanged O/M cross-OS source hashes
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('cpu22/phase1012_cpu_ubuntu22.json').read_text())
+          b=json.loads(Path('cpu24/phase1012_cpu_ubuntu24.json').read_text())
+          assert a['canonical_source_sha256']==b['canonical_source_sha256']
+          keys=set(a['observed'])
+          assert keys==set(b['observed']) and len(keys)==6
+          diffs={k:{p:(a['observed'][k][p]==b['observed'][k][p]) for p in ('12','8')} for k in sorted(keys)}
+          result={'phase':1012,'source_only':True,'historical_pnl_computed':False,
+                  'economic_clearance':False,'cpu22':a['cpu'],'cpu24':b['cpu'],
+                  'o22_frozen_match':a['o_exact_matches'],'o24_frozen_match':b['o_exact_matches'],
+                  'm22_frozen_match':a['m_exact_matches'],'m24_frozen_match':b['m_exact_matches'],
+                  'per_path_display_hash_equal':diffs,
+                  'decision':'CROSS_OS_HASH_MATCH_STILL_QUARANTINED' if all(all(x.values()) for x in diffs.values()) else 'CROSS_OS_HASH_DRIFT_UNRESOLVED'}
+          Path('phase1012_cpu_comparison.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(result,sort_keys=True))
+          PY
+      - name: Preserve cross-OS result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1012-cpu-comparison
+          retention-days: 30
+          if-no-files-found: warn
+          path: phase1012_cpu_comparison.json
