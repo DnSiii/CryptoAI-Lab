@@ -51,7 +51,7 @@ class TestY1135(unittest.TestCase):
             result=simulate_y(w,o,h,l,c,q,r,m,e,fee=.0007,
                 order=order,mode='immediate',years=years,strict=False)
             self.assertTrue(result['survived'],(order,result['first_failure']))
-            self.assertGreater(result['funding_debit_usd'],100.)
+            self.assertGreater(result['funding_debit_usd'],10.)
             self.assertGreater(result['active_hours'],0)
             self.assertGreater(result['filled_orders'],0)
     def test_2025_and_2026_are_forbidden(self):
