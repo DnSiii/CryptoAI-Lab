@@ -33,12 +33,12 @@ jobs:
           PY
       - name: Download independently verified first-party original OKX four-leg TRAIN
         run: |
-          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \\
-            --name d1-train-four-leg-backfill-40019588739 \\
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
             --dir research_evidence/f1_original_train
       - name: Execute single fixed-hurdle causal basis feasibility test (NOT PNL)
         run: |
-          python -m research.tools.v99_r106_f1_basis_feasibility \\
+          python -m research.tools.v99_r106_f1_basis_feasibility \
             research_evidence/f1_original_train research_evidence/f1_screen
       - name: Independently recompute all daily eligibility counts and negative control
         run: |
