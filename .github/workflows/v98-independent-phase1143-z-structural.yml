@@ -1,0 +1,41 @@
+name: V98 Independent Phase1143 Z Seven-Slot Structural Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1143-z-structural.yml'
+      - 'research/v98_independent/phase1143_z_sevenslot_source.py'
+      - 'research/v98_independent/test_phase1143_z_sevenslot_source.py'
+      - 'research/v98_independent/phase1144_z_synthetic_risk_oracle.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  z-structural-synthetic-only:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Z source-only causal and capital-mode synthetic tests
+        run: python -m unittest -v test_phase1143_z_sevenslot_source.py
+      - name: Z 81-corner 1000-case adversarial source-only oracle
+        run: python phase1144_z_synthetic_risk_oracle.py
+      - name: Assert no Z historical PnL or future validation
+        run: |
+          test ! -e phase1143_z_authenticated_training_receipt.json
+          test ! -e phase1145_z_full_pre_economic_freeze.json
+          test ! -e phase1146_z_90cell_training_receipt.json
