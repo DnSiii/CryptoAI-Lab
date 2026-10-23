@@ -1,4 +1,4 @@
-name: V98 Independent Phase1026 P Source-Only Five-Path Audit
+name: V98 Independent Phase1026 P Canonical Source-Only Five-Path Audit
 on:
   push:
     branches: [research/v98-independent-zero]
@@ -25,22 +25,26 @@ jobs:
           python-version: '3.11'
       - name: Install pinned numerical runtime
         run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
-      - name: Test P source chronology, causality, 16 corners and state-aware LP
+      - name: Test P source chronology, causality, 16 corners, LP and canonical transport
         working-directory: research/v98_independent
-        run: python -m unittest -v test_phase1024_1025_p_source_and_governor.py
+        run: python -m unittest -v test_phase1024_1025_p_source_and_governor.py test_phase1026_p_canonical_transport.py
       - name: Acquire and attest 100 official Binance Clean-4 training archives only
         working-directory: research/v98_independent
         run: python phase803_training_ohlc_official_replay.py
-      - name: Generate P five source-only target hashes without historical PnL
+      - name: Generate P five source-only targets without historical PnL
         working-directory: research/v98_independent
         run: python phase1024_p_sevenslot_source.py
+      - name: Canonicalize five P targets with no exposure increase
+        working-directory: research/v98_independent
+        run: python phase1026_p_canonical_transport.py
       - name: Preserve source-only evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v98-independent-phase1026-p-source-only-receipts
+          name: v98-independent-phase1026-p-canonical-source-only-receipts
           retention-days: 30
           if-no-files-found: warn
           path: |
             research/v98_independent/phase803_official_training_ohlc_receipt.json
             research/v98_independent/phase1024_p_sevenslot_source_result.json
+            research/v98_independent/phase1026_p_canonical_transport_result.json
