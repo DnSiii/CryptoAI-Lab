@@ -1,0 +1,7 @@
+# V98 Independent Phase1238 — AH actual-NAV short-factor stress/recovery prereg (2026-10-23)
+
+AH Stress/Recovery is a pre-positioned **signed futures short equal-weight Clean-4 factor hedge**, not AG's cash reserve. It is a source intent only; the AH actual variation-margin governor must collateralize the shorts and charge native signed funding, fees and short squeeze losses.
+
+At each completed close t, retain the last **48h of actual account NAV** and last **24h of equal-weight market log returns**. Trigger a 24h hedge state only when 48h actual NAV drawdown exceeds **10%** AND either the 24h market log return sum is below **-5%** or the 24h standardized third central moment is below **-0.3**. A new trigger refreshes a fixed **24h cooldown**; otherwise decrement by one. Active hedge source is exactly (-.25,-.25,-.25,-.25), inactive zero. At close t the intent can execute no earlier than t+1 open; no same-bar rescue. The dynamic allocator must later size it for maximum net compounded growth subject to funded survival, not blindly minimize drawdown.
+
+Precommitted tests: actual NAV drawdown required, skew or negative-market confirmation required, exact 24h hysteresis, deterministic t-1 replay, no positive hedge profit assumed, two-OS source hash. Complete seven-slot AH 180-cell structural gate remains controlling. Clean-4 training only, 2025 untouched, no 2026+/XRP/Phase083 or external V14/V15/V99 access.
