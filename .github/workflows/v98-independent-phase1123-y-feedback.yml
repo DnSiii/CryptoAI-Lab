@@ -1,0 +1,31 @@
+name: V98 Independent Phase1123 Y Continuous Feedback Synthetic
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1123-y-feedback.yml'
+      - 'research/v98_independent/phase1123_y_continuous_feedback.py'
+      - 'research/v98_independent/test_phase1123_y_continuous_feedback.py'
+      - 'research/v98_independent/test_phase1123_y_causality.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  y-feedback-causal-oracle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numpy
+        run: python -m pip install 'numpy==1.26.4'
+      - name: Y 3000 adverse feedback books and strict t-1 plan causality
+        run: python -m unittest -v test_phase1123_y_continuous_feedback.py test_phase1123_y_causality.py
