@@ -61,6 +61,13 @@ class TestAGJoint(unittest.TestCase):
         self.assertTrue(np.all(r['units']*self.p*(1+self.u)*2.2 <=
                                ORDER_SHARE*qmin+1e-6))
 
+    def test_actual_cash_reserve_is_binding(self):
+        r=joint_plan(np.zeros(4),self.p,10000.,self.mu,
+                     self.d,self.u,self.f,self.q,self.q,
+                     cash_floor=.45)
+        self.assertGreaterEqual(r['cash'],4500.-1e-5)
+        self.assertLessEqual(np.sum(r['posttrade_weights']),.55+1e-5)
+
     def test_crisis_gap_joint_liquidation(self):
         old=np.array([18.,10.,25.,8.])
         p=self.p*np.array([.55,.55,.55,.55])
