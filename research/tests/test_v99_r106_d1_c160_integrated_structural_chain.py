@@ -100,6 +100,11 @@ class C160IntegratedChain(unittest.TestCase):
         fr = self.j[other]['frames'][800]
         modified = replace_frame(self.j, other, 800,
                                  funding=[ev for ev in fr['funding'] if ev['asset']!='ETH'])
+        # Tamper the summary too, so C149 cannot catch the missing event
+        # by its total count; the independent C133 schedule must still fail.
+        changed = dict(modified[other])
+        changed['account_proof'] = {**changed['account_proof'], 'funding_events_modeled': 3965}
+        modified = {**modified, other: changed}
         with self.assertRaisesRegex(ValueError, 'C132_UNSCHEDULED_OR_MISSING_FUNDING_FIX'):
             self.audit(modified)
 
