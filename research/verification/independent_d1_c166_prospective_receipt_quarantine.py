@@ -8,7 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_CEILING
 from pathlib import Path
 
 TRAIN_END = datetime(2023, 10, 1, tzinfo=timezone.utc)
@@ -120,8 +120,10 @@ def quarantine_prospective_receipts(market_folder, terms_folder):
                     t.get("contract_raw_sha256"))
         _check_hash(terms_folder, "funding_" + inst + ".raw.json",
                     t.get("funding_raw_sha256"))
-        min_swap_base[asset] = str(_positive(contract.get("ctVal")) *
-                                   _positive(contract.get("lotSz")))
+        lot = _positive(contract.get("lotSz"))
+        minimum = _positive(contract.get("minSz"))
+        lots = max(Decimal("1"), (minimum / lot).to_integral_value(rounding=ROUND_CEILING))
+        min_swap_base[asset] = str(_positive(contract.get("ctVal")) * lot * lots)
     return {
         "status": "C166_CURRENT_FIRST_PARTY_BYTES_VERIFIED_TRAIN_QUARANTINED",
         "raw_receipts_sha256_verified": 6,
