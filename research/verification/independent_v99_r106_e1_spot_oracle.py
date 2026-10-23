@@ -138,7 +138,8 @@ def independently_verify(root,out):
     result={"status":"INDEPENDENT_ORIGINAL_PRICE_TO_CASH_LEDGER_VERIFIED",
             "scenarios":summaries,"hours_per_scenario":15864,
             "synthetic_adversarial_control":"CASH_CORRUPTION_DETECTABLE",
-            "economic_train_gate_passed":all(oracle_gates.values()),\n            "independent_benchmark_and_gate_recomputation":True,
+            "economic_train_gate_passed":all(oracle_gates.values()),
+            "independent_benchmark_and_gate_recomputation":True,
             "native_fee_tier_authenticated":False,"real_account_fills":False,
             "validation_opened":False,"holdout_opened":False,"promotion_authorized":False}
     (out/"e1_independent_oracle.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
