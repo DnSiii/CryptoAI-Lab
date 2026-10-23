@@ -158,7 +158,8 @@ def simulate_y(target,opening,high,low,closing,quote,rate,signed_mark,event,
     if len(equity)!=17544:
         raise ValueError('Y1135_INCOMPLETE_FOLDS')
     closed=[{'timestamp':x['timestamp'],'pnl_usd':x['pnl_usd']} for x in book.closed]
-    metrics=summarize(pd.DatetimeIndex([idx[FIRST_TRAINING_HOUR-1]]+timestamps),\n        [initial]+equity,[np.zeros(4)]+exposure,closed,[1]+regime_seq)
+    metrics=summarize(pd.DatetimeIndex([idx[FIRST_TRAINING_HOUR-1]]+timestamps),
+        [initial]+equity,[np.zeros(4)]+exposure,closed,[1]+regime_seq)
     result.update(metrics)
     nav=np.asarray(equity,float)
     peak=np.maximum.accumulate(np.r_[initial,nav])
