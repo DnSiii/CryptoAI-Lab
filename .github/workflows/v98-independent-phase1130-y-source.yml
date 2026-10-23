@@ -1,0 +1,82 @@
+name: V98 Independent Phase1130 Y Authenticated Source Crossrunner
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1130-y-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  y-source-runner:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        repeat: [a, b]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Y causal and synthetic no-leak tests
+        run: python -m unittest -q test_phase1125_y_sevenslot_source.py test_phase1129_y_integrity_amendment.py
+      - name: Fresh official Clean-4 native funding and five Y source-only hashes
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1130_y_authenticated_source.py
+      - name: Preserve source-only receipts on PASS or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-y-1130-${{ matrix.os }}-${{ matrix.repeat }}
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1130_y_authenticated_source_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  y-crossrunner:
+    needs: y-source-runner
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-y-1130-*
+          path: /tmp/v98-y-1130
+          merge-multiple: false
+      - name: Compare all four Y source-only receipts; fail closed
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/v98-y-1130')
+          paths=[root/('v98-y-1130-'+os+'-'+repeat)/'phase1130_y_authenticated_source_receipt.json'
+                 for os in ('ubuntu-22.04','ubuntu-24.04') for repeat in ('a','b')]
+          if not all(p.is_file() for p in paths):
+              raise SystemExit('Y_CROSSRUNNER_MISSING_RECEIPT')
+          receipts=[json.loads(p.read_text()) for p in paths]
+          for r in receipts:
+              assert r['decision']=='PASS_Y_AUTHENTICATED_SOURCE_ONLY_NOT_FROZEN'
+              assert r['historical_pnl_computed'] is False and r['validation_2025_read'] is False
+              assert r['typed_mark_shape']==[18288,4,2] and r['native_funding_events']==9144
+              assert len(r['canonical_sha256'])==5
+          for key in ('canonical_sha256','typed_mark_csv_sha256','native_funding_events','official_hours','diagnostics'):
+              assert all(r[key]==receipts[0][key] for r in receipts),'Y_CROSSRUNNER_DRIFT_'+key
+          print(json.dumps({'decision':'PASS_Y_FOUR_INDEPENDENT_FRESH_SOURCE_RECOMPOSITIONS_NOT_FROZEN',
+                            'canonical_sha256':receipts[0]['canonical_sha256'],
+                            'typed_mark_csv_sha256':receipts[0]['typed_mark_csv_sha256']},sort_keys=True))
+          PY
