@@ -1,0 +1,55 @@
+name: V98 Independent Phase1064 R Frozen 90-Cell Authenticated Training
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1064-r-90cell.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r-frozen-training-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - R_core_only
+          - R_full
+          - R_minus_opportunity
+          - R_minus_relative_value
+          - R_minus_recovery
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Assert immutable R frozen code/targets and synthetic signed ledger
+        run: |
+          python -m unittest -q test_phase1059_r_sevenslot_source.py test_phase1060_r_source_contract.py test_phase1061_r_signed_margin_oracle.py test_phase1062_r_funded_ledger.py
+          python -c 'from phase1064_r_training_path import verify_freeze; assert verify_freeze()["decision"]=="FROZEN_R_PRE_ECONOMIC"'
+      - name: Fresh authenticated Clean-4 and frozen R 18-cell training path
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1064_r_training_path.py --path ${{ matrix.path }}
+      - name: Preserve immutable path receipts even on rejection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1064-r-${{ matrix.path }}-training-receipt
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1060_r_source_auth_receipt.json
+            research/v98_independent/phase1064_r_${{ matrix.path }}_training_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
