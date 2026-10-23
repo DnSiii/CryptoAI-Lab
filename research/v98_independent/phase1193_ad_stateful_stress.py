@@ -57,3 +57,41 @@ def stress_targets(op,hi,lo,cl,quote,funding,event,realized_nav,diagnostics=Fals
             'max_short_gross_demand':float(np.abs(targets).sum(axis=1).max()),
             'actual_exit_execution_proven':False}
     return targets
+
+
+class StressMachine:
+    """Incremental causal equivalent for an actual-NAV executor (no future NAV)."""
+    def __init__(self):
+        from collections import deque
+        self.market = deque(maxlen=25)
+        self.peak = 0.
+        self.active = False
+        self.size = 0.
+        self.activation = -1
+        self.t = -1
+
+    def step(self, realized_nav_t, market_log_close_t):
+        nav = float(realized_nav_t)
+        market = float(market_log_close_t)
+        if not np.isfinite([nav, market]).all() or nav <= 0:
+            raise ValueError('AD1193_MACHINE_NAV_OR_MARKET')
+        self.t += 1
+        self.peak = max(self.peak, nav)
+        self.market.append(market)
+        dd = nav / self.peak - 1
+        accel = 0.
+        if len(self.market) == 25:
+            accel = self.market[-1] - 2*self.market[-13] + self.market[0]
+        if self.t >= WARMUP:
+            if not self.active and dd <= ACTIVATE_DD and accel <= ACTIVATE_ACCEL:
+                self.active = True
+                self.activation = self.t
+                self.size = HIGH_HEDGE if dd <= ESCALATE_DD else LOW_HEDGE
+            elif self.active:
+                if dd <= ESCALATE_DD and self.size < HIGH_HEDGE:
+                    self.size = HIGH_HEDGE
+                if (self.t-self.activation >= MIN_DWELL and dd >= RECOVERY_DD
+                        and accel >= RECOVERY_ACCEL):
+                    self.active = False
+                    self.size = 0.
+        return np.full(4, -self.size/4 if self.active else 0.)
