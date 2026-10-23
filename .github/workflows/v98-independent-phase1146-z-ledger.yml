@@ -1,0 +1,39 @@
+name: V98 Independent Phase1146 Z Inventory Ledger Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1146-z-ledger.yml'
+      - 'research/v98_independent/phase1146_z_inventory_ledger.py'
+      - 'research/v98_independent/test_phase1146_z_inventory_ledger.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  z-ledger-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Z source and executable inventory synthetic tests only
+        run: python -m unittest -v test_phase1143_z_sevenslot_source.py test_phase1146_z_inventory_ledger.py
+      - name: Z independent 81-corner adversarial cases
+        run: python phase1144_z_synthetic_risk_oracle.py
+      - name: Assert no historical Z PnL or freeze
+        run: |
+          test ! -e phase1145_z_full_pre_economic_freeze.json
+          test ! -e phase1146_z_90cell_training_receipt.json
