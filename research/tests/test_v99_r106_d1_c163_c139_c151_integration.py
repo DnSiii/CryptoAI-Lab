@@ -5,7 +5,7 @@ capability, realized funding, market ROI or historical TRAIN viability.
 """
 import unittest
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
 from research.tools.v99_r106_d1_target_rebalance_cycle139 import rebalance
@@ -37,7 +37,7 @@ def declared_fixture_specs():
 
 
 def modeled(scenario):
-    return rebalance(time=T, decision_feature_max_time=T.replace(hour=11),
+    return rebalance(time=T, decision_feature_max_time=T - timedelta(hours=1),
                      scenario=scenario, before=deepcopy(BEFORE),
                      target_weights={'BTC': '0.25', 'ETH': '0.25'},
                      marks=deepcopy(MARKS), native_fees=deepcopy(FEES))
