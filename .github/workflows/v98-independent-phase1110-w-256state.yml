@@ -1,4 +1,4 @@
-name: V98 Independent Phase1110-1111 W 256-State Portfolio Synthetic
+name: V98 Independent Phase1110-1112 W Executable Portfolio Synthetic
 on:
   push:
     branches:
@@ -9,6 +9,8 @@ on:
       - 'research/v98_independent/test_phase1110_w_256state_governor.py'
       - 'research/v98_independent/phase1111_w_sevenslot_source.py'
       - 'research/v98_independent/test_phase1111_w_sevenslot_source.py'
+      - 'research/v98_independent/phase1112_w_atomic_ledger.py'
+      - 'research/v98_independent/test_phase1112_w_atomic_ledger.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,5 +30,5 @@ jobs:
           python-version: '3.11'
       - name: Install pinned runtime
         run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
-      - name: W 256-state governor, 3000 adversarial portfolios, seven-slot source, chronology
-        run: python -m unittest -v test_phase1110_w_256state_governor.py test_phase1111_w_sevenslot_source.py
+      - name: W 256-state governor, 3000 adversarial portfolios, seven-slot and OCO
+        run: python -m unittest -v test_phase1110_w_256state_governor.py test_phase1111_w_sevenslot_source.py test_phase1112_w_atomic_ledger.py
