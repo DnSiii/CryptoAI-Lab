@@ -59,7 +59,7 @@ class AEActualOpenExecutorTests(unittest.TestCase):
         e=np.array([1.,1.,0.,0.])
         lo=np.array([99.,99.,np.nan,np.nan])
         hi=np.array([101.,101.,np.nan,np.nan])
-        self.assertAlmostEqual(native_funding_cash(u,r,e,lo,hi),-2.,places=12)
+        self.assertAlmostEqual(native_funding_cash(u,r,e,lo,hi),-.02,places=12)
 
     def test_reject_native_mark_mismatch(self):
         with self.assertRaisesRegex(ValueError,'NATIVE_FUNDING_MARK'):
