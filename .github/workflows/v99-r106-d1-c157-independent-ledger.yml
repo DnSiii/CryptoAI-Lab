@@ -1,0 +1,35 @@
+name: V99 R106 D1 C157 independent accounting and cold-start (SOURCE ONLY)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/verification/independent_d1_c149_account_oracle.py'
+      - 'research/verification/independent_d1_c150_cold_start_oracle.py'
+      - 'research/tests/test_v99_r106_d1_c157_accounting_cold_start.py'
+      - '.github/workflows/v99-r106-d1-c157-independent-ledger.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Independent dual-scenario accounting, cold-start and sealed boundaries
+        run: |
+          python -m unittest research.tests.test_v99_r106_d1_c157_accounting_cold_start research.tests.test_v99_r106_d1_c156_native_lot_smoke research.tests.test_v99_r106_d1_c153_pair_lattice research.tests.test_v99_r106_d1_c155_prereg_source research.tests.test_v99_r106_d1_full_train_guard -v
+      - name: Explicit DATA_ONLY/HOLD
+        run: |
+          python - <<'PY'
+          from research.tools.v99_r106_d1_basis_carry_preregistered import report_permissions
+          p=report_permissions()
+          assert not p['promotion_authorized'] and not p['real_orders_enabled']
+          assert not p['historical_train_economics_run']
+          assert not p['validation_opened'] and not p['final_holdout_opened']
+          print('C157 SOURCE ONLY; NO ROI; NO PROMOTION')
+          PY
