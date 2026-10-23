@@ -72,5 +72,6 @@ def summarize(index,equity,asset_exposure,closed_trades=(),regimes=None):
                              'asset_hhi':float(np.sum(share*share))},
             'regime_hours':{str(i):int(np.sum(states[ids]==i)) for i in range(3)},
             **_trade_metrics(trades_year)}
-    if not folds:raise ValueError('Y1131_NO_COMPLETE_FOLD')
+    if set(folds)!={'2023','2024'}:
+        raise ValueError('Y1131_INCOMPLETE_TWO_FOLD_TRAINING')
     return {'folds':folds}
