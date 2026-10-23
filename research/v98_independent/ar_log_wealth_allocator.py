@@ -21,6 +21,7 @@ class ARAllocator:
         self.costs=np.zeros(4)
         self.target=np.zeros(4)
         self.epochs=0
+        self.prev_events=np.zeros((2,4))
     def observe(self,lr,funding,event):
         a,b,e=(np.asarray(x,dtype=float) for x in (lr,funding,event))
         if any(x.shape!=(4,) or not np.isfinite(x).all() for x in (a,b,e)):
@@ -39,7 +40,12 @@ class ARAllocator:
             raise ValueError("AR_DECISION")
         self.costs=FRICTION*np.abs(s-self.inventory).sum(axis=1)
         self.inventory=s.copy()
-        if t<FIRST or (t-FIRST)%EPOCH:
+        # Exact 168h opportunity / 72h stress source event entry and expiry
+        # must reach the next actual open, not wait for a 336h epoch.
+        events=s[[1,3]]
+        event_changed=not np.array_equal(events,self.prev_events)
+        self.prev_events=events.copy()
+        if t<FIRST or ((t-FIRST)%EPOCH and not event_changed):
             return self.target.copy(),False
         prior=PRIORS[regime].copy()
         if len(self.history)==HISTORY:
