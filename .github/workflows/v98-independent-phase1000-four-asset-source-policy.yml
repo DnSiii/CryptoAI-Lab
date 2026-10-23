@@ -1,0 +1,41 @@
+name: V98 Independent Phase1000 Four-Asset Feb Source Policy
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1000-four-asset-source-policy.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1000-four-asset-source-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  full-provenance:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline regression and exact exception source pins
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase996_btc_feb_gap_resolution.py test_phase997_clean4_source_policy.py test_phase999_full_mark_defect_inventory.py test_phase1000_four_asset_source_policy.py
+      - name: Fresh 100 funding plus 100 monthly marks and 112 daily ZIPs
+        working-directory: research/v98_independent
+        run: python phase1000_four_asset_source_policy.py
+      - name: Upload source-only checksum manifests and 9144 bound rows
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1000-four-asset-source
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1000_four_asset_conservative_bounds_source_only.csv
