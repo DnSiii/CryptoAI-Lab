@@ -55,6 +55,14 @@ def hysteresis(raw,dwell=48):
         out[t]=state
     return out
 
+def beta_neutral_pair(beta_winner,beta_loser):
+    """Return short/long weights only when signed beta can cancel exactly."""
+    if (not np.isfinite(beta_winner) or not np.isfinite(beta_loser)
+        or beta_winner*beta_loser<=1e-12):
+        return None
+    a=abs(beta_winner);b=abs(beta_loser)
+    return -b/(a+b),a/(a+b)
+
 def compose_y(op,hi,lo,cl,quote,funding,*,capital_usd=1e6,diagnostics=False):
     validate(op,hi,lo,cl,quote,funding)
     idx=cl.index;n=len(idx);log=np.log(cl);r=log.diff().fillna(0.)
@@ -88,9 +96,9 @@ def compose_y(op,hi,lo,cl,quote,funding,*,capital_usd=1e6,diagnostics=False):
             if np.isfinite(scores[t]).all() and np.isfinite(beta[t]).all() and np.ptp(scores[t])>1e-12:
                 winner=int(np.argmax(scores[t]));loser=int(np.argmin(scores[t]))
                 # Opposite signed betas cannot be neutralized by a long/short pair.
-                if beta[t,winner]*beta[t,loser]>1e-12:
-                    a=abs(beta[t,winner]);b=abs(beta[t,loser])
-                    pair[winner]=-b/(a+b);pair[loser]=a/(a+b);expiry=t+48
+                neutral=beta_neutral_pair(beta[t,winner],beta[t,loser])
+                if neutral is not None:
+                    pair[winner],pair[loser]=neutral;expiry=t+48
         rv[t]=pair
     relative_value=normalize(rv)
     # 4 Stress: 48h downside skew and 24h rebound.
