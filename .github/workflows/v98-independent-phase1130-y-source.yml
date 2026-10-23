@@ -5,6 +5,8 @@ on:
       - research/v98-independent-zero
     paths:
       - '.github/workflows/v98-independent-phase1130-y-source.yml'
+      - 'research/v98_independent/phase1130_y_authenticated_source.py'
+      - 'research/v98_independent/test_phase1130_y_authenticated_source.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,7 +32,7 @@ jobs:
       - name: Install pinned numerical runtime
         run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
       - name: Y causal and synthetic no-leak tests
-        run: python -m unittest -q test_phase1125_y_sevenslot_source.py test_phase1129_y_integrity_amendment.py
+        run: python -m unittest -q test_phase1125_y_sevenslot_source.py test_phase1129_y_integrity_amendment.py test_phase1130_y_authenticated_source.py
       - name: Fresh official Clean-4 native funding and five Y source-only hashes
         env:
           PYTHONUNBUFFERED: '1'
