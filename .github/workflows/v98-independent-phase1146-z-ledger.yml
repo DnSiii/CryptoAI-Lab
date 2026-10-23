@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v98-independent-phase1146-z-ledger.yml'
       - 'research/v98_independent/phase1146_z_inventory_ledger.py'
       - 'research/v98_independent/test_phase1146_z_inventory_ledger.py'
+      - 'research/v98_independent/phase1147_z_ledger_adversarial.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,6 +34,8 @@ jobs:
         run: python -m unittest -v test_phase1143_z_sevenslot_source.py test_phase1146_z_inventory_ledger.py
       - name: Z independent 81-corner adversarial cases
         run: python phase1144_z_synthetic_risk_oracle.py
+      - name: Z independent 2000-case inventory ledger and extreme fail-closed oracle
+        run: python phase1147_z_ledger_adversarial.py
       - name: Assert no historical Z PnL or freeze
         run: |
           test ! -e phase1145_z_full_pre_economic_freeze.json
