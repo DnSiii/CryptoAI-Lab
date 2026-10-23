@@ -1,0 +1,32 @@
+name: V99 D1 independent real OKX bulk funding receipt verification (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/verification/independent_d1_okx_bulk_funding.py'
+      - '.github/workflows/v99-r106-d1-independent-bulk-funding.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-original-archive-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Download immutable first-party bulk funding archive artifact
+        run: |
+          gh run download 40019980953 --repo "$GITHUB_REPOSITORY" \
+            --name d1-bulk-funding-train-40019980953 \
+            --dir research_evidence/d1_bulk_funding
+      - name: Independently reparse every original ZIP and compare all rates
+        run: python -m research.verification.independent_d1_okx_bulk_funding research_evidence/d1_bulk_funding
