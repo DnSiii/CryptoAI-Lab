@@ -1,0 +1,46 @@
+name: V98 Independent Phase1026 P Source-Only Five-Path Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1026-p-source-only.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1026-p-source-only-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  p-source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Test P source chronology, causality, 16 corners and state-aware LP
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1024_1025_p_source_and_governor.py
+      - name: Acquire and attest 100 official Binance Clean-4 training archives only
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: Generate P five source-only target hashes without historical PnL
+        working-directory: research/v98_independent
+        run: python phase1024_p_sevenslot_source.py
+      - name: Preserve source-only evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1026-p-source-only-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1024_p_sevenslot_source_result.json
