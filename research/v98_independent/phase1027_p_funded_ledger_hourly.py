@@ -50,7 +50,8 @@ def simulate_p_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
             if np.any(units) or cash!=initial:raise AssertionError('P_WARMUP_POSITION_BREACH')
             post={'ok':True,'cash':cash,'units':units.copy(),
                   'opening_repair_usd':np.zeros(4),'stress_repair_usd':np.zeros(4),
-                  'sells_usd':np.zeros(4),'buys_usd':np.zeros(4),'funding_buffer_usd':0.}
+                  'sells_usd':np.zeros(4),'buys_usd':np.zeros(4),'funding_buffer_usd':0.,
+                  'pre_open_equity':float(initial)}
         else:
             # Upper bound on either funding ordering, using rates observed <=t-1.
             # Mark/rate/event at t are NEVER used to choose the buffer.
@@ -78,6 +79,11 @@ def simulate_p_hourly(target,op,hi,lo,cl,quote,rate,mark,event,down,up,fee,*,ord
             held=carried if order=='carried_before_fill' else units
             debit=float(np.sum(held[ev[t]]*mk[t,ev[t]]*fr[t,ev[t]]))
             cash-=debit;funding+=debit
+        # Ex-post only: enumerate ALL 16 realized OHLC corners; no current
+        # high/low has influenced orders or pretrade funding buffer.
+        if not survives(cash,units,opening,1-l[t]/opening,h[t]/opening-1,
+                        baseline=post['pre_open_equity']):
+            reason='P_INTRABAR_16CORNER_SURVIVAL_BREACH';breach_index=t;break
         if not _intrabar(cash,units,l[t],h[t]):
             reason='P_INTRABAR_SURVIVAL_BREACH';breach_index=t;break
         if not _within(cash,units,c[t]):
