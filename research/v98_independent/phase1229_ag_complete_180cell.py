@@ -69,9 +69,11 @@ def cell(path,mode,fee,order,frames,slots,risk,fixture_name):
     peak=nav
     for t in range(len(c)):
         if t>=720:
+            effective_reserve=(BASE_CASH if path in ('AG_core_only',
+                'AG_minus_stress') else reserve)
             try:
                 res=execute_hour(units,cash,o[t],h[t],l[t],c[t],mu,
-                    reserve,d[t],u[t],f[t],pq[t],qmin[t],fee,
+                    effective_reserve,d[t],u[t],f[t],pq[t],qmin[t],fee,
                     r[t],e[t],ml[t],mh[t],order,
                     scheduled_rebalance=(t==720 or (t-720)%24==0))
             except Exception as exc:
