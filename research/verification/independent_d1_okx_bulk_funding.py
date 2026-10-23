@@ -11,6 +11,7 @@ import json
 import sys
 import zipfile
 from datetime import datetime, timezone
+from collections import Counter
 from decimal import Decimal
 from pathlib import Path
 
@@ -68,12 +69,16 @@ def check(root):
             raise ValueError("FUNDING_COUNT_MISMATCH")
         ordered = sorted(recovered)
         gaps = [(a, b) for a, b in zip(ordered, ordered[1:]) if b-a != 8*3600000]
+        interval_counts = Counter(b-a for a, b in zip(ordered, ordered[1:]))
+        millisecond_offsets = Counter(t % (8*3600000) for t in ordered)
         report[inst] = {
             "first_settlement_ms": ordered[0] if ordered else None,
             "last_settlement_ms": ordered[-1] if ordered else None,
             "venue_funding_rates": len(recovered),
             "raw_archives_verified": len(entry["archives"]),
             "non_8h_intervals": len(gaps),
+            "top_intervals_ms": interval_counts.most_common(8),
+            "top_settlement_offsets_ms": millisecond_offsets.most_common(8),
         }
     return {"status": "INDEPENDENT_PARTIAL_FIRST_PARTY_FUNDING_NO_ECONOMICS",
             "instruments": report, "account_settled_cash_verified": False,
