@@ -1,0 +1,9 @@
+# V98 Independent Phase1224 — AF four-OS authenticated Clean-4 static-source gate prereg (2026-10-23)
+
+**Conditional:** execute this vendor/source gate **only if** Phase1223 independently passes the complete AF 180/180 causal-risk synthetic structural gate. If Phase1223 fails, archive this preregistration and reject AF without rescue; no official AF PnL.
+
+Use generic independent V98 Phase803 pinned Binance USD-M OHLC and Phase1000 native mark/funding vendor provenance helpers (not AD/AE strategy signals). Fresh four-OS independent attestations must verify exactly 18,288 continuous 1h Clean-4 rows Dec-2022 through Dec-2024, pinned vendor OHLC SHA256 and byte size, 100 mark/100 funding archives, 9,144 signed native 8h events, conservative payer/receiver marks, source archive checksums, no duplicate or missing timestamps. XRP quarantined; 2025 validation, 2026+, Phase083 and external V14/V15/V99 untouched.
+
+Compute frozen AF Phase1214 Growth, Phase1215 Opportunity, Phase1216 long-only RV and Phase1218 Router from authenticated frames, with no actual NAV feedback. Create **15 static source hashes** across five AF paths x three capital modes. Header `AF1224_STATIC_SOURCE_V1` + path + mode + n + ordered Clean-4 assets, UTC nanosecond timestamps and 1e-6 quantized little-endian int64 source arrays. Stress cash, Dynamic Allocator, Governor and actual ledger must be independently replayed in complete economic execution; static source hashes do not certify those components.
+
+Require all 15 hashes distinct and identical across four fresh OS runners, exact source provenance and strict no-future leakage. Only after this gate and full AF freeze may 2023/2024 separate chronological 90-cell official economic training begin, with base/severe/supersevere costs, signed funding, marginal sleeve growth, CAGR, PF/payoff/win, positive days, tails, concentration, drawdown and independent reproducibility. Synthetic/source pass is not evidence of positive return.
