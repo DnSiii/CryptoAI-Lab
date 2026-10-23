@@ -160,7 +160,7 @@ def simulate_y(target,opening,high,low,closing,quote,rate,signed_mark,event,
     closed=[{'timestamp':x['timestamp'],'pnl_usd':x['pnl_usd']} for x in book.closed]
     metrics=summarize(pd.DatetimeIndex([idx[FIRST_TRAINING_HOUR-1]]+timestamps),\n        [initial]+equity,[np.zeros(4)]+exposure,closed,[1]+regime_seq)
     result.update(metrics)
-    result['total_log_wealth']=float(math.log(equity[-1]/initial))
+    nav=np.asarray(equity,float)\n    peak=np.maximum.accumulate(np.r_[initial,nav])\n    result['all_hourly_max_drawdown']=float(np.min(np.r_[initial,nav]/peak-1))\n    xp=np.asarray(exposure,float)/nav[:,None]\n    result['max_asset_weight']=float(np.max(np.abs(xp)))\n    result['max_gross_weight']=float(np.max(np.sum(np.abs(xp),axis=1)))\n    result['max_net_weight']=float(np.max(np.abs(np.sum(xp,axis=1))))\n    changes=np.log(nav/np.r_[initial,nav[:-1]])\n    result['regime_log_wealth']={str(k):float(np.sum(changes[np.asarray(regime_seq)==k])) for k in range(3)}\n    result['total_log_wealth']=float(math.log(equity[-1]/initial))
     result['total_wealth_multiple']=float(equity[-1]/initial)
     result['hourly_cvar_5pct']=float(min(v['hourly_cvar_5pct'] for v in metrics['folds'].values()))
     result['concentration']={'asset_hhi':float(np.mean([v['concentration']['asset_hhi'] for v in metrics['folds'].values()])),
