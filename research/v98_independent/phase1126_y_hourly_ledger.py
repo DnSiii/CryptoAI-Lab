@@ -66,7 +66,10 @@ def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
         balance-=float(np.dot(delta,fill)+fee*traded.sum())
         fees+=float(fee*traded.sum());turnover+=float(traded.sum())
         used[:]+=traded;units[:]+=delta
-        records.append({'action':action,'notional':float(traded.sum())})
+        for j in np.flatnonzero(np.abs(delta)>1e-12):
+            records.append({'asset':int(j),'action':action,
+                'delta_units':float(delta[j]),'fill_price':float(fill[j]),
+                'fee_usd':float(fee*traded[j]),'notional':float(traded[j])})
         return True
     if not trade(planned-units,o,mode):
         return {'ok':False,'reason':'Y1126_OPEN_CAPACITY',
@@ -84,8 +87,9 @@ def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
                     'planned_units':planned_snapshot.tolist()}
     # On a stop, never count favorable funding credits that may have arrived
     # after the liquidation. Charges are reserved conservatively.
-    funding_cash=float(-np.sum(np.where(events,prestop_units*mark*rate,0.)))
-    if touched or gap:funding_cash=min(0.,funding_cash)
+    funding_by_asset=-np.where(events,prestop_units*mark*rate,0.)
+    if touched or gap:funding_by_asset=np.minimum(funding_by_asset,0.)
+    funding_cash=float(funding_by_asset.sum())
     before_funding=balance
     balance+=funding_cash
     # Evaluate actual intrabar 3^4 OHLC corners, not just the closing mark.
@@ -107,7 +111,7 @@ def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
         reason='Y1126_FINAL_EQUITY'
     result={'ok':reason is None,'reason':reason,'planned_units':planned_snapshot.tolist(),
         'units':units.copy(),'cash':float(balance),'equity':final_equity,
-        'fees':fees,'turnover':turnover,'funding_cash_delta':funding_cash,
+        'fees':fees,'turnover':turnover,'funding_cash_delta':funding_cash,'funding_by_asset':funding_by_asset.tolist(),
         'basket_stop':bool(touched or gap),'worst_intrabar_equity':float(equities.min()),
         'events':records,'self_financing':True,'synthetic_only':True}
     return result
