@@ -19,7 +19,7 @@ class TestAIInvariant(unittest.TestCase):
             np.full(4,.45),np.full(4,.8),np.full(4,.0005),.001,10000.)
         self.assertTrue(ok,reason)
     def test_second_stage_not_same_as_one_step(self):
-        n=np.array([130.,0,0,0])
+        n=np.array([133.,0,0,0])
         ok,reason=two_stage_audit(10000.,n,np.full(4,100.),
             np.full(4,.45),np.full(4,.8),np.zeros(4),.001,10000.)
         self.assertFalse(ok)
