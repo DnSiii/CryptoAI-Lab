@@ -59,6 +59,7 @@ def execute_hour(prior,opening,high,low,closing,carried_units,desired_weights,
     used=np.zeros(N);records=[]
     def trade(delta,prices,action):
         nonlocal balance,fees,turnover,units
+        if np.all(np.abs(delta)<1e-12):return True
         fill=prices*(1+np.sign(delta)*slip)
         traded=np.abs(delta)*fill
         if np.any(used+traded>PARTICIPATION*q+1e-8):return False
