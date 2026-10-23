@@ -1,0 +1,54 @@
+{
+  "phase": 1063,
+  "decision": "FROZEN_R_PRE_ECONOMIC",
+  "branch": "research/v98-independent-zero",
+  "source_run_id": 39949396311,
+  "source_artifact_id": 12498944280,
+  "source_only_verified": true,
+  "historical_pnl_computed": false,
+  "validation_2025_read": false,
+  "holdout_accessed": false,
+  "external_benchmarks_used": false,
+  "promotion_eligible": false,
+  "path_order": [
+    "R_core_only",
+    "R_full",
+    "R_minus_opportunity",
+    "R_minus_relative_value",
+    "R_minus_recovery"
+  ],
+  "canonical_sha256": {
+    "R_core_only": "c281472909e19edcab9448d70bdb5d387a13439a460a72c93356571c65cb2c97",
+    "R_full": "421f4f2eec065015d71611498b936f9d7c65aaa8d050708ce319d178cfb5bbeb",
+    "R_minus_opportunity": "5a1b308297c0579d52fb19faf4258fd73e09d23592d589b52ced558e2c3b097e",
+    "R_minus_relative_value": "b2682cdca294302a17b7a1e418d2f3326b60584c9b5995b2401d8a893de660a8",
+    "R_minus_recovery": "89a5e74a03c5bc2ee10de9826713244d91f437849c558af7c44fb25be83cd2ff"
+  },
+  "code_blob_sha1": {
+    "phase1059_r_sevenslot_source.py": "aaf4e1c37600cb920621a5307bd07341888abdc1",
+    "phase1060_r_source_auth.py": "5b28546159d5e91b7a45f8753d7378175da7fd36",
+    "phase1061_r_signed_margin_oracle.py": "58133cf0ca0d577ee95af80a05e3926ffbf415cb",
+    "phase1062_r_funded_ledger.py": "f05e4fac9d4d2d054cdca34c647bfc813dc72b64",
+    "phase1064_r_training_path.py": "7d894b71a0ccbf27694daf4ff29a98f4b5ecb215"
+  },
+  "fee_tiers": {
+    "base": 0.0007,
+    "severe": 0.0012,
+    "supersevere": 0.002
+  },
+  "orders": [
+    "carried_before_fill",
+    "new_after_fill"
+  ],
+  "capital_modes": {
+    "immediate": 10000,
+    "capacity_1m": 1000000,
+    "capacity_10m": 10000000
+  },
+  "cell_count": 90,
+  "training_folds": [
+    2023,
+    2024
+  ],
+  "notes": "Immutable independent R seven-slot economic preregistration. 2025 validation untouched until 90-cell training gate; no V14/V15/V99 access. Q rejection not rescued."
+}
