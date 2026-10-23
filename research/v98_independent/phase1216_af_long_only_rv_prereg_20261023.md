@@ -1,0 +1,7 @@
+# V98 Independent Phase1216 — AF funded long-only relative-strength rotation prereg (2026-10-23)
+
+AF slot 3: a **funded long-only leadership rotation** that can increase the complete portfolio's net compounded growth by reallocating cash/weak-long budget toward improving leaders, without naked shorts. No AD covariance-neutral spread, AE long-short dispersion, or imported rejected signals/parameters. Source-only, no historical AF PnL.
+
+At completed hour t>=336, compute 96h log close return per Clean-4 asset using only close[t] and close[t-96], subtract the contemporaneous cross-sectional **median**. Eligible assets must have strictly positive 96h log return, strictly positive residual above median, and strictly prior 336h quote minimum >0. Require >=2 eligible assets. Normalize positive residuals into a maximum 0.15 gross **long-only** relative-value rotation budget, capped 0.10 per asset, with deterministic redistribution; leave any unusable budget as cash. This overlay must be funded by reducing other long allocations in the future full allocator, not by borrowing or shorts.
+
+Decision t first executable at open t+1. Validate no current quote lookahead, no future prices, no shorts/gross excess, deterministic source output and positive activation on synthetic differentiated uptrends. No post-result threshold/size rescue; actual marginal log-growth contribution to AF_full is a separate mandatory official gate.
