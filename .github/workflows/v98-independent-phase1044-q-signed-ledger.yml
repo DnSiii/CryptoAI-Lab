@@ -1,0 +1,27 @@
+name: V98 Independent Phase1044 Q Signed Funded Ledger Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1044_q_funded_signed_ledger.py'
+      - 'research/v98_independent/test_phase1044_q_funded_signed_ledger.py'
+      - '.github/workflows/v98-independent-phase1044-q-signed-ledger.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q-ledger-synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Test independent Q signed native-funded ledger without historical PnL
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1040_q_signed_margin_oracle.py test_phase1044_q_funded_signed_ledger.py
