@@ -8,6 +8,8 @@ on:
       - 'research/v98_independent/test_phase1135_y_funded_training_simulator.py'
       - 'research/v98_independent/phase1138_y_90cell_growth_audit.py'
       - 'research/v98_independent/test_phase1138_y_90cell_growth_audit.py'
+      - 'research/v98_independent/phase1136_y_frozen_training_path.py'
+      - 'research/v98_independent/test_phase1136_y_frozen_training_path.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,7 +35,7 @@ jobs:
         run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
       - name: Y Phase1135 source-agnostic synthetic tests ONLY
         run: |
-          python -m unittest -v test_phase1135_y_funded_training_simulator.py test_phase1138_y_90cell_growth_audit.py
+          python -m unittest -v test_phase1135_y_funded_training_simulator.py test_phase1136_y_frozen_training_path.py test_phase1138_y_90cell_growth_audit.py
           python -m unittest -q test_phase1131_y_growth_metrics.py test_phase1132_y_closed_trade_accounting.py
       - name: Assert no historical economic receipt
         run: |
