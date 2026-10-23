@@ -37,8 +37,8 @@ def attest(arrays,rate,mark,event,years,bounds_csv):
     return {'canonical_sha256':dict(sorted(hashes.items())),
         'official_hours':n,'native_funding_events':int(event.sum()),
         'typed_mark_shape':list(signed.shape),'typed_mark_csv_sha256':digest(bounds_csv),
-        'diagnostics':{k:v for k,v in diag.items() if k!='governor_calls'},
-        'governor_calls':{p+'__'+m:int(v) for (p,m),v in diag['governor_calls'].items()}}
+        'diagnostics':{k:v for k,v in diag.items() if k!='nonzero_intent_hours'},
+        'nonzero_intent_hours':{p+'__'+m:int(v) for (p,m),v in diag['nonzero_intent_hours'].items()}}
 
 def run():
     receipt={'phase':1168,'decision':'BLOCKED_BEFORE_PNL','source_only':True,
