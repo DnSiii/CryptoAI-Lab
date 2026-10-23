@@ -24,6 +24,17 @@ def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def receipt_diagnostics(value):
+    """Reporting-only stable decimal JSON; never alters model state or hashes."""
+    if isinstance(value, float):
+        return round(value, 10)
+    if isinstance(value, list):
+        return [receipt_diagnostics(x) for x in value]
+    if isinstance(value, dict):
+        return {k: receipt_diagnostics(v) for k, v in value.items()}
+    return value
+
+
 def source_frames():
     idx = pd.date_range(START, periods=18288, freq='h')
     frames = {}
@@ -107,7 +118,7 @@ def run():
         receipt.update({'decision':'PASS_AD_AUTHENTICATED_CORE_ROUTER_SOURCE_ONLY_NOT_FROZEN',
             'official_hours':len(idx),'native_funding_events':int(event.to_numpy().sum()),
             'native_bounds_sha256':sha256(BOUNDS),
-            'observer_sha256':observer_digest(core,router,idx),'diagnostics':diag})
+            'observer_sha256':observer_digest(core,router,idx),'diagnostics':receipt_diagnostics(diag)})
     except Exception as exc:
         receipt['reason']=type(exc).__name__+': '+str(exc)[:350]
     OUT.write_text(json.dumps(receipt,sort_keys=True,indent=2,allow_nan=False)+'\n')
