@@ -1,0 +1,49 @@
+name: V99 R106 D1 C164 original C127 C128 accounting integration (SOURCE ONLY)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_d1_native_fee_binding_cycle127.py'
+      - 'research/tools/v99_r106_d1_cash_inventory_oracle_cycle128.py'
+      - 'research/tests/test_v99_r106_d1_cash_inventory_oracle_cycle128.py'
+      - '.github/workflows/v99-r106-d1-c164-native-cash-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  model-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated test runner
+        run: python -m pip install 'pytest==8.3.5'
+      - name: C127 and C128 original adversarial per-fill fee/cash/inventory suite
+        run: python -m pytest -q research/tests/test_v99_r106_d1_cash_inventory_oracle_cycle128.py
+      - name: Previous C163 through C153 source-only structural regression
+        run: |
+          python -m unittest research.tests.test_v99_r106_d1_target_rebalance_cycle139 research.tests.test_v99_r106_d1_c163_c139_c151_integration research.tests.test_v99_r106_d1_c162_exact_native_fee_reexecution research.tests.test_v99_r106_d1_c161_causal_decision_oracle research.tests.test_v99_r106_d1_c160_integrated_structural_chain research.tests.test_v99_r106_d1_c159_full_funding_closure research.tests.test_v99_r106_d1_c158_risk_folds research.tests.test_v99_r106_d1_c157_accounting_cold_start research.tests.test_v99_r106_d1_c156_native_lot_smoke research.tests.test_v99_r106_d1_c153_pair_lattice research.tests.test_v99_r106_d1_c155_prereg_source research.tests.test_v99_r106_d1_full_train_guard -v
+      - name: Hard fail-closed research permission assertions
+        run: |
+          python - <<'PY'
+          from research.tools.v99_r106_d1_basis_carry_preregistered import report_permissions
+          p=report_permissions()
+          assert all(not p[k] for k in ('historical_train_economics_run',
+              'validation_opened','final_holdout_opened','promotion_authorized',
+              'real_orders_enabled','paper_publication_authorized'))
+          from research.tests.test_v99_r106_d1_cash_inventory_oracle_cycle128 import case
+          from research.tools.v99_r106_d1_cash_inventory_oracle_cycle128 import reconcile_cash_inventory
+          for scenario in ('severe_model_only','supersevere_model_only'):
+              fills,tiers=case(scenario)
+              x=reconcile_cash_inventory(scenario=scenario,fills=fills,native_fee_schedule=tiers)
+              assert x['c127_independent_fee_identity_passed']
+              assert not any(x[k] for k in ('exchange_receipts_authenticated',
+                  'actual_account_state_authenticated','settled_funding_authenticated',
+                  'historical_economics_authorized','validation_opened','holdout_opened',
+                  'promotion_authorized','orders_enabled'))
+          print('C164 DATA_ONLY/HOLD; synthetic accounting, no ROI, NO PROMOTION')
+          PY
