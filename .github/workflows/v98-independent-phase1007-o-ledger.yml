@@ -1,0 +1,40 @@
+name: V98 Independent Phase1007 O LP Ledger Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1007-o-ledger.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1007-o-ledger-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  o-ledger-synthetic:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical and LP runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Execute O exact-LP hourly synthetic execution tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1007_o_funded_ledger_hourly.py test_phase1002_lp_opening_repair.py
+      - name: Confirm only V98 files and no historical PnL
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/v98_independent/phase1007_o_funded_ledger_hourly.py').read_text()
+          assert 'repair_open_lp as repair_open' in p
+          assert 'simulate_o_with_hourly' in p
+          assert 'phase915_n_open_repair' not in p
+          print('O synthetic-only ledger source invariants verified; historical PnL not executed.')
+          PY
