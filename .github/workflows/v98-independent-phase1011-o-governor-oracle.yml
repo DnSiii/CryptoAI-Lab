@@ -1,0 +1,33 @@
+name: V98 Independent Phase1011 O Governor Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1011-o-governor-oracle.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1011-o-governor-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  o-governor:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned source-only numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: O independent 3000-case 16-corner governor oracle
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1011_o_governor_oracle.py
+      - name: Assert frozen O code bytes unchanged
+        working-directory: research/v98_independent
+        run: python -c 'from phase1008_o_frozen_paths import verify_o_source; assert verify_o_source()'
