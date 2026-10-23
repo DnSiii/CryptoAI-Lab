@@ -25,6 +25,13 @@ HOURS = (END - START) // HOUR
 PRICE_INST = ("BTC-USDT", "BTC-USDT-SWAP", "ETH-USDT", "ETH-USDT-SWAP")
 FUND_INST = ("BTC-USDT-SWAP", "ETH-USDT-SWAP")
 EXPECTED_SLOTS = tuple(range(START, END, EIGHT_HOURS))
+# Original five chronological folds, never recomputed from returns.
+FOLD_EDGES = tuple(int(datetime.fromisoformat(x).replace(tzinfo=timezone.utc).timestamp() * 1000)
+                   for x in (
+                       "2021-12-09T00:00:00", "2022-04-20T04:00:00",
+                       "2022-08-30T09:00:00", "2023-01-09T14:00:00",
+                       "2023-05-21T19:00:00", "2023-10-01T00:00:00",
+                   ))
 NO_PROMOTION = {
     "historical_economic_trial_run": False,
     "native_fee_tier_authenticated": False,
@@ -98,6 +105,18 @@ def joined_train(price_root, funding_root, output_root):
             "last_original_settlement_utc": utc_iso(timestamps[-1]) if timestamps else None,
             "missing_exact_slots_utc": [utc_iso(t) for t in missing],
             "off_grid_original_settlements_utc": [utc_iso(t) for t in off_grid],
+            "original_five_fold_coverage": [
+                {
+                    "fold": j + 1,
+                    "start_utc": utc_iso(a),
+                    "end_exclusive_utc": utc_iso(b),
+                    "expected_exact_slots": sum(a <= t < b for t in EXPECTED_SLOTS),
+                    "exact_slots_matched": sum(a <= t < b for t in exact),
+                    "missing_exact_slots": sum(a <= t < b for t in missing),
+                    "off_grid_settlements": sum(a <= t < b for t in off_grid),
+                }
+                for j, (a, b) in enumerate(zip(FOLD_EDGES, FOLD_EDGES[1:]))
+            ],
         }
 
     # Source-joined data is *not* a trade simulation. Null funding means
@@ -156,7 +175,8 @@ def joined_train(price_root, funding_root, output_root):
         "funding": {k: {field: v[field] for field in (
             "raw_venue_settlements", "exact_8h_slots_matched",
             "exact_8h_slots_missing", "off_grid_original_settlements",
-            "first_missing_utc")} for k, v in funding_audit.items()},
+            "first_missing_utc",
+            "original_five_fold_coverage")} for k, v in funding_audit.items()},
         "historical_economic_trial_run": False,
         "promotion_authorized": False,
     }, sort_keys=True), flush=True)
