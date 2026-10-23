@@ -69,6 +69,17 @@ def validate_inputs(w,o,h,l,c,q,rate,marks,event,years,fee,order,mode,strict):
     if strict and (int(event.sum())!=9144 or any(event[:,j].sum()!=2286 for j in range(4))):
         raise ValueError('Y1135_FUNDING_EVENT_COUNT')
 
+def adverse_signed_mark(funded_units,rate,marks,event,close):
+    """Upper vendor mark for debits; lower for credits, including shorts."""
+    u,r,m,e,p=[np.asarray(x) for x in (funded_units,rate,marks,event,close)]
+    if (u.shape!=(4,) or r.shape!=(4,) or m.shape!=(4,2) or
+        e.shape!=(4,) or p.shape!=(4,) or not np.isfinite(u).all() or
+        not np.isfinite(r).all() or not np.isfinite(p).all() or
+        (p<=0).any() or np.any(~np.isfinite(m[e])) or
+        np.any(m[e]<=0) or np.any(m[e,0]>m[e,1])):
+        raise ValueError('Y1135_BAD_SIGNED_MARK')
+    return np.where(e,np.where(u*r>=0,m[:,1],m[:,0]),p)
+
 def simulate_y(target,opening,high,low,closing,quote,rate,signed_mark,event,
                *,fee,order,mode,years,regimes=None,strict=True):
     w,o,h,l,c,q,fr,mk,ev,yy=[np.asarray(x) for x in
@@ -105,7 +116,7 @@ def simulate_y(target,opening,high,low,closing,quote,rate,signed_mark,event,
                             ((units<-1e-12)&(o[t]>=prior_stop))))
             held=units if order=='carried_before_fill' or gap else planned
             signed=held*fr[t]
-            mark=np.where(ev[t],np.where(signed>=0,mk[t,:,1],mk[t,:,0]),c[t])
+            mark=adverse_signed_mark(held,fr[t],mk[t],ev[t],c[t])
             x=execute_hour(*args,funding_mark=mark,**kw)
             if not np.array_equal(np.asarray(x['planned_units']),planned):
                 raise ArithmeticError('Y1135_MARK_CHANGED_PRETRADE_DECISION')
