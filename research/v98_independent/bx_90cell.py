@@ -230,4 +230,4 @@ if __name__=="__main__":
     print("BX_TRAINING_PATH",result["path"],result["decision"],
           "survived",sum(c["passed"] for c in result["cells"]),
           "of",len(result["cells"]))
-    raise SystemExit(0 if passed else 2)
+    raise SystemExit(0 if all(c['passed'] for c in result['cells']) else 2)
