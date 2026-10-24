@@ -3,7 +3,7 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-bn-seven-slot-90cell.yml'
+      - '.github/workflows/v98-independent-bo-seven-slot-90cell.yml'
       - 'research/v98_independent/bo_sources.py'
       - 'research/v98_independent/bo_allocator.py'
       - 'research/v98_independent/bo_90cell.py'
@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install numpy==1.26.4 pandas==2.2.3
-      - name: BO acceleration opportunity, ratio dislocation, defensive pair, physical settlement
+      - name: BO carry-confirmed trend, pullback, signed relative-value, stress, physical settlement
         working-directory: research/v98_independent
         run: |
           python -m py_compile bo_sources.py bo_allocator.py ba_ratio_reversion_governor.py bo_90cell.py bo_reconcile.py
@@ -53,7 +53,7 @@ jobs:
           names=['phase803_official_training_ohlc_receipt.json',
                  'phase1000_four_asset_source_policy_receipt.json',
                  'phase1000_four_asset_conservative_bounds_source_only.csv']
-          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BOBUSDT','SOLUSDT')]
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name))
               assert len(found)==1,(name,found)
@@ -67,12 +67,12 @@ jobs:
         run: |
           python bo_90cell.py \
             --path ${{ matrix.path }} \
-            --output bn90_${{ matrix.path }}.json || echo 'BO_REJECTION_OR_FAILURE_PRESERVED'
+            --output bo90_${{ matrix.path }}.json || echo 'BO_REJECTION_OR_FAILURE_PRESERVED'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bn90-${{ matrix.os }}-${{ matrix.path }}
-          path: research/v98_independent/bn90_${{ matrix.path }}.json
+          name: bo90-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/bo90_${{ matrix.path }}.json
           retention-days: 30
           if-no-files-found: error
       - name: Verify all 18 path cells recorded, never hide failure
@@ -80,7 +80,7 @@ jobs:
         run: |
           python - <<'PY'
           import glob,json
-          files=glob.glob('bn90_BO_*.json')
+          files=glob.glob('bo90_BO_*.json')
           assert len(files)==1,files
           a=json.load(open(files[0]))
           assert len(a['cells'])==18
@@ -95,23 +95,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          pattern: bn90-ubuntu-*
+          pattern: bo90-ubuntu-*
           path: receipts
       - name: Independent two-OS 90-cell economic, marginal and causal gate
-        run: python research/v98_independent/bo_reconcile.py --root receipts --output bn90_official_economic_summary.json
+        run: python research/v98_independent/bo_reconcile.py --root receipts --output bo90_official_economic_summary.json
       - name: Independent original-receipt accounting audit (no BO engine imports)
-        run: python research/v98_independent/bo_independent_receipt_audit.py --root receipts --output bn90_independent_arithmetic.json
+        run: python research/v98_independent/bo_independent_receipt_audit.py --root receipts --output bo90_independent_arithmetic.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bn90-independent-arithmetic
-          path: bn90_independent_arithmetic.json
+          name: bo90-independent-arithmetic
+          path: bo90_independent_arithmetic.json
           retention-days: 30
           if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bn90-official-economic-summary
-          path: bn90_official_economic_summary.json
+          name: bo90-official-economic-summary
+          path: bo90_official_economic_summary.json
           retention-days: 30
           if-no-files-found: warn
