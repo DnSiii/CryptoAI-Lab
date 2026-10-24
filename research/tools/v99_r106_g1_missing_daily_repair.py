@@ -57,7 +57,7 @@ def plan(monthly_root,outdir):
         jobs.append({"asset":asset,"venue_day":day,
                      "hours":[{"contract":inst,"hour_ms":h} for inst,h in sorted(items)]})
     count=sum(len(x["hours"]) for x in jobs)
-    if count!=155:raise ValueError(f"UNEXPECTED_GAP_COUNT_{count}_EXPECTED_155")
+    if count!=187:raise ValueError(f"UNEXPECTED_GAP_COUNT_{count}_EXPECTED_187")
     report={"schema":"G1_INDEPENDENT_EXACT_MISSING_HOURS_PLAN",
             "missing_required_hours":count,"daily_original_archive_jobs":len(jobs),
             "jobs":jobs,"economic_train_executed":False,"roi_computed":False,
@@ -178,7 +178,7 @@ def audit(plan_dir,source_dir,outdir):
             "initial_missing_hours":p["missing_required_hours"],"recovered_original_trade_hours":recovered,
             "confirmed_no_trade_hours":len(remaining),"blocked_original_archives":len(blocked),
             "remaining_hours":remaining,"blocked_archives":blocked,
-            "status":"SOURCE_REPAIRED_NOT_ECONOMICS" if recovered==155 and not blocked else "DATA_ONLY_HOLD",
+            "status":"SOURCE_REPAIRED_NOT_ECONOMICS" if recovered==p["missing_required_hours"] and not blocked else "DATA_ONLY_HOLD",
             "economic_train_executed":False,"roi_computed":False,
             "validation_opened":False,"holdout_opened":False,"orders_enabled":False,
             "promotion_authorized":False}
