@@ -1,0 +1,44 @@
+name: V98 Independent Frozen-Unit Physical Governor Preflight
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-unit-inventory-preflight.yml'
+      - 'research/v98_independent/v98_persistent_inventory_governor.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  physical:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Frozen-unit no-churn, zero-volume, impossible-exit and 81-corner settlement
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_persistent_inventory_governor.py
+          python v98_persistent_inventory_governor.py
+          python - <<'PY'
+          import numpy as np
+          from v98_persistent_inventory_governor import target_units_at_completed_close,govern_units
+          from phase1246_ai_two_stage_margin import settle_hour
+          p=np.full(4,100.)
+          q=np.full(4,1e8)
+          target=target_units_at_completed_close(np.array([.5,.25,0.,0.]),10000.,p)
+          n=govern_units(10000.,np.zeros(4),p,p,target,
+             np.full(4,.4),np.full(4,.65),np.full(4,.0005),q,q*24)
+          out=settle_hour(10000.,np.zeros(4),p,p,p*1.01,p*.99,p*1.005,n,
+             np.full(4,.0001),np.array([1.,0.,0.,0.]),p*.99,p*1.01)
+          assert out['cash_settled'] and not out['hidden_borrow']
+          assert out['turnover']>0 and np.isfinite(out['cash'])
+          print('V98_UNIT_TARGET_81_CORNER_SETTLEMENT_PASS',round(out['cash'],8))
+          PY
