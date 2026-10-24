@@ -71,7 +71,9 @@ def collect(index):
                           "train_rows_so_far": len(selected)}), flush=True)
         if dates != sorted(dates, reverse=True):
             raise ValueError("UNSORTED_DELIVERY_SOURCE")
-        pages.append({"offset": offset, "sha256_raw_response": hashlib.sha256(raw).hexdigest(),
+        canonical_rows = json.dumps(records, sort_keys=True, separators=(",", ":")).encode()
+        pages.append({"offset": offset, "sha256_raw_response_local": hashlib.sha256(raw).hexdigest(),
+                      "sha256_canonical_data_rows": hashlib.sha256(canonical_rows).hexdigest(),
                       "records": len(records)})
         if not records or offset + len(records) >= total or (dates and min(dates) < START):
             break
