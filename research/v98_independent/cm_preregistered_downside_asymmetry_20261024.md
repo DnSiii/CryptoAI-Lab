@@ -1,0 +1,22 @@
+# V98 Independent CM — downside-semivariance asymmetry and downside-beta relative value (PREREGISTERED 2026-10-24)
+
+## Economic hypothesis (independent of rejected CL/CK/CH/CI/CJ)
+A long-biased portfolio selected by **upside-vs-downside realized semivariance asymmetry** can capture asymmetric compounding without relying on CK fixed buy-and-hold, CL volume-weighted close location, CH price-momentum rank, CJ EMA, CI channel compression or CF plain volatility-dispersion rank. Its RV hedge trades **covariance conditional on BTC down hours**, not price-return residuals or native funding-spread rank. No rejected parameters/signs/signals/results transferred. Generic preexisting conservative V98 settlement/governor mechanics only may be reused.
+
+## Locked seven slots (before any CM source data execution)
+1. Growth Core: at 336h intervals compute trailing 504 hourly log returns per asset. For each asset, upside semivariance is mean(max(r,0)^2), downside semivariance mean(min(r,0)^2); asymmetry = upside/downside. Eligible assets have 672h cumulative log return >0 and asymmetry >1.00. Long highest asymmetry eligible at 0.65 and second at 0.35 (or one at 1; otherwise cash). This ranks asymmetry, not returns.
+2. Opportunity: at 168h intervals, among BNB/SOL whose trailing 168h log return <0 and 24h log return >0, long the asset with greatest upside/downside semivariance asymmetry computed on trailing 168 hourly returns. Otherwise cash. A bounce in negative-return assets, not CL signed-volume acceleration or CK BTC lag.
+3. Relative Value: at 168h intervals compute 504h downside beta for each asset = sum(asset hourly return * BTC hourly return where BTC return <0) / sum(BTC return^2 where BTC return <0). If at least 10 negative BTC hours and highest-lowest downside beta >0.05, long lowest beta asset at +0.5 and short highest at -0.5; else cash. Not CK funding-spread, CH residual momentum, or CF unconditional realized-vol rank.
+4. Stress/Recovery: at 168h intervals if >=2 assets have negative 168h log return, select highest 504h downside-beta asset; long if equal-weight Clean-4 24h return >0, short if <0, else cash. Different from CK single-BTC shock direction.
+5. Regime Router: RISK_ON if BTC 168h log return >0 and market average 504h upside semivariance > downside semivariance; RISK_OFF if BTC 168h <0 and market average downside > upside; otherwise MIXED.
+6. Dynamic Allocator: [core,opp,RV,stress] RISK_ON [1.90,.50,.25,.10], MIXED [1.40,.35,.30,.30], RISK_OFF [.65,.30,.40,.50]. Inventory is held in units between scheduled updates. Shared NAV/collateral; no hidden leverage.
+7. Risk Governor: unchanged V98 CG buffered physical governor, including 60% stressed post-fill NAV reserve, 40% floor, 18% maintenance, 0.25% prior-hour participation, 25% staged exits, 81 OHLC corners, 24h adverse continuation, signed native funding and mark bounds.
+
+## Locked gates / isolation
+Only authenticated Clean-4 BTC ETH BNB SOL Binance USD-M 1h Dec-2022 warmup through Dec-2024 training. Native 8h funding and mark bounds pinned; causal completed close t, fill earliest actual open t+1. XRP quarantined; 2025 future holdout sealed; 2026+ and contaminated Phase083 prohibited. No V14/V15/V99 data, signals or benchmarking until CM independently frozen and validated.
+
+Source gate: official pins, future perturbation invariance, each slot >=4 active allocated epochs per 2023 and 2024, RV >=10. Fail => freeze source-only rejection without PnL.
+Economic gate: USD10k five paths (core/full/minus each satellite) x base/severe x both funding orderings = 20 physical cells, independently reproducible on Ubuntu 22.04/24.04. All cells survive, full annual log growth >0 in 2023 and 2024, two-year CAGR >50% base and >30% severe, severe DD <45%, each satellite full-minus-ablated annual log growth >0 in both years, both costs and funding orderings. Fail => freeze rejected, no post-result retuning.
+Only if passed: 90-cell physical scale USD1m/10m, supersevere, independent event-level settlement and 81-corner replay, PF/payoff/win rate/positive days, tails/concentration/regimes, then freeze before untouched future validation. External benchmark only after validation. No paper/live authorization.
+
+**Authorized writes only:** `research/v98_independent/cm_*` and `.github/workflows/v98-independent-cm-*` on `research/v98-independent-zero`. Never modify Frozen, V99, V99 paper or rejected experiments.
