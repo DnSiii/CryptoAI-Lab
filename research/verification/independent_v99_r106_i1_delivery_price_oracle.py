@@ -30,10 +30,13 @@ def main():
             with urlopen(Request(url, headers={"User-Agent": "V99-ReadOnly-Research/1.0",
                                                "Accept": "application/json"}), timeout=35) as r:
                 raw = r.read(4_000_000)
-            assert hashlib.sha256(raw).hexdigest() == page["sha256_raw_response"], "ORIGINAL_PAGE_CHANGED"
             parsed = json.loads(raw)
             assert parsed.get("error") is None
             rows = parsed["result"]["data"]
+            # RPC id / usIn / usOut change per request. Compare the original
+            # first-party DATA rows canonically, not volatile transport envelope.
+            canonical_rows = json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()
+            assert hashlib.sha256(canonical_rows).hexdigest() == page["sha256_canonical_data_rows"], "ORIGINAL_DATA_ROWS_CHANGED"
             assert len(rows) == page["records"]
             assert int(parsed["result"]["records_total"]) == batch["total_reported"]
             for row in rows:
