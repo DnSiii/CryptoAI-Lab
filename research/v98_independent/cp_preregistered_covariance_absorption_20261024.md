@@ -1,0 +1,22 @@
+# V98 Independent CP — preregistered volatility-conditioned growth / absorption / residual leadership / tail reacceleration (2026-10-24)
+
+## Economic thesis and strict independence
+CP tests **conditional covariance and liquidity absorption**, not CO's slow path efficiency, ETH/BTC ratio mean reversion, or volatility-spike recovery; not CM downside beta, CN volume breakout or CK native carry spread. This is a new complete seven-slot hypothesis, not a modification or rescue of any rejected engine. Existing generic V98 physical execution/governor and independent artifact auditor may be reused as infrastructure, never rejected alpha or parameters.
+
+## Frozen seven-slot design (before reading CP training results)
+1. **Growth Core:** every 336h, calculate each asset's trailing 672h log return and realized hourly volatility over 672h. Eligible if 672h log return >0, 168h log return >0 and 672h return / (sqrt(672) * hourly volatility) >0.25. Rank by this risk-adjusted trend statistic, long highest 60%, second 40%; single eligible 100%; else cash.
+2. **Opportunity Sleeve:** every 168h, among BNB/SOL choose an *absorption rebound* where prior 168h return < -0.035, latest 48h return >0, and last 48h mean quote volume >1.10 times previous 336h mean quote volume. Long strongest 48h rebound, else cash. No volume breakout/long-horizon trend continuation.
+3. **Relative-Value Sleeve:** every 168h, estimate each alt's rolling 672h hourly market beta to BTC using completed close returns, then its **last 168h idiosyncratic residual return** = alt 168h log return - beta * BTC 168h log return. When at least two altcoins have opposite-signed residuals and trailing 168h BTC-alt correlation is >0.35 for both, long best positive residual alt 50%, short worst negative residual alt 50%; otherwise cash. No persistent unconditional short; residual dispersion rather than funding carry or log-ratio mean reversion.
+4. **Stress/Recovery Sleeve:** every 168h, when BTC drawdown from its trailing 672h close high >0.10 and 4-asset 48h return mean >0.025 and 4-asset 168h return mean <0, long BTC 60% + ETH 40% (tail reacceleration after systemic drawdown), else cash. No inverse/short protection.
+5. **Regime Router:** RISK_ON if BTC 168h return positive and at least three assets positive 168h; RISK_OFF if BTC 168h negative and at least three assets negative 168h; else MIXED.
+6. **Dynamic Allocator:** [Growth,Opportunity,RV,Stress] budgets RISK_ON [1.80,.40,.25,.20], MIXED [1.35,.40,.35,.35], RISK_OFF [.65,.30,.35,.55], fixed before testing. Shared NAV/collateral, persistent module units between independent update epochs; no hidden leverage.
+7. **Risk Governor:** existing generic CG buffered V98 physical authorization only (60% stressed NAV reserve, 40% floor, 18% maintenance, staged exit/0.25% participation, native 8h funding and mark bounds, 81 OHLC corner stress). No loosening to obtain a pass.
+
+## Locked gates and firewall
+Pinned Clean-4 BTC/ETH/BNB/SOL Binance USD-M hourly Dec-2022 warmup through 2024-12 training only; no 2025 holdout access, 2026+, XRP, Phase083, V14/V15/V99 signals, performance or architecture. Completed close t -> earliest next actual open t+1. Causal future perturbation and pinned native source integrity. Activity minimum effective epochs 2023 **and** 2024: Growth >=4, Opportunity >=4, RV >=8, Stress >=4. Repeated unchanged signals must not be represented as distinct trades or economic events.
+
+If source fails: source-only rejection, **no PnL claim**. If source passes: native USD10k 5 ablation paths x base/severe x 2 funding orderings = 20 physical cells, Ubuntu 22.04/24.04 reproduction and independent artifact-only accounting. Require 20/20 survival, full annual net log growth >0 both years all cases, full CAGR >50% base and >30% severe, severe DD <45%, each sleeve's full-minus-ablated annual net log growth strictly positive for both years/costs/orders. No post-result retune, sign flip, threshold relaxation or gross rescue.
+
+Only if **all** training gates pass: scale USD1m/USD10m, supersevere costs, independent 81-corner event replay, concentration/tail/regime metrics, internal freeze, separate 2025 future validation, then external benchmarks. Never paper/live authorization based on training alone. Any failure => freeze rejected.
+
+Writes restricted to `research/v98_independent/cp_*` and `.github/workflows/v98-independent-cp-*` on `research/v98-independent-zero`. Frozen V16/V99, V99 research/workflows/reports and paper untouched.
