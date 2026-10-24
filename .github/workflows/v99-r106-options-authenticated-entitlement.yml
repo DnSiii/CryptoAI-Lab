@@ -1,0 +1,52 @@
+name: V99 bounded authenticated Deribit option archive entitlement (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research_tools/v99_r106_tardis_authenticated_entitlement.py
+      - .github/workflows/v99-r106-options-authenticated-entitlement.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  minimal-entitlement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TARDIS_API_KEY: ${{ secrets.TARDIS_API_KEY }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Check authenticated non-sample archive entitlement without downloading full data
+        run: python research_tools/v99_r106_tardis_authenticated_entitlement.py
+      - name: Independently assert status is NOT full TRAIN provenance
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('research_evidence/v99_options_entitlement/entitlement_status.json').read_text())
+          assert p['schema']=='V99_R106_TARDIS_BOUNDED_ENTITLEMENT_V1'
+          assert len(p['requested_dates'])==3
+          assert p['original_train_end_exclusive']=='2023-10-01T00:00:00Z'
+          assert not any(p[k] for k in (
+              'validation_opened','holdout_opened','native_fills_authenticated',
+              'options_engine_evaluated','promotion_authorized','orders_enabled',
+              'complete_five_fold_quote_coverage_proven'))
+          assert all(row['single_request_read_bytes']<=1 for row in p['observations'])
+          assert p['status'] in (
+              'BLOCKED_NO_AUTHENTICATED_ARCHIVE_ENTITLEMENT_CONFIGURED',
+              'SAMPLED_NONFIRST_DAY_ACCESS_CONFIRMED_FULL_COVERAGE_UNVERIFIED',
+              'BLOCKED_OR_INCOMPLETE_HISTORICAL_ENTITLEMENT')
+          print('AUTHENTICATION CHECK ONLY / FULL SOURCE NOT CERTIFIED / NO PROMOTION')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-options-entitlement-${{ github.run_id }}
+          path: research_evidence/v99_options_entitlement/
+          retention-days: 30
+          if-no-files-found: error
