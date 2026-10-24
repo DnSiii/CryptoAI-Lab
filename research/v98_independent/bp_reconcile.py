@@ -7,7 +7,7 @@ import json
 import math
 from collections import defaultdict
 
-PBPHS = ('BP_core_only','BP_full','BP_minus_opportunity',
+PATHS = ('BP_core_only','BP_full','BP_minus_opportunity',
          'BP_minus_RV','BP_minus_stress')
 MODES = ('immediate','capacity_1m','capacity_10m')
 FEES = ('base','severe','supersevere')
@@ -52,15 +52,15 @@ def run(root):
             'ubuntu-24.04' if 'ubuntu-24.04' in artifact else '')
         receipt=json.load(open(path))
         name=receipt.get('path')
-        if os not in ('ubuntu-22.04','ubuntu-24.04') or name not in PBPHS or os in groups[name]:
+        if os not in ('ubuntu-22.04','ubuntu-24.04') or name not in PATHS or os in groups[name]:
             errors.append(('artifact',path))
         else:
             groups[name][os]=receipt
-    if len(files)!=10 or set(groups)!=set(PBPHS):
+    if len(files)!=10 or set(groups)!=set(PATHS):
         errors.append(('inventory',len(files),sorted(groups)))
     deltas=[]
     representative={}
-    for name in PBPHS:
+    for name in PATHS:
         g=groups.get(name,{})
         if set(g)!={'ubuntu-22.04','ubuntu-24.04'}:
             errors.append(('os',name,sorted(g)))
@@ -79,7 +79,7 @@ def run(root):
     if len(manifests)!=1 or None in manifests:
         errors.append(('cross_path_source_manifest',sorted(str(x) for x in manifests)))
     total=sum(len(x) for x in cells.values())
-    passed=sum(bpol(c['passed']) for d in cells.values() for c in d.values())
+    passed=sum(bool(c['passed']) for d in cells.values() for c in d.values())
     full=cells.get('BP_full',{})
     base=full.get(('immediate','base','carried_before_fill'),{})
     growth={}
@@ -87,7 +87,7 @@ def run(root):
         for order in ORDERS:
             key=('immediate',fee,order)
             c=full.get(key,{})
-            growth['|'.join(key)]=bpol(c.get('passed') and all(
+            growth['|'.join(key)]=bool(c.get('passed') and all(
                 c['annual'][yr]['net_log_growth']>0 for yr in ('2023','2024')))
     marginal={}
     for sleeve,removed in (('Opportunity','BP_minus_opportunity'),

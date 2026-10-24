@@ -31,7 +31,7 @@ def audit(root):
     count=0;survival=0;cells={}
     for (name,os),a in receipts.items():
         for c in a.get('cells',[]):
-            count+=1;survival+=bpol(c.get('passed'))
+            count+=1;survival+=bool(c.get('passed'))
             key=(name,os,c.get('mode'),c.get('fee'),c.get('order'))
             if key in cells:errors.append(('DUPLICATE_CELL',key))
             cells[key]=c
@@ -75,7 +75,7 @@ def audit(root):
             for order in ORDERS:
                 key=(os,'immediate',fee,order)
                 full=cells.get(('BP_full',)+key,{})
-                growth[str(key)]=bpol(full.get('passed') and all(
+                growth[str(key)]=bool(full.get('passed') and all(
                     full['annual'][y]['net_log_growth']>0 for y in ('2023','2024')))
                 for sleeve,minus in (('opportunity','BP_minus_opportunity'),
                                      ('relative_value','BP_minus_RV'),
@@ -86,7 +86,7 @@ def audit(root):
                             marginal[str((sleeve,)+key+(y,))]=(
                                 full['annual'][y]['net_log_growth']-
                                 other['annual'][y]['net_log_growth'])
-    marg_pass=bpol(len(marginal)==3*2*2*2*2 and all(v>0 for v in marginal.values()))
+    marg_pass=bool(len(marginal)==3*2*2*2*2 and all(v>0 for v in marginal.values()))
     gate=(not errors and count==180 and survival==180 and
           all(growth.values()) and marg_pass)
     return {'architecture':'BP','original_receipts':len(receipts),

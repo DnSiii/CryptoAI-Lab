@@ -52,7 +52,7 @@ def preregistered_decisions(path,frames,sources):
     if path not in PATHS:raise ValueError("BP_UNKNOWN_PATH")
     c,r,e=frames[3],frames[5],frames[6]
     a=BPAllocator()
-    changes=np.zeros((HOURS,4),dtype=bpol)
+    changes=np.zeros((HOURS,4),dtype=bool)
     targets=np.zeros((HOURS,4,4))
     for t in range(HOURS):
         s=np.stack([sources[j][t] for j in range(4)])
@@ -104,7 +104,7 @@ def cell(path,mode,fee,order,frames,risks,decisions):
                 except Exception as exc:
                     raise ValueError("BP_T"+str(t)+"_"+str(exc)) from exc
                 cash=float(out["cash"]);old=out["units"].copy()
-                if (out["hidden_bprrow"] or not out["cash_settled"]
+                if (out["hidden_borrow"] or not out["cash_settled"]
                     or not np.isclose(out["equity"],cash,rtol=0,atol=1e-7)):
                     raise ValueError("BP_NBP_RECONCILIATION_T"+str(t))
                 fees+=out["fees"];slippage+=out["slippage"]
