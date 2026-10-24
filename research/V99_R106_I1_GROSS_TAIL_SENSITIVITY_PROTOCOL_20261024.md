@@ -1,0 +1,14 @@
+# V99 R106 I1 — post-screen gross variance tail sensitivity protocol (2026-10-24 BRT)
+
+**DESCRIPTIVE RISK DIAGNOSTIC ONLY / DATA_ONLY / NO PROMOTION.** I1 original 30-window structural results are already known. This is **not** an ex-ante alpha or trading gate, not an options backtest, and cannot rescue, retune or certify I1. Its purpose is to quantify how fragile the positive gross implied-minus-realized variance is before pursuing costly 2021–2023 executable quotes.
+
+## Fixed calculation, before this new diagnostic run
+- Input: unchanged 30 original I1 asset-window observations from successful Actions 40087572354; original first-party spot and Deribit DVOL receipts are independently reverified by the existing original-byte oracle in the new CI.
+- Preserve 5 chronological folds, 15 nonoverlapping windows per asset, BTC/ETH separate, no re-selection or forward leakage.
+- For every original window calculate `p_m = implied_30d_variance - m * realized_30d_variance` for **m = 1.0, 1.25, 1.5**, a counterfactual 25%/50% amplification of realized quadratic variation, **not** fees, actual market outcomes, implied-volatility trades, simulated PnL, or executable slippage.
+- Report each asset and stress: mean gross premium, count positive windows, count positive chronological folds, minimum window premium, worst realized/implied ratio at m=1.0, top-two positive-premium share, total negative/positive gross premium magnitude, largest absolute negative window relative to total positive premium, and six lagged 3x2 BTC regime observation counts. Also report equal-weight BTC/ETH paired-window gross premium; this is a correlated diagnostic, **not** a portfolio.
+- Independent verification: rebuild each original I1 row from raw OKX/Deribit original bytes using the existing separate independent oracle; separately recompute stress and aggregation with Python Decimal and reject a deliberately tampered report. No silent fallback.
+- No new pass/fail alpha threshold. Positive/negative stressed observations **cannot** promote or formally reject an executable options engine, because no historical bid/ask/size, margins, hedging, funding, native account fee tier or conservative fill simulation exists for full TRAIN. If gross tail fragility is substantial, explicitly deprioritize paying for historical options quotes absent a verifiable data-entitlement proposal.
+- No validation [2023-10-01,2024-01-18), no holdout >=2024-01-18, no orders, no Frozen, legacy champion, paper/results or public performance claim mutation.
+
+The decisive external dependency remains licensed, timestamped BTC/ETH 2021-12-09 through 2023-09-30 historical Deribit option executable bid/ask **and displayed size**, exchange/arrival timestamps, complete coverage manifest, contract/margin/settlement/fee terms and realistic size-aware hedging costs. Existing public two-day partial Tardis samples and HTTP 403 non-sample response are insufficient.
