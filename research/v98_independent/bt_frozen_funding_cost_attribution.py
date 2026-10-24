@@ -10,7 +10,7 @@ import argparse,json,math
 from pathlib import Path
 import numpy as np
 import bt_90cell as eng
-ASSETS=("BTCUSDT","ETHUSDT","BTBUSDT","SOLUSDT")
+ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
 KEYS=("funding","fees","slippage","turnover","gap_pnl","intrabar_pnl","gross_notional_hours")
 def run():
     frames,manifest=eng.load_official()
