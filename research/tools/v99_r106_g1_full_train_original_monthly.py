@@ -45,15 +45,19 @@ def month_bounds(month):
 
 def expected_contracts(month,asset):
     a,b=month_bounds(month)
-    day=max(a,TRAIN_START)
+    # Contracts opened in earlier months MUST remain in the tape until delivery.
+    # Without this, the source collector would silently omit the settlement month.
+    day=TRAIN_START
     found=set()
     while day<b and day<TRAIN_END:
         if day.weekday()==0:
             eligible=[e for e in EXPIRIES if 30 <= (datetime.fromisoformat(e).replace(tzinfo=UTC)-day).total_seconds()/86400 <=110]
             if eligible:
-                found.add(asset+"-USDT-"+min(eligible).replace("-","")[2:])
+                selected=min(eligible)
+                expiry=datetime.fromisoformat(selected).replace(tzinfo=UTC)
+                if expiry>=a:
+                    found.add(asset+"-USDT-"+selected.replace("-","")[2:])
         day+=timedelta(days=1)
-    # Include the previous completed Sunday hour of a Monday signal if month boundary
     return sorted(found)
 
 def decode_hourly(archive,asset,targets,month):
@@ -76,8 +80,8 @@ def decode_hourly(archive,asset,targets,month):
                     t=int(row["open_time"])
                     if not lo<=t<hi or t%60000:raise ValueError("FUTURE_OR_MISALIGNED_CANDLE")
                     if row["confirm"]!="1":bad+=1;continue
-                    p=tuple(Decimal(row[k]) for k in ("open","high","low","close"))
-                    if not all(x.is_finite() and x>0 for x in p):raise ValueError("BAD_NATIVE_PRICE")
+                    p=tuple(Decimal(row[k]) for k in ("open","high","low","close","vol"))
+                    if not all(x.is_finite() and x>0 for x in p[:4]) or not p[4].is_finite() or p[4]<0:raise ValueError("BAD_NATIVE_PRICE_OR_VOLUME")
                     if p[1]<max(p[0],p[3]) or p[2]>min(p[0],p[3]):raise ValueError("BAD_OHLC")
                     grouped[inst][(t//HOUR)*HOUR].append((t,*p))
                     source_rows[inst]+=1
@@ -91,7 +95,7 @@ def decode_hourly(archive,asset,targets,month):
             if minutes[0][0]!=h or minutes[-1][0]!=h+59*60000:continue
             bars.append({"hour_ms":h,"open":str(minutes[0][1]),"high":str(max(x[2] for x in minutes)),
                          "low":str(min(x[3] for x in minutes)),"close":str(minutes[-1][4]),
-                         "native_minutes":60})
+                         "native_minutes":60,"volume_contracts":str(sum((x[5] for x in minutes),Decimal(0)))})
         result[inst]={"original_minutes":source_rows[inst],"complete_hours":bars,
                       "incomplete_or_missing_minutes":source_rows[inst]-60*len(bars)}
     return result,bad
