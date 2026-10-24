@@ -98,5 +98,30 @@ class FullArchiveIntakeTests(unittest.TestCase):
             audit(root,path)
 
 
+    def test_latest_malformed_price_cancels_prior_quote(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            ds=make_fixture(root)
+            first=root/ds[0]["file"]
+            with first.open("r",newline="") as f:
+                rows=list(csv.DictReader(f))
+            bad=dict(rows[1])
+            bad["local_timestamp"]=str(int(bad["local_timestamp"])+1000)
+            bad["timestamp"]=str(int(bad["timestamp"])+1000)
+            bad["ask_price"]="NOT_A_NUMBER"
+            with first.open("w",newline="") as f:
+                w=csv.DictWriter(f,fieldnames=FIELDS)
+                w.writeheader();w.writerows(rows+[bad])
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["rows"]=5
+            manifest["days"][0]["sha256"]=hashlib.sha256(first.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            path=Path(tmp)/"report.json";path.write_text(json.dumps(result))
+            audit(root,path)
+
+
+
 if __name__=="__main__":
     unittest.main()
