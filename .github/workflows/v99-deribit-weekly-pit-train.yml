@@ -1,0 +1,112 @@
+name: V99 Deribit weekly PIT TRAIN options information coverage (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_deribit_weekly_pit_coverage.py'
+      - '.github/workflows/v99-deribit-weekly-pit-train.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-options-weekly-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify pre-fixed chronological sampling and no future access
+        run: |
+          python - <<'PY'
+          from research.tools.v99_deribit_weekly_pit_coverage import decisions, classify
+          from research.tools.v99_r106_d1_real_train_source_join import START, END, FOLD_EDGES
+          slots=list(decisions())
+          assert 85<len(slots)<100
+          assert len({t for t,_ in slots})==len(slots)
+          assert all(START<t<END and FOLD_EDGES[f-1]<=t<FOLD_EDGES[f] for t,f in slots)
+          t,_=slots[0]
+          assert not classify([dict(timestamp=t, instrument_name='BTC-25MAR22-50000-C', iv=80)],'BTC',t)[0]
+          print('CAUSAL PRECHECK PASS; NO ECONOMIC SCORING')
+          PY
+      - name: Retrieve original Deribit weekly option trades in isolated TRAIN
+        run: python -m research.tools.v99_deribit_weekly_pit_coverage research_evidence/deribit_weekly_pit
+      - name: Independent source hash and PIT-chain oracle
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from collections import defaultdict
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,FOLD_EDGES
+          root=Path('research_evidence/deribit_weekly_pit')
+          o=json.loads((root/'pit_coverage.json').read_text())
+          assert o['start_ms']==START and o['end_exclusive_ms']==END
+          assert o['fold_edges']==list(FOLD_EDGES)
+          assert o['max_recent_trades']==100 and o['max_trade_age_ms']==21600000
+          assert all(not o[k] for k in ('economic_train_executed','validation_opened',
+                     'holdout_opened','orders_enabled','promotion_authorized'))
+          seen=set()
+          counts=defaultdict(lambda:[0,0,0])
+          for r in o['rows']:
+              t,f,c=r['decision_ms'],r['fold'],r['currency']
+              assert (t,c) not in seen and c in ('BTC','ETH')
+              seen.add((t,c))
+              assert FOLD_EDGES[f-1]<=t<FOLD_EDGES[f]
+              assert datetime.fromtimestamp(t/1000,timezone.utc).weekday()==0
+              assert t%86400000==0 and r['query_start_ms']==t-86400000 and r['query_end_ms']==t-1
+              counts[(f,c)][0]+=1
+              if r['status']!='SOURCE_OK':
+                  counts[(f,c)][2]+=1
+                  assert not r['eligible_lower_bound']
+                  continue
+              raw=(root/r['receipt_file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==r['sha256']
+              trades=json.loads(raw)['result']['trades']
+              assert len(trades)==r['source_count']<=100
+              strikes=defaultdict(set)
+              for v in trades:
+                  ts=int(v['timestamp'])
+                  assert t-86400000<=ts<t
+                  if t-ts>21600000:
+                      continue
+                  b=str(v.get('instrument_name','')).split('-')
+                  if len(b)!=4 or b[0]!=c or b[3] not in ('C','P'):
+                      continue
+                  try:
+                      iv=float(v['iv']); strike=float(b[2])
+                      expiry=datetime.strptime(b[1].upper(),'%d%b%y').replace(tzinfo=timezone.utc)
+                  except (ValueError,KeyError,TypeError):
+                      continue
+                  if not 0<iv<=1000 or strike<=0:
+                      continue
+                  days=((int(expiry.timestamp()*1000)+28800000)-t)/86400000
+                  band='short' if 7<=days<=45 else ('long' if 46<=days<=120 else None)
+                  if band:
+                      strikes[(band,b[3])].add(strike)
+              eligible=all(len(strikes[(band,side)])>=2 for band in ('short','long') for side in ('C','P'))
+              assert eligible==r['eligible_lower_bound']
+              counts[(f,c)][1]+=int(eligible)
+          assert len(seen)==len(o['rows']) and len(seen)>170
+          for r in o['fold_summary']:
+              n,k,errors=counts[(r['fold'],r['currency'])]
+              assert (n,k,errors)==(r['weekly_slots'],r['eligible_lower_bound'],r['source_errors'])
+              assert abs(r['fraction']-k/n)<1e-12
+          good=sum(all(counts[(f,c)][1]/counts[(f,c)][0]>=0.70 for c in ('BTC','ETH'))
+                   for f in range(1,6))
+          assert good==o['good_folds']
+          assert o['coverage_gate']==('PIT_SAMPLE_SUFFICIENT_FOR_NEXT_DESIGN' if good>=4 else 'PIT_SAMPLE_INSUFFICIENT')
+          print('INDEPENDENT ORIGINAL HASH, STRICT t-1, IV COVERAGE AND FIVE FOLDS PASS')
+          print('PIT SOURCE COVERAGE:',o['coverage_gate'],good,'/5 folds; NO PNL/NO PROMOTION')
+          PY
+      - name: Preserve original source and decision
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-deribit-weekly-pit-source
+          path: research_evidence/deribit_weekly_pit/
+          retention-days: 30
+          if-no-files-found: warn
