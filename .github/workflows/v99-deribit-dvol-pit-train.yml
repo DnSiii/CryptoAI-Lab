@@ -1,0 +1,99 @@
+name: V99 original Deribit DVOL daily PIT TRAIN source and independent oracle (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_deribit_dvol_pit_train.py'
+      - '.github/workflows/v99-deribit-dvol-pit-train.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  firstparty-dvol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Query original Deribit historical DVOL daily candles TRAIN only
+        run: python -m research.tools.v99_deribit_dvol_pit_train research_evidence/dvol_original_train
+      - name: Independent raw SHA, timestamp and conservative t-1 five-fold oracle
+        run: |
+          python - <<'PY'
+          import hashlib,json,math
+          from pathlib import Path
+          from research.tools.v99_deribit_weekly_pit_1000_coverage import decisions,DAY
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,FOLD_EDGES
+          root=Path('research_evidence/dvol_original_train')
+          r=json.loads((root/'dvol_train_source.json').read_text())
+          assert r['schema']=='V99_DERIBIT_FIRSTPARTY_DVOL_PIT_TRAIN_V1'
+          assert (r['start_ms'],r['end_exclusive_ms'])==(START,END)
+          assert r['fold_edges']==list(FOLD_EDGES) and r['max_age_ms']==2*DAY
+          assert all(not r[k] for k in ('economic_train_executed','validation_opened',
+                         'holdout_opened','orders_enabled','promotion_authorized'))
+          rawseries={}
+          for src in r['source_rows']:
+              key=(src['fold'],src['currency'])
+              if src['status']=='SOURCE_ERROR':
+                  assert src['errors']
+                  rawseries[key]={}
+                  continue
+              b=(root/src['receipt_file']).read_bytes()
+              assert hashlib.sha256(b).hexdigest()==src['sha256']
+              payload=json.loads(b)
+              assert not payload.get('error') and payload['result'].get('continuation') is None
+              candles={}
+              for row in payload['result']['data']:
+                  ts=int(row[0]);v=list(map(float,row[1:5]))
+                  assert src['query_start_ms']<=ts<=src['query_end_ms']
+                  assert len(v)==4 and all(math.isfinite(x) and x>0 for x in v)
+                  assert v[1]>=max(v[0],v[2],v[3]) and v[2]<=min(v[0],v[1],v[3])
+                  assert ts not in candles
+                  candles[ts]=v[3]
+              assert len(candles)==src['candles']
+              assert list(candles)==sorted(candles)
+              rawseries[key]=candles
+          expected={(t,f,c) for t,f in decisions() for c in ('BTC','ETH')}
+          assert len(expected)==188
+          assert {(v['decision_ms'],v['fold'],v['currency']) for v in r['weekly']}==expected
+          for item in r['weekly']:
+              t,f,c=item['decision_ms'],item['fold'],item['currency']
+              admissible=[(ts,v) for ts,v in rawseries[(f,c)].items()
+                          if ts+DAY<t and t-(ts+DAY)<=2*DAY]
+              best=max(admissible,default=None)
+              assert item['eligible']==(best is not None)
+              if best is None:
+                  assert item['dvol_close'] is None and item['candle_start_ms'] is None
+              else:
+                  assert (item['candle_start_ms'],item['dvol_close'])==best
+                  assert item['age_after_close_ms']==t-best[0]-DAY
+          good=0
+          for fold in range(1,6):
+              ok=True
+              for c in ('BTC','ETH'):
+                  group=[x for x in r['weekly'] if x['fold']==fold and x['currency']==c]
+                  row=next(x for x in r['folds'] if x['fold']==fold and x['currency']==c)
+                  n=sum(x['eligible'] for x in group)
+                  assert (row['weeks'],row['eligible'])==(len(group),n)
+                  assert abs(row['fraction']-n/len(group))<1e-12
+                  ok &= n/len(group)>=0.95
+              good+=int(ok)
+          assert good==r['good_folds']
+          assert r['gate']==('DVOL_SOURCE_READY_FOR_ONE_ENGINE_PREREG' if good>=4 else 'DVOL_SOURCE_FAIL')
+          print('INDEPENDENT ORIGINAL DERIBIT DVOL SOURCE ORACLE: PASS')
+          print('FOLDS:',[(x['fold'],x['currency'],x['eligible'],x['weeks']) for x in r['folds']])
+          print('GOOD FOLDS',good,'/5; GATE',r['gate'])
+          print('NO PNL, NO PROMOTION, NO ORDERS')
+          PY
+      - name: Preserve original daily DVOL receipts and PIT decision
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-deribit-dvol-original-pit-train
+          path: research_evidence/dvol_original_train/
+          retention-days: 30
+          if-no-files-found: warn
