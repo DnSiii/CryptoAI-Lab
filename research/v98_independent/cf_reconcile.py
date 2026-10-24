@@ -37,8 +37,8 @@ def run(root):
         if set(pair)!=set(OS):
             errors.append(("OS_MISSING",path));continue
         a,b=(pair[o] for o in OS)
-        all_source.update((a.get("sourcf_manifest_sha256"),b.get("sourcf_manifest_sha256")))
-        if a.get("sourcf_manifest_sha256")!=b.get("sourcf_manifest_sha256"):
+        all_source.update((a.get("source_manifest_sha256"),b.get("source_manifest_sha256")))
+        if a.get("source_manifest_sha256")!=b.get("source_manifest_sha256"):
             errors.append(("SOURCF_SHA",path))
         x,y=(z.get("cells",[]) for z in (a,b))
         if len(x)!=18 or len(y)!=18:
@@ -115,7 +115,7 @@ def run(root):
     else:decision="PASS_CF_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"CF","historical_training_only":True,
             "validation_2025_read":False,"external_benchmarks_used":False,
-            "errors":errors[:40],"sourcf_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
+            "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
             "cross_os_reproducible":not errors and len(reps)==5,
             "cells_expected":90,"cells_survived":survival,
             "growth_gates_10k":growth,"high_growth_gate_10k":high_growth,"severe_drawdown_gate_10k":severe_dd,

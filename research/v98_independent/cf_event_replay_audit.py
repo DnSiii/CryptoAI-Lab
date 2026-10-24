@@ -10,7 +10,7 @@ import numpy as np
 from cf_sources import bundle,BUDGETS,WARMUP
 from cf_90cell import prepare_risks,START_EXECUTION
 from cf_buffered_governor import CFBufferedGovernor
-from phase1260_aj_authenticated_sourcf_digest import load_official,HOURS
+from phase1260_aj_authenticated_source_digest import load_official,HOURS
 from phase1246_ai_two_stage_margin import settle_hour
 from v98_staged_exit_viability_governor_v2 import FEES
 

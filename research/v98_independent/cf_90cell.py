@@ -11,7 +11,7 @@ from cf_buffered_governor import CFBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 from ak_slow_compound_execution import risk_history
 from phase1246_ai_two_stage_margin import settle_hour
-from phase1260_aj_authenticated_sourcf_digest import load_official,HOURS
+from phase1260_aj_authenticated_source_digest import load_official,HOURS
 
 PATHS=("CF_core_only","CF_full","CF_minus_opportunity","CF_minus_RV","CF_minus_stress")
 CAPITAL={"immediate":10000.,"capacity_1m":1e6,"capacity_10m":1e7}
@@ -168,7 +168,7 @@ def run(path):
     return {"architecture":"CF","path":path,
             "historical_training_only":True,"validation_2025_read":False,
             "external_benchmarks_used":False,
-            "sourcf_manifest_sha256":hashlib.sha256(json.dumps(
+            "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":18,"cells":cases,
             "decision":"PASS_CF_MECHANICAL_ONLY" if len(cases)==18 and
