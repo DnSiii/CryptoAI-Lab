@@ -1,0 +1,45 @@
+name: V99 G1 exact 155 missing TRAIN hours original OKX daily repair (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_missing_daily_repair.py'
+      - '.github/workflows/v99-r106-g1-missing-daily-repair.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-daily-source-gap-closure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Download independently audited full original monthly TRAIN sources
+        run: |
+          gh run download 40052064153 --repo "$GITHUB_REPOSITORY" --pattern 'batch*' --dir research_evidence/g1_monthly
+      - name: Enumerate exact 155 original missing hourly requirements, never query validation
+        run: |
+          python -m research.tools.v99_r106_g1_missing_daily_repair plan research_evidence/g1_monthly research_evidence/g1_gap_plan
+      - name: Recover original OKX daily trade ZIPs for only those missing hours
+        run: |
+          python -m research.tools.v99_r106_g1_missing_daily_repair collect research_evidence/g1_gap_plan research_evidence/g1_gap_daily
+      - name: Independently re-execute all daily original trade bytes and exact missing-hour bars
+        run: |
+          python -m research.tools.v99_r106_g1_missing_daily_repair audit research_evidence/g1_gap_plan research_evidence/g1_gap_daily research_evidence/g1_gap_audit
+      - name: Preserve raw daily original receipts and independent verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-exact-missing-daily-original-${{ github.run_id }}
+          path: |
+            research_evidence/g1_gap_plan/
+            research_evidence/g1_gap_daily/
+            research_evidence/g1_gap_audit/
+          retention-days: 90
+          if-no-files-found: warn
