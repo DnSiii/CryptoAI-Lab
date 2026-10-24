@@ -6,6 +6,7 @@ on:
     paths:
       - research_tools/v99_r106_tardis_quotes_sample.py
       - research_tools/v99_r106_tardis_quotes_sample_oracle.py
+      - research_tools/v99_r106_tardis_access_gate.py
       - .github/workflows/v99-r106-tardis-options-quotes-source.yml
   workflow_dispatch:
 permissions:
@@ -23,6 +24,8 @@ jobs:
         run: python research_tools/v99_r106_tardis_quotes_sample.py
       - name: Independent sample hash and timestamp/quote oracle
         run: python research_tools/v99_r106_tardis_quotes_sample_oracle.py
+      - name: Check anonymous non-sample quote entitlement (HEAD only)
+        run: python research_tools/v99_r106_tardis_access_gate.py
       - name: Archive sample receipts even on failure
         if: always()
         uses: actions/upload-artifact@v4
