@@ -107,7 +107,8 @@ def decode_trade_hourly(archive,targets,month):
     # Retain the adjacent eight-hour boundary solely for original cross-month stitching.
     lo,hi=epoch(a)-8*HOUR,min(epoch(b)+8*HOUR,epoch(TRAIN_END))
     grouped=defaultdict(lambda:defaultdict(list))
-    ids=defaultdict(set)
+    ids=defaultdict(dict)
+    exact_duplicate_rows=defaultdict(int)
     with zipfile.ZipFile(io.BytesIO(archive)) as z:
         for member in z.infolist():
             if not member.filename.lower().endswith(".csv"):continue
@@ -122,11 +123,16 @@ def decode_trade_hourly(archive,targets,month):
                     t=int(row["created_time"])
                     if not lo<=t<hi:continue  # UTC+8 archive boundary; never feed post-TRAIN records
                     trade_id=int(row["trade_id"])
-                    if trade_id in ids[inst]:raise ValueError("DUPLICATE_ORIGINAL_TRADE_ID")
-                    ids[inst].add(trade_id)
                     price,size=Decimal(row["price"]),Decimal(row["size"])
                     if not price.is_finite() or price<=0 or not size.is_finite() or size<=0:
                         raise ValueError("BAD_NATIVE_TRADE_PRICE_OR_SIZE")
+                    identity=(t,price,size)
+                    if trade_id in ids[inst]:
+                        if ids[inst][trade_id]!=identity:
+                            raise ValueError("CONFLICTING_ORIGINAL_TRADE_ID")
+                        exact_duplicate_rows[inst]+=1
+                        continue  # exact repeated source row, not an additional trade
+                    ids[inst][trade_id]=identity
                     grouped[inst][(t//HOUR)*HOUR].append((t,trade_id,price,size))
     out={}
     for inst in targets:
@@ -139,7 +145,7 @@ def decode_trade_hourly(archive,targets,month):
                          "close":str(rows[-1][2]),
                          "volume_contracts":str(sum((x[3] for x in rows),Decimal(0))),
                          "native_trades":len(rows)})
-        out[inst]={"original_trades":len(ids[inst]),"complete_hours":bars}
+        out[inst]={"original_trades":len(ids[inst]),"exact_duplicate_rows":exact_duplicate_rows[inst],"complete_hours":bars}
     return out
 
 def required_hours(inst,month):
