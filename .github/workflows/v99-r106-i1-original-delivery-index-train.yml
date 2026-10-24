@@ -1,0 +1,49 @@
+name: V99 I1 original Deribit expiry delivery index TRAIN only (NO TRADES)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_delivery_price_receipts.py
+      - research/verification/independent_v99_r106_i1_delivery_price_oracle.py
+      - .github/workflows/v99-r106-i1-original-delivery-index-train.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-delivery-index-receipts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      V99_DELIVERY_OUTPUT: research_evidence/i1_delivery_train/delivery_index_train_only.json
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Collect original Deribit BTC ETH expiry delivery prices (TRAIN records only)
+        run: python -m research.tools.v99_r106_i1_delivery_price_receipts
+      - name: Independently refetch and SHA verify every original page
+        run: python -m research.verification.independent_v99_r106_i1_delivery_price_oracle
+      - name: Enforce no post-TRAIN records or economic claims in artifact
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import date
+          from pathlib import Path
+          p=json.loads(Path('research_evidence/i1_delivery_train/delivery_index_train_only.json').read_text())
+          assert set(p['assets'])=={'btc_usd','eth_usd'}
+          for a in p['assets'].values():
+              assert all(date(2021,12,9)<=date.fromisoformat(x['date'])<date(2023,10,1) for x in a['records'])
+          assert p['not_executable_quotes'] and p['no_orders'] and p['no_promotion']
+          print('FIRST PARTY DELIVERY PRICES ONLY; NO QUOTES, NATIVE FEES, HISTORICAL FILLS, ECONOMICS OR PROMOTION')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-delivery-index-train-${{ github.run_id }}
+          path: research_evidence/i1_delivery_train/
+          retention-days: 60
+          if-no-files-found: warn
