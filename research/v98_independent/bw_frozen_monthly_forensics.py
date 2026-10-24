@@ -108,7 +108,7 @@ def main():
                     + b["by_asset"][a]["intrabar"] for a in ASSETS)
                 for b in monthly.values()), net):
                 raise ValueError("BW_FORENSIC_MONTHLY_IDENTITY")
-            if not close(monthly["2023-01"]["start_nav"], receipt["initial_nav"]):
+            if not close(monthly[sorted(monthly)[0]]["start_nav"], receipt["initial_nav"]):
                 raise ValueError("BW_FORENSIC_FIRST_MONTH")
             if not close(monthly["2024-12"]["end_nav"], receipt["final_nav"]):
                 raise ValueError("BW_FORENSIC_LAST_MONTH")
