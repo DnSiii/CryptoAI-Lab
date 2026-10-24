@@ -1,0 +1,13 @@
+# V99 — fixed 6h historical options-chain pagination feasibility (2026-10-24 BRT)
+
+**DATA_ONLY/HOLD. This is a provenance/comparability remedy, not a new alpha candidate or economic backtest.** Existing 1000-latest-trades responses were truncated 188/188 and the independently checked near-ATM, four-group IV sample covered only 2/5 TRAIN folds at the diagnostic 70% weekly threshold. Repeatedly raising a blind sample cap is not a defensible solution.
+
+## Pre-fixed source-only test, before new observations
+- Select **the first Monday 00:00 UTC decision in each of the existing five chronological TRAIN folds**, for both BTC and ETH (10 fixed currency-decisions). Never select by observed IV, prices or strategy returns.
+- Query the original Deribit historical option-trade API over **[decision-6h, decision)**, strict t-1, descending, 1000 trades per request. Follow the exchange's `has_more` using an **overlapping timestamp cursor**, deduplicating by `trade_id`. Fail closed if cursor does not progress, overlap cannot be independently verified, timestamp ordering is inconsistent, API returns invalid data, or 30 pages per decision are exhausted.
+- Preserve original response bytes, query windows, SHA-256, timestamp/ID boundary checks and errors. No interpolated IV, synthetic trades, synthetic option quotes or guessed missing rows.
+- Evaluate the **unchanged** near-ATM diagnostic: trade IV finite (0,1000], contemporaneous `index_price` finite >0, <=15% absolute log(strike/index), 7–45d and 46–120d expiry bands, >=2 distinct strikes for each of call/put in each band. The index field's true PIT semantics remain a separate unverified question.
+- An independently implemented oracle must re-read the original bytes, recheck cursors/hashes/timestamps/unique IDs and recompute eligibility; do not infer success from a green workflow alone.
+- Report each of 10 decisions individually; **do not extrapolate** 1 date per fold to 70% weekly coverage, 5/5 TRAIN stability or profitability. If complete 6h data proves achievable, implement a full fixed 94-week two-asset TRAIN collector before economic strategy selection. If not, report the exact pagination/data limitation and seek first-party per-instrument history or archived quotes instead of another arbitrary depth grid.
+
+No validation [2023-10-01,2024-01-18) or final holdout >=2024-01-18 access. No orders, no paper/Frozen/champion writes, no ROI, no promotion. Native historical OKX account fees, funding and fills remain unverified separately.
