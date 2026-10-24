@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse,glob,json,math
 from pathlib import Path
 PATHS=('BV_core_only','BV_full','BV_minus_opportunity','BV_minus_RV','BV_minus_stress')
-OS=('ubvntu-22.04','ubvntu-24.04')
+OS=('ubuntu-22.04','ubuntu-24.04')
 CAPITAL={'immediate':10000.,'capacity_1m':1e6,'capacity_10m':1e7}
 FEES={'base':(.0005,.0005),'severe':(.002,.003),'supersevere':(.005,.010)}
 ORDERS=('carried_before_fill','new_after_fill')

@@ -48,11 +48,11 @@ def run(root):
     for path in files:
         parts=path.split('/')
         artifact=parts[-2]
-        os=('ubvntu-22.04' if 'ubvntu-22.04' in artifact else
-            'ubvntu-24.04' if 'ubvntu-24.04' in artifact else '')
+        os=('ubuntu-22.04' if 'ubuntu-22.04' in artifact else
+            'ubuntu-24.04' if 'ubuntu-24.04' in artifact else '')
         receipt=json.load(open(path))
         name=receipt.get('path')
-        if os not in ('ubvntu-22.04','ubvntu-24.04') or name not in PATHS or os in groups[name]:
+        if os not in ('ubuntu-22.04','ubuntu-24.04') or name not in PATHS or os in groups[name]:
             errors.append(('artifact',path))
         else:
             groups[name][os]=receipt
@@ -62,10 +62,10 @@ def run(root):
     representative={}
     for name in PATHS:
         g=groups.get(name,{})
-        if set(g)!={'ubvntu-22.04','ubvntu-24.04'}:
+        if set(g)!={'ubuntu-22.04','ubuntu-24.04'}:
             errors.append(('os',name,sorted(g)))
             continue
-        a,b=g['ubvntu-22.04'],g['ubvntu-24.04']
+        a,b=g['ubuntu-22.04'],g['ubuntu-24.04']
         compare(a,b,name,deltas,errors)
         representative[name]=a
     cells={}

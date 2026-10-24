@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubvntu-22.04, ubvntu-24.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
         path: [BV_core_only, BV_full, BV_minus_opportunity, BV_minus_RV, BV_minus_stress]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 55
@@ -89,13 +89,13 @@ jobs:
   reconcile:
     if: always()
     needs: train
-    runs-on: ubvntu-24.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          pattern: bv90-ubvntu-*
+          pattern: bv90-ubuntu-*
           path: receipts
       - name: Independent two-OS 90-cell economic, marginal and causal gate
         run: python research/v98_independent/bv_reconcile.py --root receipts --output bv90_official_economic_summary.json
@@ -119,7 +119,7 @@ jobs:
   native-event-replay:
     needs: train
     if: always()
-    runs-on: ubvntu-24.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
