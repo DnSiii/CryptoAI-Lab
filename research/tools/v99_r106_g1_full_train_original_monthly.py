@@ -161,7 +161,7 @@ def required_hours(inst,month):
         day+=timedelta(days=1)
     if not eligible_mondays:raise ValueError("NONPREREG_CONTRACT_SELECTED")
     start=max(a,min(eligible_mondays)-timedelta(hours=1))
-    end=min(b,expiry,TRAIN_END)
+    # OKX original futures rules specify Friday delivery at 08:00 UTC.\n    end=min(b,expiry+timedelta(hours=8),TRAIN_END)
     return set(range(epoch(start),epoch(end),HOUR))
 
 def collect(batch,outdir):
