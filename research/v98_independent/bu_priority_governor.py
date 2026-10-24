@@ -17,6 +17,17 @@ class BUPriorityGovernor(BAGovernor):
         a=np.asarray(rows,dtype=float)
         if a.shape!=(4,4) or not np.isfinite(a).all():
             raise ValueError("BU_COMPONENT_INPUT")
+        # The BTC/ETH core cannot re-risk after a physical risk ratchet.
+        # Satellites have zero BTC/ETH inventory by preregistration.
+        if np.any(a[1:,:2]):
+            raise ValueError("BU_SATELLITE_CORE_ASSET_OVERLAP")
+        if self.epochs:
+            previous=self.authorized[:2]
+            a=a.copy()
+            a[0,:2]=np.sign(a[0,:2])*np.minimum(
+                np.abs(a[0,:2]),np.where(
+                    np.sign(previous)==np.sign(a[0,:2]),
+                    np.abs(previous),0.))
         self.component_rows=a.copy()
         self.requested=a.sum(axis=0)
         self.needs_authorization=True
@@ -75,6 +86,13 @@ def static_check():
     assert np.allclose(n[:2],ncore[:2],rtol=0,atol=1e-8)
     assert 0.<=g.satellite_admission_fraction<=1.
     assert np.isfinite(n).all()
+    # A forced prior BTC/ETH ratchet is irreversible even at a new event.
+    prior=np.array([.4,.2,0.,0.])
+    g.authorized=prior.copy()
+    g.epochs=1
+    g.signal_components(rows)
+    assert np.all(g.component_rows[0,:2]<=prior[:2]+1e-10)
+    assert np.all(g.component_rows[1:,:2]==0.)
     return True
 if __name__=="__main__":
     assert static_check()
