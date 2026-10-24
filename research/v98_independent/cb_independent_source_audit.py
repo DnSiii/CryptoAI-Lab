@@ -51,7 +51,7 @@ def independently_decide(c,r,e,t):
 def audit(receipt):
     frames,manifest=load_official()
     op,hi,lo,cl,q,rate,event,ml,mh=frames
-    errors=[];checks=0;event_checks=0;corner_checks=0
+    errors=[];checks=0;event_checks=0;adverse_hour_checks=0
     episodes=receipt.get("episodes",[])
     expected=list(range(START,HOURS-STEP-1,STEP))
     if len(episodes)!=len(expected):errors.append("EPISODE_COUNT")
@@ -123,7 +123,7 @@ def audit(receipt):
                 if not near(net,row["net_per_gross_usd"][fee]):
                     errors.append("NET_"+fee+"_"+str(t)+"_"+str(i))
                 if active:annual[yr][NAMES[i]]["net"][fee]+=net
-            corner_checks+=81 if active else 0
+            adverse_hour_checks+=STEP if active else 0
     for yr in annual:
         for book in NAMES:
             got=receipt["annual"][yr][book]
@@ -143,7 +143,7 @@ def audit(receipt):
             "passed":not errors,"errors":errors[:40],
             "independently_rederived_episode_books":checks,
             "native_funding_asset_events_replayed":event_checks,
-            "conservative_intrahold_corner_scenarios":corner_checks,
+            "independently_checked_adverse_hours":adverse_hour_checks,
             "source_gates_rederived":gates,
             "decision":("PASS_CB_INDEPENDENT_SOURCE_AUDIT_ONLY" if not errors
                         else "BLOCK_CB_INDEPENDENT_SOURCE_AUDIT")}
