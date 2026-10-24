@@ -290,22 +290,9 @@ def audit(rootdir,outdir):
             for inst,data in stored.items():
                 totals["original_minutes"]+=data["original_minutes"]
                 totals["complete_hours"]+=len(data["complete_hours"])
-                expiry=datetime.strptime(inst[-6:],"%y%m%d").replace(tzinfo=UTC)
-                a,b=month_bounds(rec["month"])
-                # Original weekly decision must have prior completed hour. Include
-                # the entire subsequent carry until contractual expiry date.
-                eligible_mondays=[]
-                day=TRAIN_START
-                while day<min(TRAIN_END,expiry):
-                    if day.weekday()==0:
-                        candidates=[e for e in EXPIRIES if 30 <= (datetime.fromisoformat(e).replace(tzinfo=UTC)-day).total_seconds()/86400 <=110]
-                        if candidates and min(candidates).replace("-","")[2:]==inst[-6:]:
-                            eligible_mondays.append(day)
-                    day+=timedelta(days=1)
-                if not eligible_mondays:raise ValueError("NONPREREG_CONTRACT_SELECTED")
-                first=min(eligible_mondays)-timedelta(hours=1)
-                start=max(a,first);end=min(b,expiry,TRAIN_END)
-                expected_hours=set(range(epoch(start),epoch(end),HOUR))
+                # Single canonical preregistered hourly coverage contract:
+                # include Friday 00:00-07:00 UTC up to the 08:00 UTC delivery.
+                expected_hours=required_hours(inst,rec["month"])
                 observed_hours={x["hour_ms"] for x in data["complete_hours"]}
                 observed_hours.update(x["hour_ms"] for x in recovered.get(inst,{}).get("complete_hours",[]))
                 global_hours[(rec["asset"],inst)].update(observed_hours)
