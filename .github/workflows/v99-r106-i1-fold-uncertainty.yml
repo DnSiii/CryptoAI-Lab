@@ -1,0 +1,71 @@
+name: V99 I1 original TRAIN fold uncertainty independent audit (NO TRADES)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_r106_i1_fold_uncertainty.py'
+      - 'research/verification/independent_v99_r106_i1_fold_uncertainty_oracle.py'
+      - '.github/workflows/v99-r106-i1-fold-uncertainty.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  fixed-post-screen-descriptive-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Enforce pre-existing protocol and read-only source
+        run: |
+          git merge-base --is-ancestor 7d7a8f385f27ca0f13b793574502597fce4cbb50 HEAD
+          test -s research/V99_R106_I1_FOLD_UNCERTAINTY_PREREG_20261024.md
+          python -m py_compile research/tools/v99_r106_i1_fold_uncertainty.py research/verification/independent_v99_r106_i1_fold_uncertainty_oracle.py
+      - name: Restore existing original first-party source-verified I1 TRAIN report
+        run: |
+          gh run download 40087572354 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-variance-premium-screen-40087572354 \
+            --dir research_evidence/i1_original_screen
+      - name: Calculate exact five-fold gross uncertainty without tuning
+        run: |
+          python -m research.tools.v99_r106_i1_fold_uncertainty \
+            research_evidence/i1_original_screen/i1_structural_report.json \
+            research_evidence/i1_fold_uncertainty
+      - name: Independent Decimal reexecution and deliberate corruption rejection
+        run: |
+          python -m research.verification.independent_v99_r106_i1_fold_uncertainty_oracle \
+            research_evidence/i1_original_screen/i1_structural_report.json \
+            research_evidence/i1_fold_uncertainty/i1_fold_uncertainty.json
+      - name: Hard-block ROI, orders, validation, holdout and promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('research_evidence/i1_fold_uncertainty')
+          r=json.loads((root/'i1_fold_uncertainty.json').read_text())
+          o=json.loads((root/'i1_fold_uncertainty_oracle.json').read_text())
+          assert o['status']=='I1_ORIGINAL_TRAIN_DECIMAL_FOLD_UNCERTAINTY_VERIFIED'
+          assert o['corruption_rejected'] and not o['options_pnl_computed']
+          assert r['chronological_folds']==5 and r['original_windows_per_asset']==15
+          assert r['gross_only'] and r['fold_independence_unverified']
+          for k in ('promotion_authorized','validation_opened','holdout_opened',
+                    'orders_enabled','paper_publication_authorized',
+                    'trading_engine_evaluated','economic_backtest_executed'):
+              assert r[k] is False,k
+          print('DESCRIPTIVE TRAIN ONLY / NO TRADES / NO ROI / NO PROMOTION')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-i1-fold-uncertainty-${{ github.run_id }}
+          path: research_evidence/i1_fold_uncertainty/
+          retention-days: 90
+          if-no-files-found: error
