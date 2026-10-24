@@ -21,6 +21,8 @@ def source_bundle(close,quote,rate,event):
     core=np.zeros_like(c);opp=np.zeros_like(c)
     rv=np.zeros_like(c);stress=np.zeros_like(c)
     states=np.full(n,"MIXED",dtype="<U12")
+    edge=np.zeros((n,4));carry_cost=np.zeros((n,4))
+    opp_edge=opp_carry=rv_edge=rv_carry=stress_edge=stress_carry=0.
     core_asset=-1
     opp_asset=-1;opp_until=-1;opp_last=-100000
     rv_pair=(-1,-1);rv_until=-1;rv_last=-100000
@@ -54,7 +56,10 @@ def source_bundle(close,quote,rate,event):
                     opp_asset=sorted(eligible,
                         key=lambda j:(-round(float(r24[j]-r168[j]),12),j))[0]
                     opp_last=t;opp_until=t+HOLD_OPP
-        if opp_asset>=0 and t<opp_until:opp[t,opp_asset]=1.
+                    opp_edge=float(r24[opp_asset]-.035+.2*abs(r168[opp_asset]))
+                    opp_carry=float(f168[opp_asset])
+        if opp_asset>=0 and t<opp_until:
+            opp[t,opp_asset]=1.;edge[t,1]=opp_edge;carry_cost[t,1]=opp_carry
         if t>=rv_until:
             rv_pair=(-1,-1)
             if t>=rv_last+COOLDOWN:
@@ -70,8 +75,11 @@ def source_bundle(close,quote,rate,event):
                     _,long,short=sorted(eligible,
                         key=lambda z:(-round(z[0],12),z[1],z[2]))[0]
                     rv_pair=(long,short);rv_last=t;rv_until=t+HOLD_RV
+                    rv_edge=.5*float(r336[long]-r336[short])
+                    rv_carry=float(f168[long]-f168[short])
         if rv_pair[0]>=0 and t<rv_until:
             rv[t,rv_pair[0]]=.5;rv[t,rv_pair[1]]=-.5
+            edge[t,2]=rv_edge;carry_cost[t,2]=rv_carry
         if t>=stress_until:
             stress_asset=-1
             if t>=stress_last+COOLDOWN and np.count_nonzero(r72<-.09)>=3:
@@ -80,14 +88,17 @@ def source_bundle(close,quote,rate,event):
                     stress_asset=sorted(eligible,
                         key=lambda j:(-round(float(r24[j]),12),j))[0]
                     stress_last=t;stress_until=t+HOLD_STRESS
-        if stress_asset>=0 and t<stress_until:stress[t,stress_asset]=1.
+                    stress_edge=.5*float(r24[stress_asset])
+                    stress_carry=float(f168[stress_asset])*HOLD_STRESS/168.
+        if stress_asset>=0 and t<stress_until:
+            stress[t,stress_asset]=1.;edge[t,3]=stress_edge;carry_cost[t,3]=stress_carry
         if np.count_nonzero(r336>0)>=3 and np.median(r336)>.04:
             states[t]="BULL"
         elif np.count_nonzero(r72<-.09)>=3:
             states[t]="CRISIS"
         elif float(r336.max()-r336.min())>.30:
             states[t]="DISPERSION"
-    return core,opp,rv,stress,{"state":states}
+    return core,opp,rv,stress,{"state":states,"edge":edge,"carry_cost":carry_cost}
 
 def causal_check():
     n=2850;t=np.arange(n,dtype=float)
@@ -103,6 +114,8 @@ def causal_check():
         assert np.array_equal(x[:-50],y[:-50])
         assert np.isfinite(x).all() and not np.any(x[:WARMUP])
     assert np.array_equal(a[4]["state"][:-50],b[4]["state"][:-50])
+    assert np.array_equal(a[4]["edge"][:-50],b[4]["edge"][:-50])
+    assert np.array_equal(a[4]["carry_cost"][:-50],b[4]["carry_cost"][:-50])
     assert np.all(np.sum(a[0],axis=1)<=1.+1e-10)
     assert np.all(np.abs(a[2].sum(axis=1))<1e-10)
     return True
