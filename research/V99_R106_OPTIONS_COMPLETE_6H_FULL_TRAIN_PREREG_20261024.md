@@ -1,0 +1,9 @@
+# V99 — complete 6h weekly PIT options information, full TRAIN preregistration (2026-10-24 BRT)
+
+**DATA_ONLY/HOLD, not a trading engine.** This is the single full-TRAIN extension justified by the fixed 10-slot 6h original-source probe (Actions 40071608787): 10/10 responses fully paginated with independent original-byte checks, 5/10 with near-ATM 2-strike four-group coverage. The probe does not establish fold-level stability.
+
+**Before full-TRAIN observations, fix the following:** All 94 previously fixed Monday 00:00 UTC decisions from [2021-12-09,2023-10-01), for BTC and ETH; five chronological original TRAIN folds; query [decision-6h,decision) only. Use the identical audited `collect_one` 1000/page inclusive-overlap and dedup, maximum 30 pages, strict original receipt hashes and timestamps. Do not query validation or holdout.
+
+**Pre-fixed gate:** An asset-week is eligible only if the **complete** original 6h response has at least 2 distinct near-ATM strikes (abs log strike/index <=0.15) with finite trade IV in each of short 7–45d and long 46–120d call and put groups. Require >=70% eligible weekly decisions **for each asset in the same fold** and >=4/5 folds, no source failures counted as coverage. Independent original-byte oracle must recompute every weekly eligibility from raw receipts. This is an **information-quality** gate, never evidence of edge or PnL.
+
+If gate passes, freeze a distinct economically justified option-informed BTC/ETH cash portfolio architecture **before** any economic TRAIN run. If it fails, do not loosen 6h/15%/2-strike thresholds post hoc; reject this specific trade-IV information contract and seek a genuinely different PIT source or mechanism. In either case, historical Deribit trade IV is not an executable options quote and OKX historical fee tier, settled funding, order-book fills and margin evidence remain separate blockers. No orders, no paper/Frozen/champion writes, no ROI, no promotion.
