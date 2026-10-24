@@ -1,0 +1,59 @@
+name: V98 Independent BV Frozen Native Funding and Friction Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-bv-funding-attribution.yml'
+      - 'research/v98_independent/bv_frozen_funding_cost_attribution.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  funding_attribution:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned vendor-attested Clean4 original bytes
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage authenticated Dec2022-Dec2024 only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Frozen BV post-rejection per-asset funding and execution cost attribution
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile bv_frozen_funding_cost_attribution.py
+          python bv_frozen_funding_cost_attribution.py --output bv_funding_attribution.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bv-funding-attribution
+          path: research/v98_independent/bv_funding_attribution.json
+          retention-days: 30
+          if-no-files-found: warn
