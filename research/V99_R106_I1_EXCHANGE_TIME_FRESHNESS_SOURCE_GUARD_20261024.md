@@ -15,3 +15,11 @@ Negative controls must include a delayed stale exchange event with a recent loca
 ## Dependency unchanged
 
 Obtain authorized BTC+ETH original historical bid/ask and sizes with exchange/local timestamps, full gap/completeness attestations and dated native fees, coin collateral, margin, settlement and liquidation rules. The existing 4,000-row two-day sample does not cover the 91 decisions. The new guard cannot supply missing records.
+
+## Executed outcome — 2026-10-24 17:47 BRT
+
+Implemented the venue-exchange-time bound in the production source-intake parser and **separately** in the raw-byte independent oracle; added two adversarial cases (a six-minute-old exchange event arriving recently, and a newer stale event overriding an older valid book). The original 91-Sunday synthetic fixture and all previous negative controls were retained.
+
+[GitHub Actions 40131373614](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40131373614) **SUCCESS**, final code commit `e303bf5f5f7383e2e9a12927a104b039532df805`: 7/7 source-contract tests passed. The independent oracle reconstructed the baseline **182/182 synthetic** asset-weeks and **181/182 synthetic** when either delayed-source negative control is introduced; it also passed original-byte integrity checks. This demonstrates a repaired false-positive in **source eligibility**, not any historical profitability.
+
+**Real original-source coverage remains 0/182** at the 91 maturity-eligible Monday decisions from the available two-day partial sample. No licensed full BTC+ETH quote tape, authenticated account fee tier or historical native margin/liquidation evidence was added; no economic TRAIN or independent portfolio validation was run. **DATA_ONLY/HOLD — NO PROMOTION.** Validation [2023-10-01, 2024-01-18), final holdout >=2024-01-18, immutable Frozen, legacy champion, paper/results and orders remain untouched.
