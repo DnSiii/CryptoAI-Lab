@@ -75,7 +75,23 @@ jobs:
             assert summary['unknown']==sum(not x['available'] for x in rows)
             assert summary['severe_signals']==sum(x.get('severe_entry',False) for x in rows)
             assert summary['fold_severe_signals']==[sum(x.get('severe_entry',False) and x['fold']==i for x in rows) for i in range(1,6)]
-          print('INDEPENDENT ENTRY RULE/FOLD/COST CHECK PASSED / NO PNL / NO PROMOTION')
+          # Independent conservative reachability: include ALL unknown t-1
+          # events as hypothetical entries, with their original contract expiry.
+          from datetime import timedelta
+          exposure=set()
+          for row in r['events']:
+            if row['available'] and not row['severe_entry']:
+              continue
+            start=row['decision_ms']
+            expiry=datetime.strptime(row['contract'][-6:],'%y%m%d').replace(tzinfo=timezone.utc)
+            stop=int((expiry+timedelta(hours=8)).timestamp()*1000)
+            for i,(a,b) in enumerate(zip(FOLD_EDGES,FOLD_EDGES[1:]),1):
+              if start<b and stop>a: exposure.add(i)
+          assert r['possible_exposure_folds']==sorted(exposure)
+          assert r['max_possible_positive_trading_folds']==len(exposure)
+          assert r['severe_four_positive_folds_structurally_impossible']==(len(exposure)<4)
+          assert r['status']==('PERMANENT_TRAIN_STRUCTURAL_REJECT_NO_RETUNE' if len(exposure)<4 else 'ENTRY_SIGNAL_PRESENT_ECONOMIC_TRAIN_STILL_BLOCKED')
+          print('INDEPENDENT ENTRY/FOLD/EXPIRY REACHABILITY:',sorted(exposure),'G1:',r['status'],'/ NO PNL / NO PROMOTION')
           PY
       - name: Preserve original TRAIN entry decision and coverage uncertainty
         if: always()
