@@ -69,6 +69,33 @@ def run():
                 checks += 1
             else:
                 raise AssertionError("CAUSAL_OR_CROSSED_QUOTE_ACCEPTED")
+        # Independent hostile fixtures: reject contract metadata that
+        # disagrees with native symbol and exchange-origin stale quotes.
+        for bad in (
+            replace(short, strike_usd=21000),
+            replace(short, expiry_ms=expiry+86400000),
+            replace(short, asset="ETH"),
+            replace(short, symbol="BTC-1JUL22-19000-P"),
+            replace(short, symbol="BTC-INVALID-20000-P"),
+            replace(short, venue_ms=decision-600_000, arrival_ms=decision-1_000),
+        ):
+            try:
+                open_vertical(bad, long, decision, 100000, scenario)
+            except ValueError:
+                checks += 1
+            else:
+                raise AssertionError("UNBOUND_NATIVE_OPTION_ID_OR_STALE_VENUE_ACCEPTED")
+        for bad, other, is_short in (
+            (replace(ms, symbol="BTC-1JUL22-19000-P"), ml, True),
+            (replace(ml, symbol="BTC-1JUL22-20000-P"), ms, False),
+            (replace(ms, venue_ms=mark-600_000, arrival_ms=mark-1_000), ml, True),
+        ):
+            try:
+                liquidation_nav(p, bad, other, mark) if is_short else liquidation_nav(p, other, bad, mark)
+            except ValueError:
+                checks += 1
+            else:
+                raise AssertionError("EXIT_OPTION_ID_OR_STALE_VENUE_ACCEPTED")
         try:
             open_vertical(replace(short, bid_coin=0.001), long, decision, 100000, scenario)
         except ValueError as exc:
