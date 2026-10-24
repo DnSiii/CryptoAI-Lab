@@ -6,7 +6,7 @@ No 2025, V99, frozen engines, paper, live orders or external benchmarks.
 from __future__ import annotations
 import argparse,hashlib,itertools,json,math
 import numpy as np
-from cl_sources import bundle,BUDGETS,WARMUP,static_checl
+from cl_sources import bundle,BUDGETS,WARMUP,static_check
 from cg_buffered_governor import CGBufferedGovernor as CLBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 from ak_slow_compound_execution import risk_history
@@ -172,14 +172,14 @@ def run(path):
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":4,"cells":cases,
             "decision":"PASS_CL_MECHANICAL_ONLY" if len(cases)==4 and
-            all(x["passed"] for x in cases) else "BLOCL_CL_PHYSICAL_SURVIVAL"}
+            all(x["passed"] for x in cases) else "BLOCK_CL_PHYSICAL_SURVIVAL"}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--path",required=True,choices=PATHS)
     p.add_argument("--output",required=True)
     a=p.parse_args()
-    assert static_checl()
+    assert static_check()
     result=run(a.path)
     with open(a.output,"w") as f:json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
     print("CL_PATH",a.path,result["decision"],
