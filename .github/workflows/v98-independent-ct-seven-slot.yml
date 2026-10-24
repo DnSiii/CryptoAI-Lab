@@ -35,11 +35,11 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.ctv']
-          names += [a+'_1h.ctv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
-              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.ctv') else target/name)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: CT causal source static and preregistered source viability
@@ -83,11 +83,11 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.ctv']
-          names += [a+'_1h.ctv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
-              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.ctv') else target/name)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: Run native 4-cell path USD10k, base/severe and both funding orderings
