@@ -6,6 +6,8 @@ NOT native margin/liquidation or actual account fills. Never promote from tests.
 """
 from __future__ import annotations
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from math import isfinite
 
 TRAIN_END_MS = 1696118400000
@@ -32,12 +34,24 @@ class PutQuote:
     spot_usd: float
 
     def validate(self, decision_ms):
-        if self.asset not in ("BTC", "ETH") or not self.symbol.endswith("-P"):
+        # Bind economic inputs to the literal Deribit instrument ID.
+        parts = self.symbol.split("-")
+        if len(parts) != 4 or parts[0] != self.asset or parts[3] != "P" or self.asset not in ("BTC", "ETH"):
             raise ValueError("WRONG_OPTION_INSTRUMENT")
+        try:
+            expiry = datetime.strptime(parts[1].upper(), "%d%b%y").replace(hour=8, tzinfo=timezone.utc)
+            canonical_expiry_ms = int(expiry.timestamp() * 1000)
+            canonical_strike = Decimal(parts[2])
+            quoted_strike = Decimal(str(self.strike_usd))
+        except (ValueError, InvalidOperation, OverflowError) as exc:
+            raise ValueError("INVALID_OPTION_INSTRUMENT_ID") from exc
+        if not canonical_strike.is_finite() or canonical_strike <= 0 or canonical_strike != quoted_strike or canonical_expiry_ms != self.expiry_ms:
+            raise ValueError("OPTION_ID_STRIKE_OR_EXPIRY_MISMATCH")
         if not TRAIN_START_MS <= decision_ms < TRAIN_END_MS:
             raise ValueError("SEALED_VALIDATION_OR_HOLDOUT")
         if not (self.venue_ms <= self.arrival_ms <= decision_ms
-                and decision_ms-self.arrival_ms <= MAX_QUOTE_AGE_MS):
+                and decision_ms-self.arrival_ms <= MAX_QUOTE_AGE_MS
+                and decision_ms-self.venue_ms <= MAX_QUOTE_AGE_MS):
             raise ValueError("NONCAUSAL_OR_STALE_OPTION_QUOTE")
         if not (decision_ms < self.expiry_ms < TRAIN_END_MS):
             raise ValueError("EXPIRY_OUTSIDE_TRAIN")
