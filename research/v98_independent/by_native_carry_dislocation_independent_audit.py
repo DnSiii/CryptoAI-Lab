@@ -93,7 +93,23 @@ if __name__=="__main__":
     files=sorted(glob.glob(str(Path(a.root)/"**"/"by_source_receipt.json"),recursive=True))
     if len(files)!=2:raise ValueError("BY_CROSS_OS_ARTIFACT_INVENTORY:"+str(files))
     receipts=[json.load(open(f)) for f in files]
-    if receipts[0]!=receipts[1]:raise ValueError("BY_CROSS_OS_FULL_RECEIPT_MISMATCH")
+    if receipts[0]!=receipts[1]:
+        def differences(x,y,path="$",limit=12):
+            if isinstance(x,dict) and isinstance(y,dict):
+                for k in sorted(set(x)|set(y)):
+                    if k not in x or k not in y:
+                        yield (path+"."+k,"MISSING_KEY")
+                    else:yield from differences(x[k],y[k],path+"."+k)
+            elif isinstance(x,list) and isinstance(y,list):
+                if len(x)!=len(y):yield (path,"LENGTH",len(x),len(y))
+                for i,(v,w) in enumerate(zip(x,y)):
+                    yield from differences(v,w,path+"["+str(i)+"]")
+            elif x!=y:
+                yield (path,x,y)
+        import itertools
+        for diff in itertools.islice(differences(receipts[0],receipts[1]),12):
+            print("BY_CROSS_OS_FIRST_DIFF",repr(diff),flush=True)
+        raise ValueError("BY_CROSS_OS_FULL_RECEIPT_MISMATCH")
     frames,manifest=load_official()
     result=audit(receipts[0],frames)
     result["cross_os_identical"]=True
