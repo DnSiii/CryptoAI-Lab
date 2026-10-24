@@ -1,0 +1,70 @@
+name: V99 G1 full preregistered TRAIN original futures source + independent reexecution (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_full_train_original_monthly.py'
+      - '.github/workflows/v99-r106-g1-full-train-original-monthly.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  collect-preregistered-train:
+    strategy:
+      fail-fast: false
+      matrix:
+        batch: [0, 1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check strict TRAIN-only preregistration before any historical download
+        run: |
+          python - <<'PY'
+          from research.tools.v99_r106_g1_full_train_original_monthly import MONTHS, TRAIN_END, expected_contracts
+          assert len(MONTHS)==22 and MONTHS[0]=='2021-12' and MONTHS[-1]=='2023-09'
+          assert TRAIN_END.isoformat()=='2023-10-01T00:00:00+00:00'
+          assert expected_contracts('2022-03','BTC') == ['BTC-USDT-220624']
+          assert expected_contracts('2023-09','ETH') == ['ETH-USDT-231229']
+          print('FIXED G1 SOURCE SCOPE: 22 MONTHS / 2 ASSETS / TRAIN ONLY')
+          PY
+      - name: Download and parse original monthly OKX FUTURES ZIPs (strict instrument identity)
+        run: |
+          python -m research.tools.v99_r106_g1_full_train_original_monthly collect ${{ matrix.batch }} research_evidence/batch${{ matrix.batch }}
+      - name: Preserve original ZIP receipts and deterministic derived hours
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: batch${{ matrix.batch }}
+          path: research_evidence/batch${{ matrix.batch }}/
+          retention-days: 90
+          if-no-files-found: warn
+  independent-audit:
+    needs: collect-preregistered-train
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Recover exact same-run immutable source artifacts
+        run: |
+          gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern 'batch*' --dir research_evidence/g1_all
+      - name: Independently parse raw original 1m candles into complete 1H, fail closed
+        run: |
+          python -m research.tools.v99_r106_g1_full_train_original_monthly audit research_evidence/g1_all research_evidence/g1_audit
+      - name: Archive independent coverage verdict (not a backtest)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-full-train-monthly-audit-${{ github.run_id }}
+          path: research_evidence/g1_audit/
+          retention-days: 90
+          if-no-files-found: warn
