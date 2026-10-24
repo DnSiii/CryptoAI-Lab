@@ -1,0 +1,87 @@
+name: V99 G1 first-party expired quarterly futures source gate (NO PNL, NO ORDERS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_dated_futures_source_gate.py'
+      - '.github/workflows/v99-r106-g1-expired-futures-source-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preregistered-dated-futures-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Enforce G1 preregistered source-only scope
+        run: |
+          test -s research/V99_R106_G1_DATED_FUTURES_PREREG_20261023.md
+          test -s research/V99_R106_F1_BASIS_CONVERGENCE_STRUCTURAL_PREREG_20261023.md
+          python - <<'PY'
+          from research.tools.v99_r106_d1_real_train_source_join import START, END, HOURS
+          assert (START, END, HOURS) == (1639008000000, 1696118400000, 15864)
+          print('G1 PREREGISTERED; NO PNL; SEALED VALIDATION AND HOLDOUT')
+          PY
+      - name: Request six fixed expired-quarterly original OKX candle samples
+        run: |
+          python -m research.tools.v99_r106_g1_dated_futures_source_gate research_evidence/g1_source
+      - name: Independent byte-level receipt and source verdict audit
+        run: |
+          python - <<'PY'
+          import hashlib, json, math
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+          p = Path('research_evidence/g1_source')
+          r = json.loads((p/'g1_source_gate.json').read_text())
+          assert r['preregistration_commit']=='5ff7194efde234309d52be64042f2af06cf2f8b8'
+          expected = {f'{a}-USDT-{d[2:].replace("-","")}' for a in ('BTC','ETH')
+                      for d in ('2022-03-25','2022-12-30','2023-09-29')}
+          assert len(r['probes'])==6 and {x['instrument'] for x in r['probes']}==expected
+          available = []
+          for x in r['probes']:
+              raw=(p/x['raw_filename']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==x['raw_sha256']
+              assert len(raw)==x['raw_bytes']
+              parsed=json.loads(raw) if raw else None
+              rows=parsed.get('data',[]) if isinstance(parsed,dict) else []
+              assert len(rows)==x['returned_rows']
+              expiry=datetime.strptime(x['expiry'],'%Y-%m-%d').replace(tzinfo=timezone.utc)+timedelta(hours=8)
+              lo=int((expiry-timedelta(days=10)).timestamp()*1000)
+              hi=int(expiry.timestamp()*1000)
+              near=[]
+              for row in rows:
+                  if isinstance(row,list) and len(row)>=5:
+                      try:
+                          ts=int(row[0]); price=float(row[1])
+                          if lo<=ts<hi and math.isfinite(price) and price>0:near.append(ts)
+                      except (ValueError,TypeError):pass
+              assert len(near)==x['near_expiry_valid_open_rows']
+              valid=(x['http_status']==200 and isinstance(parsed,dict)
+                     and parsed.get('code')=='0' and len(near)>0)
+              assert valid==x['source_retrievable']
+              available.append(valid)
+          assert all(available)==r['all_six_samples_retrievable']
+          assert r['status']==('SOURCE_SAMPLES_AVAILABLE_NOT_FULL_TRAIN' if all(available)
+                              else 'BLOCKED_ORIGINAL_EXPIRED_FUTURES_SOURCE')
+          for field in ('economic_train_executed','roi_computed','native_contract_metadata_authenticated',
+                        'settlement_cash_authenticated','historical_account_fills_authenticated',
+                        'validation_opened','holdout_opened','orders_enabled','promotion_authorized'):
+              assert r[field] is False,field
+          print('INDEPENDENT SOURCE GATE:',r['status'],sum(available),'of',len(available),'retrievable')
+          print('NO PNL / NO ORDERS / NO PROMOTION')
+          PY
+      - name: Preserve original OKX bytes and fail-closed decision
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-quarterly-source-gate-${{ github.run_id }}
+          path: research_evidence/g1_source/
+          retention-days: 90
+          if-no-files-found: warn
