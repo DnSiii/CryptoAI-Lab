@@ -1,0 +1,15 @@
+# V98 Independent CO — FROZEN historical economic rejection (2026-10-24)
+
+**Decision: REJECT_CO_HISTORICAL_GROWTH_OR_MARGINAL.** CO is a new low-turnover seven-slot composed engine, not a CN retune. It failed the preregistered CAGR-base and two annual satellite marginal gates. No post-result weight/window/sign/threshold changes or cosmetic rescue.
+
+- [CO preregistration](https://github.com/DnSiii/CryptoAI-Lab/blob/research/v98-independent-zero/research/v98_independent/co_preregistered_slow_efficiency_pairs_20261024.md) committed before source at `bb97277677a12840c6de0c280c9fafc07aafaffb`.
+- [Official pinned Clean-4 20-cell run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40136309016), code head `206723b1dbdec37f6cf59eb1e0ea0d0aa261889f`. Native 8h signed funding, mark bounds, exact pinned 2022-12 through 2024-12 training, no 2025 read.
+- Source gate passed; effective epochs 2023/2024 Growth 14/19, Opportunity 13/12, ETH/BTC RV 22/25, Stress 4/5. Causal future perturbation invariant. ETH/BTC RV long ETH 19/22 epochs in 2023 and 21/25 in 2024 (source direction only, not PnL attribution).
+- Five portfolio paths x base/severe x two native funding orders = **20/20 physical cells survived**, independently reproduced on Ubuntu 22.04 and 24.04; audit errors=[].
+- USD10k historical full base CAGR **+41.4827%** and severe CAGR **+34.2836%**; base annual returns 2023 **+68.0257%**, 2024 **+19.1893%**; severe 2023 **+59.9378%**, 2024 **+12.7899%**. Full base max DD **34.4573%**, severe **36.1378%**. Base CAGR <50% precommitted minimum.
+- Opportunity marginal net log growth passed all four costs/orders in both years: 2023 +0.04012 to +0.04168; 2024 +0.00438 to +0.00495.
+- **RV failed 2023**: -0.05229 to -0.03263, while 2024 +0.04817 to +0.06197. **Stress failed 2024**: -0.00125 to -0.000943, while 2023 +0.00877 to +0.00945. Annual marginal gate requires positive both years.
+- Base turnover **$398,906.12** vs CN's $1,286,804.88 and severe turnover **$367,822.79** vs CN's $1,037,380.65, from initial $10k; this is a cross-experiment diagnostic of trading intensity, **not** an economic comparison for candidate selection or license to rescue either rejected strategy. CO full funding cashflow -$1,260.58 base / -$1,170.43 severe. PF hourly 1.03375 base / 1.02886 severe; positive UTC days 42.00% / 41.45%; peak single-asset gross concentration 100%.
+- This is **historical simulated PnL only**, not future-validated performance. No CO scale/supersevere, independent event-level 81-corner audit, 2025 validation, external V14/V15/V99 benchmark, paper/live trading.
+
+**Critical path:** a genuinely distinct new complete architecture needs demonstrable positive RV and stress marginal economics alongside high long-run growth, then independent physical scale and separate future validation. Do not revive CO or CN. 2025 holdout sealed; XRP quarantined; Phase083 invalid; 2026+ forbidden. V16/V99 Frozen and V99 branch/workflows/reports/paper untouched.
