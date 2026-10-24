@@ -9,7 +9,18 @@ import numpy as np
 from ct_sources import bundle,BUDGETS,WARMUP,static_check
 from cg_buffered_governor import CGBufferedGovernor as CTBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
-from ak_slow_compound_execution import risk_history
+# CT-local equivalent of generic prior-only risk bounds; generic helper has
+# an unrelated 2016h guard despite needing only 672h history.
+def ct_prior_only_risk_history(opening,high,low,rate,event,quote,t):
+    if t<672 or t>len(opening):
+        raise ValueError("CT_INSUFFICIENT_PRIOR_RISK_HISTORY")
+    down=np.maximum(.40,np.max(1.-low[t-336:t]/opening[t-336:t],axis=0))
+    up=np.maximum(.65,np.max(high[t-336:t]/opening[t-336:t]-1.,axis=0))
+    funding=np.maximum(.0005,3.*np.max(
+        np.abs(rate[t-672:t]*event[t-672:t]),axis=0))
+    min_quote=np.min(quote[t-336:t],axis=0)
+    return down,up,funding,min_quote
+
 from phase1246_ai_two_stage_margin import settle_hour
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
 
@@ -47,7 +58,7 @@ def prepare_risks(frames):
     o,h,l,c,q,r,e,ml,mh=frames
     out=[None]*HOURS
     for t in range(START_EXECUTION,HOURS):
-        down,up,f,_=risk_history(o,h,l,r,e,q,t)
+        down,up,f,_=ct_prior_only_risk_history(o,h,l,r,e,q,t)
         out[t]=(down,up,f,prior_min_exit_window_quote(q,t))
     return out
 
