@@ -1,4 +1,4 @@
-name: V99 G1 exact 155 missing TRAIN hours original OKX daily repair (NO PNL)
+name: V99 G1 exact 187 missing TRAIN hours original OKX daily repair (NO PNL)
 on:
   push:
     branches:
@@ -23,7 +23,7 @@ jobs:
       - name: Download independently audited full original monthly TRAIN sources
         run: |
           gh run download 40052064153 --repo "$GITHUB_REPOSITORY" --pattern 'batch*' --dir research_evidence/g1_monthly
-      - name: Enumerate exact 155 original missing hourly requirements, never query validation
+      - name: Enumerate exact 187 original missing hourly requirements, never query validation
         run: |
           python -m research.tools.v99_r106_g1_missing_daily_repair plan research_evidence/g1_monthly research_evidence/g1_gap_plan
       - name: Recover original OKX daily trade ZIPs for only those missing hours
