@@ -55,7 +55,30 @@ def run():
                 except ValueError as v2exc:
                     v2_units=None
                     v2_status='V2_FIRST_FAULT_STILL_BLOCKED_'+str(v2exc)
+                # Independently settle exactly this rejected first-fault hour
+                # under unchanged native marks, funding and 81-corner ledger.
+                t_candidates=np.flatnonzero(np.all(frames[0]==p,axis=1))
+                t_fault=int(t_candidates[0]) if len(t_candidates)==1 else None
+                v2_settlement="NOT_ATTEMPTED"
+                v2_settled_cash=None
+                if v2_units is not None and t_fault is not None:
+                    try:
+                        out=asrun.settle_hour(
+                            cash,old,frames[3][t_fault-1],frames[0][t_fault],
+                            frames[1][t_fault],frames[2][t_fault],
+                            frames[3][t_fault],v2_units,
+                            frames[5][t_fault],frames[6][t_fault],
+                            frames[7][t_fault],frames[8][t_fault],
+                            fee_mode=fee_mode,funding_order=funding_order)
+                        assert out["cash_settled"] and not out["hidden_borrow"]
+                        v2_settlement="PASS_ACTUAL_81_CORNER_NATIVE_HOUR"
+                        v2_settled_cash=float(out["cash"])
+                    except Exception as settle_exc:
+                        v2_settlement="FAIL_"+str(settle_exc)
                 captured.append({
+                    'fault_hour_index':t_fault,
+                    'v2_actual_hour_settlement':v2_settlement,
+                    'v2_settled_cash':v2_settled_cash,
                     'v2_status':v2_status,
                     'v2_order_notional':(v2_units*p).tolist() if v2_units is not None else None,
                     'v2_per_hour_liquidity_compliant':bool(v2_units is not None and np.all(
