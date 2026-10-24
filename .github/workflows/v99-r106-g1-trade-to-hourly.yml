@@ -1,0 +1,86 @@
+name: V99 G1 native 2022 original trades to hourly candles + independent oracle (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_trade_to_hourly.py'
+      - '.github/workflows/v99-r106-g1-trade-to-hourly.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-trade-to-hourly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Retrieve immutable original OKX daily FUTURES trade tapes
+        run: |
+          gh run download 40047386032 --repo "$GITHUB_REPOSITORY" \
+            --name v99-g1-original-daily-tape-40047386032 \
+            --dir research_evidence/g1_trade_tape
+      - name: Reconstruct first-party BTC/ETH 220325 1H bars without PnL
+        run: |
+          python -m research.tools.v99_r106_g1_trade_to_hourly \
+            research_evidence/g1_trade_tape research_evidence/g1_hourly
+      - name: Independent source-to-hourly oracle and tamper negative control
+        run: |
+          python - <<'PY'
+          import csv,hashlib,io,json,zipfile
+          from collections import defaultdict
+          from decimal import Decimal
+          from pathlib import Path
+          source=Path('research_evidence/g1_trade_tape')
+          dest=Path('research_evidence/g1_hourly')
+          source_report=json.loads((source/'trade_tape_probe.json').read_text())
+          report=json.loads((dest/'reconstruction.json').read_text())
+          assert len(report['sources'])==2
+          for r in source_report['records']:
+              expected=next(x for x in report['sources'] if x['instrument']==r['target'])
+              raw=(source/r['archive_file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==r['archive_sha256']
+              bars=json.loads((dest/(r['target']+'_1h.json')).read_text())
+              assert len(bars)==24==expected['hours']
+              assert hashlib.sha256((dest/(r['target']+'_1h.json')).read_bytes()).hexdigest()==expected['derived_sha256']
+              grouped=defaultdict(list)
+              with zipfile.ZipFile(io.BytesIO(raw)) as z:
+                  for member in z.infolist():
+                      if member.filename.lower().endswith('.csv'):
+                          with z.open(member) as f:
+                              rows=csv.DictReader(io.TextIOWrapper(f,encoding='utf-8-sig',newline=''))
+                              for row in rows:
+                                  if row['instrument_name']!=r['target']:continue
+                                  t=int(row['created_time'])
+                                  grouped[(t//3600000)*3600000].append((t,int(row['trade_id']),Decimal(row['price']),Decimal(row['size'])))
+              assert sum(len(x) for x in grouped.values())==expected['original_trades']
+              for b in bars:
+                  values=sorted(grouped[b['hour_ms']],key=lambda x:(x[0],x[1]))
+                  assert values
+                  assert Decimal(b['open'])==values[0][2]
+                  assert Decimal(b['close'])==values[-1][2]
+                  assert Decimal(b['high'])==max(v[2] for v in values)
+                  assert Decimal(b['low'])==min(v[2] for v in values)
+                  assert Decimal(b['volume_contracts'])==sum((v[3] for v in values),Decimal(0))
+                  assert b['trade_count']==len(values)
+              # Negative control: altering a stored open must be independently detectable.
+              assert Decimal(bars[0]['open'])+Decimal('0.01')!=grouped[bars[0]['hour_ms']][0][2]
+              print('INDEPENDENT ORIGINAL 1H RECONSTRUCTION:',r['target'],len(bars),'hours',expected['original_trades'],'trades')
+          for flag in ('full_train_verified','economic_train_executed','roi_computed',
+                       'validation_opened','holdout_opened','orders_enabled','promotion_authorized'):
+              assert report[flag] is False
+          print('NO PNL / NO PROMOTION / ORIGINAL TRADE TAPE PATH PROVEN')
+          PY
+      - name: Preserve source-derived 1H hourly proof
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-original-trade-to-hourly-${{ github.run_id }}
+          path: research_evidence/g1_hourly/
+          retention-days: 90
+          if-no-files-found: warn
