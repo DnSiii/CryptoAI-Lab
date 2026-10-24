@@ -86,7 +86,7 @@ def run(source):
         rows = [r for r in out if r["asset"] == asset]
         summary[asset] = {
             "observations":len(rows),
-            "max_obligation_to_reserve":max(r["coin_obligation_to_reserved_ratio"] for r in rows),
+            "max_obligation_to_reserve":max((r["coin_obligation_to_reserved_ratio"] for r in rows), key=D),
             "breaches":sum(r["five_percent_coin_reserve_breached"] for r in rows),
             "breaches_by_fold":{str(f):sum(r["five_percent_coin_reserve_breached"] for r in rows if r["fold"]==f) for f in range(1,6)},
         }
