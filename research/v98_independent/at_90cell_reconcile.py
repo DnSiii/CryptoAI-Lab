@@ -75,7 +75,10 @@ def run(root):
         if len(raw)!=18 or set(mapping)!=GRID:
             errors.append(('grid',name,len(raw),len(mapping)))
         cells[name]=mapping
-    manifests={v.get('source_manifest_sha256') for v in representative.values()}\n    if len(manifests)!=1 or None in manifests:\n        errors.append(('cross_path_source_manifest',sorted(str(x) for x in manifests)))\n    total=sum(len(x) for x in cells.values())
+    manifests={v.get('source_manifest_sha256') for v in representative.values()}
+    if len(manifests)!=1 or None in manifests:
+        errors.append(('cross_path_source_manifest',sorted(str(x) for x in manifests)))
+    total=sum(len(x) for x in cells.values())
     passed=sum(bool(c['passed']) for d in cells.values() for c in d.values())
     full=cells.get('AT_full',{})
     base=full.get(('immediate','base','carried_before_fill'),{})
