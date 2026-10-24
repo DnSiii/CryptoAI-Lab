@@ -100,6 +100,62 @@ def decode_hourly(archive,asset,targets,month):
                       "incomplete_or_missing_minutes":source_rows[inst]-60*len(bars)}
     return result,bad
 
+def decode_trade_hourly(archive,targets,month):
+    """Independent first-party trade-tape hourly bars; no fabricated no-trade hour."""
+    a,b=month_bounds(month)
+    lo,hi=epoch(a),min(epoch(b),epoch(TRAIN_END))
+    grouped=defaultdict(lambda:defaultdict(list))
+    ids=defaultdict(set)
+    with zipfile.ZipFile(io.BytesIO(archive)) as z:
+        for member in z.infolist():
+            if not member.filename.lower().endswith(".csv"):continue
+            if member.file_size>3_000_000_000:raise ValueError("OVERSIZED_MONTHLY_TRADE_MEMBER")
+            with z.open(member) as stream:
+                reader=csv.DictReader(io.TextIOWrapper(stream,encoding="utf-8-sig",newline=""))
+                if not {"instrument_name","created_time","trade_id","price","size"}<=set(reader.fieldnames or []):
+                    raise ValueError("TRADE_SCHEMA_MISMATCH")
+                for row in reader:
+                    inst=row["instrument_name"]
+                    if inst not in targets:continue
+                    t=int(row["created_time"])
+                    if not lo<=t<hi:raise ValueError("OUT_OF_TRAIN_TRADE_TIMESTAMP")
+                    trade_id=int(row["trade_id"])
+                    if trade_id in ids[inst]:raise ValueError("DUPLICATE_ORIGINAL_TRADE_ID")
+                    ids[inst].add(trade_id)
+                    price,size=Decimal(row["price"]),Decimal(row["size"])
+                    if not price.is_finite() or price<=0 or not size.is_finite() or size<=0:
+                        raise ValueError("BAD_NATIVE_TRADE_PRICE_OR_SIZE")
+                    grouped[inst][(t//HOUR)*HOUR].append((t,trade_id,price,size))
+    out={}
+    for inst in targets:
+        bars=[]
+        for h,rows in sorted(grouped[inst].items()):
+            rows.sort(key=lambda x:(x[0],x[1]))
+            bars.append({"hour_ms":h,"open":str(rows[0][2]),
+                         "high":str(max(x[2] for x in rows)),
+                         "low":str(min(x[2] for x in rows)),
+                         "close":str(rows[-1][2]),
+                         "volume_contracts":str(sum((x[3] for x in rows),Decimal(0))),
+                         "native_trades":len(rows)})
+        out[inst]={"original_trades":len(ids[inst]),"complete_hours":bars}
+    return out
+
+def required_hours(inst,month):
+    expiry=datetime.strptime(inst[-6:],"%y%m%d").replace(tzinfo=UTC)
+    a,b=month_bounds(month)
+    eligible_mondays=[]
+    day=TRAIN_START
+    while day<min(TRAIN_END,expiry):
+        if day.weekday()==0:
+            candidates=[e for e in EXPIRIES if 30 <= (datetime.fromisoformat(e).replace(tzinfo=UTC)-day).total_seconds()/86400 <=110]
+            if candidates and min(candidates).replace("-","")[2:]==inst[-6:]:
+                eligible_mondays.append(day)
+        day+=timedelta(days=1)
+    if not eligible_mondays:raise ValueError("NONPREREG_CONTRACT_SELECTED")
+    start=max(a,min(eligible_mondays)-timedelta(hours=1))
+    end=min(b,expiry,TRAIN_END)
+    return set(range(epoch(start),epoch(end),HOUR))
+
 def collect(batch,outdir):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True)
     records=[]
@@ -131,6 +187,35 @@ def collect(batch,outdir):
                 data,unconfirmed=decode_hourly(archive,asset,targets,month)
                 dest=root/(prefix+".hourly.json")
                 dest.write_text(json.dumps(data,sort_keys=True,separators=(",",":"))+"\n")
+                # Original monthly candle archives are mislabeled for many early
+                # TRAIN months. Recover only missing required hours from *original*
+                # monthly trade tapes, never relabel an unrelated contract.
+                missing=sum(len(required_hours(inst,month)-
+                                {x["hour_ms"] for x in v["complete_hours"]})
+                            for inst,v in data.items())
+                if missing:
+                    trade_params=dict(params,module="1")
+                    trade_listing=get("https://www.okx.com/api/v5/public/market-data-history?"+
+                                      urlencode(trade_params),250000)
+                    trade_obj=json.loads(trade_listing)
+                    if trade_obj.get("code")!="0":raise ValueError("TRADE_LISTING_CODE_"+str(trade_obj.get("code")))
+                    trade_entries=[v for g in trade_obj.get("data",[])
+                                   for d in g.get("details",[]) for v in d.get("groupDetails",[])]
+                    trade_name=f"{asset}-USDT-futureschain-trades-{month}.zip"
+                    found=[x for x in trade_entries if x.get("filename")==trade_name]
+                    if len(found)!=1:raise ValueError("NO_UNIQUE_ORIGINAL_MONTHLY_TRADES")
+                    trade_zip=get(found[0]["url"],350_000_000)
+                    (root/trade_name).write_bytes(trade_zip)
+                    (root/(prefix+".trade_listing.json")).write_bytes(trade_listing)
+                    trade_bars=decode_trade_hourly(trade_zip,targets,month)
+                    trade_path=root/(prefix+".trades.json")
+                    trade_path.write_text(json.dumps(trade_bars,sort_keys=True,separators=(",",":"))+"\n")
+                    rec.update({"trade_zip_filename":trade_name,
+                                "trade_zip_sha256":hashlib.sha256(trade_zip).hexdigest(),
+                                "trade_listing_sha256":hashlib.sha256(trade_listing).hexdigest(),
+                                "trade_hourly_sha256":hashlib.sha256(trade_path.read_bytes()).hexdigest(),
+                                "trade_targets_summary":{k:{"trades":v["original_trades"],
+                                    "hours":len(v["complete_hours"])} for k,v in trade_bars.items()}})
                 rec.update({"status":"SOURCE_COLLECTED","zip_filename":filename,
                             "zip_url":matches[0]["url"],
                             "zip_sha256":hashlib.sha256(archive).hexdigest(),
@@ -172,6 +257,22 @@ def audit(rootdir,outdir):
             independent,bad=decode_hourly(raw,rec["asset"],rec["targets"],rec["month"])
             stored=json.loads(p.read_text())
             if independent!=stored:raise ValueError("INDEPENDENT_REEXECUTION_MISMATCH")
+            recovered={}
+            if "trade_zip_filename" in rec:
+                trade_raw=(folder/rec["trade_zip_filename"]).read_bytes()
+                if hashlib.sha256(trade_raw).hexdigest()!=rec["trade_zip_sha256"]:
+                    raise ValueError("ORIGINAL_TRADE_ZIP_SHA_MISMATCH")
+                trade_listing=(folder/(rec["asset"]+"_"+rec["month"]+".trade_listing.json")).read_bytes()
+                if hashlib.sha256(trade_listing).hexdigest()!=rec["trade_listing_sha256"]:
+                    raise ValueError("ORIGINAL_TRADE_LISTING_SHA_MISMATCH")
+                trade_path=folder/(rec["asset"]+"_"+rec["month"]+".trades.json")
+                if hashlib.sha256(trade_path.read_bytes()).hexdigest()!=rec["trade_hourly_sha256"]:
+                    raise ValueError("TRADE_DERIVED_SHA_MISMATCH")
+                recovered=json.loads(trade_path.read_text())
+                if decode_trade_hourly(trade_raw,rec["targets"],rec["month"])!=recovered:
+                    raise ValueError("INDEPENDENT_TRADE_REEXECUTION_MISMATCH")
+                totals["original_trade_zips"]=totals.get("original_trade_zips",0)+1
+                totals["original_trades"]=totals.get("original_trades",0)+sum(v["original_trades"] for v in recovered.values())
             totals["original_zips"]+=1
             for inst,data in stored.items():
                 totals["original_minutes"]+=data["original_minutes"]
@@ -193,6 +294,7 @@ def audit(rootdir,outdir):
                 start=max(a,first);end=min(b,expiry,TRAIN_END)
                 expected_hours=set(range(epoch(start),epoch(end),HOUR))
                 observed_hours={x["hour_ms"] for x in data["complete_hours"]}
+                observed_hours.update(x["hour_ms"] for x in recovered.get(inst,{}).get("complete_hours",[]))
                 missing=expected_hours-observed_hours
                 totals["required_carry_hours"]=totals.get("required_carry_hours",0)+len(expected_hours)
                 totals["missing_carry_hours"]=totals.get("missing_carry_hours",0)+len(missing)
