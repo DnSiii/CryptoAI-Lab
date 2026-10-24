@@ -105,6 +105,7 @@ def audit(root, output):
             if not all(math.isfinite(x) for x in (strike,bid,ask,bs,az)):
                 continue
             if (strike<=0 or not (0<bid<ask and bs>0 and az>0)
+                or int(r["timestamp"])<cutoff  # independent exchange-time bound
                 or not (timedelta(days=21)<=expiry-decision<=timedelta(days=45))
                 or expiry>=STOP): continue
             valid[(parts[0],expiry)].add(strike)
