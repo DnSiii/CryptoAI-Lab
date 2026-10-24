@@ -1,0 +1,69 @@
+name: V99 H1 rejected-engine zero-friction independent economic falsification (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/verification/independent_v99_r106_h1_frictionless_forensics.py'
+      - '.github/workflows/v99-r106-h1-frictionless-forensics.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  rejected-h1-forensics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify immutable H1 rejection and strictly sealed boundaries
+        run: |
+          test -s research/V99_R106_H1_DVOL_COMPLETE_TRAIN_REJECTION_20261024.md
+          test -s research/V99_R106_H1_DVOL_FORWARD_RISK_SPOT_ENGINE_PREREG_20261024.md
+          python - <<'PY'
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,HOURS
+          assert (START,END,HOURS)==(1639008000000,1696118400000,15864)
+          print('H1 REJECTED; TRAIN ONLY; NO RETUNE OR ORDERS')
+          PY
+      - name: Restore original OKX spot and Deribit DVOL TRAIN source receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" --name d1-train-four-leg-backfill-40019588739 --dir evidence/okx
+          gh run download 40072202459 --repo "$GITHUB_REPOSITORY" --name v99-deribit-dvol-original-pit-train --dir evidence/dvol
+      - name: Restore immutable one-shot H1 original four-scenario economic journal
+        run: |
+          gh run download 40072415531 --repo "$GITHUB_REPOSITORY" --name v99-h1-original-dvol-complete-train-40072415531 --dir evidence/h1
+      - name: Reverify original H1 independent complete accounting before counterfactual
+        run: |
+          python -m research.verification.independent_v99_r106_h1_dvol_spot_oracle evidence/okx evidence/dvol evidence/h1
+      - name: Independently calculate H1 zero-friction TRAIN without changing fixed decisions
+        run: |
+          python -m research.verification.independent_v99_r106_h1_frictionless_forensics evidence/okx evidence/dvol evidence/h1 evidence/h1_frictionless
+      - name: Fail closed on promotions and preserve immutable forensics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('evidence/h1_frictionless/h1_frictionless_forensics.json').read_text())
+          assert r['status']=='REJECTED_H1_READ_ONLY_FRICTIONLESS_FORENSICS'
+          assert r['hours']==15864 and r['decision_count']==94
+          assert r['validation_opened'] is False and r['holdout_opened'] is False
+          assert r['orders_enabled'] is False and r['promotion_authorized'] is False
+          print('Frictionless TRAIN ROI:',r['frictionless_roi'])
+          print('Frictionless positive folds:',r['frictionless_positive_folds'],'/5')
+          print('Severe/supersevere ROI:',r['severe_roi'],r['supersevere_roi'])
+          print('NO PROMOTION / NO PAPER / NO ORDERS')
+          PY
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-h1-readonly-frictionless-forensics-${{ github.run_id }}
+          path: evidence/h1_frictionless/
+          retention-days: 90
+          if-no-files-found: warn
