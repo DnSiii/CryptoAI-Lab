@@ -4,6 +4,7 @@ on:
     branches: [research/v98-independent-zero]
     paths:
       - '.github/workflows/v98-independent-as-first-fault-forensics.yml'
+      - 'research/v98_independent/v98_as_rejected_first_fault_forensics.py'
   workflow_dispatch:
 permissions:
   actions: read
@@ -47,6 +48,7 @@ jobs:
       - name: Diagnose physical first fault for rejected AS without rescue
         working-directory: research/v98_independent
         run: |
+          python v98_staged_exit_viability_governor_v2.py
           python v98_as_rejected_first_fault_forensics.py --output as_first_fault_forensics.json
       - uses: actions/upload-artifact@v4
         if: always()
