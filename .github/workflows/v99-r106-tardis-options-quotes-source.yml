@@ -7,6 +7,8 @@ on:
       - research_tools/v99_r106_tardis_quotes_sample.py
       - research_tools/v99_r106_tardis_quotes_sample_oracle.py
       - research_tools/v99_r106_tardis_access_gate.py
+      - research_tools/v99_r106_tardis_partial_friction.py
+      - research_tools/v99_r106_tardis_partial_friction_oracle.py
       - .github/workflows/v99-r106-tardis-options-quotes-source.yml
   workflow_dispatch:
 permissions:
@@ -24,7 +26,11 @@ jobs:
         run: python research_tools/v99_r106_tardis_quotes_sample.py
       - name: Independent sample hash and timestamp/quote oracle
         run: python research_tools/v99_r106_tardis_quotes_sample_oracle.py
-      - name: Check anonymous non-sample quote entitlement (HEAD only)
+      - name: Preregistered bounded sample friction (no PnL)
+        run: python research_tools/v99_r106_tardis_partial_friction.py
+      - name: Independent Decimal spread and causal timestamp oracle
+        run: python research_tools/v99_r106_tardis_partial_friction_oracle.py
+      - name: Check anonymous non-sample quote entitlement (HEAD and bounded GET)
         run: python research_tools/v99_r106_tardis_access_gate.py
       - name: Archive sample receipts even on failure
         if: always()
