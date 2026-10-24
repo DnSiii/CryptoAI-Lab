@@ -42,7 +42,7 @@ def classify_regime(t, btc):
     r30 = btc[i-1] / btc[i-721] - 1.0
     trend = "up" if r30 > 0.02 else ("down" if r30 < -0.02 else "flat")
     # Lagged rolling 7d BTC hourly volatility, same state definition as fixed R106 diagnostics.
-    hourly = [math.log(btc[k]/btc[k-1]) for k in range(i-335, i)]
+    hourly = [math.log(btc[k]/btc[k-1]) for k in range(i-336, i)]
     vol = [statistics.pstdev(hourly[k-167:k+1]) for k in range(167, len(hourly))]
     if len(vol) < 169:
         return "insufficient_lag"
