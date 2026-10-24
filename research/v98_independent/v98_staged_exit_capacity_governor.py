@@ -31,14 +31,23 @@ def four(x):
         raise ValueError("V98_STAGED_VECTOR")
     return a
 
-def capacity_units(opening,min_quote):
-    p,q=map(four,(opening,min_quote))
+def capacity_units(opening,min_exit_window_quote):
+    p,q=map(four,(opening,min_exit_window_quote))
     if np.any(p<=0) or np.any(q<0):
         raise ValueError("V98_STAGED_CAPACITY_INPUT")
-    # A full position must be exit-able across 24 separate hourly orders,
-    # each <=0.25% of a 50%-haircut 336h minimum quote volume.
-    return (HOURS*PARTICIPATION*STRESSED_QUOTE_FRACTION*q/
+    # q is the minimum observed *24h aggregate* quote volume among all
+    # rolling 24h windows in the previous 336h. Genuine zero-volume hours
+    # remain zero within their windows; no invented future exit liquidity.
+    return (PARTICIPATION*STRESSED_QUOTE_FRACTION*q/
             (EXIT_FRICTION_MULTIPLIER*p))
+
+def prior_min_exit_window_quote(quote,t):
+    q=np.asarray(quote,dtype=float)
+    if (q.ndim!=2 or q.shape[1]!=4 or t<336 or t>len(q) or
+        not np.isfinite(q[t-336:t]).all() or np.any(q[t-336:t]<0)):
+        raise ValueError('V98_STAGED_WINDOW_INPUT')
+    windows=np.lib.stride_tricks.sliding_window_view(q[t-336:t],HOURS,axis=0)
+    return np.min(np.sum(windows,axis=2),axis=0)
 
 def stress_audit(cash_open,units,opening,down,up,funding_bound,friction):
     n,p,d,u,f=map(four,(units,opening,down,up,funding_bound))
@@ -65,23 +74,23 @@ def stress_audit(cash_open,units,opening,down,up,funding_bound,friction):
             else "STAGED_EXIT_COLLATERAL")
 
 def govern_staged(cash,old,prev_close,opening,weights,
-                  down,up,funding_bound,prior_quote,min_quote,
+                  down,up,funding_bound,prior_quote,min_exit_window_quote,
                   fee_mode="base",funding_order="carried_before_fill"):
-    old,p0,p,w,d,u,f,q,qmin=map(four,(old,prev_close,opening,weights,
-                                   down,up,funding_bound,prior_quote,min_quote))
+    old,p0,p,w,d,u,f,q,qexit=map(four,(old,prev_close,opening,weights,
+                                   down,up,funding_bound,prior_quote,min_exit_window_quote))
     if (fee_mode not in FEES or funding_order not in ORDERS or
         not np.isfinite(cash) or cash<=0 or
         np.any(p0<=0) or np.any(p<=0) or
         np.any(d<0) or np.any(d>=1) or
         np.any(u<0) or np.any(f<0) or
-        np.any(q<0) or np.any(qmin<0)):
+        np.any(q<0) or np.any(qexit<0)):
         raise ValueError("V98_STAGED_INPUT")
     cash_open=float(cash+old@(p-p0))
     if cash_open<=0:
         raise ValueError("V98_STAGED_GAP_INSOLVENCY")
     fee,slip=FEES[fee_mode]
     friction=fee+slip
-    cap=capacity_units(p,qmin)
+    cap=capacity_units(p,qexit)
     if np.any(np.abs(old)>cap+1e-8):
         raise ValueError("V98_STAGED_CARRIED_EXIT_CAPACITY")
     # Persistent target is reissued every hour by the future portfolio
@@ -114,14 +123,20 @@ def govern_staged(cash,old,prev_close,opening,weights,
 def static_check():
     p=np.full(4,100.)
     q=np.full(4,1e8)
-    cap=capacity_units(p,q)
+    exit_window=q*HOURS
+    cap=capacity_units(p,exit_window)
     assert np.all(cap>0)
     assert np.allclose(cap*EXIT_FRICTION_MULTIPLIER*p,
-                       HOURS*PARTICIPATION*STRESSED_QUOTE_FRACTION*q)
+                       PARTICIPATION*STRESSED_QUOTE_FRACTION*exit_window)
+    history=np.full((336,4),1e8)
+    history[120]=0.
+    assert np.allclose(prior_min_exit_window_quote(history,336),23e8)
+    history[120:144]=0.
+    assert np.array_equal(prior_min_exit_window_quote(history,336),np.zeros(4))
     n=govern_staged(10000.,np.zeros(4),p,p,
                     np.array([.25,.25,.25,.25]),
                     np.full(4,.4),np.full(4,.65),
-                    np.full(4,.0005),q,q)
+                    np.full(4,.0005),q,exit_window)
     assert np.isfinite(n).all()
     assert np.all(np.abs(n)<=cap+1e-8)
     assert np.all(np.abs(n*p)<=PARTICIPATION*q+1e-8)
