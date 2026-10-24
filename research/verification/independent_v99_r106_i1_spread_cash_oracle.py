@@ -140,5 +140,75 @@ def run():
            "promotion":False})
 
 
+
+def run_inverse_coin_quote_replay_oracle():
+    """Separate Decimal reconstruction from original opening quotes; fixtures only."""
+    from research.tools.v99_r106_i1_defined_risk_options_ledger import (
+        replay_inverse_coin_expiry_from_quotes,
+    )
+    from dataclasses import replace
+    from datetime import datetime, timezone
+    t = int(datetime(2022, 6, 1, tzinfo=timezone.utc).timestamp() * 1000)
+    e = int(datetime(2022, 7, 1, 8, tzinfo=timezone.utc).timestamp() * 1000)
+    fields = dict(asset="BTC", expiry_ms=e, bid_qty=6.0, ask_qty=6.0,
+                  venue_ms=t-60000, arrival_ms=t-30000, spot_usd=20000.0)
+    short = PutQuote(symbol="BTC-1JUL22-20000-P", strike_usd=20000.0,
+                     bid_coin=0.055, ask_coin=0.060, **fields)
+    long = PutQuote(symbol="BTC-1JUL22-19000-P", strike_usd=19000.0,
+                    bid_coin=0.025, ask_coin=0.030, **fields)
+    cases = 0
+    for scenario, per_leg in (("severe", Decimal("0.0024")),
+                               ("supersevere", Decimal("0.0048"))):
+        position = open_vertical(short, long, t, 100000.0, scenario)
+        contracts = min(Decimal("6"), Decimal("100000")*Decimal("0.05")/Decimal("1000"))
+        premium_coin = contracts*(Decimal("0.055")-Decimal("0.030"))
+        friction_coin = Decimal("2")*contracts*per_leg
+        for delivery in (22000, 18000, 500):
+            for fee in (None, 0.001):
+                actual = replay_inverse_coin_expiry_from_quotes(
+                    position, short, long, float(delivery), fee)
+                due_usd = contracts*(
+                    max(Decimal("20000")-Decimal(delivery), Decimal(0))
+                    -max(Decimal("19000")-Decimal(delivery), Decimal(0))
+                )
+                due_coin = due_usd/Decimal(delivery)
+                final_coin = (Decimal("100000")/Decimal("20000")
+                              +premium_coin-friction_coin-due_coin
+                              -(Decimal("0.001") if fee is not None else Decimal(0)))
+                assert abs(Decimal(str(actual["net_opening_credit_coin"]))
+                           -(premium_coin-friction_coin)) < Decimal("1e-12")
+                assert abs(Decimal(str(actual["intrinsic_settlement_coin"]))
+                           -due_coin) < Decimal("1e-12")
+                assert abs(Decimal(str(actual["coin_balance_without_margin_liquidation"]))
+                           -final_coin) < Decimal("1e-12")
+                assert abs(Decimal(str(actual["usd_equivalent_at_delivery_without_margin_liquidation"]))
+                           -final_coin*Decimal(delivery)) < Decimal("1e-8")
+                assert actual["hypothetical_insolvency"] == (final_coin < 0)
+                assert actual["delivery_fee_missing"] == (fee is None)
+                assert not actual["native_margin_certified"]
+                assert not actual["promotion_authorized"] and not actual["orders_enabled"]
+                cases += 1
+        # The same instrument but a different premium MUST NOT replay as the open.
+        hostile = (
+            (replace(short, bid_coin=0.056), long, 18000, None),
+            (replace(short, venue_ms=t-600000), long, 18000, None),
+            (replace(short, bid_qty=0.01), long, 18000, None),
+            (short, replace(long, symbol="BTC-1JUL22-18000-P"), 18000, None),
+            (short, long, 0, None),
+            (short, long, 18000, -0.001),
+        )
+        for a, b, spot, fee in hostile:
+            try:
+                replay_inverse_coin_expiry_from_quotes(position, a, b, spot, fee)
+            except ValueError:
+                cases += 1
+            else:
+                raise AssertionError("INVALID_COIN_LEDGER_INPUT_ACCEPTED")
+    print({"status": "INDEPENDENT_INVERSE_COIN_QUOTE_REPLAY_PASS",
+           "scenarios": 2, "delivery_states": 3, "fee_states": 2,
+           "cases_including_adversarial": cases, "synthetic_fixtures_only": True,
+           "historical_economic_train_run": False, "promotion": False, "orders": False})
+
 if __name__=="__main__":
     run()
+    run_inverse_coin_quote_replay_oracle()
