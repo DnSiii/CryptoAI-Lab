@@ -1,0 +1,87 @@
+name: V99 G1 fixed-rule original TRAIN entry screen (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_original_train_entry_gate.py'
+      - '.github/workflows/v99-r106-g1-original-train-entry-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  g1-exante-entry-source-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify fixed preregistration and TRAIN-only partition
+        run: |
+          test -s research/V99_R106_G1_DATED_FUTURES_PREREG_20261023.md
+          python - <<'PY'
+          from research.tools.v99_r106_d1_real_train_source_join import START, END, FOLD_EDGES
+          assert START == 1639008000000 and END == 1696118400000
+          assert len(FOLD_EDGES) == 6 and FOLD_EDGES[0] == START and FOLD_EDGES[-1] == END
+          print('G1 ENTRY SCREEN TRAIN ONLY / FIXED 5 FOLDS / NO PNL')
+          PY
+      - name: Retrieve previously independently verified original OKX spot CLOSE receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" --name d1-train-four-leg-backfill-40019588739 --dir research_evidence/spot
+      - name: Retrieve corrected independently audited G1 original FUTURES source artifacts
+        run: |
+          gh run download 40052913340 --repo "$GITHUB_REPOSITORY" --pattern 'batch*' --dir research_evidence/futures
+      - name: Compute only original t-1 Monday basis eligibility (no trade, PnL or holdout)
+        run: |
+          python -m research.tools.v99_r106_g1_original_train_entry_gate research_evidence/spot research_evidence/futures research_evidence/entry
+      - name: Independently verify original 5-fold decisions and fixed cost thresholds
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from datetime import datetime, timezone
+          from decimal import Decimal
+          from pathlib import Path
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,HOUR,FOLD_EDGES
+          r=json.loads(Path('research_evidence/entry/g1_entry_gate.json').read_text())
+          assert all(r[x] is False for x in ('roi_computed','economic_train_executed','orders_enabled','validation_opened','holdout_opened','promotion_authorized'))
+          assert len(r['events']) == sum(x['mondays'] for x in r['stats'].values())
+          assert len({(x['asset'],x['decision_ms']) for x in r['events']}) == len(r['events'])
+          for row in r['events']:
+            t=row['decision_ms']; h=row['signal_hour_ms']
+            assert START < t < END and t-h == HOUR and h%HOUR==0
+            assert datetime.fromtimestamp(t/1000,timezone.utc).weekday()==0
+            assert 1<=row['fold']<=5 and FOLD_EDGES[row['fold']-1]<=t<FOLD_EDGES[row['fold']]
+            assert Decimal('30')<=Decimal(row['days_to_expiry'])<=Decimal('110')
+            if row['available']:
+              p=Decimal(row['premium']); a=Decimal(row['annualized'])
+              assert abs(a-p*Decimal('365')/Decimal(row['days_to_expiry'])) < Decimal('1e-24')
+              assert row['severe_entry']==(a>Decimal('0.10') and p>Decimal('0.0073'))
+              assert row['supersevere_cost_envelope']==(a>Decimal('0.10') and p>Decimal('0.0121'))
+              assert row['source'] in ('candle','trade')
+            else:
+              assert 'premium' not in row and 'annualized' not in row
+          for asset,summary in r['stats'].items():
+            rows=[x for x in r['events'] if x['asset']==asset]
+            assert summary['mondays']==len(rows)
+            assert summary['known']==sum(x['available'] for x in rows)
+            assert summary['unknown']==sum(not x['available'] for x in rows)
+            assert summary['severe_signals']==sum(x.get('severe_entry',False) for x in rows)
+            assert summary['fold_severe_signals']==[sum(x.get('severe_entry',False) and x['fold']==i for x in rows) for i in range(1,6)]
+          print('INDEPENDENT ENTRY RULE/FOLD/COST CHECK PASSED / NO PNL / NO PROMOTION')
+          PY
+      - name: Preserve original TRAIN entry decision and coverage uncertainty
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-original-train-entry-screen-${{ github.run_id }}
+          path: research_evidence/entry/
+          retention-days: 90
+          if-no-files-found: warn
