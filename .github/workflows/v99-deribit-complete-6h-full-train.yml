@@ -1,0 +1,44 @@
+name: V99 full 94-week complete 6h options PIT TRAIN information gate (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_deribit_complete_6h_full_train.py'
+      - 'research/tools/v99_deribit_complete_6h_full_train_oracle.py'
+      - '.github/workflows/v99-deribit-complete-6h-full-train.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-full-train-options:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Check immutable TRAIN slots and safety
+        run: |
+          python - <<'PY'
+          from research.tools.v99_deribit_weekly_pit_1000_coverage import decisions
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,FOLD_EDGES
+          d=list(decisions())
+          assert len(d)==94 and len(FOLD_EDGES)==6
+          assert all(START<t<END and FOLD_EDGES[f-1]<=t<FOLD_EDGES[f] for t,f in d)
+          print('FIXED TRAIN 94 MONDAYS / TWO ASSETS / NO VALIDATION OR HOLDOUT')
+          PY
+      - name: Collect full first-party six-hour option trades for 188 fixed asset-weeks
+        run: python -m research.tools.v99_deribit_complete_6h_full_train research_evidence/deribit_complete_6h_full
+      - name: Independent original-byte and causal five-fold eligibility reexecution
+        run: python -m research.tools.v99_deribit_complete_6h_full_train_oracle research_evidence/deribit_complete_6h_full
+      - name: Preserve first-party source and source-only gate
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-deribit-complete-6h-full-train-original
+          path: research_evidence/deribit_complete_6h_full/
+          retention-days: 30
+          if-no-files-found: warn
