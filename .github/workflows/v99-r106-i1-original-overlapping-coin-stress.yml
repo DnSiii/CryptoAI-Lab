@@ -1,0 +1,89 @@
+name: V99 I1 original-index overlapping coin risk (NO ROI / NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_overlapping_coin_exposure.py
+      - research/verification/independent_v99_r106_i1_overlapping_coin_exposure.py
+      - .github/workflows/v99-r106-i1-original-overlapping-coin-stress.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-index-overlapping-coin-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover original independently verified BTC ETH 661-day TRAIN receipts
+        run: |
+          gh run download 40117855925 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-delivery-index-train-40117855925 \
+            --dir research_evidence/i1_original_delivery
+          test -s research_evidence/i1_original_delivery/delivery_index_train_only.json
+      - name: Execute original-index daily overlapping native-coin obligation stress
+        run: |
+          python -m research.tools.v99_r106_i1_overlapping_coin_exposure \
+            research_evidence/i1_original_delivery/delivery_index_train_only.json \
+            research_evidence/i1_overlap_risk/overlap.json
+      - name: Independently replay original bytes and daily simultaneous portfolio obligations
+        run: |
+          python -m research.verification.independent_v99_r106_i1_overlapping_coin_exposure \
+            research_evidence/i1_original_delivery/delivery_index_train_only.json \
+            research_evidence/i1_overlap_risk/overlap.json
+      - name: Fail closed on source and result mutation
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_overlapping_coin_exposure import audit
+          source=Path('research_evidence/i1_original_delivery/delivery_index_train_only.json')
+          report=Path('research_evidence/i1_overlap_risk/overlap.json')
+          with tempfile.TemporaryDirectory() as temp:
+              t=Path(temp)
+              original=json.loads(source.read_text())
+              original['assets']['btc_usd']['records'][5]['delivery_price']*=1.001
+              altered_source=t/'source.json'
+              altered_source.write_text(json.dumps(original))
+              try: audit(altered_source,report)
+              except AssertionError: pass
+              else: raise AssertionError('SOURCE_MUTATION_UNDETECTED')
+              result=json.loads(report.read_text())
+              result['daily'][0]['active_positions']=99
+              altered_result=t/'report.json'
+              altered_result.write_text(json.dumps(result))
+              try: audit(source,altered_result)
+              except AssertionError: pass
+              else: raise AssertionError('PORTFOLIO_MUTATION_UNDETECTED')
+          print('ORIGINAL SOURCE AND PORTFOLIO MUTATION REJECTED; NO PNL')
+          PY
+      - name: Assert original risk-only quarantine and no promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/i1_overlap_risk/overlap.json').read_text())
+          assert r['status']=='HISTORICAL_UNDERLYING_SYNTHETIC_STRIKES_INTRINSIC_ONLY_NO_ECONOMICS'
+          assert all(r[k] is False for k in ('economic_train_executed','validation_opened',
+              'holdout_opened','promotion_authorized','orders_enabled',
+              'option_quotes_fills_or_native_margin'))
+          assert r['summary']['btc_usd']['expiry_only_breaches']==25
+          assert r['summary']['eth_usd']['expiry_only_breaches']==27
+          print('ORIGINAL-INDEX RISK ONLY; NO ECONOMIC BACKTEST, ROI OR PROMOTION')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-overlap-risk-${{ github.run_id }}
+          path: research_evidence/i1_overlap_risk/
+          retention-days: 60
+          if-no-files-found: warn
