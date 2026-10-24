@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+"""V98 Independent: PRE-ECONOMIC staged 24h liquidation-capacity governor.
+
+NOT a qualified engine, not authorized for live trading. This is a new
+structural execution hypothesis for a future independently preregistered
+seven-slot portfolio, NOT a rescue of rejected AR or earlier candidates.
+
+The prior one-hour exit inventory cap throttles USD1m/10m capacity. A staged
+24h exit can be considered only with conservative 50% quote-volume haircut,
+24h 1%-per-hour adverse continuation, native funding reserve, physical
+per-hour entry fills, actual-open execution and 81-corner settlement.
+"""
+from __future__ import annotations
+import numpy as np
+
+HOURS=24
+PARTICIPATION=.0025
+STRESSED_QUOTE_FRACTION=.50
+EXIT_FRICTION_MULTIPLIER=2.2
+CONTINUATION_PER_HOUR=.01
+FUNDING_RESERVE_HOURS=24
+FLOOR=.40
+MAINTENANCE=.18
+FEES={"base":(.0005,.0005),"severe":(.002,.003),
+      "supersevere":(.005,.010)}
+ORDERS=("carried_before_fill","new_after_fill")
+
+def four(x):
+    a=np.asarray(x,dtype=float)
+    if a.shape!=(4,) or not np.isfinite(a).all():
+        raise ValueError("V98_STAGED_VECTOR")
+    return a
+
+def capacity_units(opening,min_quote):
+    p,q=map(four,(opening,min_quote))
+    if np.any(p<=0) or np.any(q<0):
+        raise ValueError("V98_STAGED_CAPACITY_INPUT")
+    # A full position must be exit-able across 24 separate hourly orders,
+    # each <=0.25% of a 50%-haircut 336h minimum quote volume.
+    return (HOURS*PARTICIPATION*STRESSED_QUOTE_FRACTION*q/
+            (EXIT_FRICTION_MULTIPLIER*p))
+
+def stress_audit(cash_open,units,opening,down,up,funding_bound,friction):
+    n,p,d,u,f=map(four,(units,opening,down,up,funding_bound))
+    if (not np.isfinite(cash_open) or cash_open<=0 or
+        np.any(p<=0) or np.any(d<0) or np.any(d>=1) or
+        np.any(u<0) or np.any(f<0) or friction<0):
+        return False,"BAD_INPUT"
+    # First-stage full historically observed one-hour adverse gap.
+    shocked=np.where(n>=0,p*(1-d),p*(1+u))
+    first_cash=float(cash_open+n@(shocked-p))
+    # Second-stage 24-hour uninterrupted adverse drift, not a favorable
+    # assumption of instantaneous exit or future quote recovery.
+    continuation=np.where(n>=0,(1-CONTINUATION_PER_HOUR)**HOURS,
+                          (1+CONTINUATION_PER_HOUR)**HOURS)
+    terminal=shocked*continuation
+    terminal_cash=float(first_cash+n@(terminal-shocked))
+    funding_reserve=FUNDING_RESERVE_HOURS*float(np.sum(np.abs(n*p)*f))
+    exit_cost=EXIT_FRICTION_MULTIPLIER*friction*float(
+        np.sum(np.abs(n*terminal)))
+    remaining=terminal_cash-funding_reserve-exit_cost
+    gross=float(np.sum(np.abs(n*terminal)))
+    return (bool(remaining>=max(FLOOR*cash_open,MAINTENANCE*gross)-1e-8),
+            "PASS" if remaining>=max(FLOOR*cash_open,MAINTENANCE*gross)-1e-8
+            else "STAGED_EXIT_COLLATERAL")
+
+def govern_staged(cash,old,prev_close,opening,weights,
+                  down,up,funding_bound,prior_quote,min_quote,
+                  fee_mode="base",funding_order="carried_before_fill"):
+    old,p0,p,w,d,u,f,q,qmin=map(four,(old,prev_close,opening,weights,
+                                   down,up,funding_bound,prior_quote,min_quote))
+    if (fee_mode not in FEES or funding_order not in ORDERS or
+        not np.isfinite(cash) or cash<=0 or
+        np.any(p0<=0) or np.any(p<=0) or
+        np.any(d<0) or np.any(d>=1) or
+        np.any(u<0) or np.any(f<0) or
+        np.any(q<0) or np.any(qmin<0)):
+        raise ValueError("V98_STAGED_INPUT")
+    cash_open=float(cash+old@(p-p0))
+    if cash_open<=0:
+        raise ValueError("V98_STAGED_GAP_INSOLVENCY")
+    fee,slip=FEES[fee_mode]
+    friction=fee+slip
+    cap=capacity_units(p,qmin)
+    if np.any(np.abs(old)>cap+1e-8):
+        raise ValueError("V98_STAGED_CARRIED_EXIT_CAPACITY")
+    # Persistent target is reissued every hour by the future portfolio
+    # executor; each hour fills at most its own *prior* observed volume.
+    desired=np.clip(w*cash_open/p,-cap,cap)
+    max_delta=PARTICIPATION*q/p
+    desired=np.clip(desired,old-max_delta,old+max_delta)
+    def safe(n):
+        turnover=float(np.sum(np.abs(n-old)*p))
+        payer=old if funding_order=="carried_before_fill" else n
+        reserve=FUNDING_RESERVE_HOURS*float(np.sum(np.abs(payer*p)*f))
+        after=cash_open-friction*turnover-reserve
+        return stress_audit(after,n,p,d,u,f,friction)[0]
+    if safe(desired):
+        return desired
+    if not safe(old):
+        # A pre-existing unsafe position cannot be assumed to exit instantly.
+        # A future design must explicitly pre-register its emergency order
+        # schedule; do not silently override liquidity here.
+        raise ValueError("V98_STAGED_CARRIED_UNSAFE")
+    lo,hi=0.,1.
+    for _ in range(36):
+        mid=(lo+hi)/2.
+        if safe(old+mid*(desired-old)):
+            lo=mid
+        else:
+            hi=mid
+    return old+lo*(desired-old)
+
+def static_check():
+    p=np.full(4,100.)
+    q=np.full(4,1e8)
+    cap=capacity_units(p,q)
+    assert np.all(cap>0)
+    assert np.allclose(cap*EXIT_FRICTION_MULTIPLIER*p,
+                       HOURS*PARTICIPATION*STRESSED_QUOTE_FRACTION*q)
+    n=govern_staged(10000.,np.zeros(4),p,p,
+                    np.array([.25,.25,.25,.25]),
+                    np.full(4,.4),np.full(4,.65),
+                    np.full(4,.0005),q,q)
+    assert np.isfinite(n).all()
+    assert np.all(np.abs(n)<=cap+1e-8)
+    assert np.all(np.abs(n*p)<=PARTICIPATION*q+1e-8)
+    # Scaling capital does not increase the absolute capacity allowed by
+    # physical liquidity, even when the requested portfolio weight is huge.
+    large=govern_staged(1e7,np.zeros(4),p,p,np.ones(4)*100,
+                       np.full(4,.4),np.full(4,.65),
+                       np.full(4,.0005),q,q)
+    assert np.all(np.abs(large)<=cap+1e-8)
+    return True
+
+if __name__=="__main__":
+    assert static_check()
+    print("V98_STAGED_CAPACITY_PRE_ECONOMIC_STATIC_PASS")
