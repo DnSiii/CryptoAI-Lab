@@ -47,13 +47,19 @@ jobs:
               payload=json.loads(b)
               assert not payload.get('error') and payload['result'].get('continuation') is None
               candles={}
+              ignored=0
               for row in payload['result']['data']:
-                  ts=int(row[0]);v=list(map(float,row[1:5]))
-                  assert src['query_start_ms']<=ts<=src['query_end_ms']
+                  ts=int(row[0])
+                  assert START<=ts<END
+                  if not src['query_start_ms']<=ts<=src['query_end_ms']:
+                      ignored+=1
+                      continue
+                  v=list(map(float,row[1:5]))
                   assert len(v)==4 and all(math.isfinite(x) and x>0 for x in v)
                   assert v[1]>=max(v[0],v[2],v[3]) and v[2]<=min(v[0],v[1],v[3])
                   assert ts not in candles
                   candles[ts]=v[3]
+              assert ignored==src['ignored_out_of_query']
               assert len(candles)==src['candles']
               assert list(candles)==sorted(candles)
               rawseries[key]=candles
