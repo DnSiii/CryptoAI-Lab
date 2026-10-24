@@ -1,0 +1,64 @@
+name: V99 I1 original options quote-to-execution causal readiness (NO TRADES)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_execution_readiness.py
+      - research/verification/independent_v99_r106_i1_execution_readiness.py
+      - .github/workflows/v99-r106-i1-original-execution-readiness.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-source-causal-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover existing original archived partial quote bytes (not a full tape)
+        run: |
+          gh run download 40079775009 --repo "$GITHUB_REPOSITORY" \
+            --name v99-tardis-partial-quote-samples-not-train \
+            --dir research_evidence/i1_original_partial
+          test -s research_evidence/i1_original_partial/manifest.json
+      - name: Execute 94-week causal two-strike five-fold readiness gate
+        run: |
+          python -m research.tools.v99_r106_i1_execution_readiness \
+            research_evidence/i1_original_partial research_evidence/i1_execution_readiness
+      - name: Independently reparse original bytes and exercise source-corruption negative control
+        run: |
+          python -m research.verification.independent_v99_r106_i1_execution_readiness \
+            research_evidence/i1_original_partial \
+            research_evidence/i1_execution_readiness/i1_execution_readiness.json
+      - name: Enforce blocked economic state and sealed future
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('research_evidence/i1_execution_readiness/i1_execution_readiness.json').read_text())
+          assert p['train_decision_weeks']==94 and p['required_asset_weekly_pairs']==188
+          assert p['original_sample_rows']==4000
+          assert p['status']=='BLOCKED_NO_FULL_FIVE_FOLD_EXECUTABLE_OPTIONS_SOURCE'
+          assert not p['complete_five_fold_coverage']
+          assert not any(p[k] for k in (
+              'native_fee_tier_authenticated','native_contract_multiplier_authenticated',
+              'native_margin_settlement_authenticated','economic_train_executed',
+              'validation_opened','holdout_opened','orders_enabled','promotion_authorized'))
+          print('ORIGINAL PARTIAL QUOTE SOURCE ONLY / NO OPTIONS ECONOMICS / NO PROMOTION')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-execution-readiness-${{ github.run_id }}
+          path: research_evidence/i1_execution_readiness/
+          retention-days: 60
+          if-no-files-found: warn
