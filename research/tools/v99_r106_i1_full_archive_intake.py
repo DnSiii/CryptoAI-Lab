@@ -131,15 +131,15 @@ def evaluate(root):
                 try:
                     bid, ask, bs, az = (float(row[k]) for k in
                         ("bid_price","ask_price","bid_amount","ask_amount"))
+                    valid = (all(map(math.isfinite,(bid,ask,bs,az)))
+                             and 0 < bid < ask and bs > 0 and az > 0)
                 except (ValueError, TypeError):
-                    continue
-                if not all(map(math.isfinite,(bid,ask,bs,az))):
-                    continue
-                # A newer invalid quote must supersede an older valid quote.
+                    valid = False
+                # Even a malformed newer quote cancels an older good quote.
                 prior = latest.get(row["symbol"])
                 if prior is None or (arrival,exchange) >= prior[:2]:
                     latest[row["symbol"]] = (arrival,exchange,asset,expiry,
-                        strike,0 < bid < ask and bs > 0 and az > 0)
+                        strike,valid)
         if rows != item.get("rows"):
             raise ValueError("ARCHIVE_ROW_COUNT_MISMATCH")
         total_rows += rows
