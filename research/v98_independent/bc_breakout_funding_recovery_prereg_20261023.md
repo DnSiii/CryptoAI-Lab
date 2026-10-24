@@ -1,0 +1,19 @@
+# V98 Independent BC — pre-result freeze, 2026-10-23
+
+## Hypothesis and independence
+BC is a new seven-slot portfolio hypothesis: long-run cross-asset breakout persistence + compression-release opportunity + native funding-spread harvesting under directional neutrality + breadth-based recovery. It is **not** a parameter/sign/window repair of rejected BA/BB/AY/AZ or their ablations. Their rejected PnL and settings are not used for BC selection. V14/V15/V99 remain unopened. BC must be rejected if any frozen gate fails.
+
+## Fixed authenticated universe and chronological firewall
+BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, Binance USD-M hourly, Dec 2022 warmup, 2023–2024 training; exact pinned V98 OHLC and native mark/funding manifest. Never load 2025, 2026+, quarantined XRP, or Phase083. Signals at completed close[t]; earliest execution open[t+1]. Zero future inputs.
+
+## Seven immutable slots
+1. Growth Core: at 336-hour epochs, long only assets whose 336h and 1008h close returns are positive and close exceeds the previous 504h completed-close maximum. Allocate inverse 336h realized log-return volatility, 45% maximum per asset, cash residual.
+2. Opportunity: volatility compression-release. Asset must have 1008h positive return; std(log returns,72h) < 0.65 x std(504h), close crosses above previous 168h completed-close maximum, 24h quote volume > 1.2 x prior 168h average 24h volume. Select strongest 24h return, hold 120h, 336h cooldown.
+3. Relative Value: event-funded cross-sectional funding spread harvest, without momentum-spread direction selection. Use the last 18 native 8h events per asset, long the lowest mean funding rate and short the highest only when funding spread >=0.0002/event, both have >=18 events and abs(168h log-return difference)<0.04 (directional neutrality proxy). Equal 0.5/-0.5 dollar legs; hold 120h, cooldown 168h.
+4. Stress/Recovery: when >=3 assets had negative 336h returns and >=3 now positive 48h returns, select asset with strongest 48h recovery but 336h return <0; long for 168h; 336h cooldown.
+5. Regime Router: EXPANSION if >=3 positive 336h and median 168h positive; RECOVERY if >=3 negative 336h and >=3 positive 48h; DEFENSE if >=3 negative 168h; otherwise NEUTRAL.
+6. Dynamic Allocator: base sleeve budgets [0.70,0.12,0.12,0.06]; EXPANSION [1.25,1.1,0.7,0.4], RECOVERY [0.65,1.0,0.8,1.8], DEFENSE [0.2,0.4,1.25,1.2], NEUTRAL [0.75,0.75,1.0,0.9]. 504h shadow funding-aware log returns, fixed 0.0015 turnover friction, clipped confidence [0.65,1.35]; 336h epoch and true event transitions, independent frozen component units.
+7. Risk Governor: previously independently audited V98-only physical execution infrastructure: 25% of prior 24h conservative exit capacity on new authorization, actual-open physical fills, no hidden borrowing, severe/supersevere fees/slippage, native signed funding, 81-corner intrabar maintenance, no re-risk after forced shrink.
+
+## Immutable evaluation and decision
+Five paths BC_core_only, BC_full, BC_minus_opportunity, BC_minus_RV, BC_minus_stress; USD10k/1m/10m; base/severe/supersevere; carried-before-fill/new-after-fill; two OS Ubuntu 22.04/24.04. Require 90/90 mechanical survival, independent two-OS reconciliation, positive full net-log-growth in **each** 2023/2024 at USD10k under base/severe and both funding orders, and positive marginal annual net-log-growth of each complementary sleeve against frozen leave-one-out in all those cases. Report costs, funding, turnover, PF, payoff, win, positive days, DD, concentration, tails and annual wealth. Failure is permanent rejection; no post-result tuning, no ablation rescue. Passing training does **not** authorize independent validation, benchmark comparisons, paper/live use until exact BC full candidate is frozen and separately validated.
