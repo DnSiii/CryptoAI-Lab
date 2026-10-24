@@ -16,8 +16,8 @@ from urllib.request import Request, urlopen
 START = date(2021, 12, 9)
 END = date(2023, 10, 1)
 HOST = "https://www.deribit.com/api/v2/public/get_delivery_prices"
-PAGE = 1000
-MAX_PAGES = 12
+PAGE = 100
+MAX_PAGES = 40
 
 
 def get_page(index, offset):
