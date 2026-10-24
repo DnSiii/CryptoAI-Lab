@@ -96,7 +96,7 @@ def audit(root):
             'annual_growth_gates':growth,'marginal_log_growth':marginal,
             'marginal_pass':marg_pass,
             'decision':('PASS_BM_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION' if gate
-                        else 'REJECT_OR_BMOCK_BM_TRAINING'),
+                        else 'REJECT_OR_BLOCK_BM_TRAINING'),
             'native_funding_independently_rederived':False,
             'validation_2025_read':False,'external_benchmarks_used':False}
 if __name__=='__main__':

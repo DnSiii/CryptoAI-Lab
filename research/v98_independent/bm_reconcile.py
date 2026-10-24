@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V98 BM independent slow-vol signed-carry seven-slot two-OS 90-cell economic reconciliation; artifact-only."""
+"""V98 BM independent compression/rotation/distributed-stress seven-slot two-OS 90-cell economic reconciliation; artifact-only."""
 from __future__ import annotations
 import argparse
 import glob
@@ -103,9 +103,9 @@ def run(root):
     sleeve_gates={s:all(marginal[s].get(key,{}).get(yr,float('-inf'))>0
                          for key in growth for yr in ('2023','2024'))
                   for s in marginal}
-    reproducibme=not errors and len(representative)==5 and total==90
-    if not reproducibme:
-        decision='BMOCKED_BM_CROSS_OS_REPRODUCIBMLITY'
+    reproducible=not errors and len(representative)==5 and total==90
+    if not reproducible:
+        decision='BLOCKED_BM_CROSS_OS_REPRODUCIBILITY'
     elif passed!=90:
         decision='REJECT_BM_HISTORICAL_SURVIVAL'
     elif not all(growth.values()) or not all(sleeve_gates.values()):
@@ -116,7 +116,7 @@ def run(root):
         'architecture':'BM','historical_training_only':True,
         'validation_2025_read':False,'external_benchmarks_used':False,
         'source_manifest_sha256':representative.get('BM_full',{}).get('source_manifest_sha256'),
-        'cross_os_reproducibme':reproducibme,
+        'cross_os_reproducible':reproducible,
         'cross_os_errors':errors[:30],
         'max_normalized_numeric_deltas':sorted(deltas,reverse=True)[:20],
         'cells_total':total,'cells_survived':passed,
@@ -134,7 +134,7 @@ if __name__=='__main__':
     result=run(args.root)
     with open(args.output,'w') as f:
         json.dump(result,f,indent=2,sort_keys=True,allow_nan=False)
-    print('BM90_CROSS_OS',result['cross_os_reproducibme'],
+    print('BM90_CROSS_OS',result['cross_os_reproducible'],
           'max_deltas',result['max_normalized_numeric_deltas'][:5])
     print('BM90_SURVIVAL',result['cells_survived'],'/',result['cells_total'])
     if result['full_10k_base'] and result['full_10k_base'].get('passed'):
@@ -149,4 +149,4 @@ if __name__=='__main__':
     print('BM90_GROWTH_GATES',result['growth_gates_10k'])
     print('BM90_SLEEVE_GATES',result['sleeve_gates_10k'])
     print('BM90_DECISION',result['decision'])
-    raise SystemExit(2 if not result['cross_os_reproducibme'] else 0)
+    raise SystemExit(2 if not result['cross_os_reproducible'] else 0)

@@ -1,0 +1,38 @@
+name: V98 Independent BM Original Receipt Audit Only (No Historical Refit)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-bm-audit-only.yml'
+      - 'research/v98_independent/bm_reconcile.py'
+      - 'research/v98_independent/bm_independent_receipt_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  immutable_original_receipt_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve ORIGINAL immutable BM 90-cell training receipts, no re-run or refit
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bm90-ubuntu-*
+          run-id: 40071731297
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Reconcile original two-OS 90-cell receipts, corrected schema
+        run: python research/v98_independent/bm_reconcile.py --root receipts --output bm90_official_economic_summary_corrected.json
+      - name: Independently verify arithmetic and economic gates from original receipts
+        run: python research/v98_independent/bm_independent_receipt_audit.py --root receipts --output bm90_independent_arithmetic_corrected.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bm90-immutable-corrected-audit
+          path: |
+            bm90_official_economic_summary_corrected.json
+            bm90_independent_arithmetic_corrected.json
+          retention-days: 30
+          if-no-files-found: error
