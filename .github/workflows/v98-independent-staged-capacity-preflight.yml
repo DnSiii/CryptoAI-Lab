@@ -29,15 +29,15 @@ jobs:
           python - <<'PY'
           import numpy as np
           from v98_staged_exit_capacity_governor import (
-              capacity_units,stress_audit,govern_staged,PARTICIPATION)
+              capacity_units,stress_audit,govern_staged,PARTICIPATION,\n              HOURS,prior_min_exit_window_quote)
           p=np.array([100.,100.,100.,100.])
           q=np.array([1e8,1e8,1e8,1e8])
-          cap=capacity_units(p,q)
-          assert np.all(cap>0)
+          cap=capacity_units(p,q*HOURS)
+          assert np.all(cap>0)\n          hist=np.full((336,4),1e8)\n          hist[80]=0.\n          assert np.allclose(prior_min_exit_window_quote(hist,336),23e8)
           n=govern_staged(10000.,np.zeros(4),p,p,
                np.array([.5,-.5,.5,-.5]),
                np.full(4,.4),np.full(4,.65),
-               np.full(4,.0005),q,q)
+               np.full(4,.0005),q,q*HOURS)
           assert np.all(np.abs(n*p)<=PARTICIPATION*q+1e-7)
           ok,_=stress_audit(10000.,n,p,np.full(4,.4),
                              np.full(4,.65),np.full(4,.0005),.001)
