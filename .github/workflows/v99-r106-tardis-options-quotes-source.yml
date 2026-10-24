@@ -1,0 +1,33 @@
+name: V99 historical executable option quotes source feasibility (NO ORDERS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - research_tools/v99_r106_tardis_quotes_sample.py
+      - research_tools/v99_r106_tardis_quotes_sample_oracle.py
+      - .github/workflows/v99-r106-tardis-options-quotes-source.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-sample-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Bounded historical third-party quote capture (TRAIN samples only)
+        run: python research_tools/v99_r106_tardis_quotes_sample.py
+      - name: Independent sample hash and timestamp/quote oracle
+        run: python research_tools/v99_r106_tardis_quotes_sample_oracle.py
+      - name: Archive sample receipts even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v99-tardis-partial-quote-samples-not-train
+          path: tardis_quote_probe/
+          if-no-files-found: warn
+          retention-days: 30
