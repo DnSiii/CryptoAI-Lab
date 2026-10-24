@@ -30,7 +30,7 @@ jobs:
             --name v99-tardis-partial-quote-samples-not-train \
             --dir research_evidence/i1_original_partial
           test -s research_evidence/i1_original_partial/manifest.json
-      - name: Execute 94-week causal two-strike five-fold readiness gate
+      - name: Execute 94-decision TRAIN gate with 91 maturity-eligible weeks (no validation expiry)
         run: |
           python -m research.tools.v99_r106_i1_execution_readiness \
             research_evidence/i1_original_partial research_evidence/i1_execution_readiness
@@ -45,7 +45,8 @@ jobs:
           import json
           from pathlib import Path
           p=json.loads(Path('research_evidence/i1_execution_readiness/i1_execution_readiness.json').read_text())
-          assert p['train_decision_weeks']==94 and p['required_asset_weekly_pairs']==188
+          assert p['train_decision_weeks']==94 and p['required_asset_weekly_pairs']==182
+          assert p['maturity_eligible_decision_weeks']==91 and p['right_censored_decision_weeks']==3
           assert p['original_sample_rows']==4000
           assert p['status']=='BLOCKED_NO_FULL_FIVE_FOLD_EXECUTABLE_OPTIONS_SOURCE'
           assert not p['complete_five_fold_coverage']
