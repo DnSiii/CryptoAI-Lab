@@ -22,8 +22,8 @@ def main():
             rows[year][name]={"scheduled_epochs":int(len(indices)),
               "nonzero_signal_epochs":len(nonzero),
               "effective_epochs":len(effective),"minimum":MIN[name],"pass":ok,
-              "long_asset_counts":[sum(sig[t,i,j]>0 for t in effective) for j in range(4)],
-              "short_asset_counts":[sum(sig[t,i,j]<0 for t in effective) for j in range(4)]}
+              "long_asset_counts":[int(sum(sig[t,i,j]>0 for t in effective)) for j in range(4)],
+              "short_asset_counts":[int(sum(sig[t,i,j]<0 for t in effective)) for j in range(4)]}
     result={"architecture":"CH","decision":"PASS_CH_SOURCE_VIABILITY_ONLY" if passed else "REJECT_CH_SOURCE_INACTIVITY",
       "historical_training_only":True,"validation_2025_read":False,
       "external_benchmarks_used":False,"trading_authorized":False,"years":rows}
