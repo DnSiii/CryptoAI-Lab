@@ -176,9 +176,30 @@ def audit(rootdir,outdir):
             for inst,data in stored.items():
                 totals["original_minutes"]+=data["original_minutes"]
                 totals["complete_hours"]+=len(data["complete_hours"])
-                if not data["complete_hours"]:
-                    issues.append({"month":rec["month"],"asset":rec["asset"],
-                                   "contract":inst,"issue":"NO_ORIGINAL_COMPLETE_HOURS"})
+                expiry=datetime.strptime(inst[-6:],"%y%m%d").replace(tzinfo=UTC)
+                a,b=month_bounds(rec["month"])
+                # Original weekly decision must have prior completed hour. Include
+                # the entire subsequent carry until contractual expiry date.
+                eligible_mondays=[]
+                day=TRAIN_START
+                while day<min(TRAIN_END,expiry):
+                    if day.weekday()==0:
+                        candidates=[e for e in EXPIRIES if 30 <= (datetime.fromisoformat(e).replace(tzinfo=UTC)-day).total_seconds()/86400 <=110]
+                        if candidates and min(candidates).replace("-","")[2:]==inst[-6:]:
+                            eligible_mondays.append(day)
+                    day+=timedelta(days=1)
+                if not eligible_mondays:raise ValueError("NONPREREG_CONTRACT_SELECTED")
+                first=min(eligible_mondays)-timedelta(hours=1)
+                start=max(a,first);end=min(b,expiry,TRAIN_END)
+                expected_hours=set(range(epoch(start),epoch(end),HOUR))
+                observed_hours={x["hour_ms"] for x in data["complete_hours"]}
+                missing=expected_hours-observed_hours
+                totals["required_carry_hours"]=totals.get("required_carry_hours",0)+len(expected_hours)
+                totals["missing_carry_hours"]=totals.get("missing_carry_hours",0)+len(missing)
+                if missing:
+                    issues.append({"month":rec["month"],"asset":rec["asset"],"contract":inst,
+                                   "issue":"MISSING_ORIGINAL_CARRY_HOURS","missing_hours":len(missing),
+                                   "first_missing_hour_ms":min(missing)})
     expected={(m,a) for m in MONTHS for a in ASSETS}
     if seen!=expected:
         issues.append({"issue":"MISSING_BATCH_MONTHS","count":len(expected-seen)})
