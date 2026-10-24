@@ -210,3 +210,86 @@ def inverse_coin_expiry_diagnostic(spread: Spread, delivery_index_usd: float) ->
         "orders_enabled": False,
         "modeled_only": True,
     }
+
+
+def replay_inverse_coin_expiry_from_quotes(
+    spread: Spread,
+    short_quote: PutQuote,
+    long_quote: PutQuote,
+    delivery_index_usd: float,
+    modeled_delivery_fee_coin: float | None = None,
+) -> dict:
+    """Independent-source-input coin cashflow replay, NOT exchange margin certification.
+
+    Uses ORIGINAL opening bid/ask premiums denominated in BTC/ETH, not the
+    previous USD-equivalent ledger's net cash. Models two entry-side fee/slip
+    charges in coin; the optional expiry fee is an EXPLICIT synthetic input.
+    Never infer a historically certified delivery index from OKX hourly OHLC.
+    A negative balance means an insolvent *no-liquidation counterfactual*.
+    """
+    if not isinstance(spread, Spread) or spread.scenario not in COST_SCENARIOS:
+        raise ValueError("INVALID_SPREAD_OR_SCENARIO")
+    short_quote.validate(spread.decision_ms)
+    long_quote.validate(spread.decision_ms)
+    if not (
+        short_quote.asset == long_quote.asset == spread.asset
+        and short_quote.expiry_ms == long_quote.expiry_ms == spread.expiry_ms
+        and short_quote.strike_usd == spread.short_strike_usd
+        and long_quote.strike_usd == spread.long_strike_usd
+        and short_quote.symbol != long_quote.symbol
+        and short_quote.bid_qty >= spread.qty
+        and long_quote.ask_qty >= spread.qty
+        and short_quote.spot_usd == long_quote.spot_usd == spread.entry_spot_usd
+    ):
+        raise ValueError("UNBOUND_OPENING_QUOTES_OR_INSUFFICIENT_DEPTH")
+    if not isfinite(delivery_index_usd) or delivery_index_usd <= 0:
+        raise ValueError("INVALID_DELIVERY_INDEX")
+    if modeled_delivery_fee_coin is not None and (
+        not isfinite(modeled_delivery_fee_coin) or modeled_delivery_fee_coin < 0
+    ):
+        raise ValueError("INVALID_MODELED_DELIVERY_FEE")
+    D = lambda value: Decimal(str(value))
+    q = D(spread.qty)
+    entry = D(spread.entry_spot_usd)
+    fee, slip = COST_SCENARIOS[spread.scenario]
+    gross_credit_coin = q * (D(short_quote.bid_coin) - D(long_quote.ask_coin))
+    entry_friction_coin = D(2) * q * (D(fee) + D(slip))
+    net_credit_coin = gross_credit_coin - entry_friction_coin
+    # Ensure the original spread was opened from these SAME original quotes.
+    if abs(net_credit_coin * entry - D(spread.premium_credit_usd)) > D("0.0000001"):
+        raise ValueError("OPENING_QUOTE_PREMIUM_NOT_BOUND_TO_SPREAD")
+    opening_coin = D(spread.initial_cash_usd) / entry
+    s = D(delivery_index_usd)
+    intrinsic_usd = q * (
+        max(D(spread.short_strike_usd) - s, D(0))
+        - max(D(spread.long_strike_usd) - s, D(0))
+    )
+    intrinsic_coin = intrinsic_usd / s
+    expiry_fee = D(modeled_delivery_fee_coin) if modeled_delivery_fee_coin is not None else D(0)
+    no_liquidation_coin = opening_coin + net_credit_coin - intrinsic_coin - expiry_fee
+    return {
+        "schema": "I1_ORIGINAL_OPEN_QUOTES_INVERSE_COIN_EXPIRY_MODELED_V1",
+        "asset": spread.asset,
+        "scenario": spread.scenario,
+        "opening_coin_full_conversion_assumption": float(opening_coin),
+        "gross_opening_credit_coin": float(gross_credit_coin),
+        "modeled_opening_friction_coin": float(entry_friction_coin),
+        "net_opening_credit_coin": float(net_credit_coin),
+        "intrinsic_usd": float(intrinsic_usd),
+        "intrinsic_settlement_coin": float(intrinsic_coin),
+        "modeled_delivery_fee_coin": (
+            None if modeled_delivery_fee_coin is None else float(expiry_fee)
+        ),
+        "coin_balance_without_margin_liquidation": float(no_liquidation_coin),
+        "usd_equivalent_at_delivery_without_margin_liquidation": float(no_liquidation_coin * s),
+        "hypothetical_insolvency": no_liquidation_coin < 0,
+        "delivery_fee_missing": modeled_delivery_fee_coin is None,
+        "requires_original_delivery_twap_receipt": True,
+        "requires_historical_coin_margin_liquidation_rules": True,
+        "requires_authenticated_historical_fee_and_execution": True,
+        "historical_train_economics_run": False,
+        "native_margin_certified": False,
+        "promotion_authorized": False,
+        "orders_enabled": False,
+        "modeled_only": True,
+    }
