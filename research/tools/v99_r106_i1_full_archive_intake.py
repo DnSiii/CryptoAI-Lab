@@ -132,7 +132,8 @@ def evaluate(root):
                     bid, ask, bs, az = (float(row[k]) for k in
                         ("bid_price","ask_price","bid_amount","ask_amount"))
                     valid = (all(map(math.isfinite,(bid,ask,bs,az)))
-                             and 0 < bid < ask and bs > 0 and az > 0)
+                             and 0 < bid < ask and bs > 0 and az > 0
+                             and exchange >= cutoff)  # venue event must be fresh too
                 except (ValueError, TypeError):
                     valid = False
                 # Even a malformed newer quote cancels an older good quote.
