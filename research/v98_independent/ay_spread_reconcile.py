@@ -146,7 +146,7 @@ if __name__=='__main__':
             'max_dd':c['max_drawdown'],'fees':c['fees'],
             'slippage':c['slippage'],'funding':c['funding']},
             sort_keys=True))
-    print('AY90_GROWTH_GAYES',result['growth_gates_10k'])
-    print('AY90_SLEEVE_GAYES',result['sleeve_gates_10k'])
+    print('AY90_GROWTH_GATES',result['growth_gates_10k'])
+    print('AY90_SLEEVE_GATES',result['sleeve_gates_10k'])
     print('AY90_DECISION',result['decision'])
     raise SystemExit(2 if not result['cross_os_reproducible'] else 0)
