@@ -41,8 +41,10 @@ def original(url):
 
 
 def retrieve_fold(root, fold, currency):
-    begin = max(START, FOLD_EDGES[fold-1] - 3*DAY)
-    end = FOLD_EDGES[fold] - 1
+    begin = max(START, ((FOLD_EDGES[fold-1] - 3*DAY) // DAY) * DAY)
+    # The five immutable folds have non-midnight edges; request only completed
+    # UTC daily candles well before the next fold, and never touch holdout.
+    end = ((FOLD_EDGES[fold] - 1) // DAY) * DAY - DAY - 1
     params = dict(currency=currency, start_timestamp=begin,
                   end_timestamp=end, resolution="1D")
     errors = []
@@ -62,12 +64,16 @@ def retrieve_fold(root, fold, currency):
             if not data:
                 raise RuntimeError("NO_HISTORICAL_DVOL_DATA")
             parsed = {}
+            ignored = 0
             for v in data:
                 if not isinstance(v, list) or len(v) < 5:
                     raise ValueError("BAD_CANDLE")
                 ts = int(v[0])
+                if not (START <= ts < END):
+                    raise ValueError("OUTSIDE_TRAIN_CANDLE")
                 if not (begin <= ts <= end):
-                    raise ValueError("OFF_WINDOW_CANDLE")
+                    ignored += 1
+                    continue
                 o,h,l,c = [float(x) for x in v[1:5]]
                 if not (all(math.isfinite(x) and x>0 for x in (o,h,l,c))
                         and h>=max(o,c,l) and l<=min(o,c,h)):
@@ -82,7 +88,8 @@ def retrieve_fold(root, fold, currency):
             return dict(fold=fold,currency=currency,status="SOURCE_OK",
                         endpoint=endpoint,query_start_ms=begin,query_end_ms=end,
                         receipt_file=filename,sha256=hashlib.sha256(raw).hexdigest(),
-                        candles=len(parsed),first_candle_ms=min(parsed),last_candle_ms=max(parsed)),parsed
+                        candles=len(parsed),ignored_out_of_query=ignored,
+                        first_candle_ms=min(parsed),last_candle_ms=max(parsed)),parsed
         except Exception as exc:
             errors.append(f"{endpoint}: {type(exc).__name__}: {exc}")
     return dict(fold=fold,currency=currency,status="SOURCE_ERROR",errors=errors),{}
