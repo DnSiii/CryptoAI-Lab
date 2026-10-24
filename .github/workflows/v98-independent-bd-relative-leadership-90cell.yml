@@ -1,0 +1,107 @@
+name: V98 Independent BD Relative Leadership Online Growth Seven Slot 90-Cell Historical Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-bd-relative-leadership-90cell.yml'
+      - 'research/v98_independent/bd_relative_leadership_sources.py'
+      - 'research/v98_independent/bd_relative_leadership_allocator.py'
+      - 'research/v98_independent/bd_relative_leadership_90cell.py'
+      - 'research/v98_independent/bd_relative_leadership_reconcile.py'
+      - 'research/v98_independent/ba_ratio_reversion_governor.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  train:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [BD_core_only, BD_full, BD_minus_opportunity, BD_minus_RV, BD_minus_stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: BD causal leadership, dispersion, crash protection, risk governor, 81-corner settlement
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile bd_relative_leadership_sources.py bd_relative_leadership_allocator.py ba_ratio_reversion_governor.py bd_relative_leadership_90cell.py bd_relative_leadership_reconcile.py
+          python bd_relative_leadership_sources.py
+          python bd_relative_leadership_allocator.py
+          python ba_ratio_reversion_governor.py
+      - name: Retrieve PINNED vendor-attested 2023-24 Clean4 ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-${{ matrix.os }}
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage original Dec2022-Dec2024 training bytes ONLY
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Execute BD complete actual-open native-funded chronological path x18
+        working-directory: research/v98_independent
+        run: |
+          python bd_relative_leadership_90cell.py \
+            --path ${{ matrix.path }} \
+            --output bd90_${{ matrix.path }}.json || echo 'BD_REJECTION_OR_FAILURE_PRESERVED'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bd90-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/bd90_${{ matrix.path }}.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Verify all 18 path cells recorded, never hide failure
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('bd90_BD_*.json')
+          assert len(files)==1,files
+          a=json.load(open(files[0]))
+          assert len(a['cells'])==18
+          print('BD_PATH_SURVIVAL',a['path'],sum(c['passed'] for c in a['cells']),'/',len(a['cells']))
+          PY
+  reconcile:
+    if: always()
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bd90-ubuntu-*
+          path: receipts
+      - name: Independent two-OS 90-cell economic, marginal and causal gate
+        run: python research/v98_independent/bd_relative_leadership_reconcile.py --root receipts --output bd90_official_economic_summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bd90-official-economic-summary
+          path: bd90_official_economic_summary.json
+          retention-days: 30
+          if-no-files-found: warn
