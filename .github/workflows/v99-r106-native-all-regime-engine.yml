@@ -1,8 +1,6 @@
-# This historical R106 workflow is deliberately quarantined: its legacy
-# research script accesses a post-TRAIN holdout before a formal freeze.
-# It must not be run again, including via workflow_dispatch, because the
-# sealed validation/holdout for NEW architectures cannot be contaminated.
-# This guard does NOT disable hourly V99 research or any safe TRAIN workflow.
+# Quarantine of the historically contaminated R106 runner. No market reads.
+# This job verifies both the workflow and direct/fast Python entrypoints fail
+# closed before any post-TRAIN data can be loaded. Not an economic backtest.
 name: V99 R106 LEGACY HOLDOUT DIAGNOSTIC QUARANTINED - NO ENGINE RUN
 on:
   workflow_dispatch:
@@ -10,16 +8,48 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - ".github/workflows/v99-r106-native-all-regime-engine.yml"
+      - "scripts/run_v99_r106_native_all_regime_engine.py"
+      - "scripts/run_v99_r106_native_all_regime_engine_fast.py"
 permissions:
   contents: read
 jobs:
   quarantine-only:
-    name: QUARANTINED - no historical R106 engine execution or PNL
+    name: Verify both legacy entrypoints fail closed before market data
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Explain permanent contaminated legacy workflow exclusion
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify direct and fast legacy runners cannot open post-TRAIN data
+        shell: bash
         run: |
-          echo "::warning::Legacy scripts/run_v99_r106_native_all_regime_engine.py inspected post-TRAIN holdout before a formal candidate freeze. Its old diagnostic workflow is quarantined; no market data, holdout, paper or orders accessed."
-          echo "This job is a SAFETY QUARANTINE, not a backtest, not a passing strategy, not a V99 promotion."
-          echo "Safe, independently preregistered TRAIN-only research workflows remain available on this branch."
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          direct = Path("scripts/run_v99_r106_native_all_regime_engine.py")
+          fast = Path("scripts/run_v99_r106_native_all_regime_engine_fast.py")
+          source = direct.read_text()
+          tree = ast.parse(source, filename=str(direct))
+          mains = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "main"]
+          assert len(mains) == 1, "Expected exactly one legacy main()"
+          first = mains[0].body[0]
+          assert isinstance(first, ast.Raise), "Legacy main must fail before data setup"
+          assert isinstance(first.exc, ast.Call), "Legacy guard must raise a RuntimeError"
+          assert isinstance(first.exc.func, ast.Name) and first.exc.func.id == "RuntimeError"
+          assert "V99_R106_LEGACY_HOLDOUT_DIAGNOSTIC_QUARANTINED" in ast.get_source_segment(source, first)
+          fast_tree = ast.parse(fast.read_text(), filename=str(fast))
+          fast_calls = [node for node in ast.walk(fast_tree) if isinstance(node, ast.Call)]
+          assert any(isinstance(node.func, ast.Attribute) and
+                     isinstance(node.func.value, ast.Name) and
+                     node.func.value.id == "r106" and node.func.attr == "main"
+                     for node in fast_calls), "Fast runner must delegate to guarded main"
+          compile(source, str(direct), "exec")
+          compile(fast.read_text(), str(fast), "exec")
+          print("LEGACY DIRECT+FAST ENTRYPOINTS FAIL CLOSED; NO DATA OR HOLDO​UT READ")
+          print("NO ECONOMIC TRAIN / NO PNL / NO PROMOTION / NO ORDERS")
+          PY
+      - name: Explain quarantine, not model validation
+        run: |
+          echo "::warning::Historical R106 post-TRAIN holdout diagnostic is permanently quarantined."
+          echo "Only independent preregistered TRAIN-only engines may run. Frozen/paper/holdout untouched."
