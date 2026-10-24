@@ -99,9 +99,17 @@ def readiness(root):
     decisions = monday_decisions()
     if len(decisions) != 94:
         raise ValueError(f"UNEXPECTED_WEEKLY_DECISION_COUNT:{len(decisions)}")
+    # A 21-day-minimum option opened in the final three TRAIN Mondays cannot
+    # expire inside TRAIN. Exclude these right-censored entries from *economic*
+    # source-coverage denominator; never read validation to settle them.
+    min_life_us = 21 * 86400 * 1_000_000
+    eligible = [t for t in decisions if t * 1000 + min_life_us < END * 1000]
+    censored = [t for t in decisions if t not in eligible]
+    if len(eligible) != 91 or len(censored) != 3:
+        raise ValueError("UNEXPECTED_TRAIN_EXPIRY_CENSORING")
     coverage = {str(f): {a: 0 for a in REQUIRED_ASSETS} for f in range(1, 6)}
     selected = []
-    for t in decisions:
+    for t in eligible:
         f = next((i for i, (lo, hi) in enumerate(zip(FOLD_EDGES, FOLD_EDGES[1:]), 1)
                   if lo <= t < hi), None)
         if f is None:
@@ -112,7 +120,8 @@ def readiness(root):
         for arrival, exchange, asset, expiry, strike, symbol in quotes:
             if not (0 <= t_us - arrival <= MAX_AGE_US and exchange <= arrival):
                 continue
-            if not (21 * 86400 * 1_000_000 <= expiry - t_us <= 45 * 86400 * 1_000_000):
+            if not (21 * 86400 * 1_000_000 <= expiry - t_us <= 45 * 86400 * 1_000_000
+                    and expiry < END * 1000):
                 continue
             groups[(asset, expiry)].add(strike)
         for asset in REQUIRED_ASSETS:
@@ -131,7 +140,10 @@ def readiness(root):
         "original_sample_rows": sum(x["rows_partial"] for x in manifest["days"]),
         "valid_two_sided_source_rows": len(quotes),
         "train_decision_weeks": len(decisions),
-        "required_asset_weekly_pairs": 2 * len(decisions),
+        "maturity_eligible_decision_weeks": len(eligible),
+        "right_censored_decision_weeks": len(censored),
+        "right_censored_decision_utc": [datetime.fromtimestamp(t / 1000, UTC).isoformat() for t in censored],
+        "required_asset_weekly_pairs": 2 * len(eligible),
         "causal_two_strike_asset_weeks": len(selected),
         "five_fold_coverage": coverage,
         "folds_with_any_candidate_quotes": folds,
