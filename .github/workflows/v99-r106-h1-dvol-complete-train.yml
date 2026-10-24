@@ -1,0 +1,85 @@
+name: V99 H1 preregistered DVOL spot/cash complete economic TRAIN and independent oracle (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_r106_h1_dvol_spot_engine.py'
+      - 'research/verification/independent_v99_r106_h1_dvol_spot_oracle.py'
+      - '.github/workflows/v99-r106-h1-dvol-complete-train.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-shot-h1-original-train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Pin preregistration, exact TRAIN partition and previous rejections
+        run: |
+          test -s research/V99_R106_H1_DVOL_FORWARD_RISK_SPOT_ENGINE_PREREG_20261024.md
+          test -s research/V99_R106_OPTIONS_COMPLETE_6H_FULL_TRAIN_INFORMATION_REJECTION_20261024.md
+          test -s research/V99_R106_E1_COMPLETE_SPOT_TRAIN_REJECTION_20261023.md
+          python - <<'PY'
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,HOURS,FOLD_EDGES
+          assert (START,END,HOURS)==(1639008000000,1696118400000,15864)
+          assert len(FOLD_EDGES)==6
+          print('H1 PREREG BEFORE PNL / SEALED VALIDATION AND HOLDOUT')
+          PY
+      - name: Download verified original OKX TRAIN four-leg source receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/h1_okx_original
+      - name: Download independently verified first-party Deribit DVOL 5-fold source
+        run: |
+          gh run download 40072202459 --repo "$GITHUB_REPOSITORY" \
+            --name v99-deribit-dvol-original-pit-train \
+            --dir research_evidence/h1_dvol_original
+      - name: Execute H1 four-scenario 15864h original economic TRAIN and fixed benchmarks
+        run: |
+          python -m research.tools.v99_r106_h1_dvol_spot_engine \
+            research_evidence/h1_okx_original \
+            research_evidence/h1_dvol_original \
+            research_evidence/h1_train
+      - name: Independent original DVOL to targets to OKX cash/fees/positions/tail/gates oracle
+        run: |
+          python -m research.verification.independent_v99_r106_h1_dvol_spot_oracle \
+            research_evidence/h1_okx_original \
+            research_evidence/h1_dvol_original \
+            research_evidence/h1_train
+      - name: Verify one-shot decision and forbid promotion or future access
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research_evidence/h1_train')
+          r=json.loads((p/'h1_train_report.json').read_text())
+          v=json.loads((p/'h1_independent_oracle.json').read_text())
+          assert v['status']=='INDEPENDENT_H1_ORIGINAL_DVOL_TO_OKX_CASH_LEDGER_VERIFIED'
+          assert v['hours_per_scenario']==15864
+          assert v['train_gates_passed']==all(r['gates'].values())
+          assert not r['native_fee_tier_authenticated']
+          assert not r['promotion_authorized'] and not v['promotion_authorized']
+          assert not r['validation_opened'] and not r['holdout_opened']
+          assert not r['orders_enabled'] and not v['orders_enabled']
+          print('H1 ONE-SHOT:',r['status'])
+          print('FAILED GATES:',[k for k,v in r['gates'].items() if not v])
+          print('MODELED ONLY / NO PROMOTION / NO PAPER / NO ORDERS')
+          PY
+      - name: Preserve H1 original-source economics, four hourly journals and independent verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-h1-original-dvol-complete-train-${{ github.run_id }}
+          path: research_evidence/h1_train/
+          retention-days: 90
+          if-no-files-found: warn
