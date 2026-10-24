@@ -1,0 +1,78 @@
+name: V99 options IV-index comparable TRAIN source quality (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_deribit_iv_index_quality.py'
+      - '.github/workflows/v99-deribit-iv-index-quality.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-options-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Download immutable source receipts from successful 1000-depth CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p research_evidence/deribit_weekly_pit_1000
+          gh run download 40067965880 --repo DnSiii/CryptoAI-Lab --name v99-deribit-weekly-pit-1000-source --dir research_evidence/deribit_weekly_pit_1000
+      - name: Evaluate original IV and index moneyness source semantics only
+        run: python -m research.tools.v99_deribit_iv_index_quality research_evidence/deribit_weekly_pit_1000
+      - name: Independent original-byte accounting and strict causal audit
+        run: |
+          python - <<'PY'
+          import json,hashlib,math
+          from pathlib import Path
+          from collections import defaultdict
+          p=Path('research_evidence/deribit_weekly_pit_1000')
+          source=json.loads((p/'pit_coverage.json').read_text())
+          report=json.loads((p/'iv_index_quality.json').read_text())
+          assert source['max_recent_trades']==1000 and report['source_run']==40067965880
+          assert len(source['rows'])==len(report['rows'])==188
+          assert all(not report[k] for k in ('economic_train_executed','validation_opened',
+                 'holdout_opened','orders_enabled','promotion_authorized'))
+          n=0; valid=0; folds=defaultdict(lambda:[0,0])
+          for sr,rr in zip(source['rows'],report['rows']):
+              assert (sr['decision_ms'],sr['fold'],sr['currency'])==(rr['decision_ms'],rr['fold'],rr['currency'])
+              raw=(p/sr['receipt_file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==sr['sha256']
+              trades=json.loads(raw)['result']['trades']
+              assert len(trades)==rr['source_trades']
+              own=0
+              for v in trades:
+                  assert sr['decision_ms']-86400000<=int(v['timestamp'])<sr['decision_ms']
+                  n+=1
+                  try:
+                      iv=float(v['iv']); idx=float(v['index_price'])
+                  except (ValueError,TypeError,KeyError):
+                      continue
+                  if math.isfinite(iv) and 0<iv<=1000 and math.isfinite(idx) and idx>0:
+                      own+=1; valid+=1
+              assert own==rr['valid_iv_and_index']
+              key=(sr['fold'],sr['currency'])
+              folds[key][0]+=1
+              folds[key][1]+=int(rr['near_atm_2strike_4group'])
+          assert n==report['sampled_trades'] and valid==report['trades_with_iv_and_index']
+          for x in report['folds']:
+              assert folds[(x['fold'],x['currency'])]==[x['weeks'],x['near_atm_covered']]
+          print('INDEPENDENT ORIGINAL BYTES / t-1 / IV+INDEX COUNTS VERIFIED')
+          print('NO ECONOMICS, NO MODEL PROMOTION')
+          PY
+      - name: Preserve independent information-quality result only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-options-iv-index-quality
+          path: research_evidence/deribit_weekly_pit_1000/iv_index_quality.json
+          retention-days: 30
+          if-no-files-found: warn
