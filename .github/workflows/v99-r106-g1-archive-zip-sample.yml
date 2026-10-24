@@ -1,0 +1,78 @@
+name: V99 G1 first-party dated futures ZIP evidence (NO ORDERS, NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_archive_zip_sample.py'
+      - '.github/workflows/v99-r106-g1-archive-zip-sample.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  first-party-dated-futures-zip-sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Acquire four original futureschain monthly ZIPs from pre-validation TRAIN
+        run: |
+          test -s research/V99_R106_G1_DATED_FUTURES_PREREG_20261023.md
+          python -m research.tools.v99_r106_g1_archive_zip_sample research_evidence/g1_zip
+      - name: Independently verify original ZIP hashes and target-contract row presence
+        run: |
+          python - <<'PY'
+          import hashlib,io,json,zipfile
+          from pathlib import Path
+          p=Path('research_evidence/g1_zip')
+          r=json.loads((p/'g1_zip_sample.json').read_text())
+          assert len(r['samples'])==4
+          assert {(x['asset'],x['month']) for x in r['samples']}=={
+              (a,m) for a in ('BTC','ETH') for m in ('2022-03','2023-09')}
+          found=[]
+          for x in r['samples']:
+              if 'archive_file' not in x:
+                  found.append(False)
+                  print('NO ZIP:',x['asset'],x['month'],x['issue'])
+                  continue
+              raw=(p/x['archive_file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==x['archive_sha256']
+              assert len(raw)==x['archive_bytes']
+              listing=(p/(x['archive_file']+'.listing.json')).read_bytes()
+              assert hashlib.sha256(listing).hexdigest()==x['listing_sha256']
+              assert json.loads(listing)['code']=='0'
+              matches=0
+              members=[]
+              with zipfile.ZipFile(io.BytesIO(raw)) as z:
+                  for member in z.infolist():
+                      if member.filename.lower().endswith('.csv'):
+                          members.append({'name':member.filename,'size':member.file_size})
+                          assert member.file_size<=1000000000
+                          with z.open(member) as f:
+                              matches+=sum(x['target_contract'].encode() in line for line in f)
+              assert members==x['csv_members']
+              assert matches==x['target_contract_line_count']
+              present=matches>0
+              assert present==(x['status']=='CONTRACT_ROWS_PRESENT')
+              found.append(present)
+              print('INDEPENDENT ORIGINAL ZIP:',x['asset'],x['month'],matches,'contract rows')
+          assert all(found)==r['all_sample_contracts_present']
+          for flag in ('full_train_source_verified','historical_economic_train_executed',
+                       'roi_computed','validation_opened','holdout_opened','orders_enabled',
+                       'promotion_authorized'):
+              assert r[flag] is False
+          print('ZIP SOURCE EVIDENCE VERIFIED; FULL TRAIN NOT YET VALIDATED; NO PNL OR PROMOTION')
+          PY
+      - name: Retain original OKX monthly ZIPs and independent source manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-dated-futures-zip-samples-${{ github.run_id }}
+          path: research_evidence/g1_zip/
+          retention-days: 90
+          if-no-files-found: warn
