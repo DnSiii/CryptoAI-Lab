@@ -1,0 +1,32 @@
+name: V98 Independent BG Original-Receipt Audit Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-bg-original-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  independent_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve immutable BG historical receipts from original run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bg90-ubuntu-*
+          run-id: 40060288442
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Independent BG 180-receipt accounting and economic gate
+        run: python research/v98_independent/bg_independent_receipt_audit.py --root receipts --output bg90_independent_arithmetic_corrected.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bg90-independent-arithmetic-corrected
+          path: bg90_independent_arithmetic_corrected.json
+          retention-days: 30
+          if-no-files-found: error
