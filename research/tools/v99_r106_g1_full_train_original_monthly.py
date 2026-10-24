@@ -103,7 +103,9 @@ def decode_hourly(archive,asset,targets,month):
 def decode_trade_hourly(archive,targets,month):
     """Independent first-party trade-tape hourly bars; no fabricated no-trade hour."""
     a,b=month_bounds(month)
-    lo,hi=epoch(a),min(epoch(b),epoch(TRAIN_END))
+    # OKX monthly trade archives are cut at UTC+8, not UTC midnight.
+    # Retain the adjacent eight-hour boundary solely for original cross-month stitching.
+    lo,hi=epoch(a)-8*HOUR,min(epoch(b)+8*HOUR,epoch(TRAIN_END))
     grouped=defaultdict(lambda:defaultdict(list))
     ids=defaultdict(set)
     with zipfile.ZipFile(io.BytesIO(archive)) as z:
@@ -118,7 +120,7 @@ def decode_trade_hourly(archive,targets,month):
                     inst=row["instrument_name"]
                     if inst not in targets:continue
                     t=int(row["created_time"])
-                    if not lo<=t<hi:raise ValueError("OUT_OF_TRAIN_TRADE_TIMESTAMP")
+                    if not lo<=t<hi:continue  # UTC+8 archive boundary; never feed post-TRAIN records
                     trade_id=int(row["trade_id"])
                     if trade_id in ids[inst]:raise ValueError("DUPLICATE_ORIGINAL_TRADE_ID")
                     ids[inst].add(trade_id)
@@ -238,6 +240,8 @@ def collect(batch,outdir):
 def audit(rootdir,outdir):
     root=Path(rootdir);out=Path(outdir);out.mkdir(parents=True,exist_ok=True)
     seen=set();issues=[];totals={"original_minutes":0,"complete_hours":0,"original_zips":0}
+    global_hours=defaultdict(set)
+    coverage_checks=[]
     for manifest in sorted(root.glob("batch*/manifest.json")):
         obj=json.loads(manifest.read_text())
         assert obj["economic_train_executed"] is False and obj["validation_opened"] is False
@@ -295,13 +299,18 @@ def audit(rootdir,outdir):
                 expected_hours=set(range(epoch(start),epoch(end),HOUR))
                 observed_hours={x["hour_ms"] for x in data["complete_hours"]}
                 observed_hours.update(x["hour_ms"] for x in recovered.get(inst,{}).get("complete_hours",[]))
-                missing=expected_hours-observed_hours
-                totals["required_carry_hours"]=totals.get("required_carry_hours",0)+len(expected_hours)
-                totals["missing_carry_hours"]=totals.get("missing_carry_hours",0)+len(missing)
-                if missing:
-                    issues.append({"month":rec["month"],"asset":rec["asset"],"contract":inst,
-                                   "issue":"MISSING_ORIGINAL_CARRY_HOURS","missing_hours":len(missing),
-                                   "first_missing_hour_ms":min(missing)})
+                global_hours[(rec["asset"],inst)].update(observed_hours)
+                coverage_checks.append((rec["month"],rec["asset"],inst,expected_hours))
+    # Independently reconcile UTC+8 monthly trade archive boundaries across
+    # adjacent source months; never interpolate or forward-fill a missing hour.
+    for month,asset,inst,expected_hours in coverage_checks:
+        missing=expected_hours-global_hours[(asset,inst)]
+        totals["required_carry_hours"]=totals.get("required_carry_hours",0)+len(expected_hours)
+        totals["missing_carry_hours"]=totals.get("missing_carry_hours",0)+len(missing)
+        if missing:
+            issues.append({"month":month,"asset":asset,"contract":inst,
+                           "issue":"MISSING_ORIGINAL_CARRY_HOURS","missing_hours":len(missing),
+                           "first_missing_hour_ms":min(missing)})
     expected={(m,a) for m in MONTHS for a in ASSETS}
     if seen!=expected:
         issues.append({"issue":"MISSING_BATCH_MONTHS","count":len(expected-seen)})
