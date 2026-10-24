@@ -1,0 +1,120 @@
+name: V98 Independent CB Synchronous Four Book Native Source Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-cb-source.yml'
+      - 'research/v98_independent/cb_synchronous_source_economics.py'
+      - 'research/v98_independent/cb_independent_source_audit.py'
+      - 'research/v98_independent/cb_preregistered_synchronous_dispersion_20261024.md'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  economic_source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Retrieve exact pinned 2022-2024 source only (2025 SEALED)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage immutable Clean4 source and native 8h funding
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Compile CB and run preregistered native funding source economics
+        working-directory: research/v98_independent
+        shell: bash
+        run: |
+          python -m py_compile cb_synchronous_source_economics.py cb_independent_source_audit.py
+          set +e
+          python cb_synchronous_source_economics.py --output cb_source_receipt.json
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+          test -s cb_source_receipt.json
+      - name: Independently rederive CB causal signals, native funding and source economics
+        working-directory: research/v98_independent
+        run: python cb_independent_source_audit.py --receipt cb_source_receipt.json --output cb_independent_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cb-source-${{ matrix.os }}
+          path: |
+            research/v98_independent/cb_source_receipt.json
+            research/v98_independent/cb_independent_audit.json
+          retention-days: 30
+          if-no-files-found: warn
+  cross_os:
+    if: always()
+    needs: economic_source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cb-source-ubuntu-*
+          path: cb-receipts
+      - name: Cross-OS economic receipt and independent audit consistency
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          root=Path('cb-receipts')
+          files=sorted(root.rglob('cb_source_receipt.json'))
+          audits=sorted(root.rglob('cb_independent_audit.json'))
+          assert len(files)==2 and len(audits)==2,(files,audits)
+          a,b=(json.loads(x.read_text()) for x in files)
+          for f in audits:
+              report=json.loads(f.read_text())
+              assert report['passed'],report
+          for key in ('source_manifest_sha256','episode_count','decision','source_gates'):
+              assert a[key]==b[key],key
+          assert len(a['episodes'])==len(b['episodes'])
+          for x,y in zip(a['episodes'],b['episodes']):
+              assert x['decision_t']==y['decision_t']
+              for i,j in zip(x['books'],y['books']):
+                  assert i['weights']==j['weights']
+                  for f in ('price_pnl_per_gross_usd','native_funding_per_gross_usd',
+                            'prior_only_max_entry_notional_usd'):
+                      assert math.isclose(i[f],j[f],rel_tol=1e-10,abs_tol=1e-7),(f,x['decision_t'])
+                  for tier in ('base','severe','supersevere'):
+                      assert math.isclose(i['net_per_gross_usd'][tier],
+                                          j['net_per_gross_usd'][tier],
+                                          rel_tol=1e-10,abs_tol=1e-9)
+          print('CB_CROSS_OS_AUDIT_PASS',a['episode_count'],'epochs',a['decision'])
+          for year,books in a['annual'].items():
+              for name,v in books.items():
+                  print('CB_RESULT',year,name,v['active_episodes'],
+                        round(v['net_per_gross_usd_episode_sum']['severe'],9))
+          PY
