@@ -1,0 +1,68 @@
+name: V99 G1 independently inventory expired futures contract IDs (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - '.github/workflows/v99-r106-g1-zip-inventory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independently-inventory-original-futures-zip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Download prior first-party original archive evidence
+        run: |
+          gh run download 40047257427 --repo "$GITHUB_REPOSITORY" \
+            --name v99-g1-dated-futures-zip-samples-40047257427 \
+            --dir research_evidence/g1_zip
+      - name: Independently inventory all exact venue contract IDs and CSV schema
+        run: |
+          python - <<'PY'
+          import collections,hashlib,io,json,re,zipfile
+          from pathlib import Path
+          root=Path('research_evidence/g1_zip')
+          report=json.loads((root/'g1_zip_sample.json').read_text())
+          out=[]
+          for rec in report['samples']:
+              raw=(root/rec['archive_file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==rec['archive_sha256']
+              counts=collections.Counter()
+              first=[]
+              with zipfile.ZipFile(io.BytesIO(raw)) as z:
+                  for member in z.infolist():
+                      if not member.filename.lower().endswith('.csv'):continue
+                      with z.open(member) as f:
+                          for line in f:
+                              if len(first)<2:first.append(line[:250].decode('utf-8','replace').strip())
+                              for key in set(re.findall(rb'(?<![A-Z0-9])(?:BTC|ETH)-USDT-[0-9]{6}(?![0-9])',line)):
+                                  counts[key.decode()]+=1
+              out.append({'asset':rec['asset'],'month':rec['month'],'target':rec['target_contract'],
+                          'contracts':dict(sorted(counts.items())),'first_lines':first})
+              print('ORIGINAL MONTH:',rec['asset'],rec['month'],'CONTRACT COUNTS:',dict(counts))
+              print('FIRST CSV LINES:',first)
+          assert len(out)==4
+          assert all(x['month'] in ('2022-03','2023-09') for x in out)
+          p=Path('research_evidence/g1_inventory');p.mkdir(parents=True,exist_ok=True)
+          (p/'inventory.json').write_text(json.dumps({
+              'schema':'G1_INDEPENDENT_ORIGINAL_FUTURES_CONTRACT_INVENTORY',
+              'records':out,'economic_train_executed':False,'roi_computed':False,
+              'validation_opened':False,'holdout_opened':False,
+              'promotion_authorized':False},sort_keys=True,indent=2)+'\n')
+          PY
+      - name: Preserve independent original contract inventory
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-futures-inventory-${{ github.run_id }}
+          path: research_evidence/g1_inventory/
+          retention-days: 90
+          if-no-files-found: warn
