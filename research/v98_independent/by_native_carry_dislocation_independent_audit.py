@@ -39,6 +39,12 @@ def audit(receipt,frames):
         if (ep["decision_t"]!=t or ep["entry_t"]!=a or ep["exit_t"]!=b
             or ep["asset"]!=ASSETS[j] or ep["side"]!=s):
             raise ValueError("BY_INDEPENDENT_SIGNAL_OR_CAUSAL_CALENDAR")
+        # Independently rederive the reported diagnostic at fixed transport precision.
+        raw_log=math.log(float(c[t,j]/c[t-SPAN,j]))
+        if round(raw_log,14)!=ep["past_336h_log_return"]:
+            raise ValueError("BY_INDEPENDENT_LOG_TRANSPORT")
+        past_funding=float(np.sum(r[t-SPAN+1:t+1,j]*e[t-SPAN+1:t+1,j]))
+        checkclose(past_funding,ep["past_336h_native_funding_sum"],"PRIOR_NATIVE")
         p=float(o[a,j]);p1=float(o[b,j])
         price=float(s*(p1/p-1))
         funding=0.;n=0
