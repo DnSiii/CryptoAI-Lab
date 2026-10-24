@@ -60,7 +60,7 @@ def run(root):
                     if not near(one["annual"][yr]["end_nav"],two["annual"][yr]["end_nav"]):
                         errors.append(("OS_YEAR",path,key,yr))
         reps[path]=aa
-    if len(all_source)!=1:errors.append(("CROSS_PATH_SOURCL",len(all_source)))
+    if len(all_source)!=1:errors.append(("CROSS_PATH_SOURCE",len(all_source)))
     survival=sum(c.get("passed",False) for a in reps.values() for c in a.values())
     for path,rows in reps.items():
         for key,c in rows.items():
@@ -108,7 +108,7 @@ def run(root):
         full[("immediate",fee,order)]["two_year_cagr"]>(.50 if fee=="base" else .30)
         for fee in ("base","severe") for order in ORDERS)
     severe_dd=all(full.get(("immediate","severe",order),{}).get("passed") and full[("immediate","severe",order)]["max_drawdown"]<.45 for order in ORDERS)
-    if errors:decision="BLOCL_CL_AUDIT_OR_REPRODUCIBILITY"
+    if errors:decision="BLOCK_CL_AUDIT_OR_REPRODUCIBILITY"
     elif survival!=20:decision="REJECT_CL_PHYSICAL_SURVIVAL"
     elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_dd:
         decision="REJECT_CL_HISTORICAL_GROWTH_OR_MARGINAL"
