@@ -141,7 +141,7 @@ def run():
                 "net_per_gross_usd_episode_sum":nets,
                 "native_funding_sum":float(sum(b["native_funding_per_gross_usd"] for b in rows)),
                 "positive_severe_episodes":sum(b["net_per_gross_usd"]["severe"]>0 for b in rows),
-                "worst_intrahold_adverse":min((b["worst_intrahold_adverse_per_gross_usd"] for b in rows),default:0.),
+                "worst_intrahold_adverse":min((b["worst_intrahold_adverse_per_gross_usd"] for b in rows),default=0.),
                 "median_prior_only_capacity_usd":float(np.median([b["prior_only_max_entry_notional_usd"] for b in rows])) if rows else 0.,
                 "asset_active_counts":{asset:sum(abs(b["weights"][j])>0 for b in rows)
                     for j,asset in enumerate(ASSETS)},
