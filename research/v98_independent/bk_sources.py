@@ -87,7 +87,7 @@ def source_bundle(close,quote,rate,event):
         if np.any(rv[t]):
             edge[t,2]=float(rv[t]@ret168)
             carry_cost[t,2]=float(rv[t]@funding168)
-        if np.any(stress[t]):edge[t,3]=float(-stress[t]@ret72)
+        if np.any(stress[t]):edge[t,3]=float(stress[t]@ret72)
     return core,opp,rv,stress,{"state":states,"edge":edge,"carry_cost":carry_cost}
 
 def causal_check():
@@ -107,6 +107,12 @@ def causal_check():
         assert np.array_equal(a[4][k][:-50],b[4][k][:-50])
     assert np.all(np.sum(a[0],axis=1)<=1.+1e-10)
     assert np.all(np.abs(a[2].sum(axis=1))<1e-10)
+    # Sign invariant: a short must earn positive trend evidence during a falling tape.
+    falling=c.copy()
+    falling[2400:]*=np.exp(-.005*np.arange(n-2400))[:,None]
+    z=source_bundle(falling,q,r,e)
+    active=np.flatnonzero(np.abs(z[3]).sum(axis=1)>0)
+    assert len(active)>0 and np.any(z[4]["edge"][active,3]>0)
     return True
 if __name__=="__main__":
     assert causal_check()
