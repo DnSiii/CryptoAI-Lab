@@ -42,7 +42,7 @@ for entry in MANIFEST["days"]:
         rows = list(reader)
     assert len(rows) == entry["rows_partial"] and 0 < len(rows) <= 2000
     start = int(datetime.fromisoformat(entry["date"]).replace(tzinfo=timezone.utc).timestamp() * 1_000_000)
-    grouped = defaultdict(lambda: {"seen": 0, "clean": [], "invalid": 0,
+    grouped = defaultdict(lambda: {"seen": 0, "clean": [], "fee_inclusive": [], "invalid": 0,
                                     "crossed_or_locked": 0, "negative_arrival_lag": 0,
                                     "lag_over_one_second": 0})
     times = []
@@ -73,6 +73,9 @@ for entry in MANIFEST["days"]:
                 g["crossed_or_locked"] += 1
             elif local >= ts:
                 g["clean"].append(20000 * (ask - bid) / (ask + bid))
+                standard_fee_buy = min(0.0003, 0.125 * ask)
+                standard_fee_sell = min(0.0003, 0.125 * bid)
+                g["fee_inclusive"].append(20000 * (ask - bid + standard_fee_buy + standard_fee_sell) / (ask + bid))
         except (TypeError, ValueError):
             g["invalid"] += 1
     result["days"].append({"date": entry["date"], "rows": len(rows),
@@ -87,6 +90,8 @@ for entry in MANIFEST["days"]:
             "lag_over_one_second": g["lag_over_one_second"],
             "spread_bps_p50": q(g["clean"], .5),
             "spread_bps_p90": q(g["clean"], .9),
+            "illustrative_standard_fee_roundtrip_bps_p50": q(g["fee_inclusive"], .5),
+            "illustrative_standard_fee_roundtrip_bps_p90": q(g["fee_inclusive"], .9),
         })
 assert sum(d["rows"] for d in result["days"]) == 4000
 assert result["promotion"] is False and result["complete_train"] is False
