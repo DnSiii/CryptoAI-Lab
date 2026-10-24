@@ -1,0 +1,56 @@
+name: V99 independent Deribit options TRAIN source feasibility (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_deribit_option_source_probe.py'
+      - '.github/workflows/v99-deribit-options-train-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-option-trade-feasibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Retrieve fixed TRAIN fold sample of first-party option trades, no economic trial
+        run: python -m research.tools.v99_deribit_option_source_probe research_evidence/deribit_options_source
+      - name: Independently reconcile raw receipts, timestamps and no-promotion boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,FOLD_EDGES
+          root=Path('research_evidence/deribit_options_source')
+          obj=json.loads((root/'source_feasibility.json').read_text())
+          assert obj['train_start_ms']==START and obj['train_end_exclusive_ms']==END
+          assert len(obj['records'])==10
+          assert all(not obj[x] for x in ('economic_train_executed','validation_opened',
+                      'holdout_opened','orders_enabled','promotion_authorized'))
+          for rec in obj['records']:
+              assert FOLD_EDGES[rec['fold']-1]<=rec['start_ms']<rec['end_exclusive_ms']<=FOLD_EDGES[rec['fold']]
+              if rec['status'] in ('TRADES_FOUND','NO_TRADES_IN_SAMPLE'):
+                  raw=(root/rec['receipt_file']).read_bytes()
+                  assert hashlib.sha256(raw).hexdigest()==rec['sha256']
+                  trades=json.loads(raw)['result']['trades']
+                  assert len(trades)==rec['count']
+                  assert all(rec['start_ms']<=int(t['timestamp'])<rec['end_exclusive_ms']
+                             for t in trades)
+          print('INDEPENDENT SOURCE HASH+TIME CHECK; NOT FULL COVERAGE OR EXECUTABLE QUOTES')
+          print('DATA_ONLY/HOLD — NO PROMOTION')
+          PY
+      - name: Preserve exact first-party receipts and explicit source gaps
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-deribit-options-train-source-${{ github.run_id }}
+          path: research_evidence/deribit_options_source/
+          retention-days: 30
+          if-no-files-found: warn
