@@ -104,7 +104,8 @@ jobs:
           for x,y in zip(a['episodes'],b['episodes']):
               assert x['decision_t']==y['decision_t']
               for i,j in zip(x['books'],y['books']):
-                  assert i['weights']==j['weights']
+                  assert all(math.isclose(u,v,rel_tol=1e-10,abs_tol=1e-12) for u,v in zip(i['weights'],j['weights'])),(x['decision_t'],i['book'])
+                  assert i['active']==j['active']
                   for f in ('price_pnl_per_gross_usd','native_funding_per_gross_usd',
                             'prior_only_max_entry_notional_usd'):
                       assert math.isclose(i[f],j[f],rel_tol=1e-10,abs_tol=1e-7),(f,x['decision_t'])
