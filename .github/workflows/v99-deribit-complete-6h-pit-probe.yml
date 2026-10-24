@@ -1,0 +1,141 @@
+name: V99 bounded complete 6h options PIT source feasibility (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_deribit_complete_6h_pit_probe.py'
+      - '.github/workflows/v99-deribit-complete-6h-pit-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-pit-completeness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Fixed slots, no validation or holdout
+        run: |
+          python - <<'PY'
+          from research.tools.v99_deribit_complete_6h_pit_probe import fixed_slots, WINDOW, MAX_PAGES
+          from research.tools.v99_r106_d1_real_train_source_join import START,END,FOLD_EDGES
+          slots=fixed_slots()
+          assert len(slots)==10 and MAX_PAGES==30 and WINDOW==21600000
+          assert {(f,c) for _,f,c in slots}=={(f,c) for f in range(1,6) for c in ('BTC','ETH')}
+          assert all(START<t<END and FOLD_EDGES[f-1]<=t<FOLD_EDGES[f] for t,f,_ in slots)
+          print('STRICT TRAIN / TEN PRE-FIXED SLOTS / NO FUTURE ACCESS')
+          PY
+      - name: Retrieve original historical 6h options PIT chain with bounded pagination
+        run: python -m research.tools.v99_deribit_complete_6h_pit_probe research_evidence/deribit_complete_6h
+      - name: Independent original-byte and boundary reexecution
+        run: |
+          python - <<'PY'
+          import hashlib,json,math
+          from collections import defaultdict
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from research.tools.v99_deribit_weekly_pit_1000_coverage import decisions
+          root=Path('research_evidence/deribit_complete_6h')
+          out=json.loads((root/'probe_summary.json').read_text())
+          assert out['schema']=='V99_DERIBIT_COMPLETE_6H_PIT_PROBE_V1'
+          assert out['sample_only'] and out['not_full_train'] and out['window_ms']==21600000
+          assert all(not out[k] for k in ('economic_train_executed','validation_opened',
+                       'holdout_opened','orders_enabled','promotion_authorized'))
+          first={}
+          for t,f in decisions():
+              first.setdefault(f,t)
+          expected={(first[f],f,c) for f in range(1,6) for c in ('BTC','ETH')}
+          assert len(out['rows'])==10
+          assert {(r['decision_ms'],r['fold'],r['currency']) for r in out['rows']}==expected
+          completed=0; eligible=0
+          for r in out['rows']:
+              if r['status']=='SOURCE_ERROR':
+                  assert not r['near_atm_2strike_4group']
+                  print('SOURCE ERROR:',r['fold'],r['currency'],r['reason'])
+                  continue
+              seen={}
+              prev_boundary=None
+              prev_cursor=r['decision_ms']-1
+              for i,p in enumerate(r['pages']):
+                  assert p['page']==i and p['query_start_ms']==r['decision_ms']-21600000
+                  assert p['query_end_ms']==prev_cursor
+                  raw=(root/p['file']).read_bytes()
+                  assert hashlib.sha256(raw).hexdigest()==p['sha256']
+                  data=json.loads(raw)
+                  assert not data.get('error')
+                  trades=data['result']['trades']
+                  assert len(trades)==p['source_count']<=1000
+                  ids=[str(x['trade_id']) for x in trades]
+                  stamps=[int(x['timestamp']) for x in trades]
+                  assert len(ids)==len(set(ids))
+                  assert stamps==sorted(stamps,reverse=True)
+                  assert all(r['decision_ms']-21600000<=x<=prev_cursor for x in stamps)
+                  if prev_boundary is not None:
+                      assert prev_boundary.intersection(ids)
+                  n=0
+                  for tid,v in zip(ids,trades):
+                      if tid in seen:
+                          assert seen[tid]==v
+                      else:
+                          seen[tid]=v
+                          n+=1
+                  assert n==p['new_unique'] and n>0
+                  assert min(stamps)==p['oldest_ms'] and max(stamps)==p['newest_ms']
+                  assert bool(data['result'].get('has_more'))==p['has_more']
+                  prev_boundary={tid for tid,ts in zip(ids,stamps) if ts==min(stamps)}
+                  assert sorted(prev_boundary)==p['boundary_ids']
+                  if p['has_more']:
+                      assert min(stamps)<prev_cursor
+                      prev_cursor=min(stamps)
+                  else:
+                      assert i==len(r['pages'])-1
+              assert len(seen)==r['unique_trades']
+              if r['status']=='SOURCE_COMPLETE':
+                  assert not r['pages'][-1]['has_more']
+                  completed+=1
+              else:
+                  assert r['status']=='SOURCE_INCOMPLETE' and len(r['pages'])==30
+              groups=defaultdict(set)
+              for v in seen.values():
+                  try:
+                      iv=float(v['iv']); idx=float(v['index_price'])
+                  except (KeyError,ValueError,TypeError):
+                      continue
+                  if not(math.isfinite(iv) and 0<iv<=1000 and math.isfinite(idx) and idx>0):
+                      continue
+                  bits=str(v.get('instrument_name','')).split('-')
+                  if len(bits)!=4 or bits[0]!=r['currency'] or bits[3] not in ('C','P'):
+                      continue
+                  try:
+                      strike=float(bits[2])
+                      exp=datetime.strptime(bits[1].upper(),'%d%b%y').replace(tzinfo=timezone.utc)
+                  except (ValueError,OverflowError):
+                      continue
+                  if strike<=0 or not math.isfinite(strike) or abs(math.log(strike/idx))>0.15:
+                      continue
+                  days=(int(exp.timestamp()*1000)+28800000-r['decision_ms'])/86400000
+                  band='short' if 7<=days<=45 else ('long' if 46<=days<=120 else None)
+                  if band:
+                      groups[(band,bits[3])].add(strike)
+              own={b+'_'+s:len(groups[(b,s)]) for b in ('short','long') for s in ('C','P')}
+              assert own==r['diagnostic_counts']
+              covered=r['status']=='SOURCE_COMPLETE' and all(v>=2 for v in own.values())
+              assert covered==r['near_atm_2strike_4group']
+              eligible+=int(covered)
+          assert completed==out['source_complete'] and eligible==out['near_atm_comparable']
+          print('INDEPENDENT ORIGINAL HASH/CURSOR/CAUSAL/IV CHECK VERIFIED')
+          print('COMPLETE:',completed,'/10; NEAR ATM:',eligible,'/10; NO PNL, NO PROMOTION')
+          PY
+      - name: Archive original first-party source receipts and independent summary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-deribit-complete-6h-original-probe
+          path: research_evidence/deribit_complete_6h/
+          retention-days: 30
+          if-no-files-found: warn
