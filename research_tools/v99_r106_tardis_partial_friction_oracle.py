@@ -25,6 +25,7 @@ for entry in m["days"]:
     day_start = int(datetime.combine(date.fromisoformat(entry["date"]), datetime.min.time(),
                                      tzinfo=timezone.utc).timestamp() * 1_000_000)
     values = defaultdict(list)
+    with_fees = defaultdict(list)
     counters = defaultdict(lambda: [0, 0, 0, 0, 0])
     for r in records:
         assert r["exchange"] == "deribit"
@@ -49,21 +50,27 @@ for entry in m["days"]:
                 counters[key][2] += 1
             elif arrived >= stamp:
                 values[key].append(Decimal(20000) * (ask - bid) / (ask + bid))
+                base = Decimal("0.0003")
+                cap = Decimal("0.125")
+                total = ask - bid + min(base, cap * ask) + min(base, cap * bid)
+                with_fees[key].append(Decimal(20000) * total / (ask + bid))
         except (InvalidOperation, ValueError, TypeError):
             counters[key][1] += 1
     for key, c in counters.items():
         spreads = sorted(values[key])
-        def quant(p):
-            if not spreads:
+        def quant(seq, p):
+            if not seq:
                 return None
             # Nearest-rank quantile; independent Decimal calculation.
-            index = (p * len(spreads) + 99) // 100 - 1
-            return round(float(spreads[index]), 6)
+            index = (p * len(seq) + 99) // 100 - 1
+            return round(float(seq[index]), 6)
         expected[key] = {
             "rows_seen": c[0], "invalid_or_missing_quote": c[1],
             "locked_or_crossed": c[2], "negative_arrival_lag": c[3],
             "lag_over_one_second": c[4], "causally_eligible_two_sided": len(spreads),
-            "spread_bps_p50": quant(50), "spread_bps_p90": quant(90)}
+            "spread_bps_p50": quant(spreads, 50), "spread_bps_p90": quant(spreads, 90),
+            "illustrative_standard_fee_roundtrip_bps_p50": quant(sorted(with_fees[key]), 50),
+            "illustrative_standard_fee_roundtrip_bps_p90": quant(sorted(with_fees[key]), 90)}
 assert len(out["strata"]) == len(expected)
 for entry in out["strata"]:
     key = (entry["date"], entry["asset"])
