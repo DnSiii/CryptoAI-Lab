@@ -1,0 +1,69 @@
+name: V99 G1 alternate official historical futures archive listing (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_official_bulk_listing.py'
+      - '.github/workflows/v99-r106-g1-official-bulk-listing.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixed-train-only-first-party-archive-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Query fixed first-party futures archive listings (TRAIN only)
+        run: |
+          test -s research/V99_R106_G1_DATED_FUTURES_PREREG_20261023.md
+          python -m research.tools.v99_r106_g1_official_bulk_listing research_evidence/g1_bulk
+      - name: Independent archive listing raw-byte and time boundary audit
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          from urllib.parse import urlsplit,parse_qs
+          p=Path('research_evidence/g1_bulk')
+          r=json.loads((p/'g1_bulk_listing.json').read_text())
+          assert len(r['probes'])==8
+          assert {(x['asset'],x['month'],x['module']) for x in r['probes']}=={
+              (a,m,k) for a in ('BTC','ETH') for m in ('2022-03','2023-09') for k in ('1','2')}
+          for x in r['probes']:
+              raw=(p/x['file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==x['raw_sha256']
+              assert len(raw)==x['raw_bytes']
+              obj=json.loads(raw) if raw else None
+              assert x['okx_code']==(obj.get('code') if isinstance(obj,dict) else None)
+              query=parse_qs(urlsplit(x['request_url']).query)
+              assert query['instType']==['FUTURES']
+              assert query['module']==[x['module']]
+              assert query['instFamilyList']==[x['asset']+'-USDT']
+              assert int(query['end'][0])<1696118400000
+              filenames=[]
+              if isinstance(obj,dict):
+                  for g in obj.get('data',[]):
+                      for d in g.get('details',[]):
+                          for entry in d.get('groupDetails',[]):
+                              if isinstance(entry,dict) and isinstance(entry.get('filename'),str):
+                                  filenames.append(entry['filename'])
+              assert filenames==x['filenames']
+          for flag in ('full_futures_train_verified','economic_train_executed','roi_computed',
+                       'validation_opened','holdout_opened','orders_enabled','promotion_authorized'):
+              assert r[flag] is False
+          print('INDEPENDENT ORIGINAL ARCHIVE LISTINGS VERIFIED; NO ECONOMICS, NO PROMOTION')
+          PY
+      - name: Archive first-party listing receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-bulk-archive-listings-${{ github.run_id }}
+          path: research_evidence/g1_bulk/
+          retention-days: 90
+          if-no-files-found: warn
