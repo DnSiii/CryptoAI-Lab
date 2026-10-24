@@ -10,7 +10,7 @@ from collections import defaultdict
 PBBHS = ('BB_core_only','BB_full','BB_minus_opportunity',
          'BB_minus_RV','BB_minus_stress')
 MODES = ('immediate','capacity_1m','capacity_10m')
-FEES = ('bbse','severe','supersevere')
+FEES = ('base','severe','supersevere')
 ORDERS = ('carried_before_fill','new_after_fill')
 GRID = {(m,f,o) for m in MODES for f in FEES for o in ORDERS}
 MONEY = {'initial_nav','final_nav','min_nav','turnover','fees',
@@ -81,9 +81,9 @@ def run(root):
     total=sum(len(x) for x in cells.values())
     passed=sum(bool(c['passed']) for d in cells.values() for c in d.values())
     full=cells.get('BB_full',{})
-    bbse=full.get(('immediate','bbse','carried_before_fill'),{})
+    base=full.get(('immediate','base','carried_before_fill'),{})
     growth={}
-    for fee in ('bbse','severe'):
+    for fee in ('base','severe'):
         for order in ORDERS:
             key=('immediate',fee,order)
             c=full.get(key,{})
@@ -120,7 +120,7 @@ def run(root):
         'cross_os_errors':errors[:30],
         'max_normalized_numeric_deltas':sorted(deltas,reverse=True)[:20],
         'cells_total':total,'cells_survived':passed,
-        'full_10k_bbse':bbse or None,
+        'full_10k_base':base or None,
         'growth_gates_10k':growth,
         'marginal_log_growth':marginal,
         'sleeve_gates_10k':sleeve_gates,
@@ -137,9 +137,9 @@ if __name__=='__main__':
     print('BB90_CROSS_OS',result['cross_os_reproducible'],
           'max_deltas',result['max_normalized_numeric_deltas'][:5])
     print('BB90_SURVIVAL',result['cells_survived'],'/',result['cells_total'])
-    if result['full_10k_bbse'] and result['full_10k_bbse'].get('passed'):
-        c=result['full_10k_bbse']
-        print('BB90_FULL_10K_BBSE',json.dumps({
+    if result['full_10k_base'] and result['full_10k_base'].get('passed'):
+        c=result['full_10k_base']
+        print('BB90_FULL_10K_BASE',json.dumps({
             'two_year_cagr':c['two_year_cagr'],
             '2023_cagr':c['annual']['2023']['annualized_cagr'],
             '2024_cagr':c['annual']['2024']['annualized_cagr'],
