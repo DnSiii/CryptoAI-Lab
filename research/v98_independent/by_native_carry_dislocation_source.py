@@ -29,7 +29,9 @@ def source_signal(close,rate,event,t):
             candidates.append((-abs(float(mom[j])),j,side))
     if not candidates:return None
     _,j,side=min(candidates)
-    return int(j),int(side),float(mom[j]),float(carry[j])
+    # Transport-only canonicalization: rank and threshold used RAW momentum above.
+    # Different Linux libm versions differ at ~1e-17 in numpy.log.
+    return int(j),int(side),round(float(mom[j]),14),float(carry[j])
 
 def run():
     frames,manifest=load_official()
