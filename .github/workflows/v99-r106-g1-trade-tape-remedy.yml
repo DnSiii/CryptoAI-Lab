@@ -1,0 +1,68 @@
+name: V99 G1 original March 2022 daily futures trade tape remedy (NO PNL)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'research/tools/v99_r106_g1_trade_tape_remedy.py'
+      - '.github/workflows/v99-r106-g1-trade-tape-remedy.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-expired-futures-daily-tape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Collect official pre-validation one-day original futures trades
+        run: |
+          test -s research/V99_R106_G1_DATED_FUTURES_PREREG_20261023.md
+          python -m research.tools.v99_r106_g1_trade_tape_remedy research_evidence/g1_trade_tape
+      - name: Independent source receipt and contract-count verification
+        run: |
+          python - <<'PY'
+          import hashlib,io,json,zipfile
+          from pathlib import Path
+          root=Path('research_evidence/g1_trade_tape')
+          report=json.loads((root/'trade_tape_probe.json').read_text())
+          assert len(report['records'])==2
+          assert {x['asset'] for x in report['records']}=={'BTC','ETH'}
+          results=[]
+          for x in report['records']:
+              if 'listing_sha256' in x:
+                  raw=(root/(x['asset']+'_listing.json')).read_bytes()
+                  assert hashlib.sha256(raw).hexdigest()==x['listing_sha256']
+                  assert json.loads(raw).get('code')=='0'
+              if 'archive_file' in x:
+                  data=(root/x['archive_file']).read_bytes()
+                  assert hashlib.sha256(data).hexdigest()==x['archive_sha256']
+                  assert len(data)==x['archive_bytes']
+                  count=0
+                  with zipfile.ZipFile(io.BytesIO(data)) as z:
+                      for member in z.infolist():
+                          if member.filename.lower().endswith('.csv'):
+                              with z.open(member) as f:
+                                  count+=sum(x['target'].encode() in line for line in f)
+                  assert count==x['target_line_count']
+                  assert (count>0)==(x['status']=='TARGET_TRADE_ROWS_PRESENT')
+              results.append(x['status']=='TARGET_TRADE_ROWS_PRESENT')
+          assert all(results)==report['all_target_tapes_present']
+          for k in ('full_train_source_verified','economic_train_executed','roi_computed',
+                    'validation_opened','holdout_opened','orders_enabled','promotion_authorized'):
+              assert report[k] is False
+          print('ORIGINAL DAILY TRADE TAPE REMEDY:',results,'NO PNL / NO PROMOTION')
+          PY
+      - name: Preserve first-party daily tape and independent evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-g1-original-daily-tape-${{ github.run_id }}
+          path: research_evidence/g1_trade_tape/
+          retention-days: 90
+          if-no-files-found: warn
