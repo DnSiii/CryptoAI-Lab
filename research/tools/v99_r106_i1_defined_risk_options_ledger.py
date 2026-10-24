@@ -90,7 +90,11 @@ class Spread:
             raise ValueError("DEFINED_RISK_PAYOFF_VIOLATION")
         return {"nav_usd": nav, "settlement_payoff_usd": obligation,
                 "collateral_released_usd": self.collateral_reserved_usd,
-                "pnl_usd": nav-self.initial_cash_usd}
+                "pnl_usd": nav-self.initial_cash_usd,
+                "modeled_usd_equivalent_only": True,
+                "native_coin_margin_certified": False,
+                "promotion_authorized": False,
+                "orders_enabled": False}
 
 
 def open_vertical(short_put, long_put, decision_ms, initial_cash_usd,
@@ -156,7 +160,9 @@ def liquidation_nav(spread, short_quote, long_quote, mark_ms):
     exit_cost = 2*spread.qty*spot*(fee+slip)
     return {"nav_usd": spread.cash_after_open_usd-exit_debit-exit_cost,
             "exit_debit_usd": exit_debit, "exit_cost_usd": exit_cost,
-            "modeled_only": True, "orders_enabled": False}
+            "modeled_only": True, "orders_enabled": False,
+            "native_coin_margin_certified": False,
+            "promotion_authorized": False}
 
 def inverse_coin_expiry_diagnostic(spread: Spread, delivery_index_usd: float) -> dict:
     """COIN-COLLATERAL COUNTERFACTUAL, not executable historical NAV.
