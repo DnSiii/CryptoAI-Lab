@@ -1,0 +1,82 @@
+name: V99 I1 post-screen gross tail stress and independent original-source oracle (NO TRADES)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_r106_i1_gross_tail.py'
+      - 'research/verification/independent_v99_r106_i1_gross_tail_oracle.py'
+      - '.github/workflows/v99-r106-i1-gross-tail-stress.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  i1-post-screen-tail-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Assert post-screen protocol predates executable diagnostic
+        run: |
+          git cat-file -e 5a8e94d86f31d1d74e4a1ce69c0b0ff706468367^{commit}
+          test -s research/V99_R106_I1_GROSS_TAIL_SENSITIVITY_PROTOCOL_20261024.md
+          python -m py_compile research/tools/v99_r106_i1_gross_tail.py research/verification/independent_v99_r106_i1_gross_tail_oracle.py
+      - name: Restore original independently verified I1 screen
+        run: |
+          gh run download 40087572354 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-variance-premium-screen-40087572354 \
+            --dir research_evidence/i1_original_screen
+      - name: Restore original first-party OKX spot and Deribit DVOL receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/i1_original_okx
+          gh run download 40072202459 --repo "$GITHUB_REPOSITORY" \
+            --name v99-deribit-dvol-original-pit-train \
+            --dir research_evidence/i1_original_dvol
+      - name: Fixed 1.0x 1.25x 1.5x gross variance tail diagnostic (NO PNL)
+        run: |
+          python -m research.tools.v99_r106_i1_gross_tail \
+            research_evidence/i1_original_screen/i1_structural_report.json \
+            research_evidence/i1_tail_diagnostic
+      - name: Independent original-byte reexecution and Decimal oracle with corruption control
+        run: |
+          python -m research.verification.independent_v99_r106_i1_gross_tail_oracle \
+            research_evidence/i1_original_okx \
+            research_evidence/i1_original_dvol \
+            research_evidence/i1_original_screen/i1_structural_report.json \
+            research_evidence/i1_tail_diagnostic/i1_gross_tail_sensitivity.json
+      - name: Assert no economic engine or holdout promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research_evidence/i1_tail_diagnostic')
+          r=json.loads((p/'i1_gross_tail_sensitivity.json').read_text())
+          o=json.loads((p/'i1_gross_tail_independent_oracle.json').read_text())
+          assert o['status']=='INDEPENDENT_ORIGINAL_SOURCE_DECIMAL_TAIL_STRESS_VERIFIED'
+          assert o['corruption_rejected'] and o['no_promotion']
+          assert set(r['multipliers'])=={'1.0','1.25','1.5'}
+          for flag in ('promotion_authorized','validation_opened','holdout_opened',
+                       'orders_enabled','paper_publication_authorized',
+                       'trading_engine_evaluated','economic_backtest_executed'):
+              assert r[flag] is False,flag
+          print('NO OPTIONS PNL / NO VALIDATION / NO HOLDOUT / NO PROMOTION')
+          PY
+      - name: Archive independent tail stress metrics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-i1-gross-tail-stress-${{ github.run_id }}
+          path: research_evidence/i1_tail_diagnostic/
+          retention-days: 90
+          if-no-files-found: warn
