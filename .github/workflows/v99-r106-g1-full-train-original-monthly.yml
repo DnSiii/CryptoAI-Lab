@@ -28,8 +28,8 @@ jobs:
           from research.tools.v99_r106_g1_full_train_original_monthly import MONTHS, TRAIN_END, expected_contracts
           assert len(MONTHS)==22 and MONTHS[0]=='2021-12' and MONTHS[-1]=='2023-09'
           assert TRAIN_END.isoformat()=='2023-10-01T00:00:00+00:00'
-          assert expected_contracts('2022-03','BTC') == ['BTC-USDT-220624']
-          assert expected_contracts('2023-09','ETH') == []  # last prereg expiry 2023-09-29: no >=30d Monday
+          assert expected_contracts('2022-03','BTC') == ['BTC-USDT-220325','BTC-USDT-220624']
+          assert expected_contracts('2023-09','ETH') == ['ETH-USDT-230929']  # carry to settlement, not new September entry
           print('FIXED G1 SOURCE SCOPE: 22 MONTHS / 2 ASSETS / TRAIN ONLY')
           PY
       - name: Download and parse original monthly OKX FUTURES ZIPs (strict instrument identity)
