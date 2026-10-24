@@ -1,0 +1,48 @@
+name: V98 Independent Staged Exit Capacity Structural Preflight
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-staged-capacity-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  structural:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Run pre-economic staged liquidation physical-capacity invariants
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_staged_exit_capacity_governor.py
+          python v98_staged_exit_capacity_governor.py
+          python - <<'PY'
+          import numpy as np
+          from v98_staged_exit_capacity_governor import (
+              capacity_units,stress_audit,govern_staged,PARTICIPATION)
+          p=np.array([100.,100.,100.,100.])
+          q=np.array([1e8,1e8,1e8,1e8])
+          cap=capacity_units(p,q)
+          assert np.all(cap>0)
+          n=govern_staged(10000.,np.zeros(4),p,p,
+               np.array([.5,-.5,.5,-.5]),
+               np.full(4,.4),np.full(4,.65),
+               np.full(4,.0005),q,q)
+          assert np.all(np.abs(n*p)<=PARTICIPATION*q+1e-7)
+          ok,_=stress_audit(10000.,n,p,np.full(4,.4),
+                             np.full(4,.65),np.full(4,.0005),.001)
+          assert ok
+          assert not stress_audit(1000.,np.array([100.,100.,100.,100.]),
+              p,np.full(4,.4),np.full(4,.65),np.full(4,.0005),.001)[0]
+          print("V98_STAGED_EXIT_CROSS_OS_STRUCTURAL_PASS_NOT_ECONOMIC")
+          PY
