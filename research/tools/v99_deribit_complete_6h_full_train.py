@@ -21,7 +21,15 @@ def main(directory):
                for t, f, _ in slots)
     for decision, fold, currency in slots:
         try:
-            row = collect_one(root, decision, fold, currency)
+            # Unique receipt namespace for each of the 188 weekly asset decisions.
+            # Reusing f{fold}_{currency}_pageXX would silently overwrite earlier
+            # first-party receipts and invalidate independent SHA-256 verification.
+            slot_name = f"slot_{decision}_{currency}"
+            slot_dir = root / slot_name
+            slot_dir.mkdir(parents=True, exist_ok=True)
+            row = collect_one(slot_dir, decision, fold, currency)
+            for page in row["pages"]:
+                page["file"] = slot_name + "/" + page["file"]
         except Exception as exc:
             row = dict(decision_ms=decision, fold=fold, currency=currency,
                        status="SOURCE_ERROR", reason=f"{type(exc).__name__}: {exc}",
