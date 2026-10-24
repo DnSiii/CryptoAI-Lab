@@ -165,10 +165,29 @@ def main(spot_root, future_root, out_dir):
                             fold_severe_signals=[sum(r.get("severe_entry",False) and r["fold"] == f for r in rows) for f in range(1,6)])
     all_known = all(x["unknown"] == 0 for x in stats.values())
     any_signal = any(x["severe_signals"] for x in stats.values())
-    status = ("PREREG_ENTRY_STRUCTURAL_ZERO_NO_TRAIN_ECONOMICS" if all_known and not any_signal
+    # Conservative upper bound: an UNKNOWN original t-1 signal MAY have
+    # entered, but only until its already-preregistered contractual expiry.
+    # A fold with no possible open G1 pair cannot have positive G1 trading PnL.
+    possible_exposure_folds = set()
+    for event in events:
+        if not event.get("severe_entry", False) and event["available"]:
+            continue
+        start = event["decision_ms"]
+        expiry = datetime.strptime(event["contract"][-6:], "%y%m%d").replace(tzinfo=UTC)
+        end = int((expiry + timedelta(hours=8)).timestamp()*1000)
+        for fold,(a,b) in enumerate(zip(FOLD_EDGES,FOLD_EDGES[1:]),1):
+            if start < b and end > a:
+                possible_exposure_folds.add(fold)
+    impossible_four_positive_folds = len(possible_exposure_folds) < 4
+    status = ("PERMANENT_TRAIN_STRUCTURAL_REJECT_NO_RETUNE"
+              if impossible_four_positive_folds
               else "ENTRY_SIGNAL_PRESENT_ECONOMIC_TRAIN_STILL_BLOCKED" if any_signal
               else "ENTRY_GATE_INCOMPLETE_ORIGINAL_SIGNAL_HOURS")
     report = dict(schema="G1_ORIGINAL_TRAIN_PREREG_ENTRY_GATE_V1",
+                  possible_exposure_folds=sorted(possible_exposure_folds),
+                  max_possible_positive_trading_folds=len(possible_exposure_folds),
+                  severe_four_positive_folds_structurally_impossible=impossible_four_positive_folds,
+                  unknown_signal_hours_conservatively_counted_as_possible_entries=True,
                   preregistration="research/V99_R106_G1_DATED_FUTURES_PREREG_20261023.md",
                   original_futures_audit_run=40052913340,
                   original_spot_receipt_run=40019588739,
