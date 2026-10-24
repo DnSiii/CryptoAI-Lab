@@ -1,0 +1,15 @@
+# V98 Independent BE — permanently rejected after official native-funded 90-cell training (2026-10-24)
+
+**Immutable decision: REJECT_BE_HISTORICAL_GROWTH_OR_MARGINAL.** This is the exact pre-result frozen BE complete seven-slot hypothesis. Do not change its thresholds, signs, sleeves, funding, costs, budgets or execution to rescue it. Do not promote a BE ablation.
+
+- Official GitHub Actions run: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40059673090 ; economic artifact `be90-official-economic-summary` ID `12546926545`.
+- 90/90 historical training scenarios mechanically survived, independently executed on Ubuntu 22.04 and 24.04. **180/180 original receipts independently rechecked**, complete cross-OS numeric/structural agreement under the original tolerance, **zero** identity, source-manifest, fee, slippage, capital, year-boundary or grid errors.
+- Pinned authenticated source manifest SHA256: `833013a2e18836a203afd267ca698175907cff8f4c153c919a7811f14cb80752`. BTC/ETH/BNB/SOL 1h Dec2022–Dec2024 only, native funding; 2025 sealed.
+- USD10k base, carried-before-fill, complete BE: **two-year CAGR −8.6233%**; 2023 annualized **−19.3430%**, 2024 **+3.4858%**; max drawdown **37.0555%**. Turnover USD444,176.94, fees USD222.09, slippage USD222.09, native funding −USD167.35.
+- Severe carried-before-fill complete BE: two-year CAGR **−18.4569%**; 2023 **−24.7695%**, 2024 **−11.6339%**. Supersevere two-year CAGR **−39.9230%**. All four mandatory full growth cases fail.
+- Marginal net log growth, USD10k base carried-before-fill, 2023/2024: Opportunity **[−0.00623098,+0.06226055]**, Relative Value **[−0.64035158,−0.02583748]**, Stress/Recovery **[0.00000000,+0.00394764]**. Every sleeve fails its strict both-years/both-costs/both-orders gate. The RV component's negative contribution dominates 2023; **this is failure analysis, not permission to delete/retune BE RV**.
+- Original independent artifact audit checked accounting identities, fees/slippage-to-turnover, all 180 receipts, both OS, complete grid, annual and marginal gates. It **did not independently replay native funding transfer by transfer** or reconstruct intrabar liquidation from raw ticks. Mechanical survival and receipt reconciliation are not proof of future economic edge.
+
+**No qualified V98 exists.** This result is 2023–2024 training only, NOT 2025 independent validation, NOT external engine superiority, NOT a live/paper trading authorization. Preserve XRP quarantine, contaminated Phase083 exclusion, V16/V99 Frozen and all V99 research/workflows/paper untouched.
+
+**Next genuine critical-path hypothesis:** a new pre-registered **long-only cross-sectional relative-value capital-rotation** system that structurally avoids unbounded short-convexity risk, while retaining all seven functional slots and stringent positive marginal sleeve gates; must not copy BE parameters or reinterpret rejected BE ablations. Validate chronological net growth and severe-cost marginals before any future holdout access.
