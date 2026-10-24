@@ -1,0 +1,14 @@
+# V98 Independent CN — FROZEN historical economic rejection (2026-10-24)
+
+**Decision: REJECT_CN_HISTORICAL_GROWTH_OR_MARGINAL.** CN failed its preregistered full-engine historical growth, drawdown and every satellite marginal gate. It must not be reweighted, window-tuned, flipped or cosmetically rescued.
+
+- [Pre-source CN preregistration](https://github.com/DnSiii/CryptoAI-Lab/blob/research/v98-independent-zero/research/v98_independent/cn_preregistered_cross_sectional_persistence_20261024.md) committed at `3bdb25d09889bf2ec39e321a3d976ca30a094c45` before any CN source/PnL execution.
+- [Official CN native Clean-4 run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40136038462), head `8983cb50ca683822e53e1e6e25fa716c9fefb8c5`. Initial workflow setup error (incorrect `actions/checnout` action name) fixed before this successful run; no source/parameter modification after economic results.
+- Authenticated training-only Dec-2022 to Dec-2024, pinned 4x 1h OHLCV, native 8h funding and mark bounds. Source gate passed; 2023/2024 effective epochs Growth 11/14, Opportunity 14/16, RelativeValue 53/77, Stress 46/44. Future perturbation invariant. 2025 never accessed.
+- Full USD10k 20-cell base/severe x two funding orderings x 5 portfolio paths, independently reproduced on Ubuntu 22.04 and 24.04: **20/20 physically survived, cross-OS true, audit errors=[]**. Source integrity and mechanical survival are not economic success.
+- Full historical base CAGR **+24.6137%**, severe CAGR **+2.3852%**. Annual returns base 2023 **+46.0136%**, 2024 **+6.3823%**; severe 2023 **+22.4719%**, 2024 **-14.4043%**. Base max DD **45.6445%**, severe DD **50.9157%**, above 45% cap.
+- **All three satellites failed preregistered positive annual marginal log growth.** Opportunity 2023 -0.02204 to -0.01443; 2024 -0.00328 to +0.01116. Relative Value 2023 +0.00195 to +0.03706; 2024 -0.16467 to -0.09101. Stress 2023 -0.07751 to -0.00029; 2024 -0.13197 to -0.05962.
+- Full base turnover **$1,286,804.88** and severe turnover **$1,037,380.65** from initial $10k, strongly suggesting high turnover/cost drag, without establishing exclusive causality. Native funding cashflow -$1,164.35 base / -$907.22 severe. Base hourly PF 1.02168, severe 1.00235; positive UTC days 40.36% base / 37.48% severe; maximum single-asset gross concentration reached 100%.
+- The result is simulated historical PnL only, **not** validated future performance or authorization for paper/live orders. CN remains rejected and frozen; no scale, supersevere, independent 81-corner replay, 2025 validation, external benchmark or paper/live execution for CN.
+
+**Critical-path learning for a distinct future hypothesis:** control turnover and economic edge before scaling; do not modify CN after observing these results. 2025 future holdout sealed; XRP quarantined; Phase083 invalid; 2026+ forbidden. V16/V99 Frozen, V99 branch/workflows/reports/paper untouched.
