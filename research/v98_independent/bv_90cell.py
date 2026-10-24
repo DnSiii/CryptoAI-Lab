@@ -5,7 +5,7 @@ Only Dec2022-Dec2024 pinned Clean4, 2025 holdout never loaded.
 from __future__ import annotations
 import argparse,hashlib,itertools,json,math
 import numpy as np
-from bv_sources import source_bvndle
+from bv_sources import source_bundle
 from bv_allocator import BVAllocator
 from aw_component_governor import freeze_rows
 from bv_priority_governor import BVPriorityGovernor
@@ -107,7 +107,7 @@ def cell(path,mode,fee,order,frames,risks,decisions):
                 cash=float(out["cash"]);old=out["units"].copy()
                 if (out["hidden_borrow"] or not out["cash_settled"]
                     or not np.isclose(out["equity"],cash,rtol=0,atol=1e-7)):
-                    raise ValueError("BV_NBV_RECONCILIATION_T"+str(t))
+                    raise ValueError("BV_NAV_RECONCILIATION_T"+str(t))
                 fees+=out["fees"];slippage+=out["slippage"]
                 funding+=out["funding"];turnover+=out["turnover"]
                 fills+=int(out["turnover"]>1e-5)
@@ -170,7 +170,7 @@ def cell(path,mode,fee,order,frames,risks,decisions):
 
 def run(path):
     frames,manifest=load_official()
-    sources=source_bvndle(frames[3],frames[4],frames[5],frames[6])
+    sources=source_bundle(frames[3],frames[4],frames[5],frames[6])
     decisions=preregistered_decisions(path,frames,sources)
     risks=prepare_risk(frames)
     cells=[]

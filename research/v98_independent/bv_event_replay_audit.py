@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """BV independent hourly source/event-level accounting and 81-corner replay.
 
-Uses BV only to obvain subnitted units and source/decision stream. All cashflow,
+Uses BV only to obtain submitted units and source/decision stream. All cashflow,
 signed native funding, and intrabar margin identities are independently
 reconstructed from raw pinned arrays, not copied from the settlement function.
 Training-only; does not access 2025 or external engines.
@@ -23,7 +23,7 @@ def replay():
     assert len(c)==18288 and c.shape==(18288,4)
     assert int(e.sum())==9144 and np.array_equal(np.flatnonzero(e[:,0]),np.arange(0,18288,8))
     assert all(np.array_equal(np.flatnonzero(e[:,j]),np.arange(0,18288,8)) for j in range(4))
-    sources=engine.source_bvndle(c,q,r,e)
+    sources=engine.source_bundle(c,q,r,e)
     decisions=engine.preregistered_decisions("BV_full",frames,sources)
     risks=engine.prepare_risk(frames)
     old_settle=engine.settle_hour

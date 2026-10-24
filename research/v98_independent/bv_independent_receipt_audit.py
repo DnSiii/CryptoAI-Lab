@@ -44,7 +44,7 @@ def audit(root):
             if not close(c['final_nav'],c['annual']['2024']['end_nav']):
                 errors.append(('FINAL_NAV',key))
             if not close(c['annual']['2023']['end_nav'],c['annual']['2024']['start_nav']):
-                errors.append(('YEAR_BVUNDARY',key))
+                errors.append(('YEAR_BOUNDARY',key))
             if not close(c['annual']['2023']['start_nav'],c['initial_nav']):
                 errors.append(('YEAR_START',key))
             if not close(c['net_log_growth'],math.log(c['final_nav']/c['initial_nav'])):
@@ -66,7 +66,7 @@ def audit(root):
             if not close(c['slippage'],c['turnover']*FEES[fee][1]):
                 errors.append(('SLIPPAGE_IDENTITY',key))
             if not 0<=c['max_drawdown']<1 or c['min_nav']<=0:
-                errors.append(('EQUITY_BVUNDS',key))
+                errors.append(('EQUITY_BOUNDS',key))
     expected={(p,o,m,f,d) for p in PATHS for o in OS for m in CAPITAL for f in FEES for d in ORDERS}
     if set(cells)!=expected:errors.append(('MISSING_CELLS',len(expected-set(cells))))
     growth={};marginal={}
