@@ -1,0 +1,7 @@
+# V98 Independent BY — cross-OS receipt forensic, 2026-10-24
+
+The first BY source-only run 40099555534 produced the **same 28 episode selections, signs, realized native funding, price cashflows, base/severe/supersevere costs, annual economic totals and prior-only physical capacity** on Ubuntu 22.04 and 24.04. However, the independent gate correctly failed exact JSON equality. I retrieved both original run artifacts (IDs 12561628403 and 12562357306) and compared their parsed receipts field-by-field. **Exactly 13 differences, all in the descriptive `past_336h_log_return` field**, with discrepancies at the last floating-point digit (~1e-17); no other field differed. The platform-dependent last-bit `numpy.log` evaluation was a transport/reproducibility defect, not an economic or signal difference.
+
+Fix is strictly **serialization-only**: round the *reported* completed 336h log return to 14 decimal places **after** candidate selection; never round inputs to the decision, change a signal, fee, funding mark, position, threshold, window, capital, economic gate, or rejection. The independent auditor rederives the log return and checks the serialized 14-place value. Re-run two OS, independently verify all economic receipts, and keep BY rejection if 2024 severe unit episode sum remains <=0.
+
+This is not a BY rescue or evidence of system PnL. All original artifacts remain immutable. No 2025 holdout, XRP, V14/V15/V99, Frozen or paper accessed.
