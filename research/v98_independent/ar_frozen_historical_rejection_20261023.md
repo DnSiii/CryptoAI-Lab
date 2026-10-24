@@ -8,7 +8,7 @@
 
 **AR_full, USD10k base, carried-before-fill:** 2023 CAGR **+101.3381%**, 2024 **+23.1499%**, two-year CAGR **+57.4106%**; max drawdown **30.9714%**; native funding **-USD2,087.12**, fees **USD550.76**, slippage **USD550.76**, turnover **USD1,101,519.35**, 893 nonzero-turnover hours. Hourly PF **1.03649**, payoff **1.00145**, win rate **50.8597%**, positive days **333/731**, 1% hourly CVaR **-1.9314%**, max gross/NAV **1.00451**, peak single-asset gross concentration **100%** (important tail/concentration concern). All figures TRAINING ONLY; not 2025 validation, not forward PnL.
 
-**Annual growth gates:** 2023 and 2024 positive under base and severe, both funding orders: PASS.
+**Capital scalability diagnostic (base, carried-before-fill, full engine):** USD1m: two-year CAGR **+2.628%**, 2023 **+5.903%**, 2024 **-0.538%**, max DD **9.211%**; USD10m: two-year CAGR **+0.358%**, 2023 **+0.620%**, 2024 **+0.097%**, max DD **0.900%**. At USD10k the same engine returned +57.411% CAGR. The severe capacity collapse under physical liquidity constraints is additional evidence that the system is not yet a high-growth scalable delivery; no leverage or liquidity-cap rescue is authorized. These are training-only receipts from the same frozen official run.\n\n**Annual growth gates:** 2023 and 2024 positive under base and severe, both funding orders: PASS.
 
 **Paired full-minus-ablation annual net log wealth, USD10k base carried-before-fill:**
 - Opportunity: 2023 **+0.041989**, 2024 **+0.156614**; severe +0.006030/+0.133233 → PASS.
