@@ -186,7 +186,7 @@ def audit(plan_dir,source_dir,outdir):
     print(json.dumps({k:v for k,v in result.items() if k not in ("remaining_hours","blocked_archives")},sort_keys=True))
 
 if __name__=="__main__":
-    if len(sys.argv)!=4:raise SystemExit("plan MONTHLY OUT | collect PLAN OUT | audit PLAN SOURCE OUT")
-    if sys.argv[1]=="plan":plan(sys.argv[2],sys.argv[3])
-    elif sys.argv[1]=="collect":collect(sys.argv[2],sys.argv[3])
-    else:raise SystemExit("use: plan MONTHLY OUT | collect PLAN OUT | audit PLAN SOURCE OUT")
+    if len(sys.argv)==4 and sys.argv[1]=="plan":plan(sys.argv[2],sys.argv[3])
+    elif len(sys.argv)==4 and sys.argv[1]=="collect":collect(sys.argv[2],sys.argv[3])
+    elif len(sys.argv)==5 and sys.argv[1]=="audit":audit(sys.argv[2],sys.argv[3],sys.argv[4])
+    else:raise SystemExit("plan MONTHLY OUT | collect PLAN OUT | audit PLAN SOURCE OUT")
