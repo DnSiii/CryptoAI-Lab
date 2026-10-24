@@ -11,6 +11,7 @@ import json
 import numpy as np
 import as_90cell_training as asrun
 from as_staged_sources import source_bundle
+from v98_staged_exit_viability_governor_v2 import govern_staged as govern_v2
 from v98_staged_exit_capacity_governor import (
     capacity_units,stress_audit,FEES,PARTICIPATION,FUNDING_RESERVE_HOURS)
 
@@ -47,7 +48,20 @@ def run():
                 old_ok,old_reason=stress_audit(cash_open,old,p,d,u,f,friction)
                 forced_ok,forced_reason=stress_audit(
                     after_forced,forced,p,d,u,f,friction)
+                try:
+                    v2_units=govern_v2(cash,old,p0,p,w,d,u,f,q,exitq,
+                                       fee_mode=fee_mode,funding_order=funding_order)
+                    v2_status='V2_FIRST_FAULT_PHYSICALLY_RECOVERABLE'
+                except ValueError as v2exc:
+                    v2_units=None
+                    v2_status='V2_FIRST_FAULT_STILL_BLOCKED_'+str(v2exc)
                 captured.append({
+                    'v2_status':v2_status,
+                    'v2_order_notional':(v2_units*p).tolist() if v2_units is not None else None,
+                    'v2_per_hour_liquidity_compliant':bool(v2_units is not None and np.all(
+                        np.abs((v2_units-old)*p)<=PARTICIPATION*q+1e-7)),
+                    'v2_exit_capacity_compliant':bool(v2_units is not None and np.all(
+                        np.abs(v2_units)<=cap+1e-8)),
                     "fault":str(exc),"mode":mode,
                     "cash_open":cash_open,
                     "old_notional":(old*p).tolist(),
