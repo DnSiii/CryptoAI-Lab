@@ -51,9 +51,18 @@ def independently_verify(root, report_path):
     coverage = {str(f): {"BTC": 0, "ETH": 0} for f in range(1, 6)}
     cursor = START
     n_decisions = 0
+    eligible_count = 0
+    censored = []
     while cursor < END:
         if cursor.weekday() == 0 and cursor.hour == 0:
             n_decisions += 1
+            # Independent calendar maturity feasibility, no source-model import.
+            # Strictly forbid any expiry in sealed validation.
+            if cursor + timedelta(days=21) >= END:
+                censored.append(cursor.isoformat())
+                cursor += timedelta(hours=1)
+                continue
+            eligible_count += 1
             fold = next(i for i in range(1, 6) if FOLDS[i-1] <= cursor < FOLDS[i])
             cutoff_us = int(cursor.timestamp() * 1_000_000)
             books = defaultdict(set)
@@ -73,7 +82,7 @@ def independently_verify(root, report_path):
                     bs, az = float(row["bid_amount"]), float(row["ask_amount"])
                 except ValueError:
                     continue
-                if not (21 <= (expiry-cursor).total_seconds()/86400 <= 45):
+                if not (21 <= (expiry-cursor).total_seconds()/86400 <= 45 and expiry < END):
                     continue
                 if not (0 < bid < ask and bs > 0 and az > 0 and strike > 0):
                     continue
@@ -85,6 +94,13 @@ def independently_verify(root, report_path):
         cursor += timedelta(hours=1)
     if n_decisions != 94 or n_decisions != report["train_decision_weeks"]:
         raise AssertionError("ORIGINAL_TRAIN_WEEK_COUNT")
+    if eligible_count != 91 or len(censored) != 3:
+        raise AssertionError("TRAIN_MATURITY_CALENDAR_MISMATCH")
+    if (report["maturity_eligible_decision_weeks"] != eligible_count
+            or report["right_censored_decision_weeks"] != len(censored)
+            or report["right_censored_decision_utc"] != censored
+            or report["required_asset_weekly_pairs"] != 2 * eligible_count):
+        raise AssertionError("MATURITY_CENSORED_DENOMINATOR_MISMATCH")
     if coverage != report["five_fold_coverage"]:
         raise AssertionError("ORIGINAL_CAUSAL_FOLD_MISMATCH")
     if sum(sum(x.values()) for x in coverage.values()) != report["causal_two_strike_asset_weeks"]:
@@ -111,6 +127,8 @@ def independently_verify(root, report_path):
             raise AssertionError("CORRUPTION_NOT_DETECTED")
     print(json.dumps({"status": "INDEPENDENT_ORIGINAL_SAMPLE_TO_WEEKLY_CAUSAL_COVERAGE_VERIFIED",
                       "source_rows": len(rows), "weekly_decisions": n_decisions,
+                      "maturity_eligible_weeks": eligible_count,
+                      "right_censored_weeks": len(censored),
                       "coverage": coverage, "negative_control": "PASS",
                       "economic_train": False, "promotion": False}, sort_keys=True))
 
