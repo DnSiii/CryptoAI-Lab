@@ -123,5 +123,47 @@ class FullArchiveIntakeTests(unittest.TestCase):
 
 
 
+    def test_recent_arrival_with_six_minute_old_exchange_event_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            ds=make_fixture(root)
+            path=root/ds[0]["file"]
+            with path.open(newline="",encoding="utf-8") as f:
+                rows=list(csv.DictReader(f))
+            rows[1]["timestamp"]=str(int(rows[1]["local_timestamp"])-360_000_000)
+            with path.open("w",newline="",encoding="utf-8") as f:
+                writer=csv.DictWriter(f,fieldnames=FIELDS)
+                writer.writeheader();writer.writerows(rows)
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            report=Path(tmp)/"result.json";report.write_text(json.dumps(result))
+            audit(root,report)
+
+    def test_newer_stale_exchange_event_revokes_prior_valid_book(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            ds=make_fixture(root)
+            path=root/ds[0]["file"]
+            with path.open(newline="",encoding="utf-8") as f:
+                rows=list(csv.DictReader(f))
+            newer=dict(rows[1])
+            newer["local_timestamp"]=str(int(newer["local_timestamp"])+1000)
+            newer["timestamp"]=str(int(newer["local_timestamp"])-360_000_000)
+            with path.open("w",newline="",encoding="utf-8") as f:
+                writer=csv.DictWriter(f,fieldnames=FIELDS)
+                writer.writeheader();writer.writerows(rows+[newer])
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["rows"]=5
+            manifest["days"][0]["sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            report=Path(tmp)/"result.json";report.write_text(json.dumps(result))
+            audit(root,report)
+
+
 if __name__=="__main__":
     unittest.main()
