@@ -12,7 +12,7 @@ import numpy as np
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
 from v98_staged_exit_capacity_governor import (
     PARTICIPATION,STRESSED_QUOTE_FRACTION,EXIT_FRICTION_MULTIPLIER,
-    HOURS as EXIT_HOURS)
+    HOURS as EXIT_HOURS,prior_min_exit_window_quote)
 
 def run():
     frames,manifest=load_official()
@@ -20,12 +20,13 @@ def run():
     first=2016
     prior_min=np.array([np.min(q[t-336:t],axis=0)
                         for t in range(first,HOURS)])
+    prior_exit=np.array([prior_min_exit_window_quote(q,t)
+                         for t in range(first,HOURS)])
     one=PARTICIPATION*prior_min/EXIT_FRICTION_MULTIPLIER
-    staged=(EXIT_HOURS*STRESSED_QUOTE_FRACTION*
-            PARTICIPATION*prior_min/EXIT_FRICTION_MULTIPLIER)
+    staged=(STRESSED_QUOTE_FRACTION*PARTICIPATION*
+            prior_exit/EXIT_FRICTION_MULTIPLIER)
     assert np.isfinite(one).all() and np.isfinite(staged).all()
     assert np.all(one>=0) and np.all(staged>=0)
-    assert np.allclose(staged,one*EXIT_HOURS*STRESSED_QUOTE_FRACTION)
     years={}
     for year,start,end in (("2023",first,9504),("2024",9504,HOURS)):
         lo=start-first;hi=end-first
@@ -33,6 +34,8 @@ def run():
         y=staged[lo:hi].sum(axis=1)
         years[year]={
             "observed_hours":len(x),
+            "raw_zero_quote_hours_per_asset":list(map(int,(q[start:end]==0).sum(axis=0))),
+            "zero_staged_capacity_hours":int(np.count_nonzero(y==0)),
             "one_hour_total_notional_quantiles_usd":{
                 str(p):round(float(np.quantile(x,p)),2)
                 for p in (0.,.01,.1,.5,.9,1.)},
@@ -49,6 +52,8 @@ def run():
         "kind":"V98_INDEPENDENT_STAGED_EXIT_SOURCE_ONLY",
         "no_pnl":True,"training_only":True,"validation_2025_read":False,
         "exit_hours":EXIT_HOURS,
+        "shared_zero_volume_bar_indices":list(map(int,np.flatnonzero(np.all(q==0,axis=1)))),
+        "capacity_formula":"min_prior_336h_rolling_24h_quote_sum_x_participation_x_haircut_div_exit_multiplier",
         "volume_haircut":STRESSED_QUOTE_FRACTION,
         "participation":PARTICIPATION,
         "manifest_sha256":hashlib.sha256(json.dumps(
