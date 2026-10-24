@@ -25,7 +25,7 @@ def main():
         assert batch["source"] == "https://www.deribit.com/api/v2/public/get_delivery_prices"
         rebuilt = {}
         for page in batch["pages"]:
-            query = urlencode({"index_name": asset, "offset": page["offset"], "count": 1000})
+            query = urlencode({"index_name": asset, "offset": page["offset"], "count": 100})
             url = batch["source"] + "?" + query
             with urlopen(Request(url, headers={"User-Agent": "V99-ReadOnly-Research/1.0",
                                                "Accept": "application/json"}), timeout=35) as r:
