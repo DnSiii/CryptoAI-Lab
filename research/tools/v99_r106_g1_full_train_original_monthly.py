@@ -62,7 +62,8 @@ def expected_contracts(month,asset):
 
 def decode_hourly(archive,asset,targets,month):
     a,b=month_bounds(month)
-    lo,hi=epoch(a),min(epoch(b),epoch(TRAIN_END))
+    # Original OKX monthly archives use UTC+8 boundaries, not UTC calendar months.
+    lo,hi=epoch(a)-8*HOUR,min(epoch(b)+8*HOUR,epoch(TRAIN_END))
     grouped=defaultdict(lambda:defaultdict(list))
     source_rows=defaultdict(int)
     bad=0
@@ -78,7 +79,8 @@ def decode_hourly(archive,asset,targets,month):
                     inst=row["instrument_name"]
                     if inst not in targets:continue
                     t=int(row["open_time"])
-                    if not lo<=t<hi or t%60000:raise ValueError("FUTURE_OR_MISALIGNED_CANDLE")
+                    if not lo<=t<hi:continue  # exclude only archive-boundary rows outside TRAIN
+                    if t%60000:raise ValueError("MISALIGNED_NATIVE_CANDLE")
                     if row["confirm"]!="1":bad+=1;continue
                     p=tuple(Decimal(row[k]) for k in ("open","high","low","close","vol"))
                     if not all(x.is_finite() and x>0 for x in p[:4]) or not p[4].is_finite() or p[4]<0:raise ValueError("BAD_NATIVE_PRICE_OR_VOLUME")
@@ -161,7 +163,8 @@ def required_hours(inst,month):
         day+=timedelta(days=1)
     if not eligible_mondays:raise ValueError("NONPREREG_CONTRACT_SELECTED")
     start=max(a,min(eligible_mondays)-timedelta(hours=1))
-    # OKX original futures rules specify Friday delivery at 08:00 UTC.\n    end=min(b,expiry+timedelta(hours=8),TRAIN_END)
+    # OKX original futures rules specify Friday delivery at 08:00 UTC.
+    end=min(b,expiry+timedelta(hours=8),TRAIN_END)
     return set(range(epoch(start),epoch(end),HOUR))
 
 def collect(batch,outdir):
