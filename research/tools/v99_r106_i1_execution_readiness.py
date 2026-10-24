@@ -67,11 +67,14 @@ def verify_and_load(root):
             rows = list(reader)
         if len(rows) != day["rows_partial"] or len(rows) > 2000:
             raise ValueError("SAMPLE_ROW_COUNT_MISMATCH")
+        day_start_us = int(datetime.strptime(day["date"], "%Y-%m-%d").replace(tzinfo=UTC).timestamp() * 1_000_000)
         for row in rows:
             if row["exchange"] != "deribit":
                 raise ValueError("WRONG_VENUE")
             exchange_us = int(row["timestamp"])
             arrival_us = int(row["local_timestamp"])
+            if not day_start_us <= arrival_us < day_start_us + 86400 * 1_000_000:
+                raise ValueError("QUOTE_OUTSIDE_ARCHIVED_SAMPLE_DAY")
             if arrival_us < exchange_us:
                 continue  # anomalous arrival order cannot be used causally
             parsed = parse_instrument(row["symbol"])
