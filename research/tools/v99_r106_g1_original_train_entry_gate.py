@@ -89,7 +89,12 @@ def futures_closes(root):
                         raise ValueError("G1_NON_PREREG_INSTRUMENT")
                     for bar in data["complete_hours"]:
                         t = bar["hour_ms"]
-                        if not START <= t < END or t % HOUR:
+                        # Original UTC+8 monthly ZIPs can overlap the day before
+                        # TRAIN_START; exclude pre-TRAIN boundary rows, never
+                        # allow a sealed validation/holdout timestamp.
+                        if t < START:
+                            continue
+                        if t >= END or t % HOUR:
                             raise ValueError("G1_SEALED_OR_OFFGRID_HOUR")
                         p = Decimal(bar["close"])
                         if not p.is_finite() or p <= 0:
