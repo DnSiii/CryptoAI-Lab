@@ -64,6 +64,11 @@ def collect(index):
                 if iso in selected and selected[iso] != value:
                     raise ValueError("CONFLICTING_DELIVERY_PRICE")
                 selected[iso] = value
+        print(json.dumps({"source_index": index, "offset": offset,
+                          "reported_total": total, "page_count": len(records),
+                          "page_earliest_date": min(dates).isoformat() if dates else None,
+                          "page_latest_date": max(dates).isoformat() if dates else None,
+                          "train_rows_so_far": len(selected)}), flush=True)
         if dates != sorted(dates, reverse=True):
             raise ValueError("UNSORTED_DELIVERY_SOURCE")
         pages.append({"offset": offset, "sha256_raw_response": hashlib.sha256(raw).hexdigest(),
