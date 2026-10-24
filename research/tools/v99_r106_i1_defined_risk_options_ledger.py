@@ -77,6 +77,7 @@ class Spread:
     premium_credit_usd: float
     entry_cost_usd: float
     scenario: str
+    entry_spot_usd: float = 0.0
 
     def expiry_nav(self, settlement_spot_usd):
         if not isfinite(settlement_spot_usd) or settlement_spot_usd <= 0:
@@ -129,7 +130,7 @@ def open_vertical(short_put, long_put, decision_ms, initial_cash_usd,
         raise ValueError("INSUFFICIENT_COLLATERAL")
     return Spread(decision_ms, short_put.expiry_ms, short_put.asset, qty,
                   short_put.strike_usd, long_put.strike_usd, initial_cash_usd,
-                  cash, reserve, credit, entry_cost, scenario)
+                  cash, reserve, credit, entry_cost, scenario, spot)
 
 
 def liquidation_nav(spread, short_quote, long_quote, mark_ms):
@@ -156,3 +157,50 @@ def liquidation_nav(spread, short_quote, long_quote, mark_ms):
     return {"nav_usd": spread.cash_after_open_usd-exit_debit-exit_cost,
             "exit_debit_usd": exit_debit, "exit_cost_usd": exit_cost,
             "modeled_only": True, "orders_enabled": False}
+
+def inverse_coin_expiry_diagnostic(spread: Spread, delivery_index_usd: float) -> dict:
+    """COIN-COLLATERAL COUNTERFACTUAL, not executable historical NAV.
+
+    Deribit inverse BTC/ETH option intrinsic USD settles as USD/index IN COIN.
+    The existing USD-equivalent expiry_nav() is not a native coin ledger.
+    Assumes entire initial USD capital converted to coin at entry with zero FX
+    friction, and no liquidation. Both assumptions are deliberately visible.
+    """
+    if not isinstance(spread, Spread) or spread.entry_spot_usd <= 0:
+        raise ValueError("UNBOUND_ENTRY_SPOT")
+    if not isfinite(delivery_index_usd) or delivery_index_usd <= 0:
+        raise ValueError("INVALID_NATIVE_DELIVERY_INDEX")
+    if spread.expiry_ms >= TRAIN_END_MS or spread.decision_ms < TRAIN_START_MS:
+        raise ValueError("SEALED_OR_UNTRUSTED_PARTITION")
+    s = Decimal(str(delivery_index_usd))
+    entry = Decimal(str(spread.entry_spot_usd))
+    qty = Decimal(str(spread.qty))
+    high = Decimal(str(spread.short_strike_usd))
+    low = Decimal(str(spread.long_strike_usd))
+    opening_coin = Decimal(str(spread.initial_cash_usd)) / entry
+    net_premium_coin = Decimal(str(spread.premium_credit_usd)) / entry
+    intrinsic_usd = qty * (max(high-s, Decimal(0)) - max(low-s, Decimal(0)))
+    obligation_coin = intrinsic_usd / s
+    remaining_coin = opening_coin + net_premium_coin - obligation_coin
+    coin_usd = remaining_coin * s
+    old_usd = Decimal(str(spread.expiry_nav(delivery_index_usd)["nav_usd"]))
+    return {
+        "schema": "I1_INVERSE_COIN_EXPIRY_COUNTERFACTUAL_ONLY_V1",
+        "opening_coin_assuming_full_conversion": float(opening_coin),
+        "net_premium_coin": float(net_premium_coin),
+        "intrinsic_obligation_usd": float(intrinsic_usd),
+        "intrinsic_obligation_coin": float(obligation_coin),
+        "remaining_coin_without_liquidation": float(remaining_coin),
+        "coin_account_usd_without_liquidation": float(coin_usd),
+        "prior_usd_equivalent_model_nav": float(old_usd),
+        "currency_basis_nav_gap_usd": float(coin_usd-old_usd),
+        "hypothetical_coin_insolvency": remaining_coin < 0,
+        "requires_historical_delivery_index_twap": True,
+        "requires_coin_margin_liquidation_and_fx_execution": True,
+        "native_fee_tier_authenticated": False,
+        "real_execution_authenticated": False,
+        "historical_train_economics_run": False,
+        "promotion_authorized": False,
+        "orders_enabled": False,
+        "modeled_only": True,
+    }

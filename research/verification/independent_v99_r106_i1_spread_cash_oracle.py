@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
 from research.tools.v99_r106_i1_defined_risk_options_ledger import (
-    PutQuote, open_vertical, liquidation_nav,
+    PutQuote, open_vertical, liquidation_nav, inverse_coin_expiry_diagnostic,
 )
 
 
@@ -109,6 +109,30 @@ def run():
             checks += 1
         else:
             raise AssertionError("NO_DEPTH_MARK_ACCEPTED")
+
+    # Reconstruct inverse coin settlement independently of the USD cash model.
+    # The previous modeled USD collateral is NOT a native margin guarantee.
+    for delivery in (22000, 18000, 500):
+        diag = inverse_coin_expiry_diagnostic(p, delivery)
+        intrinsic = qty*(max(d(20000)-d(delivery), d(0))
+                         -max(d(19000)-d(delivery), d(0)))
+        expected_coin = (d(100000)+expected_credit)/d(20000)-intrinsic/d(delivery)
+        assert abs(d(diag["intrinsic_obligation_coin"])-intrinsic/d(delivery)) < d("1e-9")
+        assert abs(d(diag["remaining_coin_without_liquidation"])-expected_coin) < d("1e-9")
+        assert abs(d(diag["coin_account_usd_without_liquidation"])-expected_coin*d(delivery)) < d("1e-7")
+        assert diag["hypothetical_coin_insolvency"] == (expected_coin < 0)
+        assert diag["modeled_only"] and not diag["promotion_authorized"]
+        if delivery == 500:
+            assert diag["hypothetical_coin_insolvency"]
+            assert diag["prior_usd_equivalent_model_nav"] > 0
+        checks += 6
+    for invalid in (0, -1, float("nan")):
+        try:
+            inverse_coin_expiry_diagnostic(p, invalid)
+        except ValueError:
+            checks += 1
+        else:
+            raise AssertionError("BAD_DELIVERY_INDEX_ACCEPTED")
     print({"status":"INDEPENDENT_DECIMAL_MODELED_SPREAD_LEDGER_INVARIANTS_PASS",
            "checks":checks, "original_historical_options_used":False,
            "economic_train_run":False, "native_fee_authenticated":False,
