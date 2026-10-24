@@ -227,6 +227,16 @@ def count_passes(comparison: dict) -> tuple[int, int]:
 
 
 def main() -> None:
+    # Permanent fail-closed guard. This legacy diagnostic selected/ranked results
+    # using data after TRAIN_END before formal freeze; it is contaminated.
+    # Both the direct CLI and *_fast.py wrapper call this function. No env
+    # bypass: a new architecture must use its own TRAIN-only runner.
+    raise RuntimeError(
+        "V99_R106_LEGACY_HOLDOUT_DIAGNOSTIC_QUARANTINED: "
+        "post-TRAIN data were inspected before candidate freeze; "
+        "use a separately preregistered TRAIN-only engine"
+    )
+
     cfg, data, raw, ex, guard, gross, quarantined, metadata = r98.r36.v15_setup()
     base_cost = float(ex["base_cost_per_side"])
     severe_cost = float(ex["severe_cost_per_side"])
