@@ -89,7 +89,7 @@ def lagged_regime(t,prices):
     slope=prices[i-1]/prices[i-721]-1
     name="up" if slope>0.02 else ("down" if slope< -0.02 else "flat")
     vols=[]
-    for ending in range(i-168,i+1):
+    for ending in range(i-169,i):
         x=[math.log(prices[k]/prices[k-1]) for k in range(ending-167,ending+1)]
         vols.append(statistics.pstdev(x))
     return name+"_"+("high" if vols[-1]>statistics.median(vols[:-1]) else "low")
