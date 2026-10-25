@@ -12,3 +12,10 @@ An independent verifier must reparse raw gzipped venue bytes without using the p
 
 ## Decision rule
 If old expired contracts report present-day-style tick values or the as-of rule cannot be certified, **mark historical tick/fee/lot semantics UNVERIFIED and refuse any native fill certification**. Do not assert a historical change magnitude from the retrospective archive alone. Full 2021–2023 executable bid/ask+size lifecycle tape, dated historical terms and margin/fee schedule are still necessary before full severe/supersevere TRAIN and independent gates. No PnL, ROI or promotion from this metadata test.
+
+
+## Fixed source-to-engine remediation protocol (registered before price-grid implementation)
+
+The original-byte run 40163300356 shows the archived registry carries the historical tick regime rather than uniformly overwriting all expired contracts: pre-2023-07-06 BTC **10,940** and ETH **11,362** put records all show tick 0.0005; post-change BTC **2,023** and ETH **1,576** all show minimum tick 0.0001 with tick steps present. The 6 July transition day is excluded from any as-of inference. This is **first-party metadata consistency, not executable fills**.
+
+Fix the actual entry-book execution-input gap: a current minimum `tick_size=0.0001` alone would incorrectly permit price 0.0051, whereas the documented post-change >0.005 on-screen rule requires 0.0005. Require a decision-time (Monday) price-grid check on *both* bid and ask: before 2023-07-06 UTC use 0.0005; after 2023-07-06 UTC use 0.0001 for price <=0.005 and 0.0005 for price >0.005. Fail closed on 2023-07-06 itself (no scheduled Monday decision that day). Bind raw `tick_size_steps` to the original gzipped venue bytes and do not infer steps from the registry's lossy nine-field projection. Reject off-grid quotes in the original intake and exporter; independently re-execute the rule directly from raw bytes. Use synthetic hostile fixtures for 2022 and 2023 boundaries, plus an actual original-registry source run. This **does not** authenticate the historical quote archive, fee tiers, native lot/size conversion, collateral, margin or PnL.
