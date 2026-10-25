@@ -1,0 +1,16 @@
+# V98 Independent DT — immutable pre-result hypothesis (2026-10-25)
+
+**Status: unvalidated composed seven-slot candidate, not trading authorized.** DS, DR, DQ, DP remain rejected. No DS standalone core promoted. All rules fixed before authenticated DT data evaluation.
+
+**Economic thesis:** Growth comes from positive net-of-native-funding breadth with inverse realized-volatility diversification, while independently signed opportunity, relative-value and stress sleeves earn increased shared collateral only after *causally observed* trailing net shadow contribution. Unlike DS leader ranking and 24h residual convergence, DT has a breadth portfolio, alt 168h breakout, cross-sectional realized-volatility spread and online cost-hurdled allocator. Shadow PnL is only a prior-known forecasting feature, never an executable return.
+
+Seven fixed slots:
+1. Growth Core: all BTC/ETH/BNB/SOL with completed 168h net log return (price minus observed funding) >0, inverse 336h hourly realized-vol weights (floor .002); cash in RISK_OFF.
+2. Opportunity: BNB/SOL new high over previous 168h high, 72h >1.5%, 24h >0.5%, recent/prior quote-volume ratio >1.0; long strongest 72h.
+3. Relative Value: long 50% lowest and short 50% highest 336h realized hourly volatility, ratio >1.35, calm asset 168h return >-12%, not RISK_OFF; dollar-neutral.
+4. Stress/Recovery: short equal BTC/ETH if BTC >10% below prior 336h high, BTC 24h negative, positive 168h breadth <=2; long equal BTC/ETH when still >10% below high but BTC 24h >1%, 72h >-3%.
+5. Regime Router: RISK_ON BTC net168 positive and breadth >=3; RISK_OFF BTC net168<-6% and breadth<=1; else MIXED.
+6. Dynamic Allocator: nominal (Core, Opportunity, RV, Stress) RISK_ON (2.8,.32,.28,.30), MIXED (2.3,.28,.24,.32), RISK_OFF (.9,.18,.30,.42). For each satellite, compute only previously completed 168h shadow signed log price return minus native funding minus fixed 1% severe round-trip cost per gross weight. Retain latest 8 *active* windows. Full budget only with >=4 observed active windows, >=2 positive and cumulative shadow net >0; otherwise fixed 12% of nominal. All exposures subject to physical shared collateral; no hidden leverage.
+7. Risk Governor: existing V98 CG 60% stressed NAV reserve, prior-only staged 24h exit capacity, native funding, 81-corner actual next-open settlement. Unchanged.
+
+**Frozen evaluation:** pinned authenticated Binance USD-M Clean-4 1h Dec2022–Dec2024 only, 1440h warmup, 168h completed-close decisions executed next actual open. Before PnL source active epochs >=(4,4,8,4) in each of 2023 and 2024. USD10k five paths (core-only, full, three leave-one-out) x base/severe/supersevere costs x two funding orders = 30 physical cells; independent Ubuntu 22.04/24.04 and artifact-only reconciliation. 2023 and 2024 annual net log growth >0 base/severe both orders, each satellite strictly positive annual marginal log growth base/severe both orders; full CAGR >50% base and >30% severe, severe max DD <45%, turnover <=USD600k, all 30 survive. PF/payoff/win rate/positive days/tails/funding/concentration required. Any failure => reject without tuning. Pass is training-only; separate sealed 2025 validation then external benchmarks. No 2025+, XRP, Phase083, V14/V15/V99 signals/parameters/architecture/performance, paper or live trading.
