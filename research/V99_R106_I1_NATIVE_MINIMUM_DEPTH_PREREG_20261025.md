@@ -1,0 +1,16 @@
+# V99 I1 — original quote size / native minimum feasibility: fixed protocol (2026-10-25 10:53 BRT)
+
+**PRE-EXECUTION; SOURCE ONLY / HOLD / NO PROMOTION.** No return optimization, candidate selection, strategy retuning, orders, paper or sealed data.
+
+## Single technical question
+Can the 46 already archived original Deribit BTC/ETH adjacent-put source pairs support at least one **displayed minimum-sized two-leg quote** under the original native instrument `contract_size` and `min_trade_amount` metadata? This is a *necessary* book-size check, not an execution or account certification. Do not extrapolate the 4 sampled asset-weeks to 182.
+
+## Fixed calculation
+1. Re-download unchanged original source-bound artifacts: quote-credit Actions 40174287180, first-party instrument registry Actions 40148052668, original same-update underlying binding Actions 40178076296, and 2020 base-fee candidate Actions 40194773338. Verify SHA-256 links between original credit, fee and index reports and original native registry. Never read validation >=2023-10-01.
+2. For each of exactly 46 source pairs, independently locate both native instrument records by full symbol and asset. Require original native `contract_size=1` in base coin and positive `min_trade_amount`; require same expiry and settlement currency. Original Deribit 2026 public inverse-option specification describes 1 BTC / 1 ETH contract multiplier and order amounts expressed in base coin. **Do not assume that contemporary documentation independently certifies 2021–2023 size units, minimums, or account privileges.** Original archived instrument metadata is not a historical as-of account receipt.
+3. Let `displayed_source_units = min(short_bid_size_source_units, long_ask_size_source_units)` and `minimum_native_order = max(short_native_min_trade_amount, long_native_min_trade_amount)`. Compute `provisional_minimum_depth_sufficient = displayed_source_units >= minimum_native_order` **only under the explicitly unverified assumption** that historical quote source units equal Deribit option order amounts in base coin. Do not round source sizes, invent extra depth, select winners, or calculate PnL. Report BTC/ETH separately and both legs' original source/arrival timestamps.
+4. Verify fee-envelope sample is exactly the original 46 pairs, without using fee profitability to filter; never treat the dated 2020 standard base rate as authenticated 2021–2023 account fees. Independent oracle recomputes per-pair depth/minimum without importing primary function; reject forged source SHA, forged min order, quantity, native contract size and false economic promotion.
+5. Fail closed if original input identity or schema differs. No new strategy, economic TRAIN, NAV, ROI, holdout, Frozen, paper/results, champion or orders.
+
+## Decision
+A positive minimum-depth screen only removes **one conditional lot-unit ambiguity**. It cannot certify historical quote-size units, multi-leg simultaneous execution, fill priority, 21–45d exit liquidity, coin margin/liquidation, account fee tier or five-fold economic TRAIN. Require a licensed full 2021–2023 BTC+ETH quote/size/arrival/exit archive, native historical terms and independent full ledger before any promotion. The status remains SOURCE_ONLY/HOLD.
