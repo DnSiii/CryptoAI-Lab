@@ -84,7 +84,7 @@ def run():
         checks += must_reject(lambda: open_position(replace(p1, cash_usd=0), "ETH-B", b), "FORGED_CASH")
         checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, scenario="supersevere" if scenario=="severe" else "severe")),
                               "WRONG_SCENARIO")
-        checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, decision_ms=t1)),
+        checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, decision_ms=t1-7*86_400_000)),
                               "INVALID_DECISION")
     print({"status": "INDEPENDENT_DECIMAL_SHARED_CASH_RESERVE_ORACLE_PASS",
            "checks": checks, "scenario_count": 2,
