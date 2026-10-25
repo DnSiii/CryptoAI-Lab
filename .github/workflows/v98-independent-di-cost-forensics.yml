@@ -1,0 +1,32 @@
+name: V98 Independent DI Rejected System Artifact Only Native Cost Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-di-cost-forensics.yml'
+      - 'research/v98_independent/di_cost_forensics.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: di20-ubuntu-*
+          run-id: 40171116880
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Reconcile physical cost drag and annual marginal attribution from frozen receipts only
+        run: python research/v98_independent/di_cost_forensics.py receipts di_cost_forensics.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: di-native-cost-forensics
+          path: di_cost_forensics.json
+          retention-days: 30
+          if-no-files-found: warn
