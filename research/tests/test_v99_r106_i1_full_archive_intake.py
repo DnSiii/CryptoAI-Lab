@@ -1,6 +1,7 @@
 """Deterministic synthetic 91-Sunday fixture and negative controls (NO PNL)."""
 from __future__ import annotations
 import csv
+import gzip
 import hashlib
 import json
 import tempfile
@@ -45,6 +46,54 @@ def make_fixture(root):
     return ds
 
 
+def attach_synthetic_native_bytes(root, late_first_btc=False):
+    """TEST ONLY: self-generated fake venue bytes, never historical provenance."""
+    root=Path(root)
+    manifest=json.loads((root/"manifest.json").read_text())
+    manifest["fixture"]=False  # adversarially exercise non-fixture fail-closed path
+    (root/"manifest.json").write_text(json.dumps(manifest))
+    fields=("instrument_name","creation_timestamp","expiration_timestamp","strike",
+            "option_type","settlement_currency","contract_size","min_trade_amount","tick_size")
+    sources,registry={},{}
+    for asset in ("BTC","ETH"):
+        rows=[]
+        for i in range(91):
+            decision=datetime(2021,12,13,tzinfo=timezone.utc)+timedelta(weeks=i)
+            expiry=decision+timedelta(days=21,hours=8)
+            for strike in (100,110):
+                created=decision-timedelta(days=1)
+                if late_first_btc and asset=="BTC" and i==0 and strike==110:
+                    created=decision+timedelta(days=1)
+                rows.append({"kind":"option","instrument_name":
+                    f"{asset}-{expiry.strftime('%d%b%y').upper()}-{strike}-P",
+                    "creation_timestamp":int(created.timestamp()*1000),
+                    "expiration_timestamp":int(expiry.timestamp()*1000),
+                    "strike":float(strike),"option_type":"put",
+                    "settlement_currency":asset,"contract_size":1.0,
+                    "min_trade_amount":0.1,"tick_size":0.0001})
+        raw=json.dumps({"result":rows},sort_keys=True).encode()
+        name=f"deribit_{asset.lower()}_original_instruments.json.gz"
+        (root/name).write_bytes(gzip.compress(raw))
+        sources[asset]={"endpoint":"https://history.deribit.com/api/v2/public/get_instruments",
+            "original_raw_sha256":hashlib.sha256(raw).hexdigest(),
+            "original_response_bytes":len(raw),"original_instruments":len(rows),
+            "train_puts":len(rows),"missing_native_fields":{k:0 for k in fields},
+            "skipped":{"nonput":0,"out_of_train":0,"invalid_metadata":0},
+            "original_gzip":name,"not_asof_fee_or_margin_attestation":True}
+        registry[asset]=[{k:r.get(k) for k in fields} for r in
+                         sorted(rows,key=lambda r:r["instrument_name"])]
+    report={"schema":"V99_I1_DERIBIT_HISTORICAL_INSTRUMENT_REGISTRY_V1",
+        "source_classification":"FIRST_PARTY_ARCHIVED_METADATA_NOT_ASOF_TRADABILITY",
+        "train_start_ms":1639008000000,"train_end_exclusive_ms":1696118400000,
+        "sources":sources,"registry":registry}
+    report.update({k:False for k in ("economic_train_executed",
+        "historical_fee_authenticated","native_margin_liquidation_authenticated",
+        "historical_executable_quotes_authenticated","validation_opened",
+        "holdout_opened","promotion_authorized","orders_enabled")})
+    (root/"native_instrument_registry.json").write_text(json.dumps(report))
+    return report
+
+
 class FullArchiveIntakeTests(unittest.TestCase):
     def test_all_91_weeks_independent_oracle(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -57,6 +106,40 @@ class FullArchiveIntakeTests(unittest.TestCase):
             path=Path(tmp)/"report.json"
             path.write_text(json.dumps(result))
             audit(root,path)
+
+
+    def test_nonfixture_without_original_native_bytes_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            make_fixture(root)
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["fixture"]=False
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError,"NATIVE_ORIGINAL_REGISTRY_REQUIRED"):
+                evaluate(root)
+
+    def test_nonfixture_native_asof_creation_rejects_unlisted_quote(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            make_fixture(root)
+            attach_synthetic_native_bytes(root,late_first_btc=True)
+            result=evaluate(root)
+            self.assertTrue(result["native_registry_verified"])
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            self.assertFalse(result["economic_train_executed"])
+            report=Path(tmp)/"native_asof.json"
+            report.write_text(json.dumps(result))
+            audit(root,report)
+
+    def test_nonfixture_forged_native_metadata_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            make_fixture(root)
+            report=attach_synthetic_native_bytes(root)
+            report["registry"]["BTC"][0]["strike"]+=1
+            (root/"native_instrument_registry.json").write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError,"NATIVE_ORIGINAL_REGISTRY_UNVERIFIED"):
+                evaluate(root)
 
     def test_byte_mutation_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
