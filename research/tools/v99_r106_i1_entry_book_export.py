@@ -34,6 +34,7 @@ def export_books(root):
             raise ValueError("SOURCE_CHANGED_AFTER_INTAKE")
         opener = gzip.open if path.name.endswith(".gz") else open
         latest = {}
+        previous_arrival = None
         with opener(path, "rt", newline="", encoding="utf-8") as fp:
             reader = csv.DictReader(fp)
             if not set(REQUIRED).issubset(reader.fieldnames or ()):
@@ -43,11 +44,13 @@ def export_books(root):
                 if not (int((decision-timedelta(days=1)).timestamp()*1_000_000)
                         <= arrival < end and exchange <= arrival):
                     raise ValueError("OUTSIDE_FROZEN_TRAIN_SOURCE")
+                if previous_arrival is not None and arrival < previous_arrival:
+                    raise ValueError("OUT_OF_ORDER_ORIGINAL_CAPTURE")
+                previous_arrival = arrival
                 if arrival < cutoff:
                     continue
-                previous = latest.get(row["symbol"])
-                if previous is None or (arrival, exchange) >= previous[0]:
-                    latest[row["symbol"]] = ((arrival, exchange), row)
+                # Preserve last physical capture row, including invalid updates.
+                latest[row["symbol"]] = ((arrival, exchange), row)
         for symbol, ((arrival, exchange), row) in sorted(latest.items()):
             parsed = instrument(symbol)
             if parsed is None:
