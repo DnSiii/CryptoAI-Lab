@@ -1,0 +1,13 @@
+# V99 I1 — free original Sunday minute-ticker source pilot (preregistered 2026-10-25 03:xx BRT)
+
+**DATA_ONLY/HOLD / NO PROMOTION.** This is a real, bounded TRAIN-only source acquisition to test whether the Tardis free first-of-month *raw HTTP minute API* can supply two otherwise missing Monday decision windows. It does not authorize a new model, historical ROI, validation, holdout, paper or orders.
+
+## Fixed before execution
+
+Tardis officially documents `GET /v1/data-feeds/deribit?from=YYYY-MM-DD&offset=1435..1439&filters=[{"channel":"ticker"}]` as gzip-compressed original captured Deribit messages, each offset covering exactly one local-arrival minute; first-of-month historical dates are free without API key. **2022-05-01** and **2023-01-01** are both Sundays entirely inside original TRAIN, with the next Monday 00:00 UTC as decision. Request exactly five minute slices per day (23:55–00:00 UTC), never validation or holdout. Request only the original `ticker` channel; no trades/orders. Cap each compressed minute response at 12 MiB, and fail closed rather than truncate a minute. Preserve every successful original gzip response, raw SHA256 and arrival order. Source is third-party capture of exchange messages, NOT signed first-party Deribit fills.
+
+Only accept a last physically captured ticker per literal BTC/ETH put instrument, with local arrival in the original minute, exchange timestamp <= local arrival, both no older than 5 minutes at decision, positive bid/ask prices and amounts, bid < ask, literal expiry 21–45 days from Monday and strictly before 2023-10-01. The last malformed ticker must revoke an older good one; do not select the maximum venue timestamp. Report counts per asset, expiries, 2-strike eligible asset-weeks, missing quote fields, and any errors. A separate independent parser must replay all original gzip minute receipts and compare exact final quotes and source hashes, with an original-byte mutation negative control.
+
+These two sampled dates represent **at most 4 of the 182 required asset-weeks**, not full five-fold coverage. A ticker's best bid/ask fields do not prove executable historical order-book depth or complete holding-period quotes. Even a positive result does NOT certify original instrument as-of lot/tick, fee tier, native coin margin, liquidation or fills; the full legally entitled 2021-12-09..2023-09-30 archive remains necessary. Never call any source-only success an economic TRAIN.
+
+Official docs: https://docs.tardis.dev/api/http-api-reference and https://docs.tardis.dev/historical-data-details/deribit . No edits to Frozen, paper/results, champion, dashboard performance or any future partition.
