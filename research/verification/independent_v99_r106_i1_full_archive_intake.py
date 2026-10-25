@@ -11,7 +11,8 @@ import json
 import math
 import sys
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 UTC=timezone.utc
@@ -75,6 +76,39 @@ def original_native_lookup(root):
             assert row == {k: subset[name].get(k) for k in fields}
         index[asset] = subset
     return index
+
+
+
+def independently_check_historical_ticks(native_record, when, prices):
+    """Independent Decimal grid reconstruction from dated venue notice."""
+    if native_record is None or when.date() == date(2023, 7, 6):
+        return False
+    try:
+        if when.date() > date(2023, 7, 6):
+            if Decimal(str(native_record["tick_size"])) != Decimal("0.0001"):
+                return False
+            steps = native_record.get("tick_size_steps")
+            if not isinstance(steps, list):
+                return False
+            valid_step = False
+            for step in steps:
+                if not isinstance(step, dict):
+                    continue
+                if (Decimal(str(step["above_price"])) == Decimal("0.005")
+                        and Decimal(str(step["tick_size"])) == Decimal("0.0005")):
+                    valid_step = True
+            if not valid_step:
+                return False
+        for v in prices:
+            p = Decimal(str(v))
+            grid = Decimal("0.0005")
+            if when.date() > date(2023, 7, 6) and p <= Decimal("0.005"):
+                grid = Decimal("0.0001")
+            if not p.is_finite() or p <= 0 or p % grid != 0:
+                return False
+        return True
+    except (KeyError, ValueError, TypeError, InvalidOperation):
+        return False
 
 
 def audit(root, output):
@@ -160,7 +194,8 @@ def audit(root, output):
                     float(meta["strike"]) != strike or
                     meta["settlement_currency"] != parts[0] or
                     any(meta.get(k) is None or float(meta[k]) <= 0 for k in
-                        ("contract_size","min_trade_amount","tick_size"))):
+                        ("contract_size","min_trade_amount","tick_size")) or
+                    not independently_check_historical_ticks(meta, decision, (bid, ask))):
                     continue
             valid[(parts[0],expiry)].add(strike)
         f=next(i for i in range(1,6) if BOUNDARIES[i-1]<=decision<BOUNDARIES[i])
