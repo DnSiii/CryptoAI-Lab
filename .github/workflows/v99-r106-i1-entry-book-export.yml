@@ -23,6 +23,8 @@ jobs:
       - name: Exercise complete source-to-book bridge and independent raw-byte reconstruction
         run: |
           python - <<'PY'
+          import csv
+          import hashlib
           import json
           import tempfile
           from pathlib import Path
@@ -85,6 +87,30 @@ jobs:
                   pass
               else:
                   raise AssertionError('FORGED_NATIVE_ORIGINAL_SHA_NOT_DETECTED')
+          # The pre-2023 price grid is 0.0005; off-grid 0.0401 must not
+          # leak into the downstream entry books even with intact file hashes.
+          with tempfile.TemporaryDirectory() as tmp:
+              root=Path(tmp)/'original'
+              make_fixture(root)
+              attach_synthetic_native_bytes(root)
+              path=root/'2021-12-12.csv'
+              with path.open(newline='',encoding='utf-8') as fp:
+                  rows=list(csv.DictReader(fp))
+              rows[1]['bid_price']='0.0401'
+              with path.open('w',newline='',encoding='utf-8') as fp:
+                  writer=csv.DictWriter(fp,fieldnames=rows[0].keys())
+                  writer.writeheader()
+                  writer.writerows(rows)
+              manifest_path=root/'manifest.json'
+              manifest=json.loads(manifest_path.read_text())
+              manifest['days'][0]['sha256']=hashlib.sha256(path.read_bytes()).hexdigest()
+              manifest_path.write_text(json.dumps(manifest))
+              result=export_books(root)
+              assert result['source_pairs']==181 and len(result['quotes'])==363
+              output=root/'offgrid_books.json'
+              output.write_text(json.dumps(result))
+              assert audit(root,output)==363
+          print('ORIGINAL-BYTE TICK-STEPS BOUND / 2022 OFF-GRID QUOTE EXCLUDED')
           print('TEST-ONLY FAKE NATIVE ARCHIVE: UNLISTED ENTRY EXCLUDED, NO REAL PROVENANCE')
           print('SOURCE-TO-ENGINE ENTRY BOOKS INDEPENDENTLY VERIFIED')
           print('SYNTHETIC ONLY; REAL 2021-2023 QUOTE TAPE ABSENT; NO ECONOMICS, NO PROMOTION, NO ORDERS')
