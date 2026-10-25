@@ -18,6 +18,11 @@ def bundle(opening,high,low,close,rate,event,quote):
         np.any((e!=0)&(e!=1))):
         raise ValueError("EM_INVALID_NATIVE_SOURCE")
     n=len(c);lc=np.log(c)
+    # Completed 24h quote-volume sums, compared to 120 prior completed 24h sums.
+    q24=np.zeros_like(q)
+    qcs=np.cumsum(q,axis=0)
+    q24[23:]=qcs[23:]
+    q24[24:]-=qcs[:-24]
     hourly=np.diff(lc,axis=0,prepend=lc[:1])
     market=lc.mean(axis=1);mret=hourly.mean(axis=1)
     signals=np.zeros((n,4,4))
@@ -46,7 +51,7 @@ def bundle(opening,high,low,close,rate,event,quote):
             options=[]
             for j in (1,2,3):
                 prior_high=float(np.max(h[t-120:t,j]))
-                if c[t,j]>prior_high and c[t,j]>c[t-24,j] and q[t,j]>np.median(q[t-120:t,j]):
+                if c[t,j]>prior_high and c[t,j]>c[t-24,j] and q24[t,j]>np.median(q24[t-120:t,j]):
                     options.append((float(np.log(c[t,j]/prior_high)),j))
             if options:
                 _,j=max(options,key=lambda x:(x[0],-x[1]))
