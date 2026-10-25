@@ -1,0 +1,43 @@
+name: V98 Independent EM Full Historical Ledger Crosscheck
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-em-ledger-crosscheck.yml'
+      - 'research/v98_independent/em_independent_ledger_reconcile.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download immutable EM original 24.04 physical receipts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: em30-ubuntu-24.04-EM_*
+          run-id: 40237426781
+          github-token: ${{ github.token }}
+          path: receipts/official
+      - name: Download independent full-hour EM physical oracle receipts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: em-independent-ledger-EM_*
+          run-id: 40237525113
+          github-token: ${{ github.token }}
+          path: receipts/oracle
+      - name: Reconcile 30 physical cells, all-hour funding and NAV independently (training only)
+        run: python research/v98_independent/em_independent_ledger_reconcile.py --root receipts --output em_independent_ledger_crosscheck.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: em-independent-ledger-crosscheck
+          path: em_independent_ledger_crosscheck.json
+          retention-days: 30
+          if-no-files-found: warn
