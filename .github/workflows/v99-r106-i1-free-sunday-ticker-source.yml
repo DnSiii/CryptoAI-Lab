@@ -4,15 +4,19 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - research/tools/v99_r106_i1_sunday_ticker_probe.py
+      - research/tools/v99_r106_i1_sunday_native_bridge.py
       - research/verification/independent_v99_r106_i1_sunday_ticker_oracle.py
       - .github/workflows/v99-r106-i1-free-sunday-ticker-source.yml
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   original-minute-source:
     runs-on: ubuntu-latest
     timeout-minutes: 18
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -56,6 +60,18 @@ jobs:
               else:
                   raise AssertionError('ORIGINAL_GZIP_CORRUPTION_UNDETECTED')
           PY
+      - name: Recover original first-party Deribit instrument registry from prior archived run
+        run: |
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+      - name: Independently source-bound real Sunday quotes to as-of native listings and price grid
+        run: |
+          python -m research.tools.v99_r106_i1_sunday_native_bridge \
+            research_evidence/i1_free_sunday_ticker \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_free_sunday_ticker/native_asof_bridge.json
       - name: Enforce no economic or future unlock
         run: |
           python - <<'PY'
@@ -65,7 +81,10 @@ jobs:
           assert not any(r[k] for k in ('historical_economic_train_executed',
               'historical_fee_margin_certified','holding_period_quotes_certified',
               'validation_opened','holdout_opened','orders_enabled','promotion_authorized'))
-          print('ORIGINAL TRAIN SAMPLE ONLY / NO ECONOMIC TRAIN / NO PROMOTION / NO ORDERS')
+          b=json.load(open('research_evidence/i1_free_sunday_ticker/native_asof_bridge.json'))
+          assert b['native_asof_grid_pairs']<=r['real_source_asset_weeks_with_two_strikes']<=4
+          assert not b['economic_train_executed'] and not b['promotion_authorized']
+          print('ORIGINAL TRAIN SAMPLE + NATIVE ASOF SCREEN ONLY / NO ECONOMIC TRAIN / NO PROMOTION / NO ORDERS')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
