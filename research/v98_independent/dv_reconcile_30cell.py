@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DV independent artifact-only 30-cell economic, chronological and reprodvcibility gate.
+"""DV independent artifact-only 30-cell economic, chronological and reproducibility gate.
 No DV signal, allocation, risk governor or settlement imports.
 """
 from __future__ import annotations
@@ -120,7 +120,7 @@ def run(root):
     return {"architecture":"DV","historical_training_only":True,
             "validation_2025_read":False,"external_benchmarks_used":False,
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
-            "cross_os_reprodvcible":not errors and len(reps)==5,
+            "cross_os_reproducible":not errors and len(reps)==5,
             "cells_expected":30,"cells_survived":survival,
             "growth_gates_10k":growth,"high_growth_gate_10k":high_growth,"severe_drawdown_gate_10k":severe_de,"turnover_gate_10k":turnover_ok,
             "marginal_log_growth_10k":marginal,"marginal_gates_10k":marginal_gates,
@@ -132,9 +132,9 @@ if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--root",required=True)
     p.add_argument("--output",required=True);a=p.parse_args()
     out=run(a.root)
-    with open(a.output,"w") as f:json.dvmp(out,f,indent=2,sort_keys=True,allow_nan=False)
+    with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("DV_AUDVT",out["decision"],"survived",out["cells_survived"],
-          "cross_os",out["cross_os_reprodvcible"],"errors",out["errors"])
+          "cross_os",out["cross_os_reproducible"],"errors",out["errors"])
     for key in ("full_10k_base","full_10k_severe"):
         x=out[key]
         if x and x.get("passed"):

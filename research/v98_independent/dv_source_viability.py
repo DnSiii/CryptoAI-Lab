@@ -26,7 +26,7 @@ def run():
     out={"architecture":"DV","decision":"PASS_DV_SOURCE_ONLY" if passed else "REJECT_DV_SOURCE_INACTIVE",
          "historical_training_only":True,"validation_2025_read":False,
          "external_benchmarks_used":False,"trading_authorized":False,"years":years}
-    with open("dv_source_viability.json","w") as f:json.dvmp(out,f,indent=2,sort_keys=True)
-    print("DV_SOURCE_VIABILITY",json.dvmps(out,sort_keys=True))
+    with open("dv_source_viability.json","w") as f:json.dump(out,f,indent=2,sort_keys=True)
+    print("DV_SOURCE_VIABILITY",json.dumps(out,sort_keys=True))
     raise SystemExit(0 if passed else 2)
 if __name__=="__main__":run()

@@ -68,7 +68,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
     cash=float(CAPITAL[mode])
     initial=cash
     old=np.zeros(4)
-    modvle_units=np.zeros((4,4))
+    module_units=np.zeros((4,4))
     governor=DVBufferedGovernor()
     peak=cash;max_de=0.;min_nav=cash
     gross_peak=net_peak=concentration_peak=0.
@@ -124,22 +124,22 @@ def cell(path,mode,fee,order,frames,risks,sources):
                 day_start=cash
             if t==FIRST_2024-1:years["2023"]["end_nav"]=cash
             if t==HOURS-1:years["2024"]["end_nav"]=cash
-        # At each preregistered 168h completed close, reset all four modvle target units.
+        # At each preregistered 168h completed close, reset all four module target units.
         # Between observations, hold targets without discretionary resizing.
         if t>=WARMUP and updates[t].any():
             mask=np.array([i in INCLUDED[path] for i in range(4)]) & updates[t]
             if mask.any():
                 for i in np.flatnonzero(mask):
-                    modvle_units[i]=signals[t,i]*budget[t,i]*cash/c[t]
-                governor.signal_components(modvle_units.sum(axis=0))
+                    module_units[i]=signals[t,i]*budget[t,i]*cash/c[t]
+                governor.signal_components(module_units.sum(axis=0))
                 target_updates+=1
     annual={}
-    for yr,dvration in (("2023",365),("2024",366)):
+    for yr,duration in (("2023",365),("2024",366)):
         y=years[yr]
         start,end=y["start_nav"],y["end_nav"]
         annual[yr]={"start_nav":float(start),"end_nav":float(end),
                     "net_return":float(end/start-1.),
-                    "annualized_cagr":float((end/start)**(365.25/dvration)-1.),
+                    "annualized_cagr":float((end/start)**(365.25/duration)-1.),
                     "net_log_growth":float(math.log(end/start)),
                     "max_drawdown":float(y["de"]),
                     **metrict(y["deltas"],y["returns"],y["positive"],y["days"])}
@@ -170,7 +170,7 @@ def run(path):
     source=bundle(frames[0],frames[1],frames[2],frames[3],frames[5],frames[6],frames[4])
     risks=prepare_risks(frames)
     cases=[]
-    for mode,fee,order in itertools.prodvct(CAPITAL,("base","severe","supersevere"),ORDERS):
+    for mode,fee,order in itertools.product(CAPITAL,("base","severe","supersevere"),ORDERS):
         try:cases.append(cell(path,mode,fee,order,frames,risks,source))
         except Exception as exc:
             cases.append({"path":path,"mode":mode,"fee":fee,"order":order,
@@ -179,7 +179,7 @@ def run(path):
     return {"architecture":"DV","path":path,
             "historical_training_only":True,"validation_2025_read":False,
             "external_benchmarks_used":False,
-            "source_manifest_sha256":hashlib.sha256(json.dvmps(
+            "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
             "decision":"PASS_DV_MECHANICAL_ONLY" if len(cases)==6 and
@@ -192,7 +192,7 @@ if __name__=="__main__":
     a=p.parse_args()
     assert static_check()
     result=run(a.path)
-    with open(a.output,"w") as f:json.dvmp(result,f,sort_keys=True,indent=2,allow_nan=False)
+    with open(a.output,"w") as f:json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
     print("DV_PATH",a.path,result["decision"],
           sum(c["passed"] for c in result["cells"]),"/",len(result["cells"]))
     raise SystemExit(0 if all(c["passed"] for c in result["cells"]) else 2)
