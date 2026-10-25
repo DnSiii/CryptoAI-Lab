@@ -1,0 +1,66 @@
+name: V98 Independent DL Frozen Core Versus Complete Gap Diagnosis
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-dl-core-gap.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dl20-ubuntu-24.04-DL_core_only
+          run-id: 40178494846
+          github-token: ${{ github.token }}
+          path: frozen/core
+      - uses: actions/download-artifact@v4
+        with:
+          name: dl20-ubuntu-24.04-DL_full
+          run-id: 40178494846
+          github-token: ${{ github.token }}
+          path: frozen/full
+      - name: Frozen core/full 2023-2024 gap and native friction only
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          core=json.loads(Path('frozen/core/dl20_DL_core_only.json').read_text())
+          full=json.loads(Path('frozen/full/dl20_DL_full.json').read_text())
+          assert core['source_manifest_sha256']==full['source_manifest_sha256']
+          assert core['cells_expected']==6 and full['cells_expected']==6
+          assert all(c['passed'] for c in core['cells']+full['cells'])
+          def take(d):
+              return {(x['fee'],x['order']):x for x in d['cells']}
+          a,b=take(core),take(full)
+          rows=[]
+          for fee in ('base','severe','supersevere'):
+              for order in ('carried_before_fill','new_after_fill'):
+                  c,f=a[fee,order],b[fee,order]
+                  rows.append({'fee':fee,'order':order,
+                     'core_cagr':c['two_year_cagr'],'full_cagr':f['two_year_cagr'],
+                     'core_2023':c['annual']['2023']['net_return'],
+                     'core_2024':c['annual']['2024']['net_return'],
+                     'full_2023':f['annual']['2023']['net_return'],
+                     'full_2024':f['annual']['2024']['net_return'],
+                     'core_funding':c['funding'],'full_funding':f['funding'],
+                     'core_fee_slip':c['fees']+c['slippage'],
+                     'full_fee_slip':f['fees']+f['slippage'],
+                     'core_turnover':c['turnover'],'full_turnover':f['turnover']})
+          out={'decision':'DL_REJECTED_FROZEN_CORE_GAP_ONLY','run':40178494846,
+               'rows':rows,'holdout_read':False,'backtest_rerun':False}
+          Path('dl_frozen_core_gap.json').write_text(json.dumps(out,indent=2,sort_keys=True))
+          print('DL_FROZEN_CORE_GAP',json.dumps(out,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dl-frozen-core-gap
+          path: dl_frozen_core_gap.json
+          retention-days: 30
