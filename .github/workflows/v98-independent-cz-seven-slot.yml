@@ -35,7 +35,7 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policz_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
@@ -83,7 +83,7 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policz_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
