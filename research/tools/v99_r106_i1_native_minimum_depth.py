@@ -17,7 +17,7 @@ from research.tools.v99_r106_i1_full_archive_intake import native_contracts
 
 TRAIN_END = datetime(2023, 10, 1, tzinfo=timezone.utc)
 SCHEMA = "V99_I1_ORIGINAL_NATIVE_MINIMUM_DEPTH_SOURCE_ONLY_V1"
-MAX_ATOMIC_ARRIVAL_GAP_US = 1_000_000  # preregistered necessary source overlap, not a fill
+MAX_ATOMIC_ARRIVAL_GAP_US = 1_000_000  # BOTH arrival and exchange-event clocks, never a fill
 
 
 def positive(value):
@@ -102,7 +102,9 @@ def run(credit_path, native_root, index_path, fee_path, output_path):
                         positive(row["long_ask_size_source_units"]))
         eligible = displayed >= minimum
         arrival_gap_us = abs(int(row["short_arrival_us"]) - int(row["long_arrival_us"]))
-        atomic = arrival_gap_us <= MAX_ATOMIC_ARRIVAL_GAP_US
+        exchange_gap_us = abs(int(row["short_exchange_us"]) - int(row["long_exchange_us"]))
+        atomic = (arrival_gap_us <= MAX_ATOMIC_ARRIVAL_GAP_US
+                  and exchange_gap_us <= MAX_ATOMIC_ARRIVAL_GAP_US)
         counts[asset]["provisional_pairs_within_1s"] += int(atomic)
         counts[asset]["provisional_depth_and_within_1s"] += int(eligible and atomic)
         counts[asset]["pairs"] += 1
@@ -113,6 +115,7 @@ def run(credit_path, native_root, index_path, fee_path, output_path):
             "short_arrival_us": int(row["short_arrival_us"]),
             "long_arrival_us": int(row["long_arrival_us"]),
             "pair_arrival_gap_us": arrival_gap_us,
+            "pair_exchange_gap_us": exchange_gap_us,
             "provisional_pair_within_1s": atomic,
             "provisional_depth_and_within_1s": eligible and atomic,
             "short_displayed_source_units": str(positive(row["short_bid_size_source_units"])),
@@ -133,6 +136,7 @@ def run(credit_path, native_root, index_path, fee_path, output_path):
         "original_pairs": 46, "sampled_asset_weeks": 4, "required_asset_weeks": 182,
         "certified_full_lifecycles": 0,
         "max_atomic_arrival_gap_us": MAX_ATOMIC_ARRIVAL_GAP_US,
+        "max_atomic_exchange_gap_us": MAX_ATOMIC_ARRIVAL_GAP_US,
         "temporal_overlap_does_not_certify_simultaneous_fills": True,
         "counts_by_asset": {asset: dict(counts[asset]) for asset in ("BTC", "ETH")},
         "rows": rows,
