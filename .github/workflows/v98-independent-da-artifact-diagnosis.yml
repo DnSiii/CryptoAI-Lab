@@ -1,0 +1,46 @@
+name: V98 Independent DA Artifact Only Marginal Failure Diagnosis
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-da-artifact-diagnosis.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: da20-official-economic-summary
+          run-id: 40156312719
+          github-token: ${{ github.token }}
+          path: evidence
+      - name: Print audited DA historical marginal and physical metrics (no rerun or tuning)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          files=list(Path('evidence').rglob('*.json'))
+          assert len(files)==1,files
+          d=json.loads(files[0].read_text())
+          print('DA_EVIDENCE_DECISION',d['decision'])
+          print('DA_SURVIVAL',d['cells_survived'],d['cross_os_reproducible'],d['errors'])
+          print('DA_GATE',d['high_growth_gate_10k'],d['severe_drawdown_gate_10k'],d['marginal_gates_10k'])
+          for sleeve,bycase in d['marginal_log_growth_10k'].items():
+              for case,years in sorted(bycase.items()):
+                  print('DA_MARGINAL',sleeve,case,'2023',round(years['2023'],8),'2024',round(years['2024'],8))
+          for name in ('full_10k_base','full_10k_severe'):
+              x=d[name]
+              print('DA_FULL',name,'CAGR',x['two_year_cagr'],'DD',x['max_drawdown'],
+                    '2023',x['annual']['2023']['net_return'],'2024',x['annual']['2024']['net_return'],
+                    'PF',x['hourly_net_profit_factor'],'payoff',x['hourly_net_payoff'],
+                    'win',x['hourly_net_win_rate'],'positive_days',x['positive_day_fraction'],
+                    'gross',x['max_gross_to_nav'],'concentration',x['max_single_asset_gross_concentration'],
+                    'funding',x['funding'],'fees',x['fees'],'slippage',x['slippage'],
+                    'turnover',x['turnover'],'fills',x['physical_fill_hours'])
+          PY
