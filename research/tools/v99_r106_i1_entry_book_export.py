@@ -15,12 +15,13 @@ from datetime import timedelta
 from pathlib import Path
 
 from research.tools.v99_r106_i1_full_archive_intake import (
-    END, REQUIRED, eligible, evaluate, file_digest, instrument, safe_path,
+    END, REQUIRED, eligible, evaluate, file_digest, instrument, safe_path, native_contracts,
 )
 
 def export_books(root):
     root = Path(root)
     gate = evaluate(root)  # checksum, complete schedule, original five folds
+    native = None if gate["fixture"] else native_contracts(root)
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     books = []
     for week, (decision, item) in enumerate(zip(eligible(), manifest["days"])):
@@ -62,6 +63,16 @@ def export_books(root):
             if not (all(map(math.isfinite, (bid, ask, bid_size, ask_size)))
                     and 0 < bid < ask and bid_size > 0 and ask_size > 0):
                 continue
+            if native is not None:
+                meta = native[asset].get(symbol)
+                if (meta is None
+                    or meta["creation_timestamp"] > int(decision.timestamp()*1000)
+                    or meta["expiration_timestamp"] != int(expiry.timestamp()*1000)
+                    or float(meta["strike"]) != strike
+                    or meta["settlement_currency"] != asset
+                    or any(meta[k] is None or float(meta[k]) <= 0 for k in
+                           ("contract_size","min_trade_amount","tick_size"))):
+                    continue
             books.append({
                 "decision_utc": decision.isoformat(),
                 "fold": gate["weekly"][week]["fold"],
@@ -87,6 +98,7 @@ def export_books(root):
         "status": "SYNTHETIC_NOT_ECONOMIC" if gate["fixture"] else
                   "ORIGINAL_BOOKS_NOT_CERTIFIED_EXECUTION",
         "fixture": gate["fixture"],
+        "native_registry_verified": native is not None,
         "source_pairs": pairs, "required_pairs": 182,
         "quotes": books,
         "missing": ["historical full quote entitlement", "full holding-period quotes",
