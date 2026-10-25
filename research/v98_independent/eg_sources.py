@@ -60,7 +60,7 @@ def bundle(opening,high,low,close,rate,event,quote):
         options=[]
         for j in (1,2,3):
             net336=float(lc[t,j]-lc[t-336,j]-np.sum(r[t-335:t+1,j]*e[t-335:t+1,j]))
-            pullback=float(lc[t-3,j]-lc[t-12,j])
+            pullback=float(lc[t-3,j]-lc[t-15,j])
             rebound=float(lc[t,j]-lc[t-3,j])
             v24=float(np.mean(q[t-23:t+1,j]))
             prior=float(np.mean(q[t-191:t-23,j]))
