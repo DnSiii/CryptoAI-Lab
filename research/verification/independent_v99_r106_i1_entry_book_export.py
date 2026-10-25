@@ -122,9 +122,24 @@ def audit(root, export_path):
         by_expiry[(x["decision_utc"],x["asset"],x["expiry_utc"])].add(x["strike_usd"])
     by_asset = {(d,a) for (d,a,_),strikes in by_expiry.items() if len(strikes)>=2}
     assert len(by_asset) == export["source_pairs"]
+    assert export["synchronized_max_skew_us"] == 1_000_000
+    timed = defaultdict(list)
+    for q in expected:
+        timed[(q["decision_utc"],q["asset"],q["expiry_utc"])].append(q)
+    synchronized_asset_weeks = set()
+    for (day,asset,_),quotes in timed.items():
+        for i,first in enumerate(quotes):
+            for second in quotes[i+1:]:
+                if (first["strike_usd"] != second["strike_usd"]
+                    and max(abs(first["arrival_us"]-second["arrival_us"]),
+                            abs(first["exchange_us"]-second["exchange_us"])) <= 1_000_000):
+                    synchronized_asset_weeks.add((day,asset))
+    assert len(synchronized_asset_weeks) == export["synchronized_source_pairs"], (
+        "INDEPENDENT_ENTRY_SYNC_PAIR_MISMATCH")
     assert export["required_pairs"] == 182
     print(json.dumps({"independent":"VERIFIED_ORIGINAL_BYTE_TO_BOOK",
         "quote_count":len(expected),"asset_weeks":len(by_asset),
+        "synchronized_asset_weeks":len(synchronized_asset_weeks),
         "fixture":export["fixture"],"economic_train":False,"promotion":False},
         sort_keys=True))
     return len(expected)
