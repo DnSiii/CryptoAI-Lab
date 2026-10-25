@@ -19,6 +19,9 @@ def audit(root, export_path):
     assert export["schema"] == "I1_ORIGINAL_ENTRY_BOOK_EXPORT_V1"
     assert manifest["schema"] == "I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1"
     assert export["fixture"] == manifest["fixture"]
+    from research.verification.independent_v99_r106_i1_full_archive_intake import original_native_lookup
+    native = None if manifest["fixture"] else original_native_lookup(root)
+    assert export["native_registry_verified"] == (native is not None)
     assert not any(export[k] for k in ("economic_train_executed",
         "validation_opened", "holdout_opened", "promotion_authorized", "orders_enabled"))
     expected = []
@@ -66,6 +69,16 @@ def audit(root, export_path):
                     and event >= cutoff and timedelta(days=21) <= expiry-decision
                     <= timedelta(days=45) and expiry < STOP):
                 continue
+            if native is not None:
+                meta = native[parts[0]].get(symbol)
+                if (meta is None or
+                    int(meta["creation_timestamp"]) > int(decision.timestamp()*1000) or
+                    int(meta["expiration_timestamp"]) != int(expiry.timestamp()*1000) or
+                    float(meta["strike"]) != strike or
+                    meta["settlement_currency"] != parts[0] or
+                    any(meta.get(k) is None or float(meta[k]) <= 0 for k in
+                        ("contract_size","min_trade_amount","tick_size"))):
+                    continue
             fold_edges = [
                 datetime(2021,12,9,tzinfo=UTC),datetime(2022,4,20,4,tzinfo=UTC),
                 datetime(2022,8,30,9,tzinfo=UTC),datetime(2023,1,9,14,tzinfo=UTC),
