@@ -144,6 +144,48 @@ class FullArchiveIntakeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"NATIVE_ORIGINAL_REGISTRY_UNVERIFIED"):
                 evaluate(root)
 
+    def test_original_native_2022_offgrid_bid_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            make_fixture(root)
+            attach_synthetic_native_bytes(root)
+            path=root/"2021-12-12.csv"
+            with path.open(newline="",encoding="utf-8") as fp:
+                rows=list(csv.DictReader(fp))
+            rows[1]["bid_price"]="0.0401"  # invalid pre-2023 0.0005 grid
+            with path.open("w",newline="",encoding="utf-8") as fp:
+                w=csv.DictWriter(fp,fieldnames=FIELDS);w.writeheader();w.writerows(rows)
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            out=root/"audit.json";out.write_text(json.dumps(result))
+            audit(root,out)
+
+    def test_original_native_2023_postchange_above_threshold_offgrid_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            make_fixture(root)
+            attach_synthetic_native_bytes(root)
+            target=datetime(2023,7,10,tzinfo=timezone.utc)
+            week=(target-datetime(2021,12,13,tzinfo=timezone.utc)).days//7
+            path=root/(target-timedelta(days=1)).strftime("%Y-%m-%d")
+            path=Path(str(path)+".csv")
+            with path.open(newline="",encoding="utf-8") as fp:
+                rows=list(csv.DictReader(fp))
+            rows[1]["bid_price"]="0.0040"
+            rows[1]["ask_price"]="0.0051"  # >0.005 requires 0.0005, not 0.0001
+            with path.open("w",newline="",encoding="utf-8") as fp:
+                w=csv.DictWriter(fp,fieldnames=FIELDS);w.writeheader();w.writerows(rows)
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][week]["sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            out=root/"audit.json";out.write_text(json.dumps(result))
+            audit(root,out)
+
     def test_byte_mutation_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
