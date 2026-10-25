@@ -1,0 +1,7 @@
+# V98 Independent EM — frozen independent full-history physical ledger addendum (2026-10-25)
+
+Official preregistered 2023/2024 30-cell run: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40237426781 . Separate full-history, every-settled-hour physical oracle: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40237525113 . Independent crosscheck against the **immutable** official 24.04 receipts: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40237745422 .
+
+The independent ledger oracle validated **105,258 settlement hours and 13,152 native funding-event hours for each of five paths**, totaling **526,290 settlement hours and 65,760 funding-event hours** across 30 physical USD10k cases. Independent settlement recomputed cash, turnover, signed funding, fees, slippage and 81-corner intrabar invariants; reconciliation compared source manifest, initial/final NAV, CAGR, drawdown, cost components, annual log growth and concentration across all 30 cells. **All five paths matched; zero discrepancies.**
+
+This verifies accounting implementation and historical reproducibility, **not** predictive edge, independent 2025 validation or superiority. EM remains **PERMANENTLY REJECTED** because Opportunity, Relative Value and Stress/Recovery failed preregistered physical marginal growth gates despite 30/30 mechanical survival. No rejected module or core is promoted. No access to 2025, 2026+, quarantined XRP, Phase083, external V14/V15/V99, Frozen, V99 paper or live orders.
