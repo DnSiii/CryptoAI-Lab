@@ -13,6 +13,9 @@ from math import isfinite
 TRAIN_END_MS = 1696118400000
 TRAIN_START_MS = 1639008000000
 MAX_QUOTE_AGE_MS = 300_000
+MAX_PAIR_ARRIVAL_GAP_MS = 1_000
+MIN_HOLD_MS = 21 * 86_400_000
+MAX_HOLD_MS = 45 * 86_400_000
 COST_SCENARIOS = {
     "severe": (0.0012, 0.0012),
     "supersevere": (0.0024, 0.0024),
@@ -103,6 +106,14 @@ def open_vertical(short_put, long_put, decision_ms, initial_cash_usd,
         raise ValueError("UNPREREGISTERED_COST_OR_RISK")
     short_put.validate(decision_ms)
     long_put.validate(decision_ms)
+    decision = datetime.fromtimestamp(decision_ms / 1000, tz=timezone.utc)
+    if (decision.weekday(), decision.hour, decision.minute, decision.second, decision.microsecond) != (0, 0, 0, 0, 0):
+        raise ValueError("NOT_PREREGISTERED_MONDAY_DECISION")
+    if not MIN_HOLD_MS <= short_put.expiry_ms - decision_ms <= MAX_HOLD_MS:
+        raise ValueError("OUTSIDE_PREREGISTERED_21_45_DAY_EXPIRY")
+    if (abs(short_put.arrival_ms-long_put.arrival_ms) > MAX_PAIR_ARRIVAL_GAP_MS
+            or abs(short_put.venue_ms-long_put.venue_ms) > MAX_PAIR_ARRIVAL_GAP_MS):
+        raise ValueError("NONATOMIC_ENTRY_LEG_TIMESTAMPS")
     if not (short_put.asset == long_put.asset
             and short_put.expiry_ms == long_put.expiry_ms
             and short_put.strike_usd > long_put.strike_usd
@@ -142,6 +153,9 @@ def liquidation_nav(spread, short_quote, long_quote, mark_ms):
     # unverified: this is conservative mark-to-exit, not a real exchange fill.
     short_quote.validate(mark_ms)
     long_quote.validate(mark_ms)
+    if (abs(short_quote.arrival_ms-long_quote.arrival_ms) > MAX_PAIR_ARRIVAL_GAP_MS
+            or abs(short_quote.venue_ms-long_quote.venue_ms) > MAX_PAIR_ARRIVAL_GAP_MS):
+        raise ValueError("NONATOMIC_EXIT_LEG_TIMESTAMPS")
     if mark_ms <= spread.decision_ms or mark_ms >= spread.expiry_ms:
         raise ValueError("BAD_MARK_TIME")
     if (short_quote.asset != spread.asset or long_quote.asset != spread.asset
@@ -231,6 +245,9 @@ def replay_inverse_coin_expiry_from_quotes(
         raise ValueError("INVALID_SPREAD_OR_SCENARIO")
     short_quote.validate(spread.decision_ms)
     long_quote.validate(spread.decision_ms)
+    if (abs(short_quote.arrival_ms-long_quote.arrival_ms) > MAX_PAIR_ARRIVAL_GAP_MS
+            or abs(short_quote.venue_ms-long_quote.venue_ms) > MAX_PAIR_ARRIVAL_GAP_MS):
+        raise ValueError("NONATOMIC_ORIGINAL_OPENING_QUOTES")
     if not (
         short_quote.asset == long_quote.asset == spread.asset
         and short_quote.expiry_ms == long_quote.expiry_ms == spread.expiry_ms
