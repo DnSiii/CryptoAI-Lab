@@ -6,7 +6,7 @@ No 2025, V99, frozen engines, paper, live orders or external benchmarks.
 from __future__ import annotations
 import argparse,hashlib,itertools,json,math
 import numpy as np
-from dn_sources import bundne,WARMUP,static_check
+from dn_sources import bundle,WARMUP,static_check
 from cg_buffered_governor import CGBufferedGovernor as DNBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 # DN-local equivalent of generic prior-only risk bounds; generic helper has
@@ -167,7 +167,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
 
 def run(path):
     frames,manifest=load_official()
-    source=bundne(frames[0],frames[1],frames[2],frames[3],frames[5],frames[6],frames[4])
+    source=bundle(frames[0],frames[1],frames[2],frames[3],frames[5],frames[6],frames[4])
     risks=prepare_risks(frames)
     cases=[]
     for mode,fee,order in itertools.product(CAPITAL,("base","severe","supersevere"),ORDERS):
