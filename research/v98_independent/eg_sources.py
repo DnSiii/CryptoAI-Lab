@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """EG independent preregistered causal virtual-edge opportunity-cost router; TRAINING ONLY."""
 import numpy as np
-WARMUP=1440
+WARMUP=744
 CLOCKS=(168,24,24,24)
 CORE={"TREND":3.30,"MIXED":2.70,"RISK_OFF":1.70}
 SAT={"TREND":(.18,.13,.12),"MIXED":(.14,.17,.16),"RISK_OFF":(.05,.17,.24)}
