@@ -1,0 +1,49 @@
+name: V98 Independent DL Rejected Frozen Receipt Economic Attribution Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-dl-frozen-attribution.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  attribution:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dl20-official-economic-summary
+          run-id: 40178494846
+          github-token: ${{ github.token }}
+          path: frozen
+      - name: Compare full vs core and leave-one-out using frozen receipt only
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('frozen/dl20_official_economic_summary.json').read_text())
+          assert d['decision']=='REJECT_DL_HISTORICAL_GROWTH_OR_MARGINAL'
+          assert d['cells_survived']==30 and d['cross_os_reproducible'] and not d['errors']
+          def view(x):
+              return {k:x[k] for k in ('final_nav','two_year_cagr','max_drawdown','turnover','fees','slippage','funding')}
+          a,b=d['full_10k_base'],d['full_10k_severe']
+          out={'architecture':'DL','decision':'REJECTED_FROZEN_NO_RESCUE',
+               'source_run':40178494846,'base':view(a),'severe':view(b),
+               'annual_base':{y:a['annual'][y]['net_return'] for y in ('2023','2024')},
+               'annual_severe':{y:b['annual'][y]['net_return'] for y in ('2023','2024')},
+               'marginal_gates':d['marginal_gates_10k'],
+               'marginal_log_growth':d['marginal_log_growth_10k'],
+               'holdout_read':False,'economic_rerun':False}
+          Path('dl_frozen_attribution.json').write_text(json.dumps(out,indent=2,sort_keys=True))
+          print('DL_FROZEN_ATTRIBUTION',json.dumps(out,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dl-frozen-attribution
+          path: dl_frozen_attribution.json
+          retention-days: 30
