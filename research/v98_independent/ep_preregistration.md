@@ -1,0 +1,20 @@
+# V98 Independent EP — preregistered persistent-inventory seven-slot portfolio (2026-10-25)
+
+**Immutable pre-result hypothesis.** EP tests whether persistent, multi-week inventory and a pretrade turnover deadband can generate incremental geometric wealth after native fees, slippage and funding, unlike rejected EO high-turnover factor tilts. This is not EO reweighting or rescue: EP changes the signal economics, cadence, position construction, and target-update mechanism. No rejected EO weights, signs, lookbacks, or thresholds are selected from EO PnL. The generic V98 source loader, risk governor and settlement oracle may be reused solely as infrastructure.
+
+## Firewalls
+Only authenticated Binance USD-M BTCUSDT ETHUSDT BNBUSDT SOLUSDT 1h, Dec 2022 744h warmup, 2023/24 chronological training. Pinned native funding and price/quote. XRP quarantined. Do not load 2025 validation, 2026+, old Phase083, V14/V15/V99, any Frozen or paper. No live trading.
+
+## Seven independently ablatable slots
+Completed close t -> next actual open t+1, with 168h synchronized review, unchanged inventory between review epochs unless forced by physical risk governor.
+
+1. **Growth Core:** long-only 504h native-funding-adjusted positive momentum / 336h downside semivolatility; 168h positive confirmation; 15% uniform diversification floor, 85% convex winner weights. Equal-weight fallback.
+2. **Opportunity:** long-only alt leader only when its 168h funding-adjusted momentum is positive and completed 48h quote volume exceeds its prior 336h median of 48h rolling volume; otherwise flat. Not EO 72h zero-net factor.
+3. **Relative Value:** paired funding carry with long asset having lowest 336h accumulated funding, short highest, only if signed funding spread exceeds 0.0015 and the 168h long-minus-short log-return is positive. Otherwise flat. Zero-net 0.5/-0.5.
+4. **Stress/Recovery:** cross-sectional tail-quality spread: if 168h market log-return is negative and realized 72h downside market semivolatility exceeds its own 336h downside baseline, long BTC 0.5 and short weakest alt 0.5; otherwise flat. This is a persistent risk-quality factor, not EO daily rebound trade.
+5. **Regime Router:** TREND when >=3 assets have positive 504h funding-adjusted momentum, STRESS when <=1, otherwise MIXED.
+6. **Dynamic Allocator:** core demand 2.3 TREND, 1.9 MIXED, 1.4 STRESS; sleeves requested 0.14 Opportunity, 0.12 RV, 0.16 Stress only when active; shared gross budget <=2.75. Sleeve contributions are judged by physical full-minus-leave-one-out annual log wealth, not shadow alpha.
+7. **Risk Governor:** unchanged CG buffered 60% reserve and 81-corner staged exit viability; prior-only quote/funding, native signed funding, next-open execution, full intrabar settlement. **Turnover deadband:** each sleeve's intended units remain unchanged if its new target differs from its previous intended units by less than 0.035 of contemporaneous NAV in gross traded notional. Deadband evaluated only on scheduled observations; never suppresses governor-mandated liquidation. No intraperiod voluntary resize.
+
+## Gates, set before seeing results
+Source-only future mutation causal invariance and >=4 active review epochs per sleeve in **each** year, no 2025 read. If source passes: 5 ablations x 3 fee tiers (base, severe, supersevere) x 2 funding orderings = 30 physically settled USD10k cells, independent Ubuntu22/24 reproduction, independent artifact reconciliation and full native fee/slippage/funding ledger. No hidden borrow, all cells survive. Positive annual net log growth in both years under base and severe, and **strictly positive annual marginal log growth for each sleeve** under base and severe both funding orderings. Full CAGR >50% base and >30% severe; severe max drawdown <45%; full turnover <=USD600k base/severe; PF, payoff, win rate, positive days, concentration, tails, regime attribution and causality reported. No post-result threshold, weight, sign, window or gross rescue. If rejected, freeze and move to genuinely distinct hypothesis. Only after internally frozen passing training and separate validation can external benchmarks be opened.
