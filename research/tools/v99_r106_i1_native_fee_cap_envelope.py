@@ -1,6 +1,6 @@
 """I1 original source native option fee-cap envelope. NO PNL OR EXECUTION.
 
-Two dated *published examples*, neither a certified 2021-2023 account fee
+A 2019 legacy example and dated 2020 public standard candidate, neither a certified 2021-2023 account fee
 schedule. Uses real original quoted prices and first-party delivery index.
 No native lot conversion, no model selection, no orders, no sealed data.
 """
@@ -13,14 +13,14 @@ from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
 
-SCHEMA = "V99_I1_ORIGINAL_NATIVE_FEE_CAP_ENVELOPE_V1"
+SCHEMA = "V99_I1_ORIGINAL_NATIVE_FEE_CAP_ENVELOPE_V2"
 FEE_EXAMPLES = {
     "published_2019_example": {
         "entry_per_unit": Decimal("0.0004"),
         "delivery_per_unit": Decimal("0.0002"),
         "cap_fraction": Decimal("0.20"),
     },
-    "current_2026_example": {
+    "published_2020_standard_base_candidate": {
         "entry_per_unit": Decimal("0.0003"),
         "delivery_per_unit": Decimal("0.00015"),
         "cap_fraction": Decimal("0.125"),
@@ -131,7 +131,18 @@ def run(credit_path, terminal_path, output_path):
             scenario: {asset: dict(counters[scenario][asset]) for asset in ("BTC", "ETH")}
             for scenario in FEE_EXAMPLES
         },
-        "status": "ILLUSTRATIVE_NATIVE_FEE_FORMULA_ONLY_HOLD",
+        "status": "DATED_2020_PUBLIC_STANDARD_BASE_CANDIDATE_HOLD",
+        "public_base_rate_evidence": {
+            "venue_announcement_date": "2020-08-12",
+            "effective_utc": "2020-08-24T12:00:00Z",
+            "btc_eth_option_base_rate": "0.0003",
+            "venue_primary_url": "https://insights.deribit.com/exchange-updates/deribit-lowers-option-trading-fees-to-make-the-market-more-accessible-to-retail-traders/",
+            "cap_and_delivery_reference": "secondary_2020_mirrored_exchange_information_not_authenticated_original",
+            "cap_and_delivery_reference_url": "https://wikibitimg.fx994.com/attach/2020/10/938514373/WBE938514373_15464.pdf",
+            "auto_vip_system_announced_2025_not_retroactive": True,
+        },
+        "historical_2021_2023_continuity_certified": False,
+        "historical_actual_account_discount_certified": False,
         "historical_fee_tier_certified": False,
         "native_contract_quantity_certified": False,
         "economic_train_run": False, "roi_calculated": False,
