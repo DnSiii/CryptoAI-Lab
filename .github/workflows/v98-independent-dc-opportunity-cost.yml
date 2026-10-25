@@ -1,0 +1,57 @@
+name: V98 Independent DC Artifact Only Physical Capital Opportunity Cost
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-dc-opportunity-cost.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dc20-ubuntu-24.04-*
+          run-id: 40159679454
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: dc
+      - name: Independent native core/full capital opportunity-cost audit, no new PnL
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          files=list(Path('dc').rglob('*.json'))
+          assert len(files)==5,files
+          cases={}
+          for f in files:
+              d=json.loads(f.read_text())
+              assert d['architecture']=='DC'
+              assert d['historical_training_only'] and not d['validation_2025_read']
+              for row in d['cells']:
+                  assert row['passed'],(d['path'],row)
+                  if row['order']=='carried_before_fill':
+                      cases[(d['path'],row['fee'])]=row
+          for fee in ('base','severe'):
+              core=cases[('DC_core_only',fee)]
+              full=cases[('DC_full',fee)]
+              print('DC_CORE_DISPLACEMENT',fee,'core_cagr',core['two_year_cagr'],
+                    'full_cagr',full['two_year_cagr'],
+                    'core_funding',core['funding'],'full_funding',full['funding'],
+                    'core_turnover',core['turnover'],'full_turnover',full['turnover'],
+                    'core_gross',core['max_gross_to_nav'],'full_gross',full['max_gross_to_nav'],
+                    'core_concentration',core['max_single_asset_gross_concentration'],
+                    'full_concentration',full['max_single_asset_gross_concentration'])
+              for yr in ('2023','2024'):
+                  delta=(full['annual'][yr]['net_log_growth']-
+                         core['annual'][yr]['net_log_growth'])
+                  print('DC_CORE_ANNUAL',fee,yr,
+                        'core',core['annual'][yr]['net_log_growth'],
+                        'full',full['annual'][yr]['net_log_growth'],
+                        'full_minus_core',delta)
+          PY
