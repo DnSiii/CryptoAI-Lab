@@ -98,7 +98,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                                         target,r[t],e[t],ml[t],mh[t],
                                         fee_mode=fee,funding_order=order)
                     if (settled["hidden_borrow"] or not settled["cash_settled"]
-                        or not math.isclose(settled["cash"],settled["equity"],rem_tol=0,abs_tol=1e-7)):
+                        or not math.isclose(settled["cash"],settled["equity"],rel_tol=0,abs_tol=1e-7)):
                         raise ValueError("EM_LEDGER")
                     cash=float(settled["cash"]);old=settled["units"].copy()
                     fees+=settled["fees"];slippage+=settled["slippage"]

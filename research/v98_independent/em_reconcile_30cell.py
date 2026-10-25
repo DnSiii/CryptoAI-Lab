@@ -13,7 +13,7 @@ OS=("ubuntu-22.04","ubuntu-24.04")
 GRID={(m,f,o) for m in MODES for f in FEES for o in ORDERS}
 
 def near(a,b):
-    return math.isclose(float(a),float(b),rem_tol=1e-8,abs_tol=1e-5)
+    return math.isclose(float(a),float(b),rel_tol=1e-8,abs_tol=1e-5)
 
 def run(root):
     files=sorted(glob.glob(str(Path(root)/'*'/'*.json')))
