@@ -86,7 +86,7 @@ def bundle(opening,high,low,close,rate,event,quote):
         ret72=lc[t]-lc[t-72]
         ret24=lc[t]-lc[t-24]
         btc_recent=float(np.sqrt(np.mean(hourly[t-23:t+1,0]**2)))
-        btc_prior=float(np.sqrt(np.mean(hourly[t-527:t-24,0]**2)))
+        btc_prior=float(np.sqrt(np.mean(hourly[t-528:t-24,0]**2)))
         if np.count_nonzero(ret72<0)>=3 and btc_recent>1.10*btc_prior:
             signals[t,3,0]=-.5
             signals[t,3,3]=-.5
