@@ -6,7 +6,7 @@ from pathlib import Path
 PATHS=("EM_core_only","EM_full","EM_minus_opportunity","EM_minus_RV","EM_minus_stress")
 def run(root):
     rows={}
-    for f in glob.glob(str(Path(root)/"el30-ubuntu-24.04-EM_*"/"*.json")):
+    for f in glob.glob(str(Path(root)/"em30-ubuntu-24.04-EM_*"/"*.json")):
         p=json.load(open(f))
         if p.get("path") not in PATHS or p["path"] in rows:
             raise ValueError("EM_ARTIFACT_DUPLICATE")
@@ -26,7 +26,7 @@ def run(root):
                        c.get("trading_authorized") is False
                        for p in PATHS for c in rows[p].values())
             if any(not rows[p][key]["passed"] for p in PATHS):
-                raise ValueError("EM_NONPHYSICAL_CEML")
+                raise ValueError("EM_NONPHYSICAL_CELL")
             d={"full_cagr":full["two_year_cagr"],"core_cagr":core["two_year_cagr"],
                "full_final_nav":full["final_nav"],"core_final_nav":core["final_nav"],
                "full_minus_core_final_nav":full["final_nav"]-core["final_nav"],
