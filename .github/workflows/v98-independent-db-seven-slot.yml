@@ -22,8 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install numpy==1.26.4 pandbs==2.2.3
-      - name: Download exact pinned training dbta only (no 2025)
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download exact pinned training data only (no 2025)
         uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
@@ -55,7 +55,7 @@ jobs:
         with:
           name: db-source-viability
           path: research/v98_independent/db_source_viability.json
-          retention-dbys: 30
+          retention-days: 30
           if-no-files-found: warn
   economic:
     needs: source
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install numpy==1.26.4 pandbs==2.2.3
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - name: Retrieve authenticated 2022-2024 Clean4 only
         uses: actions/download-artifact@v4
         with:
@@ -107,7 +107,7 @@ jobs:
         with:
           name: db20-${{ matrix.os }}-${{ matrix.path }}
           path: research/v98_independent/db20_${{ matrix.path }}.json
-          retention-dbys: 30
+          retention-days: 30
           if-no-files-found: warn
   audit:
     if: always() && needs.source.result == 'success'
@@ -120,7 +120,7 @@ jobs:
         with:
           pattern: db20-ubuntu-*
           path: receipts
-      - name: Independent artifadb-only 20-cell cross-OS and marginal gate
+      - name: Independent artifact-only 20-cell cross-OS and marginal gate
         shell: bash
         run: python research/v98_independent/db_reconcile_20cell.py --root receipts --output db20_official_economic_summary.json
       - uses: actions/upload-artifact@v4
@@ -128,5 +128,5 @@ jobs:
         with:
           name: db20-official-economic-summary
           path: db20_official_economic_summary.json
-          retention-dbys: 30
+          retention-days: 30
           if-no-files-found: warn
