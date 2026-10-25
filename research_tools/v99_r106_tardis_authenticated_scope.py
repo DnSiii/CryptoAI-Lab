@@ -13,11 +13,51 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 SCOPE_URL = "https://api.tardis.dev/v1/api-key-info"
 DATES = ("2021-12-12", "2022-06-12", "2023-09-24")
 SCHEMA = "V99_I1_AUTHENTICATED_HISTORICAL_OPTIONS_ACCESS_PROBE_V1"
+
+
+TRAIN_START = datetime(2021, 12, 9, tzinfo=timezone.utc)
+TRAIN_END = datetime(2023, 10, 1, tzinfo=timezone.utc)
+
+
+def _scope_covers_train(raw):
+    """Check documented Tardis grant array, not a bare HTTP 200.
+
+    A valid scope response is only a vendor entitlement claim, NOT original
+    bytes, written licensing, executable BTC/ETH quote coverage or economics.
+    """
+    try:
+        grants = json.loads(raw)
+        if not isinstance(grants, list):
+            return False
+        for grant in grants:
+            if not isinstance(grant, dict) or grant.get("exchange") != "deribit":
+                continue
+            start = datetime.fromisoformat(grant["from"].replace("Z", "+00:00"))
+            end = datetime.fromisoformat(grant["to"].replace("Z", "+00:00"))
+            if start.tzinfo is None or end.tzinfo is None:
+                continue
+            if not (start <= TRAIN_START and end >= TRAIN_END):
+                continue
+            symbols = grant.get("symbols")
+            if not isinstance(symbols, list) or not all(isinstance(s, str) for s in symbols):
+                continue
+            # Empty means all symbols per official /api-key-info example.
+            # A limited set must explicitly include both asset option families.
+            if not symbols or "OPTIONS" in symbols:
+                return True
+            has_btc = any(s.startswith("BTC-") and s.endswith(("-P", "-C")) for s in symbols)
+            has_eth = any(s.startswith("ETH-") and s.endswith(("-P", "-C")) for s in symbols)
+            if has_btc and has_eth:
+                return True
+    except (ValueError, TypeError, KeyError, OverflowError):
+        return False
+    return False
 
 
 def _call(opener, key, url, method, ranged=False):
@@ -40,6 +80,13 @@ def _call(opener, key, url, method, ranged=False):
                 return {"http": status, "nonempty": bool(prefix),
                         "bounded_206": bounded, "gzip_magic": gzip_magic}
             if method == "GET":
+                if url == SCOPE_URL:
+                    # Bounded scope metadata, never print response or API key.
+                    scope_bytes = response.read(16_385)
+                    return {"http": status,
+                            "scope_claims_train_coverage": (
+                                status == 200 and len(scope_bytes) <= 16_384
+                                and _scope_covers_train(scope_bytes))}
                 return {"http": status, "nonempty": bool(response.read(2))}
             return {"http": status, "nonempty": True}
     except urllib.error.HTTPError as exc:
@@ -66,7 +113,8 @@ def check(key=None, opener=None):
         "roi_calculated": False, "validation_opened": False,
         "holdout_opened": False, "orders_enabled": False,
         "promotion_authorized": False,
-        "scope_endpoint_http": None, "probes": [],
+        "scope_endpoint_http": None, "scope_claims_train_coverage": False,
+        "probes": [],
     }
     if not key:
         result["status"] = "BLOCKED_NO_AUTHENTICATED_ARCHIVE_KEY_CONFIGURED"
@@ -77,6 +125,15 @@ def check(key=None, opener=None):
         return result
     scope = _call(opener, key, SCOPE_URL, "GET")
     result["scope_endpoint_http"] = scope["http"]
+    result["scope_claims_train_coverage"] = scope.get(
+        "scope_claims_train_coverage", False)
+    if not result["scope_claims_train_coverage"]:
+        result["status"] = "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT"
+        result["next_dependency"] = (
+            "Documented Deribit BTC+ETH OPTIONS grant covering entire TRAIN "
+            "2021-12-09..2023-09-30, plus authorized original archive bytes"
+        )
+        return result
     for day in DATES:
         year, month, dd = day.split("-")
         url = (f"https://datasets.tardis.dev/v1/deribit/quotes/"
@@ -92,7 +149,7 @@ def check(key=None, opener=None):
             "bounded_source_access_only": ranged.get("bounded_206", False)
                 and ranged.get("gzip_magic", False),
         })
-    all_access = (scope["http"] == 200 and
+    all_access = (result["scope_claims_train_coverage"] and
                   all(p["bounded_source_access_only"] for p in result["probes"]))
     result["status"] = ("ACCESS_PROBE_ONLY_NOT_ARCHIVE_CERTIFIED" if all_access
                         else "BLOCKED_ENTITLEMENT_OR_HISTORICAL_SOURCE")
