@@ -61,12 +61,15 @@ jobs:
           original=json.loads((root/"native_minimum_depth.json").read_text())
           args=(root/"credit/i1_original_entry_credit.json",root/"native",
                 root/"index/i1_index_binding.json",root/"fee/fee_cap_envelope.json")
-          for attack in ("source_sha","quantity","lot","depth","promotion"):
+          for attack in ("source_sha","quantity","lot","depth","arrival_gap","temporal_flag","temporal_count","promotion"):
               fake=json.loads(json.dumps(original))
               if attack=="source_sha": fake["source_credit_sha256"]="0"*64
               elif attack=="quantity": fake["rows"][0]["minimum_displayed_source_units"]="999999"
               elif attack=="lot": fake["rows"][0]["minimum_native_order_units"]="0"
               elif attack=="depth": fake["rows"][0]["provisional_minimum_depth_sufficient"]=not fake["rows"][0]["provisional_minimum_depth_sufficient"]
+              elif attack=="arrival_gap": fake["rows"][0]["pair_arrival_gap_us"]+=1000000
+              elif attack=="temporal_flag": fake["rows"][0]["provisional_pair_within_1s"]=not fake["rows"][0]["provisional_pair_within_1s"]
+              elif attack=="temporal_count": fake["counts_by_asset"]["BTC"]["provisional_pairs_within_1s"]+=1
               else: fake["promotion_authorized"]=True
               with tempfile.TemporaryDirectory() as d:
                   target=Path(d)/"forged.json"
@@ -77,7 +80,7 @@ jobs:
                       print("REJECTED_"+attack.upper())
                   else:
                       raise AssertionError("ACCEPTED_"+attack)
-          print("ORIGINAL SOURCE LOT SCREEN ONLY / 0 CERTIFIED FULL LIFECYCLES / NO PNL / NO PROMOTION")
+          print("ORIGINAL SOURCE LOT + TEMPORAL OVERLAP SCREEN / 0 CERTIFIED FULL LIFECYCLES / NO PNL / NO PROMOTION")
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
