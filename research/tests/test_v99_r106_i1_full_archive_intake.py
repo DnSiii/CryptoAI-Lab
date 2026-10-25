@@ -186,6 +186,41 @@ class FullArchiveIntakeTests(unittest.TestCase):
             out=root/"audit.json";out.write_text(json.dumps(result))
             audit(root,out)
 
+    def test_raw_two_strikes_without_one_second_overlap_are_not_executable_source_pairs(self):
+        from research.tools.v99_r106_i1_entry_book_export import export_books
+        from research.verification.independent_v99_r106_i1_entry_book_export import audit as audit_books
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/"source"
+            make_fixture(root)
+            source=root/"2021-12-12.csv"
+            with source.open(newline="",encoding="utf-8") as fp:
+                rows=list(csv.DictReader(fp))
+            # Earlier BTC strike quote is 2s old relative to other leg.
+            # Preserve monotonic capture order; both quotes are otherwise fresh.
+            for key in ("timestamp","local_timestamp"):
+                rows[0][key]=str(int(rows[0][key])-2_000_000)
+            with source.open("w",newline="",encoding="utf-8") as fp:
+                w=csv.DictWriter(fp,fieldnames=FIELDS)
+                w.writeheader();w.writerows(rows)
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["sha256"]=hashlib.sha256(source.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],182)
+            self.assertEqual(result["synchronized_two_strike_asset_weeks"],181)
+            self.assertFalse(result["weekly"][0]["synchronized_BTC"])
+            out=root/"intake_report.json";out.write_text(json.dumps(result))
+            audit(root,out)
+            books=export_books(root)
+            self.assertEqual(books["source_pairs"],182)
+            self.assertEqual(books["synchronized_source_pairs"],181)
+            exported=root/"books.json";exported.write_text(json.dumps(books))
+            self.assertEqual(audit_books(root,exported),364)
+            books["synchronized_source_pairs"]=182  # forged eligibility
+            exported.write_text(json.dumps(books))
+            with self.assertRaises(AssertionError):
+                audit_books(root,exported)
+
     def test_byte_mutation_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
