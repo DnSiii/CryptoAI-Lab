@@ -17,7 +17,7 @@ def run(root):
     if set(rows)!=set(PATHS):raise ValueError("EH_MISSING_IMMUTABLE_RECEIPT")
     result={}
     for fee in ("base","severe"):
-        for order in ("carrieh_before_fill","new_after_fill"):
+        for order in ("carried_before_fill","new_after_fill"):
             key=(fee,order)
             full=rows["EH_full"][key]
             core=rows["EH_core_only"][key]
