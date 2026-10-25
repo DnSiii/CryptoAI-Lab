@@ -40,7 +40,7 @@ def capped_fee(per_unit, fraction, coin_value):
     if coin_value < 0:
         raise ValueError("NEGATIVE_FEE_BASE")
     cap = fraction * coin_value
-    return min(per_unit, cap), cap <= per_unit
+    return min(per_unit, cap), (coin_value > 0 and cap < per_unit)
 
 
 def run(credit_path, terminal_path, output_path):
@@ -87,7 +87,7 @@ def run(credit_path, terminal_path, output_path):
         short_intrinsic = max(high - settlement, Decimal(0)) / settlement
         long_intrinsic = max(low - settlement, Decimal(0)) / settlement
         if (short_bid - long_ask != D(row["gross_credit_coin_per_source_unit_assumption"])
-            or short_intrinsic - long_intrinsic != D(terminal_row["intrinsic_coin_per_assumed_unit"])):
+            or ((max(high - settlement, Decimal(0)) - max(low - settlement, Decimal(0))) / settlement)\n               != D(terminal_row["intrinsic_coin_per_assumed_unit"])):
             raise ValueError("SOURCE_PAYOFF_MISMATCH")
         fees = {}
         for scenario, terms in FEE_EXAMPLES.items():
