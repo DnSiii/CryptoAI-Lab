@@ -18,7 +18,7 @@ def run(root):
     root=Path(root)
     comparisons={};failures=[]
     for path in PATHS:
-        official=glob.glob(str(root/"official"/("ek30-ubuntu-24.04-"+path)/"*.json"))
+        official=glob.glob(str(root/"official"/("em30-ubuntu-24.04-"+path)/"*.json"))
         oracle=glob.glob(str(root/"oracle"/("em-independent-ledger-"+path)/"*.json"))
         if len(official)!=1 or len(oracle)!=1:
             failures.append(("MISSING_ARTIFACT",path,len(official),len(oracle)))
