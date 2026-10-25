@@ -173,6 +173,7 @@ def evaluate(root):
         cutoff = upper - 300_000_000
         latest = {}
         rows = 0
+        previous_arrival = None
         with open_fn(path, "rt", encoding="utf-8", newline="") as f:
             reader = csv.DictReader(f)
             if not set(REQUIRED).issubset(reader.fieldnames or []):
@@ -188,6 +189,9 @@ def evaluate(root):
                     raise ValueError("INVALID_SOURCE_TIMESTAMP")
                 if not lower <= arrival < upper or exchange > arrival:
                     raise ValueError("FUTURE_OR_OUTSIDE_SUNDAY_SOURCE")
+                if previous_arrival is not None and arrival < previous_arrival:
+                    raise ValueError("OUT_OF_ORDER_ORIGINAL_CAPTURE")
+                previous_arrival = arrival
                 if arrival < cutoff:
                     continue
                 parsed = instrument(row["symbol"])
@@ -217,10 +221,10 @@ def evaluate(root):
                         and historical_price_grid_ok(metadata, d, bid, ask))
                 # A newer quote for an unlisted contract must also revoke an older one.
                 # Even a malformed newer quote cancels an older good quote.
-                prior = latest.get(row["symbol"])
-                if prior is None or (arrival,exchange) >= prior[:2]:
-                    latest[row["symbol"]] = (arrival,exchange,asset,expiry,
-                        strike,valid)
+                # Original CSV capture order is authoritative on timestamp ties.
+                # A later invalid/stale update revokes the previous book.
+                latest[row["symbol"]] = (arrival,exchange,asset,expiry,
+                    strike,valid)
         if rows != item.get("rows"):
             raise ValueError("ARCHIVE_ROW_COUNT_MISMATCH")
         total_rows += rows
