@@ -70,7 +70,10 @@ def attach_synthetic_native_bytes(root, late_first_btc=False):
                     "expiration_timestamp":int(expiry.timestamp()*1000),
                     "strike":float(strike),"option_type":"put",
                     "settlement_currency":asset,"contract_size":1.0,
-                    "min_trade_amount":0.1,"tick_size":0.0001})
+                    "min_trade_amount":0.1,
+                    "tick_size":(0.0005 if decision.date() < datetime(2023,7,6).date() else 0.0001),
+                    "tick_size_steps":([] if decision.date() < datetime(2023,7,6).date()
+                        else [{"above_price":0.005,"tick_size":0.0005}])})
         raw=json.dumps({"result":rows},sort_keys=True).encode()
         name=f"deribit_{asset.lower()}_original_instruments.json.gz"
         (root/name).write_bytes(gzip.compress(raw))
