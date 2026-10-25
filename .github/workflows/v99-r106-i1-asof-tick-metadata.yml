@@ -1,0 +1,83 @@
+name: V99 I1 historical Deribit option tick-size as-of falsification (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_asof_tick_metadata.py
+      - research/verification/independent_v99_r106_i1_asof_tick_metadata.py
+      - .github/workflows/v99-r106-i1-asof-tick-metadata.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  historical-tick-terms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover first-party original expired-instrument bytes (TRAIN ONLY)
+        run: |
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+      - name: Reconstruct historical contract tick metadata by fixed change date
+        run: |
+          python -m research.tools.v99_r106_i1_asof_tick_metadata \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_asof_tick_metadata.json
+      - name: Independently reparse original venue bytes and reconcile exact counts
+        run: |
+          python -m research.verification.independent_v99_r106_i1_asof_tick_metadata \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_asof_tick_metadata.json
+      - name: Negative control rejects altered historical source counts
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_asof_tick_metadata import verify
+          original=Path('research_evidence/i1_asof_tick_metadata.json')
+          obj=json.loads(original.read_text())
+          obj['assets']['BTC']['before_change']['count'] += 1
+          with tempfile.TemporaryDirectory() as tmp:
+              forged=Path(tmp)/'forged.json'
+              forged.write_text(json.dumps(obj))
+              try:
+                  verify('research_evidence/i1_native_instruments',forged)
+              except AssertionError:
+                  print('FORGED HISTORICAL COUNT REJECTED')
+              else:
+                  raise AssertionError('FORGED COUNT ACCEPTED')
+          PY
+      - name: Enforce no economic or historical native execution claims
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research_evidence/i1_asof_tick_metadata.json').read_text())
+          assert not x['historical_tick_grid_certified']
+          assert not x['historical_native_lot_certified']
+          assert not x['historical_fee_margin_certified']
+          assert not any(x[k] for k in ('economic_train_executed','validation_opened',
+              'holdout_opened','promotion_authorized','orders_enabled'))
+          for asset in ('BTC','ETH'):
+              print(asset, x['assets'][asset])
+          print('RETROSPECTIVE FIRST-PARTY METADATA ONLY / NO EXECUTION, ROI OR PROMOTION')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-asof-tick-original-metadata-${{ github.run_id }}
+          path: research_evidence/i1_asof_tick_metadata.json
+          retention-days: 60
+          if-no-files-found: warn
