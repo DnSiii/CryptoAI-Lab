@@ -1,0 +1,88 @@
+name: V99 I1 original same-update underlying index bridge (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_original_index_binding.py
+      - research/verification/independent_v99_r106_i1_index_binding_oracle.py
+      - .github/workflows/v99-r106-i1-original-index-binding.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-index-to-entry-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover original ticker, first-party contract registry and prior original-credit evidence
+        run: |
+          gh run download 40170453274 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-real-sunday-ticker-minute-receipts-40170453274 \
+            --dir research_evidence/i1_free_sunday_ticker
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          gh run download 40174287180 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-entry-credit-screen-40174287180 \
+            --dir research_evidence/i1_prior_credit
+          test -s research_evidence/i1_free_sunday_ticker/report.json
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+          test -s research_evidence/i1_prior_credit/i1_original_entry_credit.json
+      - name: Bind exact original ticker update to native published underlying index (NO FILLS)
+        run: |
+          python -m research.tools.v99_r106_i1_original_index_binding \
+            research_evidence/i1_free_sunday_ticker \
+            research_evidence/i1_prior_credit/i1_original_entry_credit.json \
+            research_evidence/i1_index_binding.json
+      - name: Independently replay all original gzip, native terms and same-update index fields
+        run: |
+          python -m research.verification.independent_v99_r106_i1_index_binding_oracle \
+            research_evidence/i1_free_sunday_ticker \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_prior_credit/i1_original_entry_credit.json \
+            research_evidence/i1_index_binding.json
+      - name: Adversarial forged-index negative control and hard no-economics gates
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_index_binding_oracle import audit
+          root=Path("research_evidence/i1_free_sunday_ticker")
+          native=Path("research_evidence/i1_native_instruments")
+          credit=Path("research_evidence/i1_prior_credit/i1_original_entry_credit.json")
+          p=Path("research_evidence/i1_index_binding.json")
+          data=json.loads(p.read_text())
+          assert len(data["books"])==50 and len(data["pairs"])==46
+          assert not any(data[k] for k in ("historical_lot_units_certified",
+            "historical_fee_margin_certified", "complete_lifecycle_certified",
+            "economic_train_run", "validation_opened", "holdout_opened",
+            "orders_enabled", "promotion_authorized"))
+          data["pairs"][0]["short_index_price_usd"]="999999999"
+          with tempfile.TemporaryDirectory() as d:
+              bad=Path(d)/"forged.json"
+              bad.write_text(json.dumps(data))
+              try:
+                  audit(root,native,credit,bad)
+              except AssertionError:
+                  print("INDEPENDENT_ORIGINAL_INDEX_FORGERY_REJECTED")
+              else:
+                  raise AssertionError("FORGED_ORIGINAL_INDEX_ACCEPTED")
+          print("SOURCE ONLY / NO CERTIFIED LOTS, FEES, MARGIN, FILLS OR PNL / NO PROMOTION")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-index-binding-${{ github.run_id }}
+          path: research_evidence/i1_index_binding.json
+          retention-days: 60
+          if-no-files-found: warn
