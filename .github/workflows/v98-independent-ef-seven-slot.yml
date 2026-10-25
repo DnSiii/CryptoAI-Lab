@@ -26,7 +26,7 @@ jobs:
       - name: Download exact pinned training data only (no 2025)
         uses: actions/download-artifact@v4
         with:
-          name: v98-independent-clean4-2022-2024-pinnef-source
+          name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
@@ -74,7 +74,7 @@ jobs:
       - name: Retrieve authenticated 2022-2024 Clean4 only
         uses: actions/download-artifact@v4
         with:
-          name: v98-independent-clean4-2022-2024-pinnef-source
+          name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
