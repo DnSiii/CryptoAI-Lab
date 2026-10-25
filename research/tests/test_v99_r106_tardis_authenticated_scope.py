@@ -20,18 +20,20 @@ class FakeResponse:
         return False
 
     def read(self, n):
-        assert n == 2, "MUST_NOT_DOWNLOAD_FULL_PAID_ARCHIVE"
+        assert n in (2, 16_385), "MUST_NOT_DOWNLOAD_FULL_PAID_ARCHIVE"
         return self.data[:n]
 
 
 class FakeOpener:
     def __init__(self, denied_date=None, empty_date=None, bad_body_date=None,
-                 ignored_range_date=None, malformed_range_date=None):
+                 ignored_range_date=None, malformed_range_date=None,
+                 scope_mode="valid"):
         self.denied_date = denied_date
         self.empty_date = empty_date
         self.bad_body_date = bad_body_date
         self.ignored_range_date = ignored_range_date
         self.malformed_range_date = malformed_range_date
+        self.scope_mode = scope_mode
         self.calls = []
 
     def __call__(self, request, timeout):
@@ -40,7 +42,23 @@ class FakeOpener:
         assert timeout <= 20
         assert request.get_header("Authorization") == "Bearer secret-test-key"
         if "api-key-info" in request.full_url:
-            return FakeResponse(200)
+            grant = {"exchange": "deribit", "accessType": "one-off-purchase",
+                     "from": "2021-01-01T00:00:00.000Z",
+                     "to": "2024-01-01T00:00:00.000Z", "symbols": [],
+                     "dataPlan": "unlimited"}
+            if self.scope_mode == "html":
+                return FakeResponse(200, b"<html>not-json</html>")
+            if self.scope_mode == "short":
+                grant["from"] = "2022-01-01T00:00:00.000Z"
+            if self.scope_mode == "btc_only":
+                grant["symbols"] = ["BTC-30DEC22-15000-P"]
+            if self.scope_mode == "wrong_exchange":
+                grant["exchange"] = "bitmex"
+            if self.scope_mode == "limited_both":
+                grant["symbols"] = ["BTC-30DEC22-15000-P", "ETH-30DEC22-1000-P"]
+            if self.scope_mode == "not_array":
+                return FakeResponse(200, json.dumps(grant).encode())
+            return FakeResponse(200, json.dumps([grant]).encode())
         day = "-".join(request.full_url.split("/")[-4:-1])
         if day == self.denied_date:
             raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
@@ -73,6 +91,33 @@ class ScopeProbeTests(unittest.TestCase):
         self.assertFalse(result["economic_train_executed"])
         self.assertFalse(result["promotion_authorized"])
         self.assertNotIn("secret-test-key", json.dumps(result))
+
+    def test_html_200_scope_rejected_before_paid_probes(self):
+        opener = FakeOpener(scope_mode="html")
+        result = check(key="secret-test-key", opener=opener)
+        self.assertEqual(result["status"], "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
+        self.assertFalse(result["scope_claims_train_coverage"])
+        self.assertEqual(len(opener.calls), 1)
+
+    def test_2022_only_grant_cannot_certify_2021_train(self):
+        result = check(key="secret-test-key", opener=FakeOpener(scope_mode="short"))
+        self.assertEqual(result["status"], "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
+
+    def test_btc_only_options_grant_cannot_certify_eth(self):
+        result = check(key="secret-test-key", opener=FakeOpener(scope_mode="btc_only"))
+        self.assertEqual(result["status"], "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
+
+    def test_other_exchange_and_nonarray_scope_rejected(self):
+        for mode in ("wrong_exchange", "not_array"):
+            with self.subTest(mode=mode):
+                result = check(key="secret-test-key", opener=FakeOpener(scope_mode=mode))
+                self.assertEqual(result["status"], "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
+
+    def test_explicit_btc_and_eth_option_ids_allow_probe_only(self):
+        result = check(key="secret-test-key", opener=FakeOpener(scope_mode="limited_both"))
+        self.assertTrue(result["scope_claims_train_coverage"])
+        self.assertEqual(result["status"], "ACCESS_PROBE_ONLY_NOT_ARCHIVE_CERTIFIED")
+        self.assertFalse(result["complete_2021_2023_archive_verified"])
 
     def test_denied_2021_blocks_even_when_2023_accessible(self):
         result = check(key="secret-test-key", opener=FakeOpener(denied_date=DATES[0]))
