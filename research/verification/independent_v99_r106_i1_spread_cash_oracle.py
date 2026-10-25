@@ -58,6 +58,35 @@ def run():
         assert abs(d(v["nav_usd"])-(expected_cash-debit-cost))<d("1e-7")
         assert not v["orders_enabled"] and v["modeled_only"]
         checks += 2
+        # Strict t-1 boundary: BOTH legs at the exact decision/mark instant
+        # used to pass the old <= check and had zero pair skew. Such quotes
+        # are not observable strictly before the decision being evaluated.
+        for arrival in (decision, decision + 1):
+            a = replace(short, arrival_ms=arrival)
+            b = replace(long, arrival_ms=arrival)
+            try:
+                open_vertical(a, b, decision, 100000, scenario)
+            except ValueError:
+                checks += 1
+            else:
+                raise AssertionError("SAME_INSTANT_OR_FUTURE_ENTRY_QUOTE_ACCEPTED")
+        for arrival in (mark, mark + 1):
+            a = replace(ms, arrival_ms=arrival)
+            b = replace(ml, arrival_ms=arrival)
+            try:
+                liquidation_nav(p, a, b, mark)
+            except ValueError:
+                checks += 1
+            else:
+                raise AssertionError("SAME_INSTANT_OR_FUTURE_MARK_QUOTE_ACCEPTED")
+        # The immediate previous millisecond is a legitimate prior receipt.
+        prior_short = replace(short, arrival_ms=decision - 1)
+        prior_long = replace(long, arrival_ms=decision - 1)
+        assert open_vertical(prior_short, prior_long, decision, 100000, scenario) == p
+        prior_ms = replace(ms, arrival_ms=mark - 1)
+        prior_ml = replace(ml, arrival_ms=mark - 1)
+        assert liquidation_nav(p, prior_ms, prior_ml, mark) == v
+        checks += 2
         for bad in (
             replace(short, arrival_ms=decision+1),
             replace(short, venue_ms=decision+1),
