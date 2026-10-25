@@ -21,7 +21,12 @@ def audit(root, export_path):
     assert export["fixture"] == manifest["fixture"]
     from research.verification.independent_v99_r106_i1_full_archive_intake import original_native_lookup
     native = None if manifest["fixture"] else original_native_lookup(root)
+    native_sources = (None if native is None else json.loads(
+        (root / "native_instrument_registry.json").read_text())["sources"])
     assert export["native_registry_verified"] == (native is not None)
+    assert export["native_terms_bound_to_original_bytes"] == (native is not None)
+    assert export["quote_size_to_native_lot_conversion_certified"] is False
+    assert export["historical_fee_margin_certified"] is False
     assert not any(export[k] for k in ("economic_train_executed",
         "validation_opened", "holdout_opened", "promotion_authorized", "orders_enabled"))
     expected = []
@@ -69,6 +74,7 @@ def audit(root, export_path):
                     and event >= cutoff and timedelta(days=21) <= expiry-decision
                     <= timedelta(days=45) and expiry < STOP):
                 continue
+            meta = None
             if native is not None:
                 meta = native[parts[0]].get(symbol)
                 if (meta is None or
@@ -91,6 +97,14 @@ def audit(root, export_path):
                 "bid_size_source_units": bs, "ask_size_source_units": az,
                 "exchange_us": event, "arrival_us": arrival,
                 "source_file": item["file"], "source_sha256": item["sha256"],
+                # Independent original compressed venue bytes, NOT the primary
+                # exporter metadata lookup. Exact terms must survive export.
+                "native_contract_terms": (None if meta is None else {
+                    k: meta[k] for k in ("contract_size", "min_trade_amount",
+                                         "tick_size", "settlement_currency",
+                                         "creation_timestamp", "expiration_timestamp")}),
+                "native_registry_source_sha256": (None if native_sources is None
+                    else native_sources[parts[0]]["original_raw_sha256"]),
             })
     key = lambda x: (x["decision_utc"],x["symbol"])
     assert sorted(expected,key=key) == sorted(export["quotes"],key=key), (
