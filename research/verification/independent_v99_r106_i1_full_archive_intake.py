@@ -152,6 +152,7 @@ def audit(root, output):
         end=int(decision.timestamp()*1_000_000)
         most_recent={}
         lines=0
+        last_seen_arrival=None
         with open_file(path,"rt",encoding="utf-8",newline="") as fp:
             reader=csv.DictReader(fp)
             assert set(("exchange","symbol","timestamp","local_timestamp",
@@ -162,11 +163,12 @@ def audit(root, output):
                 arrival=int(row["local_timestamp"])
                 exchange=int(row["timestamp"])
                 assert lower<=arrival<end and exchange<=arrival
+                assert last_seen_arrival is None or arrival>=last_seen_arrival, (
+                    "INDEPENDENT_OUT_OF_ORDER_ORIGINAL_CAPTURE")
+                last_seen_arrival=arrival
                 if arrival<cutoff: continue
-                key=row["symbol"]
-                prev=most_recent.get(key)
-                if prev is None or (arrival,exchange)>=prev[0]:
-                    most_recent[key]=((arrival,exchange),row)
+                # Independently reconstruct last physical CSV row, not max venue timestamp.
+                most_recent[row["symbol"]]=((arrival,exchange),row)
         assert lines==item["rows"]
         count+=lines
         valid=defaultdict(set)
