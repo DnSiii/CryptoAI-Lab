@@ -22,6 +22,8 @@ def export_books(root):
     root = Path(root)
     gate = evaluate(root)  # checksum, complete schedule, original five folds
     native = None if gate["fixture"] else native_contracts(root)
+    native_sources = (None if native is None else json.loads(
+        (root / "native_instrument_registry.json").read_text(encoding="utf-8"))["sources"])
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     books = []
     for week, (decision, item) in enumerate(zip(eligible(), manifest["days"])):
@@ -63,6 +65,7 @@ def export_books(root):
             if not (all(map(math.isfinite, (bid, ask, bid_size, ask_size)))
                     and 0 < bid < ask and bid_size > 0 and ask_size > 0):
                 continue
+            meta = None
             if native is not None:
                 meta = native[asset].get(symbol)
                 if (meta is None
@@ -83,6 +86,14 @@ def export_books(root):
                 "ask_size_source_units": ask_size,
                 "exchange_us": exchange, "arrival_us": arrival,
                 "source_file": item["file"], "source_sha256": item["sha256"],
+                # Raw original Deribit registry fields, never inferred from BBO
+                # size units. An archived registry is NOT as-of fee/margin proof.
+                "native_contract_terms": (None if meta is None else {
+                    k: meta[k] for k in ("contract_size", "min_trade_amount",
+                                         "tick_size", "settlement_currency",
+                                         "creation_timestamp", "expiration_timestamp")}),
+                "native_registry_source_sha256": (None if native_sources is None
+                    else native_sources[asset]["original_raw_sha256"]),
             })
     grouped = {}
     for quote in books:
@@ -99,6 +110,9 @@ def export_books(root):
                   "ORIGINAL_BOOKS_NOT_CERTIFIED_EXECUTION",
         "fixture": gate["fixture"],
         "native_registry_verified": native is not None,
+        "native_terms_bound_to_original_bytes": native is not None,
+        "quote_size_to_native_lot_conversion_certified": False,
+        "historical_fee_margin_certified": False,
         "source_pairs": pairs, "required_pairs": 182,
         "quotes": books,
         "missing": ["historical full quote entitlement", "full holding-period quotes",
