@@ -87,7 +87,8 @@ def run(credit_path, terminal_path, output_path):
         short_intrinsic = max(high - settlement, Decimal(0)) / settlement
         long_intrinsic = max(low - settlement, Decimal(0)) / settlement
         if (short_bid - long_ask != D(row["gross_credit_coin_per_source_unit_assumption"])
-            or ((max(high - settlement, Decimal(0)) - max(low - settlement, Decimal(0))) / settlement)\n               != D(terminal_row["intrinsic_coin_per_assumed_unit"])):
+            or ((max(high - settlement, Decimal(0)) - max(low - settlement, Decimal(0))) / settlement)
+               != D(terminal_row["intrinsic_coin_per_assumed_unit"])):
             raise ValueError("SOURCE_PAYOFF_MISMATCH")
         fees = {}
         for scenario, terms in FEE_EXAMPLES.items():
