@@ -293,5 +293,60 @@ class FullArchiveIntakeTests(unittest.TestCase):
             audit(root,report)
 
 
+    def test_same_arrival_last_capture_row_revokes_higher_exchange_timestamp(self):
+        """The last physical CSV row wins even when its venue event is older."""
+        from research.tools.v99_r106_i1_entry_book_export import export_books
+        from research.verification.independent_v99_r106_i1_entry_book_export import audit as audit_books
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/"source"
+            ds=make_fixture(root)
+            path=root/ds[0]["file"]
+            with path.open(newline="",encoding="utf-8") as fp:
+                rows=list(csv.DictReader(fp))
+            last=dict(rows[1])  # same arrival as earlier valid BTC strike
+            last["timestamp"]=str(int(last["timestamp"])-1000)
+            last["ask_amount"]="0"  # final captured book is not executable
+            with path.open("w",newline="",encoding="utf-8") as fp:
+                writer=csv.DictWriter(fp,fieldnames=FIELDS)
+                writer.writeheader();writer.writerows(rows+[last])
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["rows"]=5
+            manifest["days"][0]["sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],181)
+            report=root/"intake.json";report.write_text(json.dumps(result))
+            audit(root,report)
+            export=export_books(root)
+            self.assertEqual(export["source_pairs"],181)
+            self.assertEqual(len(export["quotes"]),363)
+            out=root/"books.json";out.write_text(json.dumps(export))
+            self.assertEqual(audit_books(root,out),363)
+
+    def test_reversed_local_arrival_original_capture_fails_closed(self):
+        """An out-of-order source capture must never be silently re-sorted."""
+        from research.tools.v99_r106_i1_entry_book_export import export_books
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            ds=make_fixture(root)
+            path=root/ds[0]["file"]
+            with path.open(newline="",encoding="utf-8") as fp:
+                rows=list(csv.DictReader(fp))
+            reversed_row=dict(rows[1])
+            reversed_row["local_timestamp"]=str(int(reversed_row["local_timestamp"])-1)
+            reversed_row["timestamp"]=str(int(reversed_row["timestamp"])-1)
+            with path.open("w",newline="",encoding="utf-8") as fp:
+                writer=csv.DictWriter(fp,fieldnames=FIELDS)
+                writer.writeheader();writer.writerows(rows+[reversed_row])
+            manifest=json.loads((root/"manifest.json").read_text())
+            manifest["days"][0]["rows"]=5
+            manifest["days"][0]["sha256"]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError,"OUT_OF_ORDER_ORIGINAL_CAPTURE"):
+                evaluate(root)
+            with self.assertRaisesRegex(ValueError,"OUT_OF_ORDER_ORIGINAL_CAPTURE"):
+                export_books(root)
+
+
 if __name__=="__main__":
     unittest.main()
