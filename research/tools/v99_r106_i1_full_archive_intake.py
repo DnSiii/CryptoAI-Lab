@@ -11,7 +11,8 @@ import json
 import math
 import sys
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 UTC = timezone.utc
@@ -82,8 +83,56 @@ def native_contracts(root):
     except (AssertionError, KeyError, ValueError, OSError) as exc:
         raise ValueError("NATIVE_ORIGINAL_REGISTRY_UNVERIFIED") from exc
     report = json.loads(path.read_text(encoding="utf-8"))
-    return {asset: {item["instrument_name"]: item for item in report["registry"][asset]}
-            for asset in ASSETS}
+    index = {asset: {item["instrument_name"]: dict(item)
+                     for item in report["registry"][asset]} for asset in ASSETS}
+    # The nine-field historical registry projection drops tick_size_steps.
+    # Recover them ONLY from independently hashed original first-party bytes.
+    # Do not infer post-July 2023 price steps from the minimum tick alone.
+    for asset in ASSETS:
+        source = report["sources"][asset]
+        original = gzip.decompress((root / source["original_gzip"]).read_bytes())
+        if hashlib.sha256(original).hexdigest() != source["original_raw_sha256"]:
+            raise ValueError("NATIVE_TICK_STEPS_SOURCE_HASH_MISMATCH")
+        for item in json.loads(original)["result"]:
+            name = item.get("instrument_name")
+            if name in index[asset]:
+                index[asset][name]["tick_size_steps"] = item.get("tick_size_steps")
+    return index
+
+
+def historical_price_grid_ok(meta, decision, bid, ask):
+    """Dated Deribit on-screen BTC/ETH options tick regime; no fill certification.
+
+    Deribit 6 July 2023 change notice: <=0.005 uses 0.0001 after change,
+    >0.005 uses 0.0005. Old regime used 0.0005. Exact change-day hour
+    is unverified, so the entire UTC change day fails closed.
+    """
+    if meta is None:
+        return False
+    day = decision.date()
+    change = date(2023, 7, 6)
+    if day == change:
+        return False
+    try:
+        if day > change:
+            if Decimal(str(meta["tick_size"])) != Decimal("0.0001"):
+                return False
+            steps = meta.get("tick_size_steps")
+            if not isinstance(steps, list) or not any(
+                Decimal(str(step["above_price"])) == Decimal("0.005")
+                and Decimal(str(step["tick_size"])) == Decimal("0.0005")
+                for step in steps if isinstance(step, dict)
+            ):
+                return False
+        for value in (bid, ask):
+            price = Decimal(str(value))
+            tick = (Decimal("0.0005") if day < change or price > Decimal("0.005")
+                    else Decimal("0.0001"))
+            if not price.is_finite() or price <= 0 or price % tick:
+                return False
+        return True
+    except (KeyError, ValueError, TypeError, InvalidOperation):
+        return False
 
 
 def evaluate(root):
@@ -164,7 +213,8 @@ def evaluate(root):
                         and float(metadata["strike"]) == strike
                         and metadata["settlement_currency"] == asset
                         and all(metadata[k] is not None and float(metadata[k]) > 0
-                                for k in ("contract_size","min_trade_amount","tick_size")))
+                                for k in ("contract_size","min_trade_amount","tick_size"))
+                        and historical_price_grid_ok(metadata, d, bid, ask))
                 # A newer quote for an unlisted contract must also revoke an older one.
                 # Even a malformed newer quote cancels an older good quote.
                 prior = latest.get(row["symbol"])
