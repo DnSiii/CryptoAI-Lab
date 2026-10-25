@@ -1,0 +1,50 @@
+name: V98 Independent CW Artifact Only Economic Failure Diagnosis
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-cw-artifact-diagnosis.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: cw20-official-economic-summary
+          run-id: 40148107038
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Artifact-only economics no rerun or holdout access
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          fs=list(pathlib.Path('receipts').rglob('cw20_official_economic_summary.json'))
+          assert len(fs)==1,fs
+          a=json.loads(fs[0].read_text())
+          assert a['architecture']=='CW' and a['cells_survived']==20
+          assert a['cross_os_reproducible'] and not a['errors']
+          assert a['validation_2025_read'] is False
+          print('CW_FROZEN_DECISION',a['decision'])
+          print('CW_GROWTH_GATES',a['growth_gates_10k'])
+          print('CW_MARGINAL_GATES',a['marginal_gates_10k'])
+          for name,rows in sorted(a['marginal_log_growth_10k'].items()):
+              for key,annual in sorted(rows.items()):
+                  print('CW_ANNUAL_MARGINAL',name,key,
+                        '2023',annual['2023'],'2024',annual['2024'])
+          for label in ('full_10k_base','full_10k_severe'):
+              x=a[label]
+              print('CW_FULL_DETAIL',label,'CAGR',x['two_year_cagr'],
+                    'maxDD',x['max_drawdown'],'funding',x['funding'],
+                    'fees',x['fees'],'slippage',x['slippage'],
+                    'turnover',x['turnover'],'PF',x['hourly_net_profit_factor'],
+                    'positiveDays',x['positive_day_fraction'],
+                    'gross',x['max_gross_to_nav'],
+                    'concentration',x['max_single_asset_gross_concentration'])
+          PY
