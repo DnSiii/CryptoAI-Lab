@@ -158,6 +158,7 @@ def evaluate(root):
                   datetime(2023,1,9,14,tzinfo=UTC),
                   datetime(2023,5,21,19,tzinfo=UTC), END]
     folds = {str(i): {a: 0 for a in ASSETS} for i in range(1,6)}
+    synchronized_folds = {str(i): {a: 0 for a in ASSETS} for i in range(1,6)}
     coverage = []
     total_rows = 0
     for d, item in zip(ds, days):
@@ -229,18 +230,32 @@ def evaluate(root):
             raise ValueError("ARCHIVE_ROW_COUNT_MISMATCH")
         total_rows += rows
         strikes = defaultdict(set)
-        for _,_,asset,expiry,strike,valid in latest.values():
+        timed = defaultdict(list)
+        for arrival,exchange,asset,expiry,strike,valid in latest.values():
             if valid:
                 strikes[(asset,expiry)].add(strike)
+                timed[(asset,expiry)].append((strike,arrival,exchange))
         fold = next(i for i in range(1,6) if fold_edges[i-1] <= d < fold_edges[i])
-        good = {}
+        good, synchronized = {}, {}
         for asset in ASSETS:
             good[asset] = any(a == asset and len(s) >= 2
                               for (a,_),s in strikes.items())
+            synchronized[asset] = any(
+                a == asset and any(
+                    left[0] != right[0]
+                    and abs(left[1]-right[1]) <= 1_000_000
+                    and abs(left[2]-right[2]) <= 1_000_000
+                    for i,left in enumerate(rows)
+                    for right in rows[i+1:])
+                for (a,_),rows in timed.items())
             folds[str(fold)][asset] += int(good[asset])
+            synchronized_folds[str(fold)][asset] += int(synchronized[asset])
         coverage.append({"decision_utc":d.isoformat(),"fold":fold,
-                         "BTC":good["BTC"],"ETH":good["ETH"]})
+                         "BTC":good["BTC"],"ETH":good["ETH"],
+                         "synchronized_BTC":synchronized["BTC"],
+                         "synchronized_ETH":synchronized["ETH"]})
     pairs = sum(sum(v.values()) for v in folds.values())
+    synchronized_pairs = sum(sum(v.values()) for v in synchronized_folds.values())
     return {
         "schema":"I1_FULL_TRAIN_ARCHIVE_INTAKE_RESULT_V1",
         "status":("SYNTHETIC_FIXTURE_ONLY_NO_ECONOMICS" if manifest["fixture"]
@@ -250,7 +265,10 @@ def evaluate(root):
         "train_decisions":94,
         "maturity_eligible_weeks":91,"right_censored_weeks":3,
         "required_asset_weeks":182,"two_strike_asset_weeks":pairs,
-        "rows":total_rows,"folds":folds,"weekly":coverage,
+        "synchronized_two_strike_asset_weeks":synchronized_pairs,
+        "synchronized_max_skew_us":1_000_000,
+        "rows":total_rows,"folds":folds,"synchronized_folds":synchronized_folds,
+        "weekly":coverage,
         "economic_train_executed":False,"native_fee_authenticated":False,
         "native_margin_authenticated":False,"fills_authenticated":False,
         "validation_opened":False,"holdout_opened":False,
