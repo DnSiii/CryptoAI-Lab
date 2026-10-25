@@ -1,0 +1,24 @@
+# V98 Independent DJ — ex-ante seven-slot price-dislocation portfolio (2026-10-25)
+
+**Status:** preregistered, before authenticated source activity, any economic backtest, or any PnL. DI/DH/DG and all earlier candidates remain rejected, immutable and ineligible for selective rescue. This DJ hypothesis is a distinct *price-dislocation* composition, not a DI native-carry/inventory-persistence variant. Generic V98 independent conservative settlement/governor infrastructure is reused solely for comparability.
+
+**Data firewall:** BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, Binance USD-M hourly OHLCV, 2022-12 warmup and 2023/2024 chronological training only, exact pinned Clean-4 archive plus native 8-hour signed funding/marks. No 2025, 2026+, XRP, contaminated Phase083, V14/V15/V99, Frozen or paper.
+
+**Causal execution:** at completed close t, evaluate only OHLCV <=t; trade at open t+1; account next open gap, intrabar adverse high/low, fees/slippage, native signed funding and two funding event orderings. One shared cash/NAV, four modules, one physical CG buffered risk governor, no hidden leverage or module-specific margin.
+
+## Ex-ante complete seven-slot source
+Observation every 96 completed hourly closes, starting after 1440h warmup. Deterministic tie-break by asset index. Modules produce four-asset signed vectors with gross <=1:
+1. **Growth Core — price-channel persistence, not DI carry-filtered trend.** Rank 720h log returns; long equal-dollar up to two names whose 720h return is positive AND current close exceeds maximum of previous 168 completed closes. No negative side; otherwise cash.
+2. **Opportunity — compression-to-expansion continuation.** Select highest positive 48h log return among assets where 48h return exceeds 1.5x absolute 192h return/4, 48h return >0.02, and latest 48h mean quote volume exceeds preceding 192h mean by >=20%. Long the selected name, else flat. No funding ranking.
+3. **Relative Value — market-factor residual dispersion.** For each asset compute 192h log return minus cross-asset mean 192h log return. Long highest and short lowest, 0.5 gross each, only when residual spread >0.06 AND 48h return spread has the same sign. No funding signal or funding-ranked pair.
+4. **Stress/Recovery — breadth-conditioned directional asymmetry.** If >=3 assets have negative 48h returns and median 48h return <-0.045, short equal-dollar two worst 48h performers; otherwise if >=3 assets have positive 48h returns and prior 48h median return <-0.045, long equal-dollar two best 48h performers; else flat. Unlike DI, no slow 240h sign-state logic.
+5. **Regime Router:** RISK_ON when >=3 assets have positive 192h returns and 48h median >=0; RISK_OFF when >=3 negative 192h returns and 48h median<0; otherwise MIXED.
+6. **Dynamic Allocator:** at every 96h observation, reset all four modules' target units from the then-known close and NAV. Gross budgets [Core,Opportunity,RV,Stress] RISK_ON=[3.8,0.35,0.25,0.25], MIXED=[2.7,0.45,0.45,0.45], RISK_OFF=[0.65,0.25,0.50,0.70]. No post-result change of signs, windows, thresholds, budgets, cadence or gross.
+7. **Risk Governor:** existing V98 CG buffered physical authorizer, prior-only 336h OHLC and 672h funding stress, 81-corner adversarial settlement, staged exits, 0.25% participation, conservative marks and two event orderings. No live authorization.
+
+## Preregistered decision protocol
+- First run deterministic static causal future-perturbation tests, exact authenticated source integrity and 2023/2024 **active observation epochs** >=4 Core, >=4 Opportunity, >=8 RV, >=4 Stress. Source inactivity rejects before system PnL.
+- If source passes, execute five complete-portfolio paths (core-only, full, minus each of three sleeves) x USD10k x base/severe x two funding orderings = **20 physical cells**, on Ubuntu 22.04 and 24.04. Independently audit cross-OS numbers and economic marginal full-minus-ablation log-growth each year/cost/order. All cells must survive.
+- Growth acceptance: annual net log-growth strictly positive 2023 AND 2024 at both costs/orderings; full CAGR >50% base and >30% severe; severe maximum drawdown <45%; all three sleeves must each have strictly positive marginal annual net log growth in all four cost/order combinations; fees, slippage, funding, turnover and tails fully reported. No gross-only rescue.
+- If training passes, **freeze candidate before** supersevere, $1m/$10m, independent event-level replay, regime/tail/concentration analysis, separate chronological validation and untouched future holdout. External benchmark comparison only after complete internal freeze+validation. Training success alone is not delivered engine.
+- Failed candidate is permanently rejected. No retrospective threshold/window/weight changes; next hypothesis must be economically distinct. All DJ writes confined to `research/v98_independent/dj_*` and `.github/workflows/v98-independent-dj-*` on `research/v98-independent-zero`.
