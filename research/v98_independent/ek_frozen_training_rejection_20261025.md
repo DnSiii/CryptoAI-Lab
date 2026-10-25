@@ -1,0 +1,9 @@
+# V98 Independent EK — immutable historical TRAINING rejection (2026-10-25)
+
+**Preregistered before any EK source/PnL:** commit `1df390788dff91bdaff79e40f6f639c01c09e1f3`. Official Clean-4 native full physical run: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40227681774.
+
+Source-only causal prefix mutation and pinned provenance passed. 2023 active Core/Opportunity/RV/Stress epochs **73/95/86/58**, 2024 **74/98/88/67**, exceeding preregistered 4/8/12/8 each year. All **30/30 USD10k physical training cells survived** across 5 paths x 3 costs x 2 native funding orderings, reproduced Ubuntu22.04/24.04 with **zero numeric/source reconciliation errors**.
+
+**Full EK portfolio, historical training only:** base 2y CAGR **+71.2446%**, severe **+56.2339%**; base drawdown **29.4918%**, severe drawdown **30.6337%**. Base annual net returns 2023 **+113.1793%**, 2024 **+37.6602%**; severe annual returns 2023 **+93.8483%**, 2024 **+25.9952%**. Base native signed funding **-USD1,731.76**. Both annual growth and gross CAGR/drawdown gates passed, but strict physically settled annual marginal gates: **Opportunity PASS, RelativeValue FAIL, StressRecovery FAIL**. Therefore **PERMANENTLY REJECT EK**. Positive historical return is not qualified delivery or expected future performance.
+
+Independent all-settled-hour ledger replay is being checked separately; even a perfect ledger oracle cannot reverse EK's immutable economic rejection. No post-result rescue of EK or selective promotion of Opportunity. 2025 holdout, 2026+, quarantined XRP, contaminated Phase083, external V14/V15/V99 benchmarks, Frozen, paper and real orders remain untouched.
