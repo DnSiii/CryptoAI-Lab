@@ -125,8 +125,8 @@ def run(root):
             "decision":decision}
 
 if __name__=="__main__":
-    p=argparse.ArgumentParser();p.ade_argument("--root",required=True)
-    p.ade_argument("--output",required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument("--root",required=True)
+    p.add_argument("--output",required=True);a=p.parse_args()
     out=run(a.root)
     with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("DE_AUDIT",out["decision"],"survived",out["cells_survived"],
@@ -137,7 +137,7 @@ if __name__=="__main__":
             print("DE_FULL",key,"CAGR",x["two_year_cagr"],
                   "2023",x["annual"]["2023"]["net_return"],
                   "2024",x["annual"]["2024"]["net_return"],
-                  "DE",x["max_drawdown"],"funding",x["funding"])
+                  "drawdown",x["max_drawdown"],"funding",x["funding"])
     print("DE_GROWTH_GATES",out["growth_gates_10k"])
     print("DE_MARGINAL_GATES",out["marginal_gates_10k"])
     raise SystemExit(2 if out["errors"] else 0)

@@ -187,8 +187,8 @@ def run(path):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.ade_argument("--path",required=True,choices=PATHS)
-    p.ade_argument("--output",required=True)
+    p.add_argument("--path",required=True,choices=PATHS)
+    p.add_argument("--output",required=True)
     a=p.parse_args()
     assert static_check()
     result=run(a.path)
