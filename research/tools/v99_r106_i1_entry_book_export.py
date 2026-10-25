@@ -15,7 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from research.tools.v99_r106_i1_full_archive_intake import (
-    END, REQUIRED, eligible, evaluate, file_digest, instrument, safe_path, native_contracts,
+    END, REQUIRED, eligible, evaluate, file_digest, instrument, safe_path, native_contracts, historical_price_grid_ok,
 )
 
 def export_books(root):
@@ -74,7 +74,8 @@ def export_books(root):
                     or float(meta["strike"]) != strike
                     or meta["settlement_currency"] != asset
                     or any(meta[k] is None or float(meta[k]) <= 0 for k in
-                           ("contract_size","min_trade_amount","tick_size"))):
+                           ("contract_size","min_trade_amount","tick_size"))
+                    or not historical_price_grid_ok(meta, decision, bid, ask)):
                     continue
             books.append({
                 "decision_utc": decision.isoformat(),
@@ -91,7 +92,8 @@ def export_books(root):
                 "native_contract_terms": (None if meta is None else {
                     k: meta[k] for k in ("contract_size", "min_trade_amount",
                                          "tick_size", "settlement_currency",
-                                         "creation_timestamp", "expiration_timestamp")}),
+                                         "creation_timestamp", "expiration_timestamp",
+                                         "tick_size_steps")}),
                 "native_registry_source_sha256": (None if native_sources is None
                     else native_sources[asset]["original_raw_sha256"]),
             })
@@ -111,6 +113,9 @@ def export_books(root):
         "fixture": gate["fixture"],
         "native_registry_verified": native is not None,
         "native_terms_bound_to_original_bytes": native is not None,
+        "historical_dated_price_grid_checked": native is not None,
+        "historical_native_lot_asof_certified": False,
+        "historical_fee_asof_certified": False,
         "quote_size_to_native_lot_conversion_certified": False,
         "historical_fee_margin_certified": False,
         "source_pairs": pairs, "required_pairs": 182,
