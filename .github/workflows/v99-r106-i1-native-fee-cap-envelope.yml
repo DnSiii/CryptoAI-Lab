@@ -53,10 +53,12 @@ jobs:
           credit = root/"credit/i1_original_entry_credit.json"
           terminal = root/"terminal/terminal_diagnostic.json"
           report = root/"fee_cap_envelope.json"
-          for attack in ("historical_certification", "fee", "source_hash", "promotion"):
+          for attack in ("historical_certification", "false_continuity", "fee", "source_hash", "promotion"):
               forged = json.loads(report.read_text())
               if attack == "historical_certification":
                   forged["historical_fee_tier_certified"] = True
+              elif attack == "false_continuity":
+                  forged["historical_2021_2023_continuity_certified"] = True
               elif attack == "fee":
                   forged["rows"][0]["fees"]["published_2019_example"]["short_entry_coin"] = "0"
               elif attack == "source_hash":
@@ -72,7 +74,7 @@ jobs:
                       print("REJECTED_"+attack.upper())
                   else:
                       raise AssertionError("ACCEPTED_"+attack)
-          print("SOURCE_ONLY: current/2019 published fee examples do NOT certify historical 2021-2023 account tier")
+          print("SOURCE_ONLY: 2020 dated standard base rate, secondary cap/delivery, no certified 2021-2023 continuity or actual account fees")
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
