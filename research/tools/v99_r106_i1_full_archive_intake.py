@@ -67,6 +67,25 @@ def safe_path(root, name):
     return path
 
 
+def native_contracts(root):
+    """Require original venue bytes before any non-fixture quote is called eligible.
+
+    A self-declared complete quote CSV or invented symbol cannot certify an
+    exchange-listed, causally created native contract.
+    """
+    path = root / "native_instrument_registry.json"
+    if not path.is_file() or path.is_symlink():
+        raise ValueError("NATIVE_ORIGINAL_REGISTRY_REQUIRED")
+    from research.verification.independent_v99_r106_i1_historical_instruments import audit
+    try:
+        audit(root)  # independently replay original Deribit gzip bytes and SHA256
+    except (AssertionError, KeyError, ValueError, OSError) as exc:
+        raise ValueError("NATIVE_ORIGINAL_REGISTRY_UNVERIFIED") from exc
+    report = json.loads(path.read_text(encoding="utf-8"))
+    return {asset: {item["instrument_name"]: item for item in report["registry"][asset]}
+            for asset in ASSETS}
+
+
 def evaluate(root):
     root = Path(root)
     manifest = json.loads((root/"manifest.json").read_text(encoding="utf-8"))
@@ -76,6 +95,7 @@ def evaluate(root):
         raise ValueError("BAD_VENUE_OR_FIXTURE_FLAG")
     days = manifest.get("days")
     ds = eligible()
+    native = None if manifest["fixture"] else native_contracts(root)
     if not isinstance(days, list) or len(days) != 91:
         raise ValueError("INCOMPLETE_OR_DUPLICATED_DECISION_DAYS")
     if [x.get("date") for x in days] != [
@@ -136,6 +156,16 @@ def evaluate(root):
                              and exchange >= cutoff)  # venue event must be fresh too
                 except (ValueError, TypeError):
                     valid = False
+                if valid and native is not None:
+                    metadata = native[asset].get(row["symbol"])
+                    valid = bool(metadata is not None
+                        and metadata["creation_timestamp"] <= int(d.timestamp()*1000)
+                        and metadata["expiration_timestamp"] == int(expiry.timestamp()*1000)
+                        and float(metadata["strike"]) == strike
+                        and metadata["settlement_currency"] == asset
+                        and all(metadata[k] is not None and float(metadata[k]) > 0
+                                for k in ("contract_size","min_trade_amount","tick_size")))
+                # A newer quote for an unlisted contract must also revoke an older one.
                 # Even a malformed newer quote cancels an older good quote.
                 prior = latest.get(row["symbol"])
                 if prior is None or (arrival,exchange) >= prior[:2]:
@@ -162,7 +192,8 @@ def evaluate(root):
         "status":("SYNTHETIC_FIXTURE_ONLY_NO_ECONOMICS" if manifest["fixture"]
                   else "ORIGINAL_ARCHIVE_INPUT_CHECKED_NOT_EXECUTION_CERTIFIED"),
         "source_declared_complete_not_independently_vendor_certified":True,
-        "fixture":manifest["fixture"],"train_decisions":94,
+        "fixture":manifest["fixture"],"native_registry_verified":native is not None,
+        "train_decisions":94,
         "maturity_eligible_weeks":91,"right_censored_weeks":3,
         "required_asset_weeks":182,"two_strike_asset_weeks":pairs,
         "rows":total_rows,"folds":folds,"weekly":coverage,
