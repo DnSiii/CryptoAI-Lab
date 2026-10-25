@@ -103,6 +103,8 @@ def settle_position(
     spread = matches[0][1]
     if settlement_ms != spread.expiry_ms or settlement_ms < state.last_event_ms:
         raise ValueError("NONCHRONOLOGICAL_OR_NONCONTRACTUAL_SETTLEMENT")
+    if any(s.expiry_ms < settlement_ms for i, s in state.open_positions if i != position_id):
+        raise ValueError("UNSETTLED_EARLIER_EXPIRY")
     result = spread.expiry_nav(delivery_index_usd)
     obligation = result["settlement_payoff_usd"]
     next_state = replace(
