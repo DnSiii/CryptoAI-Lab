@@ -21,7 +21,7 @@ MAX_COMPRESSED = 12 * 1024 * 1024
 TRAIN_END = datetime(2023, 10, 1, tzinfo=timezone.utc)
 FIELDS = ("best_bid_price", "best_ask_price", "best_bid_amount", "best_ask_amount")
 OUT = Path("research_evidence/i1_free_sunday_ticker")
-SYMBOL = re.compile(r"^(BTC|ETH)-(\\d{1,2}[A-Z]{3}\\d{2})-(\\d+(?:\\.\\d+)?)-P$")
+SYMBOL = re.compile(r"^(BTC|ETH)-(\d{1,2}[A-Z]{3}\d{2})-(\d+(?:\.\d+)?)-P$")
 
 
 def parsed_time(value):
@@ -87,7 +87,7 @@ def run(out=OUT):
                 if response.status != 200:
                     raise ValueError(f"NON_SUCCESSFUL_ORIGINAL_MINUTE_{day}_{offset}")
                 raw = response.read(MAX_COMPRESSED+1)
-            if len(raw) > MAX_COMPRESSED or not raw.startswith(b"\\x1f\\x8b"):
+            if len(raw) > MAX_COMPRESSED or not raw.startswith(b"\x1f\x8b"):
                 raise ValueError(f"TRUNCATED_OR_NOT_GZIP_{day}_{offset}")
             decoded = gzip.decompress(raw).decode("utf-8")
             name = f"{day}_{offset}.ndjson.gz"
@@ -146,7 +146,7 @@ def run(out=OUT):
         "historical_fee_margin_certified": False, "holding_period_quotes_certified": False,
         "historical_economic_train_executed": False, "validation_opened": False,
         "holdout_opened": False, "orders_enabled": False, "promotion_authorized": False}
-    (out/"report.json").write_text(json.dumps(report, indent=2, sort_keys=True)+"\\n", encoding="utf-8")
+    (out/"report.json").write_text(json.dumps(report, indent=2, sort_keys=True)+"\n", encoding="utf-8")
     print(json.dumps({"status": report["status"], "sample_pairs": report["real_source_asset_weeks_with_two_strikes"],
         "days": [{k:v for k,v in d.items() if k in ("day","raw_messages","ticker_messages","two_strike_pairs","minutes_complete")}
                  for d in all_days], "promotion": False}))
