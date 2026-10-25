@@ -1,0 +1,84 @@
+name: V99 I1 original entry unit-credit source bridge (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_original_entry_credit.py
+      - research/verification/independent_v99_r106_i1_entry_credit_oracle.py
+      - .github/workflows/v99-r106-i1-original-entry-credit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-coin-credit-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover archived ORIGINAL Sunday gzip receipts and first-party registry
+        run: |
+          gh run download 40170453274 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-real-sunday-ticker-minute-receipts-40170453274 \
+            --dir research_evidence/i1_free_sunday_ticker
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          test -s research_evidence/i1_free_sunday_ticker/report.json
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+      - name: Execute preregistered original quoted coin credit screen (no fills)
+        run: |
+          python -m research.tools.v99_r106_i1_original_entry_credit \
+            research_evidence/i1_free_sunday_ticker \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_original_entry_credit.json
+      - name: Independently re-execute original bytes, native terms and coin arithmetic
+        run: |
+          python -m research.verification.independent_v99_r106_i1_entry_credit_oracle \
+            research_evidence/i1_free_sunday_ticker \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_original_entry_credit.json
+      - name: Adversarial altered-credit rejection and source-only gates
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_entry_credit_oracle import audit
+          ticker=Path("research_evidence/i1_free_sunday_ticker")
+          native=Path("research_evidence/i1_native_instruments")
+          p=Path("research_evidence/i1_original_entry_credit.json")
+          r=json.loads(p.read_text())
+          assert r["adjacent_quote_pairs"]>0
+          assert r["required_train_asset_weeks"]==182
+          assert r["sample_asset_weeks_with_original_two_strike_books"]==4
+          assert not any(r[k] for k in ("costs_historical_authenticated",
+            "native_lot_and_quote_size_units_certified",
+            "original_full_lifecycle_quotes_certified",
+            "original_delivery_and_margin_certified","economic_train_run",
+            "validation_opened","holdout_opened","orders_enabled","promotion_authorized"))
+          r["rows"][0]["net_credit_coin_per_source_unit_assumption"]["severe"]="999"
+          with tempfile.TemporaryDirectory() as temp:
+              altered=Path(temp)/"forged.json"
+              altered.write_text(json.dumps(r))
+              try:
+                  audit(ticker,native,altered)
+              except AssertionError:
+                  print("INDEPENDENT_ORIGINAL_COIN_CREDIT_FORGERY_REJECTED")
+              else:
+                  raise AssertionError("FORGED_COIN_CREDIT_ACCEPTED")
+          print("SOURCE_ONLY / 4 OF 182 ENTRY-WINDOW ASSET-WEEKS / ZERO CERTIFIED LIFECYCLES / NO ORDERS / NO PROMOTION")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-entry-credit-screen-${{ github.run_id }}
+          path: research_evidence/i1_original_entry_credit.json
+          retention-days: 60
+          if-no-files-found: warn
