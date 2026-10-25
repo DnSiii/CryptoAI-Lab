@@ -1,0 +1,93 @@
+name: V99 I1 original native quote-size execution veto (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_native_quote_size_handoff.py
+      - research/verification/independent_v99_r106_i1_native_quote_size_oracle.py
+      - .github/workflows/v99-r106-i1-native-quote-size-handoff.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-native-size-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover same archived original ticker, first-party native, credit and index artifacts
+        run: |
+          gh run download 40170453274 --repo "$GITHUB_REPOSITORY" --name v99-i1-real-sunday-ticker-minute-receipts-40170453274 --dir research_evidence/i1_free_sunday_ticker
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" --name v99-i1-firstparty-native-instruments-40148052668 --dir research_evidence/i1_native_instruments
+          gh run download 40174287180 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-entry-credit-screen-40174287180 --dir research_evidence/i1_prior_credit
+          gh run download 40178076296 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-index-binding-40178076296 --dir research_evidence/i1_prior_index
+          test -s research_evidence/i1_free_sunday_ticker/report.json
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+          test -s research_evidence/i1_prior_credit/i1_original_entry_credit.json
+          test -s research_evidence/i1_prior_index/i1_index_binding.json
+      - name: Produce all-pair original size and temporal diagnostics with zero executable fills
+        run: |
+          python -m research.tools.v99_r106_i1_native_quote_size_handoff \
+            research_evidence/i1_prior_credit/i1_original_entry_credit.json \
+            research_evidence/i1_prior_index/i1_index_binding.json \
+            research_evidence/i1_native_instruments/native_instrument_registry.json \
+            research_evidence/i1_native_quote_size_handoff.json
+      - name: Independently reexecute original gzip, first-party contract terms, index and quantities
+        run: |
+          python -m research.verification.independent_v99_r106_i1_native_quote_size_oracle \
+            research_evidence/i1_free_sunday_ticker \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_prior_credit/i1_original_entry_credit.json \
+            research_evidence/i1_prior_index/i1_index_binding.json \
+            research_evidence/i1_native_quote_size_handoff.json
+      - name: Negative controls for forged native quantity, fabricated fill and forbidden promotion
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_native_quote_size_oracle import verify
+          r=Path("research_evidence")
+          p=r/"i1_native_quote_size_handoff.json"
+          obj=json.loads(p.read_text())
+          assert obj["source_pairs"] == 46 and obj["native_executable_pairs"] == 0
+          assert obj["required_asset_weeks"] == 182 and obj["sampled_asset_weeks"] == 4
+          assert not any(obj[k] for k in ("economic_train_run","validation_opened",
+              "holdout_opened","orders_enabled","promotion_authorized"))
+          paths=(r/"i1_free_sunday_ticker",r/"i1_native_instruments",
+              r/"i1_prior_credit/i1_original_entry_credit.json",
+              r/"i1_prior_index/i1_index_binding.json")
+          for change in ("size","fill","promotion"):
+              bad=json.loads(p.read_text())
+              if change=="size":
+                  bad["rows"][0]["minimum_displayed_source_units"]="9999999"
+              elif change=="fill":
+                  bad["rows"][0]["two_leg_executable_fill"]=True
+              else:
+                  bad["promotion_authorized"]=True
+              with tempfile.TemporaryDirectory() as d:
+                  forged=Path(d)/"forged.json"
+                  forged.write_text(json.dumps(bad))
+                  try:
+                      verify(*paths,forged)
+                  except (AssertionError,ValueError):
+                      print("REJECTED_FORGED_"+change.upper())
+                  else:
+                      raise AssertionError("ACCEPTED_FORGED_"+change.upper())
+          print("SOURCE_ONLY_HOLD / NO CERTIFIED LOTS OR ATOMIC FILLS / NO PNL / NO PROMOTION")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-native-size-handoff-${{ github.run_id }}
+          path: research_evidence/i1_native_quote_size_handoff.json
+          retention-days: 60
+          if-no-files-found: warn
