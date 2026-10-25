@@ -6,9 +6,12 @@ from research_tools.v99_r106_tardis_authenticated_scope import check, DATES
 
 
 class FakeResponse:
-    def __init__(self, status, data=b"X"):
+    def __init__(self, status, data=b"\\x1f\\x8b", content_range=None):
         self.status = status
         self.data = data
+        self.headers = {"Content-Range": "bytes 0-1/999"} if status == 206 else {}
+        if content_range is not None:
+            self.headers["Content-Range"] = content_range
 
     def __enter__(self):
         return self
@@ -17,14 +20,18 @@ class FakeResponse:
         return False
 
     def read(self, n):
-        assert n == 1, "MUST_NOT_DOWNLOAD_FULL_PAID_ARCHIVE"
+        assert n == 2, "MUST_NOT_DOWNLOAD_FULL_PAID_ARCHIVE"
         return self.data[:n]
 
 
 class FakeOpener:
-    def __init__(self, denied_date=None, empty_date=None):
+    def __init__(self, denied_date=None, empty_date=None, bad_body_date=None,
+                 ignored_range_date=None, malformed_range_date=None):
         self.denied_date = denied_date
         self.empty_date = empty_date
+        self.bad_body_date = bad_body_date
+        self.ignored_range_date = ignored_range_date
+        self.malformed_range_date = malformed_range_date
         self.calls = []
 
     def __call__(self, request, timeout):
@@ -38,8 +45,12 @@ class FakeOpener:
         if day == self.denied_date:
             raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
         if request.get_method() == "GET":
-            assert request.get_header("Range") == "bytes=0-0"
-            return FakeResponse(206, b"" if day == self.empty_date else b"X")
+            assert request.get_header("Range") == "bytes=0-1"
+            status = 200 if day == self.ignored_range_date else 206
+            body = (b"" if day == self.empty_date else
+                    b"<html>" if day == self.bad_body_date else b"\\x1f\\x8b")
+            content_range = "bytes 3-4/999" if day == self.malformed_range_date else None
+            return FakeResponse(status, body, content_range)
         return FakeResponse(200)
 
 
@@ -73,6 +84,21 @@ class ScopeProbeTests(unittest.TestCase):
         result = check(key="secret-test-key", opener=FakeOpener(empty_date=DATES[-1]))
         self.assertEqual(result["status"], "BLOCKED_ENTITLEMENT_OR_HISTORICAL_SOURCE")
         self.assertFalse(result["probes"][-1]["bounded_get_nonempty"])
+
+    def test_html_error_page_with_206_is_not_archive(self):
+        result = check(key="secret-test-key", opener=FakeOpener(bad_body_date=DATES[0]))
+        self.assertEqual(result["status"], "BLOCKED_ENTITLEMENT_OR_HISTORICAL_SOURCE")
+        self.assertFalse(result["probes"][0]["gzip_magic"])
+
+    def test_ignored_range_with_http_200_is_not_archive(self):
+        result = check(key="secret-test-key", opener=FakeOpener(ignored_range_date=DATES[1]))
+        self.assertEqual(result["status"], "BLOCKED_ENTITLEMENT_OR_HISTORICAL_SOURCE")
+        self.assertFalse(result["probes"][1]["bounded_206"])
+
+    def test_wrong_content_range_is_not_archive(self):
+        result = check(key="secret-test-key", opener=FakeOpener(malformed_range_date=DATES[2]))
+        self.assertEqual(result["status"], "BLOCKED_ENTITLEMENT_OR_HISTORICAL_SOURCE")
+        self.assertFalse(result["probes"][2]["bounded_206"])
 
     def test_unsupported_http_head_does_not_replace_bounded_get(self):
         class HeadUnsupported(FakeOpener):
