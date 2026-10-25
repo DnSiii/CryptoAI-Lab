@@ -1,0 +1,14 @@
+# V99 I1 — integrated overlapping-spread cash-reserve accounting contract (2026-10-25)
+
+**PREREGISTERED BEFORE CODE/CI. SOURCE_ONLY/HOLD; NOT AN ALPHA CANDIDATE, NOT ECONOMIC TRAIN.** The earlier I1 structural variance-premium screen passed only an untradable information test. This component closes a separate engineering gap: standalone put-spread ledgers can each reserve capital as though no other positions exist, so summing their modeled PnL double-spends cash/collateral. It does not certify historical Deribit coin margin or fills.
+
+## Immutable accounting rules
+
+- Accept only the existing fixed I1 Spread objects and severe/supersevere scenarios, with Monday UTC TRAIN-only entries and expiry before 2023-10-01. Never modify V16/V99 Frozen, paper, champion, holdout, or orders.
+- Portfolio starts with positive USD-equivalent *modeled* cash and zero reserved collateral. A new position must be opened against the **current unreserved cash**; exact opening credit and reserved strike width are transferred to the portfolio once, never reused. Each spread retains its existing 5% single-position budget, and **total simultaneously reserved width is capped at 20% of original modeled capital**, fixed here before running any economics. Reject insufficient unreserved cash, duplicate position IDs, wrong scenario, time reversal, and any attempt to treat a settled position as open.
+- At original contractual expiry only, apply the vertical intrinsic obligation once, release the matching reserve, and credit/debit cash exactly once. Settlements must be in chronological order, with a positive finite settlement index. Reconcile every state transition to an independent Decimal cash/reserve oracle. Do not report portfolio NAV while positions are open: future option liabilities, inverse-coin collateral, mark-to-market, funding, margin calls, forced liquidation and delivery fees are missing.
+- Only synthetic fixture tests are authorized without licensed full 2021–2023 entry-through-exit quotes and historically applicable native lot, fee, delivery, and margin evidence. Tests passing does **not** constitute original market coverage, TRAIN ROI, a profitable model, a complete engine, independent economic validation, or a freeze.
+
+## Final gate (unchanged)
+
+0/182 historical complete certified asset-week lifecycles. A legitimate economic TRAIN still requires full lawful BTC+ETH Deribit historical two-clock executable books and sizes for entry/holding/exit, independently attributed source and gap receipts, dated account fees and native inverse-coin margin/settlement rules, 5 chronological folds, 3x2 regimes, severe/supersevere, tail/DD/benchmark envelope and independent original-data replay. Validation [2023-10-01,2024-01-18) and holdout >=2024-01-18 remain sealed. **NO PROMOTION.**
