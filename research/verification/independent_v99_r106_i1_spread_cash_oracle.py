@@ -131,6 +131,46 @@ def run():
         else:
             raise AssertionError("NO_DEPTH_MARK_ACCEPTED")
 
+    # Adversarial accounting forgeries: reject even when a quote and the
+    # delivery index are otherwise well-formed. This is a direct NAV safety
+    # invariant, not a strategy result or historical exchange attestation.
+    from research.tools.v99_r106_i1_defined_risk_options_ledger import (
+        replay_inverse_coin_expiry_from_quotes,
+    )
+    for forged in (
+        replace(p, qty=p.qty*2),
+        replace(p, collateral_reserved_usd=p.collateral_reserved_usd/2),
+        replace(p, cash_after_open_usd=p.cash_after_open_usd+100),
+        replace(p, premium_credit_usd=p.premium_credit_usd+100),
+        replace(p, initial_cash_usd=1),
+        replace(p, entry_cost_usd=-1),
+        replace(p, scenario="unsupported"),
+        replace(p, entry_spot_usd=0),
+    ):
+        for verify in (
+            lambda x: x.expiry_nav(18000),
+            lambda x: liquidation_nav(x, ms, ml, mark),
+            lambda x: inverse_coin_expiry_diagnostic(x, 18000),
+            lambda x: replay_inverse_coin_expiry_from_quotes(
+                x, short, long, 18000),
+        ):
+            try:
+                verify(forged)
+            except ValueError:
+                checks += 1
+            else:
+                raise AssertionError("FORGED_SELF_FINANCING_SPREAD_ACCEPTED")
+    # A forged positive but wrong fee amount is not caught by generic
+    # self-financing checks; the original quote-to-friction binding must catch it.
+    forged_fee = replace(p, entry_cost_usd=p.entry_cost_usd+1)
+    try:
+        replay_inverse_coin_expiry_from_quotes(forged_fee, short, long, 18000)
+    except ValueError as exc:
+        assert "OPENING_FRICTION_NOT_BOUND_TO_SPREAD" in str(exc)
+        checks += 1
+    else:
+        raise AssertionError("FORGED_ORIGINAL_OPENING_FEE_ACCEPTED")
+
     # Reconstruct inverse coin settlement independently of the USD cash model.
     # The previous modeled USD collateral is NOT a native margin guarantee.
     for delivery in (22000, 18000, 500):
