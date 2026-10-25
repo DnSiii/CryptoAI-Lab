@@ -10,7 +10,7 @@ from dataclasses import dataclass, replace
 from math import isclose, isfinite
 
 from research.tools.v99_r106_i1_defined_risk_options_ledger import (
-    COST_SCENARIOS, TRAIN_END_MS, TRAIN_START_MS, Spread,
+    COST_SCENARIOS, TRAIN_END_MS, TRAIN_START_MS, PutQuote, Spread, open_vertical,
 )
 
 MAX_AGGREGATE_WIDTH_FRACTION = 0.20
@@ -62,7 +62,8 @@ def start_portfolio(initial_usd: float, scenario: str) -> Portfolio:
     return state
 
 
-def open_position(state: Portfolio, position_id: str, spread: Spread) -> Portfolio:
+def open_position(state: Portfolio, position_id: str, spread: Spread,
+                  short_quote: PutQuote, long_quote: PutQuote) -> Portfolio:
     state.verify()
     spread.verify_open_invariants()
     if not isinstance(position_id, str) or not 0 < len(position_id) <= 128:
@@ -76,6 +77,10 @@ def open_position(state: Portfolio, position_id: str, spread: Spread) -> Portfol
     free_cash = state.cash_usd - state.reserved_usd
     if not isclose(spread.initial_cash_usd, free_cash, rel_tol=1e-10, abs_tol=1e-7):
         raise ValueError("OPENING_SPREAD_NOT_FUNDED_BY_UNRESERVED_CASH")
+    expected = open_vertical(short_quote, long_quote, spread.decision_ms,
+                             free_cash, spread.scenario)
+    if expected != spread:
+        raise ValueError("OPENING_SPREAD_NOT_BOUND_TO_ORIGINAL_MODEL_QUOTES")
     if state.reserved_usd + spread.collateral_reserved_usd > (
         state.initial_usd * MAX_AGGREGATE_WIDTH_FRACTION + 1e-7
     ):
