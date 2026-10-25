@@ -43,10 +43,10 @@ def run():
     for scenario, cost_per_leg in (("severe", d(".0024")), ("supersevere", d(".0048"))):
         p0 = start_portfolio(100000., scenario)
         a = open_vertical(*btc, t1, p0.cash_usd, scenario)
-        p1 = open_position(p0, "BTC-A", a)
+        p1 = open_position(p0, "BTC-A", a, *btc)
         free = p1.cash_usd-p1.reserved_usd
         b = open_vertical(*eth, t2, free, scenario)
-        p2 = open_position(p1, "ETH-B", b)
+        p2 = open_position(p1, "ETH-B", b, *eth)
         qty_a = min(d(6), d(100000)*d(".05")/d(1000))
         credit_a = qty_a*d(20000)*(d(".055")-d(".030")-2*cost_per_leg)
         qty_b = min(d(6), (d(100000)+credit_a-qty_a*d(1000))*d(".05")/d(100))
@@ -72,19 +72,27 @@ def run():
             "validation_opened", "holdout_opened", "promotion_authorized",
             "orders_enabled"))
         checks += 6
-        checks += must_reject(lambda: open_position(p2, "BTC-A", a), "DUPLICATE_ID")
+        checks += must_reject(lambda: open_position(p2, "BTC-A", a, *btc), "DUPLICATE_ID")
+        # Balanced but invented cash and premium cannot enter a portfolio.
+        inflated = replace(b, premium_credit_usd=b.premium_credit_usd+100,
+                           cash_after_open_usd=b.cash_after_open_usd+100)
+        checks += must_reject(lambda: open_position(p1, "ETH-FORGED", inflated, *eth),
+                              "FORGED_BALANCED_PREMIUM_AND_CASH")
+        checks += must_reject(lambda: open_position(p1, "ETH-QUOTE", b,
+                              replace(eth[0], bid_coin=eth[0].bid_coin+0.001), eth[1]),
+                              "ORIGINAL_MODEL_QUOTE_PREMIUM_MISMATCH")
         checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, initial_cash_usd=p1.cash_usd,
-                                  cash_after_open_usd=p1.cash_usd+b.premium_credit_usd)),
+                                  cash_after_open_usd=p1.cash_usd+b.premium_credit_usd), *eth),
                                   "COLLATERAL_REUSE")
         checks += must_reject(lambda: settle_position(p2, "BTC-A", e1-1, 18000.), "EARLY_SETTLEMENT")
         checks += must_reject(lambda: settle_position(p3, "BTC-A", e1, 18000.), "DOUBLE_SETTLEMENT")
         checks += must_reject(lambda: settle_position(p2, "ETH-B", e2, 1800.), "OUT_OF_ORDER_SETTLEMENT")
         checks += must_reject(lambda: settle_position(p2, "BTC-A", e1, 0), "INVALID_DELIVERY")
-        checks += must_reject(lambda: open_position(replace(p1, reserved_usd=0), "ETH-B", b), "FORGED_RESERVE")
-        checks += must_reject(lambda: open_position(replace(p1, cash_usd=0), "ETH-B", b), "FORGED_CASH")
-        checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, scenario="supersevere" if scenario=="severe" else "severe")),
+        checks += must_reject(lambda: open_position(replace(p1, reserved_usd=0), "ETH-B", b, *eth), "FORGED_RESERVE")
+        checks += must_reject(lambda: open_position(replace(p1, cash_usd=0), "ETH-B", b, *eth), "FORGED_CASH")
+        checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, scenario="supersevere" if scenario=="severe" else "severe"), *eth),
                               "WRONG_SCENARIO")
-        checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, decision_ms=t1-7*86_400_000)),
+        checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, decision_ms=t1-7*86_400_000), *eth),
                               "INVALID_DECISION")
     print({"status": "INDEPENDENT_DECIMAL_SHARED_CASH_RESERVE_ORACLE_PASS",
            "checks": checks, "scenario_count": 2,
