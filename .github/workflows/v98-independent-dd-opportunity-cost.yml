@@ -1,0 +1,73 @@
+name: V98 Independent DD Artifact Only Physical Capital Opportunity Cost
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-dd-opportunity-cost.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dd20-ubuntu-24.04-*
+          run-id: 40162972759
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: dd
+      - name: Independent DD native core/full capital opportunity-cost and price/funding attribution, no new PnL
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          files=list(Path('dd').rglob('*.json'))
+          assert len(files)==5,files
+          cases={}
+          for f in files:
+              d=json.loads(f.read_text())
+              assert d['architecture']=='DD'
+              assert d['historical_training_only'] and not d['validation_2025_read']
+              for row in d['cells']:
+                  assert row['passed'],(d['path'],row)
+                  if row['order']=='carried_before_fill':
+                      cases[(d['path'],row['fee'])]=row
+          for fee in ('base','severe'):
+              core=cases[('DD_core_only',fee)]
+              full=cases[('DD_full',fee)]
+              print('DD_CORE_DISPLACEMENT',fee,'core_cagr',core['two_year_cagr'],
+                    'full_cagr',full['two_year_cagr'],
+                    'core_funding',core['funding'],'full_funding',full['funding'],
+                    'core_turnover',core['turnover'],'full_turnover',full['turnover'],
+                    'core_gross',core['max_gross_to_nav'],'full_gross',full['max_gross_to_nav'],
+                    'core_concentration',core['max_single_asset_gross_concentration'],
+                    'full_concentration',full['max_single_asset_gross_concentration'])
+              for yr in ('2023','2024'):
+                  delta=(full['annual'][yr]['net_log_growth']-
+                         core['annual'][yr]['net_log_growth'])
+                  print('DD_CORE_ANNUAL',fee,yr,
+                        'core',core['annual'][yr]['net_log_growth'],
+                        'full',full['annual'][yr]['net_log_growth'],
+                        'full_minus_core',delta)
+          for fee in ('base','severe'):
+              for comparator in ('DD_core_only','DD_minus_RV','DD_minus_stress','DD_minus_opportunity'):
+                  full=cases[('DD_full',fee)]
+                  other=cases[(comparator,fee)]
+                  def price_pnl(x):
+                      return x['final_nav']-x['initial_nav']-x['funding']+x['fees']+x['slippage']
+                  delta_total=full['final_nav']-other['final_nav']
+                  delta_price=price_pnl(full)-price_pnl(other)
+                  delta_funding=full['funding']-other['funding']
+                  delta_cost=(full['fees']+full['slippage'])-(other['fees']+other['slippage'])
+                  assert math.isclose(delta_total,delta_price+delta_funding-delta_cost,rel_tol=0,abs_tol=1e-6)
+                  print('DD_NATIVE_PNL_ATTRIBUTION',fee,'full_minus',comparator,
+                        'total_usd',round(delta_total,2),
+                        'price_usd',round(delta_price,2),
+                        'signed_funding_usd',round(delta_funding,2),
+                        'extra_fees_slip_usd',round(delta_cost,2))
+          PY
