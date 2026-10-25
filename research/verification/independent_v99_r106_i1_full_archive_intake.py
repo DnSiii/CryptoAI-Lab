@@ -136,6 +136,8 @@ def audit(root, output):
         current+=timedelta(days=7)
     assert len(days)==91
     computed={str(i):{"BTC":0,"ETH":0} for i in range(1,6)}
+    synchronized={str(i):{"BTC":0,"ETH":0} for i in range(1,6)}
+    assert report["synchronized_max_skew_us"] == 1_000_000
     count=0
     for decision,item,expected in zip(days,manifest["days"],report["weekly"]):
         sunday=decision-timedelta(days=1)
@@ -172,7 +174,8 @@ def audit(root, output):
         assert lines==item["rows"]
         count+=lines
         valid=defaultdict(set)
-        for (_,r) in most_recent.values():
+        timed=defaultdict(list)
+        for ((arrival,event),r) in most_recent.values():
             parts=r["symbol"].split("-")
             if len(parts)!=4 or parts[0] not in ("BTC","ETH") or parts[3]!="P":
                 continue
@@ -200,6 +203,7 @@ def audit(root, output):
                     not independently_check_historical_ticks(meta, decision, (bid, ask))):
                     continue
             valid[(parts[0],expiry)].add(strike)
+            timed[(parts[0],expiry)].append((strike,arrival,event))
         f=next(i for i in range(1,6) if BOUNDARIES[i-1]<=decision<BOUNDARIES[i])
         assert expected["decision_utc"]==decision.isoformat() and expected["fold"]==f
         for asset in ("BTC","ETH"):
@@ -207,11 +211,23 @@ def audit(root, output):
                    for (a,_),strikes in valid.items())
             assert ok==expected[asset], "INDEPENDENT_WEEKLY_QUOTE_MISMATCH"
             computed[str(f)][asset]+=int(ok)
+            # Separate independent replay of the predeclared <=1s
+            # two-leg arrival AND exchange-event simultaneity requirement.
+            atomic=any(a==asset and any(
+                x[0]!=y[0] and max(abs(x[1]-y[1]),abs(x[2]-y[2]))<=1_000_000
+                for n,x in enumerate(q) for y in q[n+1:])
+                for (a,_),q in timed.items())
+            assert expected["synchronized_"+asset] == atomic, (
+                "INDEPENDENT_SYNCHRONIZED_WEEK_MISMATCH")
+            synchronized[str(f)][asset]+=int(atomic)
     assert count==report["rows"]
     assert computed==report["folds"], "INDEPENDENT_FOLD_MISMATCH"
+    assert synchronized==report["synchronized_folds"], "INDEPENDENT_SYNC_FOLD_MISMATCH"
     assert sum(sum(x.values()) for x in computed.values())==report["two_strike_asset_weeks"]
+    assert sum(sum(x.values()) for x in synchronized.values())==report["synchronized_two_strike_asset_weeks"]
     print(json.dumps({"status":"INDEPENDENT_FULL_ARCHIVE_BYTE_TO_DECISION_VERIFIED",
                       "rows":count,"pairs":report["two_strike_asset_weeks"],
+                      "synchronized_pairs":report["synchronized_two_strike_asset_weeks"],
                       "folds":computed,"fixture":manifest["fixture"],
                       "economics":False,"promotion":False},sort_keys=True))
 
