@@ -2,14 +2,14 @@
 """DM preregistered source-only activity gate, no economic results or future data."""
 import json
 import numpy as np
-from dm_sources import bundme,static_check
+from dm_sources import bundle,static_check
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
 NAMES=("GrowthCore","Opportunity","RelativeValue","StressRecovery")
 MIN=(4,4,8,4)
 def run():
     assert static_check()
     frames,_=load_official()
-    signals,updates,regimes,budgets=bundme(
+    signals,updates,regimes,budgets=bundle(
         frames[0],frames[1],frames[2],frames[3],frames[5],frames[6],frames[4])
     years={};passed=True
     for yr,start,end in (("2023",744,9504),("2024",9504,HOURS)):
