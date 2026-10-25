@@ -6,7 +6,7 @@ from research_tools.v99_r106_tardis_authenticated_scope import check, DATES
 
 
 class FakeResponse:
-    def __init__(self, status, data=b"\\x1f\\x8b", content_range=None):
+    def __init__(self, status, data=b"\x1f\x8b", content_range=None):
         self.status = status
         self.data = data
         self.headers = {"Content-Range": "bytes 0-1/999"} if status == 206 else {}
@@ -48,7 +48,7 @@ class FakeOpener:
             assert request.get_header("Range") == "bytes=0-1"
             status = 200 if day == self.ignored_range_date else 206
             body = (b"" if day == self.empty_date else
-                    b"<html>" if day == self.bad_body_date else b"\\x1f\\x8b")
+                    b"<html>" if day == self.bad_body_date else b"\x1f\x8b")
             content_range = "bytes 3-4/999" if day == self.malformed_range_date else None
             return FakeResponse(status, body, content_range)
         return FakeResponse(200)
