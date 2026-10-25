@@ -26,7 +26,7 @@ jobs:
           import json
           import tempfile
           from pathlib import Path
-          from research.tests.test_v99_r106_i1_full_archive_intake import make_fixture
+          from research.tests.test_v99_r106_i1_full_archive_intake import make_fixture, attach_synthetic_native_bytes
           from research.tools.v99_r106_i1_entry_book_export import export_books
           from research.verification.independent_v99_r106_i1_entry_book_export import audit
           with tempfile.TemporaryDirectory() as tmp:
@@ -49,6 +49,20 @@ jobs:
                   pass
               else:
                   raise AssertionError('ORIGINAL_SOURCE_CORRUPTION_NOT_DETECTED')
+          # Adversarial TEST-ONLY native archive: contract created after decision.
+          # The invented first-week BTC strike must not reach an engine entry book.
+          with tempfile.TemporaryDirectory() as tmp:
+              root=Path(tmp)/'fake_original_bytes'
+              make_fixture(root)
+              attach_synthetic_native_bytes(root,late_first_btc=True)
+              report=export_books(root)
+              assert not report['fixture'] and report['native_registry_verified']
+              assert report['source_pairs']==181 and len(report['quotes'])==363
+              assert not report['economic_train_executed'] and not report['promotion_authorized']
+              output=Path(tmp)/'native_asof_export.json'
+              output.write_text(json.dumps(report))
+              assert audit(root,output)==363
+          print('TEST-ONLY FAKE NATIVE ARCHIVE: UNLISTED ENTRY EXCLUDED, NO REAL PROVENANCE')
           print('SOURCE-TO-ENGINE ENTRY BOOKS INDEPENDENTLY VERIFIED')
           print('SYNTHETIC ONLY; REAL 2021-2023 QUOTE TAPE ABSENT; NO ECONOMICS, NO PROMOTION, NO ORDERS')
           PY
