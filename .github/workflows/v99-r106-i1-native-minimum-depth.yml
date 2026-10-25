@@ -1,0 +1,88 @@
+name: V99 I1 original native minimum depth with independent original receipts (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_native_minimum_depth.py
+      - research/verification/independent_v99_r106_i1_native_minimum_depth.py
+      - .github/workflows/v99-r106-i1-native-minimum-depth.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-native-minimum-depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Restore four unchanged original-source reports
+        run: |
+          mkdir -p research_evidence/i1_depth/{credit,native,index,fee}
+          gh run download 40174287180 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-entry-credit-screen-40174287180 --dir research_evidence/i1_depth/credit
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" --name v99-i1-firstparty-native-instruments-40148052668 --dir research_evidence/i1_depth/native
+          gh run download 40178076296 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-index-binding-40178076296 --dir research_evidence/i1_depth/index
+          gh run download 40194773338 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-native-fee-cap-envelope-40194773338 --dir research_evidence/i1_depth/fee
+          test -s research_evidence/i1_depth/credit/i1_original_entry_credit.json
+          test -s research_evidence/i1_depth/native/native_instrument_registry.json
+          test -s research_evidence/i1_depth/index/i1_index_binding.json
+          test -s research_evidence/i1_depth/fee/fee_cap_envelope.json
+      - name: Recompute original per-leg depth versus native minimum with NO PnL
+        run: |
+          python -m research.tools.v99_r106_i1_native_minimum_depth \
+            research_evidence/i1_depth/credit/i1_original_entry_credit.json \
+            research_evidence/i1_depth/native \
+            research_evidence/i1_depth/index/i1_index_binding.json \
+            research_evidence/i1_depth/fee/fee_cap_envelope.json \
+            research_evidence/i1_depth/native_minimum_depth.json
+      - name: Independently verify original source identities, quantity, minimum and no-economic status
+        run: |
+          python -m research.verification.independent_v99_r106_i1_native_minimum_depth \
+            research_evidence/i1_depth/credit/i1_original_entry_credit.json \
+            research_evidence/i1_depth/native \
+            research_evidence/i1_depth/index/i1_index_binding.json \
+            research_evidence/i1_depth/fee/fee_cap_envelope.json \
+            research_evidence/i1_depth/native_minimum_depth.json
+      - name: Reject forged source, quantity, lot, depth and economic promotion
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_native_minimum_depth import audit
+          root=Path("research_evidence/i1_depth")
+          original=json.loads((root/"native_minimum_depth.json").read_text())
+          args=(root/"credit/i1_original_entry_credit.json",root/"native",
+                root/"index/i1_index_binding.json",root/"fee/fee_cap_envelope.json")
+          for attack in ("source_sha","quantity","lot","depth","promotion"):
+              fake=json.loads(json.dumps(original))
+              if attack=="source_sha": fake["source_credit_sha256"]="0"*64
+              elif attack=="quantity": fake["rows"][0]["minimum_displayed_source_units"]="999999"
+              elif attack=="lot": fake["rows"][0]["minimum_native_order_units"]="0"
+              elif attack=="depth": fake["rows"][0]["provisional_minimum_depth_sufficient"]=not fake["rows"][0]["provisional_minimum_depth_sufficient"]
+              else: fake["promotion_authorized"]=True
+              with tempfile.TemporaryDirectory() as d:
+                  target=Path(d)/"forged.json"
+                  target.write_text(json.dumps(fake))
+                  try:
+                      audit(*args,target)
+                  except (AssertionError,ValueError,KeyError):
+                      print("REJECTED_"+attack.upper())
+                  else:
+                      raise AssertionError("ACCEPTED_"+attack)
+          print("ORIGINAL SOURCE LOT SCREEN ONLY / 0 CERTIFIED FULL LIFECYCLES / NO PNL / NO PROMOTION")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-native-minimum-depth-${{ github.run_id }}
+          path: research_evidence/i1_depth/native_minimum_depth.json
+          retention-days: 60
+          if-no-files-found: warn
