@@ -97,7 +97,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                     settled=settle_hour(cash,old,c[t-1],o[t],h[t],l[t],c[t],
                                         target,r[t],e[t],ml[t],mh[t],
                                         fee_mode=fee,funding_order=order)
-                    if (settled["hideen_borrow"] or not settled["cash_settled"]
+                    if (settled["hidden_borrow"] or not settled["cash_settled"]
                         or not math.isclose(settled["cash"],settled["equity"],rel_tol=0,abs_tol=1e-7)):
                         raise ValueError("DE_LEDGER")
                     cash=float(settled["cash"]);old=settled["units"].copy()
