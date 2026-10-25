@@ -17,6 +17,18 @@ MAX_AGGREGATE_WIDTH_FRACTION = 0.20
 
 
 @dataclass(frozen=True)
+class LedgerEvent:
+    """Immutable replay input; NOT a venue fill or authenticated market receipt."""
+    kind: str
+    position_id: str
+    time_ms: int
+    spread: Spread | None = None
+    short_quote: PutQuote | None = None
+    long_quote: PutQuote | None = None
+    delivery_index_usd: float | None = None
+
+
+@dataclass(frozen=True)
 class Portfolio:
     initial_usd: float
     cash_usd: float
@@ -25,6 +37,7 @@ class Portfolio:
     open_positions: tuple[tuple[str, Spread], ...]
     settled_ids: tuple[str, ...]
     last_event_ms: int
+    events: tuple[LedgerEvent, ...] = ()
 
     def verify(self) -> None:
         if self.scenario not in COST_SCENARIOS:
@@ -52,6 +65,62 @@ class Portfolio:
         expected = sum(s.collateral_reserved_usd for _, s in self.open_positions)
         if not isclose(self.reserved_usd, expected, rel_tol=1e-10, abs_tol=1e-7):
             raise ValueError("FORGED_PORTFOLIO_RESERVE")
+        # A balanced but fabricated cash balance can pass a reserve-only check.
+        # Reconstruct every opening premium and expiry debit from event inputs.
+        # This is a model integrity witness, NOT original source authentication.
+        cash, reserve, clock = self.initial_usd, 0.0, TRAIN_START_MS
+        opened: dict[str, Spread] = {}
+        settled: list[str] = []
+        for event in self.events:
+            if not isinstance(event, LedgerEvent) or event.time_ms < clock:
+                raise ValueError("MISSING_OR_NONCHRONOLOGICAL_JOURNAL_EVENT")
+            if event.kind == "open":
+                spread = event.spread
+                if (not isinstance(spread, Spread) or
+                        not isinstance(event.short_quote, PutQuote) or
+                        not isinstance(event.long_quote, PutQuote) or
+                        event.delivery_index_usd is not None or
+                        event.position_id in opened or event.position_id in settled or
+                        any(x.expiry_ms <= event.time_ms for x in opened.values())):
+                    raise ValueError("INVALID_JOURNALED_OPEN")
+                if spread.decision_ms != event.time_ms or spread.scenario != self.scenario:
+                    raise ValueError("JOURNAL_OPEN_SCENARIO_OR_CLOCK_MISMATCH")
+                reproduced = open_vertical(
+                    event.short_quote, event.long_quote, event.time_ms,
+                    cash - reserve, self.scenario)
+                if reproduced != spread:
+                    raise ValueError("JOURNAL_OPEN_NOT_SELF_FINANCING")
+                if reserve + spread.collateral_reserved_usd > (
+                    self.initial_usd * MAX_AGGREGATE_WIDTH_FRACTION + 1e-7
+                ):
+                    raise ValueError("JOURNAL_AGGREGATE_COLLATERAL_EXCEEDED")
+                cash += spread.premium_credit_usd
+                reserve += spread.collateral_reserved_usd
+                opened[event.position_id] = spread
+            elif event.kind == "settle":
+                spread = opened.get(event.position_id)
+                if (spread is None or event.spread is not None or
+                        event.short_quote is not None or event.long_quote is not None or
+                        event.delivery_index_usd is None or
+                        event.time_ms != spread.expiry_ms or
+                        any(x.expiry_ms < event.time_ms for key, x in opened.items()
+                            if key != event.position_id)):
+                    raise ValueError("INVALID_JOURNALED_SETTLEMENT")
+                debit = spread.expiry_nav(event.delivery_index_usd)["settlement_payoff_usd"]
+                cash -= debit
+                reserve -= spread.collateral_reserved_usd
+                del opened[event.position_id]
+                settled.append(event.position_id)
+            else:
+                raise ValueError("UNKNOWN_JOURNAL_EVENT")
+            if cash - reserve < -1e-7:
+                raise ValueError("JOURNAL_DOUBLE_SPENT_COLLATERAL")
+            clock = event.time_ms
+        if (tuple(opened.items()) != self.open_positions or
+                tuple(settled) != self.settled_ids or clock != self.last_event_ms or
+                not isclose(cash, self.cash_usd, rel_tol=1e-10, abs_tol=1e-7) or
+                not isclose(reserve, self.reserved_usd, rel_tol=1e-10, abs_tol=1e-7)):
+            raise ValueError("JOURNAL_CASH_RESERVE_OR_POSITION_MISMATCH")
 
 
 def start_portfolio(initial_usd: float, scenario: str) -> Portfolio:
@@ -91,6 +160,8 @@ def open_position(state: Portfolio, position_id: str, spread: Spread,
         reserved_usd=state.reserved_usd + spread.collateral_reserved_usd,
         open_positions=state.open_positions + ((position_id, spread),),
         last_event_ms=spread.decision_ms,
+        events=state.events + (LedgerEvent('open', position_id, spread.decision_ms,
+                                           spread, short_quote, long_quote),),
     )
     next_state.verify()
     return next_state
@@ -119,6 +190,8 @@ def settle_position(
         open_positions=tuple((i, s) for i, s in state.open_positions if i != position_id),
         settled_ids=state.settled_ids + (position_id,),
         last_event_ms=settlement_ms,
+        events=state.events + (LedgerEvent('settle', position_id, settlement_ms,
+                                           delivery_index_usd=delivery_index_usd),),
     )
     next_state.verify()
     return next_state
