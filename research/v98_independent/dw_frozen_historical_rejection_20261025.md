@@ -1,0 +1,7 @@
+# V98 Independent DW — immutable native training rejection (2026-10-25)
+
+Pre-result architecture and native 30-cell runner frozen at commit `32bd65ba0d3feb7fdfc75c0f974ced4f888a14e7`. Authenticated [DW economic execution 40199461005](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40199461005) used only pinned Clean-4 2022-2024; no 2025, XRP, V14/V15/V99, paper or live orders.
+
+Source viability PASS: 2023 active Core/Opportunity/RV/Stress = 48/27/37/5; 2024 = 53/27/50/4. Physical 30/30 survived across 2 Ubuntu environments; independent artifact-only audit cross_os=True, errors=[]. Full DW USD10k base carried-before-fill 2-year CAGR **+60.8935%**, 2023 return **+64.3365%**, 2024 **+57.6252%**, max DD **27.7578%**, native funding **-USD2042.68**. Severe 2-year CAGR **+59.4501%**, 2023 **+62.7193%**, 2024 **+56.3463%**, max DD **27.6321%**, funding **-USD2001.67**. These are backtested 2023-24 training results, NOT forward/holdout returns.
+
+Full growth and severe drawdown gates pass; Relative Value marginal gate passes, but **Opportunity and Stress/Recovery fail** preregistered positive annual marginal net-log-growth gates. Official decision **REJECT_DW_HISTORICAL_GROWTH_OR_MARGINAL**. DW cannot be rescued by removing/reweighting failed modules after observing outcomes; no isolated core or RV promoted. No complete V98 approved. Independent frozen-artifact forensics to quantify core displacement and annual signed contributions without reopening market data or modifying strategy. 2025 holdout remains sealed; V16/V99 Frozen and paper untouched.
