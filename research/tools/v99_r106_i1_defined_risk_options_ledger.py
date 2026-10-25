@@ -52,7 +52,7 @@ class PutQuote:
             raise ValueError("OPTION_ID_STRIKE_OR_EXPIRY_MISMATCH")
         if not TRAIN_START_MS <= decision_ms < TRAIN_END_MS:
             raise ValueError("SEALED_VALIDATION_OR_HOLDOUT")
-        if not (self.venue_ms <= self.arrival_ms <= decision_ms
+        if not (self.venue_ms <= self.arrival_ms < decision_ms
                 and decision_ms-self.arrival_ms <= MAX_QUOTE_AGE_MS
                 and decision_ms-self.venue_ms <= MAX_QUOTE_AGE_MS):
             raise ValueError("NONCAUSAL_OR_STALE_OPTION_QUOTE")
