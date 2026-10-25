@@ -103,7 +103,7 @@ def run():
         checks += must_reject(lambda: replace(p4, events=p4.events[:-1]).verify(),
                               "MISSING_FINAL_SETTLEMENT_RECEIPT")
         checks += must_reject(lambda: replace(p4, events=p4.events[:-1]+(
-                              replace(p4.events[-1], delivery_index_usd=1900.),)).verify(),
+                              replace(p4.events[-1], delivery_index_usd=1950.),)).verify(),
                               "MUTATED_SETTLEMENT_PRICE")
         checks += must_reject(lambda: replace(p2, events=tuple(reversed(p2.events))).verify(),
                               "REVERSED_EVENT_SEQUENCE")
