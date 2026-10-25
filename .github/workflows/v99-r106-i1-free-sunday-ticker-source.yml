@@ -1,0 +1,76 @@
+name: V99 I1 real TRAIN Sunday ticker minute source (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_sunday_ticker_probe.py
+      - research/verification/independent_v99_r106_i1_sunday_ticker_oracle.py
+      - .github/workflows/v99-r106-i1-free-sunday-ticker-source.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-minute-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Check parser and independent replay syntax
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          for name in ('research/tools/v99_r106_i1_sunday_ticker_probe.py',
+                       'research/verification/independent_v99_r106_i1_sunday_ticker_oracle.py'):
+              ast.parse(Path(name).read_text())
+          print('PARSERS_SYNTAX_VALID')
+          PY
+      - name: Retrieve two original TRAIN-only Sunday 23:55-24:00 minute windows
+        run: python -m research.tools.v99_r106_i1_sunday_ticker_probe
+      - name: Independent original gzip reparse and original-byte corruption negative control
+        run: |
+          python -m research.verification.independent_v99_r106_i1_sunday_ticker_oracle
+          python - <<'PY'
+          import tempfile, shutil
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_sunday_ticker_oracle import verify
+          src=Path('research_evidence/i1_free_sunday_ticker')
+          with tempfile.TemporaryDirectory() as tmp:
+              dest=Path(tmp)
+              for p in src.iterdir():
+                  if p.is_file():
+                      shutil.copy2(p,dest/p.name)
+              f=dest/'2023-01-01_1439.ndjson.gz'
+              original=f.read_bytes()
+              assert original
+              f.write_bytes(original[:-1]+bytes([original[-1]^1]))
+              try:
+                  verify(dest)
+              except (AssertionError, OSError, ValueError):
+                  print('ORIGINAL_GZIP_CORRUPTION_DETECTED')
+              else:
+                  raise AssertionError('ORIGINAL_GZIP_CORRUPTION_UNDETECTED')
+          PY
+      - name: Enforce no economic or future unlock
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('research_evidence/i1_free_sunday_ticker/report.json'))
+          assert r['max_possible_sample_asset_weeks']==4 and r['full_train_asset_weeks_required']==182
+          assert not any(r[k] for k in ('historical_economic_train_executed',
+              'historical_fee_margin_certified','holding_period_quotes_certified',
+              'validation_opened','holdout_opened','orders_enabled','promotion_authorized'))
+          print('ORIGINAL TRAIN SAMPLE ONLY / NO ECONOMIC TRAIN / NO PROMOTION / NO ORDERS')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-real-sunday-ticker-minute-receipts-${{ github.run_id }}
+          path: research_evidence/i1_free_sunday_ticker/
+          retention-days: 60
+          if-no-files-found: warn
