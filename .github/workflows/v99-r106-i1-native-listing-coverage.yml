@@ -1,0 +1,78 @@
+name: V99 I1 original native listing 182-week source gate (NO PNL)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_native_listing_coverage.py
+      - research/verification/independent_v99_r106_i1_native_listing_coverage.py
+      - .github/workflows/v99-r106-i1-native-listing-coverage.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-listing-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover first-party native contract registry verified in prior CI
+        run: |
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+      - name: Calculate original native contract listing coverage of 182 frozen TRAIN asset-weeks
+        run: |
+          python -m research.tools.v99_r106_i1_native_listing_coverage \
+            research_evidence/i1_native_instruments/native_instrument_registry.json \
+            research_evidence/i1_native_listing/coverage.json
+      - name: Independently recompute from original exchange response bytes
+        run: |
+          python -m research.verification.independent_v99_r106_i1_native_listing_coverage \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_native_listing/coverage.json
+      - name: Fail closed on altered listing result
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_native_listing_coverage import audit
+          source=Path('research_evidence/i1_native_instruments')
+          report=Path('research_evidence/i1_native_listing/coverage.json')
+          data=json.loads(report.read_text())
+          data['weekly'][0]['max_same_expiry_put_strikes']+=1
+          with tempfile.TemporaryDirectory() as tmp:
+              file=Path(tmp)/'tampered.json'
+              file.write_text(json.dumps(data))
+              try: audit(source,file)
+              except AssertionError: pass
+              else: raise AssertionError('TAMPERED_LISTING_RESULT_ACCEPTED')
+          print('INDEPENDENT NEGATIVE CONTROL PASSED')
+          PY
+      - name: Keep economics and promotion blocked
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/i1_native_listing/coverage.json').read_text())
+          assert r['historical_quote_pairs_certified']==0
+          assert all(r[k] is False for k in ('economic_train_executed','validation_opened',
+              'holdout_opened','promotion_authorized','orders_enabled'))
+          print('NATIVE LISTINGS ARE NOT EXECUTABLE QUOTES; NO ROI, NO ORDERS')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-native-listing-coverage-${{ github.run_id }}
+          path: research_evidence/i1_native_listing/
+          retention-days: 60
+          if-no-files-found: warn
