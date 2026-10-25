@@ -5,6 +5,8 @@ on:
     paths:
       - research/tools/v99_r106_i1_defined_risk_options_ledger.py
       - research/verification/independent_v99_r106_i1_spread_cash_oracle.py
+      - research/tools/v99_r106_i1_overlapping_cash_portfolio.py
+      - research/verification/independent_v99_r106_i1_overlapping_cash_portfolio.py
       - .github/workflows/v99-r106-i1-defined-risk-cash-ledger.yml
   workflow_dispatch:
 permissions:
@@ -22,6 +24,8 @@ jobs:
           python-version: '3.12'
       - name: Independently verify modeled put spread opens, conservative exit and expiry
         run: python -m research.verification.independent_v99_r106_i1_spread_cash_oracle
+      - name: Independently verify overlapping shared cash and no-double-spend collateral
+        run: python -m research.verification.independent_v99_r106_i1_overlapping_cash_portfolio
       - name: Enforce no native/executable market claims
         run: |
           python - <<'PY'
