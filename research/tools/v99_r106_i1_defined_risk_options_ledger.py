@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
-from math import isfinite
+from math import isfinite, isclose
 
 TRAIN_END_MS = 1696118400000
 TRAIN_START_MS = 1639008000000
@@ -82,7 +82,45 @@ class Spread:
     scenario: str
     entry_spot_usd: float = 0.0
 
+    def verify_open_invariants(self):
+        """Reject forged/non-self-financing modeled positions before any NAV.
+
+        This is accounting integrity only: no historical fills, margin or
+        original exchange fee/lot certification is implied.
+        """
+        if self.asset not in ("BTC", "ETH") or self.scenario not in COST_SCENARIOS:
+            raise ValueError("UNBOUND_SPREAD_ASSET_OR_COST_SCENARIO")
+        numeric = (self.qty, self.short_strike_usd, self.long_strike_usd,
+                   self.initial_cash_usd, self.cash_after_open_usd,
+                   self.collateral_reserved_usd, self.premium_credit_usd,
+                   self.entry_cost_usd, self.entry_spot_usd)
+        if not all(isfinite(x) for x in numeric):
+            raise ValueError("NONFINITE_SPREAD_ACCOUNTING")
+        if not (self.qty > 0 and self.short_strike_usd > self.long_strike_usd > 0
+                and self.initial_cash_usd > 0 and self.premium_credit_usd > 0
+                and self.entry_cost_usd >= 0 and self.entry_spot_usd > 0):
+            raise ValueError("INVALID_SPREAD_ACCOUNTING")
+        if not (TRAIN_START_MS <= self.decision_ms < self.expiry_ms < TRAIN_END_MS
+                and MIN_HOLD_MS <= self.expiry_ms-self.decision_ms <= MAX_HOLD_MS):
+            raise ValueError("SPREAD_OUTSIDE_SEALED_TRAIN_OR_TENOR")
+        t = datetime.fromtimestamp(self.decision_ms / 1000, tz=timezone.utc)
+        if (t.weekday(), t.hour, t.minute, t.second, t.microsecond) != (0, 0, 0, 0, 0):
+            raise ValueError("NONPREREGISTERED_SPREAD_DECISION")
+        width = self.short_strike_usd-self.long_strike_usd
+        if not isclose(self.collateral_reserved_usd, self.qty*width,
+                       rel_tol=1e-10, abs_tol=1e-7):
+            raise ValueError("UNBOUND_STRIKE_WIDTH_COLLATERAL")
+        if self.collateral_reserved_usd > self.initial_cash_usd*0.05+1e-7:
+            raise ValueError("RISK_BUDGET_EXCEEDED")
+        if not isclose(self.cash_after_open_usd,
+                       self.initial_cash_usd+self.premium_credit_usd,
+                       rel_tol=1e-10, abs_tol=1e-7):
+            raise ValueError("NON_SELF_FINANCING_CASH_PATH")
+        if self.cash_after_open_usd-self.collateral_reserved_usd < -1e-7:
+            raise ValueError("INSUFFICIENT_MODELED_COLLATERAL")
+
     def expiry_nav(self, settlement_spot_usd):
+        self.verify_open_invariants()
         if not isfinite(settlement_spot_usd) or settlement_spot_usd <= 0:
             raise ValueError("BAD_SETTLEMENT_SPOT")
         obligation = self.qty * (
@@ -149,6 +187,7 @@ def open_vertical(short_put, long_put, decision_ms, initial_cash_usd,
 
 
 def liquidation_nav(spread, short_quote, long_quote, mark_ms):
+    spread.verify_open_invariants()
     # Strict bid/ask exit, no mid-price fiction. Margin/liquidation remains
     # unverified: this is conservative mark-to-exit, not a real exchange fill.
     short_quote.validate(mark_ms)
@@ -186,8 +225,9 @@ def inverse_coin_expiry_diagnostic(spread: Spread, delivery_index_usd: float) ->
     Assumes entire initial USD capital converted to coin at entry with zero FX
     friction, and no liquidation. Both assumptions are deliberately visible.
     """
-    if not isinstance(spread, Spread) or spread.entry_spot_usd <= 0:
+    if not isinstance(spread, Spread):
         raise ValueError("UNBOUND_ENTRY_SPOT")
+    spread.verify_open_invariants()
     if not isfinite(delivery_index_usd) or delivery_index_usd <= 0:
         raise ValueError("INVALID_NATIVE_DELIVERY_INDEX")
     if spread.expiry_ms >= TRAIN_END_MS or spread.decision_ms < TRAIN_START_MS:
@@ -241,8 +281,9 @@ def replay_inverse_coin_expiry_from_quotes(
     Never infer a historically certified delivery index from OKX hourly OHLC.
     A negative balance means an insolvent *no-liquidation counterfactual*.
     """
-    if not isinstance(spread, Spread) or spread.scenario not in COST_SCENARIOS:
+    if not isinstance(spread, Spread):
         raise ValueError("INVALID_SPREAD_OR_SCENARIO")
+    spread.verify_open_invariants()
     short_quote.validate(spread.decision_ms)
     long_quote.validate(spread.decision_ms)
     if (abs(short_quote.arrival_ms-long_quote.arrival_ms) > MAX_PAIR_ARRIVAL_GAP_MS
@@ -275,6 +316,9 @@ def replay_inverse_coin_expiry_from_quotes(
     # Ensure the original spread was opened from these SAME original quotes.
     if abs(net_credit_coin * entry - D(spread.premium_credit_usd)) > D("0.0000001"):
         raise ValueError("OPENING_QUOTE_PREMIUM_NOT_BOUND_TO_SPREAD")
+    expected_entry_cost_usd = entry_friction_coin * entry
+    if abs(expected_entry_cost_usd-D(spread.entry_cost_usd)) > D("0.0000001"):
+        raise ValueError("OPENING_FRICTION_NOT_BOUND_TO_SPREAD")
     opening_coin = D(spread.initial_cash_usd) / entry
     s = D(delivery_index_usd)
     intrinsic_usd = q * (
