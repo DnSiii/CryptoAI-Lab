@@ -39,6 +39,7 @@ def audit(credit_path, native_root, index_path, fee_path, result_path):
     assert result["schema"] == "V99_I1_ORIGINAL_NATIVE_MINIMUM_DEPTH_SOURCE_ONLY_V1"
     assert result["status"] == "SOURCE_ONLY_PROVISIONAL_NATIVE_MINIMUM_DEPTH_NO_EXECUTION"
     assert result["max_atomic_arrival_gap_us"] == 1_000_000
+    assert result["max_atomic_exchange_gap_us"] == 1_000_000
     assert result["temporal_overlap_does_not_certify_simultaneous_fills"] is True
     assert result["original_pairs"] == 46 and result["sampled_asset_weeks"] == 4
     assert result["required_asset_weeks"] == 182 and result["certified_full_lifecycles"] == 0
@@ -75,7 +76,8 @@ def audit(credit_path, native_root, index_path, fee_path, result_path):
         displayed = min(bid, ask)
         feasible = displayed >= minimum
         temporal_gap = abs(int(r["short_arrival_us"]) - int(r["long_arrival_us"]))
-        within_one_second = temporal_gap <= 1_000_000
+        event_gap = abs(int(r["short_exchange_us"]) - int(r["long_exchange_us"]))
+        within_one_second = max(temporal_gap, event_gap) <= 1_000_000
         counts[asset]["provisional_pairs_within_1s"] += int(within_one_second)
         counts[asset]["provisional_depth_and_within_1s"] += int(feasible and within_one_second)
         counts[asset]["pairs"] += 1
@@ -86,6 +88,7 @@ def audit(credit_path, native_root, index_path, fee_path, result_path):
             "short_arrival_us": int(r["short_arrival_us"]),
             "long_arrival_us": int(r["long_arrival_us"]),
             "pair_arrival_gap_us": temporal_gap,
+            "pair_exchange_gap_us": event_gap,
             "provisional_pair_within_1s": within_one_second,
             "provisional_depth_and_within_1s": feasible and within_one_second,
             "short_displayed_source_units": str(bid),
