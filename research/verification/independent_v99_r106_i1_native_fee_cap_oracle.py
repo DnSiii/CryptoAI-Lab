@@ -62,7 +62,7 @@ def audit(credit_path, terminal_path, output_path):
         assert short_bid - long_ask == D(src["gross_credit_coin_per_source_unit_assumption"])
         due_short = max(Decimal(0), strike_hi-price) / price
         due_long = max(Decimal(0), strike_lo-price) / price
-        assert due_short-due_long == D(term["intrinsic_coin_per_assumed_unit"])
+        assert ((max(Decimal(0), strike_hi-price) - max(Decimal(0), strike_lo-price)) / price\n                == D(term["intrinsic_coin_per_assumed_unit"]))
         for label, (base, delivery, cap) in SCHEDULES.items():
             assert out["fee_examples"][label] == {
                 "entry_per_unit": str(base),
@@ -78,8 +78,8 @@ def audit(credit_path, terminal_path, output_path):
                 expiry_cost = min(delivery, cap*due_value)
                 values[leg+"_entry_coin"] = entry_cost
                 values[leg+"_delivery_coin"] = expiry_cost
-                caps["entry_cap_hit_legs"] += int(cap*entry_value <= base)
-                caps["delivery_cap_hit_legs"] += int(cap*due_value <= delivery)
+                caps["entry_cap_hit_legs"] += int(entry_value > 0 and cap*entry_value < base)
+                caps["delivery_cap_hit_legs"] += int(due_value > 0 and cap*due_value < delivery)
             row = got["fees"][label]
             for name, expected in values.items():
                 assert D(row[name]) == expected, "INCORRECT_NATIVE_FEE_"+name
