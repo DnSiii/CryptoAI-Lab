@@ -62,6 +62,29 @@ jobs:
               output=Path(tmp)/'native_asof_export.json'
               output.write_text(json.dumps(report))
               assert audit(root,output)==363
+              assert all(q['native_contract_terms'] is not None
+                         and q['native_registry_source_sha256'] for q in report['quotes'])
+              # Corrupt only the exported native lot field; the independent
+              # original-venue-byte oracle must detect it, not trust output.
+              tampered=json.loads(output.read_text())
+              tampered['quotes'][0]['native_contract_terms']['min_trade_amount']=999.0
+              output.write_text(json.dumps(tampered))
+              try:
+                  audit(root,output)
+              except AssertionError:
+                  pass
+              else:
+                  raise AssertionError('FORGED_NATIVE_LOT_TERM_NOT_DETECTED')
+              # A forged original registry source digest must also fail.
+              tampered=json.loads(json.dumps(report))
+              tampered['quotes'][0]['native_registry_source_sha256']='0'*64
+              output.write_text(json.dumps(tampered))
+              try:
+                  audit(root,output)
+              except AssertionError:
+                  pass
+              else:
+                  raise AssertionError('FORGED_NATIVE_ORIGINAL_SHA_NOT_DETECTED')
           print('TEST-ONLY FAKE NATIVE ARCHIVE: UNLISTED ENTRY EXCLUDED, NO REAL PROVENANCE')
           print('SOURCE-TO-ENGINE ENTRY BOOKS INDEPENDENTLY VERIFIED')
           print('SYNTHETIC ONLY; REAL 2021-2023 QUOTE TAPE ABSENT; NO ECONOMICS, NO PROMOTION, NO ORDERS')
