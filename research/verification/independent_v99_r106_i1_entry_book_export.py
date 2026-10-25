@@ -44,6 +44,7 @@ def audit(root, export_path):
         upper = int(decision.timestamp()*1_000_000)
         lower = upper - 86_400_000_000
         latest = {}
+        last_seen_arrival = None
         opener = gzip.open if path.suffix == ".gz" else open
         with opener(path, "rt", newline="", encoding="utf-8") as fp:
             reader = csv.DictReader(fp)
@@ -55,12 +56,13 @@ def audit(root, export_path):
                 assert row["exchange"] == "deribit"
                 arrival, event = int(row["local_timestamp"]), int(row["timestamp"])
                 assert lower <= arrival < upper and event <= arrival
+                assert last_seen_arrival is None or arrival >= last_seen_arrival, (
+                    "INDEPENDENT_OUT_OF_ORDER_ORIGINAL_CAPTURE")
+                last_seen_arrival = arrival
                 if arrival < cutoff:
                     continue
-                symbol = row["symbol"]
-                previous = latest.get(symbol)
-                if previous is None or (arrival, event) >= previous[0]:
-                    latest[symbol] = ((arrival,event),row)
+                # Independent raw-byte capture sequence; do not sort by event timestamp.
+                latest[row["symbol"]] = ((arrival,event),row)
         assert n == item["rows"]
         for symbol, ((arrival,event),row) in latest.items():
             parts = symbol.split("-")
