@@ -62,8 +62,8 @@ def run(root):
         reps[path]=aa
     if len(all_source)!=1:errors.append(("CROSS_PATH_SOURCE",len(all_source)))
     survival=sum(c.get("passed",False) for a in reps.values() for c in a.values())
-    for path,rows in reps.itens():
-        for key,c in rows.itens():
+    for path,rows in reps.items():
+        for key,c in rows.items():
             if not c.get("passed"):continue
             if (c.get("validation_2025_read") is not False or
                 c.get("external_benchmarks_used") is not False or
@@ -93,7 +93,7 @@ def run(root):
                       ("RelativeValue","EN_minus_RV"),
                       ("StressRecovery","EN_minus_stress")):
         marginal[book]={}
-        for key,c in full.itens():
+        for key,c in full.items():
             other=reps.get(path,{}).get(key,{})
             if not c.get("passed") or not other.get("passed"):continue
             marginal[book]["|".join(key)]={yr:(
@@ -144,4 +144,4 @@ if __name__=="__main__":
                   "drawdown",x["max_drawdown"],"funding",x["funding"])
     print("EN_GROWTH_GATES",out["growth_gates_10k"])
     print("EN_MARGINAL_GATES",out["marginal_gates_10k"])
-    raise SystenExit(2 if out["errors"] else 0)
+    raise SystemExit(2 if out["errors"] else 0)
