@@ -1,0 +1,11 @@
+# V98 Independent EN — frozen historical training rejection (2026-10-25)
+
+**Pre-result architecture:** `en_preregistration.md` committed at `5ec7ec457d92c9054a804e093fec8ace8d3c7530`, before source implementation or economic PnL. **Eligible native run:** https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40242049345 at corrected runner/auditor commit `6be5aafc17c4c678fe01cbbeeef3a48449bbf7fa`. The earlier runs 40241862937 and 40242042392 are ineligible due a documented infrastructure-only transcription exception (`SystenExit`/`.itens()`), not strategy performance; see `en_pre_audit_transcription_erratum_20261025.md`.
+
+EN is a distinct seven-slot online-shadow/covariance marginal geometric-growth architecture. Its source-only future-mutation causality and active-epoch gates passed both training years (Opportunity 12/8, Relative Value 29/7, Stress/Recovery 5/9 in 2023/2024). All **30/30** pinned Clean-4 physical training cells survived, two Ubuntu runner environments reconciled, no accounting/artifact cross-OS errors. The successful workflow is evidence-production success, **not** strategy acceptance.
+
+Official full USD10k 2023-2024 training base carried-before-fill: CAGR **+73.2175%**, 2023 net return **+116.0895%**, 2024 net return **+38.9557%**, max drawdown **29.7306%**, native signed funding **-USD1,710.30**. Severe carried-before-fill: CAGR **+47.5755%**, 2023 **+86.2722%**, 2024 **+16.9801%**, max drawdown **32.7215%**, funding **-USD1,323.53**. All annual full-book growth gates passed.
+
+**Economic rejection:** all three preregistered leave-one-out marginal annual log-growth gates failed: Opportunity=false, RelativeValue=false, StressRecovery=false, despite physical survival and gross CAGR. EN is **PERMANENTLY REJECTED**. No EN module, core, sign, threshold or weighting may be selectively reused or rescued. The 2025 holdout is untouched and ineligible Phase083, quarantined XRP, V14/V15/V99, V16/V99 Frozen, V99 research/workflows/reports, paper and live remain untouched. No out-of-sample superiority or trading authorization is claimed.
+
+Next path: independent artifact-only opportunity-cost attribution, then genuinely distinct *systemic* growth mechanism rather than another cosmetic satellite gate. No tuning of EN based on its results.
