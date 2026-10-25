@@ -17,14 +17,14 @@ def d(x):
 
 
 def run():
-    decision = int(datetime(2022, 6, 1, tzinfo=timezone.utc).timestamp()*1000)
-    expiry = int(datetime(2022, 7, 1, 8, tzinfo=timezone.utc).timestamp()*1000)
+    decision = int(datetime(2022, 6, 6, tzinfo=timezone.utc).timestamp()*1000)
+    expiry = int(datetime(2022, 7, 8, 8, tzinfo=timezone.utc).timestamp()*1000)
     base = dict(asset="BTC", expiry_ms=expiry, bid_qty=6, ask_qty=6,
                 venue_ms=decision-60_000, arrival_ms=decision-30_000,
                 spot_usd=20_000.0)
-    short = PutQuote(symbol="BTC-1JUL22-20000-P", strike_usd=20000,
+    short = PutQuote(symbol="BTC-8JUL22-20000-P", strike_usd=20000,
                      bid_coin=0.055, ask_coin=0.060, **base)
-    long = PutQuote(symbol="BTC-1JUL22-19000-P", strike_usd=19000,
+    long = PutQuote(symbol="BTC-8JUL22-19000-P", strike_usd=19000,
                     bid_coin=0.025, ask_coin=0.030, **base)
     checks = 0
     for scenario, friction in (("severe", d("0.0024")), ("supersevere", d("0.0048"))):
@@ -75,9 +75,11 @@ def run():
             replace(short, strike_usd=21000),
             replace(short, expiry_ms=expiry+86400000),
             replace(short, asset="ETH"),
-            replace(short, symbol="BTC-1JUL22-19000-P"),
+            replace(short, symbol="BTC-8JUL22-19000-P"),
             replace(short, symbol="BTC-INVALID-20000-P"),
             replace(short, venue_ms=decision-600_000, arrival_ms=decision-1_000),
+            replace(short, arrival_ms=decision-32_000),  # >1s between legs
+            replace(short, venue_ms=decision-62_000),  # venue updates >1s apart
         ):
             try:
                 open_vertical(bad, long, decision, 100000, scenario)
@@ -86,9 +88,11 @@ def run():
             else:
                 raise AssertionError("UNBOUND_NATIVE_OPTION_ID_OR_STALE_VENUE_ACCEPTED")
         for bad, other, is_short in (
-            (replace(ms, symbol="BTC-1JUL22-19000-P"), ml, True),
-            (replace(ml, symbol="BTC-1JUL22-20000-P"), ms, False),
+            (replace(ms, symbol="BTC-8JUL22-19000-P"), ml, True),
+            (replace(ml, symbol="BTC-8JUL22-20000-P"), ms, False),
             (replace(ms, venue_ms=mark-600_000, arrival_ms=mark-1_000), ml, True),
+            (replace(ms, arrival_ms=mark-32_000), ml, True),
+            (replace(ms, venue_ms=mark-62_000), ml, True),
         ):
             try:
                 liquidation_nav(p, bad, other, mark) if is_short else liquidation_nav(p, other, bad, mark)
@@ -96,6 +100,23 @@ def run():
                 checks += 1
             else:
                 raise AssertionError("EXIT_OPTION_ID_OR_STALE_VENUE_ACCEPTED")
+        # Monday UTC 00:00 and 21-45d expiry are fixed ex-ante, not tunable.
+        for invalid_time in (decision+86400000, decision+3600000):
+            try:
+                open_vertical(short, long, invalid_time, 100000, scenario)
+            except ValueError:
+                checks += 1
+            else:
+                raise AssertionError("NONMONDAY_OR_NONMIDNIGHT_ENTRY_ACCEPTED")
+        late_expiry = expiry+21*86400000
+        far_short = replace(short, symbol="BTC-29JUL22-20000-P", expiry_ms=late_expiry)
+        far_long = replace(long, symbol="BTC-29JUL22-19000-P", expiry_ms=late_expiry)
+        try:
+            open_vertical(far_short, far_long, decision, 100000, scenario)
+        except ValueError:
+            checks += 1
+        else:
+            raise AssertionError("OUTSIDE_FIXED_TENOR_ACCEPTED")
         try:
             open_vertical(replace(short, bid_coin=0.001), long, decision, 100000, scenario)
         except ValueError as exc:
@@ -148,13 +169,13 @@ def run_inverse_coin_quote_replay_oracle():
     )
     from dataclasses import replace
     from datetime import datetime, timezone
-    t = int(datetime(2022, 6, 1, tzinfo=timezone.utc).timestamp() * 1000)
-    e = int(datetime(2022, 7, 1, 8, tzinfo=timezone.utc).timestamp() * 1000)
+    t = int(datetime(2022, 6, 6, tzinfo=timezone.utc).timestamp() * 1000)
+    e = int(datetime(2022, 7, 8, 8, tzinfo=timezone.utc).timestamp() * 1000)
     fields = dict(asset="BTC", expiry_ms=e, bid_qty=6.0, ask_qty=6.0,
                   venue_ms=t-60000, arrival_ms=t-30000, spot_usd=20000.0)
-    short = PutQuote(symbol="BTC-1JUL22-20000-P", strike_usd=20000.0,
+    short = PutQuote(symbol="BTC-8JUL22-20000-P", strike_usd=20000.0,
                      bid_coin=0.055, ask_coin=0.060, **fields)
-    long = PutQuote(symbol="BTC-1JUL22-19000-P", strike_usd=19000.0,
+    long = PutQuote(symbol="BTC-8JUL22-19000-P", strike_usd=19000.0,
                     bid_coin=0.025, ask_coin=0.030, **fields)
     cases = 0
     for scenario, per_leg in (("severe", Decimal("0.0024")),
@@ -193,9 +214,11 @@ def run_inverse_coin_quote_replay_oracle():
             (replace(short, bid_coin=0.056), long, 18000, None),
             (replace(short, venue_ms=t-600000), long, 18000, None),
             (replace(short, bid_qty=0.01), long, 18000, None),
-            (short, replace(long, symbol="BTC-1JUL22-18000-P"), 18000, None),
+            (short, replace(long, symbol="BTC-8JUL22-18000-P"), 18000, None),
             (short, long, 0, None),
             (short, long, 18000, -0.001),
+            (replace(short, arrival_ms=t-32_000), long, 18000, None),
+            (short, replace(long, venue_ms=t-62_000), 18000, None),
         )
         for a, b, spot, fee in hostile:
             try:
