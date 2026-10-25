@@ -59,7 +59,7 @@ def bundle(opening,high,low,close,rate,event,quote):
         # RV: realized-volatility spread, trend-confirmed low-vol leadership.
         v=np.std(hourly[t-239:t+1,1:4],axis=0)
         lo=1+int(np.argmin(v));hi=1+int(np.argmax(v))
-        if (lo!=hi and float(v[hi]/max(v[lo],1e-8))>1.35 and
+        if (lo!=hi and float(v[hi-1]/max(v[lo-1],1e-8))>1.35 and
             float((lc[t,lo]-lc[t-24,lo])-(lc[t,hi]-lc[t-24,hi]))>0):
             raw[2,lo]=.5;raw[2,hi]=-.5
         # Stress: persistent BTC relative resilience in a falling broad market.
