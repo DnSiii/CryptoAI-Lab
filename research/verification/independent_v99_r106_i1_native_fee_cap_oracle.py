@@ -1,6 +1,6 @@
 """Independent Decimal fee-cap replay on original Deribit source inputs.
 
-Does not import primary fee module. No historical 2021-2023 fee attestation.
+Does not import primary fee module. 2020 base-rate primary evidence is not 2021-2023 account attestation.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pathlib import Path
 
 SCHEDULES = {
     "published_2019_example": (Decimal("0.0004"), Decimal("0.0002"), Decimal("0.20")),
-    "current_2026_example": (Decimal("0.0003"), Decimal("0.00015"), Decimal("0.125")),
+    "published_2020_standard_base_candidate": (Decimal("0.0003"), Decimal("0.00015"), Decimal("0.125")),
 }
 D = lambda v: Decimal(str(v))
 K = lambda r: (r["decision_utc"], r["short_symbol"], r["long_symbol"])
@@ -26,14 +26,22 @@ def audit(credit_path, terminal_path, output_path):
     out = json.loads(Path(output_path).read_text())
     assert source["schema"] == "V99_I1_ORIGINAL_ENTRY_UNIT_CREDIT_SCREEN_V1"
     assert terminal["schema"] == "V99_I1_ORIGINAL_QUOTE_DELIVERY_TERMINAL_DIAGNOSTIC_V1"
-    assert out["schema"] == "V99_I1_ORIGINAL_NATIVE_FEE_CAP_ENVELOPE_V1"
+    assert out["schema"] == "V99_I1_ORIGINAL_NATIVE_FEE_CAP_ENVELOPE_V2"
     assert out["source_credit_sha256"] == hashlib.sha256(raw_c).hexdigest()
     assert out["source_terminal_sha256"] == hashlib.sha256(raw_t).hexdigest()
     assert terminal["original_credit_sha256"] == hashlib.sha256(raw_c).hexdigest()
     assert (out["source_pairs"], out["sampled_asset_weeks"],
             out["required_asset_weeks"], out["certified_full_lifecycles"]) == (46, 4, 182, 0)
-    assert out["status"] == "ILLUSTRATIVE_NATIVE_FEE_FORMULA_ONLY_HOLD"
-    for k in ("historical_fee_tier_certified", "native_contract_quantity_certified",
+    assert out["status"] == "DATED_2020_PUBLIC_STANDARD_BASE_CANDIDATE_HOLD"
+    ev = out["public_base_rate_evidence"]
+    assert ev["venue_announcement_date"] == "2020-08-12"
+    assert ev["effective_utc"] == "2020-08-24T12:00:00Z"
+    assert ev["btc_eth_option_base_rate"] == "0.0003"
+    assert ev["venue_primary_url"] == "https://insights.deribit.com/exchange-updates/deribit-lowers-option-trading-fees-to-make-the-market-more-accessible-to-retail-traders/"
+    assert ev["cap_and_delivery_reference"] == "secondary_2020_mirrored_exchange_information_not_authenticated_original"
+    assert ev["cap_and_delivery_reference_url"] == "https://wikibitimg.fx994.com/attach/2020/10/938514373/WBE938514373_15464.pdf"
+    assert ev["auto_vip_system_announced_2025_not_retroactive"] is True
+    for k in ("historical_2021_2023_continuity_certified", "historical_actual_account_discount_certified", "historical_fee_tier_certified", "native_contract_quantity_certified",
               "economic_train_run", "roi_calculated", "validation_opened",
               "holdout_opened", "orders_enabled", "promotion_authorized"):
         assert out[k] is False, "FALSE_HISTORICAL_FEE_OR_PERFORMANCE_CLAIM"
