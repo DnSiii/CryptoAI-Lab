@@ -1,0 +1,7 @@
+# V98 Independent DU — frozen authenticated training rejection (2026-10-25)
+
+**Decision: REJECT_DU_HISTORICAL_GROWTH_OR_MARGINAL.** Immutable pre-result commit `81bf419fc9582a0f8f8e7883636b64eb3667f96e`, authenticated [DU source and 30-cell run 40195296617](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40195296617). No post-result sign/window/threshold/cost/budget rescue.
+
+Source gate passed (2023/2024 active epochs): Growth 48/53, Opportunity 17/17, RV 47/50, Stress 12/15. All **30/30** native physical cells survived; Ubuntu 22.04/24.04 cross-runner reconciliation succeeded, errors []; 2025 validation not read. Full DU USD10k base carried-before-fill: CAGR **+19.2791%**, 2023 net **+15.9090%**, 2024 **+22.7768%**, max DD **36.2735%**, native funding **-USD1189.78**. Severe: CAGR **+11.8994%**, 2023 **+8.6908%**, 2024 **+15.2205%**, max DD **39.1016%**, native funding **-USD1091.50**. Both annual growth gates passed in both funding orderings, but high-growth gates failed; all three satellite annual marginal growth gates failed.
+
+DU is not a complete qualified engine, no champion promotion, no paper/live authorization. Next critical work: quantify frozen core-vs-full capital displacement and each satellite's signed annual marginal contributions from immutable artifacts, then choose a *genuinely distinct* economic mechanism rather than recycling DU parameters. XRP quarantined; 2025 future holdout sealed; V16/V99 Frozen and V99 paper untouched.
