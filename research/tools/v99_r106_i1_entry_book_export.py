@@ -109,6 +109,20 @@ def export_books(root):
                 for week in gate["weekly"] for asset in ("BTC", "ETH"))
     if pairs != gate["two_strike_asset_weeks"]:
         raise ValueError("SOURCE_TO_ENGINE_PAIR_RECONCILIATION_FAILED")
+    grouped_times = {}
+    for quote in books:
+        key = (quote["decision_utc"], quote["asset"], quote["expiry_utc"])
+        grouped_times.setdefault(key, []).append(quote)
+    synchronized = {
+        (d,a) for (d,a,_), quotes in grouped_times.items()
+        if any(
+            left["strike_usd"] != right["strike_usd"]
+            and abs(left["arrival_us"]-right["arrival_us"]) <= 1_000_000
+            and abs(left["exchange_us"]-right["exchange_us"]) <= 1_000_000
+            for i,left in enumerate(quotes) for right in quotes[i+1:])
+    }
+    if len(synchronized) != gate["synchronized_two_strike_asset_weeks"]:
+        raise ValueError("SOURCE_TO_ENGINE_SYNCHRONIZED_PAIR_RECONCILIATION_FAILED")
     return {
         "schema": "I1_ORIGINAL_ENTRY_BOOK_EXPORT_V1",
         "status": "SYNTHETIC_NOT_ECONOMIC" if gate["fixture"] else
@@ -121,7 +135,8 @@ def export_books(root):
         "historical_fee_asof_certified": False,
         "quote_size_to_native_lot_conversion_certified": False,
         "historical_fee_margin_certified": False,
-        "source_pairs": pairs, "required_pairs": 182,
+        "source_pairs": pairs, "synchronized_source_pairs": len(synchronized),
+        "synchronized_max_skew_us": 1_000_000, "required_pairs": 182,
         "quotes": books,
         "missing": ["historical full quote entitlement", "full holding-period quotes",
                     "historical contract multipliers and lot sizes",
@@ -141,6 +156,7 @@ def main(root, out):
     print(json.dumps({"status": result["status"],
                       "original_quotes": len(result["quotes"]),
                       "source_pairs": result["source_pairs"],
+                      "synchronized_source_pairs": result["synchronized_source_pairs"],
                       "economic_train_executed": False,
                       "promotion_authorized": False}))
 
