@@ -16,7 +16,7 @@ permissions:
 jobs:
   source:
     runs-on: ubuntu-24.04
-    timeput-minutes: 20
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,7 +64,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04]
         path: [EP_core_only, EP_full, EP_minus_opportunity, EP_minus_RV, EP_minus_stress]
     runs-on: ${{ matrix.os }}
-    timeput-minutes: 75
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -112,7 +112,7 @@ jobs:
     if: always() && needs.source.result == 'success'
     needs: [source, economic]
     runs-on: ubuntu-24.04
-    timeput-minutes: 15
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
