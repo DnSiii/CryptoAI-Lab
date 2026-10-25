@@ -54,4 +54,20 @@ jobs:
                         'core',core['annual'][yr]['net_log_growth'],
                         'full',full['annual'][yr]['net_log_growth'],
                         'full_minus_core',delta)
+          for fee in ('base','severe'):
+              for comparator in ('DC_core_only','DC_minus_RV','DC_minus_stress','DC_minus_opportunity'):
+                  full=cases[('DC_full',fee)]
+                  other=cases[(comparator,fee)]
+                  def price_pnl(x):
+                      return x['final_nav']-x['initial_nav']-x['funding']+x['fees']+x['slippage']
+                  delta_total=full['final_nav']-other['final_nav']
+                  delta_price=price_pnl(full)-price_pnl(other)
+                  delta_funding=full['funding']-other['funding']
+                  delta_cost=(full['fees']+full['slippage'])-(other['fees']+other['slippage'])
+                  assert math.isclose(delta_total,delta_price+delta_funding-delta_cost,rel_tol=0,abs_tol=1e-6)
+                  print('DC_NATIVE_PNL_ATTRIBUTION',fee,'full_minus',comparator,
+                        'total_usd',round(delta_total,2),
+                        'price_usd',round(delta_price,2),
+                        'signed_funding_usd',round(delta_funding,2),
+                        'extra_fees_slip_usd',round(delta_cost,2))
           PY
