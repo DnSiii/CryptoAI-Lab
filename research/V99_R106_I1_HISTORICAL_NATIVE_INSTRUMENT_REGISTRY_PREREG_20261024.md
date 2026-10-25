@@ -1,0 +1,13 @@
+# V99 I1 — first-party expired option instrument registry (preregistered 2026-10-24 21:xx BRT)
+
+**SOURCE ONLY / DATA_ONLY/HOLD / NO PROMOTION.** This is not a new alpha or another gross-risk grid. The missing historical native contract metadata prevents binding the original Deribit option quotes to actual strike, expiry, settlement currency, lot and contract-size semantics. Recover a first-party *instrument registry* as a distinct prerequisite; it does not solve the unlicensed executable quote archive.
+
+## Frozen source operation
+- Read-only, unauthenticated `https://history.deribit.com/api/v2/public/get_instruments` with `currency=BTC` and `ETH`, `kind=option`, `expired=true`; no private API or orders. Request original full response for each asset; retain raw compressed response, SHA256 and original venue fields. Never inspect validation/holdout price observations.
+- Filter *only* puts with original instrument expiry strictly within [2021-12-09,2023-10-01) and creation timestamp no later than expiry; retain native `instrument_name`, expiry, creation, strike, option type, settlement currency, contract size, min trade amount, tick size, instrument state when present. Do not assume missing fields or current exchange terms apply retroactively. Check literal instrument ID against reported strike/expiry, and report missing native fields rather than filling them.
+- Independent implementation reopens compressed original JSON bytes and verifies SHA, source venue, instrument ID, exact filtered set and all per-asset missing-field counts without importing the collector's filtering function. A deliberately modified record must fail.
+- Do not mark this registry as proof of historic tradability at a particular decision timestamp: creation date is only a necessary condition, not a venue state/quote receipt. Do not claim authenticated historical fee tiers, margin, liquidation, fills, executable bid/ask or PnL.
+- If history endpoint fails or is incomplete, record exact HTTP/schema failure; do not synthesize metadata. Preserve original five TRAIN folds, validation [2023-10-01,2024-01-18), final holdout >=2024-01-18, Frozen, paper/results, champion and dashboard. No orders.
+- Success only closes **contract-registry availability**; options economic TRAIN still requires licensed full BTC+ETH historical two-sided book (entry and holding period), historical fee/margin/liquidation terms, independent cash ledger, severe/supersevere and gates. Do not unlock validation.
+
+This collection is independent of already functioning first-party OKX receipts and does not restart those collectors.
