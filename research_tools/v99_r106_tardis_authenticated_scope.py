@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Bounded authenticated Tardis Deribit OPTIONS entitlement probe.
 
+A 200 HTML/login page or ignored Range is NOT an authenticated archive receipt.
+
 No full historical download, trading, economics, validation, or holdout.
 Do not mistake 200 responses for complete BTC+ETH or executable fills.
 """
@@ -22,16 +24,23 @@ def _call(opener, key, url, method, ranged=False):
     headers = {"Authorization": "Bearer " + key,
                "User-Agent": "V99-I1-readonly-entitlement-probe/1.0"}
     if ranged:
-        headers["Range"] = "bytes=0-0"
+        headers["Range"] = "bytes=0-1"
     request = urllib.request.Request(url, headers=headers, method=method)
     try:
         with opener(request, timeout=20) as response:
             status = int(response.status)
+            if method == "GET" and ranged:
+                # At most TWO bytes, never the full licensed archive.
+                prefix = response.read(2)
+                content_range = response.headers.get("Content-Range", "")
+                import re
+                match = re.fullmatch(r"bytes 0-1/([0-9]+)", content_range)
+                bounded = status == 206 and match is not None and int(match[1]) >= 2
+                gzip_magic = prefix == b"\x1f\x8b"
+                return {"http": status, "nonempty": bool(prefix),
+                        "bounded_206": bounded, "gzip_magic": gzip_magic}
             if method == "GET":
-                # Exactly one byte; never download a full paid quote archive.
-                one = response.read(1)
-                if not one:
-                    return {"http": status, "nonempty": False}
+                return {"http": status, "nonempty": bool(response.read(2))}
             return {"http": status, "nonempty": True}
     except urllib.error.HTTPError as exc:
         return {"http": int(exc.code), "nonempty": False}
@@ -78,8 +87,10 @@ def check(key=None, opener=None):
             "date": day, "head_http": head["http"],
             "bounded_get_http": ranged["http"],
             "bounded_get_nonempty": ranged["nonempty"],
-            "bounded_source_access_only": ranged["http"] in (200, 206)
-                and ranged["nonempty"],
+            "bounded_206": ranged.get("bounded_206", False),
+            "gzip_magic": ranged.get("gzip_magic", False),
+            "bounded_source_access_only": ranged.get("bounded_206", False)
+                and ranged.get("gzip_magic", False),
         })
     all_access = (scope["http"] == 200 and
                   all(p["bounded_source_access_only"] for p in result["probes"]))
