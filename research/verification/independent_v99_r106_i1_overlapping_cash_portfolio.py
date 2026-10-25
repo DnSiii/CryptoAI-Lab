@@ -94,6 +94,23 @@ def run():
                               "WRONG_SCENARIO")
         checks += must_reject(lambda: open_position(p1, "ETH-B", replace(b, decision_ms=t1-7*86_400_000), *eth),
                               "INVALID_DECISION")
+        # Reserve consistency alone does not catch a fabricated positive cash
+        # balance after settlement. The journal must replay every credit/debit.
+        checks += must_reject(lambda: replace(p4, cash_usd=p4.cash_usd+1000).verify(),
+                              "FORGED_FINAL_CASH_WITH_CORRECT_RESERVE")
+        checks += must_reject(lambda: replace(p1, cash_usd=p1.cash_usd+1000).verify(),
+                              "FORGED_OPEN_CASH_WITH_CORRECT_RESERVE")
+        checks += must_reject(lambda: replace(p4, events=p4.events[:-1]).verify(),
+                              "MISSING_FINAL_SETTLEMENT_RECEIPT")
+        checks += must_reject(lambda: replace(p4, events=p4.events[:-1]+(
+                              replace(p4.events[-1], delivery_index_usd=1900.),)).verify(),
+                              "MUTATED_SETTLEMENT_PRICE")
+        checks += must_reject(lambda: replace(p2, events=tuple(reversed(p2.events))).verify(),
+                              "REVERSED_EVENT_SEQUENCE")
+        checks += must_reject(lambda: replace(p2, events=p2.events+(p2.events[0],)).verify(),
+                              "DUPLICATE_OPEN_EVENT")
+        checks += must_reject(lambda: replace(p3, reserved_usd=p3.reserved_usd+10).verify(),
+                              "FORGED_POST_SETTLEMENT_RESERVE")
     print({"status": "INDEPENDENT_DECIMAL_SHARED_CASH_RESERVE_ORACLE_PASS",
            "checks": checks, "scenario_count": 2,
            "original_historical_options_used": False, "economic_train": False,
