@@ -19,12 +19,16 @@ def audit(root, export_path):
     assert export["schema"] == "I1_ORIGINAL_ENTRY_BOOK_EXPORT_V1"
     assert manifest["schema"] == "I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1"
     assert export["fixture"] == manifest["fixture"]
-    from research.verification.independent_v99_r106_i1_full_archive_intake import original_native_lookup
+    from research.verification.independent_v99_r106_i1_full_archive_intake import (
+        original_native_lookup, independently_check_historical_ticks)
     native = None if manifest["fixture"] else original_native_lookup(root)
     native_sources = (None if native is None else json.loads(
         (root / "native_instrument_registry.json").read_text())["sources"])
     assert export["native_registry_verified"] == (native is not None)
     assert export["native_terms_bound_to_original_bytes"] == (native is not None)
+    assert export["historical_dated_price_grid_checked"] == (native is not None)
+    assert export["historical_native_lot_asof_certified"] is False
+    assert export["historical_fee_asof_certified"] is False
     assert export["quote_size_to_native_lot_conversion_certified"] is False
     assert export["historical_fee_margin_certified"] is False
     assert not any(export[k] for k in ("economic_train_executed",
@@ -83,7 +87,8 @@ def audit(root, export_path):
                     float(meta["strike"]) != strike or
                     meta["settlement_currency"] != parts[0] or
                     any(meta.get(k) is None or float(meta[k]) <= 0 for k in
-                        ("contract_size","min_trade_amount","tick_size"))):
+                        ("contract_size","min_trade_amount","tick_size")) or
+                    not independently_check_historical_ticks(meta, decision, (bid, ask))):
                     continue
             fold_edges = [
                 datetime(2021,12,9,tzinfo=UTC),datetime(2022,4,20,4,tzinfo=UTC),
@@ -102,7 +107,8 @@ def audit(root, export_path):
                 "native_contract_terms": (None if meta is None else {
                     k: meta[k] for k in ("contract_size", "min_trade_amount",
                                          "tick_size", "settlement_currency",
-                                         "creation_timestamp", "expiration_timestamp")}),
+                                         "creation_timestamp", "expiration_timestamp",
+                                         "tick_size_steps")}),
                 "native_registry_source_sha256": (None if native_sources is None
                     else native_sources[parts[0]]["original_raw_sha256"]),
             })
