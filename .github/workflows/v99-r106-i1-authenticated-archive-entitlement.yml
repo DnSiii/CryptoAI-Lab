@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
       - name: Verify negative controls and bounded requests without network
         run: python -m unittest research.tests.test_v99_r106_tardis_authenticated_scope -v
-      - name: Read-only authenticated historical non-sample dates (max one byte each)
+      - name: Read-only authenticated historical non-sample dates (max two bytes each; HTTP 206 + gzip)
         env:
           TARDIS_API_KEY: ${{ secrets.TARDIS_API_KEY }}
         run: python research_tools/v99_r106_tardis_authenticated_scope.py
