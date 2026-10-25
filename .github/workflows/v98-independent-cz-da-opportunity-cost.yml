@@ -1,0 +1,61 @@
+name: V98 Independent CZ DA Artifact Only Core Opportunity Cost Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-cz-da-opportunity-cost.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cz20-ubuntu-24.04-*
+          run-id: 40156106166
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: cz
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: da20-ubuntu-24.04-*
+          run-id: 40156312719
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: da
+      - name: Compare physical core/full/ablation capital opportunity cost, no new PnL
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for arch in ('cz','da'):
+              files=list(Path(arch).rglob('*.json'))
+              assert len(files)==5,(arch,files)
+              cases={}
+              for f in files:
+                  d=json.loads(f.read_text())
+                  assert d['architecture']==arch.upper()
+                  assert d['historical_training_only'] and not d['validation_2025_read']
+                  for row in d['cells']:
+                      assert row['passed'],(arch,d['path'],row)
+                      if row['order']=='carried_before_fill':
+                          cases[(d['path'],row['fee'])]=row
+              for fee in ('base','severe'):
+                  core=cases[(arch.upper()+'_core_only',fee)]
+                  full=cases[(arch.upper()+'_full',fee)]
+                  print('OPPORTUNITY_COST',arch,fee,'core_cagr',core['two_year_cagr'],
+                        'full_cagr',full['two_year_cagr'],
+                        'core_funding',core['funding'],'full_funding',full['funding'],
+                        'core_turnover',core['turnover'],'full_turnover',full['turnover'],
+                        'core_gross',core['max_gross_to_nav'],'full_gross',full['max_gross_to_nav'])
+                  for yr in ('2023','2024'):
+                      print('OPPORTUNITY_COST_ANNUAL',arch,fee,yr,
+                            'core',core['annual'][yr]['net_log_growth'],
+                            'full',full['annual'][yr]['net_log_growth'],
+                            'delta_full_minus_core',full['annual'][yr]['net_log_growth']-core['annual'][yr]['net_log_growth'])
+          PY
