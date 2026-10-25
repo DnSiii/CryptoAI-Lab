@@ -1,0 +1,89 @@
+name: V99 I1 original entry to delivery coin diagnostic (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_original_terminal_coin_diagnostic.py
+      - research/verification/independent_v99_r106_i1_original_terminal_coin_oracle.py
+      - .github/workflows/v99-r106-i1-original-terminal-coin-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-terminal-source-diagnostic-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover original TRAIN source evidence without future data
+        run: |
+          mkdir -p research_evidence/terminal
+          gh run download 40174287180 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-entry-credit-screen-40174287180 --dir research_evidence/terminal/credit
+          gh run download 40178076296 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-index-binding-40178076296 --dir research_evidence/terminal/index
+          gh run download 40182221833 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-native-size-handoff-40182221833 --dir research_evidence/terminal/handoff
+          gh run download 40117855925 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-delivery-index-train-40117855925 --dir research_evidence/terminal/delivery
+          test -s research_evidence/terminal/credit/i1_original_entry_credit.json
+          test -s research_evidence/terminal/index/i1_index_binding.json
+          test -s research_evidence/terminal/handoff/i1_native_quote_size_handoff.json
+          test -s research_evidence/terminal/delivery/delivery_index_train_only.json
+      - name: Run original quoted entry through original expiry-index terminal coin diagnostic
+        run: |
+          python -m research.tools.v99_r106_i1_original_terminal_coin_diagnostic \
+            research_evidence/terminal/credit/i1_original_entry_credit.json \
+            research_evidence/terminal/index/i1_index_binding.json \
+            research_evidence/terminal/handoff/i1_native_quote_size_handoff.json \
+            research_evidence/terminal/delivery/delivery_index_train_only.json \
+            research_evidence/terminal/terminal_diagnostic.json
+      - name: Independently recompute all original 46 coin obligations and two stress paths
+        run: |
+          python -m research.verification.independent_v99_r106_i1_original_terminal_coin_oracle \
+            research_evidence/terminal/credit/i1_original_entry_credit.json \
+            research_evidence/terminal/index/i1_index_binding.json \
+            research_evidence/terminal/handoff/i1_native_quote_size_handoff.json \
+            research_evidence/terminal/delivery/delivery_index_train_only.json \
+            research_evidence/terminal/terminal_diagnostic.json
+      - name: Adversarial delivery tamper and fake economic promotion veto
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_original_terminal_coin_oracle import audit
+          root=Path("research_evidence/terminal")
+          inputs=(root/"credit/i1_original_entry_credit.json",root/"index/i1_index_binding.json",
+                  root/"handoff/i1_native_quote_size_handoff.json",root/"delivery/delivery_index_train_only.json")
+          p=root/"terminal_diagnostic.json"
+          for attack in ("settlement","roi","promotion"):
+              forged=json.loads(p.read_text())
+              if attack=="settlement":
+                  forged["rows"][0]["delivery_index_usd"]="999999"
+              elif attack=="roi":
+                  forged["roi_calculated"]=True
+              else:
+                  forged["promotion_authorized"]=True
+              with tempfile.TemporaryDirectory() as d:
+                  target=Path(d)/"forged.json"
+                  target.write_text(json.dumps(forged))
+                  try:
+                      audit(*inputs,target)
+                  except (AssertionError,ValueError,KeyError):
+                      print("REJECTED_"+attack.upper())
+                  else:
+                      raise AssertionError("ACCEPTED_FORGERY_"+attack)
+          print("ORIGINAL SOURCE TERMINAL DIAGNOSTIC ONLY; NO TRADE / NO PNL / NO PROMOTION")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-terminal-coin-diagnostic-${{ github.run_id }}
+          path: research_evidence/terminal/terminal_diagnostic.json
+          retention-days: 60
+          if-no-files-found: warn
