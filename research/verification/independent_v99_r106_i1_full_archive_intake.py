@@ -35,6 +35,48 @@ def digest(path):
     return h.hexdigest()
 
 
+def original_native_lookup(root):
+    """Separate raw-exchange reparse, no import of primary intake or registry gate."""
+    path = root / "native_instrument_registry.json"
+    if not path.is_file() or path.is_symlink():
+        raise AssertionError("INDEPENDENT_NATIVE_ORIGINAL_REGISTRY_MISSING")
+    report = json.loads(path.read_text())
+    assert report["schema"] == "V99_I1_DERIBIT_HISTORICAL_INSTRUMENT_REGISTRY_V1"
+    assert report["train_start_ms"] == 1639008000000
+    assert report["train_end_exclusive_ms"] == 1696118400000
+    assert set(report["registry"]) == {"BTC","ETH"}
+    index = {}
+    for asset in ("BTC","ETH"):
+        info = report["sources"][asset]
+        assert info["endpoint"] == "https://history.deribit.com/api/v2/public/get_instruments"
+        source_path = root / info["original_gzip"]
+        assert source_path.is_file() and not source_path.is_symlink()
+        original = gzip.decompress(source_path.read_bytes())
+        assert hashlib.sha256(original).hexdigest() == info["original_raw_sha256"]
+        assert len(original) == info["original_response_bytes"]
+        raw_rows = json.loads(original)["result"]
+        assert len(raw_rows) == info["original_instruments"]
+        subset = {}
+        for row in raw_rows:
+            if row.get("kind") != "option" or row.get("option_type") != "put":
+                continue
+            expiry = row.get("expiration_timestamp")
+            if expiry is None or not 1639008000000 <= int(expiry) < 1696118400000:
+                continue
+            name = row["instrument_name"]
+            assert name not in subset
+            subset[name] = row
+        fields = ("instrument_name","creation_timestamp","expiration_timestamp",
+                  "strike","option_type","settlement_currency","contract_size",
+                  "min_trade_amount","tick_size")
+        listed = {row["instrument_name"]: row for row in report["registry"][asset]}
+        assert set(subset) == set(listed)
+        for name, row in listed.items():
+            assert row == {k: subset[name].get(k) for k in fields}
+        index[asset] = subset
+    return index
+
+
 def audit(root, output):
     root=Path(root)
     report=json.loads(Path(output).read_text())
@@ -42,6 +84,8 @@ def audit(root, output):
     assert report["schema"]=="I1_FULL_TRAIN_ARCHIVE_INTAKE_RESULT_V1"
     assert manifest["schema"]=="I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1"
     assert report["fixture"]==manifest["fixture"]
+    native = None if manifest["fixture"] else original_native_lookup(root)
+    assert report["native_registry_verified"] == (native is not None)
     assert report["train_decisions"]==94
     assert report["maturity_eligible_weeks"]==91
     assert report["right_censored_weeks"]==3
@@ -108,6 +152,16 @@ def audit(root, output):
                 or int(r["timestamp"])<cutoff  # independent exchange-time bound
                 or not (timedelta(days=21)<=expiry-decision<=timedelta(days=45))
                 or expiry>=STOP): continue
+            if native is not None:
+                meta = native[parts[0]].get(r["symbol"])
+                if (meta is None or
+                    int(meta["creation_timestamp"]) > int(decision.timestamp()*1000) or
+                    int(meta["expiration_timestamp"]) != int(expiry.timestamp()*1000) or
+                    float(meta["strike"]) != strike or
+                    meta["settlement_currency"] != parts[0] or
+                    any(meta.get(k) is None or float(meta[k]) <= 0 for k in
+                        ("contract_size","min_trade_amount","tick_size"))):
+                    continue
             valid[(parts[0],expiry)].add(strike)
         f=next(i for i in range(1,6) if BOUNDARIES[i-1]<=decision<BOUNDARIES[i])
         assert expected["decision_utc"]==decision.isoformat() and expected["fold"]==f
