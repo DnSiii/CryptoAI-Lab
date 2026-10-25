@@ -1,0 +1,83 @@
+name: V99 I1 original native fee-cap provenance envelope (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_native_fee_cap_envelope.py
+      - research/verification/independent_v99_r106_i1_native_fee_cap_oracle.py
+      - .github/workflows/v99-r106-i1-native-fee-cap-envelope.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-native-fee-example-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Recover authenticated original TRAIN-only quote and delivery reports
+        run: |
+          mkdir -p research_evidence/fee/credit research_evidence/fee/terminal
+          gh run download 40174287180 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-entry-credit-screen-40174287180 --dir research_evidence/fee/credit
+          gh run download 40185981946 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-terminal-coin-diagnostic-40185981946 --dir research_evidence/fee/terminal
+          test -s research_evidence/fee/credit/i1_original_entry_credit.json
+          test -s research_evidence/fee/terminal/terminal_diagnostic.json
+      - name: Calculate both illustrative native per-leg capped fee examples on original 46 pairs
+        run: |
+          python -m research.tools.v99_r106_i1_native_fee_cap_envelope \
+            research_evidence/fee/credit/i1_original_entry_credit.json \
+            research_evidence/fee/terminal/terminal_diagnostic.json \
+            research_evidence/fee/fee_cap_envelope.json
+      - name: Independently recompute every source-bound fee and cap
+        run: |
+          python -m research.verification.independent_v99_r106_i1_native_fee_cap_oracle \
+            research_evidence/fee/credit/i1_original_entry_credit.json \
+            research_evidence/fee/terminal/terminal_diagnostic.json \
+            research_evidence/fee/fee_cap_envelope.json
+      - name: Reject forged historical tier, changed source bytes and corrupted native fee
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_native_fee_cap_oracle import audit
+          root = Path("research_evidence/fee")
+          credit = root/"credit/i1_original_entry_credit.json"
+          terminal = root/"terminal/terminal_diagnostic.json"
+          report = root/"fee_cap_envelope.json"
+          for attack in ("historical_certification", "fee", "source_hash", "promotion"):
+              forged = json.loads(report.read_text())
+              if attack == "historical_certification":
+                  forged["historical_fee_tier_certified"] = True
+              elif attack == "fee":
+                  forged["rows"][0]["fees"]["published_2019_example"]["short_entry_coin"] = "0"
+              elif attack == "source_hash":
+                  forged["source_credit_sha256"] = "0"*64
+              else:
+                  forged["promotion_authorized"] = True
+              with tempfile.TemporaryDirectory() as d:
+                  p = Path(d)/"forged.json"
+                  p.write_text(json.dumps(forged))
+                  try:
+                      audit(credit, terminal, p)
+                  except (AssertionError, ValueError, KeyError):
+                      print("REJECTED_"+attack.upper())
+                  else:
+                      raise AssertionError("ACCEPTED_"+attack)
+          print("SOURCE_ONLY: current/2019 published fee examples do NOT certify historical 2021-2023 account tier")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-native-fee-cap-envelope-${{ github.run_id }}
+          path: research_evidence/fee/fee_cap_envelope.json
+          retention-days: 60
+          if-no-files-found: warn
