@@ -39,6 +39,13 @@ def exercise(scenario="severe"):
         long_ask_coin=".05", entry_fees_coin=".001",
         entry_slippage_coin=".001", margin_coin="4", maintenance_coin="2",
         expiry_ms=EXPIRY))
+    # Re-mark all existing exposure at the next Monday before adding risk.
+    w = mark_to_exit(w, "p1", quote("50000",".08",".09",OPEN2),
+                     quote("45000",".04",".05",OPEN2),
+                     OPEN2, ".001", ".001")
+    trace["events"].append(dict(kind="mark", name="p1", at_ms=OPEN2,
+        short_ask_coin=".09", long_bid_coin=".04", exit_fees_coin=".001",
+        exit_slippage_coin=".001", index_usd="46000"))
     s2, l2 = quote("48000", ".09", ".10", OPEN2), quote("43000", ".04", ".05", OPEN2)
     w = open_vertical(w, "p2", s2, l2, OPEN2, "1", ".001", ".001", "4", "2")
     trace["events"].append(dict(kind="open", at_ms=OPEN2, name="p2",
@@ -114,6 +121,14 @@ class NativeCoinAccountTests(unittest.TestCase):
             open_vertical(w,"p",replace(s,arrival_ms=OPEN1-400000,
                                        venue_ms=OPEN1-401000),l,
                           OPEN1,"1",".001",".001","4","2")
+
+    def test_rejects_overlapping_open_without_fresh_mark(self):
+        w = start_wallet("BTC", "severe", "100")
+        s, l = quote("50000",".08",".09",OPEN1), quote("45000",".04",".05",OPEN1)
+        w = open_vertical(w,"p1",s,l,OPEN1,"1",".001",".001","4","2")
+        s2, l2 = quote("48000",".09",".10",OPEN2), quote("43000",".04",".05",OPEN2)
+        with self.assertRaisesRegex(ValueError,"PRETRADE_ALL_POSITION_MARKS_REQUIRED"):
+            open_vertical(w,"p2",s2,l2,OPEN2,"1",".001",".001","4","2")
 
     def test_rejects_maintenance_breach_without_liquidation_terms(self):
         w = start_wallet("BTC", "severe", "100")
