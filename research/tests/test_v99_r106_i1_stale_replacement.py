@@ -44,6 +44,14 @@ class LatestPredecisionRevocation(unittest.TestCase):
         # wrongly preserving the 20s-old book.
         self.check(self.base() + [quote(A, 5, event_before_seconds=600)], False)
 
+    def test_newer_impossible_exchange_clock_revokes(self):
+        # Event claims to occur 1s AFTER the quote physically arrived.
+        # The last-arrival quote must revoke the older executable book.
+        self.check(self.base() + [quote(A, 5, event_before_seconds=4)], False)
+
+    def test_equal_arrival_impossible_exchange_clock_revokes(self):
+        self.check(self.base() + [quote(A, 20, event_before_seconds=19)], False)
+
     def test_newer_old_arrival_revokes(self):
         self.check(self.base() + [quote(A, 10, event_before_seconds=360)], False)
 
