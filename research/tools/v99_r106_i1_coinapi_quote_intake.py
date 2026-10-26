@@ -22,7 +22,7 @@ COLUMNS = ("id_site_coinapi","time_exchange","time_coinapi",
 SYMBOL = re.compile(r"^(BTC|ETH)-[0-9]{1,2}[A-Z]{3}[0-9]{2}-[0-9]+-P$")
 SITE_UUID = re.compile(r"^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$")
 SOURCE_KEY = re.compile(
-    r"^T-QUOTES/D-(\\d{8})/E-DERIBIT/IDDI-[^/+]+\\+SC-[^/+]+\\+S-([^/]+)\\.csv\\.gz$"
+    r"^T-QUOTES/D-(\d{8})/E-DERIBIT/IDDI-[^/+]+\+SC-[^/+]+\+S-([^/]+)\.csv\.gz$"
 )
 TRAIN_START = datetime(2021, 12, 9, tzinfo=timezone.utc)
 TRAIN_END = datetime(2023, 10, 1, tzinfo=timezone.utc)
