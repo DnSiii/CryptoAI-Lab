@@ -29,6 +29,8 @@ jobs:
       - name: Assert cost protocol committed before implementation
         run: |
           git cat-file -e f38116b41e273fbc6efc8343bc706449ae98b24c^{commit}
+          git cat-file -e 1c086e9d232fb58413e8715ceb8de92e8567dd9f^{commit}
+          test -s research/V99_R106_I1_POSTENTRY_SCENARIO_SOLVENCY_PREREG_20261026.md
           test -s research/V99_R106_I1_SCENARIO_COST_BINDING_PREREG_20261026.md
       - name: Independent Decimal severe and supersevere fee/slippage checks
         run: python -m unittest -v research.tests.test_v99_r106_i1_cost_bound_execution
