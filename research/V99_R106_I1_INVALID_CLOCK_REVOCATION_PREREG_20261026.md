@@ -1,0 +1,12 @@
+# V99 I1 — preregister invalid exchange-clock quote revocation (2026-10-26)
+
+## Precommitted defect and fixed rule
+The partial original-source I1 join and separate independent oracle currently drop rows with `exchange_timestamp > local_arrival_timestamp` before choosing the most recent predecision quote for a contract. A physically newer, anomalous exchange-clock update can therefore leave an older valid book apparently executable. This is a concrete false-positive risk, not evidence of alpha. The full original-archive intake already rejects anomalous clock order and is not changed.
+
+For each exact option symbol, among rows with **physical local arrival strictly before** the decision, select the latest physical arrival (CSV capture order breaks ties), **including rows with impossible event-after-arrival clocks**. Only after selecting that last update require `event <= arrival`, both event and arrival no older than 300 seconds, strictly predecision arrival, uncrossed positive-size BBO and distinct synchronized put strikes. A physically newer invalid-clock update revokes older quotes. Future physical arrivals must not revoke. The original manifest SHA and row counts must remain intact; do not forge or filter out the anomalous rows during parsing. Independent oracle must implement this rule separately.
+
+## Required tests and gates
+Synthetic two-leg adversarial regression: two initially valid BTC puts are source-ready; a later physically arrived put update with exchange event timestamp **after its local arrival** must revoke readiness in both primary and independent oracle. A future-arrival update must not revoke; existing stale-event, crossed, same-arrival, one-strike cases must remain valid. Actual original 4,000-row Deribit sample and original OKX/DVOL 182 decisions must be rerun through GitHub CI and independently compared, with no claim of execution, economic TRAIN or ROI. If source readiness changes, report actual values and hold.
+
+## Hard boundaries
+Do not touch Frozen, champion, paper/results, sealed validation [2023-10-01,2024-01-18), final holdout >=2024-01-18, dashboard PnL or orders. This is SOURCE_ONLY/HOLD and **NO PROMOTION**, irrespective of CI success. Licensed original BTC/ETH 2021-12..2023-09 complete entry/mark/exit options tape and native fee/margin/liquidation/funding remain externally absent.
