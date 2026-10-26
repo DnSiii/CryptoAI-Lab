@@ -40,6 +40,14 @@ def audit(trace, observed):
         last_clock = t
         name = event.get("name")
         if typ == "open":
+            if positions:
+                if set(marks) != set(positions) or any(
+                        mark_t != t for _, mark_t, _ in marks.values()):
+                    raise AssertionError("PRETRADE_REFERENCE_MARK_REQUIRED")
+                nav = cash-sum((m[0] for m in marks.values()), Decimal(0))
+                maintenance = sum((p[4] for p in positions.values()), Decimal(0))
+                if nav < maintenance:
+                    raise AssertionError("PRETRADE_REFERENCE_MAINTENANCE_BREACH")
             if name in positions or name in settled:
                 raise AssertionError("DUPLICATE_REFERENCE_POSITION")
             qty, high, low = d(event["qty"]), d(event["high"]), d(event["low"])
