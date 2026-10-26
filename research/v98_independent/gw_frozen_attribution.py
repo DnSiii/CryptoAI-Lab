@@ -22,8 +22,8 @@ def run(path):
     return result
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.add_argwment("--input",required=True)
-    p.add_argwment("--output",required=True)
+    p.add_argument("--input",required=True)
+    p.add_argument("--output",required=True)
     a=p.parse_args()
     with open(a.output,"w",encoding="utf-8") as f:
         json.dump(run(a.input),f,sort_keys=True,indent=2,allow_nan=False)
