@@ -1,0 +1,104 @@
+name: V99 I1 original causal signal x options source integrated veto (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_original_signal_option_join.py
+      - research/verification/independent_v99_r106_i1_original_signal_option_oracle.py
+      - .github/workflows/v99-r106-i1-original-signal-option-join.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-integrated-source-veto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Assert ex ante preregistration predates both source-join implementations
+        run: |
+          git cat-file -e e81bd46c727490a431fbeb91362f89e6c9d403df^{commit}
+          test -s research/V99_R106_I1_ORIGINAL_SIGNAL_TO_OPTIONS_SOURCE_JOIN_PREREG_20261026.md
+      - name: Restore actual original causal signal receipt, not synthetic
+        run: |
+          gh run download 40326586848 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-causal-signal-40326586848 \
+            --dir research_evidence/i1_original_causal
+      - name: Restore original spot and DVOL receipt bytes for independent causal replay
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/i1_original_okx
+          gh run download 40072202459 --repo "$GITHUB_REPOSITORY" \
+            --name v99-deribit-dvol-original-pit-train \
+            --dir research_evidence/i1_original_dvol
+      - name: Restore actual partial Deribit original option quote bytes, not synthetic
+        run: |
+          gh run download 40079775009 --repo "$GITHUB_REPOSITORY" \
+            --name v99-tardis-partial-quote-samples-not-train \
+            --dir research_evidence/i1_original_partial
+      - name: Independently recompute and compare all 182 causal signals from original spot and DVOL
+        run: |
+          python -m research.tools.v99_r106_i1_causal_variance_signal \
+            research_evidence/i1_original_okx research_evidence/i1_original_dvol \
+            research_evidence/i1_recomputed_signal
+          python -m research.verification.independent_v99_r106_i1_causal_signal_oracle \
+            research_evidence/i1_original_okx research_evidence/i1_original_dvol \
+            research_evidence/i1_recomputed_signal/i1_causal_signal.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          archived=json.loads(Path('research_evidence/i1_original_causal/i1_causal_signal.json').read_text())
+          current=json.loads(Path('research_evidence/i1_recomputed_signal/i1_causal_signal.json').read_text())
+          assert archived==current, 'ARCHIVED_ORIGINAL_SIGNAL_NOT_REPRODUCIBLE'
+          assert archived['source_original'] and archived['observations']==182
+          print('182/182 ORIGINAL archived causal signals independently reproduced; NO PNL')
+          PY
+      - name: Actually join original 182 causal signals with original 4,000 partial option quotes
+        run: |
+          python -m research.tools.v99_r106_i1_original_signal_option_join \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            research_evidence/i1_original_partial \
+            research_evidence/i1_original_join/i1_signal_option_join.json
+      - name: Independently reparse original option bytes and falsify forged intersection and source SHA
+        run: |
+          python -m research.verification.independent_v99_r106_i1_original_signal_option_oracle \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            research_evidence/i1_original_partial \
+            research_evidence/i1_original_join/i1_signal_option_join.json
+      - name: Enforce source-only blocked result, no ROI or promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/i1_original_join/i1_signal_option_join.json').read_text())
+          assert r['status']=='BLOCKED_PARTIAL_ORIGINAL_OPTION_ARCHIVE'
+          assert r['original_signal_observations']==182
+          assert r['positive_original_causal_signals']==132
+          assert r['original_source_ready_asset_weeks']==0
+          assert r['signal_source_intersections']==0
+          assert r['certified_complete_option_lifecycles']==0
+          assert not any(r[k] for k in ('economic_train_executed',
+              'historical_option_fills_certified','native_fee_tier_authenticated',
+              'native_margin_authenticated','validation_opened','holdout_opened',
+              'orders_enabled','promotion_authorized'))
+          print('ACTUAL ORIGINAL INPUTS: 132 causal positive / 0 source pairs / 0 executable lifecycles')
+          print('SOURCE_ONLY/HOLD — NO PROMOTION / NO ROI / NO ORDERS')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-signal-option-join-${{ github.run_id }}
+          path: research_evidence/i1_original_join/
+          retention-days: 60
+          if-no-files-found: warn
