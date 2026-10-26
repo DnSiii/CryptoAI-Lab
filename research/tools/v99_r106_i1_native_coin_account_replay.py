@@ -309,3 +309,61 @@ def settle(w: Wallet, name: str, at_ms: int, original_delivery_index_usd,
         except ValueError as exc:
             raise ValueError("POSTSETTLEMENT_SURVIVOR_MAINTENANCE_VETO") from exc
     return out
+
+
+def settle_batch(w: Wallet, names, at_ms: int, original_delivery_index_usd,
+                 delivery_fees_coin: dict) -> Wallet:
+    """Atomically settle ALL positions of one expiry, keeping later risk marked.
+
+    Research-only coin accounting. Original delivery index and each original
+    fee must be provided by an authenticated upstream source; this function
+    does not certify their provenance or simulate exchange liquidation.
+    """
+    w.check()
+    if (type(at_ms) is not int or not START <= at_ms < END
+            or at_ms < w.last_ms or not isinstance(names, (list, tuple))
+            or not names or not all(isinstance(n, str) for n in names)
+            or len(set(names)) != len(names)
+            or not isinstance(delivery_fees_coin, dict)):
+        raise ValueError("INVALID_ATOMIC_SETTLEMENT_BATCH")
+    index = D(original_delivery_index_usd)
+    if index <= 0:
+        raise ValueError("MISSING_OR_INVALID_NATIVE_DELIVERY_TERMS")
+    due_positions = {p.name: p for p in w.positions if p.expiry_ms == at_ms}
+    if not due_positions or set(names) != set(due_positions):
+        raise ValueError("INCOMPLETE_OR_WRONG_EXPIRY_BATCH")
+    if any(p.expiry_ms < at_ms for p in w.positions):
+        raise ValueError("UNSETTLED_EARLIER_EXPIRY")
+    if set(delivery_fees_coin) != set(names):
+        raise ValueError("MISSING_OR_EXTRA_DELIVERY_FEE")
+    fees = {name: D(delivery_fees_coin[name]) for name in names}
+    if any(fee < 0 for fee in fees.values()):
+        raise ValueError("NEGATIVE_NATIVE_DELIVERY_FEE")
+    survivors = tuple(p for p in w.positions if p.expiry_ms > at_ms)
+    if survivors:
+        marks = {name: (liability, t, mark_index)
+                 for name, liability, t, mark_index in w.marks}
+        if any(p.name not in marks or marks[p.name][1] != at_ms
+               or D(marks[p.name][2]) != index for p in survivors):
+            raise ValueError("SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED")
+    debits = sum((
+        p.qty*(max(p.high-index, D(0))-max(p.low-index, D(0)))/index
+        + fees[name] for name in names for p in (due_positions[name],)
+    ), D(0))
+    new_cash = D(w.cash_coin)-debits
+    new_reserve = D(w.reserved_coin)-sum(
+        (due_positions[name].initial_margin_coin for name in names), D(0))
+    if new_cash < 0 or new_cash < new_reserve:
+        raise ValueError("INSOLVENT_ATOMIC_NATIVE_SETTLEMENT")
+    out = replace(
+        w, cash_coin=new_cash, reserved_coin=new_reserve,
+        positions=survivors,
+        marks=tuple(m for m in w.marks if m[0] not in due_positions),
+        settled=w.settled+tuple(names), last_ms=at_ms)
+    out.check()
+    if survivors:
+        try:
+            account_nav(out, at_ms)
+        except ValueError as exc:
+            raise ValueError("POSTBATCH_SURVIVOR_MAINTENANCE_VETO") from exc
+    return out
