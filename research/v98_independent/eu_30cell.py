@@ -93,7 +93,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                     target=governor.trade(cash,old,c[t-1],o[t],down,up,bound,
                                           q[t-1],exitq,fee_mode=fee,
                                           funding_order=order)
-                    target=np.where(abs((targeu-old)*o[t])<1e-7,old,target)
+                    target=np.where(abs((target-old)*o[t])<1e-7,old,target)
                     settled=settle_hour(cash,old,c[t-1],o[t],h[t],l[t],c[t],
                                         target,r[t],e[t],ml[t],mh[t],
                                         fee_mode=fee,funding_order=order)
