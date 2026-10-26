@@ -1,0 +1,13 @@
+# V99 I1 — ex-ante native-coin severe/supersevere cost binding (2026-10-26, 14:xx BRT)
+
+**SOURCE_ONLY/HOLD — NO PROMOTION.** This preregistration precedes any implementation. The existing native coin wallet is a research accounting component and its severe/supersevere labels do not by themselves impose any fee/slippage minimum: callers can pass zero costs. A future integrated economic runner must not be allowed to label an optimistic zero-friction journal "supersevere".
+
+## Fixed cost rule (no alpha or parameter search)
+
+Use the *already fixed* scenario rates from `research/tools/v99_r106_i1_defined_risk_options_ledger.py`: severe fee=0.0012 and slip=0.0012 per option leg and native-lot-equivalent unit; supersevere fee=0.0024 and slip=0.0024. For a two-leg vertical of quantity q, modeled entry fee floor=2*q*fee_rate coin, modeled entry slippage floor=2*q*slip_rate coin; identical floors apply to a two-leg mark-to-exit. These are **stress-model assumptions**, NOT authenticated Deribit account fees, not fills, and not evidence of tradability. Explicitly reject negative/nonfinite/boolean quantities or charges, unknown scenarios, fee/slippage underpayment, and a scenario name inconsistent with the wallet. A source-proven original fee can exceed the floor, never reduce it. Never infer a historical fee tier from a synthetic fixture.
+
+Create a fail-closed, separately callable cost binding layer around the existing `open_vertical` and `mark_to_exit` coin wallet APIs. Non-fixture execution MUST have an externally independently verified native fee receipt and quote/lot/margin provenance; until then it must refuse to produce historical economic TRAIN. Synthetic fixture tests may exercise the same modeled charge arithmetic but MUST report no economic TRAIN, no ROI and no promotion. A separate Decimal-based verifier must reconstruct both scenario floors without importing the primary helper and reject a forged zero-fee scenario. The underlying research-only wallet API is left unchanged for archived synthetic oracle fixtures, not declared production-ready.
+
+## Acceptance and immutable boundaries
+
+Run the actual GitHub CI for both scenarios with adversarial fee suppression and independent reconstruction. Success proves only the cost-bound integration component. Do not read validation [2023-10-01,2024-01-18), final holdout >=2024-01-18, change V16/V99 Frozen, paper-results, champion, dashboard PnL, or send orders. Current historical source readiness remains 0/182 synchronized option asset-weeks, and historical fee/margin/exit provenance remains missing. **NO PROMOTION.**
