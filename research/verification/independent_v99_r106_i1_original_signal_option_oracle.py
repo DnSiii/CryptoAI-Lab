@@ -59,8 +59,9 @@ def original_quotes(root: Path):
                     raise AssertionError("BAD_ORIGINAL_CLOCK") from exc
                 if not low <= arrival < high:
                     raise AssertionError("FUTURE_ORIGINAL_DAY_CLOCK")
-                if event <= arrival:
-                    records.append((arrival,event,row))
+                # Do not discard impossible event clocks before last-arrival
+                # selection: newer anomalous updates revoke older books.
+                records.append((arrival,event,row))
             if n != day["rows_partial"] or n > 2000:
                 raise AssertionError("ORIGINAL_SAMPLE_COUNT_CHANGED")
             total += n
@@ -92,7 +93,7 @@ def _ready(records, ms, asset):
     for arrival,event,row in records:
         # Last predecision physical update wins, even when its event is stale.
         # Filtering freshness before choosing last would resurrect revoked books.
-        if not event <= arrival < t:
+        if not arrival < t:
             continue
         # Last physical update wins, including invalid quotes.
         name = row["symbol"]
