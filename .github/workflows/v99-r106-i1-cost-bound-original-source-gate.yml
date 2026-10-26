@@ -32,7 +32,10 @@ jobs:
           git cat-file -e 1c086e9d232fb58413e8715ceb8de92e8567dd9f^{commit}
           test -s research/V99_R106_I1_POSTENTRY_SCENARIO_SOLVENCY_PREREG_20261026.md
           test -s research/V99_R106_I1_SCENARIO_COST_BINDING_PREREG_20261026.md
-      - name: Independent Decimal severe and supersevere fee/slippage checks
+          git merge-base --is-ancestor 1a96515833ad91b734eff8b081790953ae2c023d 08cf10c1dbc666df4ca25a3d6cde56ff303c6b0e
+          git merge-base --is-ancestor 1a96515833ad91b734eff8b081790953ae2c023d HEAD
+          test -s research/V99_R106_I1_SETTLEMENT_SCENARIO_COST_PREREG_20261026.md
+      - name: Independent Decimal entry/mark/atomic-expiry scenario cost checks
         run: python -m unittest -v research.tests.test_v99_r106_i1_cost_bound_execution
       - name: Restore original source receipts (not synthetic economic TRAIN)
         run: |
