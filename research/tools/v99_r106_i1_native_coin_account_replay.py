@@ -281,6 +281,18 @@ def settle(w: Wallet, name: str, at_ms: int, original_delivery_index_usd,
     index, fee = D(original_delivery_index_usd), D(delivery_fee_coin)
     if index <= 0 or fee < 0:
         raise ValueError("MISSING_OR_INVALID_NATIVE_DELIVERY_TERMS")
+    later = [x for x in w.positions if x.name != name and x.expiry_ms > at_ms]
+    same_expiry = [x for x in w.positions if x.name != name and x.expiry_ms == at_ms]
+    # Settling one expiry must never roll forward stale collateral marks
+    # for later-expiring open spreads. Mixed same/later expiries require
+    # an atomic same-expiry batch, not a partial sequential settlement.
+    if later:
+        if same_expiry:
+            raise ValueError("MIXED_EXPIRY_BATCH_REQUIRED")
+        by_name = {m[0]: m for m in w.marks}
+        if any(x.name not in by_name or by_name[x.name][2] != at_ms
+               or D(by_name[x.name][3]) != index for x in later):
+            raise ValueError("SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED")
     due = p.qty*(max(p.high-index, D(0))-max(p.low-index, D(0)))/index
     cash = D(w.cash_coin)-due-fee
     if cash < 0:
@@ -291,4 +303,9 @@ def settle(w: Wallet, name: str, at_ms: int, original_delivery_index_usd,
                   marks=tuple(m for m in w.marks if m[0] != name),
                   settled=w.settled+(name,), last_ms=at_ms)
     out.check()
+    if later:
+        try:
+            account_nav(out, at_ms)
+        except ValueError as exc:
+            raise ValueError("POSTSETTLEMENT_SURVIVOR_MAINTENANCE_VETO") from exc
     return out
