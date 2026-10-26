@@ -5,6 +5,7 @@ import io
 from contextlib import redirect_stdout
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from research.tools.v99_r106_i1_coinapi_quote_intake import inspect, microseconds, main
 
@@ -22,6 +23,41 @@ class TestCoinAPIIntake(unittest.TestCase):
             p=Path(tmp)/"source.csv.gz"
             p.write_bytes(gzip.compress((HEADER+rows).encode()))
             return inspect(p, venue=venue, symbol=symbol, licensed=licensed, source_key=source_key)
+    def test_large_original_is_streamed_and_original_hash_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"large.csv.gz"
+            payload = (HEADER + ROW*25000).encode("utf-8")
+            compressed = gzip.compress(payload)
+            path.write_bytes(compressed)
+            # Forbid the old memory-amplifying whole-file operations.
+            with patch.object(Path, "read_bytes", side_effect=AssertionError("whole-file read")):
+                with patch("gzip.decompress", side_effect=AssertionError("whole-file decompress")):
+                    result = inspect(path, venue="DERIBIT",
+                                     symbol="BTC-30DEC22-15000-P",
+                                     licensed=True, source_key=KEY)
+            self.assertEqual(result["rows"], 25000)
+            self.assertEqual(result["original_sha256"], hashlib.sha256(compressed).hexdigest())
+            self.assertEqual(result["original_bytes"], len(compressed))
+            self.assertFalse(result["economic_train_executed"])
+
+    def test_truncated_original_stream_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"truncated.csv.gz"
+            path.write_bytes(gzip.compress((HEADER+ROW).encode())[:-4])
+            with self.assertRaisesRegex(ValueError, "INVALID_ORIGINAL_GZIP"):
+                inspect(path, venue="DERIBIT", symbol="BTC-30DEC22-15000-P",
+                        licensed=True, source_key=KEY)
+
+    def test_changed_original_during_stream_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"changed.csv.gz"
+            path.write_bytes(gzip.compress((HEADER+ROW).encode()))
+            with patch("research.tools.v99_r106_i1_coinapi_quote_intake._compressed_digest",
+                       side_effect=[("a"*64, 123), ("b"*64, 123)]):
+                with self.assertRaisesRegex(ValueError, "ORIGINAL_FILE_CHANGED_DURING_INTAKE"):
+                    inspect(path, venue="DERIBIT", symbol="BTC-30DEC22-15000-P",
+                            licensed=True, source_key=KEY)
+
     def test_qualified_format_not_certification(self):
         r=self.case(ROW)
         self.assertEqual(r["rows"],1)
