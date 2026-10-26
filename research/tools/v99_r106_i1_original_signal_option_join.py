@@ -35,8 +35,8 @@ def original_rows(root: Path):
                 if row["exchange"] != "deribit":
                     raise ValueError("WRONG_ORIGINAL_OPTION_VENUE")
                 arrival, event = int(row["local_timestamp"]), int(row["timestamp"])
-                if arrival < event:
-                    continue
+                # Preserve anomalous exchange clocks: the last physically arrived
+                # update must revoke older quotes, even if event > arrival.
                 raw.append((arrival, event, row))
     return raw
 
@@ -56,7 +56,7 @@ def source_ready(raw, decision_ms: int, asset: str):
     for arrival, event, row in raw:
         # Select the physically latest predecision update BEFORE freshness checks.
         # A newer stale-event quote must revoke an older fresh quote.
-        if not (event <= arrival < t):
+        if not (arrival < t):
             continue
         p = parse_instrument(row["symbol"])
         if p is None or p[0] != asset:
