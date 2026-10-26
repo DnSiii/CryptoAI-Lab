@@ -5,6 +5,7 @@ on:
     paths:
       - research/tools/v99_r106_i1_original_signal_option_join.py
       - research/verification/independent_v99_r106_i1_original_signal_option_oracle.py
+      - research/tests/test_v99_r106_i1_stale_replacement.py
       - .github/workflows/v99-r106-i1-original-signal-option-join.yml
   workflow_dispatch:
 permissions:
@@ -27,8 +28,11 @@ jobs:
           python-version: '3.12'
       - name: Assert ex ante preregistration predates both source-join implementations
         run: |
-          git cat-file -e e81bd46c727490a431fbeb91362f89e6c9d403df^{commit}
+          git cat-file -e 1a943d052fda0cfc0c0ed08e53aafcc2bc1e9490^{commit}
           test -s research/V99_R106_I1_ORIGINAL_SIGNAL_TO_OPTIONS_SOURCE_JOIN_PREREG_20261026.md
+          test -s research/V99_R106_I1_STALE_REPLACEMENT_FAIL_CLOSED_PREREG_20261026.md
+      - name: Run preregistered adversarial last-arrival revocation tests against primary and independent oracle
+        run: python -m unittest -v research.tests.test_v99_r106_i1_stale_replacement
       - name: Restore actual original causal signal receipt, not synthetic
         run: |
           gh run download 40326586848 --repo "$GITHUB_REPOSITORY" \
