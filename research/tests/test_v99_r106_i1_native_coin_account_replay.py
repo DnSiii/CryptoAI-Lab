@@ -129,11 +129,10 @@ class NativeCoinAccountTests(unittest.TestCase):
         w = start_wallet("BTC", "severe", "100")
         s, l = quote("50000",".08",".09",OPEN1), quote("45000",".04",".05",OPEN1)
         w = open_vertical(w,"p",s,l,OPEN1,"1",".001",".001","4","2")
-        w = mark_to_exit(w,"p",quote("50000",".08",".09",MARK),
+        with self.assertRaisesRegex(ValueError,"UNSYNCHRONIZED"):
+            mark_to_exit(w,"p",quote("50000",".08",".09",MARK),
                          quote("45000",".04",".05",MARK,index="47000"),
                          MARK,".001",".001")
-        # Mark's two legs must have the exact same original as-of index.
-        # The mismatch is rejected before NAV is computed.
 
     def test_rejects_cross_asset_coin_netted_as_collateral(self):
         w = start_wallet("BTC","severe","100")
