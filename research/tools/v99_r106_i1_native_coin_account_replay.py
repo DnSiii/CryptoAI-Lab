@@ -189,6 +189,20 @@ def open_vertical(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
     reserve = D(w.reserved_coin)+initial
     if cash < reserve:
         raise ValueError("REUSED_OR_INSUFFICIENT_COIN_COLLATERAL")
+    # Existing marks and the new entry must reference one exact as-of
+    # underlying index; different clocks/indices cannot be netted as NAV.
+    if w.positions and any(D(m[3]) != D(short.index_usd) for m in w.marks):
+        raise ValueError("POSTENTRY_UNBOUND_UNDERLYING_INDEX")
+    # A conservative minimum liability is already observable from the
+    # SAME predecision two-sided book. It excludes unknown exit costs, so
+    # passing this check is NOT a certified posttrade solvency statement.
+    minimum_exit_liability = max(
+        Decimal(0), qty*(D(short.ask_coin)-D(long.bid_coin)))
+    existing_liabilities = sum((D(m[1]) for m in w.marks), Decimal(0))
+    existing_maintenance = sum(
+        (D(p.maintenance_margin_coin) for p in w.positions), Decimal(0))
+    if cash-existing_liabilities-minimum_exit_liability < existing_maintenance+maintenance:
+        raise ValueError("POSTENTRY_MAINTENANCE_LOWER_BOUND_BREACH")
     p = Position(name, short.symbol, long.symbol, short.expiry_ms,
                  D(short.strike_usd), D(long.strike_usd), qty,
                  initial, maintenance)
