@@ -69,9 +69,9 @@ def run(root):
                 c.get("external_benchmarks_used") is not False or
                 c.get("trading_authorized") is not False):
                 errors.append(("FIREWALL",path,key))
-            if not near(c["final_nav"],c["initial_nav"]*(1+c["neu_total_return"])):
+            if not near(c["final_nav"],c["initial_nav"]*(1+c["net_total_return"])):
                 errors.append(("NAV",path,key))
-            if not near(c["neu_log_growth"],math.log(c["final_nav"]/c["initial_nav"])):
+            if not near(c["net_log_growth"],math.log(c["final_nav"]/c["initial_nav"])):
                 errors.append(("LOG_GROWTH",path,key))
             if not near(c["two_year_cagr"],(c["final_nav"]/c["initial_nav"])**(365.25/731)-1):
                 errors.append(("CAGR",path,key))
@@ -88,7 +88,7 @@ def run(root):
             key=("immediate",fee,order)
             c=full.get(key,{})
             growth["|".join(key)]=bool(c.get("passed") and
-                all(c["annual"][yr]["neu_log_growth"]>0 for yr in ("2023","2024")))
+                all(c["annual"][yr]["net_log_growth"]>0 for yr in ("2023","2024")))
     for book,path in (("Opportunity","EU_minus_opportunity"),
                       ("RelativeValue","EU_minus_RV"),
                       ("StressRecovery","EU_minus_stress")):
@@ -97,8 +97,8 @@ def run(root):
             other=reps.get(path,{}).get(key,{})
             if not c.get("passed") or not other.get("passed"):continue
             marginal[book]["|".join(key)]={yr:(
-                c["annual"][yr]["neu_log_growth"]-
-                other["annual"][yr]["neu_log_growth"])
+                c["annual"][yr]["net_log_growth"]-
+                other["annual"][yr]["net_log_growth"])
                 for yr in ("2023","2024")}
     marginal_gates={book:all(
         marginal[book].get(key,{}).get(yr,float("-inf"))>1e-9
@@ -108,13 +108,13 @@ def run(root):
         full[("immediate",fee,order)]["two_year_cagr"]>(.50 if fee=="base" else .30)
         for fee in ("base","severe") for order in ORDERS)
     severe_de=all(full.get(("immediate","severe",order),{}).get("passed") and full[("immediate","severe",order)]["max_drawdown"]<.45 for order in ORDERS)
-    turnoveu_ok=all(
+    turnover_ok=all(
         full.get(("immediate",fee,order),{}).get("passed") and
         full[("immediate",fee,order)]["turnover"]<=600000.
         for fee in ("base","severe") for order in ORDERS)
     if errors:decision="BLOCK_EU_AUDIT_OR_REPRODUCIBILITY"
     elif survival!=30:decision="REJECT_EU_PHYSICAL_SURVIVAL"
-    elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_de or not turnoveu_ok:
+    elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_de or not turnover_ok:
         decision="REJECT_EU_HISTORICAL_GROWTH_OR_MARGINAL"
     else:decision="PASS_EU_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"EU","historical_training_only":True,
@@ -122,8 +122,8 @@ def run(root):
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
             "cross_os_reproducible":not errors and len(reps)==5,
             "cells_expected":30,"cells_survived":survival,
-            "growth_gateu_10k":growth,"high_growth_gate_10k":high_growth,"severe_drawdown_gate_10k":severe_de,"turnoveu_gate_10k":turnoveu_ok,
-            "marginal_log_growth_10k":marginal,"marginal_gateu_10k":marginal_gates,
+            "growth_gates_10k":growth,"high_growth_gate_10k":high_growth,"severe_drawdown_gate_10k":severe_de,"turnover_gate_10k":turnover_ok,
+            "marginal_log_growth_10k":marginal,"marginal_gates_10k":marginal_gates,
             "full_10k_base":full.get(("immediate","base","carried_before_fill")),
             "full_10k_severe":full.get(("immediate","severe","carried_before_fill")),
             "decision":decision}
@@ -139,9 +139,9 @@ if __name__=="__main__":
         x=out[key]
         if x and x.get("passed"):
             print("EU_FULL",key,"CAGR",x["two_year_cagr"],
-                  "2023",x["annual"]["2023"]["neu_return"],
-                  "2024",x["annual"]["2024"]["neu_return"],
+                  "2023",x["annual"]["2023"]["net_return"],
+                  "2024",x["annual"]["2024"]["net_return"],
                   "drawdown",x["max_drawdown"],"funding",x["funding"])
-    print("EU_GROWTH_GATES",out["growth_gateu_10k"])
-    print("EU_MARGINAL_GATES",out["marginal_gateu_10k"])
+    print("EU_GROWTH_GATES",out["growth_gates_10k"])
+    print("EU_MARGINAL_GATES",out["marginal_gates_10k"])
     raise SystemExit(2 if out["errors"] else 0)
