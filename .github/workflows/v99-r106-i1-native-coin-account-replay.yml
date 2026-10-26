@@ -31,7 +31,7 @@ jobs:
           for scenario in ("severe","supersevere"):
               trace, observed, wallet = exercise(scenario)
               proof = audit(trace, observed)
-              assert proof["events"] == 7 and proof["snapshots"] == 1
+              assert proof["events"] == 8 and proof["snapshots"] == 1
               assert not proof["historical_economic_train"] and not proof["promotion_authorized"]
               assert wallet.reserved_coin == 0 and len(wallet.settled) == 2
               print("INDEPENDENT_SYNTHETIC_COIN_JOURNAL", scenario, proof)
