@@ -63,6 +63,20 @@ def audit(trace, observed):
             reserve += margin
             if cash < reserve:
                 raise AssertionError("REUSED_REFERENCE_COIN")
+            entry_index = d(event["index_usd"])
+            if entry_index <= 0:
+                raise AssertionError("INVALID_REFERENCE_ENTRY_INDEX")
+            if positions and any(old_idx != entry_index for _, _, old_idx in marks.values()):
+                raise AssertionError("POSTENTRY_REFERENCE_UNBOUND_INDEX")
+            # Independent lower-bound reconstruction: immediate two-sided
+            # closing cost from the ORIGINAL entry book, with zero assumed
+            # exit fees. This is a necessary, never sufficient, solvency gate.
+            immediate_due = max(
+                Decimal(0), qty*(d(event["short_ask_coin"])-d(event["long_bid_coin"])))
+            outstanding_due = sum((m[0] for m in marks.values()), Decimal(0))
+            prior_maintenance = sum((p[4] for p in positions.values()), Decimal(0))
+            if cash-outstanding_due-immediate_due < prior_maintenance+maintenance:
+                raise AssertionError("POSTENTRY_REFERENCE_MAINTENANCE_BREACH")
             positions[name] = (qty, high, low, margin, maintenance, int(event["expiry_ms"]))
             marks.pop(name, None)
         elif typ == "mark":
