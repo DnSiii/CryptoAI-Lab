@@ -233,5 +233,68 @@ class NativeCoinAccountTests(unittest.TestCase):
             open_vertical(w,"p",s,l,OPEN1,"1",".001",".001","4","2")
 
 
+    def test_cross_expiry_settlement_requires_fresh_survivor_mark_and_index(self):
+        expiry2 = ms("2022-02-11T08:00:00+00:00")
+        def later(strike, bid, ask, at, index="46000"):
+            return Quote("BTC", f"BTC-11FEB22-{strike}-P", expiry2, D(strike),
+                         D(bid), D(ask), D("10"), D("10"),
+                         at-3000, at-2000, D(index))
+        w = start_wallet("BTC", "severe", "100")
+        w = open_vertical(w, "p1", quote("50000",".08",".09",OPEN1),
+                          quote("45000",".04",".05",OPEN1), OPEN1,
+                          "1",".001",".001","4","2")
+        w = mark_to_exit(w, "p1", quote("50000",".08",".09",OPEN2),
+                         quote("45000",".04",".05",OPEN2), OPEN2,
+                         ".001",".001")
+        w = open_vertical(w, "p2", later("48000",".09",".10",OPEN2),
+                          later("43000",".04",".05",OPEN2), OPEN2,
+                          "1",".001",".001","4","2")
+        with self.assertRaisesRegex(ValueError, "SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
+            settle(w, "p1", EXPIRY, "46000", ".0001")
+        wrong = mark_to_exit(w, "p2", later("48000",".09",".10",EXPIRY,"47000"),
+                             later("43000",".04",".05",EXPIRY,"47000"),
+                             EXPIRY, ".001", ".001")
+        with self.assertRaisesRegex(ValueError, "SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
+            settle(wrong, "p1", EXPIRY, "46000", ".0001")
+        bad = mark_to_exit(w, "p2", later("48000",".09",".10",EXPIRY),
+                           later("43000",".04",".05",EXPIRY), EXPIRY,
+                           "110", "0")
+        with self.assertRaisesRegex(ValueError, "POSTSETTLEMENT_SURVIVOR_MAINTENANCE_VETO"):
+            settle(bad, "p1", EXPIRY, "46000", ".0001")
+        good = mark_to_exit(w, "p2", later("48000",".09",".10",EXPIRY),
+                            later("43000",".04",".05",EXPIRY), EXPIRY,
+                            ".001", ".001")
+        out = settle(good, "p1", EXPIRY, "46000", ".0001")
+        self.assertEqual([p.name for p in out.positions], ["p2"])
+        self.assertGreater(D(account_nav(out, EXPIRY)["nav_coin"]), D("2"))
+        final = settle(out, "p2", expiry2, "46000", ".0001")
+        self.assertEqual(final.settled, ("p1", "p2"))
+
+    def test_independent_cross_expiry_settlement_oracle_falsification(self):
+        trace, observed, _ = exercise()
+        expiry2 = ms("2022-02-11T08:00:00+00:00")
+        p2open = next(e for e in trace["events"]
+                      if e["kind"] == "open" and e["name"] == "p2")
+        p2open["expiry_ms"] = expiry2
+        p2settle = next(e for e in trace["events"]
+                        if e["kind"] == "settle" and e["name"] == "p2")
+        p2settle["at_ms"] = expiry2
+        fresh = dict(kind="mark", name="p2", at_ms=EXPIRY,
+                     short_ask_coin=".10", long_bid_coin=".04",
+                     exit_fees_coin=".001", exit_slippage_coin=".001",
+                     index_usd="46000")
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
+            audit(trace, observed)
+        trace["events"].insert(-2, fresh)
+        self.assertEqual(audit(trace, observed)["independent_coin_account_replay"], "MATCH")
+        fresh["index_usd"] = "47000"
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
+            audit(trace, observed)
+        fresh["index_usd"] = "46000"
+        fresh["exit_fees_coin"] = "110"
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_POSTSETTLEMENT_MAINTENANCE_BREACH"):
+            audit(trace, observed)
+
+
 if __name__ == "__main__":
     unittest.main()
