@@ -1,0 +1,119 @@
+name: V99 I1 full TRAIN 661-day option lifecycle tape gate (NO ORDERS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_lifecycle_daily_tape.py
+      - research/verification/independent_v99_r106_i1_lifecycle_daily_oracle.py
+      - .github/workflows/v99-r106-i1-lifecycle-daily-tape.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lifecycle-original-source-contract-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify original preregistration commit precedes code
+        run: |
+          git cat-file -e 4eaf504493ebd1d311746ca8a5d11857ea86f723^{commit}
+          test -s research/V99_R106_I1_FULL_LIFECYCLE_DAILY_TAPE_PREREG_20261026.md
+      - name: Exercise 661-day streaming lifecycle contract with explicit SYNTHETIC data
+        run: |
+          python - <<'PY'
+          import csv, gzip, hashlib, io, json
+          from datetime import date, datetime, timedelta, timezone
+          from pathlib import Path
+          from research.tools.v99_r106_i1_lifecycle_daily_tape import audit, main
+          from research.verification.independent_v99_r106_i1_lifecycle_daily_oracle import verify, main as oracle
+          root=Path('research_evidence/i1_synthetic_lifecycle')
+          root.mkdir(parents=True, exist_ok=True)
+          start=date(2021,12,9)
+          headers=['exchange','symbol','timestamp','local_timestamp',
+                   'bid_price','ask_price','bid_amount','ask_amount']
+          days=[]
+          for i in range(661):
+              day=start+timedelta(days=i)
+              expiry=day+timedelta(days=28)
+              epoch=int(datetime(day.year,day.month,day.day,tzinfo=timezone.utc).timestamp()*1_000_000)
+              rows=[]
+              for k,(asset,strike) in enumerate([('BTC',30000),('ETH',2000)]):
+                  t=epoch+(k+1)*1_000_000
+                  rows.append(['deribit',f"{asset}-{expiry.strftime('%d%b%y').upper()}-{strike}-P",
+                               str(t),str(t),'0.02','0.025','2','2'])
+              buff=io.StringIO(newline='')
+              writer=csv.writer(buff);writer.writerow(headers);writer.writerows(rows)
+              raw=gzip.compress(buff.getvalue().encode())
+              name=f'{day.isoformat()}.csv.gz'
+              (root/name).write_bytes(raw)
+              days.append({'date':day.isoformat(),'file':name,
+                           'sha256':hashlib.sha256(raw).hexdigest(),
+                           'rows':2,'complete_capture':True})
+          manifest={'schema':'V99_I1_ORIGINAL_661_DAY_TRAIN_LIFECYCLE_TAPE_V1',
+                    'venue':'deribit','fixture':True,
+                    'train_start':'2021-12-09','train_end_exclusive':'2023-10-01',
+                    'days':days}
+          mp=root/'manifest.json'
+          mp.write_text(json.dumps(manifest))
+          report=main(str(root),str(root/'report.json'))
+          independent=oracle(str(root),str(root/'report.json'))
+          assert report['asset_weeks_with_necessary_daily_presence']==182
+          assert independent['necessary_daily_presence_asset_weeks']==182
+          assert report['certified_complete_option_lifecycles']==0
+          assert not report['economic_train_executed']
+          forged=json.loads(json.dumps(report))
+          forged['asset_weeks_with_necessary_daily_presence']=181
+          try: verify(root,forged)
+          except AssertionError as exc: assert str(exc)=='FORGED_ASSET_WEEK_COUNT'
+          else: raise AssertionError('FORGED_REPORT_ACCEPTED')
+          original=(root/days[0]['file']).read_bytes()
+          (root/days[0]['file']).write_bytes(original+b'X')
+          try: audit(root)
+          except ValueError as exc: assert str(exc)=='ORIGINAL_DAILY_SOURCE_SHA256_MISMATCH'
+          else: raise AssertionError('SOURCE_TAMPER_ACCEPTED')
+          (root/days[0]['file']).write_bytes(original)
+          removed=manifest['days'].pop()
+          mp.write_text(json.dumps(manifest))
+          try: audit(root)
+          except ValueError as exc: assert str(exc)=='INCOMPLETE_661_DAY_LIFECYCLE_ARCHIVE'
+          else: raise AssertionError('MISSING_DAY_ACCEPTED')
+          manifest['days'].append(removed)
+          mp.write_text(json.dumps(manifest))
+          decoded=gzip.decompress(original).decode().splitlines()
+          values=list(csv.reader(decoded))
+          values[1][2]=str(int(values[1][3])+1)
+          stream=io.StringIO(newline=''); writer=csv.writer(stream);writer.writerows(values)
+          altered=gzip.compress(stream.getvalue().encode())
+          (root/days[0]['file']).write_bytes(altered)
+          manifest['days'][0]['sha256']=hashlib.sha256(altered).hexdigest()
+          mp.write_text(json.dumps(manifest))
+          try: audit(root)
+          except ValueError as exc: assert str(exc)=='FUTURE_OR_OUTSIDE_DAY_QUOTE'
+          else: raise AssertionError('FUTURE_VENUE_CLOCK_ACCEPTED')
+          print('661/661 synthetic UTC days streamed; 182/182 synthetic weak daily presence;')
+          print('4 negative controls: forged result, altered original bytes, missing day, future venue timestamp.')
+          print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
+          PY
+      - name: Assert licensed 2021-2023 source is still external
+        run: |
+          echo 'SOURCE_ONLY/HOLD: synthetic contract verified, original 661-day vendor archive NOT supplied.'
+          echo 'Original native option fills/fee tier/margin/liquidation and complete 21-45d positions NOT certified.'
+          echo 'NO PROMOTION; no validation, holdout, paper or Frozen modification.'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-synthetic-661-day-source-contract-${{ github.run_id }}
+          path: |
+            research_evidence/i1_synthetic_lifecycle/report.json
+            research_evidence/i1_synthetic_lifecycle/i1_lifecycle_daily_independent_oracle.json
+          retention-days: 30
+          if-no-files-found: warn
