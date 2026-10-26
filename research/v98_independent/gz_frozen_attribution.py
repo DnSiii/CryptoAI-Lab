@@ -16,7 +16,7 @@ def run(path):
             "funding_base":a["full_10k_base"]["funding"],
             "fees_base":a["full_10k_base"]["fees"],
             "slippage_base":a["full_10k_base"]["slippage"],
-            "validation_2025_read":False,"strategz_modified":False,
+            "validation_2025_read":False,"strategy_modified":False,
             "trading_authorized":False}
     print("GZ_FROZEN_ATTRIBUTION",json.dumps(result,sort_keys=True))
     return result
