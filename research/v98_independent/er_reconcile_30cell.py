@@ -129,8 +129,8 @@ def run(root):
             "decision":decision}
 
 if __name__=="__main__":
-    p=argparse.ArgumentParser();p.add_argument("--root",reruired=True)
-    p.add_argument("--output",reruired=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument("--root",required=True)
+    p.add_argument("--output",required=True);a=p.parse_args()
     out=run(a.root)
     with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("ER_AUDIT",out["decision"],"survived",out["cells_survived"],
