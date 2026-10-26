@@ -283,12 +283,14 @@ def settle(w: Wallet, name: str, at_ms: int, original_delivery_index_usd,
         raise ValueError("MISSING_OR_INVALID_NATIVE_DELIVERY_TERMS")
     later = [x for x in w.positions if x.name != name and x.expiry_ms > at_ms]
     same_expiry = [x for x in w.positions if x.name != name and x.expiry_ms == at_ms]
-    # Settling one expiry must never roll forward stale collateral marks
-    # for later-expiring open spreads. Mixed same/later expiries require
-    # an atomic same-expiry batch, not a partial sequential settlement.
+    # Even without later-expiring positions, sequential settlement of a
+    # same-expiry cohort fabricates an intermediate collateral release.
+    # All due siblings must be paid at one original index atomically.
+    if same_expiry:
+        raise ValueError("SAME_EXPIRY_ATOMIC_BATCH_REQUIRED")
+    # A unique due position may settle alongside later-dated exposure only
+    # when each survivor is freshly marked at the delivery index.
     if later:
-        if same_expiry:
-            raise ValueError("MIXED_EXPIRY_BATCH_REQUIRED")
         by_name = {m[0]: m for m in w.marks}
         if any(x.name not in by_name or by_name[x.name][2] != at_ms
                or D(by_name[x.name][3]) != index for x in later):
