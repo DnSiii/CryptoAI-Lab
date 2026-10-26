@@ -108,6 +108,53 @@ def audit(trace, observed):
             snapshots.append({"nav_coin": str(nav),
                               "nav_usd_equivalent_at_source_index": str(
                                   nav*next(iter(indices)))})
+        elif typ == "settle_batch":
+            cohort = event.get("names")
+            fee_map = event.get("delivery_fees_coin")
+            if (not isinstance(cohort, list) or not cohort
+                    or not all(isinstance(k, str) for k in cohort)
+                    or len(cohort) != len(set(cohort))
+                    or not isinstance(fee_map, dict)):
+                raise AssertionError("REFERENCE_INVALID_ATOMIC_BATCH")
+            index = d(event["delivery_index_usd"])
+            if index <= 0:
+                raise AssertionError("REFERENCE_INVALID_DELIVERY_INDEX")
+            due = {k for k, v in positions.items() if v[5] == t}
+            if set(cohort) != due or not due:
+                raise AssertionError("REFERENCE_INCOMPLETE_EXPIRY_BATCH")
+            if set(fee_map) != due:
+                raise AssertionError("REFERENCE_MISSING_DELIVERY_FEES")
+            if any(v[5] < t for v in positions.values()):
+                raise AssertionError("REFERENCE_EARLIER_EXPIRY_UNSETTLED")
+            later = {k for k, v in positions.items() if v[5] > t}
+            if later and any(k not in marks or marks[k][1] != t
+                             or marks[k][2] != index for k in later):
+                raise AssertionError("REFERENCE_BATCH_SURVIVOR_MARK_REQUIRED")
+            fees = {k: d(fee_map[k]) for k in cohort}
+            if any(v < 0 for v in fees.values()):
+                raise AssertionError("REFERENCE_NEGATIVE_DELIVERY_FEE")
+            # Recompute the complete cohort from contract payoffs in coin;
+            # no use of production wallet arithmetic or intermediate credit.
+            total_payoff = Decimal(0)
+            total_margin = Decimal(0)
+            for k in cohort:
+                qty, high, low, margin, _, _ = positions[k]
+                intrinsic = max(high-index, Decimal(0))-max(low-index, Decimal(0))
+                total_payoff += qty*intrinsic/index
+                total_margin += margin
+            cash -= total_payoff + sum(fees.values(), Decimal(0))
+            reserve -= total_margin
+            for k in cohort:
+                del positions[k]
+                marks.pop(k, None)
+                settled.append(k)
+            if cash < 0 or cash < reserve:
+                raise AssertionError("REFERENCE_INSOLVENT_ATOMIC_BATCH")
+            if later:
+                remaining_nav = cash-sum((marks[k][0] for k in later), Decimal(0))
+                required_maintenance = sum((positions[k][4] for k in later), Decimal(0))
+                if remaining_nav < required_maintenance:
+                    raise AssertionError("REFERENCE_POSTBATCH_MAINTENANCE_BREACH")
         elif typ == "settle":
             if name not in positions:
                 raise AssertionError("MISSING_REFERENCE_SETTLEMENT")
