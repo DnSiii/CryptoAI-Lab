@@ -105,6 +105,44 @@ class NativeCoinAccountTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "JOURNAL_MISMATCH"):
             audit(trace, observed)
 
+    def test_forged_negative_liability_cannot_inflate_native_nav(self):
+        w = start_wallet("BTC", "severe", "4")
+        s, l = quote("50000", ".08", ".09", OPEN1), quote("45000", ".04", ".05", OPEN1)
+        w = open_vertical(w, "p1", s, l, OPEN1, "1", ".001", ".001", "2", "1")
+        forged = replace(w, marks=(("p1", D("-999"), OPEN1, D("46000")),))
+        with self.assertRaisesRegex(ValueError, "INVALID_COIN_MARK_PROVENANCE"):
+            account_nav(forged, OPEN1)
+
+    def test_forged_mark_index_and_clock_fail_closed(self):
+        w = start_wallet("BTC", "severe", "100")
+        s, l = quote("50000", ".08", ".09", OPEN1), quote("45000", ".04", ".05", OPEN1)
+        w = open_vertical(w, "p1", s, l, OPEN1, "1", ".001", ".001", "4", "2")
+        for index, clock in (("0", OPEN1), ("-1", OPEN1), ("46000", True),
+                             ("46000", OPEN1 + 1)):
+            forged = replace(w, marks=(("p1", D(".05"), clock, D(index)),))
+            with self.assertRaisesRegex(ValueError, "INVALID_COIN_MARK_PROVENANCE"):
+                forged.check()
+
+    def test_forged_open_position_terms_fail_closed(self):
+        w = start_wallet("BTC", "severe", "100")
+        s, l = quote("50000", ".08", ".09", OPEN1), quote("45000", ".04", ".05", OPEN1)
+        w = open_vertical(w, "p1", s, l, OPEN1, "1", ".001", ".001", "4", "2")
+        for field, value in (("qty", D("0")), ("high", D("43000")),
+                             ("maintenance_margin_coin", D("5")),
+                             ("expiry_ms", True)):
+            forged = replace(w, positions=(replace(w.positions[0], **{field: value}),))
+            with self.assertRaisesRegex(ValueError, "INVALID_OPEN_COIN_POSITION"):
+                forged.check()
+
+    def test_independent_oracle_rejects_negative_mark_fee_or_bad_index(self):
+        for field, value in (("exit_fees_coin", "-1"),
+                             ("exit_slippage_coin", "-1"),
+                             ("index_usd", "0")):
+            trace, observed, _ = exercise()
+            next(e for e in trace["events"] if e["kind"] == "mark")[field] = value
+            with self.assertRaisesRegex(AssertionError, "INVALID_REFERENCE_MARK_PROVENANCE"):
+                audit(trace, observed)
+
     def test_rejects_unattested_lot_or_double_spent_coin(self):
         w = start_wallet("BTC", "severe", "5")
         s, l = quote("50000",".08",".09",OPEN1), quote("45000",".04",".05",OPEN1)
