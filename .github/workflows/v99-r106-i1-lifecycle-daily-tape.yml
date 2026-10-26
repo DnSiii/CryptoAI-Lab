@@ -27,6 +27,8 @@ jobs:
         run: |
           git cat-file -e 4eaf504493ebd1d311746ca8a5d11857ea86f723^{commit}
           test -s research/V99_R106_I1_FULL_LIFECYCLE_DAILY_TAPE_PREREG_20261026.md
+          git cat-file -e 4d10f16c103aa2f605e0fc29a508adfb0fb9393c^{commit}
+          test -s research/V99_R106_I1_DAILY_SOURCE_EVENT_ARRIVAL_FRESHNESS_PREREG_20261026.md
       - name: Exercise 661-day streaming lifecycle contract with explicit SYNTHETIC data
         run: |
           python - <<'PY'
@@ -99,8 +101,37 @@ jobs:
           try: audit(root)
           except ValueError as exc: assert str(exc)=='FUTURE_OR_OUTSIDE_DAY_QUOTE'
           else: raise AssertionError('FUTURE_VENUE_CLOCK_ACCEPTED')
+          # A Tardis arrival-day partition can contain a venue event from yesterday.
+          # The original SHA, monotonic arrival, and independent oracle still bind.
+          values=list(csv.reader(gzip.decompress(original).decode().splitlines()))
+          epoch=int(values[1][3])
+          def replace_first_day(rows):
+              stream=io.StringIO(newline='')
+              writer=csv.writer(stream); writer.writerows(rows)
+              payload=gzip.compress(stream.getvalue().encode())
+              (root/days[0]['file']).write_bytes(payload)
+              manifest['days'][0]['sha256']=hashlib.sha256(payload).hexdigest()
+              mp.write_text(json.dumps(manifest))
+          values[1][2]=str(epoch-1_000_000)  # venue yesterday, arrival today
+          replace_first_day(values)
+          valid=main(str(root),str(root/'report.json'))
+          oracle(str(root),str(root/'report.json'))
+          assert valid['daily'][0]['BTC'] is True
+          values[1][2]=str(epoch-600_000_000)  # stale 10m event, not a fresh mark
+          replace_first_day(values)
+          stale=main(str(root),str(root/'report.json'))
+          oracle(str(root),str(root/'report.json'))
+          assert stale['daily'][0]['BTC'] is False
+          assert stale['daily'][0]['ETH'] is True
+          values[1][3]=str(epoch-2_000_000)  # arrival outside source partition
+          replace_first_day(values)
+          try: audit(root)
+          except ValueError as exc: assert str(exc)=='FUTURE_OR_OUTSIDE_DAY_QUOTE'
+          else: raise AssertionError('WRONG_ARRIVAL_DAY_ACCEPTED')
+          print('Clock controls: valid previous-day venue event ACCEPTED;')
+          print('10m stale venue event NOT counted as mark; wrong arrival day REJECTED.')
           print('661/661 synthetic UTC days streamed; 182/182 synthetic weak daily presence;')
-          print('4 negative controls: forged result, altered original bytes, missing day, future venue timestamp.')
+          print('7 boundary/integrity controls including arrival-day, stale-event and future timestamp.')
           print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
           PY
       - name: Assert licensed 2021-2023 source is still external
