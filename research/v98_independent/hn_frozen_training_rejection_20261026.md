@@ -1,0 +1,15 @@
+# V98 Independent HN — FROZEN TRAINING ECONOMIC REJECTION (2026-10-26)
+
+**FINAL: REJECT_HN_HISTORICAL_GROWTH_OR_MARGINAL. Not a validated engine. Do not rescue HN.** HN preregistration commit bec5b70376afffd8a28c0c233bffaefd3c753709 preceded HN implementation, source gate and economic PnL. HN runtime import/metadata correction commit 233131a90fda2bafd247499d885ffbd4b0500e1d fixed an import that had prevented any economic run; documented separately. No sign/window/threshold/allocator/fee/physical governor changed after seeing results. Original first workflow run 40422266914 failed before PnL; the definitive corrected run is [40422417807](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40422417807).
+
+## Authenticated chronological 2023–2024 training, USD10k independently settled
+Source-only gate PASS: 2023/2024 financed epochs Core 53/52, Opportunity 53/52, Relative Value 53/52, Stress/Recovery 27/28. 100 original publisher SHA256-verified Binance archives, pinned source CSV SHA256 a8ee661e4b5db6e12ea20b4ee1070c24e5b8cb095a316af4dc3a89869421eaf7. 30/30 physical cases passed on 2 OS; independent artifact reconciliation no errors and cross-OS reproducible. Independent all-hour ledger oracle passed all five books (each 105,258 settled hours and 13,152 native funding-event hours; total 526,290 / 65,760). The GitHub Actions workflow status 'success' means mechanical execution and audit succeeded, **not economic acceptance**.
+
+### Full portfolio, 2023–2024 training only (not out-of-sample or forward PnL)
+- Base 2y CAGR +82.275845%; 2023 net return +119.359475%, 2024 +51.585885%; max DD 26.815711%; PF 1.0472, win rate 51.7444%, positive days 375/731. Native funding cash attribution -USD1,509.50, fees USD364.72, slippage USD364.72; turnover USD729,430.01.
+- Severe 2y CAGR +71.677102%; 2023 +106.039138%, 2024 +43.151640%; max DD 27.690280%; PF 1.0426, win rate 51.6589%, positive days 371/731. Native funding -USD1,393.40, fees USD1,300.30, slippage USD1,950.46; turnover USD650,152.43.
+- All four base/severe annual net-growth gates passed, CAGR and severe DD passed, but **turnover FAILS <=USD600,000** in both cost tiers.
+- Independent full-minus-ablation net log growth: Opportunity +0.120660 base / +0.150931 severe (both years positive), Relative Value +0.107815 base / +0.158780 severe (annual minimum base 2024 -0.013161 >= -0.03), **Stress/Recovery -0.040442 base / -0.031676 severe (FAIL)**. Identical across both funding orders. HN fails economic gates; no promotion.
+
+## Integrity and next path
+No 2025 holdout, 2026+ training, quarantined XRP, contaminated Phase083, V14/V15/V99 external benchmarks, V16 Frozen, V99 Frozen/research/paper or live orders touched. HN and all prior rejected experiments remain rejected. New independent architecture HO is separately preregistered with 336h demand/price absorption and capitulation-resilience, not a rescue of HN thresholds or an after-the-fact HN parameter optimization. No validated champion and no trading authorization.
