@@ -5,7 +5,7 @@ import numpy as np
 import hb_30cell as engine
 
 def run():
-    original_trade=engine.HABufferedGovernor.trade
+    original_trade=engine.HBBufferedGovernor.trade
     original_settle=engine.settle_hour
     authorization={}
     settled={}
@@ -44,11 +44,11 @@ def run():
         d["max_gross_usd"]=max(d["max_gross_usd"],gross)
         d["short_position_hours"]+=int(np.any(units< -1e-10))
         return receipt
-    engine.HABufferedGovernor.trade=capture_trade
+    engine.HBBufferedGovernor.trade=capture_trade
     engine.settle_hour=capture_settle
     try:result=engine.run("HB_full")
     finally:
-        engine.HABufferedGovernor.trade=original_trade
+        engine.HBBufferedGovernor.trade=original_trade
         engine.settle_hour=original_settle
     if len(result["cells"])!=6 or not all(x["passed"] for x in result["cells"]):
         raise ValueError("HB_PHYSICAL_AUDIT_REPLAY_FAILED")
