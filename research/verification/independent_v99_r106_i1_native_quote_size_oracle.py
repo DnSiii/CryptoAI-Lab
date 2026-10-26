@@ -95,6 +95,9 @@ def verify(ticker_root, native_root, credit_path, index_path, handoff_path):
             "arrival_skew_ms": Decimal(abs(a-b))/Decimal(1000),
             "exchange_skew_ms": Decimal(abs(x-y))/Decimal(1000),
             "same_exact_index_price": p["same_exact_index_price"],
+            "model_input_causal_pair_screen_only": (
+                abs(a-b) <= 1_000_000 and abs(x-y) <= 1_000_000
+                and p["same_exact_index_price"] is True),
         })
     assert len(report["rows"]) == len(expected)
     for got, want in zip(report["rows"],expected):
@@ -108,7 +111,16 @@ def verify(ticker_root, native_root, credit_path, index_path, handoff_path):
         assert got["historical_native_contract_qty"] is None
         assert got["two_leg_executable_fill"] is False
         assert got["reason"] == "SOURCE_SIZE_NOT_CERTIFIED_AS_NATIVE_LOTS_AND_NO_ATOMIC_FILL"
+    expected_total = sum(r["model_input_causal_pair_screen_only"] for r in expected)
+    expected_by_asset = {
+        asset: sum(r["model_input_causal_pair_screen_only"]
+                   for r in expected if r["asset"] == asset)
+        for asset in ("BTC", "ETH")}
+    assert report["model_input_causal_pair_screen_only_total"] == expected_total
+    assert report["model_input_causal_pair_screen_only_by_asset"] == expected_by_asset
     return {"original_pairs_independently_replayed":len(expected),
+            "model_input_causal_pair_screen_only_total":expected_total,
+            "model_input_causal_pair_screen_only_by_asset":expected_by_asset,
             "native_executable_pairs":0,
             "max_arrival_skew_ms":str(max(r["arrival_skew_ms"] for r in expected)),
             "max_quote_age_ms":str(max(max(r["short_quote_age_ms"],r["long_quote_age_ms"]) for r in expected)),
