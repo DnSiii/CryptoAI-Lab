@@ -90,7 +90,9 @@ def _ready(records, ms, asset):
     t = ms * 1000
     last = {}
     for arrival,event,row in records:
-        if not t - 300_000_000 <= event <= arrival < t:
+        # Last predecision physical update wins, even when its event is stale.
+        # Filtering freshness before choosing last would resurrect revoked books.
+        if not event <= arrival < t:
             continue
         # Last physical update wins, including invalid quotes.
         name = row["symbol"]
@@ -98,6 +100,8 @@ def _ready(records, ms, asset):
             last[name] = (arrival,event,row)
     by_exp = {}
     for arrival,event,row in last.values():
+        if not t - 300_000_000 <= event <= arrival < t:
+            continue
         p = _parsed(row)
         if p is None or p[0] != asset:
             continue
