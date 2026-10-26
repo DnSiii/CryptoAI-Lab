@@ -1,0 +1,17 @@
+# V98 Independent GO — frozen historical rejection, 2026-10-26
+
+**FINAL: REJECT_GO_HISTORICAL_GROWTH_OR_MARGINAL. No GO candidate promoted.** Preregistered in commit `d949ff57b9156ed3d79497c98714bac7f181a98c` **before implementation, source viability or PnL**. Causal online sleeve-gated multiplicative architecture, not a post-result rescue of GN/GH. Implementation: `f3712353480278e196e1d8628d333d19ae388761` and `9a106a5eb355212e1fb7de973d5d565a84f710db`.
+
+[Official GO complete 30-cell native training run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40310901582): authenticated pinned Binance USD-M Clean-4 BTC/ETH/BNB/SOL hourly, Dec-2022 warmup and **2023–2024 only**, signed native funding, causal completed-close next-open execution, 81-corner physical authorization, severe/supersevere fees and slippage, both funding orders, 2 OS. Source-only viability PASS: all four slots active 53 epochs in 2023 and 52 in 2024. **30/30 USD10k physical cells survive, cross-OS numeric reproducibility PASS, artifact-only audit errors [].** No 2025/2026+, XRP, Phase083, external benchmark, Frozen, paper or real orders.
+
+**Measured historical training full portfolio** (carried-before-fill):
+- 2023–2024 base CAGR **+89.6191896%**, severe **+85.8250300%**. Base 2023 net return +138.7006025%, 2024 +50.7618497%; severe 2023 +133.2856052%, 2024 +48.1456368%.
+- Base drawdown **29.8615259%**, severe **29.9107809%**. Base turnover **USD181,381.68**, severe **USD174,536.86**; both pass USD600k cap. Base fees USD90.69, slippage USD90.69, native funding **-USD2,061.75**; severe fees USD349.07, slippage USD523.61, funding **-USD1,983.48**. 105 physical fill hours, base peak gross/NAV 0.76867, max single-asset concentration 0.66158. These are *historical simulation* values, not realized profits or forecasts.
+- **Relative Value marginal PASS** preregistered 2-year >0.02 log growth with each year >=-0.03: base 2023 +0.022781, 2024 +0.001355; severe 2023 +0.022696, 2024 +0.001275.
+- **Opportunity FAIL**: base 2023 +0.008001, 2024 -0.004163; severe +0.007888/-0.004263. Combined contribution below +0.02 preregistered floor.
+- **Stress/Recovery FAIL**: base 2023 -0.006252, 2024 +0.001533; severe -0.006102/+0.001320. Negative combined marginal.
+- High-growth, annual full growth, severe DD, turnover, source, physical and reproducibility gates PASS. **Marginal contribution gates FAIL in two sleeves, so GO rejected** without changing threshold/sign/window/gross or costs. The audit JSON field `higo_growth_gate_10k` is a naming-only typo from namespaced adaptation of `high_growth_gate_10k`; its boolean is true and this does not affect the economic gate or decision. No rejected GO files will be cosmetically repaired to claim acceptance.
+
+**Independent every-hour ledger oracles all PASS** in the same official run, across five paths: 105,258 settled-hour checks and 13,152 funding-event-hour checks **per path**, 526,290/65,760 total, independent native settlement, fees, slippage and funding verified. This validates accounting, **not predictive alpha**.
+
+**Next architectural priority**: investigate a *genuinely new economic exposure*, not another rescaling of weak breakout or rebound factor. The failed opportunity and stress signals are not evidence of alpha; preserve RV funding cross-section as a research hypothesis only, with no guarantee of portability. Preserve untouched 2025 validation holdout, V16/V99 Frozen and V99 paper. No live orders or external benchmarks unlocked.
