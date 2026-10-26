@@ -161,6 +161,16 @@ def open_vertical(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
         raise ValueError("DUPLICATE_POSITION")
     if at_ms < w.last_ms or short.asset != w.asset:
         raise ValueError("WRONG_COIN_WALLET_OR_CLOCK")
+    # Never finance a fresh position against stale or absent open-position NAV.
+    # Existing positions must be re-marked at this SAME decision using quotes
+    # strictly received before it; maintenance failure vetoes the new opening.
+    if w.positions:
+        if at_ms != w.last_ms:
+            raise ValueError("PRETRADE_ALL_POSITION_MARKS_REQUIRED")
+        try:
+            account_nav(w, at_ms)
+        except ValueError as exc:
+            raise ValueError("PRETRADE_MARK_OR_MAINTENANCE_VETO") from exc
     t = datetime.fromtimestamp(at_ms / 1000, tz=timezone.utc)
     if (t.weekday(), t.hour, t.minute, t.second, t.microsecond) != (0,0,0,0,0):
         raise ValueError("NONPREREGISTERED_MONDAY_OPEN")
