@@ -218,7 +218,11 @@ def account_nav(w: Wallet, at_ms: int) -> dict:
     if len(w.marks) != len(w.positions) or any(
             t != at_ms for _, _, t, _ in w.marks):
         raise ValueError("MISSING_OR_STALE_OPEN_POSITION_MARKS")
-    indices = {idx for _, _, _, idx in w.marks}\n    if len(indices) != 1 or next(iter(indices)) <= 0:\n        raise ValueError("UNSYNCHRONIZED_SOURCE_INDEX_FOR_NAV")\n    index_usd = next(iter(indices))\n    liabilities = sum((D(x) for _, x, _, _ in w.marks), Decimal(0))
+    indices = {idx for _, _, _, idx in w.marks}
+    if len(indices) != 1 or next(iter(indices)) <= 0:
+        raise ValueError("UNSYNCHRONIZED_SOURCE_INDEX_FOR_NAV")
+    index_usd = next(iter(indices))
+    liabilities = sum((D(x) for _, x, _, _ in w.marks), Decimal(0))
     nav = D(w.cash_coin)-liabilities
     maintenance = sum((D(p.maintenance_margin_coin) for p in w.positions), Decimal(0))
     if nav < maintenance:
