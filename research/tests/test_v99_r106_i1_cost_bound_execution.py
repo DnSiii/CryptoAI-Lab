@@ -6,9 +6,9 @@ from research.tools.v99_r106_i1_native_coin_account_replay import (
     D, Quote, start_wallet, account_nav,
 )
 from research.tools.v99_r106_i1_cost_bound_execution import (
-    charge_floor, costed_open, costed_mark, verify_charges,
+    charge_floor, costed_open, costed_mark, costed_settle_batch, verify_charges,
 )
-from research.verification.independent_v99_r106_i1_cost_bound_oracle import audit_open, audit_postentry
+from research.verification.independent_v99_r106_i1_cost_bound_oracle import audit_open, audit_postentry, audit_delivery_batch
 
 
 def ms(s):
@@ -130,6 +130,61 @@ class CostBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "MAINTENANCE_BREACH_REQUIRES_AUTHENTICATED_LIQUIDATION_MODEL"):
             costed_mark(w, "p", sm, lm, MARK, fee, slip, fixture=True)
 
+
+
+    def test_atomic_delivery_fee_scenario_floor_and_independent_cash(self):
+        for scenario in ("severe", "supersevere"):
+            with self.subTest(scenario=scenario):
+                w = start_wallet("BTC", scenario, "100")
+                s, l = q("50000", ".08", ".09", AT), q("45000", ".04", ".05", AT)
+                fee, slip = charge_floor(scenario, "1")
+                w = costed_open(w, "p1", s, l, AT, "1", fee, slip, "4", "2", fixture=True)
+                w = costed_mark(w, "p1", s, l, AT, fee, slip, fixture=True)
+                w = costed_open(w, "p2", s, l, AT, "1", fee, slip, "4", "2", fixture=True)
+                delivery_fees = {"p1": str(fee), "p2": str(fee)}
+                with self.assertRaisesRegex(ValueError, "SCENARIO_DELIVERY_FEE_UNDERPAYMENT"):
+                    costed_settle_batch(w, ["p1", "p2"], EXP, "48000",
+                                        {"p1": "0", "p2": str(fee)}, fixture=True)
+                with self.assertRaisesRegex(ValueError, "SCENARIO_DELIVERY_FEE_UNDERPAYMENT"):
+                    costed_settle_batch(w, ["p1", "p2"], EXP, "48000",
+                                        {"p1": str(fee), "p2": "0"}, fixture=True)
+                with self.assertRaisesRegex(ValueError, "INCOMPLETE_SCENARIO_SETTLEMENT_COHORT"):
+                    costed_settle_batch(w, ["p1"], EXP, "48000",
+                                        {"p1": str(fee)}, fixture=True)
+                with self.assertRaisesRegex(ValueError, "REQUIRE_INDEPENDENT_ATTESTATION"):
+                    costed_settle_batch(w, ["p1", "p2"], EXP, "48000",
+                                        delivery_fees, original_fee_verified=True,
+                                        native_contract_verified=True,
+                                        margin_rules_verified=True,
+                                        original_quote_verified=True)
+                journal = dict(fixture=True, historical_economic_train=False,
+                               scenario=scenario, delivery_index_usd="48000",
+                               cash_before_coin=str(w.cash_coin),
+                               reserve_before_coin=str(w.reserved_coin),
+                               due_names=["p1", "p2"],
+                               due_positions=[
+                                   dict(name=p.name, qty=str(p.qty),
+                                        short_strike_usd=str(p.high),
+                                        long_strike_usd=str(p.low),
+                                        initial_margin_coin=str(p.initial_margin_coin),
+                                        delivery_fee_coin=str(fee))
+                                   for p in w.positions])
+                out = costed_settle_batch(w, ["p1", "p2"], EXP, "48000",
+                                          delivery_fees, fixture=True)
+                proof = audit_delivery_batch(journal, out.cash_coin, out.reserved_coin,
+                                             out.settled)
+                self.assertEqual(proof["independent_scenario_delivery"], "MATCH")
+                self.assertFalse(proof["promotion_authorized"])
+                self.assertEqual(len(out.positions), 0)
+                self.assertEqual(out.reserved_coin, D("0"))
+                with self.assertRaisesRegex(AssertionError, "REFERENCE_DELIVERY_CASH_OR_RESERVE_MISMATCH"):
+                    audit_delivery_batch(journal, out.cash_coin + D("0.01"),
+                                         out.reserved_coin, out.settled)
+                forged = dict(journal, due_positions=[
+                    dict(p, delivery_fee_coin="0") if p["name"] == "p2" else p
+                    for p in journal["due_positions"]])
+                with self.assertRaisesRegex(AssertionError, "REFERENCE_SCENARIO_DELIVERY_FEE_UNDERPAYMENT"):
+                    audit_delivery_batch(forged, out.cash_coin, out.reserved_coin, out.settled)
 
 
 if __name__ == "__main__":
