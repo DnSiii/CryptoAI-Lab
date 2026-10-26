@@ -116,7 +116,7 @@ class Wallet:
     cash_coin: Decimal
     reserved_coin: Decimal
     positions: tuple[Position, ...]
-    marks: tuple[tuple[str, Decimal, int], ...]
+    marks: tuple[tuple[str, Decimal, int, Decimal], ...]
     settled: tuple[str, ...]
     last_ms: int
 
@@ -134,13 +134,13 @@ class Wallet:
         if D(self.reserved_coin) != sum(
                 (D(p.initial_margin_coin) for p in self.positions), Decimal(0)):
             raise ValueError("FABRICATED_COIN_RESERVE")
-        mark_names = [name for name, _, _ in self.marks]
+        mark_names = [name for name, _, _, _ in self.marks]
         if len(mark_names) != len(set(mark_names)) or any(
                 name not in names for name in mark_names):
             raise ValueError("FABRICATED_OR_DUPLICATE_MARK")
-        if any(t > self.last_ms for _, _, t in self.marks):
+        if any(t > self.last_ms for _, _, t, _ in self.marks):
             raise ValueError("FUTURE_MARK")
-        if any(p.expiry_ms <= self.last_ms for p in self.positions):
+        if any(p.expiry_ms < self.last_ms for p in self.positions):
             raise ValueError("UNSETTLED_EXPIRED_POSITION")
 
 
@@ -205,20 +205,20 @@ def mark_to_exit(w: Wallet, name: str, short: Quote, long: Quote,
         raise ValueError("NEGATIVE_EXIT_FRICTION")
     # No negative liability credit for a crossed two-leg synthetic exit.
     liability = max(Decimal(0), p.qty*(D(short.ask_coin)-D(long.bid_coin)))+fees+slip
-    marks = tuple(m for m in w.marks if m[0] != name) + ((name, liability, at_ms),)
+    marks = tuple(m for m in w.marks if m[0] != name) + ((name, liability, at_ms, D(short.index_usd)),)
     out = replace(w, marks=marks, last_ms=at_ms)
     out.check()
     return out
 
 
-def account_nav(w: Wallet, at_ms: int, index_usd) -> dict:
+def account_nav(w: Wallet, at_ms: int) -> dict:
     w.check()
-    if at_ms != w.last_ms or D(index_usd) <= 0:
+    if at_ms != w.last_ms:
         raise ValueError("UNBOUND_MARK_TIME_OR_INDEX")
     if len(w.marks) != len(w.positions) or any(
-            at_ms-t > MAX_AGE_MS for _, _, t in w.marks):
+            t != at_ms for _, _, t, _ in w.marks):
         raise ValueError("MISSING_OR_STALE_OPEN_POSITION_MARKS")
-    liabilities = sum((D(x) for _, x, _ in w.marks), Decimal(0))
+    indices = {idx for _, _, _, idx in w.marks}\n    if len(indices) != 1 or next(iter(indices)) <= 0:\n        raise ValueError("UNSYNCHRONIZED_SOURCE_INDEX_FOR_NAV")\n    index_usd = next(iter(indices))\n    liabilities = sum((D(x) for _, x, _, _ in w.marks), Decimal(0))
     nav = D(w.cash_coin)-liabilities
     maintenance = sum((D(p.maintenance_margin_coin) for p in w.positions), Decimal(0))
     if nav < maintenance:
