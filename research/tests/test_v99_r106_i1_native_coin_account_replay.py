@@ -168,6 +168,16 @@ class NativeCoinAccountTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "POSTENTRY_UNBOUND_UNDERLYING_INDEX"):
             open_vertical(w, "p2", s2, l2, OPEN2, "1", ".001", ".001", "4", "2")
 
+    def test_oracle_independently_rejects_overlapping_index_mismatch(self):
+        trace, observed, _ = exercise()
+        # Existing p1 mark at OPEN2 is source-bound to 46000;
+        # a new p2 opening cannot silently net a 47000 underlying.
+        opens = [e for e in trace["events"] if e["kind"] == "open"]
+        self.assertEqual(len(opens), 2)
+        opens[1]["index_usd"] = "47000"
+        with self.assertRaisesRegex(AssertionError, "POSTENTRY_REFERENCE_UNBOUND_INDEX"):
+            audit(trace, observed)
+
     def test_rejects_unbound_source_index(self):
         w = start_wallet("BTC", "severe", "100")
         s, l = quote("50000",".08",".09",OPEN1), quote("45000",".04",".05",OPEN1)
