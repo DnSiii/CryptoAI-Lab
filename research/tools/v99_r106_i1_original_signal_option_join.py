@@ -54,7 +54,9 @@ def source_ready(raw, decision_ms: int, asset: str):
     t = decision_ms * 1000
     latest = {}
     for arrival, event, row in raw:
-        if not (t - AGE_US <= event <= arrival < t):
+        # Select the physically latest predecision update BEFORE freshness checks.
+        # A newer stale-event quote must revoke an older fresh quote.
+        if not (event <= arrival < t):
             continue
         p = parse_instrument(row["symbol"])
         if p is None or p[0] != asset:
@@ -66,7 +68,7 @@ def source_ready(raw, decision_ms: int, asset: str):
             latest[symbol] = (arrival, event, p, row)
     by_expiry = {}
     for arrival, event, p, row in latest.values():
-        if _good(row):
+        if t - AGE_US <= event <= arrival < t and _good(row):
             by_expiry.setdefault(p[1], []).append((arrival, event, p[2]))
     for quotes in by_expiry.values():
         for i, a in enumerate(quotes):
