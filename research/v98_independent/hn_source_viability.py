@@ -23,7 +23,7 @@ def run():
         years[yr]=y
     out={"architecture":"HN","decision":"PASS_HN_SOURCE_ONLY" if passed else
          "REJECT_HN_SOURCE_INACTIVE","historical_training_only":True,
-         "validation_2025_read":False,"external_benchnarks_used":False,
+         "validation_2025_read":False,"external_benchmarks_used":False,
          "trading_authorized":False,"years":years}
     with open("hn_source_viability.json","w") as f:json.dump(out,f,indent=2,sort_keys=True)
     print("HN_SOURCE_VIABILITY",json.dumps(out,sort_keys=True))

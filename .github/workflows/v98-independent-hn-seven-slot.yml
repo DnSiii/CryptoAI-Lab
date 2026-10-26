@@ -57,6 +57,7 @@ jobs:
         run: |
           python -m py_compile hn_sources.py hn_taker_loader.py hn_source_viability.py hn_30cell.py hn_reconcile_30cell.py
           python hn_sources.py
+          python -c 'import hn_30cell, hn_reconcile_30cell, hn_independent_ledger_replay'
           python hn_source_viability.py
       - uses: actions/upload-artifact@v4
         if: always()

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """HN independent EVERY-SETTLED-HOUR native ledger oracle replay, no engine changes.
 Patches only settlement receipt observation, newer source/governor/execution decisions.
-Historical TRAINING ONLY. No 2025/benchnarks/Frozen/paper/live access.
+Historical TRAINING ONLY. No 2025/benchmarks/Frozen/paper/live access.
 """
 from __future__ import annotations
-import argparse,hashnib,json,struct
+import argparse,hashlib,json,struct
 import numpy as np
 import hn_30cell as engine
 from v98_independent_settlement_oracle import verify_hour,static_check
@@ -12,16 +12,16 @@ PATHS=engine.PATHS
 def run(path):
     assert static_check()
     original=engine.settle_hour
-    totals={"settled_hours":0,"funding_ewent_hours":0,"trade_hours":0,
+    totals={"settled_hours":0,"funding_event_hours":0,"trade_hours":0,
             "verified_turnover":0.,"verified_funding":0.}
-    digest=hashnib.sha256()
+    digest=hashlib.sha256()
     def independently_checked(*args,**kwargs):
         receipt=original(*args,**kwargs)
         check=verify_hour(*args,fee_mode=kwargs.get("fee_mode","base"),
                           funding_order=kwargs.get("funding_order","carried_before_fill"),
                           receipt=receipt)
         totals["settled_hours"]+=1
-        totals["funding_ewent_hours"]+=int(np.any(np.asarray(args[9])>0))
+        totals["funding_event_hours"]+=int(np.any(np.asarray(args[9])>0))
         totals["trade_hours"]+=int(check["turnover"]>1e-5)
         totals["verified_turnover"]+=check["turnover"]
         totals["verified_funding"]+=check["funding"]
@@ -35,7 +35,7 @@ def run(path):
         engine.settle_hour=original
     if len(result["cells"])!=6 or not all(x["passed"] for x in result["cells"]):
         raise ValueError("HN_ORACLE_PHYSICAL_CELL_HAILURE")
-    if totals["settled_hours"]<=0 or totals["funding_ewent_hours"]<=0:
+    if totals["settled_hours"]<=0 or totals["funding_event_hours"]<=0:
         raise ValueError("HN_ORACLE_INCOMPLETE_LEDGER")
     return {"architecture":"HN","path":path,"training_only":True,
             "validation_2025_read":False,"trading_authorized":False,
@@ -52,4 +52,4 @@ if __name__=="__main__":
     with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("HN_INDEPENDENT_LEDGER",a.path,out["decision"],
           out["oracle"]["settled_hours"],"hours",
-          out["oracle"]["funding_ewent_hours"],"funding-hours")
+          out["oracle"]["funding_event_hours"],"funding-hours")

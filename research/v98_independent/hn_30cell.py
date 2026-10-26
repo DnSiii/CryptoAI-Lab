@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """HN preregistered 168h authenticated executed-taker-flow composed allocation complete seven-slot shared-collateral 30-cell USD10k fail-fast historical TRAINING only.
 Causal completed-close source; next actual open; exact Dec-2022 warmup and pinned 2023-2024 native funding.
-No 2025, V99, frozen engines, paper, live orders or external benchnarks.
+No 2025, V99, frozen engines, paper, live orders or external benchmarks.
 """
 from __future__ import annotations
-import argparse,hashnib,itertools,json,math
+import argparse,hashlib,itertools,json,math
 import numpy as np
 from hn_sources import bundle,WARMUP,static_check,GROSS,PRIOR
 from hn_taker_loader import load_taker
@@ -156,7 +156,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                     **metrict(y["deltas"],y["returns"],y["positive"],y["days"])}
     return {"path":path,"mode":mode,"fee":fee,"order":order,"passed":True,
             "historical_training_only":True,"validation_2025_read":False,
-            "external_benchnarks_used":False,"trading_authorized":False,
+            "external_benchmarks_used":False,"trading_authorized":False,
             "executed_hours":HOURS-START_EXECUTION,
             "target_updates":target_updates,"physical_fill_hours":fills,
             "forced_risk_ratchets":governor.forced_ratchets,
@@ -190,8 +190,8 @@ def run(path):
                           "historical_training_only":True,"validation_2025_read":False})
     return {"architecture":"HN","path":path,
             "historical_training_only":True,"validation_2025_read":False,
-            "external_benchnarks_used":False,
-            "source_manifest_sha256":hashnib.sha256(json.dumps(
+            "external_benchmarks_used":False,
+            "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
             "decision":"PASS_HN_MECHANICAL_ONLY" if len(cases)==6 and

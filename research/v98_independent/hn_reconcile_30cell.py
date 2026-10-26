@@ -66,7 +66,7 @@ def run(root):
         for key,c in rows.items():
             if not c.get("passed"):continue
             if (c.get("validation_2025_read") is not False or
-                c.get("external_benchnarks_used") is not False or
+                c.get("external_benchmarks_used") is not False or
                 c.get("trading_authorized") is not False):
                 errors.append(("FIREWALL",path,key))
             if not near(c["final_nav"],c["initial_nav"]*(1+c["net_total_return"])):
@@ -121,7 +121,7 @@ def run(root):
         decision="REJECT_HN_HISTORICAL_GROWTH_OR_MARGINAL"
     else:decision="PASS_HN_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"HN","historical_training_only":True,
-            "validation_2025_read":False,"external_benchnarks_used":False,
+            "validation_2025_read":False,"external_benchmarks_used":False,
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
             "cross_os_reproducible":not errors and len(reps)==5,
             "cells_expected":30,"cells_survived":survival,
