@@ -20,7 +20,7 @@ def run():
         passed &=y["pressure_pass"]
         for i,name in enumerate(NAMES):
             count=sum(np.any(signals[t,i]) for t in idx)
-            y[name]={"active_epochs":int(count),"minimum":4,"pass":count>=4}
+            y[name]={"active_epochs":int(count),"minimum":4,"pass":bool(count>=4)}
             passed &=y[name]["pass"]
         years[yr]=y
     out={"architecture":"GU","decision":"PASS_GU_SOURCE_ONLY" if passed else
