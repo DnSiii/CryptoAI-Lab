@@ -1,0 +1,9 @@
+# V98 Independent GR — final preregistered source-activity rejection (2026-10-26)
+
+**FINAL: REJECT_GR_SOURCE_INACTIVE.** No training economic PnL, no 2025 validation, no promotion. GR preregistered before implementation at commit `a71fa57ee31feedba3c922530527cd7c03b40162`, with four independently funded nonnegative specialist tranches, 7 slots, untouched GL governor, authenticated pinned Clean-4 and native funding.
+
+[Official GR source gate, run 40325797243](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40325797243) executed Python compile and synthetic causal future-mutation tests successfully, then rejected the preregistered >=4 active epochs per sleeve/year gate before system PnL. 2023 (53 weekly observations): Core 53, Opportunity 14, Relative Value 40, **Stress/Recovery 0**. 2024 (52 weekly observations): Core 52, Opportunity 14, Relative Value 40, **Stress/Recovery 1**. Source gate was failed exactly as written; economic 30-cell matrix and oracle correctly did not run.
+
+**Economic interpretation:** the fixed weekly 168h cadence plus jointly required broad-market stress and positive 24h recovery generated virtually no eligible Stress/Recovery activation. This is structural to this frozen hypothesis; do **not** rescue by relaxing the threshold, changing the clock, or reclassifying the inactive sleeve. The separately funded long-only design is unproven, not an economic champion. No historical CAGR/PnL claims for GR.
+
+**Firewall:** all commits restricted to `research/v98_independent/gr_*` and `.github/workflows/v98-independent-gr-seven-slot.yml` on `research/v98-independent-zero`. No XRP, 2025, 2026+, Phase083, V14/V15/V99, V16/V99 Frozen, paper, or real orders touched. Future research must formulate a genuinely different causal economic architecture and preregister it before source and economic inspection.
