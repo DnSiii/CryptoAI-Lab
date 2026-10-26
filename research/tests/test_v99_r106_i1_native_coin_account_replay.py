@@ -36,6 +36,7 @@ def exercise(scenario="severe"):
     w = open_vertical(w, "p1", s1, l1, OPEN1, "1", ".001", ".001", "4", "2")
     trace["events"].append(dict(kind="open", at_ms=OPEN1, name="p1",
         qty="1", high="50000", low="45000", short_bid_coin=".08",
+        short_ask_coin=".09", long_bid_coin=".04", index_usd="46000",
         long_ask_coin=".05", entry_fees_coin=".001",
         entry_slippage_coin=".001", margin_coin="4", maintenance_coin="2",
         expiry_ms=EXPIRY))
@@ -50,6 +51,7 @@ def exercise(scenario="severe"):
     w = open_vertical(w, "p2", s2, l2, OPEN2, "1", ".001", ".001", "4", "2")
     trace["events"].append(dict(kind="open", at_ms=OPEN2, name="p2",
         qty="1", high="48000", low="43000", short_bid_coin=".09",
+        short_ask_coin=".10", long_bid_coin=".04", index_usd="46000",
         long_ask_coin=".05", entry_fees_coin=".001",
         entry_slippage_coin=".001", margin_coin="4", maintenance_coin="2",
         expiry_ms=EXPIRY))
@@ -139,6 +141,32 @@ class NativeCoinAccountTests(unittest.TestCase):
                          MARK,"101","0")
         with self.assertRaisesRegex(ValueError, "MAINTENANCE_BREACH"):
             account_nav(w,MARK)
+
+    def test_postentry_maintenance_veto_even_when_cash_covers_reserve(self):
+        # 4 coin cash + .028 net credit covers 4 coin reserve, but
+        # the same original book implies >=.05 coin close liability.
+        w = start_wallet("BTC", "severe", "4")
+        s, l = quote("50000", ".08", ".09", OPEN1), quote("45000", ".04", ".05", OPEN1)
+        with self.assertRaisesRegex(ValueError, "POSTENTRY_MAINTENANCE_LOWER_BOUND_BREACH"):
+            open_vertical(w, "bad", s, l, OPEN1, "1", ".001", ".001", "4", "4")
+
+    def test_oracle_independently_rejects_postentry_maintenance_breach(self):
+        trace, observed, _ = exercise()
+        trace["initial_coin"] = "4"
+        trace["events"][0]["maintenance_coin"] = "4"
+        with self.assertRaisesRegex(AssertionError, "POSTENTRY_REFERENCE_MAINTENANCE_BREACH"):
+            audit(trace, observed)
+
+    def test_overlapping_entry_requires_exact_existing_mark_index(self):
+        w = start_wallet("BTC", "severe", "100")
+        s, l = quote("50000", ".08", ".09", OPEN1), quote("45000", ".04", ".05", OPEN1)
+        w = open_vertical(w, "p1", s, l, OPEN1, "1", ".001", ".001", "4", "2")
+        w = mark_to_exit(w, "p1", quote("50000", ".08", ".09", OPEN2),
+                         quote("45000", ".04", ".05", OPEN2), OPEN2, ".001", ".001")
+        s2 = quote("48000", ".09", ".10", OPEN2, index="47000")
+        l2 = quote("43000", ".04", ".05", OPEN2, index="47000")
+        with self.assertRaisesRegex(ValueError, "POSTENTRY_UNBOUND_UNDERLYING_INDEX"):
+            open_vertical(w, "p2", s2, l2, OPEN2, "1", ".001", ".001", "4", "2")
 
     def test_rejects_unbound_source_index(self):
         w = start_wallet("BTC", "severe", "100")
