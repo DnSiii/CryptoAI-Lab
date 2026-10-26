@@ -1,0 +1,18 @@
+# V98 Independent FA — preregistered downside-adjusted breadth / breakout / relative acceleration portfolio (2026-10-26)
+
+**Immutable before any FA economic PnL.** FA is a new complete seven-slot composition, not a parameter revision or attempted rescue of rejected EX/EY/EZ or any earlier experiment. Growth is the optimization objective; physical solvency, tail loss and causal reproducibility are constraints. Common authenticated source, settlement, risk governor and independent artifact audit are infrastructure only.
+
+## Firewall
+Binance USD-M authenticated Clean-4 BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT 1h, December 2022 warmup and 2023–2024 chronological training only. Native per-event funding and prior quote turnover. Decision from completed t close; execution at actual next-hour open. No 2025 holdout, 2026+, XRP, contaminated Phase083, V14/V15/V99 signals/parameters/results, Frozen or paper. No live orders.
+
+## Seven-slot architecture, precommitted
+1. **Growth Core:** every 96 completed hours compute each asset's native-net 720h log trend and 720h downside RMS of hourly log returns. Score = native-net 720h trend minus 0.5 × downside RMS × sqrt(720). Select three highest scores; nonnegative scores plus 0.02 determine proportional long-only weights. When all three scores are nonpositive, hold 50% BTC / 50% ETH as a fixed liquidity anchor. Gross core budget TREND 2.20, MIXED 1.70, STRESS 1.15.
+2. **Opportunity Sleeve:** 0.12 NAV long the asset with largest positive close breakout over previous 192 completed closes, requiring latest 24h quote turnover >= 1.10 × median trailing 192h of 24h quote turnover. Flat if no qualified breakout.
+3. **Relative-Value Sleeve:** signed dollar-neutral 0.10 NAV long top and 0.10 NAV short bottom of the 168h relative acceleration score (native-net 168h minus 0.25 × native-net 720h) when cross-sectional spread >=0.05 and 720h breadth >=2. No other financing.
+4. **Stress/Recovery Sleeve:** 0.10 NAV short the asset with weakest native-net 72h trend when average native-net 72h basket trend <0 and the 72h cross-sectional range >0.025; otherwise flat. A dispersion-conditioned hedge, not a copied recovery-long or carry hedge.
+5. **Regime Router:** 720h native-net breadth TREND if >=3 positive assets, STRESS if <=1, MIXED otherwise.
+6. **Dynamic Allocator:** fixed 96h synchronized targets, additive opportunity, signed dollar-neutral RV and stress; theoretical gross maximum 2.20+0.12+0.20+0.10=2.62 <2.80. No realized-outcome feedback.
+7. **Risk Governor:** existing 60% stressed NAV buffered CG, 81-corner staged physical exit, native funding and conservative prior liquidity, realistic base/severe/supersevere fees and both funding orderings. No leverage or tail gate relaxation.
+
+## Frozen gates
+Causal future mutation and >=4 active epochs per sleeve in each training year before PnL. Five ablation books (core, full, minus opportunity, minus RV, minus stress) × three costs × two funding orderings = 30 physical USD10k cells on two OS; independent artifact-only annual economic gate and each-hour signed ledger oracle. 30/30 physical survival, positive full 2023/2024 log growth base/severe both orders, strictly positive annual marginal full-minus-each-sleeve log growth for each of three sleeves both years base/severe both orders; full base CAGR >50%, severe >30%, severe DD <45%, turnover <=USD600k under base/severe. Record PF, payoff, win rate, positive days, concentration, tails, native funding, fees and slippage. No post-result sign/window/threshold/gross rescue. If FA fails any locked gate, freeze rejection; only approved internally frozen training can unlock separate untouched 2025 validation and later external benchmarks.
