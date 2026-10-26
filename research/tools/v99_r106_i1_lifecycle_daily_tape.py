@@ -101,12 +101,14 @@ def audit(root: Path) -> dict:
                     arrival = int(row["local_timestamp"])
                 except (ValueError, TypeError) as exc:
                     raise ValueError("INVALID_ORIGINAL_SOURCE_CLOCK") from exc
-                if not lower <= event <= arrival < upper:
+                if not (0 <= event <= arrival and lower <= arrival < upper):
                     raise ValueError("FUTURE_OR_OUTSIDE_DAY_QUOTE")
                 if last_arrival is not None and arrival < last_arrival:
                     raise ValueError("OUT_OF_ORDER_CAPTURE")
                 last_arrival = arrival
-                asset = _valid_put(row, day)
+                # Vendor files are partitioned by LOCAL arrival date, not event date.
+                # Older venue events remain original rows but cannot certify a fresh mark.
+                asset = _valid_put(row, day) if arrival - event <= 300_000_000 else None
                 if asset is not None:
                     seen.add(asset)
         if count != item.get("rows"):
