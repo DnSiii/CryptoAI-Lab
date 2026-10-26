@@ -126,7 +126,7 @@ def static_check():
     cutoff=1080
     c2=c.copy();c2[cutoff+1:]*=1.08
     o2=o.copy();o2[cutoff+2:]=c2[cutoff+1:-1]
-    b=bundle(o2,np.maximum(o2,c2)*1.001,np.minimum(o2,c2)*.999,r,e,q)
+    b=bundle(o2,np.maximum(o2,c2)*1.001,np.minimum(o2,c2)*.999,c2,r,e,q)
     for i in (0,1,3,4):
         assert np.array_equal(a[i][:cutoff+1],b[i][:cutoff+1])
     return True
