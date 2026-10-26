@@ -68,10 +68,11 @@ def exercise(scenario="severe"):
             exit_slippage_coin=".001", index_usd="46000"))
     nav = account_nav(w, MARK)
     trace["events"].append(dict(kind="nav", at_ms=MARK))
-    for name in ("p1", "p2"):
-        w = settle(w, name, EXPIRY, "46000", ".0001")
-        trace["events"].append(dict(kind="settle", name=name, at_ms=EXPIRY,
-            delivery_index_usd="46000", delivery_fee_coin=".0001"))
+    fees = {"p1": ".0001", "p2": ".0001"}
+    w = settle_batch(w, ["p1", "p2"], EXPIRY, "46000", fees)
+    trace["events"].append(dict(kind="settle_batch", names=["p1", "p2"],
+        at_ms=EXPIRY, delivery_index_usd="46000",
+        delivery_fees_coin=dict(fees)))
     observed = {"cash_coin":str(w.cash_coin), "reserved_coin":str(w.reserved_coin),
                 "open_position_ids":[p.name for p in w.positions],
                 "settled_ids":list(w.settled), "snapshots":[nav],
@@ -276,9 +277,14 @@ class NativeCoinAccountTests(unittest.TestCase):
         p2open = next(e for e in trace["events"]
                       if e["kind"] == "open" and e["name"] == "p2")
         p2open["expiry_ms"] = expiry2
-        p2settle = next(e for e in trace["events"]
-                        if e["kind"] == "settle" and e["name"] == "p2")
-        p2settle["at_ms"] = expiry2
+        # Rebuild a distinct-expiry journal: one due position per expiry.
+        batch_at = next(i for i, e in enumerate(trace["events"])
+                        if e["kind"] == "settle_batch")
+        trace["events"][batch_at:] = [
+            dict(kind="settle", name="p1", at_ms=EXPIRY,
+                 delivery_index_usd="46000", delivery_fee_coin=".0001"),
+            dict(kind="settle", name="p2", at_ms=expiry2,
+                 delivery_index_usd="46000", delivery_fee_coin=".0001")]
         fresh = dict(kind="mark", name="p2", at_ms=EXPIRY,
                      short_ask_coin=".10", long_bid_coin=".04",
                      exit_fees_coin=".001", exit_slippage_coin=".001",
@@ -360,13 +366,36 @@ class AtomicExpiryBatchTests(unittest.TestCase):
     def test_complete_atomic_batch_and_independent_scenarios(self):
         for scenario in ("severe", "supersevere"):
             trace, observed, before, after = mixed_batch_exercise(scenario)
-            with self.assertRaisesRegex(ValueError, "MIXED_EXPIRY_BATCH_REQUIRED"):
+            with self.assertRaisesRegex(ValueError, "SAME_EXPIRY_ATOMIC_BATCH_REQUIRED"):
                 settle(before, "p1", EXPIRY, "46000", ".0001")
             proof = audit(trace, observed)
             self.assertEqual(proof["independent_coin_account_replay"], "MATCH")
             self.assertEqual(after.settled, ("p1","p2","p3"))
             self.assertEqual(after.reserved_coin, D("0"))
             self.assertFalse(proof["promotion_authorized"])
+
+    def test_same_expiry_without_later_survivor_also_requires_atomic_batch(self):
+        trace, observed, _ = exercise()
+        batch = next(e for e in trace["events"] if e["kind"] == "settle_batch")
+        batch.clear()
+        batch.update(kind="settle", name="p1", at_ms=EXPIRY,
+                     delivery_index_usd="46000", delivery_fee_coin=".0001")
+        with self.assertRaisesRegex(AssertionError,
+                                    "REFERENCE_SAME_EXPIRY_ATOMIC_BATCH_REQUIRED"):
+            audit(trace, observed)
+        _, _, mixed, _ = mixed_batch_exercise()
+        # Strip only the later-expiry position; keep the two due siblings.
+        due = replace(mixed,
+                      positions=tuple(p for p in mixed.positions if p.name != "p3"),
+                      marks=tuple(m for m in mixed.marks if m[0] != "p3"),
+                      reserved_coin=D(mixed.reserved_coin)-D("4"))
+        due.check()
+        with self.assertRaisesRegex(ValueError, "SAME_EXPIRY_ATOMIC_BATCH_REQUIRED"):
+            settle(due, "p1", EXPIRY, "46000", ".0001")
+        out = settle_batch(due, ["p1", "p2"], EXPIRY, "46000",
+                           {"p1": ".0001", "p2": ".0002"})
+        self.assertEqual(out.reserved_coin, D("0"))
+        self.assertEqual(out.settled, ("p1", "p2"))
 
     def test_atomic_batch_rejects_missing_duplicate_wrong_fee_or_index(self):
         _, _, w, _ = mixed_batch_exercise()
