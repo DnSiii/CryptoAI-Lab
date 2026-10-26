@@ -168,9 +168,9 @@ def audit(trace, observed):
                      if key != name and pos[5] > t]
             siblings = [key for key, pos in positions.items()
                         if key != name and pos[5] == t]
+            if siblings:
+                raise AssertionError("REFERENCE_SAME_EXPIRY_ATOMIC_BATCH_REQUIRED")
             if later:
-                if siblings:
-                    raise AssertionError("REFERENCE_MIXED_EXPIRY_BATCH_REQUIRED")
                 if any(key not in marks or marks[key][1] != t
                        or marks[key][2] != idx for key in later):
                     raise AssertionError("REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED")
