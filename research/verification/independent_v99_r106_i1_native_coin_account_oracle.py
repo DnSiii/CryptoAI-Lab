@@ -117,6 +117,16 @@ def audit(trace, observed):
             idx = d(event["delivery_index_usd"])
             if idx <= 0:
                 raise AssertionError("INVALID_REFERENCE_INDEX")
+            later = [key for key, pos in positions.items()
+                     if key != name and pos[5] > t]
+            siblings = [key for key, pos in positions.items()
+                        if key != name and pos[5] == t]
+            if later:
+                if siblings:
+                    raise AssertionError("REFERENCE_MIXED_EXPIRY_BATCH_REQUIRED")
+                if any(key not in marks or marks[key][1] != t
+                       or marks[key][2] != idx for key in later):
+                    raise AssertionError("REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED")
             due = qty*(max(high-idx, Decimal(0))-max(low-idx, Decimal(0)))/idx
             cash -= due+d(event["delivery_fee_coin"])
             reserve -= margin
@@ -125,6 +135,11 @@ def audit(trace, observed):
             settled.append(name)
             if cash < reserve:
                 raise AssertionError("INSOLVENT_REFERENCE_SETTLEMENT")
+            if later:
+                liabilities = sum((marks[key][0] for key in later), Decimal(0))
+                maintenance_due = sum((positions[key][4] for key in later), Decimal(0))
+                if cash-liabilities < maintenance_due:
+                    raise AssertionError("REFERENCE_POSTSETTLEMENT_MAINTENANCE_BREACH")
         else:
             raise AssertionError("UNKNOWN_REFERENCE_EVENT")
     if (str(cash) != str(d(observed["cash_coin"]))
