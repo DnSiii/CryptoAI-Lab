@@ -77,3 +77,50 @@ def audit_postentry(journal: dict):
             "maintenance_coin": str(maintenance),
             "historical_economic_train": False,
             "promotion_authorized": False}
+
+
+def audit_delivery_batch(journal: dict, observed_cash_coin, observed_reserved_coin,
+                         observed_settled_names):
+    """Independent native inverse-payoff + scenario fee-floor reconciliation.
+
+    Input is a *fixture* journal only; no imports from primary wallet or
+    cost adapter, no historical source attestation, no claimed option PnL.
+    """
+    if journal.get("fixture") is not True or journal.get("historical_economic_train") is not False:
+        raise AssertionError("UNTRUSTED_DELIVERY_JOURNAL")
+    scenario = journal.get("scenario")
+    if scenario not in FIXED:
+        raise AssertionError("UNKNOWN_REFERENCE_SCENARIO")
+    fee_rate = decimal(FIXED[scenario][0])
+    index = decimal(journal["delivery_index_usd"])
+    if index <= 0:
+        raise AssertionError("INVALID_REFERENCE_DELIVERY_INDEX")
+    positions = journal.get("due_positions")
+    if not isinstance(positions, list) or not positions:
+        raise AssertionError("MISSING_REFERENCE_DUE_COHORT")
+    names = [p["name"] for p in positions]
+    if len(names) != len(set(names)) or any(not isinstance(n, str) or not n for n in names):
+        raise AssertionError("INVALID_REFERENCE_DUE_IDS")
+    if set(names) != set(journal["due_names"]) or set(names) != set(observed_settled_names):
+        raise AssertionError("INCOMPLETE_REFERENCE_ATOMIC_SETTLEMENT")
+    debits = decimal("0")
+    released = decimal("0")
+    for p in positions:
+        q, high, low = (decimal(p[k]) for k in ("qty", "short_strike_usd", "long_strike_usd"))
+        fee, margin = (decimal(p[k]) for k in ("delivery_fee_coin", "initial_margin_coin"))
+        if q <= 0 or high <= low or low <= 0 or margin < 0:
+            raise AssertionError("INVALID_REFERENCE_NATIVE_POSITION")
+        if fee < 2 * q * fee_rate:
+            raise AssertionError("REFERENCE_SCENARIO_DELIVERY_FEE_UNDERPAYMENT")
+        obligation = q * (max(high-index, decimal("0")) - max(low-index, decimal("0"))) / index
+        debits += obligation + fee
+        released += margin
+    expected_cash = decimal(journal["cash_before_coin"]) - debits
+    expected_reserved = decimal(journal["reserve_before_coin"]) - released
+    if expected_cash < 0 or expected_reserved < 0 or expected_cash < expected_reserved:
+        raise AssertionError("INSOLVENT_REFERENCE_DELIVERY")
+    if expected_cash != decimal(observed_cash_coin) or expected_reserved != decimal(observed_reserved_coin):
+        raise AssertionError("REFERENCE_DELIVERY_CASH_OR_RESERVE_MISMATCH")
+    return {"independent_scenario_delivery": "MATCH", "scenario": scenario,
+            "delivery_debit_coin": str(debits), "released_margin_coin": str(released),
+            "historical_economic_train": False, "promotion_authorized": False}
