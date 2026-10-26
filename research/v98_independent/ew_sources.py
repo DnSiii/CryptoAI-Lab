@@ -59,7 +59,7 @@ def bundle(opening,high,low,close,rate,event,quote):
         lo=int(np.argmin(np.where(n336>0,residual,np.inf)))
         hi=int(np.argmax(residual))
         spread=float(residual.max()-residual.min())
-        if (lo!=hi and np.isfinite(residual[lo]) and n4[lo]>0 and
+        if (lo!=hi and n336[lo]>0 and np.isfinite(residual[lo]) and n4[lo]>0 and
             spread>np.median(historical)):
             signals[t,2,lo]=1.;signals[t,2,hi]=-1.
             budgets[t,2]=TILT[1]
