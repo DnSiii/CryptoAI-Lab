@@ -1,0 +1,11 @@
+# V98 Independent GL — frozen training rejection (2026-10-26)
+
+**FINAL: REJECT_GL_HISTORICAL_GROWTH_OR_MARGINAL**. GL was preregistered at commit `190d9a7cb7b6d6746edfed856dc70b3446e52915` before implementation `4040f5af9b2fbfafc0a57aeff7d7159009e6b54b`. Clean-4 authenticated BTC/ETH/BNB/SOL 1h, Dec-2022 warmup, 2023–2024 training, signed native funding, causal next-open. No 2025, 2026+, XRP, Phase083, external engines, Frozen, paper or live orders.
+
+- [Official GL native 30-cell run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40294726273): source-only activation/causality PASS; 30/30 physical cells survived; cross-OS numerical reproducibility PASS; independent every-hour signed funding and settlement oracle for all five paths PASS.
+- [Frozen artifact-only economic attribution](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40294966284): audit errors []; full base 2023–2024 CAGR +86.677993%, severe +79.886378%; 2023 base net return +140.134584%, 2024 +45.245485%. Max DD base 30.453226%, severe 31.439051%. Base turnover USD405,209.78, severe USD376,181.42. Base fees USD202.60, slippage USD202.60, signed funding -USD1,726.87; severe fees USD752.36, slippage USD1,128.54, signed funding -USD1,625.21. All annual full growth, absolute CAGR, DD and turnover gates PASS.
+- **Relative Value PASS** both years, base/severe, both funding orderings. Base annual marginal log growth +0.064282 (2023), +0.015783 (2024); severe +0.068976/+0.015192.
+- **Opportunity FAIL** 2024 base marginal -0.019620, severe -0.022361; 2023 was positive. **Stress/Recovery FAIL** both years: base -0.018101/-0.006241, severe -0.020242/-0.008966. Do not reinterpret favorable aggregate CAGR as module-level success.
+- [15 frozen physical funding-order pairs](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40295091059): conservative order-invariant authorization proved across 5 books x 3 cost modes; infrastructure proof only, not alpha or validation.
+
+No parameter, threshold, gross, sign, window, funding convention, cost or risk adjustment is permitted to rescue GL after this rejection. Preserve the original run, manifests, independent audit and holdout firewall. GL risk authorization can serve as independently tested non-alpha infrastructure for separately preregistered architectures; GL economic engine remains rejected. No live authorization.
