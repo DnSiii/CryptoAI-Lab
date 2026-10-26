@@ -106,7 +106,11 @@ def static_check():
     b=bundle(o2,h2,l2,c2,r,e,q)
     for i in (0,1,3):
         assert np.array_equal(a[i][:cutoff+1],b[i][:cutoff+1])
-    assert np.allclose(np.sum(a[0][:,1:,:],axis=2)[a[1][:,0]],0.) is False if False else True
+    for t in np.flatnonzero(a[1][:,0]):
+        for i in range(4):
+            if a[3][t,i]>0:
+                assert np.isclose(a[0][t,i].sum(),1.,atol=1e-12)
+        assert a[3][t,0]<=GROSS_CAP
     return True
 
 if __name__=="__main__":
