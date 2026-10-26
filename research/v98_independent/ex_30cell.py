@@ -170,7 +170,7 @@ def run(path):
     source=bundle(frames[0],frames[1],frames[2],frames[3],frames[5],frames[6],frames[4])
     risks=prepare_risks(frames)
     cases=[]
-    for mode,fee,order in itertools.product(CAPITAL,("base","sewere","supersewere"),ORDERS):
+    for mode,fee,order in itertools.product(CAPITAL,("base","severe","supersevere"),ORDERS):
         try:cases.append(cell(path,mode,fee,order,frames,risks,source))
         except Exception as exc:
             cases.append({"path":path,"mode":mode,"fee":fee,"order":order,

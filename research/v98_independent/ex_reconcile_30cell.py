@@ -7,7 +7,7 @@ import argparse,glob,json,math
 from pathlib import Path
 PATHS=("EX_core_only","EX_full","EX_minus_opportunity","EX_minus_RV","EX_minus_stress")
 MODES=("immediate",)
-FEES=("base","sewere","supersewere")
+FEES=("base","severe","supersevere")
 ORDERS=("carried_before_fill","new_after_fill")
 OS=("ubuntu-22.04","ubuntu-24.04")
 GRID={(m,f,o) for m in MODES for f in FEES for o in ORDERS}
@@ -83,7 +83,7 @@ def run(root):
                 errors.append(("NEGATIVE_COST",path,key))
     full=reps.get("EX_full",{})
     growth={};marginal={}
-    for fee in ("base","sewere"):
+    for fee in ("base","severe"):
         for order in ORDERS:
             key=("immediate",fee,order)
             c=full.get(key,{})
@@ -106,15 +106,15 @@ def run(root):
     high_growth=all(
         full.get(("immediate",fee,order),{}).get("passed") and
         full[("immediate",fee,order)]["two_year_cagr"]>(.50 if fee=="base" else .30)
-        for fee in ("base","sewere") for order in ORDERS)
-    sewere_de=all(full.get(("immediate","sewere",order),{}).get("passed") and full[("immediate","sewere",order)]["max_drawdown"]<.45 for order in ORDERS)
+        for fee in ("base","severe") for order in ORDERS)
+    severe_de=all(full.get(("immediate","severe",order),{}).get("passed") and full[("immediate","severe",order)]["max_drawdown"]<.45 for order in ORDERS)
     turnover_ok=all(
         full.get(("immediate",fee,order),{}).get("passed") and
         full[("immediate",fee,order)]["turnover"]<=600000.
-        for fee in ("base","sewere") for order in ORDERS)
+        for fee in ("base","severe") for order in ORDERS)
     if errors:decision="BLOCK_EX_AUDIT_OR_REPRODUCIBILITY"
     elif survival!=30:decision="REJECT_EX_PHYSICAL_SURVIVAL"
-    elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not sewere_de or not turnover_ok:
+    elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_de or not turnover_ok:
         decision="REJECT_EX_HISTORICAL_GROWTH_OR_MARGINAL"
     else:decision="PASS_EX_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"EX","historical_training_only":True,
@@ -122,10 +122,10 @@ def run(root):
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
             "cross_os_reproducible":not errors and len(reps)==5,
             "cells_expected":30,"cells_survived":survival,
-            "growth_gates_10k":growth,"high_growth_gate_10k":high_growth,"sewere_drawdown_gate_10k":sewere_de,"turnover_gate_10k":turnover_ok,
+            "growth_gates_10k":growth,"high_growth_gate_10k":high_growth,"severe_drawdown_gate_10k":severe_de,"turnover_gate_10k":turnover_ok,
             "marginal_log_growth_10k":marginal,"marginal_gates_10k":marginal_gates,
             "full_10k_base":full.get(("immediate","base","carried_before_fill")),
-            "full_10k_sewere":full.get(("immediate","sewere","carried_before_fill")),
+            "full_10k_severe":full.get(("immediate","severe","carried_before_fill")),
             "decision":decision}
 
 if __name__=="__main__":
@@ -135,7 +135,7 @@ if __name__=="__main__":
     with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("EX_AUDIT",out["decision"],"survived",out["cells_survived"],
           "cross_os",out["cross_os_reproducible"],"errors",out["errors"])
-    for key in ("full_10k_base","full_10k_sewere"):
+    for key in ("full_10k_base","full_10k_severe"):
         x=out[key]
         if x and x.get("passed"):
             print("EX_FULL",key,"CAGR",x["two_year_cagr"],

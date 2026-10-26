@@ -91,7 +91,7 @@ jobs:
               dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
-      - name: Run native 6-cell path USD10k, base/sewere/supersewere and both funding orderings
+      - name: Run native 6-cell path USD10k, base/severe/supersevere and both funding orderings
         working-directory: research/v98_independent
         shell: bash
         run: |
