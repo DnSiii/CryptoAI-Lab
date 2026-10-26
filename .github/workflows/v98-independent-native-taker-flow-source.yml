@@ -1,0 +1,61 @@
+name: V98 Independent Native Clean4 Taker Flow Source Integrity Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-native-taker-flow-source.yml'
+      - 'research/v98_independent/native_taker_flow_source_prereg_20261026.md'
+      - 'research/v98_independent/native_taker_flow_source_gate.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  native_taker_source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Stage exact pinned canonical Dec-2022 through Dec-2024 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Copy only the four pinned 2022-2024 canonical CSVs
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');dest=Path('research/v98_independent/phase243_clean4_canonical')
+          dest.mkdir(parents=True,exist_ok=True)
+          for asset in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT'):
+              files=list(root.rglob(asset+'_1h.csv'))
+              assert len(files)==1,(asset,files)
+              shutil.copy2(files[0],dest/(asset+'_1h.csv'))
+          PY
+      - name: Verify 100 publisher checksums, frozen archive pins, native 12 columns and canonical 73152 hours
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile native_taker_flow_source_gate.py
+          python native_taker_flow_source_gate.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-native-taker-flow-source-receipt
+          path: research/v98_independent/native_taker_flow_source_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: v98-independent-native-taker-flow-2022-2024-pinned-source
+          path: research/v98_independent/native_taker_flow_clean4_2022_2024.csv
+          retention-days: 30
+          if-no-files-found: error
