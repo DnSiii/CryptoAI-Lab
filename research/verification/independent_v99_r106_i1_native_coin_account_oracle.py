@@ -83,10 +83,17 @@ def audit(trace, observed):
             if name not in positions:
                 raise AssertionError("MISSING_REFERENCE_MARK")
             qty = positions[name][0]
+            fees = d(event["exit_fees_coin"])
+            slippage = d(event["exit_slippage_coin"])
+            index = d(event["index_usd"])
+            if fees < 0 or slippage < 0 or index <= 0:
+                raise AssertionError("INVALID_REFERENCE_MARK_PROVENANCE")
             liability = max(Decimal(0), qty*(d(event["short_ask_coin"])-
                                             d(event["long_bid_coin"])))
-            liability += d(event["exit_fees_coin"])+d(event["exit_slippage_coin"])
-            marks[name] = (liability, t, d(event["index_usd"]))
+            liability += fees+slippage
+            if liability < 0:
+                raise AssertionError("NEGATIVE_REFERENCE_MARK_LIABILITY")
+            marks[name] = (liability, t, index)
         elif typ == "nav":
             if set(marks) != set(positions) or any(
                     mark_t != t for _, mark_t, _ in marks.values()):
