@@ -19,11 +19,11 @@ def ms(iso):
 OPEN1 = ms("2022-01-03T00:00:00+00:00")
 OPEN2 = ms("2022-01-10T00:00:00+00:00")
 MARK = ms("2022-01-10T00:01:00+00:00")
-EXPIRY = ms("2022-01-28T08:00:00+00:00")
+EXPIRY = ms("2022-02-04T08:00:00+00:00")
 
 
 def quote(strike, bid, ask, at, index="46000", asset="BTC"):
-    expiry = "28JAN22"
+    expiry = "04FEB22"
     return Quote(asset, f"{asset}-{expiry}-{strike}-P", EXPIRY, D(strike),
                  D(bid), D(ask), D("10"), D("10"),
                  at-3000, at-2000, D(index))
