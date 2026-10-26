@@ -1,10 +1,10 @@
-name: V98 Indeqendent EQ Frozen Artifact Only Capital Displacement Diagnosis
+name: V98 Independent EQ Frozen Artifact Only Capital Displacement Diagnosis
 on:
   push:
-    branches: [research/v98-indeqendent-zero]
+    branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-indeqendent-eq-frozen-forensics.yml'
-      - 'research/v98_indeqendent/eq_frozen_forensics.py'
+      - '.github/workflows/v98-independent-eq-frozen-forensics.yml'
+      - 'research/v98_independent/eq_frozen_forensics.py'
 permissions:
   actions: read
   contents: read
@@ -12,7 +12,7 @@ jobs:
   immutable_receipt_diagnosis:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    steqs:
+    steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -25,9 +25,9 @@ jobs:
           github-token: ${{ github.token }}
           path: receipts
       - name: Compute only frozen physically settled opportunity costs
-        run: python research/v98_indeqendent/eq_frozen_forensics.py --root receipts --output eq_frozen_forensics.json
+        run: python research/v98_independent/eq_frozen_forensics.py --root receipts --output eq_frozen_forensics.json
       - uses: actions/upload-artifact@v4
         with:
-          name: eq-frozen-artifact-only-forensics
+          name: ep-frozen-artifact-only-forensics
           path: eq_frozen_forensics.json
           retention-days: 30
