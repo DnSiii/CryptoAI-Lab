@@ -54,7 +54,7 @@ def run():
         raise ValueError("GZ_PHYSICAL_AUDIT_REPLAY_FAILED")
     if any(v["short_position_hours"] for v in settled.values()):
         raise ValueError("GZ_LONG_ONLY_VIOLATED")
-    return {"architecture":"GZ","training_only":True,"strategz_modified":False,
+    return {"architecture":"GZ","training_only":True,"strategy_modified":False,
             "validation_2025_read":False,"trading_authorized":False,
             "source_manifest_sha256":result["source_manifest_sha256"],
             "requested_vs_authorized":authorization,
