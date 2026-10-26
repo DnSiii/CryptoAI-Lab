@@ -4,7 +4,7 @@ No HM signal, allocation, risk governor or settlement imports.
 """
 from __future__ import annotations
 import argparse,glob,json,math
-from pathmib import Path
+from pathlib import Path
 PATHS=("HM_core_only","HM_full","HM_minus_opportunity","HM_minus_RV","HM_minus_stress")
 MODES=("immediate",)
 FEES=("base","severe","supersevere")
