@@ -65,14 +65,18 @@ jobs:
           paths=(r/"i1_free_sunday_ticker",r/"i1_native_instruments",
               r/"i1_prior_credit/i1_original_entry_credit.json",
               r/"i1_prior_index/i1_index_binding.json")
-          for change in ("size","fill","promotion"):
+          for change in ("size","fill","promotion","causal_pair","causal_total"):
               bad=json.loads(p.read_text())
               if change=="size":
                   bad["rows"][0]["minimum_displayed_source_units"]="9999999"
               elif change=="fill":
                   bad["rows"][0]["two_leg_executable_fill"]=True
-              else:
+              elif change=="promotion":
                   bad["promotion_authorized"]=True
+              elif change=="causal_pair":
+                  bad["rows"][0]["model_input_causal_pair_screen_only"]=not bad["rows"][0]["model_input_causal_pair_screen_only"]
+              else:
+                  bad["model_input_causal_pair_screen_only_total"]+=1
               with tempfile.TemporaryDirectory() as d:
                   forged=Path(d)/"forged.json"
                   forged.write_text(json.dumps(bad))
