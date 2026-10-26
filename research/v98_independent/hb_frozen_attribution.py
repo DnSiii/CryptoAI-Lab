@@ -18,6 +18,21 @@ def run(path):
             "slippage_base":a["full_10k_base"]["slippage"],
             "validation_2025_read":False,"strategy_modified":False,
             "trading_authorized":False}
+    # Read-only diagnostics from the already frozen, independently funded full book.
+    # Never recompute trades, signals, funding or economic decisions.
+    diagnostic_keys=("hourly_net_profit_factor","hourly_net_payoff",
+        "hourly_net_win_rate","positive_utc_days","total_utc_days",
+        "positive_day_fraction","worst_hour_net_return","hourly_var_1pct",
+        "hourly_cvar_1pct","max_single_asset_gross_concentration",
+        "max_gross_to_nav","max_abs_net_to_nav","physical_fill_hours")
+    annual_keys=("net_return","net_log_growth","max_drawdown",
+        "hourly_net_profit_factor","hourly_net_payoff","hourly_net_win_rate",
+        "positive_utc_days","total_utc_days","hourly_cvar_1pct")
+    for fee in ("base","severe"):
+        cell=a["full_10k_"+fee]
+        result[fee+"_diagnostics"]={k:cell[k] for k in diagnostic_keys}
+        result[fee+"_annual"]={yr:{k:cell["annual"][yr][k]
+            for k in annual_keys} for yr in ("2023","2024")}
     print("HB_FROZEN_ATTRIBUTION",json.dumps(result,sort_keys=True))
     return result
 if __name__=="__main__":
