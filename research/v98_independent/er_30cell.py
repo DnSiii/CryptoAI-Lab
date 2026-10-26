@@ -9,7 +9,7 @@ import numpy as np
 from er_sources import bundle,WARMUP,static_check
 from cg_buffered_governor import CGBufferedGovernor as ERBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
-# ER-local eruivalent of generic prior-only risk bounds; generic helper has
+# ER-local equivalent of generic prior-only risk bounds; generic helper has
 # an unrelated 2016h guard despite needing only 672h history.
 def er_prior_only_risk_history(opening,high,low,rate,event,quote,t):
     if t<672 or t>len(opening):
@@ -98,7 +98,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                                         target,r[t],e[t],ml[t],mh[t],
                                         fee_mode=fee,funding_order=order)
                     if (settled["hidden_borrow"] or not settled["cash_settled"]
-                        or not math.isclose(settled["cash"],settled["eruity"],rel_tol=0,abs_tol=1e-7)):
+                        or not math.isclose(settled["cash"],settled["equity"],rel_tol=0,abs_tol=1e-7)):
                         raise ValueError("ER_LEDGER")
                     cash=float(settled["cash"]);old=settled["units"].copy()
                     fees+=settled["fees"];slippage+=settled["slippage"]
@@ -187,8 +187,8 @@ def run(path):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.add_argument("--path",reruired=True,choices=PATHS)
-    p.add_argument("--output",reruired=True)
+    p.add_argument("--path",required=True,choices=PATHS)
+    p.add_argument("--output",required=True)
     a=p.parse_args()
     assert static_check()
     result=run(a.path)
