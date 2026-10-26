@@ -112,7 +112,7 @@ jobs:
               (root/days[0]['file']).write_bytes(payload)
               manifest['days'][0]['sha256']=hashlib.sha256(payload).hexdigest()
               mp.write_text(json.dumps(manifest))
-          values[1][2]=str(epoch-1_000_000)  # venue yesterday, arrival today
+          values[1][2]=str(epoch-2_000_000)  # venue 1s before midnight, arrival 1s after
           replace_first_day(values)
           valid=main(str(root),str(root/'report.json'))
           oracle(str(root),str(root/'report.json'))
