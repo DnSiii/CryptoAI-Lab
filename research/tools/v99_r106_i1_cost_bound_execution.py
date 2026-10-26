@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from research.tools.v99_r106_i1_native_coin_account_replay import (
-    D, Wallet, Quote, open_vertical, mark_to_exit, account_nav,
+    D, Wallet, Quote, open_vertical, mark_to_exit, account_nav, settle_batch,
 )
 
 # Fixed *modeled* rates per leg, matching the older USD-equivalent stress ledger.
@@ -109,3 +109,35 @@ def costed_mark(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
             and all(t == at_ms for _, _, t, _ in marked.marks)):
         account_nav(marked, at_ms)
     return marked
+
+
+def costed_settle_batch(w: Wallet, names, at_ms: int,
+                        original_delivery_index_usd, delivery_fees_coin: dict, *,
+                        fixture=False, original_fee_verified=False,
+                        native_contract_verified=False, margin_rules_verified=False,
+                        original_quote_verified=False):
+    """Scenario-fee-bound atomic expiry settlement; NOT certified venue economics.
+
+    Contractual expiry has no bid/ask exit fill, so enforce only the existing
+    scenario *fee* floor, not an invented exit-slippage debit. Historical
+    delivery fee and source index must be independently authenticated upstream.
+    """
+    _source_gate(fixture=fixture, original_fee_verified=original_fee_verified,
+                 native_contract_verified=native_contract_verified,
+                 margin_rules_verified=margin_rules_verified,
+                 original_quote_verified=original_quote_verified)
+    w.check()
+    if not isinstance(names, (tuple, list)) or not names or not isinstance(delivery_fees_coin, dict):
+        raise ValueError("INVALID_SCENARIO_SETTLEMENT_COHORT")
+    if not all(isinstance(n, str) for n in names) or len(names) != len(set(names)):
+        raise ValueError("INVALID_SCENARIO_SETTLEMENT_COHORT")
+    due = {p.name: p for p in w.positions if p.expiry_ms == at_ms}
+    if not due or set(names) != set(due) or set(delivery_fees_coin) != set(due):
+        raise ValueError("INCOMPLETE_SCENARIO_SETTLEMENT_COHORT")
+    fee_rate = RATES[w.scenario][0]
+    for name, p in due.items():
+        fee = D(delivery_fees_coin[name])
+        if fee < 2 * D(p.qty) * fee_rate:
+            raise ValueError("SCENARIO_DELIVERY_FEE_UNDERPAYMENT")
+    return settle_batch(w, names, at_ms, original_delivery_index_usd,
+                        delivery_fees_coin)
