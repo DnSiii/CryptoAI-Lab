@@ -1,0 +1,21 @@
+# V99 I1 — scenario-bound atomic expiry settlement: actual execution result (2026-10-26, 16:47 BRT)
+
+**SOURCE_ONLY/HOLD — NO PROMOTION.** This is a real native-coin accounting repair, NOT a complete integrated option engine, not exchange-certified historical fees, not a successful economic TRAIN, and not a claim of ROI.
+
+## Traceable, pre-registered changes
+- Fixed scenario delivery fee floor **before implementation** in `research/V99_R106_I1_SETTLEMENT_SCENARIO_COST_PREREG_20261026.md`, commit `1a96515833ad91b734eff8b081790953ae2c023d`.
+- Primary `costed_settle_batch` adapter in `research/tools/v99_r106_i1_cost_bound_execution.py` (`08cf10c1`) now prevents a 2-leg native put vertical from escaping the fixed severe/supersevere fee shock by holding to expiry. Scenario delivery fee >= 2 * native_lots * 0.0012 (severe) or 2 * native_lots * 0.0024 (supersevere) **coin** per spread. These are modeled stress floors, **not** actual Deribit delivery fees; no fictitious bid/ask slippage at contractual expiry.
+- Independent Decimal-only oracle (`9e88251f`) reconstructs the inverse payoff, all same-expiry positions' delivery fees, released reserve and postsettlement cash without importing the wallet or cost adapter.
+- Adversarial controls (`ce16d13a`) reject zero fees, a single undercharged same-expiry sibling, incomplete settlement cohort, forged cash/reserve and caller-claimed nonfixture provenance. No order interface added.
+- CI workflow (`ad649fd6`) verifies that preregistration commit is an ancestor of implementation and HEAD, then reruns both the scenario tests and archived original-byte source gate.
+
+## Actually run and independently checked
+- [GitHub Actions 40389731413](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40389731413): **SUCCESS** on `ad649fd6`, **8/8 tests passed**, including the new severe/supersevere two-position atomic-expiry journal and independent settlement oracle.
+- Earlier [Actions 40389673117](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40389673117) also **SUCCESS** on the adversarial test commit. Both are fixture-only economic accounting tests.
+- The same final workflow downloaded archived ORIGINAL causal BTC/ETH signals and 4,000 partial original Deribit option quotes, reran the source join and its separate original-byte oracle: **182 decisions**, **0/182 synchronized original two-leg entry asset-weeks**, **0 certified complete option lifecycles**, **no historical economic TRAIN**. Do not confuse positive causal variance indications with executable option entries.
+- Commit diff from prior branch head `192d9c1` to `ad649fd6` touched only preregistration, primary adapter, independent oracle, adversarial test and research CI workflow. No Frozen, paper/results, legacy champion, dashboard PnL, validation or final holdout changes.
+
+## Blocking external receipts and alternative
+Still missing legally authorized original **BTC+ETH Deribit option BBO+native size** with venue/local arrival timestamps for every 2021-12-09..2023-09-30 entry and complete 21–45-day position mark/exit/settlement paths, vendor gap/completeness and entitlement evidence, dated instrument lot conversion, applicable historical account fee/delivery tier, original delivery indices and dated initial/maintenance margin/liquidation rules. A self-declared manifest or free first-of-month sample is insufficient. Tardis publicly documents Deribit OPTIONS quotes back to 2019, but full 2021–2023 entitlement has not been configured; request a **verified licensed BTC+ETH full-date-range export** (or independently equivalent CoinAPI/Amberdata dataset) before purchase, with sample evidence of the exact fields, unit semantics and gaps. Volar's dense 2021–2024 historical archive is BTC-only, not a substitute for ETH. Historical hypothetical fills must be conservative **models**, never falsely described as actual fills.
+
+**Next critical path:** bind complete authenticated historical entry/mark/settlement and dated fee/margin receipts to the scenario-cost wallet, run one precommitted complete I1 portfolio through all five TRAIN folds and severe/supersevere shocks with independent accounting and risk gates; only after TRAIN pass/freeze consider sealed validation. **NO PROMOTION, NO ORDERS, NO ROI CLAIMS.**
