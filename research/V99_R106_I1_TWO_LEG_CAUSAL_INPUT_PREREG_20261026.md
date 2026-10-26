@@ -1,0 +1,7 @@
+# I1 — original-quote two-leg causal eligibility correction (2026-10-26 01:xx BRT)
+
+**Pre-implementation rule; SOURCE_ONLY/HOLD; no strategy selection or PnL.** The existing original native quote-size handoff reports 46 adjacent put pairs without distinguishing whether both legs could enter the already-fixed `open_vertical` input contract: **arrival clock skew <= 1,000 ms, venue-event clock skew <= 1,000 ms and exactly the same original as-of underlying index**. The underlying ledger already enforces those conditions; this change is not a parameter search or relaxed gate.
+
+For each of the **unchanged** 46 original sampled source pairs, derive the two absolute timestamp differences in milliseconds from the original integer microsecond fields and the independently source-bound `same_exact_index_price` boolean. Report a per-pair `model_input_causal_pair_screen_only` flag, count by BTC and ETH, and total. An independent original-byte oracle must reproduce all flags/counts and reject a forged flag or count. A passing screen **does not** establish atomic execution, available native lots, fill probability, historical fees, margins, complete holding-period exit liquidity or 2021–2023 five-fold coverage. Do not delete/retune original pairs or change the 0 native-executable count.
+
+This is a necessary source-to-engine consistency fix, not an economic engine, not a new alpha experiment. Keep `0/182` certified full lifecycles, `NO PROMOTION`, no orders, no validation/holdout and no Frozen/paper/champion changes.
