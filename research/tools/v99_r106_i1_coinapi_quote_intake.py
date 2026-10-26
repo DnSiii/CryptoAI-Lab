@@ -9,7 +9,6 @@ import argparse
 import csv
 import gzip
 import hashlib
-import io
 import json
 import re
 import sys
@@ -72,6 +71,33 @@ def positive(value: str) -> Decimal:
     return d
 
 
+def _compressed_digest(path: Path) -> tuple[str, int]:
+    sha = hashlib.sha256()
+    size = 0
+    with path.open("rb") as source:
+        magic = source.read(2)
+        if magic != b"\x1f\x8b":
+            raise ValueError("NOT_ORIGINAL_GZIP")
+        sha.update(magic)
+        size += len(magic)
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            sha.update(chunk)
+            size += len(chunk)
+    return sha.hexdigest(), size
+
+
+def _original_rows(path: Path):
+    """Iterate original CSV in bounded memory; validate gzip through EOF."""
+    try:
+        with gzip.open(path, "rt", encoding="utf-8", newline="") as stream:
+            reader = csv.DictReader(stream, delimiter=";")
+            if tuple(reader.fieldnames or ()) != COLUMNS:
+                raise ValueError("WRONG_COINAPI_QUOTES_COLUMNS")
+            yield from reader
+    except (OSError, UnicodeError, EOFError, csv.Error) as exc:
+        raise ValueError("INVALID_ORIGINAL_GZIP") from exc
+
+
 def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, source_key: str) -> dict:
     """Validate an explicitly identified original file; no inferred symbol from file name."""
     path = Path(original_gzip)
@@ -82,19 +108,12 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
     day_start_us, day_end_us = original_partition(source_key, symbol)
     if not path.is_file() or path.is_symlink() or path.suffix != ".gz":
         raise ValueError("ORIGINAL_GZIP_FILE_REQUIRED")
-    raw = path.read_bytes()
-    if not raw.startswith(b"\x1f\x8b"):
-        raise ValueError("NOT_ORIGINAL_GZIP")
-    try:
-        decompressed = gzip.decompress(raw).decode("utf-8")
-    except (OSError, UnicodeError) as exc:
-        raise ValueError("INVALID_ORIGINAL_GZIP") from exc
-    reader = csv.DictReader(io.StringIO(decompressed), delimiter=";")
-    if tuple(reader.fieldnames or ()) != COLUMNS:
-        raise ValueError("WRONG_COINAPI_QUOTES_COLUMNS")
+    # Licensed flat-file partitions can be huge: never materialize compressed
+    # bytes or decompressed CSV in memory. Hash original bytes in chunks.
+    original_sha256, original_bytes = _compressed_digest(path)
     rows, last_arrival = 0, None
     first, last = None, None
-    for row in reader:
+    for row in _original_rows(path):
         if row.get(None) is not None or any(row.get(k) is None for k in COLUMNS):
             raise ValueError("MALFORMED_ORIGINAL_COINAPI_ROW")
         if row["id_site_coinapi"] and not SITE_UUID.fullmatch(row["id_site_coinapi"]):
@@ -113,6 +132,10 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         last = arrival
         last_arrival = arrival
         rows += 1
+    # Reject files changed between the original-byte hash and streamed parse.
+    second_sha, second_bytes = _compressed_digest(path)
+    if second_sha != original_sha256 or second_bytes != original_bytes:
+        raise ValueError("ORIGINAL_FILE_CHANGED_DURING_INTAKE")
     if rows == 0:
         raise ValueError("EMPTY_COINAPI_OPTIONS_QUOTES")
     return {
@@ -120,11 +143,11 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         "status":"SOURCE_FORMAT_ONLY_NO_ECONOMICS",
         "provider":"CoinAPI", "venue":venue, "instrument":symbol,
         "timezone_for_naive_source_fields_assumed_utc_not_certified":True,
-        "original_sha256":hashlib.sha256(raw).hexdigest(),
+        "original_sha256":original_sha256,
         "claimed_original_s3_key":source_key,
         "source_key_independently_verified":False,
         "license_document_independently_verified":False,
-        "original_bytes":len(raw), "rows":rows,
+        "original_bytes":original_bytes, "rows":rows,
         "first_arrival_us":first, "last_arrival_us":last,
         "source_quote_size_units_certified_as_native_contracts":False,
         "original_2021_2023_btc_eth_coverage_certified":False,
