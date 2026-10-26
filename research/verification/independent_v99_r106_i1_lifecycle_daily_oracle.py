@@ -70,10 +70,13 @@ def _independent_days(root: Path):
                     arrival, venue = int(row["local_timestamp"]), int(row["timestamp"])
                 except (ValueError, TypeError) as exc:
                     raise AssertionError("INVALID_CLOCK") from exc
-                if (row["exchange"] != "deribit" or not low <= venue <= arrival < high
+                if (row["exchange"] != "deribit" or not (0 <= venue <= arrival and low <= arrival < high)
                         or arrival < previous):
                     raise AssertionError("OUT_OF_ORDER_OR_FUTURE_ORIGINAL_RECEIPT")
                 previous = arrival
+                # Independent original-byte replay of five-minute event freshness.
+                if arrival - venue > 300_000_000:
+                    continue
                 parts = row["symbol"].split("-")
                 if len(parts) != 4 or parts[0] not in good or parts[3] != "P":
                     continue
