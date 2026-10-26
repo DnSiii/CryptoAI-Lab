@@ -9,7 +9,7 @@
 - Adversarial test commit `43363e0f4a0635f9516e9adff962cf0a496da150`: synthetic counterexample that passed the weaker post-entry test but must now fail, plus a completed insolvent mark that must fail.
 
 ## Actually executed, not inferred
-- [GitHub Actions 40381832440](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40381832440) completed **SUCCESS** on commit `43363e0f`.
+- [GitHub Actions 40381832440](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40381832440) completed **SUCCESS** on commit `43363e0f`; the stricter [GitHub Actions 40381966493](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40381966493) also completed **SUCCESS** on `a7b36a9b`, explicitly verifying preregistration commit `1c086e9d` precedes implementation.
 - **7/7 unittest tests passed**, including the new two-scenario counterexample and completed-mark maintenance veto.
 - The same workflow restored archived ORIGINAL causal signals and partial Deribit quotes, reran the original-byte source join and an independent oracle: **182 original decisions**, **132 positive causal indications**, **0 synchronized original two-leg source-ready asset-weeks**, **0 certified full option lifecycles**. This remains source evidence, not option trade PnL.
 - The existing modeled cost floors are still 0.0012/leg for severe and 0.0024/leg for supersevere in native coin units. **Not historical native Deribit fee tier**. The post-entry closing book is only a lower bound, not a true original fill or liquidation model.
