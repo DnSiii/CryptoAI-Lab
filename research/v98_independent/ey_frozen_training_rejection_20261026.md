@@ -1,0 +1,12 @@
+# V98 Independent EY — immutable rejected training decision (2026-10-26)
+
+Preregistered before EY PnL in commit `15c4596a4d9cc6aed654c1c677d997d7384869f4`. Entirely independent additive multi-premium seven-slot hypothesis; shared physical settlement and governor infrastructure only. 2023–2024 Clean-4 training only. No 2025 holdout, 2026+, XRP, contaminated Phase083, V14/V15/V99, Frozen, paper or live access.
+
+- Causal source-only future-mutation PASS. Active observation epochs in 2023: Opportunity 36, Relative Value 39, Stress/Recovery 7; in 2024: Opportunity 32, Relative Value 42, Stress/Recovery 9. All locked minimum-4 gates PASS.
+- **30/30 physical cells PASS**, two-OS numeric reproduction PASS, independent artifact-only reconciliation no errors. Full run: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40272045242
+- **All five independent all-hour signed ledger oracles PASS**; 526,290 hourly settlements and 65,760 funding-event hours independently checked. Same workflow, five oracle jobs.
+- Full base two-year CAGR **77.874715%**, severe **75.492637%**; severe max drawdown **28.605033%**. Full base ending NAV USD31,664.37 from USD10,000; severe USD30,821.39. Base turnover USD90,601.37; severe USD88,206.20. All annual full growth, high-growth, severe drawdown and turnover gates PASS.
+- **Annual marginal Opportunity FAIL in 2024:** full-minus-without-Opportunity net log growth -0.0087511 base carried-before-fill and -0.0096293 severe carried-before-fill; new-after-fill -0.0103044 base and -0.0110297 severe. 2023 Opportunity contribution was positive. Relative Value PASS in both years (base 2023 +0.0317864; 2024 +0.0091203), Stress/Recovery PASS base/severe both years (severe 2024 carried-before-fill +0.0000019, too small to claim robustness beyond preregistered criteria).
+- The copied artifact-only audit accidentally retained the **string label** `REJECT_EX_HISTORICAL_GROWTH_OR_MARGINAL` even though its `architecture` and all five book names are EY. This is an audit metadata defect, **not a passed gate or an EX evaluation**. The correct frozen classification is **REJECT_EY_HISTORICAL_GROWTH_OR_MARGINAL**; all numeric EY receipts and independent ledger checks remain as produced.
+
+**FINAL: REJECT_EY_HISTORICAL_GROWTH_OR_MARGINAL.** No parameter/sign/window/threshold/gross rescue, no 2025 validation, no external benchmark comparison, no paper/live orders. Preserve all original economic artifacts and this rejection.
