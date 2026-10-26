@@ -292,6 +292,12 @@ class NativeCoinAccountTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
             audit(trace, observed)
         trace["events"].insert(-2, fresh)
+        # Sequential independent journal uses a different Decimal operation
+        # order from the atomic batch; construct its own exact cash receipt.
+        cash = D("100.066")
+        for intrinsic_usd in ("4000", "2000"):
+            cash -= D(intrinsic_usd)/D("46000")+D(".0001")
+        observed["cash_coin"] = str(cash)
         self.assertEqual(audit(trace, observed)["independent_coin_account_replay"], "MATCH")
         fresh["index_usd"] = "47000"
         with self.assertRaisesRegex(AssertionError, "REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
