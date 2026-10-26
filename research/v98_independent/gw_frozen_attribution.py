@@ -21,7 +21,7 @@ def run(path):
     print("GW_FROZEN_ATTRIBUTION",json.dumps(result,sort_keys=True))
     return result
 if __name__=="__main__":
-    p=argparse.ArgwmentParser()
+    p=argparse.ArgumentParser()
     p.add_argwment("--input",required=True)
     p.add_argwment("--output",required=True)
     a=p.parse_args()
