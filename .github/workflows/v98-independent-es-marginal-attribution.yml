@@ -1,0 +1,36 @@
+name: V98 Independent ES Immutable Marginal Attribution
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-es-marginal-attribution.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  attribution:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: es30-immutable-receipt-audit
+          run-id: 40256564509
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Print immutable marginal and capital attribution without signals or data replay
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('receipts/es30_immutable_receipt_audit.json'))
+          print('ES_DECISION',a['decision'],'CROSS_OS',a['cross_os_reproducible'],'SURVIVED',a['cells_survived'])
+          for book,by_key in a['marginal_log_growth_10k'].items():
+              for key,yrs in sorted(by_key.items()):
+                  if 'supersevere' not in key:
+                      print('ES_MARGINAL',book,key,'2023',round(yrs['2023'],8),'2024',round(yrs['2024'],8))
+          for k in ('full_10k_base','full_10k_severe'):
+              c=a[k]
+              print('ES_FULL',k,'CAGR',c['two_year_cagr'],'DD',c['max_drawdown'],'NAV',c['final_nav'],'TURNOVER',c['turnover'],'FEES',c['fees'],'SLIPPAGE',c['slippage'],'FUNDING',c['funding'])
+          PY
