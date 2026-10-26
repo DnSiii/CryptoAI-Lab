@@ -112,5 +112,39 @@ class LicensedDaySourceTest(unittest.TestCase):
             m.inspect_gzip(io.BytesIO(make(rows)), fixture=True)
 
 
+
+    def test_prior_day_exchange_event_with_current_day_arrival_is_valid(self):
+        rows = sample()
+        rows[0]["timestamp"] = str(m.DAY_START - 2_000_000)
+        rows[0]["local_timestamp"] = str(m.DAY_START + 1_000_000)
+        result = m.inspect_gzip(io.BytesIO(make(rows)), fixture=True)
+        self.assertEqual(result["asset_counts"]["BTC"]["valid_put_quotes"], 1)
+        self.assertEqual(result["asset_counts"]["BTC"]["stale_event_rows"], 0)
+
+    def test_decimal_option_strike_is_recognized(self):
+        rows = sample()
+        rows[0]["symbol"] = "BTC-24JUN22-20000.5-P"
+        result = m.inspect_gzip(io.BytesIO(make(rows)), fixture=True)
+        self.assertEqual(result["asset_counts"]["BTC"]["valid_put_quotes"], 1)
+
+    def test_stale_exchange_event_cannot_establish_fresh_quote_coverage(self):
+        rows = sample()
+        rows[1]["timestamp"] = str(m.DAY_START + 1_000_000)
+        rows[1]["local_timestamp"] = str(m.DAY_START + 20_000_000)
+        with self.assertRaisesRegex(m.SourceBlock, "MISSING_BTC_ETH"):
+            m.inspect_gzip(io.BytesIO(make(rows)), fixture=True)
+        later = dict(sample()[1])
+        later["timestamp"] = str(m.DAY_START + 20_999_900)
+        later["local_timestamp"] = str(m.DAY_START + 21_000_000)
+        result = m.inspect_gzip(io.BytesIO(make(rows + [later])), fixture=True)
+        self.assertEqual(result["asset_counts"]["ETH"]["stale_event_rows"], 1)
+        self.assertEqual(result["asset_counts"]["ETH"]["valid_put_quotes"], 1)
+
+    def test_bad_instrument_does_not_count_as_quote(self):
+        rows = sample()
+        rows[1]["symbol"] = "ETH-NOT-AN-OPTION"
+        with self.assertRaisesRegex(m.SourceBlock, "MISSING_BTC_ETH"):
+            m.inspect_gzip(io.BytesIO(make(rows)), fixture=True)
+
 if __name__ == "__main__":
     unittest.main()
