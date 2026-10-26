@@ -1,0 +1,20 @@
+# V99 I1 — first-party causal variance-premium signal, actual TRAIN execution (2026-10-26 09:58 BRT)
+
+**Decision: ORIGINAL CAUSAL SIGNAL ONLY / OPTIONS ECONOMICS BLOCKED — NO PROMOTION.** This is a genuine original-source, independently reexecuted t-1 input calculation, **not** a complete native option engine, hypothetical fills, ROI, proof of alpha or a passing economic gate.
+
+## What was executed
+1. Preregistered a single fixed 30-day, strictly predecision signal **before implementation** in commit `ce965d4b0feaaa713ee39dd70fc249d1e9e57b9e`: 720 hourly spot returns ending at `t-1`, original Deribit 30d DVOL last closed before Monday, `implied_var_30d > trailing_realized_var_30d` (no optimized threshold). Fixed 91 maturity-eligible Mondays, 5 TRAIN folds and 3 right-censored Mondays; no future realized variance in a trading signal.
+2. Published primary `research/tools/v99_r106_i1_causal_variance_signal.py` and a separate `research/verification/independent_v99_r106_i1_causal_signal_oracle.py`, then the GitHub Actions workflow that actually downloaded independently verified **original** TRAIN OKX BTC/ETH spot and Deribit DVOL receipt artifacts from Actions 40019588739 and 40072202459.
+3. [GitHub Actions 40326586848](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40326586848): **SUCCESS** on head `5ee1b7d28c5da6684428acc5bfdb91666225304b`. Primary and independent original-source computations agreed on all **182** scheduled asset-week decisions. Independent oracle confirmed changing future spot `P[t+1]` cannot alter the signal, changing lagged `P[t-1]` does alter it, and a forged reported variance is rejected. Original receipts are hash-checked by their established source loaders. Output artifact `v99-i1-original-causal-signal-40326586848`.
+4. Commit comparison against `cb1f7fc`: exactly four commits and four added research/workflow paths. No edits to Frozen, paper/results, champion, dashboard, validation or holdout.
+
+## Original TRAIN source-only observations (NOT returns)
+- 91 eligible Mondays x 2 assets = **182** asset-week decisions. **8** decisions (first four weeks per asset) correctly have insufficient 30-day trailing history, with no backfill.
+- **174** original-source causal signals computed: **132 positive ex-ante variance-premium indications** (BTC **70**, ETH **62**) and **42 nonpositive indications** (BTC **17**, ETH **25**).
+- Five chronological fold counts for **BTC positive**: **11, 14, 17, 14, 14**; **ETH positive**: **7, 12, 16, 15, 12**. Fold 1 has four missing warmup decisions per asset.
+- These counts say **nothing** about executable option credit, realized volatility after entry, margin, costs, profitable trading, or 5/5 positive economic folds. They must **never** be described as ROI or profitable trades.
+
+## Remaining genuine delivery blocker and next action
+The full 2021-12-09..2023-09-30 **BTC+ETH Deribit options** original licensed BBO+size tape with both clocks, all 21–45d entry/mark/exit/settlement lifecycles, dated native contract/lot and original delivery-index receipts, account-specific fee/delivery tier and margin/liquidation rules are not present or authenticated. The repository still has **0/182 certified original complete option lifecycles**. Existing free partial Tardis sample cannot fill these gaps; Tardis/CoinAPI historical keys/entitlements were absent in prior actual probes. Obtain written 2021–2023 coverage and bytes via Tardis Business/explicit entitlement or verified Amberdata/equivalent; do not pay for an unverified ordinary historical plan.
+
+**Next substantive step:** bind this frozen causal signal to a **single** ex ante native option spread selector and original 21–45d lifecycle execution/accounting, then execute the complete five-fold TRAIN under severe/supersevere, 3x2 regimes, tail/DD and benchmark gates with an independent economic replay. Do not run sealed validation [2023-10-01,2024-01-18) or holdout >=2024-01-18 until a genuinely new candidate passes TRAIN and is formally frozen. No C1 retuning, orders, paper/Frozen/champion changes, ROI claims or promotion.
