@@ -27,9 +27,10 @@ OUT = Path("research_evidence/v99_i1_full_day_20220615/source_check.json")
 MAX_COMPRESSED = 512 * 1024 * 1024
 MAX_ROWS = 8_000_000
 MAX_SECONDS = 720
+MAX_EVENT_LAG_US = 10_000_000  # preregistered 10s freshness for source quote counts
 FIELDS = {"exchange", "symbol", "timestamp", "local_timestamp",
           "bid_price", "ask_price", "bid_amount", "ask_amount"}
-SYMBOL = re.compile(r"^(BTC|ETH)-[0-9]{1,2}[A-Z]{3}[0-9]{2}-[0-9]+(?:\\.[0-9]+)?-([PC])$")
+SYMBOL = re.compile(r"^(BTC|ETH)-[0-9]{1,2}[A-Z]{3}[0-9]{2}-[0-9]+(?:\.[0-9]+)?-([PC])$")
 DAY_START = int(datetime(2022, 6, 15, tzinfo=timezone.utc).timestamp() * 1_000_000)
 DAY_END = DAY_START + 86_400_000_000
 
@@ -69,7 +70,7 @@ def inspect_gzip(raw, *, fixture=False, max_bytes=MAX_COMPRESSED, max_rows=MAX_R
         raise SourceBlock("INVALID_FIXTURE_FLAG")
     bounded = BoundedCompressedReader(raw, max_bytes=max_bytes)
     counts = {asset: {"option_rows": 0, "valid_put_quotes": 0,
-                      "valid_call_quotes": 0} for asset in ("BTC", "ETH")}
+                      "valid_call_quotes": 0, "stale_event_rows": 0} for asset in ("BTC", "ETH")}
     rows = 0
     previous_arrival = None
     try:
@@ -89,7 +90,7 @@ def inspect_gzip(raw, *, fixture=False, max_bytes=MAX_COMPRESSED, max_rows=MAX_R
                         event = int(row["timestamp"])
                     except (TypeError, ValueError, OverflowError) as exc:
                         raise SourceBlock("INVALID_VENDOR_CLOCK") from exc
-                    if not DAY_START <= event <= arrival < DAY_END:
+                    if not (0 <= event <= arrival and DAY_START <= arrival < DAY_END):
                         raise SourceBlock("FUTURE_OR_OUTSIDE_TRAIN_DAY")
                     if previous_arrival is not None and arrival < previous_arrival:
                         raise SourceBlock("REORDERED_VENDOR_CAPTURE")
@@ -99,6 +100,11 @@ def inspect_gzip(raw, *, fixture=False, max_bytes=MAX_COMPRESSED, max_rows=MAX_R
                         continue
                     asset, kind = match.groups()
                     counts[asset]["option_rows"] += 1
+                    # Files are partitioned by LOCAL arrival day, not event day.
+                    # Older venue events are observed but not fresh execution inputs.
+                    fresh = (arrival - event) <= MAX_EVENT_LAG_US
+                    if not fresh:
+                        counts[asset]["stale_event_rows"] += 1
                     try:
                         bid, ask, bid_size, ask_size = (
                             float(row[k]) for k in ("bid_price", "ask_price",
@@ -108,7 +114,7 @@ def inspect_gzip(raw, *, fixture=False, max_bytes=MAX_COMPRESSED, max_rows=MAX_R
                                 and 0 < bid < ask and bid_size > 0 and ask_size > 0)
                     except (ValueError, TypeError, OverflowError):
                         good = False
-                    if good:
+                    if good and fresh:
                         counts[asset]["valid_put_quotes" if kind == "P"
                                else "valid_call_quotes"] += 1
     except (gzip.BadGzipFile, EOFError, UnicodeError, OSError) as exc:
