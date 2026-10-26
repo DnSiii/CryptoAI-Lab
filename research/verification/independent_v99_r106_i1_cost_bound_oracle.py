@@ -43,3 +43,37 @@ def audit_open(journal: dict, cash_coin):
     return {"independent_cost_binding": "MATCH", "scenario": scenario,
             "fee_floor_coin": str(2*q*fr), "slippage_floor_coin": str(2*q*sr),
             "historical_economic_train": False, "promotion_authorized": False}
+
+
+def audit_postentry(journal: dict):
+    """Independent post-entry maintenance check including scenario exit costs.
+
+    Requires a synthetic journal; not exchange-certified original accounting.
+    No imports from primary wallet or adapter.
+    """
+    if journal.get("fixture") is not True or journal.get("historical_economic_train") is not False:
+        raise AssertionError("UNTRUSTED_POSTENTRY_JOURNAL")
+    scenario = journal.get("scenario")
+    if scenario not in FIXED:
+        raise AssertionError("UNKNOWN_REFERENCE_SCENARIO")
+    q = decimal(journal["qty"])
+    if q <= 0:
+        raise AssertionError("NONPOSITIVE_REFERENCE_QUANTITY")
+    cash = decimal(journal["cash_after_open_coin"])
+    short_ask = decimal(journal["short_ask_coin"])
+    long_bid = decimal(journal["long_bid_coin"])
+    previous_liabilities = decimal(journal["existing_exit_liabilities_coin"])
+    maintenance = decimal(journal["total_maintenance_coin"])
+    if cash < 0 or previous_liabilities < 0 or maintenance <= 0:
+        raise AssertionError("INVALID_REFERENCE_COLLATERAL")
+    fee_per_leg, slip_per_leg = map(decimal, FIXED[scenario])
+    minimum_exit = max(decimal("0"), q * (short_ask - long_bid))
+    minimum_exit += 2*q*fee_per_leg + 2*q*slip_per_leg
+    conservative_nav = cash - previous_liabilities - minimum_exit
+    if conservative_nav < maintenance:
+        raise AssertionError("POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO")
+    return {"independent_postentry_solvency": "PASS",
+            "conservative_nav_coin": str(conservative_nav),
+            "maintenance_coin": str(maintenance),
+            "historical_economic_train": False,
+            "promotion_authorized": False}
