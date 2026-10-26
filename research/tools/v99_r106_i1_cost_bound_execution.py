@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from research.tools.v99_r106_i1_native_coin_account_replay import (
-    D, Wallet, Quote, open_vertical, mark_to_exit,
+    D, Wallet, Quote, open_vertical, mark_to_exit, account_nav,
 )
 
 # Fixed *modeled* rates per leg, matching the older USD-equivalent stress ledger.
@@ -70,9 +70,22 @@ def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                  margin_rules_verified=margin_rules_verified,
                  original_quote_verified=original_quote_verified)
     verify_charges(w.scenario, native_lots, entry_fees_coin, entry_slippage_coin)
-    return open_vertical(w, name, short, long, at_ms, native_lots,
-                         entry_fees_coin, entry_slippage_coin,
-                         initial_margin_coin, maintenance_margin_coin)
+    proposed = open_vertical(w, name, short, long, at_ms, native_lots,
+                            entry_fees_coin, entry_slippage_coin,
+                            initial_margin_coin, maintenance_margin_coin)
+    # The wallet's weak post-entry check intentionally omits closing costs.
+    # Enforce the actual severe/supersevere modeled exit-cost FLOOR here,
+    # before a research caller can mistake the position for collateral-safe.
+    exit_fee_floor, exit_slip_floor = charge_floor(w.scenario, native_lots)
+    immediate_exit = max(
+        D(0), D(native_lots) * (D(short.ask_coin) - D(long.bid_coin))
+    ) + exit_fee_floor + exit_slip_floor
+    other_exit = sum((D(m[1]) for m in w.marks), D(0))
+    maintenance = sum((D(p.maintenance_margin_coin)
+                       for p in proposed.positions), D(0))
+    if D(proposed.cash_coin) - other_exit - immediate_exit < maintenance:
+        raise ValueError("POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO")
+    return proposed
 
 
 def costed_mark(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
@@ -88,5 +101,11 @@ def costed_mark(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
     if p is None:
         raise ValueError("UNKNOWN_POSITION")
     verify_charges(w.scenario, p.qty, exit_fees_coin, exit_slippage_coin)
-    return mark_to_exit(w, name, short, long, at_ms,
-                        exit_fees_coin, exit_slippage_coin)
+    marked = mark_to_exit(w, name, short, long, at_ms,
+                          exit_fees_coin, exit_slippage_coin)
+    # A complete same-clock mark set is not valid if its NAV violates
+    # maintenance. Incomplete marks are never promoted to NAV.
+    if (len(marked.marks) == len(marked.positions)
+            and all(t == at_ms for _, _, t, _ in marked.marks)):
+        account_nav(marked, at_ms)
+    return marked
