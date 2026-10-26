@@ -43,12 +43,12 @@ def metrict(dollars,returns,positive_days,total_days):
     wins=d[d>1e-10];loss=-d[d< -1e-10]
     var=float(np.quantile(r,.01)) if len(r) else None
     return {
-        "hourly_neu_profit_factor":float(wins.sum()/loss.sum()) if len(loss) and loss.sum() else None,
-        "hourly_neu_payoff":float(wins.mean()/loss.mean()) if len(wins) and len(loss) else None,
-        "hourly_neu_win_rate":float(len(wins)/(len(wins)+len(loss))) if len(wins)+len(loss) else 0.,
+        "hourly_net_profit_factor":float(wins.sum()/loss.sum()) if len(loss) and loss.sum() else None,
+        "hourly_net_payoff":float(wins.mean()/loss.mean()) if len(wins) and len(loss) else None,
+        "hourly_net_win_rate":float(len(wins)/(len(wins)+len(loss))) if len(wins)+len(loss) else 0.,
         "positive_utc_days":int(positive_days),"total_utc_days":int(total_days),
         "positive_day_fraction":float(positive_days/total_days) if total_days else 0.,
-        "worst_hour_neu_return":float(r.min()) if len(r) else None,
+        "worst_hour_net_return":float(r.min()) if len(r) else None,
         "hourly_var_1pct":var,
         "hourly_cvar_1pct":float(r[r<=var].mean()) if var is not None else None,
         "positive_hours":int(len(wins)),"negative_hours":int(len(loss)),
@@ -71,9 +71,9 @@ def cell(path,mode,fee,order,frames,risks,sources):
     module_units=np.zeros((4,4))
     governor=EUBufferedGovernor()
     peak=cash;max_de=0.;min_nav=cash
-    gross_peak=neu_peak=concentration_peak=0.
+    gross_peak=net_peak=concentration_peak=0.
     fees=slippage=funding=turnover=0.
-    fills=targeu_updates=0
+    fills=target_updates=0
     years={"2023":{"start_nav":initial,"deltas":[],"returns":[],"days":0,"positive":0,
                    "peak":initial,"de":0.},
            "2024":{"start_nav":None,"deltas":[],"returns":[],"days":0,"positive":0,
@@ -107,7 +107,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                     gross=float(np.sum(abs(old*c[t])))
                     if cash<=0:raise ValueError("EU_NAV_NONPOSITIVE")
                     gross_peak=max(gross_peak,gross/cash)
-                    neu_peak=max(neu_peak,abs(float(old@c[t]))/cash)
+                    net_peak=max(net_peak,abs(float(old@c[t]))/cash)
                     if gross>0:concentration_peak=max(concentration_peak,
                         float(np.max(abs(old*c[t]))/gross))
                 except Exception as exc:
@@ -132,31 +132,31 @@ def cell(path,mode,fee,order,frames,risks,sources):
                 for i in np.flatnonzero(mask):
                     module_units[i]=signals[t,i]*budget[t,i]*cash/c[t]
                 governor.signal_components(module_units.sum(axis=0))
-                targeu_updates+=1
+                target_updates+=1
     annual={}
     for yr,duration in (("2023",365),("2024",366)):
         y=years[yr]
         start,end=y["start_nav"],y["end_nav"]
         annual[yr]={"start_nav":float(start),"end_nav":float(end),
-                    "neu_return":float(end/start-1.),
+                    "net_return":float(end/start-1.),
                     "annualized_cagr":float((end/start)**(365.25/duration)-1.),
-                    "neu_log_growth":float(math.log(end/start)),
+                    "net_log_growth":float(math.log(end/start)),
                     "max_drawdown":float(y["de"]),
                     **metrict(y["deltas"],y["returns"],y["positive"],y["days"])}
     return {"path":path,"mode":mode,"fee":fee,"order":order,"passed":True,
             "historical_training_only":True,"validation_2025_read":False,
             "external_benchmarks_used":False,"trading_authorized":False,
             "executed_hours":HOURS-START_EXECUTION,
-            "targeu_updates":targeu_updates,"physical_fill_hours":fills,
+            "target_updates":target_updates,"physical_fill_hours":fills,
             "forced_risk_ratchets":governor.forced_ratchets,
             "initial_nav":initial,"final_nav":cash,
-            "neu_total_return":float(cash/initial-1.),
-            "neu_log_growth":float(math.log(cash/initial)),
+            "net_total_return":float(cash/initial-1.),
+            "net_log_growth":float(math.log(cash/initial)),
             "two_year_cagr":float((cash/initial)**(365.25/731)-1.),
             "max_drawdown":float(max_de),"min_nav":float(min_nav),
             "max_gross_to_nav":float(gross_peak),
-            "max_abs_neu_to_nav":float(neu_peak),
-            "max_single_asseu_gross_concentration":float(concentration_peak),
+            "max_abs_net_to_nav":float(net_peak),
+            "max_single_asset_gross_concentration":float(concentration_peak),
             "fees":float(fees),"slippage":float(slippage),
             "funding":float(funding),"turnover":float(turnover),
             "annual":annual,
