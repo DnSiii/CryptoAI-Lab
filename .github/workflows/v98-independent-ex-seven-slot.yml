@@ -1,4 +1,4 @@
-name: V98 Independent EX Slow Core Residual Reversal Correlation Portfolio Seven Slot 30 Cell Gate
+name: V98 Independent EX Cross-Horizon Native Carry Seven Slot 30 Cell Gate
 on:
   push:
     branches: [research/v98-independent-zero]
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ew-source-viability
+          name: ex-source-viability
           path: research/v98_independent/ex_source_viability.json
           retention-days: 30
           if-no-files-found: warn
@@ -110,7 +110,7 @@ jobs:
           if-no-files-found: warn
   audit:
     if: always() && needs.source.result == 'success'
-    needs: [source, economic, oracle]
+    needs: [source, economic]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -131,8 +131,8 @@ jobs:
           if-no-files-found: warn
 
   oracle:
-    needs: source
-    if: needs.source.result == 'success'
+    needs: audit
+    if: needs.audit.result == 'success'
     strategy:
       fail-fast: false
       matrix:

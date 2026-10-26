@@ -193,6 +193,9 @@ if __name__=="__main__":
     assert static_check()
     result=run(a.path)
     with open(a.output,"w") as f:json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
+    for failed in result["cells"]:
+        if not failed["passed"]:
+            print("EX_PHYSICAL_FIRST_FAULT",failed["fee"],failed["order"],failed.get("reason","unknown"))
     print("EX_PATH",a.path,result["decision"],
           sum(c["passed"] for c in result["cells"]),"/",len(result["cells"]))
     raise SystemExit(0 if all(c["passed"] for c in result["cells"]) else 2)

@@ -8,7 +8,7 @@ from pathlib import Path
 PATHS=("EX_core_only","EX_full","EX_minus_opportunity","EX_minus_RV","EX_minus_stress")
 MODES=("immediate",)
 FEES=("base","sewere","supersewere")
-ORDERS=("carried_before_fill","nex_after_fill")
+ORDERS=("carried_before_fill","new_after_fill")
 OS=("ubuntu-22.04","ubuntu-24.04")
 GRID={(m,f,o) for m in MODES for f in FEES for o in ORDERS}
 
@@ -144,4 +144,4 @@ if __name__=="__main__":
                   "drawdown",x["max_drawdown"],"funding",x["funding"])
     print("EX_GROWTH_GATES",out["growth_gates_10k"])
     print("EX_MARGINAL_GATES",out["marginal_gates_10k"])
-    raise SystemExit(2 if out["errors"] else 0)
+    raise SystemExit(2 if out["errors"] or out["cells_survived"]!=30 else 0)
