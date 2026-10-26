@@ -8,7 +8,7 @@ import argparse,hashlib,itertools,json,math
 import numpy as np
 from et_sources import bundle,WARMUP,static_check
 from cg_buffered_governor import CGBufferedGovernor as ETBufferedGovernor
-from v98_staged_exit_viability_governor_v2 import FEET,ORDERS,prior_min_exit_window_quote
+from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 # ET-local equivalent of generic prior-only risk bounds; generic helper has
 # an unrelated 2016h guard despite needing only 672h history.
 def et_prior_only_risk_history(opening,high,low,rate,event,quote,t):
