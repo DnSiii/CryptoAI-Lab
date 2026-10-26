@@ -46,8 +46,11 @@ def _independent_days(root: Path):
         p = root / filename
         if not p.is_file() or p.is_symlink():
             raise AssertionError("MISSING_OR_SYMLINKED_SOURCE")
-        original = p.read_bytes()
-        sha = hashlib.sha256(original).hexdigest()
+        digest = hashlib.sha256()
+        with p.open("rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(chunk)
+        sha = digest.hexdigest()
         if sha != entry.get("sha256"):
             raise AssertionError("ORIGINAL_SOURCE_MUTATION")
         d = date.fromisoformat(stamp)
