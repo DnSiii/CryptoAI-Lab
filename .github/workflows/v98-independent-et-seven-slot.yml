@@ -3,7 +3,7 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-es-seven-slot.yml'
+      - '.github/workflows/v98-independent-et-seven-slot.yml'
       - 'research/v98_independent/et_preregistration.md'
       - 'research/v98_independent/et_sources.py'
       - 'research/v98_independent/et_source_viability.py'
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: es-source-viability
+          name: et-source-viability
           path: research/v98_independent/et_source_viability.json
           retention-days: 30
           if-no-files-found: warn
