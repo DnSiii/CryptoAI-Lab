@@ -26,7 +26,7 @@ jobs:
       - name: Independently reexecute both scenario cash journals and explicitly veto economic promotion
         run: |
           python - <<'PY'
-          from research.tests.test_v99_r106_i1_native_coin_account_replay import exercise
+          from research.tests.test_v99_r106_i1_native_coin_account_replay import exercise, mixed_batch_exercise
           from research.verification.independent_v99_r106_i1_native_coin_account_oracle import audit
           for scenario in ("severe","supersevere"):
               trace, observed, wallet = exercise(scenario)
@@ -35,6 +35,15 @@ jobs:
               assert not proof["historical_economic_train"] and not proof["promotion_authorized"]
               assert wallet.reserved_coin == 0 and len(wallet.settled) == 2
               print("INDEPENDENT_SYNTHETIC_COIN_JOURNAL", scenario, proof)
+          for scenario in ("severe","supersevere"):
+              trace, observed, before, after = mixed_batch_exercise(scenario)
+              proof = audit(trace, observed)
+              assert proof["events"] == 9 and proof["snapshots"] == 1
+              assert proof["independent_coin_account_replay"] == "MATCH"
+              assert not proof["historical_economic_train"] and not proof["promotion_authorized"]
+              assert len(before.positions) == 3 and not after.positions
+              assert after.reserved_coin == 0 and len(after.settled) == 3
+              print("INDEPENDENT_ATOMIC_MIXED_EXPIRY_SYNTHETIC_JOURNAL", scenario, proof)
           print("SOURCE_ONLY/HOLD — NO AUTHENTICATED FULL OPTIONS LIFECYCLE")
           print("NO HISTORICAL ECONOMIC TRAIN, NO ROI, NO ORDERS, NO PROMOTION")
           PY
