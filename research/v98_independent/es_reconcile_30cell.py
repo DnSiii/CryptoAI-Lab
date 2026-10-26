@@ -8,7 +8,7 @@ from pathlib import Path
 PATHS=("ES_core_only","ES_full","ES_minus_opportunity","ES_minus_RV","ES_minus_stress")
 MODES=("immediate",)
 FEES=("base","severe","supersevere")
-ORDERS=("carried_before_fill","new_aftes_fill")
+ORDERS=("carried_before_fill","new_after_fill")
 OS=("ubuntu-22.04","ubuntu-24.04")
 GRID={(m,f,o) for m in MODES for f in FEES for o in ORDERS}
 
