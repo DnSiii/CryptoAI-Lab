@@ -8,7 +8,7 @@ from research.tools.v99_r106_i1_native_coin_account_replay import (
 from research.tools.v99_r106_i1_cost_bound_execution import (
     charge_floor, costed_open, costed_mark, verify_charges,
 )
-from research.verification.independent_v99_r106_i1_cost_bound_oracle import audit_open
+from research.verification.independent_v99_r106_i1_cost_bound_oracle import audit_open, audit_postentry
 
 
 def ms(s):
@@ -93,6 +93,43 @@ class CostBindingTests(unittest.TestCase):
             costed_mark(w, "p", sm, lm, MARK, "0", slip, fixture=True)
         with self.assertRaisesRegex(ValueError, "FRICTION_UNDERPAYMENT"):
             costed_mark(w, "p", sm, lm, MARK, fee, "0", fixture=True)
+
+
+    def test_postentry_scenario_exit_cost_veto_and_independent_oracle(self):
+        # The underlying wallet's weak check would pass at these margins.
+        # The severe/supersevere *closing* fee+slippage makes NAV insolvent.
+        for scenario, maintenance in (("severe", ".973"), ("supersevere", ".965")):
+            with self.subTest(scenario=scenario):
+                w = start_wallet("BTC", scenario, "1")
+                s, l = q("50000", ".08", ".09", AT), q("45000", ".04", ".05", AT)
+                fee, slip = charge_floor(scenario, "1")
+                cash = D("1") + D(".03") - fee - slip
+                weak_nav = cash - D(".05")
+                self.assertGreaterEqual(weak_nav, D(maintenance))
+                journal = dict(fixture=True, historical_economic_train=False,
+                    scenario=scenario, qty="1", cash_after_open_coin=str(cash),
+                    short_ask_coin=".09", long_bid_coin=".04",
+                    existing_exit_liabilities_coin="0",
+                    total_maintenance_coin=maintenance)
+                with self.assertRaisesRegex(AssertionError, "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO"):
+                    audit_postentry(journal)
+                with self.assertRaisesRegex(ValueError, "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO"):
+                    costed_open(w, "p", s, l, AT, "1", fee, slip,
+                                maintenance, maintenance, fixture=True)
+                # An adequately capitalized wallet still passes independently.
+                healthy = dict(journal, cash_after_open_coin=str(cash + D("1")))
+                self.assertEqual(audit_postentry(healthy)["independent_postentry_solvency"], "PASS")
+
+    def test_full_mark_immediate_maintenance_veto(self):
+        w = start_wallet("BTC", "severe", "1")
+        s, l = q("50000", ".08", ".09", AT), q("45000", ".04", ".05", AT)
+        fee, slip = charge_floor("severe", "1")
+        w = costed_open(w, "p", s, l, AT, "1", fee, slip, ".96", ".96", fixture=True)
+        sm = q("50000", ".19", ".20", MARK)
+        lm = q("45000", ".01", ".02", MARK)
+        with self.assertRaisesRegex(ValueError, "MAINTENANCE_BREACH_REQUIRES_AUTHENTICATED_LIQUIDATION_MODEL"):
+            costed_mark(w, "p", sm, lm, MARK, fee, slip, fixture=True)
+
 
 
 if __name__ == "__main__":
