@@ -88,6 +88,12 @@ def make(credit_path, index_path, native_path, output):
                 and se <= sa and le <= la and ds-se <= 300_000_000
                 and ds-le <= 300_000_000):
             raise ValueError("STALE_OR_NONCAUSAL_SOURCE")
+        # The modeled vertical-put ledger requires <=1s source-clock skew
+        # on BOTH clocks and one exactly shared as-of underlying price.
+        # This is only an input-consistency screen, never an atomic fill.
+        causal_pair = (abs(sa-la) <= 1_000_000
+                       and abs(se-le) <= 1_000_000
+                       and p["same_exact_index_price"] is True)
         rows.append({
             "decision_utc": c["decision_utc"], "asset": asset,
             "short_symbol": c["short_symbol"], "long_symbol": c["long_symbol"],
@@ -103,6 +109,7 @@ def make(credit_path, index_path, native_path, output):
             "arrival_skew_ms": str(Decimal(abs(sa-la))/1000),
             "exchange_skew_ms": str(Decimal(abs(se-le))/1000),
             "same_exact_index_price": p["same_exact_index_price"],
+            "model_input_causal_pair_screen_only": causal_pair,
             "historical_native_contract_qty": None,
             "two_leg_executable_fill": False,
             "reason": "SOURCE_SIZE_NOT_CERTIFIED_AS_NATIVE_LOTS_AND_NO_ATOMIC_FILL",
@@ -115,6 +122,12 @@ def make(credit_path, index_path, native_path, output):
         "required_asset_weeks": 182,
         "sampled_asset_weeks": 4,
         "source_pairs": len(rows),
+        "model_input_causal_pair_screen_only_total": sum(
+            r["model_input_causal_pair_screen_only"] for r in rows),
+        "model_input_causal_pair_screen_only_by_asset": {
+            asset: sum(r["model_input_causal_pair_screen_only"]
+                       for r in rows if r["asset"] == asset)
+            for asset in ("BTC", "ETH")},
         "native_executable_pairs": 0,
         "rows": rows,
         "blockers": list(BLOCKERS),
