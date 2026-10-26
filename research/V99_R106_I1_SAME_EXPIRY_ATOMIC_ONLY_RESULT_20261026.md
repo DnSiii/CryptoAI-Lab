@@ -1,0 +1,17 @@
+# V99 I1 — same-expiry settlement invariant: executed result (2026-10-26 08:51 BRT)
+
+**SOURCE_ONLY/HOLD — NO PROMOTION.** This closes a concrete fail-open in the native-coin accounting path, not the missing full historical economics.
+
+## Executed, falsified, independently checked
+
+- Before code, preregistered fixed invariant in `research/V99_R106_I1_SAME_EXPIRY_ATOMIC_ONLY_PREREG_20261026.md` (commit `4dc40d7`): a single settlement must never release collateral from a multi-position same-expiry cohort, even if there are no later positions. Full same-expiry settlement must use the already-implemented `settle_batch`.
+- Updated the native-coin engine `settle` to reject `SAME_EXPIRY_ATOMIC_BATCH_REQUIRED` (commit `c67433d`). Independently updated Decimal journal oracle to reject `REFERENCE_SAME_EXPIRY_ATOMIC_BATCH_REQUIRED` (commit `7bdafe0`). Converted the two-position same-expiry synthetic journal to one atomic event and retained a distinct positive single-due/mixed-expiry oracle trace, with negative controls for partial release without survivors.
+- Intermediate GitHub CI runs **FAILED**, and were **not** counted as validation. The initial test migration revealed a Decimal operation-order mismatch in a *synthetic* sequential fixture; its expected cash receipt was reconstructed from the fixed original synthetic credits and contract payoffs (commit `7cf832e`). No strategy or economic parameter was retuned.
+- Final [GitHub Actions 40318015046](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40318015046) **SUCCESS** at head `7cf832e9bb0a1f8cad736a4c49bda53062d6406e`: **25/25 synthetic tests passed**. Independent oracle **MATCH** in both severe/supersevere for the 7-event atomic same-expiry journal and 9-event mixed-expiry journal. Both report `historical_economic_train=False`, `promotion_authorized=False`.
+- [Independent commit comparison](https://github.com/DnSiii/CryptoAI-Lab/compare/ad8cd82508609769c866e10d7076f4eef72407ba...7cf832e9bb0a1f8cad736a4c49bda53062d6406e) verified exactly **six commits affecting five paths** (prereg, ledger, oracle, tests, workflow). No Frozen, paper, champion, dashboard, validation or holdout change.
+
+## Remaining hard blocker, unchanged
+
+**0/182 original full BTC/ETH options lifecycles certified** for the isolated TRAIN. The connected repository still lacks an authenticated, licensed 2021-12-09..2023-09-30 Deribit BTC+ETH two-sided options book with venue/local arrival clocks, displayed executable native sizes and complete 21–45d entry/mark/exit/settlement; original historical lot/fee tier, margin/maintenance/liquidation and delivery-index receipts are also missing. Existing live source probes found no `TARDIS_API_KEY` or `COINAPI_API_KEY` configured; no historical entitlement proven. See [issue #19](https://github.com/DnSiii/CryptoAI-Lab/issues/19). The substitute is another independently verified licensed full-lifecycle vendor archive with equivalent original receipts, not reconstructed trades or synthetic prices.
+
+**Next critical path:** acquire authenticated full-lifecycle original BTC/ETH tape and dated native terms; run a single fixed, causally partitioned I1 complete-system 5-fold TRAIN with severe/supersevere, 3x2 regimes, tail/DD and benchmark envelope, independent accounting oracle and formal gates. No opening of sealed validation [2023-10-01,2024-01-18) or final holdout >=2024-01-18 until formal TRAIN pass and freeze. No ROI, orders, promotion, paper or Frozen change.
