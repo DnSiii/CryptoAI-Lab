@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from research.tools.v99_r106_i1_native_coin_account_replay import (
-    Quote, D, account_nav, mark_to_exit, open_vertical, settle, start_wallet,
+    Quote, D, account_nav, mark_to_exit, open_vertical, settle, settle_batch, start_wallet,
 )
 from research.verification.independent_v99_r106_i1_native_coin_account_oracle import audit
 
@@ -295,6 +295,124 @@ class NativeCoinAccountTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "REFERENCE_POSTSETTLEMENT_MAINTENANCE_BREACH"):
             audit(trace, observed)
 
+
+
+
+def mixed_batch_exercise(scenario="severe"):
+    """Three original-symbol synthetic spreads: two due, one later survivor."""
+    later_expiry = ms("2022-02-11T08:00:00+00:00")
+    def later(strike, bid, ask, at, index="46000"):
+        return Quote("BTC", f"BTC-11FEB22-{strike}-P", later_expiry, D(strike),
+                     D(bid), D(ask), D("10"), D("10"),
+                     at-3000, at-2000, D(index))
+    w = start_wallet("BTC", scenario, "100")
+    trace = {"asset":"BTC", "scenario":scenario, "initial_coin":"100", "events":[]}
+    def opening(name, s, l, at):
+        nonlocal w
+        w = open_vertical(w, name, s, l, at, "1", ".001", ".001", "4", "2")
+        trace["events"].append(dict(
+            kind="open", name=name, at_ms=at, qty="1",
+            high=str(s.strike_usd), low=str(l.strike_usd),
+            short_bid_coin=str(s.bid_coin), short_ask_coin=str(s.ask_coin),
+            long_bid_coin=str(l.bid_coin), long_ask_coin=str(l.ask_coin),
+            entry_fees_coin=".001", entry_slippage_coin=".001",
+            margin_coin="4", maintenance_coin="2", expiry_ms=s.expiry_ms,
+            index_usd=str(s.index_usd)))
+    def marking(name, s, l, at, fee=".001"):
+        nonlocal w
+        w = mark_to_exit(w, name, s, l, at, fee, ".001")
+        trace["events"].append(dict(
+            kind="mark", name=name, at_ms=at, short_ask_coin=str(s.ask_coin),
+            long_bid_coin=str(l.bid_coin), exit_fees_coin=fee,
+            exit_slippage_coin=".001", index_usd=str(s.index_usd)))
+    opening("p1", quote("50000",".08",".09",OPEN1),
+            quote("45000",".04",".05",OPEN1), OPEN1)
+    marking("p1", quote("50000",".08",".09",OPEN2),
+            quote("45000",".04",".05",OPEN2), OPEN2)
+    opening("p2", quote("48000",".09",".10",OPEN2),
+            quote("43000",".04",".05",OPEN2), OPEN2)
+    marking("p2", quote("48000",".09",".10",OPEN2),
+            quote("43000",".04",".05",OPEN2), OPEN2)
+    opening("p3", later("47000",".09",".10",OPEN2),
+            later("42000",".04",".05",OPEN2), OPEN2)
+    marking("p3", later("47000",".09",".10",EXPIRY),
+            later("42000",".04",".05",EXPIRY), EXPIRY)
+    prebatch = w
+    fees = {"p1":".0001", "p2":".0002"}
+    w = settle_batch(w, ["p1","p2"], EXPIRY, "46000", fees)
+    trace["events"].append(dict(
+        kind="settle_batch", names=["p1","p2"], at_ms=EXPIRY,
+        delivery_index_usd="46000", delivery_fees_coin=dict(fees)))
+    nav = account_nav(w, EXPIRY)
+    trace["events"].append(dict(kind="nav", at_ms=EXPIRY))
+    w = settle(w, "p3", later_expiry, "46000", ".0003")
+    trace["events"].append(dict(kind="settle", name="p3", at_ms=later_expiry,
+                                delivery_index_usd="46000",
+                                delivery_fee_coin=".0003"))
+    observed = dict(cash_coin=str(w.cash_coin), reserved_coin=str(w.reserved_coin),
+                    open_position_ids=[p.name for p in w.positions],
+                    settled_ids=list(w.settled), snapshots=[nav],
+                    historical_economic_train=False, promotion_authorized=False)
+    return trace, observed, prebatch, w
+
+
+class AtomicExpiryBatchTests(unittest.TestCase):
+    def test_complete_atomic_batch_and_independent_scenarios(self):
+        for scenario in ("severe", "supersevere"):
+            trace, observed, before, after = mixed_batch_exercise(scenario)
+            with self.assertRaisesRegex(ValueError, "MIXED_EXPIRY_BATCH_REQUIRED"):
+                settle(before, "p1", EXPIRY, "46000", ".0001")
+            proof = audit(trace, observed)
+            self.assertEqual(proof["independent_coin_account_replay"], "MATCH")
+            self.assertEqual(after.settled, ("p1","p2","p3"))
+            self.assertEqual(after.reserved_coin, D("0"))
+            self.assertFalse(proof["promotion_authorized"])
+
+    def test_atomic_batch_rejects_missing_duplicate_wrong_fee_or_index(self):
+        _, _, w, _ = mixed_batch_exercise()
+        cases = [
+            (["p1"], {"p1":".0001"}, "INCOMPLETE_OR_WRONG"),
+            (["p1","p1"], {"p1":".0001"}, "INVALID_ATOMIC"),
+            (["p1","p2"], {"p1":".0001"}, "MISSING_OR_EXTRA"),
+            (["p1","p2"], {"p1":"-1","p2":"0"}, "NEGATIVE_NATIVE"),
+        ]
+        for names, fees, reason in cases:
+            with self.assertRaisesRegex(ValueError, reason):
+                settle_batch(w, names, EXPIRY, "46000", fees)
+        with self.assertRaisesRegex(ValueError, "SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
+            settle_batch(w, ["p1","p2"], EXPIRY, "47000",
+                         {"p1":".0001","p2":".0002"})
+        missing = replace(w, marks=tuple(m for m in w.marks if m[0] != "p3"))
+        with self.assertRaisesRegex(ValueError, "SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED"):
+            settle_batch(missing, ["p1","p2"], EXPIRY, "46000",
+                         {"p1":".0001","p2":".0002"})
+        with self.assertRaisesRegex(ValueError, "INSOLVENT_ATOMIC_NATIVE_SETTLEMENT"):
+            settle_batch(w, ["p1","p2"], EXPIRY, "46000",
+                         {"p1":"200","p2":"0"})
+
+    def test_batch_postsettlement_survivor_maintenance_veto(self):
+        _, _, w, _ = mixed_batch_exercise()
+        altered = replace(w, marks=tuple(
+            (n, D("110") if n == "p3" else due, t, idx)
+            for n, due, t, idx in w.marks))
+        with self.assertRaisesRegex(ValueError, "POSTBATCH_SURVIVOR_MAINTENANCE_VETO"):
+            settle_batch(altered, ["p1","p2"], EXPIRY, "46000",
+                         {"p1":".0001","p2":".0002"})
+
+    def test_independent_oracle_rejects_partial_fees_and_forged_cash(self):
+        trace, observed, _, _ = mixed_batch_exercise()
+        batch = next(e for e in trace["events"] if e["kind"] == "settle_batch")
+        batch["names"] = ["p1"]
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_INCOMPLETE_EXPIRY_BATCH"):
+            audit(trace, observed)
+        batch["names"] = ["p1","p2"]
+        batch["delivery_fees_coin"]["p2"] = "-1"
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_NEGATIVE_DELIVERY_FEE"):
+            audit(trace, observed)
+        batch["delivery_fees_coin"]["p2"] = ".0002"
+        observed["cash_coin"] = "999"
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_COIN_JOURNAL_MISMATCH"):
+            audit(trace, observed)
 
 if __name__ == "__main__":
     unittest.main()
