@@ -23,7 +23,7 @@ SYMBOL = re.compile(r"^(BTC|ETH)-[0-9]{1,2}[A-Z]{3}[0-9]{2}-[0-9]+-P$")
 
 def microseconds(value: str) -> int:
     if not isinstance(value, str) or not re.fullmatch(
-        r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?(?:Z|\+00:00)", value
+        r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?(?:Z|\+00:00)?", value
     ):
         raise ValueError("UNTRUSTED_COINAPI_CLOCK_FORMAT")
     prefix = value.replace("Z", "+00:00")
@@ -31,6 +31,10 @@ def microseconds(value: str) -> int:
     if len(fractional) > 6 and any(c != "0" for c in fractional[6:]):
         raise ValueError("SUBMICROSECOND_TIME_CANNOT_BE_REPRESENTED")
     dt = datetime.fromisoformat(prefix)
+    # CoinAPI official flat-file sample omits timezone suffix; treat as
+    # provider UTC by convention, never as certified original venue clock.
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
     if dt.utcoffset().total_seconds() != 0:
         raise ValueError("NON_UTC_CLOCK")
     return int(dt.timestamp()) * 1_000_000 + dt.microsecond
@@ -90,6 +94,7 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool) -> 
         "schema":"V99_I1_COINAPI_ORIGINAL_QUOTE_INTAKE_V1",
         "status":"SOURCE_FORMAT_ONLY_NO_ECONOMICS",
         "provider":"CoinAPI", "venue":venue, "instrument":symbol,
+        "timezone_for_naive_source_fields_assumed_utc_not_certified":True,
         "original_sha256":hashlib.sha256(raw).hexdigest(),
         "original_bytes":len(raw), "rows":rows,
         "first_arrival_us":first, "last_arrival_us":last,
