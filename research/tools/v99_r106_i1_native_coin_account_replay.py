@@ -138,8 +138,21 @@ class Wallet:
         if len(mark_names) != len(set(mark_names)) or any(
                 name not in names for name in mark_names):
             raise ValueError("FABRICATED_OR_DUPLICATE_MARK")
-        if any(t > self.last_ms for _, _, t, _ in self.marks):
-            raise ValueError("FUTURE_MARK")
+        # A deserialized or externally reconstructed Wallet must not be
+        # able to invent negative exit liabilities or an invalid NAV index.
+        # These invariants are checked even before account_nav is requested.
+        for p in self.positions:
+            if (not isinstance(p.name, str) or not p.name
+                    or type(p.expiry_ms) is not int
+                    or not START < p.expiry_ms < END
+                    or not (D(p.high) > D(p.low) > 0
+                            and D(p.qty) > 0
+                            and D(p.initial_margin_coin) >= D(p.maintenance_margin_coin) > 0)):
+                raise ValueError("INVALID_OPEN_COIN_POSITION")
+        for _, liability, t, index in self.marks:
+            if (type(t) is not int or not START <= t <= self.last_ms
+                    or D(liability) < 0 or D(index) <= 0):
+                raise ValueError("INVALID_COIN_MARK_PROVENANCE")
         if any(p.expiry_ms < self.last_ms for p in self.positions):
             raise ValueError("UNSETTLED_EXPIRED_POSITION")
 
