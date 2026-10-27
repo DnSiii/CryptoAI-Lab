@@ -26,6 +26,7 @@ PINNED_MARCH = {
     "BNBUSDT": "55bba490654b69c26cc1989f17902737535682f70491132f66246fbea3b7017a",
     "SOLUSDT": "7345fc8807e3e73e11595b5b371bf96d414048f77d1498964fa5c5f8fe3f02e7",
 }
+PINNED_100_SHA_MANIFEST = "02f1eef3fb3bd5a8a4f7ab7e60379474f091c961f9be98217b8b9792f75ef3a9"
 FIELDS = ("asset", "open_time_ms", "observed", "open", "high", "low", "close", "quote_volume")
 OUT = Path(__file__).resolve().parent / "hq_gap_aware_spot_source_only"
 
@@ -108,6 +109,9 @@ def canonical_from_verified(cache: dict[tuple[str, int, int], bytes], checksums:
                              "observed": len(lines) - len(absent), "masked": len(absent)})
     if set(missing) != KNOWN_GAPS or observed != 73148 or len(receipts) != 100:
         raise ValueError("HQ_GLOBAL_COVERAGE_INTEGRITY")
+    manifest = "".join(f'{r["asset"]}|{r["month"]}|{r["sha256"]}\n' for r in receipts).encode("utf-8")
+    if sha(manifest) != PINNED_100_SHA_MANIFEST:
+        raise ValueError("HQ_MANIFEST_PIN_MISMATCH")
     return stream.getvalue().encode("utf-8"), receipts
 
 
@@ -153,6 +157,7 @@ def run():
                "missing_utc": "2023-03-24T13:00:00Z", "missing_assets": list(ASSETS),
                "canonical_sha256": sha(a), "canonical_bytes": len(a),
                "two_pass_identical": True, "archives": receipts,
+               "publisher_manifest_sha256": PINNED_100_SHA_MANIFEST,
                "complete_grid_source_rejection_still_active": True,
                "validation_2025_read": False, "data_2026_read": False,
                "historical_system_pnl_computed": False, "alpha_selected": False,
