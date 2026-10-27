@@ -167,6 +167,47 @@ jobs:
           try: verify(root,forged_causal)
           except AssertionError as exc: assert str(exc)=='FORGED_CAUSAL_HELD_PAIR_ENTRY'
           else: raise AssertionError('FORGED_CAUSAL_ENTRY_ACCEPTED')
+          # Last original receipt must revoke a previously valid Sunday
+          # predecision quote. Same-contract daily continuity is unaffected.
+          revoked_sunday=[list(row) for row in sunday_rows]
+          invalid=list(revoked_sunday[-1])
+          invalid[2]=str(decision-500_000)
+          invalid[3]=str(decision-500_000)
+          invalid[7]='0'  # zero ask size, later original arrival
+          revoked_sunday.append(invalid)
+          write_sunday(revoked_sunday)
+          revoked=main(str(root),str(root/'revoked_sunday_report.json'))
+          revoked_oracle=oracle(str(root),str(root/'revoked_sunday_report.json'))
+          assert revoked['asset_weeks_with_same_contract_pair_preexpiry_presence']==1
+          assert revoked['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert revoked_oracle['causal_entry_and_same_contract_asset_weeks']==0
+          # Restore causal Sunday; now revoke the Monday 27000-P held mark
+          # using a later bad book for the exact same contract.
+          write_sunday(sunday_rows)
+          monday=date(2021,12,13)
+          mi=(monday-start).days
+          monday_entry=manifest['days'][mi]
+          monday_path=root/monday_entry['file']
+          monday_rows=list(csv.reader(gzip.decompress(monday_path.read_bytes()).decode().splitlines()))
+          bad_monday=list(monday_rows[-2])  # BTC 27000-P
+          assert '27000-P' in bad_monday[1]
+          epoch_m=int(datetime(2021,12,13,tzinfo=timezone.utc).timestamp()*1_000_000)
+          bad_monday[2]=str(epoch_m+5_000_000)
+          bad_monday[3]=str(epoch_m+5_000_000)
+          bad_monday[6]='0'  # invalid bid size after the good quote
+          monday_rows.append(bad_monday)
+          buf=io.StringIO(newline='')
+          csv.writer(buf).writerows(monday_rows)
+          raw=gzip.compress(buf.getvalue().encode())
+          monday_path.write_bytes(raw)
+          monday_entry['sha256']=hashlib.sha256(raw).hexdigest()
+          monday_entry['rows']=len(monday_rows)-1
+          mp.write_text(json.dumps(manifest))
+          revoked_day=main(str(root),str(root/'revoked_monday_report.json'))
+          revoked_day_oracle=oracle(str(root),str(root/'revoked_monday_report.json'))
+          assert revoked_day['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
+          assert revoked_day['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert revoked_day_oracle['same_contract_pair_preexpiry_asset_weeks']==0
           assert positive['asset_weeks_with_necessary_daily_presence']==180
           assert positive['certified_complete_option_lifecycles']==0
           for idx,(raw,entry) in saved.items():
@@ -263,6 +304,7 @@ jobs:
           print('positive controls: 1/180 same-contract, 0/180 after-decision causal;')
           print('1/180 synchronized Sunday entry + held-contract continuity,')
           print('>1s skew rejected; forged causal count independently rejected;')
+          print('later invalid Sunday and Monday exact-contract receipts revoke old books;')
           print('last week 34 days; no sealed days;')
           print('7 boundary/integrity controls including arrival-day, stale-event and future timestamp.')
           print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
