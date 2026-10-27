@@ -26,7 +26,7 @@ def bundle(opening, high, low, close, rate, event, quote,
             any(not np.isfinite(x).all() for x in (o,h,l,c,r,e,q)) or
             np.any(o<=0) or np.any(c<=0) or np.any(l<=0) or
             np.any(l>np.minimum(o,c)) or np.any(h<np.maximum(o,c)) or
-            np.any(q<=0) or np.any((e!=0)&(e!=1)) or
+            np.any(q<0) or np.any((e!=0)&(e!=1)) or
             np.any(~np.isfinite(s[mask])) or np.any(s[mask]<0)):
         raise ValueError("HR_INVALID_NATIVE_OR_MASKED_SOURCE")
     n = len(c)
