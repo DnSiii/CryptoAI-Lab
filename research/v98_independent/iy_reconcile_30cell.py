@@ -50,7 +50,7 @@ def run(root):
         for key in GRID:
             one,two=aa[key],bb[key]
             if one["passed"]!=two["passed"]:
-                errors.append(("OS_SURVIYAL",path,key));continue
+                errors.append(("OS_SURVIVAL",path,key));continue
             if one["passed"]:
                 for field in ("final_nav","fees","slippage","funding","turnover",
                               "two_year_cagr","max_drawdown","max_gross_to_nav"):
@@ -115,8 +115,8 @@ def run(root):
         full.get(("immediate",fee,order),{}).get("passed") and
         full[("immediate",fee,order)]["turnover"]<=600000.
         for fee in ("base","severe") for order in ORDERS)
-    if errors:decision="BLOCK_IY_AUDIY_OR_REPRODUCIBILITY"
-    elif survival!=30:decision="REJECT_IY_PHYSICAL_SURVIYAL"
+    if errors:decision="BLOCK_IY_AUDIT_OR_REPRODUCIBILITY"
+    elif survival!=30:decision="REJECT_IY_PHYSICAL_SURVIVAL"
     elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_de or not turnover_ok:
         decision="REJECT_IY_HISTORICAL_GROWTH_OR_MARGINAL"
     else:decision="PASS_IY_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"

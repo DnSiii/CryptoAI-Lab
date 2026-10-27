@@ -105,7 +105,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                     funding+=settled["funding"];turnover+=settled["turnover"]
                     fills+=int(settled["turnover"]>1e-5)
                     gross=float(np.sum(abs(old*c[t])))
-                    if cash<=0:raise ValueError("IY_NAV_NONPOSITIYE")
+                    if cash<=0:raise ValueError("IY_NAV_NONPOSITIVE")
                     gross_peak=max(gross_peak,gross/cash)
                     net_peak=max(net_peak,abs(float(old@c[t]))/cash)
                     if gross>0:concentration_peak=max(concentration_peak,
@@ -200,7 +200,7 @@ def run(path):
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
             "decision":"PASS_IY_MECHANICAL_ONLY" if len(cases)==6 and
-            all(x["passed"] for x in cases) else "BLOCK_IY_PHYSICAL_SURVIYAL"}
+            all(x["passed"] for x in cases) else "BLOCK_IY_PHYSICAL_SURVIVAL"}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()

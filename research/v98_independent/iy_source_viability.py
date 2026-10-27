@@ -24,7 +24,7 @@ def run():
     for t in range(WARMUP,HOURS,CLOCK):
         year="2023" if t<9504 else "2024"
         if not updates[t].all() or not validity[t,0]:
-            raise ValueError("IY_NATIYE_EPOCH_INVALID")
+            raise ValueError("IY_NATIVE_EPOCH_INVALID")
         if not np.isclose(budgets[t].sum(),1.,atol=1e-12):
             raise ValueError("IY_BUDGET_NONCONSERVATION")
         regimes_by_year[year][regimes[t]]=regimes_by_year[year].get(regimes[t],0)+1
@@ -35,7 +35,7 @@ def run():
                     (i>0 and np.isclose(gross,0.,atol=1e-12))):
                 raise ValueError("IY_SIGNED_SLEEVE_NONCONSERVATION")
             if gross>1e-12 and not validity[t,i]:
-                raise ValueError("IY_INVALID_QUOTE_SLEEVE_ACTIYATED")
+                raise ValueError("IY_INVALID_QUOTE_SLEEVE_ACTIVATED")
             counts[year][name]+=int(budgets[t,i]>1e-12 and gross>1e-12)
     viable=all(min(counts[y].values())>=8 for y in ("2023","2024"))
     report={"architecture":"IY",

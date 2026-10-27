@@ -61,10 +61,10 @@ jobs:
     needs: source
     strategy:
       fail-fast: false
-      matriy:
+      matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
         path: [IY_core_only, IY_full, IY_minus_opportunity, IY_minus_RV, IY_minus_stress]
-    runs-on: ${{ matriy.os }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
@@ -91,21 +91,21 @@ jobs:
               dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
-      - name: Run actual-open physical siy-cell independently funded IY book
+      - name: Run actual-open physical six-cell independently funded IY book
         working-directory: research/v98_independent
         shell: bash
         run: |
           set +e
-          python iy_30cell.py --path ${{ matriy.path }} --output iy30_${{ matriy.path }}.json
+          python iy_30cell.py --path ${{ matrix.path }} --output iy30_${{ matrix.path }}.json
           rc=$?
           set -e
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
-          test -s iy30_${{ matriy.path }}.json
+          test -s iy30_${{ matrix.path }}.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: iy30-${{ matriy.os }}-${{ matriy.path }}
-          path: research/v98_independent/iy30_${{ matriy.path }}.json
+          name: iy30-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/iy30_${{ matrix.path }}.json
           retention-days: 30
           if-no-files-found: warn
   audit:
@@ -133,7 +133,7 @@ jobs:
     if: needs.audit.result == 'success'
     strategy:
       fail-fast: false
-      matriy:
+      matrix:
         path: [IY_core_only, IY_full, IY_minus_opportunity, IY_minus_RV, IY_minus_stress]
     runs-on: ubuntu-24.04
     timeout-minutes: 75
@@ -166,11 +166,11 @@ jobs:
         working-directory: research/v98_independent
         run: |
           python -m py_compile v98_independent_settlement_oracle.py iy_independent_ledger_replay.py
-          python iy_independent_ledger_replay.py --path ${{ matriy.path }} --output iy_oracle_${{ matriy.path }}.json
+          python iy_independent_ledger_replay.py --path ${{ matrix.path }} --output iy_oracle_${{ matrix.path }}.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: iy-independent-ledger-${{ matriy.path }}
-          path: research/v98_independent/iy_oracle_${{ matriy.path }}.json
+          name: iy-independent-ledger-${{ matrix.path }}
+          path: research/v98_independent/iy_oracle_${{ matrix.path }}.json
           retention-days: 30
           if-no-files-found: warn
