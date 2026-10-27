@@ -95,19 +95,31 @@ def audit(trace, observed):
                 raise AssertionError("NEGATIVE_REFERENCE_MARK_LIABILITY")
             marks[name] = (liability, t, index)
         elif typ == "nav":
-            if set(marks) != set(positions) or any(
-                    mark_t != t for _, mark_t, _ in marks.values()):
-                raise AssertionError("MISSING_OR_STALE_REFERENCE_MARK")
-            indices = {idx for _, _, idx in marks.values()}
-            if len(indices) != 1:
-                raise AssertionError("INCONSISTENT_REFERENCE_INDEX")
-            nav = cash-sum((m[0] for m in marks.values()), Decimal(0))
-            maintenance = sum((p[4] for p in positions.values()), Decimal(0))
-            if nav < maintenance:
-                raise AssertionError("REFERENCE_MAINTENANCE_BREACH")
+            if not positions:
+                if marks or reserve != 0:
+                    raise AssertionError("REFERENCE_INVALID_FLAT_WALLET")
+                if "flat_index_usd" not in event:
+                    raise AssertionError("REFERENCE_FLAT_NAV_MISSING_SOURCE_INDEX")
+                index = d(event["flat_index_usd"])
+                if index <= 0:
+                    raise AssertionError("REFERENCE_INVALID_FLAT_SOURCE_INDEX")
+                nav = cash
+            else:
+                if "flat_index_usd" in event:
+                    raise AssertionError("REFERENCE_FLAT_INDEX_OVERRIDE_OPEN_MARKS")
+                if set(marks) != set(positions) or any(
+                        mark_t != t for _, mark_t, _ in marks.values()):
+                    raise AssertionError("MISSING_OR_STALE_REFERENCE_MARK")
+                indices = {idx for _, _, idx in marks.values()}
+                if len(indices) != 1:
+                    raise AssertionError("INCONSISTENT_REFERENCE_INDEX")
+                index = next(iter(indices))
+                nav = cash-sum((m[0] for m in marks.values()), Decimal(0))
+                maintenance = sum((p[4] for p in positions.values()), Decimal(0))
+                if nav < maintenance:
+                    raise AssertionError("REFERENCE_MAINTENANCE_BREACH")
             snapshots.append({"nav_coin": str(nav),
-                              "nav_usd_equivalent_at_source_index": str(
-                                  nav*next(iter(indices)))})
+                              "nav_usd_equivalent_at_source_index": str(nav*index)})
         elif typ == "settle_batch":
             cohort = event.get("names")
             fee_map = event.get("delivery_fees_coin")
