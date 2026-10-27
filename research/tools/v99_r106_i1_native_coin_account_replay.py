@@ -149,6 +149,29 @@ class Wallet:
                             and D(p.qty) > 0
                             and D(p.initial_margin_coin) >= D(p.maintenance_margin_coin) > 0)):
                 raise ValueError("INVALID_OPEN_COIN_POSITION")
+            # A deserialized position cannot substitute one option contract for
+            # another between bid/ask marking and inverse-coin settlement.
+            # Numeric payoff strikes and expiry MUST equal both literal IDs.
+            try:
+                short_id = p.short_symbol.split("-")
+                long_id = p.long_symbol.split("-")
+                if len(short_id) != 4 or len(long_id) != 4:
+                    raise ValueError("INVALID_OPEN_COIN_POSITION")
+                short_expiry = datetime.strptime(short_id[1].upper(), "%d%b%y").replace(
+                    hour=8, tzinfo=timezone.utc)
+                long_expiry = datetime.strptime(long_id[1].upper(), "%d%b%y").replace(
+                    hour=8, tzinfo=timezone.utc)
+                if not (
+                    short_id[0] == long_id[0] == self.asset
+                    and short_id[3] == long_id[3] == "P"
+                    and D(short_id[2]) == D(p.high)
+                    and D(long_id[2]) == D(p.low)
+                    and int(short_expiry.timestamp() * 1000) == p.expiry_ms
+                    and int(long_expiry.timestamp() * 1000) == p.expiry_ms
+                ):
+                    raise ValueError("INVALID_OPEN_COIN_POSITION")
+            except (AttributeError, TypeError, ValueError, OverflowError) as exc:
+                raise ValueError("INVALID_OPEN_COIN_POSITION") from exc
         for _, liability, t, index in self.marks:
             if (type(t) is not int or not START <= t <= self.last_ms
                     or D(liability) < 0 or D(index) <= 0):
