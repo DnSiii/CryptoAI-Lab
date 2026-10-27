@@ -204,6 +204,42 @@ class FixedI1VerticalBridge(unittest.TestCase):
             audit_fixture(signal(), book(), decision, before, after,
                           initial_margin_coin="4", maintenance_margin_coin="3")
 
+    def test_forged_chronological_fold_fails_primary_and_independent(self):
+        forged = dict(signal())
+        forged["fold"] = 2  # January 2022 belongs to frozen fold 1.
+        with self.assertRaisesRegex(ValueError, "SIGNAL_FOLD_TIME_MISMATCH"):
+            select_fixed_vertical(forged, book())
+        before = start_wallet("BTC", "severe", "100")
+        fake_cash = {"decision": "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL",
+                     "fixture": True, "economic_train_executed": False,
+                     "promotion_authorized": False}
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_SIGNAL_FOLD_TIME_MISMATCH"):
+            audit_fixture(forged, book(), fake_cash, before, before)
+        valid_later = dict(signal("NO_PREMIUM"))
+        valid_later["decision_ms"] = int(datetime(2022, 5, 2, tzinfo=timezone.utc).timestamp()*1000)
+        valid_later["fold"] = 2
+        self.assertIsNone(select_fixed_vertical(valid_later, []))
+
+    def test_invalid_cash_wallet_rejected_even_without_eligible_signal(self):
+        for changed in (
+            {"cash_coin": Decimal("-1")},
+            {"reserved_coin": Decimal("101")},
+            {"initial_coin": Decimal("0")},
+            {"reserved_coin": Decimal("1")},
+        ):
+            before = replace(start_wallet("BTC", "severe", "100"), **changed)
+            with self.subTest(changed=changed):
+                with self.assertRaises(ValueError):
+                    fixture_open_fixed_vertical(
+                        before, signal("NO_PREMIUM"), [], name="none",
+                        initial_margin_coin="4", maintenance_margin_coin="2",
+                        fixture=True)
+                fake_cash = {"decision": "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL",
+                             "fixture": True, "economic_train_executed": False,
+                             "promotion_authorized": False}
+                with self.assertRaisesRegex(AssertionError, "REFERENCE_INVALID_BEFORE_WALLET"):
+                    audit_fixture(signal("NO_PREMIUM"), [], fake_cash, before, before)
+
     def test_no_promotion_or_roi_fields(self):
         before = start_wallet("BTC", "severe", "100")
         _, decision = fixture_open_fixed_vertical(
