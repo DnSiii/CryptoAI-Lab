@@ -17,7 +17,11 @@ def audit(root, export_path):
     export = json.loads(Path(export_path).read_text(encoding="utf-8"))
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     assert export["schema"] == "I1_ORIGINAL_ENTRY_BOOK_EXPORT_V1"
-    assert manifest["schema"] == "I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1"
+    assert manifest["schema"] in ("I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1",
+        "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1")
+    fixed = manifest["schema"] == "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1"
+    assert export["source_scope"] == ("FIXED_28_35D" if fixed else "LEGACY_21_45D")
+    assert len(manifest["days"]) == (90 if fixed else 91)
     assert export["fixture"] == manifest["fixture"]
     from research.verification.independent_v99_r106_i1_full_archive_intake import (
         original_native_lookup, independently_check_historical_ticks)
@@ -36,7 +40,7 @@ def audit(root, export_path):
     expected = []
     for i, item in enumerate(manifest["days"]):
         decision = datetime(2021, 12, 13, tzinfo=UTC) + timedelta(days=7*i)
-        assert decision + timedelta(days=21) < STOP
+        assert decision + timedelta(days=(28 if fixed else 21)) < STOP
         path = root / item["file"]
         assert path.name == item["file"] and path.is_file() and not path.is_symlink()
         assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
@@ -77,8 +81,9 @@ def audit(root, export_path):
                 continue
             if not (all(map(math.isfinite,(strike,bid,ask,bs,az)))
                     and strike > 0 and 0 < bid < ask and bs > 0 and az > 0
-                    and event >= cutoff and timedelta(days=21) <= expiry-decision
-                    <= timedelta(days=45) and expiry < STOP):
+                    and event >= cutoff
+                    and timedelta(days=(28 if fixed else 21)) <= expiry-decision
+                    <= timedelta(days=(35 if fixed else 45)) and expiry < STOP):
                 continue
             meta = None
             if native is not None:
@@ -136,7 +141,7 @@ def audit(root, export_path):
                     synchronized_asset_weeks.add((day,asset))
     assert len(synchronized_asset_weeks) == export["synchronized_source_pairs"], (
         "INDEPENDENT_ENTRY_SYNC_PAIR_MISMATCH")
-    assert export["required_pairs"] == 182
+    assert export["required_pairs"] == (180 if fixed else 182)
     print(json.dumps({"independent":"VERIFIED_ORIGINAL_BYTE_TO_BOOK",
         "quote_count":len(expected),"asset_weeks":len(by_asset),
         "synchronized_asset_weeks":len(synchronized_asset_weeks),
