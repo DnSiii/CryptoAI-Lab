@@ -103,6 +103,71 @@ class FixedI1VerticalBridge(unittest.TestCase):
                                        maintenance_margin_coin="100")["independent_fixture"],
                          "INDEPENDENT_RISK_CASH_VETO_MATCH")
 
+    def test_fixed_28d_tenor_train_boundary_censors_two_asset_weeks(self):
+        # The original 21d signal schedule has 91 Mondays per asset,
+        # but the separately frozen 28-35d spread has only 90 possible.
+        from datetime import timedelta
+        start = datetime(2021, 12, 13, tzinfo=timezone.utc)
+        end = datetime(2023, 10, 1, tzinfo=timezone.utc)
+        scheduled = [start + timedelta(weeks=i) for i in range(91)]
+        self.assertEqual(sum(d + timedelta(days=28) < end for d in scheduled), 90)
+        last_eligible = int(datetime(2023, 8, 28, tzinfo=timezone.utc).timestamp()*1000)
+        censored = int(datetime(2023, 9, 4, tzinfo=timezone.utc).timestamp()*1000)
+        expiry = int(datetime(2023, 9, 29, 8, tzinfo=timezone.utc).timestamp()*1000)
+        valid_book = [
+            Quote("BTC", f"BTC-29SEP23-{strike}-P", expiry, D(strike),
+                  D(bid), D(ask), D("5"), D("5"),
+                  last_eligible-3000, last_eligible-2000, D("50000"))
+            for strike, bid, ask in (("45000", ".08", ".09"),
+                                     ("40000", ".04", ".05"))
+        ]
+        for scenario in ("severe", "supersevere"):
+            for label in ("POSITIVE_EX_ANTE_PREMIUM", "NO_PREMIUM"):
+                with self.subTest(scenario=scenario, signal=label):
+                    s = {"decision_ms": censored, "asset": "BTC", "fold": 5,
+                         "signal": label}
+                    before = start_wallet("BTC", scenario, "100")
+                    after, decision = fixture_open_fixed_vertical(
+                        before, s, [], name="none",
+                        initial_margin_coin="4", maintenance_margin_coin="2",
+                        fixture=True)
+                    self.assertEqual(decision["decision"],
+                                     "CASH_FIXED_TENOR_RIGHT_CENSORED")
+                    self.assertEqual(after.last_ms, censored)
+                    self.assertEqual(audit_fixture(s, [], decision, before, after)[
+                        "independent_fixture"], "FIXED_TENOR_CENSOR_CASH_MATCH")
+                    forged_generic = dict(decision,
+                        decision="CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL")
+                    with self.assertRaisesRegex(AssertionError,
+                                                "REFERENCE_MISLABELED_TENOR_CENSOR"):
+                        audit_fixture(s, [], forged_generic, before, after)
+        eligible_signal = {"decision_ms": last_eligible, "asset": "BTC",
+                           "fold": 5, "signal": "POSITIVE_EX_ANTE_PREMIUM"}
+        self.assertIsNotNone(select_fixed_vertical(eligible_signal, valid_book))
+        before = start_wallet("BTC", "severe", "100")
+        after, decision = fixture_open_fixed_vertical(
+            before, eligible_signal, valid_book, name="eligible",
+            initial_margin_coin="4", maintenance_margin_coin="2", fixture=True)
+        self.assertEqual(decision["decision"], "MODELED_FIXTURE_OPEN_ONLY")
+        self.assertEqual(audit_fixture(eligible_signal, valid_book, decision,
+                                       before, after, initial_margin_coin="4",
+                                       maintenance_margin_coin="2")[
+            "independent_fixture"], "SELECTOR_FULL_STATE_AND_COIN_CASH_MATCH")
+        forged = {"decision": "CASH_FIXED_TENOR_RIGHT_CENSORED",
+                  "fixture": True, "economic_train_executed": False,
+                  "promotion_authorized": False}
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_FORGED_TENOR_CENSOR"):
+            audit_fixture(eligible_signal, [], forged, before,
+                          replace(before, last_ms=last_eligible))
+        future = replace(valid_book[0], arrival_ms=censored+1, venue_ms=censored)
+        s = {"decision_ms": censored, "asset": "BTC", "fold": 5,
+             "signal": "POSITIVE_EX_ANTE_PREMIUM"}
+        with self.assertRaisesRegex(ValueError, "NONCAUSAL_STALE_OR_SEALED_QUOTE"):
+            fixture_open_fixed_vertical(
+                start_wallet("BTC", "severe", "100"), s, [future],
+                name="invalid", initial_margin_coin="4",
+                maintenance_margin_coin="2", fixture=True)
+
     def test_no_historical_certification_by_caller_flags(self):
         with self.assertRaisesRegex(
                 ValueError, "HISTORICAL_SOURCE_RECEIPTS_REQUIRE_INDEPENDENT_ATTESTATION"):
