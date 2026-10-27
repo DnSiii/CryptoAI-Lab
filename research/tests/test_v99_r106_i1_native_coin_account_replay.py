@@ -185,6 +185,68 @@ class NativeCoinAccountTests(unittest.TestCase):
             self.assertEqual(w.reserved_coin, Decimal(0))
             self.assertEqual(w.settled, ("p1","p2"))
 
+    def test_independent_oracle_rejects_self_consistent_negative_opening_cost(self):
+        # A forged negative cost plus a matching inflated observed balance
+        # previously passed the independent reference arithmetic.
+        for scenario in ("severe", "supersevere"):
+            for bad_field in ("entry_fees_coin", "entry_slippage_coin"):
+                event = dict(kind="open", at_ms=OPEN1, name="p1",
+                    qty="1", high="50000", low="45000",
+                    short_bid_coin=".08", short_ask_coin=".09",
+                    long_bid_coin=".04", long_ask_coin=".05",
+                    entry_fees_coin=".001", entry_slippage_coin=".001",
+                    margin_coin="4", maintenance_coin="2",
+                    index_usd="46000", expiry_ms=EXPIRY)
+                event[bad_field] = "-.001"
+                cash = (D("100") + D(".08") - D(".05")
+                        - D(event["entry_fees_coin"])
+                        - D(event["entry_slippage_coin"]))
+                trace = {"asset": "BTC", "scenario": scenario,
+                         "initial_coin": "100", "events": [event]}
+                observed = {"cash_coin": str(cash), "reserved_coin": "4",
+                            "open_position_ids": ["p1"], "settled_ids": [],
+                            "snapshots": [], "historical_economic_train": False,
+                            "promotion_authorized": False}
+                with self.subTest(scenario=scenario, field=bad_field):
+                    with self.assertRaisesRegex(
+                            AssertionError, "REFERENCE_NEGATIVE_OPENING_COST"):
+                        audit(trace, observed)
+
+    def test_independent_oracle_rejects_self_consistent_negative_single_delivery_fee(self):
+        # No same-expiry siblings: a genuine single-position settlement path.
+        # The forged balance matches the negative fee, so only the sign gate
+        # can reject the artificial settlement credit.
+        for scenario in ("severe", "supersevere"):
+            opening = dict(kind="open", at_ms=OPEN1, name="p1",
+                qty="1", high="50000", low="45000",
+                short_bid_coin=".08", short_ask_coin=".09",
+                long_bid_coin=".04", long_ask_coin=".05",
+                entry_fees_coin=".001", entry_slippage_coin=".001",
+                margin_coin="4", maintenance_coin="2",
+                index_usd="46000", expiry_ms=EXPIRY)
+            cash_after_open = D("100") + D(".08") - D(".05") - D(".002")
+            payoff = (D("50000") - D("46000")) / D("46000")
+            for fee in (".001", "-.001"):
+                settlement = dict(kind="settle", at_ms=EXPIRY, name="p1",
+                                  delivery_index_usd="46000",
+                                  delivery_fee_coin=fee)
+                observed = {"cash_coin": str(cash_after_open - payoff - D(fee)),
+                            "reserved_coin": "0", "open_position_ids": [],
+                            "settled_ids": ["p1"], "snapshots": [],
+                            "historical_economic_train": False,
+                            "promotion_authorized": False}
+                trace = {"asset": "BTC", "scenario": scenario,
+                         "initial_coin": "100", "events": [opening, settlement]}
+                with self.subTest(scenario=scenario, fee=fee):
+                    if D(fee) < 0:
+                        with self.assertRaisesRegex(
+                                AssertionError, "REFERENCE_NEGATIVE_SINGLE_DELIVERY_FEE"):
+                            audit(trace, observed)
+                    else:
+                        self.assertEqual(
+                            audit(trace, observed)["independent_coin_account_replay"],
+                            "MATCH")
+
     def test_oracle_rejects_fabricated_coin_cash(self):
         trace, observed, _ = exercise()
         observed["cash_coin"] = str(D(observed["cash_coin"])+D("1"))
