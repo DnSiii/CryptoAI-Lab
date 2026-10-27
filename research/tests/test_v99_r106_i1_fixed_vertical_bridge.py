@@ -118,6 +118,7 @@ class FixedI1VerticalBridge(unittest.TestCase):
         later = dict(signal())
         later["decision_ms"] = int(datetime(
             2023, 9, 25, tzinfo=timezone.utc).timestamp()*1000)
+        later["fold"] = 5  # Correct frozen fold, so the right-censor gate is tested.
         with self.assertRaisesRegex(ValueError, "SEALED_OR_RIGHT_CENSORED"):
             select_fixed_vertical(later, [])
 
