@@ -116,7 +116,7 @@ class HQSourceFixtures(unittest.TestCase):
             with patch.object(source, "PINNED_100_SHA_MANIFEST", "0" * 64):
                 with self.assertRaisesRegex(ValueError, "HQ_MANIFEST_PIN_MISMATCH"):
                     source.canonical_from_verified(cache, checksums)
-            checksums[("BTCUSDT", 2022, 12)] = "0" * 64
+            checksums[("BTCUSDT", 2022, 12)] = "0" * 64 + "  BTCUSDT-1h-2022-12.zip"
             with self.assertRaisesRegex(ValueError, "HQ_PROVIDER_SHA_MISMATCH"):
                 source.canonical_from_verified(cache, checksums)
 
