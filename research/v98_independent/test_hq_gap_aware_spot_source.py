@@ -10,15 +10,24 @@ import hq_gap_aware_spot_source as source
 from hq_gap_aware_spot_source import ASSETS, GAP, MONTHS, month_hours, parse_month, window_valid, sha
 
 
-def fixture(asset, year, month, skip=(), duplicate=False, invalid=False):
+def fixture(asset, year, month, skip=(), duplicate=False, invalid=False, bad_quote=False, bad_close_time=False, bad_taker=False, bad_schema=False):
     name = f"{asset}-1h-{year}-{month:02d}.csv"
     rows = []
     for t in month_hours(year, month):
         if t in skip:
             continue
-        row = [str(t), "100", "110", "90", "105", "1", str(t + 3599999), "10000", "5", "1", "5000", "0"]
-        if invalid and t == month_hours(year, month)[0]:
-            row[2] = "1"
+        row = [str(t), "100", "110", "90", "105", "1", str(t + 3599999), "100", "5", "0.5", "50", "0"]
+        if t == month_hours(year, month)[0]:
+            if invalid:
+                row[2] = "1"
+            if bad_quote:
+                row[7] = "10000"
+            if bad_close_time:
+                row[6] = str(t + 3600000)
+            if bad_taker:
+                row[10] = "500"
+            if bad_schema:
+                row.append("extra")
         rows.append(row)
     if duplicate:
         rows.insert(1, rows[0])
@@ -50,6 +59,25 @@ class HQSourceFixtures(unittest.TestCase):
                 parse_month(fixture(asset, 2022, 12, duplicate=True), asset, 2022, 12)
             with self.assertRaisesRegex(ValueError, "HQ_SPOT_GEOMETRY"):
                 parse_month(fixture(asset, 2022, 12, invalid=True), asset, 2022, 12)
+
+    def test_native_spot_conservation_and_schema_fail_closed(self):
+        for asset in ASSETS:
+            for kw, code in (
+                ({"bad_quote": True}, "HQ_SPOT_VOLUME_CONSERVATION"),
+                ({"bad_taker": True}, "HQ_SPOT_VOLUME_CONSERVATION"),
+                ({"bad_close_time": True}, "HQ_SPOT_CLOSE_TIME"),
+                ({"bad_schema": True}, "HQ_SPOT_SCHEMA"),
+            ):
+                with self.subTest(asset=asset, variant=kw), self.assertRaisesRegex(ValueError, code):
+                    parse_month(fixture(asset, 2022, 12, **kw), asset, 2022, 12)
+
+    def test_sidecar_wrong_filename_is_rejected_before_canonical(self):
+        key = (ASSETS[0], MONTHS[0][0], MONTHS[0][1])
+        raw = fixture(*key)
+        cache = {key: raw}
+        checksums = {key: sha(raw) + "  WRONG-ASSET-1h-2022-12.zip"}
+        with self.assertRaisesRegex(ValueError, "HQ_PROVIDER_CHECKSUM_FILENAME"):
+            source.canonical_from_verified(cache, checksums)
 
     def test_window_causal_and_missingness(self):
         observed = [True] * 900
