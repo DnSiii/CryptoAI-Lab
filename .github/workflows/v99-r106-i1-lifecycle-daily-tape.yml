@@ -72,6 +72,40 @@ jobs:
           assert independent['necessary_daily_presence_asset_weeks']==182
           assert report['certified_complete_option_lifecycles']==0
           assert not report['economic_train_executed']
+          # Separately preregistered FIXED 28-35d source envelope. A 22-day
+          # legacy presence gate cannot be used to approve 28-35d holding.
+          manifest['schema']='V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1'
+          mp.write_text(json.dumps(manifest))
+          fixed_report=main(str(root),str(root/'fixed_report.json'))
+          fixed_independent=oracle(str(root),str(root/'fixed_report.json'))
+          assert fixed_report['source_scope']=='FIXED_28_35D'
+          assert fixed_report['asset_weeks']==180
+          assert fixed_report['asset_weeks_with_necessary_daily_presence']==180
+          assert fixed_independent['necessary_daily_presence_asset_weeks']==180
+          assert len(fixed_report['weekly'])==180
+          assert fixed_report['weekly'][0]['required_daily_marks']==36
+          assert fixed_report['weekly'][-1]['required_daily_marks']==34
+          assert fixed_report['weekly'][-1]['decision_utc']=='2023-08-28'
+          assert fixed_report['weekly'][-1]['first_missing_day'] is None
+          assert fixed_report['certified_complete_option_lifecycles']==0
+          forged_fixed=json.loads(json.dumps(fixed_report))
+          forged_fixed['weekly'][-1]['required_daily_marks']=36
+          try: verify(root,forged_fixed)
+          except AssertionError as exc: assert str(exc)=='FORGED_ORIGINAL_WEEKLY_COVERAGE'
+          else: raise AssertionError('FIXED_SEALED_FUTURE_ACCEPTED')
+          forged_scope=json.loads(json.dumps(fixed_report))
+          forged_scope['source_scope']='LEGACY_21_45D'
+          try: verify(root,forged_scope)
+          except AssertionError as exc: assert str(exc)=='FORGED_LIFECYCLE_COVERAGE_HEADER'
+          else: raise AssertionError('FORGED_SOURCE_SCOPE_ACCEPTED')
+          # Preserve both independent reports, and restore legacy mode for
+          # preexisting adversarial clock/hash tests below.
+          import shutil
+          shutil.copyfile(root/'i1_lifecycle_daily_independent_oracle.json',
+                          root/'fixed_lifecycle_independent_oracle.json')
+          manifest['schema']='V99_I1_ORIGINAL_661_DAY_TRAIN_LIFECYCLE_TAPE_V1'
+          mp.write_text(json.dumps(manifest))
+          oracle(str(root),str(root/'report.json'))
           forged=json.loads(json.dumps(report))
           forged['asset_weeks_with_necessary_daily_presence']=181
           try: verify(root,forged)
@@ -130,7 +164,8 @@ jobs:
           else: raise AssertionError('WRONG_ARRIVAL_DAY_ACCEPTED')
           print('Clock controls: valid previous-day venue event ACCEPTED;')
           print('10m stale venue event NOT counted as mark; wrong arrival day REJECTED.')
-          print('661/661 synthetic UTC days streamed; 182/182 synthetic weak daily presence;')
+          print('661/661 synthetic UTC days; legacy 182/182 22-day weak presence;')
+          print('fixed 180/180 28-35d weak presence, last week 34 days; no sealed days;')
           print('7 boundary/integrity controls including arrival-day, stale-event and future timestamp.')
           print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
           PY
@@ -146,5 +181,7 @@ jobs:
           path: |
             research_evidence/i1_synthetic_lifecycle/report.json
             research_evidence/i1_synthetic_lifecycle/i1_lifecycle_daily_independent_oracle.json
+            research_evidence/i1_synthetic_lifecycle/fixed_report.json
+            research_evidence/i1_synthetic_lifecycle/fixed_lifecycle_independent_oracle.json
           retention-days: 30
           if-no-files-found: warn
