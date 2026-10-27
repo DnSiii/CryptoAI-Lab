@@ -341,8 +341,14 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 fee, slip = charge_floor(scenario, Decimal("1"))
                 marked = costed_mark(opened, "first", *old_index_book,
                                      next_monday, fee, slip, fixture=True)
-                new_index_book = [replace(q, index_usd=Decimal("50001"))
-                                  for q in old_index_book]
+                # The existing Feb-04 expiry is now only 25 days away;
+                # a NEW entry must use a fresh 28-35d expiry (Feb-11).
+                new_expiry = int(datetime(2022, 2, 11, 8,
+                                          tzinfo=timezone.utc).timestamp()*1000)
+                new_index_book = [replace(
+                    q, symbol=q.symbol.replace("04FEB22", "11FEB22"),
+                    expiry_ms=new_expiry, index_usd=Decimal("50001"))
+                    for q in old_index_book]
                 after, decision = fixture_open_fixed_vertical(
                     marked, later, new_index_book, name="second",
                     initial_margin_coin="4", maintenance_margin_coin="2",
@@ -359,7 +365,9 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 # quotes actually share the same index.
                 with self.assertRaisesRegex(
                         AssertionError, "REFERENCE_FORGED_INDEX_MISMATCH_VETO"):
-                    audit_fixture(later, old_index_book, decision, marked, after,
+                    audit_fixture(later, [replace(q, index_usd=Decimal("50000"))
+                                          for q in new_index_book],
+                                  decision, marked, after,
                                   initial_margin_coin="4",
                                   maintenance_margin_coin="2")
                 # And an empty portfolio cannot justify this overlap veto.
