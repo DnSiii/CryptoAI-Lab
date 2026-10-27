@@ -1,0 +1,176 @@
+name: V98 Independent IY Funding Spread Convex Recovery Seven Slot Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-iy-seven-slot.yml'
+      - 'research/v98_independent/iy_funding_spread_convexity_prereg_20261027.md'
+      - 'research/v98_independent/iy_funding_spread_convexity_sources.py'
+      - 'research/v98_independent/iy_source_viability.py'
+      - 'research/v98_independent/iy_30cell.py'
+      - 'research/v98_independent/iy_reconcile_30cell.py'
+      - 'research/v98_independent/iy_independent_ledger_replay.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download exact pinned Clean-4 2022-2024 only, never 2025
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage exact authenticated Clean-4 source
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name));assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
+          PY
+      - name: IY pre-economic native source, causality and financed epoch gate
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile iy_funding_spread_convexity_sources.py iy_source_viability.py iy_30cell.py iy_reconcile_30cell.py iy_independent_ledger_replay.py
+          python iy_funding_spread_convexity_sources.py
+          python iy_source_viability.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iy-source-viability
+          path: research/v98_independent/iy_source_viability.json
+          retention-days: 30
+          if-no-files-found: warn
+  economic:
+    needs: source
+    strategy:
+      fail-fast: false
+      matriy:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [IY_core_only, IY_full, IY_minus_opportunity, IY_minus_RV, IY_minus_stress]
+    runs-on: ${{ matriy.os }}
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage exact pinned Clean-4 bytes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name));assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
+          PY
+      - name: Run actual-open physical siy-cell independently funded IY book
+        working-directory: research/v98_independent
+        shell: bash
+        run: |
+          set +e
+          python iy_30cell.py --path ${{ matriy.path }} --output iy30_${{ matriy.path }}.json
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+          test -s iy30_${{ matriy.path }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iy30-${{ matriy.os }}-${{ matriy.path }}
+          path: research/v98_independent/iy30_${{ matriy.path }}.json
+          retention-days: 30
+          if-no-files-found: warn
+  audit:
+    if: always() && needs.source.result == 'success'
+    needs: [source, economic]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: iy30-ubuntu-*
+          path: receipts
+      - name: Independent artifact-only physical, cross-OS and economic marginal gate
+        run: python research/v98_independent/iy_reconcile_30cell.py --root receipts --output iy30_official_economic_summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iy30-official-economic-summary
+          path: iy30_official_economic_summary.json
+          retention-days: 30
+          if-no-files-found: warn
+  oracle:
+    needs: audit
+    if: needs.audit.result == 'success'
+    strategy:
+      fail-fast: false
+      matriy:
+        path: [IY_core_only, IY_full, IY_minus_opportunity, IY_minus_RV, IY_minus_stress]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage exact pinned Clean-4 bytes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name));assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
+          PY
+      - name: Independent all-hour signed funding and 81-corner physical settlement replay
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_independent_settlement_oracle.py iy_independent_ledger_replay.py
+          python iy_independent_ledger_replay.py --path ${{ matriy.path }} --output iy_oracle_${{ matriy.path }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iy-independent-ledger-${{ matriy.path }}
+          path: research/v98_independent/iy_oracle_${{ matriy.path }}.json
+          retention-days: 30
+          if-no-files-found: warn
