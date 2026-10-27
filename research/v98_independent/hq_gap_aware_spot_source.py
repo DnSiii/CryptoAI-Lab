@@ -27,7 +27,15 @@ PINNED_MARCH = {
     "SOLUSDT": "7345fc8807e3e73e11595b5b371bf96d414048f77d1498964fa5c5f8fe3f02e7",
 }
 PINNED_100_SHA_MANIFEST = "02f1eef3fb3bd5a8a4f7ab7e60379474f091c961f9be98217b8b9792f75ef3a9"
-FIELDS = ("asset", "open_time_ms", "observed", "open", "high", "low", "close", "quote_volume")
+PINNED_PARTIAL_CLOSE = {
+    "BTCUSDT": 1679661581646,
+    "ETHUSDT": 1679661583061,
+    "BNBUSDT": 1679661581451,
+    "SOLUSDT": 1679661586948,
+}
+PARTIAL_OPEN = GAP - 3600000
+
+FIELDS = ("asset", "open_time_ms", "observed", "full_hour", "open", "high", "low", "close", "quote_volume")
 OUT = Path(__file__).resolve().parent / "hq_gap_aware_spot_source_only"
 
 
@@ -62,8 +70,12 @@ def parse_month(raw: bytes, asset: str, y: int, m: int) -> tuple[list[tuple[str,
         prev = t
         if t in seen:
             raise ValueError("HQ_SPOT_DUPLICATE " + filename)
-        if int(row[6]) != t + 3599999:
-            raise ValueError("HQ_SPOT_CLOSE_TIME " + filename)
+        close_time = int(row[6])
+        pinned_partial = PINNED_PARTIAL_CLOSE[asset] if t == PARTIAL_OPEN else None
+        if (close_time != (pinned_partial if pinned_partial is not None else t + 3599999)
+                or close_time < t or close_time >= t + 3600000):
+            raise ValueError("HQ_SPOT_CLOSE_TIME " + filename + " t=" + str(t) +
+                             " observed_close=" + str(close_time))
         o, h, l, c, v, q, tb, tq = (float(row[i]) for i in (1, 2, 3, 4, 5, 7, 9, 10))
         trades = float(row[8])
         reserved = float(row[11])
@@ -84,19 +96,25 @@ def parse_month(raw: bytes, asset: str, y: int, m: int) -> tuple[list[tuple[str,
                 sell_q < sell_v*l-sell_tol or sell_q > sell_v*h+sell_tol or
                 ((v == 0) != (q == 0)) or ((tb == 0) != (tq == 0))):
             raise ValueError("HQ_SPOT_VOLUME_CONSERVATION " + filename)
-        seen[t] = (asset, str(t), "1", row[1], row[2], row[3], row[4], row[7])
+        seen[t] = (asset, str(t), "1", "0" if pinned_partial is not None else "1",
+                   row[1], row[2], row[3], row[4], row[7])
     missing = sorted(expected_set - set(seen))
     if {(asset, t) for t in missing} != (KNOWN_GAPS & {(asset, t) for t in expected}):
         raise ValueError("HQ_UNEXPECTED_MISSINGNESS " + filename + " " + repr(missing))
-    canonical = [seen[t] if t in seen else (asset, str(t), "0", "", "", "", "", "") for t in expected]
+    canonical = [seen[t] if t in seen else (asset, str(t), "0", "0", "", "", "", "", "") for t in expected]
     return canonical, missing
 
 
 def window_valid(observed: list[bool], end: int, lookback: int) -> bool:
-    """Completed-hour, inclusive causal window. Never substitutes a missing bar."""
+    """Completed-hour inclusive causal window over observed AND full-hour eligibility."""
     if lookback <= 0 or end < lookback - 1 or end >= len(observed):
         return False
     return all(observed[end - lookback + 1:end + 1])
+
+
+def source_eligible_mask(rows: list[tuple[str, ...]]) -> list[bool]:
+    """Only genuine 60-minute publisher bars are eligible for spot features."""
+    return [row[2] == "1" and row[3] == "1" for row in rows]
 
 
 def canonical_from_verified(cache: dict[tuple[str, int, int], bytes], checksums: dict[tuple[str, int, int], str]):
@@ -105,6 +123,7 @@ def canonical_from_verified(cache: dict[tuple[str, int, int], bytes], checksums:
     writer.writerow(FIELDS)
     receipts = []
     observed = 0
+    partial = 0
     missing = []
     for asset in ASSETS:
         for y, m in MONTHS:
@@ -125,10 +144,13 @@ def canonical_from_verified(cache: dict[tuple[str, int, int], bytes], checksums:
             lines, absent = parse_month(raw, asset, y, m)
             writer.writerows(lines)
             observed += len(lines) - len(absent)
+            partial_in_month = sum(row[2] == "1" and row[3] == "0" for row in lines)
+            partial += partial_in_month
             missing.extend((asset, t) for t in absent)
             receipts.append({"asset": asset, "month": f"{y}-{m:02d}", "sha256": actual,
-                             "observed": len(lines) - len(absent), "masked": len(absent)})
-    if set(missing) != KNOWN_GAPS or observed != 73148 or len(receipts) != 100:
+                             "observed": len(lines) - len(absent), "masked": len(absent),
+                             "partial_hour": partial_in_month})
+    if set(missing) != KNOWN_GAPS or observed != 73148 or partial != 4 or len(receipts) != 100:
         raise ValueError("HQ_GLOBAL_COVERAGE_INTEGRITY")
     manifest = "".join(f'{r["asset"]}|{r["month"]}|{r["sha256"]}\n' for r in receipts).encode("utf-8")
     if sha(manifest) != PINNED_100_SHA_MANIFEST:
@@ -178,6 +200,10 @@ def run():
     receipt = {"decision": "PASS_HQ_MASKED_SOURCE_ONLY_NOT_ECONOMIC",
                "publisher_checksums_verified": 100, "observed_asset_hours": 73148,
                "calendar_asset_hours": 73152, "masked_asset_hours": 4,
+               "publisher_early_close_partial_asset_hours": 4,
+               "eligible_full_hour_asset_hours": 73144,
+               "partial_open_utc": "2023-03-24T12:00:00Z",
+               "pinned_partial_close_ms": PINNED_PARTIAL_CLOSE,
                "missing_utc": "2023-03-24T13:00:00Z", "missing_assets": list(ASSETS),
                "canonical_sha256": sha(a), "canonical_bytes": len(a),
                "two_pass_identical": True, "archives": receipts,
