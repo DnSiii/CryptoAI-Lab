@@ -39,8 +39,8 @@ def run():
             counts[year][name]+=int(budgets[t,i]>1e-12 and gross>1e-12)
     viable=all(min(counts[y].values())>=8 for y in ("2023","2024"))
     report={"architecture":"IQ",
-        "decision":"PASS_IQ_SOURCE_ONLY_NOT_ECONOMIC" if viable else
-                   "REJECT_IQ_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
+        "decision":"PASS_IP_SOURCE_ONLY_NOT_ECONOMIC" if viable else
+                   "REJECT_IP_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
         "training_years":[2023,2024],
         "assets":["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT"],
         "warmup_hours":WARMUP,"financed_epoch_counts":counts,

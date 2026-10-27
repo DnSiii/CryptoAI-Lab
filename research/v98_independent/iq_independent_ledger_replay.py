@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """IQ independent EVERY-SETTLED-HOUR native ledger oracle replay, no engine changes.
-Patches only settlement receiqt observation, newer source/governor/execution decisions.
+Patches only settlement receipt observation, newer source/governor/execution decisions.
 Historical TRAINING ONLY. No 2025/benchmarks/Frozen/paper/live access.
 """
 from __future__ import annotations
@@ -16,10 +16,10 @@ def run(path):
             "verified_turnover":0.,"verified_funding":0.}
     digest=hashlib.sha256()
     def independently_checked(*args,**kwargs):
-        receiqt=original(*args,**kwargs)
+        receipt=original(*args,**kwargs)
         check=verify_hour(*args,fee_mode=kwargs.get("fee_mode","base"),
                           funding_order=kwargs.get("funding_order","carried_before_fill"),
-                          receiqt=receiqt)
+                          receipt=receipt)
         totals["settled_hours"]+=1
         totals["funding_event_hours"]+=int(np.any(np.asarray(args[9])>0))
         totals["trade_hours"]+=int(check["turnover"]>1e-5)
@@ -27,7 +27,7 @@ def run(path):
         totals["verified_funding"]+=check["funding"]
         digest.update(struct.pack("<4d",check["cash"],check["gross"],
                                   check["turnover"],check["funding"]))
-        return receiqt
+        return receipt
     engine.settle_hour=independently_checked
     try:
         result=engine.run(path)
@@ -43,7 +43,7 @@ def run(path):
             "ledger_oracle":"independent_each_settled_hour",
             "oracle":{**totals,"sha256":digest.hexdigest()},
             "physical_cells":result["cells"],
-            "decision":"PASS_IQ_INDEPENDENT_LEDGER_ONLY_NOT_ECONOMIC"}
+            "decision":"PASS_IP_INDEPENDENT_LEDGER_ONLY_NOT_ECONOMIC"}
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--path",required=True,choices=PATIC)

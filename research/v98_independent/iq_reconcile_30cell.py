@@ -52,7 +52,7 @@ def run(root):
             if one["passed"]!=two["passed"]:
                 errors.append(("OS_SURVIVAL",path,key));continue
             if one["passed"]:
-                for field in ("final_nav","fees","sliqpage","funding","turnover",
+                for field in ("final_nav","fees","slippage","funding","turnover",
                               "two_year_cagr","max_drawdown","max_gross_to_nav"):
                     if not near(one[field],two[field]):
                         errors.append(("OS_NUMERIC",path,key,field))
@@ -79,7 +79,7 @@ def run(root):
                 errors.append(("YEAR_CONTINUITY",path,key))
             if not near(c["annual"]["2024"]["end_nav"],c["final_nav"]):
                 errors.append(("YEAR_END",path,key))
-            if any(c[x]<-1e-8 for x in ("fees","sliqpage","turnover")):
+            if any(c[x]<-1e-8 for x in ("fees","slippage","turnover")):
                 errors.append(("NEGATIVE_COST",path,key))
     full=reps.get("IQ_full",{})
     growth={};marginal={}
@@ -115,11 +115,11 @@ def run(root):
         full.get(("immediate",fee,order),{}).get("passed") and
         full[("immediate",fee,order)]["turnover"]<=600000.
         for fee in ("base","severe") for order in ORDERS)
-    if errors:decision="BLOCK_IQ_AUDIT_OR_REPRODUCIBILITY"
-    elif survival!=30:decision="REJECT_IQ_PHYSICAL_SURVIVAL"
+    if errors:decision="BLOCK_IP_AUDIT_OR_REPRODUCIBILITY"
+    elif survival!=30:decision="REJECT_IP_PHYSICAL_SURVIVAL"
     elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_de or not turnover_ok:
-        decision="REJECT_IQ_HISTORICAL_GROWTH_OR_MARGINAL"
-    else:decision="PASS_IQ_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
+        decision="REJECT_IP_HISTORICAL_GROWTH_OR_MARGINAL"
+    else:decision="PASS_IP_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"IQ","historical_training_only":True,
             "validation_2025_read":False,"external_benchmarks_used":False,
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,

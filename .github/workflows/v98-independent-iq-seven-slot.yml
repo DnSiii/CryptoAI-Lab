@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m piq install numpy==1.26.4 pandas==2.2.3
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - name: Download exact pinned Clean-4 2022-2024 only, never 2025
         uses: actions/download-artifact@v4
         with:
@@ -37,7 +37,7 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receiqt.json','phase1000_four_asset_source_policy_receiqt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m piq install numpy==1.26.4 pandas==2.2.3
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
@@ -84,7 +84,7 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receiqt.json','phase1000_four_asset_source_policy_receiqt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
@@ -118,9 +118,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: iq30-ubuntu-*
-          path: receiqts
+          path: receipts
       - name: Independent artifact-only physical, cross-OS and economic marginal gate
-        run: python research/v98_independent/iq_reconcile_30cell.py --root receiqts --output iq30_official_economic_summary.json
+        run: python research/v98_independent/iq_reconcile_30cell.py --root receipts --output iq30_official_economic_summary.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -142,7 +142,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m piq install numpy==1.26.4 pandas==2.2.3
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
@@ -155,7 +155,7 @@ jobs:
           from pathlib import Path
           import shutil
           root=Path('official-input');target=Path('research/v98_independent')
-          names=['phase803_official_training_ohlc_receiqt.json','phase1000_four_asset_source_policy_receiqt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)

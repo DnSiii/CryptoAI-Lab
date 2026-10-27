@@ -72,7 +72,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
     governor=HEBufferedGovernor()
     peak=cash;max_de=0.;min_nav=cash
     gross_peak=net_peak=concentration_peak=0.
-    fees=sliqpage=funding=turnover=0.
+    fees=slippage=funding=turnover=0.
     fills=target_updates=0
     years={"2023":{"start_nav":initial,"deltas":[],"returns":[],"days":0,"positive":0,
                    "peak":initial,"de":0.},
@@ -101,7 +101,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                         or not math.isclose(settled["cash"],settled["equity"],rel_tol=0,abs_tol=1e-7)):
                         raise ValueError("IQ_LEDGER")
                     cash=float(settled["cash"]);old=settled["units"].copy()
-                    fees+=settled["fees"];sliqpage+=settled["sliqpage"]
+                    fees+=settled["fees"];slippage+=settled["slippage"]
                     funding+=settled["funding"];turnover+=settled["turnover"]
                     fills+=int(settled["turnover"]>1e-5)
                     gross=float(np.sum(abs(old*c[t])))
@@ -139,7 +139,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
             raw=np.array([core_finance if i==0 else budget[t,i] for i in active],dtype=float)
             raw=raw/raw.sum()
             weights=np.zeros(4)
-            for i,share in ziq(active,raw):
+            for i,share in zip(active,raw):
                 if i>0 and not np.any(signals[t,i]):
                     # Explicit preregistered USD cash reserve; no synthetic asset PnL.
                     continue
@@ -173,7 +173,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
             "max_gross_to_nav":float(gross_peak),
             "max_abs_net_to_nav":float(net_peak),
             "max_single_asset_gross_concentration":float(concentration_peak),
-            "fees":float(fees),"sliqpage":float(sliqpage),
+            "fees":float(fees),"slippage":float(slippage),
             "funding":float(funding),"turnover":float(turnover),
             "annual":annual,
             **metrict(years["2023"]["deltas"]+years["2024"]["deltas"],
@@ -199,8 +199,8 @@ def run(path):
             "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
-            "decision":"PASS_IQ_MECHANICAL_ONLY" if len(cases)==6 and
-            all(x["passed"] for x in cases) else "BLOCK_IQ_PHYSICAL_SURVIVAL"}
+            "decision":"PASS_IP_MECHANICAL_ONLY" if len(cases)==6 and
+            all(x["passed"] for x in cases) else "BLOCK_IP_PHYSICAL_SURVIVAL"}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
