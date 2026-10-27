@@ -46,7 +46,7 @@ def bundle(opening,high,low,close,rate,event,quote,joint):
         np.any(o<=0) or np.any(c<=0) or np.any(l<=0) or
         np.any(l>np.minimum(o,c)) or np.any(h<np.maximum(o,c)) or
         np.any(q<0) or np.any((e!=0)&(e!=1)) or
-        np.any(v[np.isfinite(v)]<=0)):
+        np.any(v[np.isfinite(v)]<0)):
         raise ValueError("IF_INVALID_NATIVE_SOURCE")
     n=len(c);lc=np.log(c)
     funding=np.vstack((np.zeros((1,4)),np.cumsum(r*e,axis=0)))
