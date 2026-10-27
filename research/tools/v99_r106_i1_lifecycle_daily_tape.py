@@ -71,6 +71,22 @@ def audit(root: Path) -> dict:
         raise ValueError("MISSING_DUPLICATED_OR_REORDERED_TRAIN_DAY")
     if len({d.get("file") for d in days}) != DAYS:
         raise ValueError("REUSED_ORIGINAL_SOURCE_FILE")
+    # Exact-contract continuity is only a necessary pre-expiry quote screen.
+    # A changing option every day must NEVER count as a held option lifecycle.
+    entry_mondays = []
+    monday = FIRST + timedelta(days=(7 - FIRST.weekday()) % 7)
+    while monday + timedelta(days=28) < LAST_EXCLUSIVE:
+        entry_mondays.append(monday)
+        monday += timedelta(days=7)
+    if len(entry_mondays) != 90:
+        raise ValueError("PREREG_FIXED_ENTRY_SCHEDULE_CHANGED")
+    eligible_expiries = {}
+    for monday in entry_mondays:
+        for tenor in range(28, 36):
+            expiry = monday + timedelta(days=tenor)
+            if expiry < LAST_EXCLUSIVE:
+                eligible_expiries.setdefault(expiry, []).append(monday)
+    contract_day_masks = {}
     presence = {a: {} for a in ASSETS}
     daily = []
     total = 0
@@ -114,6 +130,13 @@ def audit(root: Path) -> dict:
                 asset = _valid_put(row, day) if arrival - event <= 300_000_000 else None
                 if asset is not None:
                     seen.add(asset)
+                    expiry = datetime.strptime(row["symbol"].split("-")[1].upper(),
+                                               "%d%b%y").date()
+                    for entry in eligible_expiries.get(expiry, ()):
+                        if entry <= day < expiry:
+                            key = (entry.isoformat(), asset, expiry.isoformat(), row["symbol"])
+                            contract_day_masks[key] = (contract_day_masks.get(key, 0)
+                                                       | (1 << (day - entry).days))
         if count != item.get("rows"):
             raise ValueError("ORIGINAL_DAILY_ROW_COUNT_MISMATCH")
         total += count
@@ -130,6 +153,20 @@ def audit(root: Path) -> dict:
         d += timedelta(days=7)
     if len(mondays) != (90 if fixed_tenor else 91):
         raise ValueError("PREREG_MATURITY_SCHEDULE_CHANGED")
+    # Two distinct put strikes, SAME expiry and SAME original contract
+    # continuously observed on every day until expiry (exclusive).
+    # No delivery index or actual exit is inferred from this necessary check.
+    full_contracts = {}
+    for (entry, asset, expiry, symbol), mask in contract_day_masks.items():
+        required_mask = (1 << (date.fromisoformat(expiry) -
+                               date.fromisoformat(entry)).days) - 1
+        if mask == required_mask:
+            key = (entry, asset, expiry)
+            full_contracts[key] = full_contracts.get(key, 0) + 1
+    continuous_pairs = {
+        (entry, asset) for (entry, asset, expiry), n in full_contracts.items()
+        if n >= 2
+    }
     weekly = []
     for monday in mondays:
         # This is a WEAK market-presence screen, not a contract-specific mark.
@@ -146,7 +183,10 @@ def audit(root: Path) -> dict:
                            "required_daily_marks": required,
                            "missing_daily_marks": len(missing),
                            "first_missing_day": missing[0] if missing else None,
-                           "necessary_daily_presence": not missing})
+                           "necessary_daily_presence": not missing,
+                           "same_contract_pair_preexpiry_presence":
+                           (monday.isoformat(), asset) in continuous_pairs
+                           if fixed_tenor else False})
     complete = sum(w["necessary_daily_presence"] for w in weekly)
     return {"schema": "V99_I1_661_DAY_LIFECYCLE_DAILY_PRESENCE_REPORT_V1",
             "source_scope": "FIXED_28_35D" if fixed_tenor else "LEGACY_21_45D",
@@ -157,6 +197,9 @@ def audit(root: Path) -> dict:
             "asset_weeks": 2*len(mondays),
             "required_days_per_asset_week": 36 if fixed_tenor else 22,
             "asset_weeks_with_necessary_daily_presence": complete,
+            "asset_weeks_with_same_contract_pair_preexpiry_presence":
+            sum(w["same_contract_pair_preexpiry_presence"] for w in weekly),
+            "same_contract_pair_still_not_executable_or_settlement_certified": True,
             "certified_complete_option_lifecycles": 0,
             "source_manifest_self_declared_not_vendor_certified": True,
             "native_fees_authenticated": False, "native_margin_authenticated": False,
@@ -174,6 +217,8 @@ def main(root: str, output: str):
     print(json.dumps({"status": report["status"], "days": report["days"],
                       "asset_weeks": report["asset_weeks"],
                       "daily_presence_asset_weeks": report["asset_weeks_with_necessary_daily_presence"],
+                      "same_contract_pair_preexpiry_asset_weeks":
+                      report["asset_weeks_with_same_contract_pair_preexpiry_presence"],
                       "certified_complete_option_lifecycles": 0,
                       "economic_train_executed": False, "promotion_authorized": False},
                      sort_keys=True))
