@@ -28,11 +28,15 @@ def decisions():
     return [first + timedelta(days=7*i) for i in range(94)]
 
 
-def eligible():
+def eligible(fixed_tenor=False):
+    """Keep the legacy 91-week signal-source scope; opt in to 90 I1 trade weeks."""
+    if type(fixed_tenor) is not bool:
+        raise ValueError("INVALID_SOURCE_SCOPE")
     ds = decisions()
     assert len(ds) == 94 and ds[0] >= START and ds[-1] < END
-    yes = [d for d in ds if d + timedelta(days=21) < END]
-    assert len(yes) == 91
+    minimum = 28 if fixed_tenor else 21
+    yes = [d for d in ds if d + timedelta(days=minimum) < END]
+    assert len(yes) == (90 if fixed_tenor else 91)
     return yes
 
 
@@ -138,19 +142,22 @@ def historical_price_grid_ok(meta, decision, bid, ask):
 def evaluate(root):
     root = Path(root)
     manifest = json.loads((root/"manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("schema") != "I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1":
+    schema = manifest.get("schema")
+    if schema not in ("I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1",
+                      "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1"):
         raise ValueError("BAD_ARCHIVE_SCHEMA")
+    fixed_tenor = schema == "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1"
     if manifest.get("venue") != "deribit" or type(manifest.get("fixture")) is not bool:
         raise ValueError("BAD_VENUE_OR_FIXTURE_FLAG")
     days = manifest.get("days")
-    ds = eligible()
+    ds = eligible(fixed_tenor)
     native = None if manifest["fixture"] else native_contracts(root)
-    if not isinstance(days, list) or len(days) != 91:
+    if not isinstance(days, list) or len(days) != len(ds):
         raise ValueError("INCOMPLETE_OR_DUPLICATED_DECISION_DAYS")
     if [x.get("date") for x in days] != [
             (d-timedelta(days=1)).strftime("%Y-%m-%d") for d in ds]:
         raise ValueError("NOT_EXACT_FROZEN_SUNDAY_SCHEDULE")
-    if len({x.get("file") for x in days}) != 91:
+    if len({x.get("file") for x in days}) != len(ds):
         raise ValueError("DUPLICATED_ARCHIVE_FILE")
     fold_edges = [datetime(2021,12,9,tzinfo=UTC),
                   datetime(2022,4,20,4,tzinfo=UTC),
@@ -199,7 +206,8 @@ def evaluate(root):
                 if parsed is None:
                     continue
                 asset, expiry, strike = parsed
-                if not (timedelta(days=21) <= expiry-d <= timedelta(days=45)
+                if not (timedelta(days=(28 if fixed_tenor else 21))
+                        <= expiry-d <= timedelta(days=(35 if fixed_tenor else 45))
                         and expiry < END):
                     continue
                 try:
@@ -263,8 +271,10 @@ def evaluate(root):
         "source_declared_complete_not_independently_vendor_certified":True,
         "fixture":manifest["fixture"],"native_registry_verified":native is not None,
         "train_decisions":94,
-        "maturity_eligible_weeks":91,"right_censored_weeks":3,
-        "required_asset_weeks":182,"two_strike_asset_weeks":pairs,
+        "source_scope": ("FIXED_28_35D" if fixed_tenor else "LEGACY_21_45D"),
+        "maturity_eligible_weeks":len(ds),
+        "right_censored_weeks":94-len(ds),
+        "required_asset_weeks":2*len(ds),"two_strike_asset_weeks":pairs,
         "synchronized_two_strike_asset_weeks":synchronized_pairs,
         "synchronized_max_skew_us":1_000_000,
         "rows":total_rows,"folds":folds,"synchronized_folds":synchronized_folds,
