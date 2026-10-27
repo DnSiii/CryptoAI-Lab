@@ -10,6 +10,13 @@ from phase243_binance_archive_ingest import _parse_month
 from test_hq_gap_aware_spot_source import HQSourceFixtures
 
 class ArchiveGateTests(unittest.TestCase):
+    def test_hq_training_only_firewall_and_quarantined_xrp(self):
+        from hq_gap_aware_spot_source import ASSETS, MONTHS
+        self.assertEqual(ASSETS, ('BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT'))
+        self.assertEqual(MONTHS[0], (2022, 12))
+        self.assertEqual(MONTHS[-1], (2024, 12))
+        self.assertEqual(len(MONTHS), 25)
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.path=Path(self.tmp.name)/'BTCUSDT-1h-2023-01.zip'
