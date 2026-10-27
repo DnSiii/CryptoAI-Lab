@@ -185,6 +185,64 @@ class NativeCoinAccountTests(unittest.TestCase):
             self.assertEqual(w.reserved_coin, Decimal(0))
             self.assertEqual(w.settled, ("p1","p2"))
 
+    def test_independent_oracle_rejects_forged_open_bbo_with_matching_cash(self):
+        # Cash can reconcile while an individual option BBO is impossible.
+        # The production Quote.check rejects these; so must the independent oracle.
+        for scenario in ("severe", "supersevere"):
+            for field, forged_value in (
+                ("short_ask_coin", "-.01"),
+                ("long_bid_coin", "-.01"),
+                ("short_bid_coin", ".10"),  # crossed against short ask=.09
+                ("long_ask_coin", ".03"),  # crossed against long bid=.04
+            ):
+                opening = dict(kind="open", at_ms=OPEN1, name="p1",
+                    qty="1", high="50000", low="45000",
+                    short_bid_coin=".08", short_ask_coin=".09",
+                    long_bid_coin=".04", long_ask_coin=".05",
+                    entry_fees_coin=".001", entry_slippage_coin=".001",
+                    margin_coin="4", maintenance_coin="2",
+                    index_usd="46000", expiry_ms=EXPIRY)
+                opening[field] = forged_value
+                cash = (D("100") + D(opening["short_bid_coin"])
+                        - D(opening["long_ask_coin"]) - D(".002"))
+                observed = {"cash_coin": str(cash), "reserved_coin": "4",
+                    "open_position_ids": ["p1"], "settled_ids": [],
+                    "snapshots": [], "historical_economic_train": False,
+                    "promotion_authorized": False}
+                trace = {"asset": "BTC", "scenario": scenario,
+                         "initial_coin": "100", "events": [opening]}
+                with self.subTest(scenario=scenario, field=field):
+                    with self.assertRaisesRegex(
+                            AssertionError, "REFERENCE_INVALID_OPEN_BBO"):
+                        audit(trace, observed)
+
+    def test_independent_oracle_rejects_forged_mark_bbo_with_matching_cash(self):
+        for scenario in ("severe", "supersevere"):
+            opening = dict(kind="open", at_ms=OPEN1, name="p1",
+                qty="1", high="50000", low="45000",
+                short_bid_coin=".08", short_ask_coin=".09",
+                long_bid_coin=".04", long_ask_coin=".05",
+                entry_fees_coin=".001", entry_slippage_coin=".001",
+                margin_coin="4", maintenance_coin="2",
+                index_usd="46000", expiry_ms=EXPIRY)
+            cash = D("100") + D(".08") - D(".05") - D(".002")
+            observed = {"cash_coin": str(cash), "reserved_coin": "4",
+                "open_position_ids": ["p1"], "settled_ids": [],
+                "snapshots": [], "historical_economic_train": False,
+                "promotion_authorized": False}
+            for field in ("short_ask_coin", "long_bid_coin"):
+                mark = dict(kind="mark", at_ms=OPEN1 + 60_000, name="p1",
+                    short_ask_coin=".09", long_bid_coin=".04",
+                    exit_fees_coin=".001", exit_slippage_coin=".001",
+                    index_usd="46000")
+                mark[field] = "-.01"
+                trace = {"asset": "BTC", "scenario": scenario,
+                         "initial_coin": "100", "events": [opening, mark]}
+                with self.subTest(scenario=scenario, field=field):
+                    with self.assertRaisesRegex(
+                            AssertionError, "REFERENCE_INVALID_MARK_BBO"):
+                        audit(trace, observed)
+
     def test_independent_oracle_rejects_self_consistent_negative_opening_cost(self):
         # A forged negative cost plus a matching inflated observed balance
         # previously passed the independent reference arithmetic.
