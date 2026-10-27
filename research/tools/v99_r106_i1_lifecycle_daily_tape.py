@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 import sys
+from decimal import Decimal, InvalidOperation
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -53,6 +54,15 @@ def _valid_put(row: dict, day: date) -> str | None:
     return parts[0]
 
 
+def _economic_strike(symbol: str) -> Decimal | None:
+    """Numeric strike identity, not a string alias (e.g. 30000 vs 30000.0)."""
+    try:
+        strike = Decimal(symbol.split("-")[2])
+    except (InvalidOperation, ValueError, TypeError, IndexError):
+        return None
+    return strike if strike.is_finite() and strike > 0 else None
+
+
 def audit(root: Path) -> dict:
     root = Path(root)
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
@@ -82,8 +92,10 @@ def audit(root: Path) -> dict:
         raise ValueError("PREREG_FIXED_ENTRY_SCHEDULE_CHANGED")
     eligible_expiries = {}
     for monday in entry_mondays:
-        for tenor in range(28, 36):
-            expiry = monday + timedelta(days=tenor)
+        # Deribit options expire 08:00 UTC: Monday+35 calendar days is
+            # 35d8h, OUTSIDE the engine's <=35d executable tenor.
+            for tenor in range(28, 35):
+                expiry = monday + timedelta(days=tenor)
             if expiry < LAST_EXCLUSIVE:
                 eligible_expiries.setdefault(expiry, []).append(monday)
     # Sunday pre-decision quotes are the ONLY causal source for Monday 00:00.
@@ -148,7 +160,7 @@ def audit(root: Path) -> dict:
                     continue
                 contract_asset = parts[0]
                 entry = sunday_to_entry.get(day)
-                if entry is not None and 28 <= (expiry - entry).days <= 35 and expiry < LAST_EXCLUSIVE:
+                if entry is not None and 28 <= (expiry - entry).days <= 34 and expiry < LAST_EXCLUSIVE:
                     decision = int(datetime(entry.year, entry.month, entry.day,
                                             tzinfo=timezone.utc).timestamp() * 1_000_000)
                     key = (entry.isoformat(), contract_asset, expiry.isoformat(), row["symbol"])
@@ -204,15 +216,19 @@ def audit(root: Path) -> dict:
                 continue
             for b in symbols[i + 1:]:
                 qb = latest_entry_quote.get((entry, asset, expiry, b))
-                if (qb is not None and abs(qa[0] - qb[0]) <= 1_000_000
+                if (qb is not None and _economic_strike(a) is not None
+                        and _economic_strike(b) is not None
+                        and _economic_strike(a) != _economic_strike(b)
+                        and abs(qa[0] - qb[0]) <= 1_000_000
                         and abs(qa[1] - qb[1]) <= 1_000_000):
                     causal_pairs.add((entry, asset))
                     break
             if (entry, asset) in causal_pairs:
                 break
     continuous_pairs = {
-        (entry, asset) for (entry, asset, expiry), n in full_contracts.items()
-        if n >= 2
+        (entry, asset) for (entry, asset, expiry), symbols in full_contract_symbols.items()
+        if len({_economic_strike(s) for s in symbols
+                if _economic_strike(s) is not None}) >= 2
     }
     weekly = []
     for monday in mondays:
