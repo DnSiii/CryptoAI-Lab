@@ -271,10 +271,30 @@ def mark_to_exit(w: Wallet, name: str, short: Quote, long: Quote,
     return out
 
 
-def account_nav(w: Wallet, at_ms: int) -> dict:
+def account_nav(w: Wallet, at_ms: int, *, flat_index_usd=None) -> dict:
+    """Native coin NAV; flat USD conversion requires explicit as-of source index.
+
+    An index supplied by a caller is NOT authenticated historical provenance.
+    Open-position marks retain their original exact-source-index binding.
+    """
     w.check()
     if at_ms != w.last_ms:
         raise ValueError("UNBOUND_MARK_TIME_OR_INDEX")
+    if not w.positions:
+        if w.marks or D(w.reserved_coin) != 0:
+            raise ValueError("INVALID_FLAT_WALLET_STATE")
+        if flat_index_usd is None:
+            raise ValueError("FLAT_NAV_REQUIRES_EXPLICIT_ASOF_INDEX")
+        index_usd = D(flat_index_usd)
+        if index_usd <= 0:
+            raise ValueError("INVALID_FLAT_NAV_SOURCE_INDEX")
+        nav = D(w.cash_coin)
+        return {"nav_coin": str(nav), "nav_usd_equivalent_at_source_index":
+                str(nav*index_usd), "reserved_coin_not_nav": str(w.reserved_coin),
+                "modeled_only": True, "historical_economic_train": False,
+                "promotion_authorized": False, "orders_enabled": False}
+    if flat_index_usd is not None:
+        raise ValueError("FLAT_INDEX_CANNOT_OVERRIDE_OPEN_POSITION_MARKS")
     if len(w.marks) != len(w.positions) or any(
             t != at_ms for _, _, t, _ in w.marks):
         raise ValueError("MISSING_OR_STALE_OPEN_POSITION_MARKS")
