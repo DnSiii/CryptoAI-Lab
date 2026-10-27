@@ -163,7 +163,10 @@ jobs:
           def restore(snap):
               for idx,(raw,old) in snap.items():
                   (root/old['file']).write_bytes(raw)
-                  manifest['days'][idx]=old
+                  # Preserve object identity: write_sunday() holds a reference
+                  # to this same manifest entry from the positive control.
+                  manifest['days'][idx].clear()
+                  manifest['days'][idx].update(old)
               mp.write_text(json.dumps(manifest))
           def rewrite_day(idx, transform):
               entry=manifest['days'][idx]
