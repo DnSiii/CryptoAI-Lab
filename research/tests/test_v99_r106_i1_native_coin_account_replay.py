@@ -666,5 +666,68 @@ class AtomicExpiryBatchTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "INDEPENDENT_COIN_JOURNAL_MISMATCH"):
             audit(trace, observed)
 
+
+
+class IndependentExpiryStateFalsificationTests(unittest.TestCase):
+    """The reference must reject journals that a native exchange cannot execute."""
+
+    def test_expired_quote_mark_never_substitutes_for_original_delivery(self):
+        for scenario in ("severe", "supersevere"):
+            trace, observed, _ = exercise(scenario)
+            batch_index = next(i for i, event in enumerate(trace["events"])
+                               if event["kind"] == "settle_batch")
+            trace["events"].insert(batch_index, {
+                "kind": "mark", "name": "p1", "at_ms": EXPIRY,
+                "short_ask_coin": ".09", "long_bid_coin": ".04",
+                "exit_fees_coin": ".001", "exit_slippage_coin": ".001",
+                "index_usd": "46000"})
+            with self.subTest(scenario=scenario):
+                with self.assertRaisesRegex(
+                        AssertionError, "REFERENCE_MARK_AT_OR_AFTER_EXPIRY"):
+                    audit(trace, observed)
+
+    def test_nav_cannot_hide_due_unsettled_option_liability(self):
+        for scenario in ("severe", "supersevere"):
+            trace, observed, _ = exercise(scenario)
+            batch_index = next(i for i, event in enumerate(trace["events"])
+                               if event["kind"] == "settle_batch")
+            trace["events"].insert(batch_index, {
+                "kind": "nav", "at_ms": EXPIRY})
+            with self.subTest(scenario=scenario):
+                with self.assertRaisesRegex(
+                        AssertionError, "REFERENCE_UNSETTLED_EXPIRED_POSITION"):
+                    audit(trace, observed)
+
+    def test_later_expiry_cannot_settle_while_earlier_expiry_is_unpaid(self):
+        for scenario in ("severe", "supersevere"):
+            trace, observed, _ = exercise(scenario)
+            expiry2 = ms("2022-02-11T08:00:00+00:00")
+            for event in trace["events"]:
+                if event["kind"] == "open" and event["name"] == "p2":
+                    event["expiry_ms"] = expiry2
+            trace["events"][-1] = {
+                "kind": "settle", "name": "p2", "at_ms": expiry2,
+                "delivery_index_usd": "46000", "delivery_fee_coin": ".0001"}
+            # This is deliberately a self-consistent forged wallet: the old
+            # oracle reconciled it while the earlier p1 expiry went unpaid.
+            observed["cash_coin"] = str(
+                D("100.066") - D("2000") / D("46000") - D(".0001"))
+            observed["reserved_coin"] = "4"
+            observed["open_position_ids"] = ["p1"]
+            observed["settled_ids"] = ["p2"]
+            with self.subTest(scenario=scenario):
+                with self.assertRaisesRegex(
+                        AssertionError, "REFERENCE_EARLIER_EXPIRY_UNSETTLED"):
+                    audit(trace, observed)
+
+    def test_positive_atomic_and_mixed_expiry_replays_remain_valid(self):
+        for scenario in ("severe", "supersevere"):
+            trace, observed, _ = exercise(scenario)
+            self.assertEqual(
+                audit(trace, observed)["independent_coin_account_replay"], "MATCH")
+            mixed, observed_mixed, _, _ = mixed_batch_exercise(scenario)
+            self.assertEqual(
+                audit(mixed, observed_mixed)["independent_coin_account_replay"], "MATCH")
+
 if __name__ == "__main__":
     unittest.main()
