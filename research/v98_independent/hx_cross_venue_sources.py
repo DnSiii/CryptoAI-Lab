@@ -19,9 +19,9 @@ def bundle(opening,high,low,close,rate,event,quote,spot_buy,spot_quote,spot_vali
         not np.isfinite(sb[valid]).all() or not np.isfinite(sq[valid]).all() or
         np.any(o<=0) or np.any(c<=0) or np.any(l<=0) or
         np.any(l>np.minimum(o,c)) or np.any(h<np.maximum(o,c)) or
-        np.any(q<=0) or np.any(pq<=0) or
+        np.any(q<0) or np.any(pq<0) or
         np.any((e!=0)&(e!=1)) or
-        np.any(pb<0) or np.any(pb>pq+1e-5) or
+        np.any(pb<0) or np.any(pb>pq+1e-5) or np.any((pq==0)&(pb!=0)) or
         np.any(sq[valid]<=0) or np.any(sb[valid]<0) or
         np.any(sb[valid]>sq[valid]+1e-5)):
         raise ValueError("HX_INVALID_NATIVE_OR_CROSS_VENUE_SOURCE")
