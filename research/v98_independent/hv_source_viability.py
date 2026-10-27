@@ -32,7 +32,7 @@ def run():
             if i>0: cash_counts[year][name]+=int(gross==0. and budgets[t,i]>1e-12)
     viable=all(min(counts[y].values())>=8 for y in ("2023","2024"))
     report={"decision":"PASS_HV_SOURCE_ONLY_NOT_ECONOMIC" if viable else "REJECT_HV_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
-            "training_years":[2023,2024],"assets":["BTCUSDT","ETHVSDT","BNBUSDT","SOLUSDT"],
+            "training_years":[2023,2024],"assets":["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT"],
             "warmup_hours":WARMUP,"financed_epoch_counts":counts,"funded_cash_epoch_counts":cash_counts,
             "holdout_2025_read":False,"historical_system_pnl_computed":False,
             "external_benchmarks_used":False,"trading_authorized":False}
