@@ -68,6 +68,8 @@ def load_verified(path: Path, receipt_path: Path) -> dict:
                 raise ValueError("HQ_FEATURE_MASK_SCHEMA")
             obs = row["observed"] == "1"
             full = row["full_hour"] == "1"
+            if t == MISSING and obs:
+                raise ValueError("HQ_FEATURE_MISSING_BAR_FILLED")
             if not obs:
                 if t != MISSING or full or any(row[k] for k in FIELDS[4:]):
                     raise ValueError("HQ_FEATURE_UNEXPECTED_MISSINGNESS")
