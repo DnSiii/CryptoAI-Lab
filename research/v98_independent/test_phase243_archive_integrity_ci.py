@@ -29,6 +29,13 @@ class ArchiveGateTests(unittest.TestCase):
         from hq_independent_receipt_reconcile import PINNED_MANIFEST
         self.assertEqual(PINNED_100_SHA_MANIFEST, PINNED_MANIFEST)
 
+    def test_hq_partial_close_pins_match_independent_forensic(self):
+        from hq_gap_aware_spot_source import PINNED_PARTIAL_CLOSE, PARTIAL_OPEN, GAP
+        from hq_independent_receipt_reconcile import PINNED_PARTIAL_CLOSE as AUDIT_PIN
+        self.assertEqual(PINNED_PARTIAL_CLOSE, AUDIT_PIN)
+        self.assertEqual(PARTIAL_OPEN + 3600000, GAP)
+        self.assertEqual(len(PINNED_PARTIAL_CLOSE), 4)
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.path=Path(self.tmp.name)/'BTCUSDT-1h-2023-01.zip'
