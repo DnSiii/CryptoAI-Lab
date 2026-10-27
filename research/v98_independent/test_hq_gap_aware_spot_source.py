@@ -5,7 +5,9 @@ import hashlib
 import io
 import unittest
 import zipfile
-from hq_gap_aware_spot_source import ASSETS, GAP, month_hours, parse_month, window_valid, sha
+from unittest.mock import patch
+import hq_gap_aware_spot_source as source
+from hq_gap_aware_spot_source import ASSETS, GAP, MONTHS, month_hours, parse_month, window_valid, sha
 
 
 def fixture(asset, year, month, skip=(), duplicate=False, invalid=False):
@@ -61,6 +63,28 @@ class HQSourceFixtures(unittest.TestCase):
         before = [window_valid(observed, i, 168) for i in range(700)]
         observed[750] = False
         self.assertEqual(before, [window_valid(observed, i, 168) for i in range(700)])
+
+    def test_all_100_archive_end_to_end_mask_and_checksums(self):
+        cache = {}
+        checksums = {}
+        for asset in ASSETS:
+            for y, m in MONTHS:
+                key = (asset, y, m)
+                raw = fixture(asset, y, m, skip=(GAP,) if (y, m) == (2023, 3) else ())
+                cache[key] = raw
+                checksums[key] = sha(raw) + "  " + f"{asset}-1h-{y}-{m:02d}.zip"
+        march = {asset: sha(cache[(asset, 2023, 3)]) for asset in ASSETS}
+        with patch.dict(source.PINNED_MARCH, march):
+            a, receipts = source.canonical_from_verified(cache, checksums)
+            b, receipts2 = source.canonical_from_verified(cache, checksums)
+            self.assertEqual((a, receipts), (b, receipts2))
+            self.assertEqual(len(receipts), 100)
+            self.assertEqual(sum(r["observed"] for r in receipts), 73148)
+            self.assertEqual(sum(r["masked"] for r in receipts), 4)
+            self.assertEqual(a.count(b",0,,,,,"), 4)
+            checksums[("BTCUSDT", 2022, 12)] = "0" * 64
+            with self.assertRaisesRegex(ValueError, "HQ_PROVIDER_SHA_MISMATCH"):
+                source.canonical_from_verified(cache, checksums)
 
     def test_zip_bytes_deterministic_and_sha(self):
         raw = fixture("BTCUSDT", 2022, 12)
