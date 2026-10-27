@@ -54,11 +54,11 @@ jobs:
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
-      - name: Retrieve pinned HQ masked spot 2022-2024 only
+      - name: Retrieve HX authenticated 2022-2024 spot taker-flow only
         uses: actions/download-artifact@v4
         with:
           name: hx-spot-flow-2022-2024
-                    github-token: ${{ github.token }}
+          github-token: ${{ github.token }}
           path: research/v98_independent/hx_spot_flow_training
       - name: Retrieve checksum-pinned native futures taker buyer-flow 2022-2024
         uses: actions/download-artifact@v4
@@ -126,11 +126,11 @@ jobs:
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
-      - name: Retrieve pinned HQ masked spot 2022-2024 only
+      - name: Retrieve HX authenticated 2022-2024 spot taker-flow only
         uses: actions/download-artifact@v4
         with:
           name: hx-spot-flow-2022-2024
-                    github-token: ${{ github.token }}
+          github-token: ${{ github.token }}
           path: research/v98_independent/hx_spot_flow_training
       - name: Retrieve checksum-pinned native futures taker buyer-flow 2022-2024
         uses: actions/download-artifact@v4
@@ -222,11 +222,11 @@ jobs:
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
-      - name: Retrieve pinned HQ masked spot 2022-2024 only
+      - name: Retrieve HX authenticated 2022-2024 spot taker-flow only
         uses: actions/download-artifact@v4
         with:
           name: hx-spot-flow-2022-2024
-                    github-token: ${{ github.token }}
+          github-token: ${{ github.token }}
           path: research/v98_independent/hx_spot_flow_training
       - name: Retrieve checksum-pinned native futures taker buyer-flow 2022-2024
         uses: actions/download-artifact@v4
