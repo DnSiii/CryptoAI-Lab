@@ -81,6 +81,69 @@ def exercise(scenario="severe"):
 
 
 class NativeCoinAccountTests(unittest.TestCase):
+    def test_cash_only_nav_requires_explicit_source_index_and_independent_replay(self):
+        for scenario in ("severe", "supersevere"):
+            w = start_wallet("BTC", scenario, "100")
+            with self.assertRaisesRegex(ValueError, "FLAT_NAV_REQUIRES_EXPLICIT_ASOF_INDEX"):
+                account_nav(w, w.last_ms)
+            for forged in ("0", "-1", "NaN", True):
+                with self.subTest(scenario=scenario, index=forged):
+                    with self.assertRaises(ValueError):
+                        account_nav(w, w.last_ms, flat_index_usd=forged)
+            with self.assertRaisesRegex(ValueError, "UNBOUND_MARK_TIME_OR_INDEX"):
+                account_nav(w, w.last_ms+1, flat_index_usd="46000")
+            nav = account_nav(w, w.last_ms, flat_index_usd="46000")
+            self.assertEqual(nav["nav_coin"], "100")
+            self.assertEqual(nav["nav_usd_equivalent_at_source_index"], "4600000")
+            self.assertFalse(nav["historical_economic_train"])
+            trace = {"asset": "BTC", "scenario": scenario, "initial_coin": "100",
+                     "events": [{"kind": "nav", "at_ms": w.last_ms,
+                                 "flat_index_usd": "46000"}]}
+            observed = {"cash_coin": "100", "reserved_coin": "0",
+                        "open_position_ids": [], "settled_ids": [],
+                        "snapshots": [nav], "historical_economic_train": False,
+                        "promotion_authorized": False}
+            self.assertEqual(audit(trace, observed)["independent_coin_account_replay"],
+                             "MATCH")
+            forged = dict(observed, snapshots=[dict(nav,
+                nav_usd_equivalent_at_source_index="9999999")])
+            with self.assertRaisesRegex(AssertionError, "INDEPENDENT_COIN_NAV_MISMATCH"):
+                audit(trace, forged)
+            with self.assertRaisesRegex(AssertionError, "REFERENCE_FLAT_NAV_MISSING_SOURCE_INDEX"):
+                audit(dict(trace, events=[{"kind": "nav", "at_ms": w.last_ms}]),
+                      observed)
+            with self.assertRaises(AssertionError):
+                audit(dict(trace, events=[{"kind": "nav", "at_ms": w.last_ms,
+                                          "flat_index_usd": "0"}]), observed)
+
+    def test_post_expiry_cash_nav_and_no_open_mark_index_override(self):
+        for scenario in ("severe", "supersevere"):
+            trace, observed, settled = exercise(scenario)
+            nav = account_nav(settled, EXPIRY, flat_index_usd="46000")
+            self.assertEqual(nav["nav_coin"], str(settled.cash_coin))
+            trace["events"].append({"kind": "nav", "at_ms": EXPIRY,
+                                    "flat_index_usd": "46000"})
+            observed["snapshots"].append(nav)
+            self.assertEqual(audit(trace, observed)["independent_coin_account_replay"],
+                             "MATCH")
+            before = start_wallet("BTC", scenario, "100")
+            s, l = quote("50000", ".08", ".09", OPEN1), quote("45000", ".04", ".05", OPEN1)
+            opened = open_vertical(before, "p1", s, l, OPEN1,
+                                   "1", ".001", ".001", "4", "2")
+            with self.assertRaisesRegex(ValueError, "FLAT_INDEX_CANNOT_OVERRIDE_OPEN_POSITION_MARKS"):
+                account_nav(opened, OPEN1, flat_index_usd="46000")
+            bad_trace = {"asset": "BTC", "scenario": scenario, "initial_coin": "100",
+                         "events": [{"kind": "open", "at_ms": OPEN1, "name": "p1",
+                           "qty": "1", "high": "50000", "low": "45000",
+                           "short_bid_coin": ".08", "long_ask_coin": ".05",
+                           "entry_fees_coin": ".001", "entry_slippage_coin": ".001",
+                           "margin_coin": "4", "maintenance_coin": "2",
+                           "index_usd": "46000", "short_ask_coin": ".09",
+                           "long_bid_coin": ".04", "expiry_ms": EXPIRY},
+                           {"kind": "nav", "at_ms": OPEN1, "flat_index_usd": "46000"}]}
+            with self.assertRaisesRegex(AssertionError, "REFERENCE_FLAT_INDEX_OVERRIDE_OPEN_MARKS"):
+                audit(bad_trace, observed)
+
     def test_forged_native_contract_identity_never_changes_delivery_payoff(self):
         # Previously all of these detached source-symbol identities from the
         # numeric payoff terms, while preserving positive margin and cash.
