@@ -17,7 +17,7 @@ def fake_reports():
             digest = hashlib.sha256(name.encode()).hexdigest()
             next_month = (year + 1, 1) if month == 12 else (year, month + 1)
             from datetime import datetime, timezone
-            hours = int((datetime(*next_month, tzinfo=timezone.utc) -
+            hours = int((datetime(next_month[0], next_month[1], 1, tzinfo=timezone.utc) -
                          datetime(year, month, 1, tzinfo=timezone.utc)).total_seconds() // 3600)
             missing = ["2023-03-24T13:00:00+00:00"] if mm == "2023-03" else []
             old.append({"archive": name, "provider_sha256": digest,
