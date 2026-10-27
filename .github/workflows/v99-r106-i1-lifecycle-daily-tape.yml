@@ -153,8 +153,8 @@ jobs:
           # A >1s inter-leg skew must revoke causal entry, without changing
           # the weak exact-contract daily continuity count.
           skewed=list(map(list,sunday_rows))
-          skewed[-1][2]=str(decision-2_500_000)
-          skewed[-1][3]=str(decision-2_500_000)
+          skewed[-2][2]=str(decision-4_000_000)
+          skewed[-2][3]=str(decision-4_000_000)
           write_sunday(skewed)
           skew=main(str(root),str(root/'skew_report.json'))
           skew_oracle=oracle(str(root),str(root/'skew_report.json'))
