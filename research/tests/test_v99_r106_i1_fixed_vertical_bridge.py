@@ -95,7 +95,8 @@ class FixedI1VerticalBridge(unittest.TestCase):
             before, signal(), book(), name="unsafe",
             initial_margin_coin="100", maintenance_margin_coin="100",
             fixture=True)
-        self.assertEqual(before, after)
+        self.assertEqual(after.last_ms, OPEN)
+        self.assertEqual(replace(after, last_ms=before.last_ms), before)
         self.assertEqual(decision["decision"], "CASH_RISK_VETO")
         self.assertEqual(audit_fixture(signal(), book(), decision, before,
                                        after, initial_margin_coin="100",
@@ -150,7 +151,8 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 before, signal(), book(), name="thin",
                 initial_margin_coin=maintenance,
                 maintenance_margin_coin=maintenance, fixture=True)
-            self.assertEqual(before, after)
+            self.assertEqual(after.last_ms, OPEN)
+        self.assertEqual(replace(after, last_ms=before.last_ms), before)
             self.assertEqual(decision["reason"],
                              "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO")
             proof = audit_fixture(signal(), book(), decision, before, after,
@@ -298,6 +300,28 @@ class FixedI1VerticalBridge(unittest.TestCase):
                      "promotion_authorized": False}
         with self.assertRaisesRegex(AssertionError, "REFERENCE_DECISION_TIME_REVERSAL"):
             audit_fixture(signal("NO_PREMIUM"), [], fake_cash, before, before)
+
+
+    def test_cash_no_trade_advances_clock_and_blocks_backdated_replay(self):
+        later = dict(signal("NO_PREMIUM"))
+        later["decision_ms"] = OPEN + 7 * 86_400_000
+        for scenario in ("severe", "supersevere"):
+            before = start_wallet("BTC", scenario, "100")
+            after, decision = fixture_open_fixed_vertical(
+                before, later, [], name="none",
+                initial_margin_coin="4", maintenance_margin_coin="2",
+                fixture=True)
+            self.assertEqual(after.last_ms, later["decision_ms"])
+            self.assertEqual(replace(after, last_ms=before.last_ms), before)
+            self.assertEqual(audit_fixture(later, [], decision, before, after)[
+                "independent_fixture"], "CASH_MATCH")
+            with self.assertRaisesRegex(ValueError, "DECISION_TIME_REVERSAL"):
+                fixture_open_fixed_vertical(
+                    after, signal("NO_PREMIUM"), [], name="backdated",
+                    initial_margin_coin="4", maintenance_margin_coin="2",
+                    fixture=True)
+            with self.assertRaisesRegex(AssertionError, "REFERENCE_CASH_CLOCK_NOT_ADVANCED"):
+                audit_fixture(later, [], decision, before, before)
 
     def test_no_promotion_or_roi_fields(self):
         before = start_wallet("BTC", "severe", "100")

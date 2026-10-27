@@ -6,6 +6,7 @@ Prereg: research/V99_R106_I1_FIXED_VERTICAL_INTEGRATION_PREREG_20261026.md
 """
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -132,7 +133,7 @@ def fixture_open_fixed_vertical(wallet: Wallet, signal_row: dict,
             raise ValueError("PREDECISION_ALL_POSITION_MARKS_REQUIRED") from exc
     selected = select_fixed_vertical(signal_row, last_asof_quotes)
     if selected is None:
-        return wallet, {"decision": CASH, "fixture": True,
+        return replace(wallet, last_ms=at_ms), {"decision": CASH, "fixture": True,
                         "economic_train_executed": False,
                         "promotion_authorized": False}
     short, long = selected
@@ -144,7 +145,7 @@ def fixture_open_fixed_vertical(wallet: Wallet, signal_row: dict,
     except ValueError as exc:
         if str(exc) not in RISK_VETO:
             raise
-        return wallet, {"decision": "CASH_RISK_VETO", "reason": str(exc),
+        return replace(wallet, last_ms=at_ms), {"decision": "CASH_RISK_VETO", "reason": str(exc),
                         "fixture": True, "economic_train_executed": False,
                         "promotion_authorized": False}
     return result, {"decision": "MODELED_FIXTURE_OPEN_ONLY",

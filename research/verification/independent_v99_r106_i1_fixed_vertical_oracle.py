@@ -152,6 +152,19 @@ def _independent_decision_clock(before, decision_ms):
     assert _d(before.cash_coin) - liabilities >= maintenance, "REFERENCE_OPEN_WALLET_MAINTENANCE_BREACH"
 
 
+
+def _independent_cash_transition(before, after, decision_ms):
+    """A valid no-trade is a causal clock event, not an unchanged old wallet."""
+    assert type(after.last_ms) is int and after.last_ms == decision_ms, "REFERENCE_CASH_CLOCK_NOT_ADVANCED"
+    assert before.last_ms <= after.last_ms, "REFERENCE_CASH_CLOCK_REVERSED"
+    assert (after.asset == before.asset and after.scenario == before.scenario
+            and _d(after.initial_coin) == _d(before.initial_coin)
+            and _d(after.cash_coin) == _d(before.cash_coin)
+            and _d(after.reserved_coin) == _d(before.reserved_coin)
+            and after.positions == before.positions
+            and after.marks == before.marks
+            and after.settled == before.settled), "REFERENCE_CASH_STATE_MUTATION"
+
 def audit_fixture(signal, quotes, decision, before, after, *,
                   initial_margin_coin=None, maintenance_margin_coin=None):
     assert decision["fixture"] is True
@@ -168,12 +181,12 @@ def audit_fixture(signal, quotes, decision, before, after, *,
     selected = candidates[0][1:] if candidates else None
     label = decision["decision"]
     if label == "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL":
-        assert before == after
+        _independent_cash_transition(before, after, signal["decision_ms"])
         assert signal["signal"] != "POSITIVE_EX_ANTE_PREMIUM" or not selected, "REFERENCE_FORGED_CASH_WITH_VALID_PAIR"
         return {"independent_fixture": "CASH_MATCH",
                 "historical_economic_train": False, "promotion_authorized": False}
     if label == "CASH_RISK_VETO":
-        assert before == after
+        _independent_cash_transition(before, after, signal["decision_ms"])
         assert signal["signal"] == "POSITIVE_EX_ANTE_PREMIUM" and selected, "REFERENCE_FORGED_RISK_CASH"
         assert initial_margin_coin is not None and maintenance_margin_coin is not None, "RISK_TERMS_REQUIRED_FOR_INDEPENDENT_ORACLE"
         verdict = _independent_risk_reason(
