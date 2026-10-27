@@ -58,6 +58,20 @@ class FakeOpener:
                 grant["symbols"] = ["BTC-30DEC22-15000-P", "ETH-30DEC22-1000-P"]
             if self.scope_mode == "group_options":
                 grant["symbols"] = ["OPTIONS"]
+            if self.scope_mode in ("perpetuals_empty", "perpetuals_options_group"):
+                grant["dataPlan"] = "perpetuals"
+                grant["symbols"] = ([] if self.scope_mode == "perpetuals_empty"
+                                    else ["OPTIONS"])
+            if self.scope_mode == "options_plan":
+                grant["dataPlan"] = "options"
+            if self.scope_mode == "derivatives_plan":
+                grant["dataPlan"] = "derivatives"
+            if self.scope_mode == "all_exchanges_plan":
+                grant["dataPlan"] = "all-exchanges"
+            if self.scope_mode == "unknown_plan":
+                grant["dataPlan"] = "mystery"
+            if self.scope_mode == "missing_plan":
+                grant.pop("dataPlan")
             if self.scope_mode == "not_array":
                 return FakeResponse(200, json.dumps(grant).encode())
             return FakeResponse(200, json.dumps([grant]).encode())
@@ -128,6 +142,30 @@ class ScopeProbeTests(unittest.TestCase):
         self.assertTrue(result["scope_claims_train_coverage"])
         self.assertEqual(result["status"], "ACCESS_PROBE_ONLY_NOT_ARCHIVE_CERTIFIED")
         self.assertFalse(result["complete_2021_2023_archive_verified"])
+
+    def test_perpetuals_scope_never_counts_as_option_entitlement(self):
+        for mode in ("perpetuals_empty", "perpetuals_options_group",
+                     "unknown_plan", "missing_plan"):
+            with self.subTest(mode=mode):
+                opener = FakeOpener(scope_mode=mode)
+                result = check(key="secret-test-key", opener=opener)
+                self.assertFalse(result["scope_claims_train_coverage"])
+                self.assertEqual(
+                    result["status"],
+                    "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
+                self.assertEqual(len(opener.calls), 1)
+                self.assertFalse(result["promotion_authorized"])
+
+    def test_explicit_options_inclusive_plans_are_only_bounded_access(self):
+        for mode in ("options_plan", "derivatives_plan", "all_exchanges_plan"):
+            with self.subTest(mode=mode):
+                result = check(key="secret-test-key",
+                               opener=FakeOpener(scope_mode=mode))
+                self.assertTrue(result["scope_claims_train_coverage"])
+                self.assertEqual(
+                    result["status"], "ACCESS_PROBE_ONLY_NOT_ARCHIVE_CERTIFIED")
+                self.assertFalse(result["complete_2021_2023_archive_verified"])
+                self.assertFalse(result["economic_train_executed"])
 
     def test_denied_2021_blocks_even_when_2023_accessible(self):
         result = check(key="secret-test-key", opener=FakeOpener(denied_date=DATES[0]))
