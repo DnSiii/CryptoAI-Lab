@@ -74,7 +74,10 @@ class HQSourceFixtures(unittest.TestCase):
                 cache[key] = raw
                 checksums[key] = sha(raw) + "  " + f"{asset}-1h-{y}-{m:02d}.zip"
         march = {asset: sha(cache[(asset, 2023, 3)]) for asset in ASSETS}
-        with patch.dict(source.PINNED_MARCH, march):
+        manifest = "".join(f"{asset}|{y}-{m:02d}|{sha(cache[(asset, y, m)])}\n"
+                           for asset in ASSETS for y, m in MONTHS)
+        with patch.dict(source.PINNED_MARCH, march), patch.object(
+                source, "PINNED_100_SHA_MANIFEST", sha(manifest.encode())):
             a, receipts = source.canonical_from_verified(cache, checksums)
             b, receipts2 = source.canonical_from_verified(cache, checksums)
             self.assertEqual((a, receipts), (b, receipts2))
@@ -82,6 +85,9 @@ class HQSourceFixtures(unittest.TestCase):
             self.assertEqual(sum(r["observed"] for r in receipts), 73148)
             self.assertEqual(sum(r["masked"] for r in receipts), 4)
             self.assertEqual(a.count(b",0,,,,,"), 4)
+            with patch.object(source, "PINNED_100_SHA_MANIFEST", "0" * 64):
+                with self.assertRaisesRegex(ValueError, "HQ_MANIFEST_PIN_MISMATCH"):
+                    source.canonical_from_verified(cache, checksums)
             checksums[("BTCUSDT", 2022, 12)] = "0" * 64
             with self.assertRaisesRegex(ValueError, "HQ_PROVIDER_SHA_MISMATCH"):
                 source.canonical_from_verified(cache, checksums)
