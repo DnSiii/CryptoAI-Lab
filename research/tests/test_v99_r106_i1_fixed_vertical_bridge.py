@@ -152,7 +152,7 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 initial_margin_coin=maintenance,
                 maintenance_margin_coin=maintenance, fixture=True)
             self.assertEqual(after.last_ms, OPEN)
-        self.assertEqual(replace(after, last_ms=before.last_ms), before)
+            self.assertEqual(replace(after, last_ms=before.last_ms), before)
             self.assertEqual(decision["reason"],
                              "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO")
             proof = audit_fixture(signal(), book(), decision, before, after,
