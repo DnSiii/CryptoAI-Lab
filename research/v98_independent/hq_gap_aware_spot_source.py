@@ -54,7 +54,7 @@ def parse_month(raw: bytes, asset: str, y: int, m: int) -> tuple[list[tuple[str,
     seen: dict[int, tuple[str, ...]] = {}
     prev = -1
     for row in rows:
-        if len(row) < 11:
+        if len(row) != 12:
             raise ValueError("HQ_SPOT_SCHEMA " + filename)
         t = int(row[0])
         if t not in expected_set or t <= prev:
@@ -62,11 +62,28 @@ def parse_month(raw: bytes, asset: str, y: int, m: int) -> tuple[list[tuple[str,
         prev = t
         if t in seen:
             raise ValueError("HQ_SPOT_DUPLICATE " + filename)
-        o, h, l, c, q = (float(row[i]) for i in (1, 2, 3, 4, 7))
-        if (not all(math.isfinite(x) for x in (o, h, l, c, q)) or
-                min(o, h, l, c) <= 0 or q < 0 or
-                l > min(o, c) or h < max(o, c)):
+        if int(row[6]) != t + 3599999:
+            raise ValueError("HQ_SPOT_CLOSE_TIME " + filename)
+        o, h, l, c, v, q, tb, tq = (float(row[i]) for i in (1, 2, 3, 4, 5, 7, 9, 10))
+        trades = float(row[8])
+        reserved = float(row[11])
+        values = (o, h, l, c, v, q, tb, tq, trades, reserved)
+        if (not all(math.isfinite(x) for x in values) or
+                min(o, h, l, c) <= 0 or min(v, q, tb, tq, trades) < 0 or
+                trades != int(trades) or reserved != 0 or
+                l > min(o, c) or h < max(o, c) or h < l):
             raise ValueError("HQ_SPOT_GEOMETRY " + filename)
+        tol = 1e-6 * max(1.0, q)
+        taker_tol = 1e-6 * max(1.0, tq)
+        sell_v, sell_q = v - tb, q - tq
+        sell_tol = 1e-6 * max(1.0, abs(sell_q))
+        if (q < v*l-tol or q > v*h+tol or
+                tq < tb*l-taker_tol or tq > tb*h+taker_tol or
+                tb > v + 1e-6*max(1.0, v) or tq > q + tol or
+                sell_v < -1e-6*max(1.0, v) or sell_q < -tol or
+                sell_q < sell_v*l-sell_tol or sell_q > sell_v*h+sell_tol or
+                ((v == 0) != (q == 0)) or ((tb == 0) != (tq == 0))):
+            raise ValueError("HQ_SPOT_VOLUME_CONSERVATION " + filename)
         seen[t] = (asset, str(t), "1", row[1], row[2], row[3], row[4], row[7])
     missing = sorted(expected_set - set(seen))
     if {(asset, t) for t in missing} != (KNOWN_GAPS & {(asset, t) for t in expected}):
@@ -93,7 +110,11 @@ def canonical_from_verified(cache: dict[tuple[str, int, int], bytes], checksums:
         for y, m in MONTHS:
             key = (asset, y, m)
             raw = cache[key]
-            expected = checksums[key].strip().split()[0].lower()
+            sidecar = checksums[key].strip().split()
+            filename = f"{asset}-1h-{y}-{m:02d}.zip"
+            if (len(sidecar) != 2 or sidecar[1].lstrip("*") != filename):
+                raise ValueError("HQ_PROVIDER_CHECKSUM_FILENAME " + str(key))
+            expected = sidecar[0].lower()
             if len(expected) != 64 or any(x not in "0123456789abcdef" for x in expected):
                 raise ValueError("HQ_PROVIDER_CHECKSUM_SCHEMA " + str(key))
             actual = sha(raw)
@@ -121,9 +142,12 @@ def get(url: str) -> bytes:
         try:
             request = urllib.request.Request(url, headers={"User-Agent": "V98-HQ-independent-source/1.0"})
             with urllib.request.urlopen(request, timeout=35) as response:
-                data = response.read()
-            if not data:
-                raise ValueError("HQ_EMPTY_PROVIDER_OBJECT")
+                if response.geturl().split("/")[2] != "data.binance.vision" or not response.geturl().startswith("https://"):
+                    raise ValueError("HQ_PROVIDER_REDIRECT_ORIGIN")
+                cap = 2048 if url.endswith(".CHECKSUM") else 12_000_000
+                data = response.read(cap + 1)
+            if not data or len(data) > cap:
+                raise ValueError("HQ_EMPTY_OR_OVERSIZED_PROVIDER_OBJECT")
             return data
         except Exception as exc:
             error = exc
