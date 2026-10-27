@@ -26,14 +26,14 @@ def run():
         if not updates[t].all() or not validity[t,0]:
             raise ValueError("IP_NATIVE_EPOCH_INVALID")
         if not np.isclose(budgets[t].sum(),1.,atol=1e-12):
-            raise ValueError("IP_BUDGET_NONCONSERVATIPN")
+            raise ValueError("IP_BUDGET_NONCONSERVATION")
         regimes_by_year[year][regimes[t]]=regimes_by_year[year].get(regimes[t],0)+1
         if not validity[t,1:].all():inactive[year]+=1
         for i,name in enumerate(("core","opportunity","relative_value","stress_recovery")):
             gross=float(np.abs(signals[t,i]).sum())
             if not (np.isclose(gross,1.,atol=1e-12) or
                     (i>0 and np.isclose(gross,0.,atol=1e-12))):
-                raise ValueError("IP_SIGNED_SLEEVE_NONCONSERVATIPN")
+                raise ValueError("IP_SIGNED_SLEEVE_NONCONSERVATION")
             if gross>1e-12 and not validity[t,i]:
                 raise ValueError("IP_INVALID_QUOTE_SLEEVE_ACTIVATED")
             counts[year][name]+=int(budgets[t,i]>1e-12 and gross>1e-12)
