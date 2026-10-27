@@ -55,7 +55,7 @@ def load_spot():
 def load_cross_venue(official_quote):
     sb,sq,mask=load_spot()
     pb,pq=load_native_taker(official_quote)
-    if np.any(pq<=0) or np.any(pb<0) or np.any(pb>pq+1e-5):
+    if np.any(pq<0) or np.any(pb<0) or np.any(pb>pq+1e-5) or np.any((pq==0)&(pb!=0)):
         raise ValueError("HX_PERP_TAKER_CONSERVATION")
     return sb,sq,mask,pb,pq
 if __name__=="__main__":
