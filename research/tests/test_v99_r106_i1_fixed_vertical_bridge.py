@@ -131,7 +131,7 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 "fixture": True, "economic_train_executed": False,
                 "promotion_authorized": False}
         with self.assertRaisesRegex(AssertionError, "REFERENCE_FORGED_CASH_WITH_VALID_PAIR"):
-            audit_fixture(signal(), book(), fake, before, before)
+            audit_fixture(signal(), book(), fake, before, replace(before, last_ms=OPEN))
 
     def test_independent_oracle_rejects_forged_risk_cash(self):
         before = start_wallet("BTC", "severe", "100")
@@ -140,7 +140,7 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 "fixture": True, "economic_train_executed": False,
                 "promotion_authorized": False}
         with self.assertRaisesRegex(AssertionError, "REFERENCE_UNJUSTIFIED_RISK_CASH"):
-            audit_fixture(signal(), book(), fake, before, before,
+            audit_fixture(signal(), book(), fake, before, replace(before, last_ms=OPEN),
                           initial_margin_coin="4", maintenance_margin_coin="2")
 
     def test_independent_risk_cash_scenario_floors(self):
