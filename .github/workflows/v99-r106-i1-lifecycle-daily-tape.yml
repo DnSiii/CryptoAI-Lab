@@ -90,6 +90,8 @@ jobs:
           assert fixed_report['certified_complete_option_lifecycles']==0
           assert fixed_report['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
           assert fixed_independent['same_contract_pair_preexpiry_asset_weeks']==0
+          assert fixed_report['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert fixed_independent['causal_entry_and_same_contract_asset_weeks']==0
           # The original 180/180 weak screen is a FALSE POSITIVE for held
           # contracts: each synthetic day has a different expiry.
           # Positive control: one BTC Monday with TWO stable same-expiry puts
@@ -118,6 +120,53 @@ jobs:
           positive_oracle=oracle(str(root),str(root/'positive_report.json'))
           assert positive['asset_weeks_with_same_contract_pair_preexpiry_presence']==1
           assert positive_oracle['same_contract_pair_preexpiry_asset_weeks']==1
+          # The only existing entry quotes arrive AFTER Monday 00:00, so
+          # same-contract continuity must NOT imply causal entry readiness.
+          assert positive['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert positive_oracle['causal_entry_and_same_contract_asset_weeks']==0
+          # Add two ORIGINAL Sunday quotes received 1s before Monday, with
+          # independent venue+arrival clocks <=1s apart and same expiry.
+          sunday=date(2021,12,12)
+          si=(sunday-start).days
+          sunday_entry=manifest['days'][si]
+          sunday_path=root/sunday_entry['file']
+          saved[si]=(sunday_path.read_bytes(),dict(sunday_entry))
+          sunday_rows=list(csv.reader(gzip.decompress(saved[si][0]).decode().splitlines()))
+          decision=int(datetime(2021,12,13,tzinfo=timezone.utc).timestamp()*1_000_000)
+          for strike,delta in ((27000,0),(24000,250_000)):
+              ts=str(decision-1_000_000+delta)
+              sunday_rows.append(['deribit',f'BTC-10JAN22-{strike}-P',ts,ts,
+                                  '0.02','0.025','2','2'])
+          def write_sunday(rows):
+              buff=io.StringIO(newline='')
+              writer=csv.writer(buff);writer.writerows(rows)
+              raw=gzip.compress(buff.getvalue().encode())
+              sunday_path.write_bytes(raw)
+              sunday_entry['sha256']=hashlib.sha256(raw).hexdigest()
+              sunday_entry['rows']=len(rows)-1
+              mp.write_text(json.dumps(manifest))
+          write_sunday(sunday_rows)
+          causal=main(str(root),str(root/'causal_report.json'))
+          causal_oracle=oracle(str(root),str(root/'causal_report.json'))
+          assert causal['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==1
+          assert causal_oracle['causal_entry_and_same_contract_asset_weeks']==1
+          # A >1s inter-leg skew must revoke causal entry, without changing
+          # the weak exact-contract daily continuity count.
+          skewed=list(map(list,sunday_rows))
+          skewed[-1][2]=str(decision-2_500_000)
+          skewed[-1][3]=str(decision-2_500_000)
+          write_sunday(skewed)
+          skew=main(str(root),str(root/'skew_report.json'))
+          skew_oracle=oracle(str(root),str(root/'skew_report.json'))
+          assert skew['asset_weeks_with_same_contract_pair_preexpiry_presence']==1
+          assert skew['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert skew_oracle['causal_entry_and_same_contract_asset_weeks']==0
+          # A forged primary causal source count must fail independent replay.
+          forged_causal=json.loads(json.dumps(skew))
+          forged_causal['asset_weeks_with_causal_entry_and_same_contract_pair_presence']=1
+          try: verify(root,forged_causal)
+          except AssertionError as exc: assert str(exc)=='FORGED_CAUSAL_HELD_PAIR_ENTRY'
+          else: raise AssertionError('FORGED_CAUSAL_ENTRY_ACCEPTED')
           assert positive['asset_weeks_with_necessary_daily_presence']==180
           assert positive['certified_complete_option_lifecycles']==0
           for idx,(raw,entry) in saved.items():
@@ -127,6 +176,7 @@ jobs:
           fixed_report=main(str(root),str(root/'fixed_report.json'))
           fixed_independent=oracle(str(root),str(root/'fixed_report.json'))
           assert fixed_report['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
+          assert fixed_report['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
           forged_fixed=json.loads(json.dumps(fixed_report))
           forged_fixed['weekly'][-1]['required_daily_marks']=36
           try: verify(root,forged_fixed)
@@ -210,7 +260,9 @@ jobs:
           print('10m stale venue event NOT counted as mark; wrong arrival day REJECTED.')
           print('661/661 synthetic UTC days; legacy 182/182 22-day weak presence;')
           print('fixed 180/180 weak presence but 0/180 exact-contract pairs;')
-          print('positive control 1/180 two stable puts pre-expiry, independently matched;')
+          print('positive controls: 1/180 same-contract, 0/180 after-decision causal;')
+          print('1/180 synchronized Sunday entry + held-contract continuity,')
+          print('>1s skew rejected; forged causal count independently rejected;')
           print('last week 34 days; no sealed days;')
           print('7 boundary/integrity controls including arrival-day, stale-event and future timestamp.')
           print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
