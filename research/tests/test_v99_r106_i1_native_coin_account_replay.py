@@ -81,6 +81,40 @@ def exercise(scenario="severe"):
 
 
 class NativeCoinAccountTests(unittest.TestCase):
+    def test_forged_native_contract_identity_never_changes_delivery_payoff(self):
+        # Previously all of these detached source-symbol identities from the
+        # numeric payoff terms, while preserving positive margin and cash.
+        for scenario in ("severe", "supersevere"):
+            w = start_wallet("BTC", scenario, "100")
+            s = quote("50000", ".08", ".09", OPEN1)
+            l = quote("45000", ".04", ".05", OPEN1)
+            w = open_vertical(w, "p1", s, l, OPEN1,
+                              "1", ".001", ".001", "4", "2")
+            original = w.positions[0]
+            forged_fields = (
+                {"short_symbol": "BTC-04FEB22-49000-P"},
+                {"long_symbol": "BTC-04FEB22-45001-P"},
+                {"short_symbol": "ETH-04FEB22-50000-P"},
+                {"short_symbol": "BTC-11FEB22-50000-P"},
+                {"long_symbol": "BTC-04FEB22-45000-C"},
+                {"short_symbol": "not-an-option"},
+                {"short_symbol": None},
+                {"high": D("51000")},
+                {"low": D("44000")},
+            )
+            for fields in forged_fields:
+                with self.subTest(scenario=scenario, forged=fields):
+                    forged = replace(w, positions=(replace(original, **fields),))
+                    with self.assertRaisesRegex(ValueError, "INVALID_OPEN_COIN_POSITION"):
+                        forged.check()
+                    with self.assertRaisesRegex(ValueError, "INVALID_OPEN_COIN_POSITION"):
+                        account_nav(forged, OPEN1)
+                    with self.assertRaisesRegex(ValueError, "INVALID_OPEN_COIN_POSITION"):
+                        settle_batch(forged, ["p1"], EXPIRY, "46000", {"p1": ".001"})
+            # Unmodified source-bound wallet must remain accepted.
+            w.check()
+            self.assertEqual(w.positions[0].short_symbol, "BTC-04FEB22-50000-P")
+
     def test_independent_two_overlapping_positions_and_same_expiry(self):
         for scenario in ("severe", "supersevere"):
             trace, observed, w = exercise(scenario)
