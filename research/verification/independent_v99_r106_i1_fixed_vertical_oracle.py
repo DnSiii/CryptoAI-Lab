@@ -165,6 +165,27 @@ def _independent_cash_transition(before, after, decision_ms):
             and after.marks == before.marks
             and after.settled == before.settled), "REFERENCE_CASH_STATE_MUTATION"
 
+def _independent_overlap_index_veto(before, short, long, initial, maintenance):
+    """Verify exact source-index conflict after all earlier entry checks.
+
+    This narrow proof does not certify other overlapping-position risk vetoes.
+    """
+    assert before.positions and before.marks, "REFERENCE_NO_OVERLAPPING_POSITION"
+    initial, maintenance = _d(initial), _d(maintenance)
+    assert initial >= maintenance > 0, "REFERENCE_PRIOR_MARGIN_FAILURE"
+    friction = Decimal("4") * RATES[before.scenario]  # 2 legs, fee + slip
+    net = _d(short.bid_coin) - _d(long.ask_coin) - friction
+    assert net > 0, "REFERENCE_PRIOR_NEGATIVE_PREMIUM"
+    assert (_d(before.cash_coin) + net
+            >= _d(before.reserved_coin) + initial), "REFERENCE_PRIOR_COLLATERAL_FAILURE"
+    # _independent_decision_clock has already independently checked all marks.
+    indices = {_d(m[3]) for m in before.marks}
+    assert len(indices) == 1, "REFERENCE_UNBOUND_OLD_INDEX"
+    assert _d(short.index_usd) == _d(long.index_usd), "REFERENCE_UNBOUND_NEW_INDEX"
+    assert _d(short.index_usd) not in indices, "REFERENCE_FORGED_INDEX_MISMATCH_VETO"
+    return "INDEPENDENT_OVERLAP_INDEX_RISK_CASH_VETO_MATCH"
+
+
 def audit_fixture(signal, quotes, decision, before, after, *,
                   initial_margin_coin=None, maintenance_margin_coin=None):
     assert decision["fixture"] is True
@@ -189,9 +210,13 @@ def audit_fixture(signal, quotes, decision, before, after, *,
         _independent_cash_transition(before, after, signal["decision_ms"])
         assert signal["signal"] == "POSITIVE_EX_ANTE_PREMIUM" and selected, "REFERENCE_FORGED_RISK_CASH"
         assert initial_margin_coin is not None and maintenance_margin_coin is not None, "RISK_TERMS_REQUIRED_FOR_INDEPENDENT_ORACLE"
-        verdict = _independent_risk_reason(
-            before, *selected, decision.get("reason"),
-            initial_margin_coin, maintenance_margin_coin)
+        if decision.get("reason") == "POSTENTRY_UNBOUND_UNDERLYING_INDEX":
+            verdict = _independent_overlap_index_veto(
+                before, *selected, initial_margin_coin, maintenance_margin_coin)
+        else:
+            verdict = _independent_risk_reason(
+                before, *selected, decision.get("reason"),
+                initial_margin_coin, maintenance_margin_coin)
         return {"independent_fixture": verdict,
                 "historical_economic_train": False, "promotion_authorized": False}
     assert label == "MODELED_FIXTURE_OPEN_ONLY"
