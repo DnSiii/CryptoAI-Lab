@@ -10,6 +10,7 @@ from research.tools.v99_r106_i1_fixed_vertical_bridge import (
 from research.tools.v99_r106_i1_native_coin_account_replay import (
     Quote, D, start_wallet,
 )
+from research.tools.v99_r106_i1_cost_bound_execution import costed_mark, charge_floor
 from research.verification.independent_v99_r106_i1_fixed_vertical_oracle import (
     audit_fixture,
 )
@@ -240,6 +241,63 @@ class FixedI1VerticalBridge(unittest.TestCase):
                              "promotion_authorized": False}
                 with self.assertRaisesRegex(AssertionError, "REFERENCE_INVALID_BEFORE_WALLET"):
                     audit_fixture(signal("NO_PREMIUM"), [], fake_cash, before, before)
+
+    def test_cash_clock_requires_marks_of_every_live_position(self):
+        next_monday = OPEN + 7 * 86_400_000
+        later = dict(signal("NO_PREMIUM"))
+        later["decision_ms"] = next_monday
+        fake_cash = {"decision": "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL",
+                     "fixture": True, "economic_train_executed": False,
+                     "promotion_authorized": False}
+        for scenario in ("severe", "supersevere"):
+            initial = start_wallet("BTC", scenario, "100")
+            opened, _ = fixture_open_fixed_vertical(
+                initial, signal(), book(), name="one",
+                initial_margin_coin="4", maintenance_margin_coin="2",
+                fixture=True)
+            with self.subTest(scenario=scenario):
+                with self.assertRaisesRegex(ValueError, "PREDECISION_ALL_POSITION_MARKS_REQUIRED"):
+                    fixture_open_fixed_vertical(
+                        opened, later, [], name="none",
+                        initial_margin_coin="4", maintenance_margin_coin="2",
+                        fixture=True)
+                with self.assertRaisesRegex(AssertionError, "REFERENCE_UNMARKED_OPEN_WALLET"):
+                    audit_fixture(later, [], fake_cash, opened, opened)
+                short, long = [quote("45000", ".08", ".09", 7*86_400_000),
+                               quote("40000", ".04", ".05", 7*86_400_000)]
+                fee, slip = charge_floor(scenario, Decimal("1"))
+                marked = costed_mark(opened, "one", short, long, next_monday,
+                                     fee, slip, fixture=True)
+                after, decision = fixture_open_fixed_vertical(
+                    marked, later, [], name="none",
+                    initial_margin_coin="4", maintenance_margin_coin="2",
+                    fixture=True)
+                self.assertEqual(after, marked)
+                self.assertEqual(audit_fixture(later, [], decision, marked, after)[
+                    "independent_fixture"], "CASH_MATCH")
+                bad = replace(marked, marks=tuple(
+                    (name, liability, next_monday-1, index)
+                    for name, liability, _, index in marked.marks))
+                with self.assertRaisesRegex(ValueError, "PREDECISION_ALL_POSITION_MARKS_REQUIRED"):
+                    fixture_open_fixed_vertical(
+                        bad, later, [], name="none",
+                        initial_margin_coin="4", maintenance_margin_coin="2",
+                        fixture=True)
+                with self.assertRaisesRegex(AssertionError, "REFERENCE_STALE_OPEN_MARK"):
+                    audit_fixture(later, [], fake_cash, bad, bad)
+
+    def test_cash_decision_cannot_reverse_wallet_clock(self):
+        before = replace(start_wallet("BTC", "severe", "100"), last_ms=OPEN+1)
+        with self.assertRaisesRegex(ValueError, "DECISION_TIME_REVERSAL"):
+            fixture_open_fixed_vertical(
+                before, signal("NO_PREMIUM"), [], name="none",
+                initial_margin_coin="4", maintenance_margin_coin="2",
+                fixture=True)
+        fake_cash = {"decision": "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL",
+                     "fixture": True, "economic_train_executed": False,
+                     "promotion_authorized": False}
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_DECISION_TIME_REVERSAL"):
+            audit_fixture(signal("NO_PREMIUM"), [], fake_cash, before, before)
 
     def test_no_promotion_or_roi_fields(self):
         before = start_wallet("BTC", "severe", "100")
