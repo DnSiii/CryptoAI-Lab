@@ -201,7 +201,16 @@ def audit_fixture(signal, quotes, decision, before, after, *,
     candidates = _pairs(signal, quotes)
     selected = candidates[0][1:] if candidates else None
     label = decision["decision"]
+    # Independently reproduce the frozen 28d minimum and sealed TRAIN end.
+    # A 21d signal schedule can contain an economically impossible 28d entry.
+    fixed_tenor_censored = signal["decision_ms"] + 28 * DAY >= END
+    if label == "CASH_FIXED_TENOR_RIGHT_CENSORED":
+        assert fixed_tenor_censored and not selected, "REFERENCE_FORGED_TENOR_CENSOR"
+        _independent_cash_transition(before, after, signal["decision_ms"])
+        return {"independent_fixture": "FIXED_TENOR_CENSOR_CASH_MATCH",
+                "historical_economic_train": False, "promotion_authorized": False}
     if label == "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL":
+        assert not fixed_tenor_censored, "REFERENCE_MISLABELED_TENOR_CENSOR"
         _independent_cash_transition(before, after, signal["decision_ms"])
         assert signal["signal"] != "POSITIVE_EX_ANTE_PREMIUM" or not selected, "REFERENCE_FORGED_CASH_WITH_VALID_PAIR"
         return {"independent_fixture": "CASH_MATCH",
