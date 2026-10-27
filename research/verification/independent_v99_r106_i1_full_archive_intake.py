@@ -116,25 +116,29 @@ def audit(root, output):
     report=json.loads(Path(output).read_text())
     manifest=json.loads((root/"manifest.json").read_text())
     assert report["schema"]=="I1_FULL_TRAIN_ARCHIVE_INTAKE_RESULT_V1"
-    assert manifest["schema"]=="I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1"
+    assert manifest["schema"] in ("I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1",
+        "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1")
+    fixed = manifest["schema"] == "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1"
+    assert report["source_scope"] == ("FIXED_28_35D" if fixed else "LEGACY_21_45D")
     assert report["fixture"]==manifest["fixture"]
     native = None if manifest["fixture"] else original_native_lookup(root)
     assert report["native_registry_verified"] == (native is not None)
     assert report["train_decisions"]==94
-    assert report["maturity_eligible_weeks"]==91
-    assert report["right_censored_weeks"]==3
-    assert report["required_asset_weeks"]==182
-    assert len(manifest["days"])==91 and len(report["weekly"])==91
+    assert report["maturity_eligible_weeks"]==(90 if fixed else 91)
+    assert report["right_censored_weeks"]==(4 if fixed else 3)
+    assert report["required_asset_weeks"]==(180 if fixed else 182)
+    assert len(manifest["days"])==(90 if fixed else 91)
+    assert len(report["weekly"])==(90 if fixed else 91)
     assert not any(report[k] for k in ("economic_train_executed",
         "native_fee_authenticated","native_margin_authenticated",
         "fills_authenticated","validation_opened","holdout_opened",
         "orders_enabled","promotion_authorized"))
     days=[]
     current=datetime(2021,12,13,tzinfo=UTC)
-    while current+timedelta(days=21)<STOP:
+    while current+timedelta(days=(28 if fixed else 21))<STOP:
         days.append(current)
         current+=timedelta(days=7)
-    assert len(days)==91
+    assert len(days)==(90 if fixed else 91)
     computed={str(i):{"BTC":0,"ETH":0} for i in range(1,6)}
     synchronized={str(i):{"BTC":0,"ETH":0} for i in range(1,6)}
     assert report["synchronized_max_skew_us"] == 1_000_000
@@ -189,7 +193,8 @@ def audit(root, output):
                 continue
             if (strike<=0 or not (0<bid<ask and bs>0 and az>0)
                 or int(r["timestamp"])<cutoff  # independent exchange-time bound
-                or not (timedelta(days=21)<=expiry-decision<=timedelta(days=45))
+                or not (timedelta(days=(28 if fixed else 21))
+                        <=expiry-decision<=timedelta(days=(35 if fixed else 45)))
                 or expiry>=STOP): continue
             if native is not None:
                 meta = native[parts[0]].get(r["symbol"])
