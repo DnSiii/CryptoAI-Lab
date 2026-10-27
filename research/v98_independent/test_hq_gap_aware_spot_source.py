@@ -10,13 +10,15 @@ import hq_gap_aware_spot_source as source
 from hq_gap_aware_spot_source import ASSETS, GAP, MONTHS, month_hours, parse_month, window_valid, sha
 
 
-def fixture(asset, year, month, skip=(), duplicate=False, invalid=False, bad_quote=False, bad_close_time=False, bad_taker=False, bad_schema=False):
+def fixture(asset, year, month, skip=(), duplicate=False, invalid=False, bad_quote=False, bad_close_time=False, bad_taker=False, bad_schema=False, bad_partial_close=False):
     name = f"{asset}-1h-{year}-{month:02d}.csv"
     rows = []
     for t in month_hours(year, month):
         if t in skip:
             continue
         row = [str(t), "100", "110", "90", "105", "1", str(t + 3599999), "100", "5", "0.5", "50", "0"]
+        if t == source.PARTIAL_OPEN and (year, month) == (2023, 3):
+            row[6] = str(source.PINNED_PARTIAL_CLOSE[asset] + (1 if bad_partial_close else 0))
         if t == month_hours(year, month)[0]:
             if invalid:
                 row[2] = "1"
@@ -45,7 +47,7 @@ class HQSourceFixtures(unittest.TestCase):
             rows, missing = parse_month(fixture(asset, 2023, 3, skip=(GAP,)), asset, 2023, 3)
             self.assertEqual(missing, [GAP])
             gap = [r for r in rows if int(r[1]) == GAP]
-            self.assertEqual(gap, [(asset, str(GAP), "0", "", "", "", "", "")])
+            self.assertEqual(gap, [(asset, str(GAP), "0", "0", "", "", "", "", "")])
             self.assertEqual(sum(r[2] == "1" for r in rows), 743)
 
     def test_extra_missing_fails(self):
@@ -59,6 +61,23 @@ class HQSourceFixtures(unittest.TestCase):
                 parse_month(fixture(asset, 2022, 12, duplicate=True), asset, 2022, 12)
             with self.assertRaisesRegex(ValueError, "HQ_SPOT_GEOMETRY"):
                 parse_month(fixture(asset, 2022, 12, invalid=True), asset, 2022, 12)
+
+    def test_partial_publisher_close_is_not_full_hour_eligible(self):
+        for asset in ASSETS:
+            rows, missing = parse_month(fixture(asset, 2023, 3, skip=(GAP,)), asset, 2023, 3)
+            self.assertEqual(missing, [GAP])
+            partial = [r for r in rows if int(r[1]) == source.PARTIAL_OPEN]
+            self.assertEqual(len(partial), 1)
+            self.assertEqual(partial[0][2:4], ("1", "0"))
+            eligible = source.source_eligible_mask(rows)
+            ix = month_hours(2023, 3).index(source.PARTIAL_OPEN)
+            self.assertFalse(eligible[ix])
+            self.assertFalse(eligible[ix + 1])
+            self.assertFalse(window_valid(eligible, ix + 2, 2))
+            self.assertTrue(window_valid(eligible, ix + 3, 2))
+            with self.assertRaisesRegex(ValueError, "HQ_SPOT_CLOSE_TIME"):
+                parse_month(fixture(asset, 2023, 3, skip=(GAP,), bad_partial_close=True),
+                            asset, 2023, 3)
 
     def test_native_spot_conservation_and_schema_fail_closed(self):
         for asset in ASSETS:
@@ -112,7 +131,9 @@ class HQSourceFixtures(unittest.TestCase):
             self.assertEqual(len(receipts), 100)
             self.assertEqual(sum(r["observed"] for r in receipts), 73148)
             self.assertEqual(sum(r["masked"] for r in receipts), 4)
-            self.assertEqual(a.count(b",0,,,,,"), 4)
+            self.assertEqual(a.count(b",0,0,,,,,"), 4)
+            self.assertEqual(sum(r["partial_hour"] for r in receipts), 4)
+            self.assertEqual(sum(r["observed"] - r["partial_hour"] for r in receipts), 73144)
             with patch.object(source, "PINNED_100_SHA_MANIFEST", "0" * 64):
                 with self.assertRaisesRegex(ValueError, "HQ_MANIFEST_PIN_MISMATCH"):
                     source.canonical_from_verified(cache, checksums)
