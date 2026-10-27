@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""IU preregistered intrabar close-location joint log-growth seven-slot shared-collateral 30-cell USD10k historical TRAINING only.
+"""IU preregistered downside-volatility term-structure joint log-growth seven-slot shared-collateral 30-cell USD10k historical TRAINING only.
 Causal completed-close source; next actual open; exact Dec-2022 warmup and pinned 2023-2024 native funding.
 No 2025, V99, frozen engines, paper, live orders or external benchmarks.
 """
@@ -9,8 +9,8 @@ import numpy as np
 from pathlib import Path
 from iu_downside_volterm_sources import bundle,WARMUP,static_check,GROSS,PRIOR
 from gl_order_invariant_governor import GLOrderInvariantBufferedGovernor as HEBufferedGovernor
-from v98_staged_exiu_viability_governor_v2 import FEES,ORDERS,prior_min_exiu_window_quote
-# IE-local equivalent of generic prior-only risk bounds; generic helper has
+from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
+# IU-local equivalent of generic prior-only risk bounds; generic helper has
 # an unrelated 2016h guard despite needing only 672h history.
 def iu_prior_only_risk_history(opening,high,low,rate,event,quote,t):
     if t<672 or t>len(opening):
@@ -44,7 +44,7 @@ def metrict(dollars,returns,positive_days,total_days):
     wins=d[d>1e-10];loss=-d[d< -1e-10]
     var=float(np.quantile(r,.01)) if len(r) else None
     return {
-        "hourly_net_profiu_factor":float(wins.sum()/loss.sum()) if len(loss) and loss.sum() else None,
+        "hourly_net_profit_factor":float(wins.sum()/loss.sum()) if len(loss) and loss.sum() else None,
         "hourly_net_payoff":float(wins.mean()/loss.mean()) if len(wins) and len(loss) else None,
         "hourly_net_win_rate":float(len(wins)/(len(wins)+len(loss))) if len(wins)+len(loss) else 0.,
         "positive_utc_days":int(positive_days),"total_utc_days":int(total_days),
@@ -60,7 +60,7 @@ def prepare_risks(frames):
     out=[None]*HOURS
     for t in range(START_EXECUTION,HOURS):
         down,up,f,_=iu_prior_only_risk_history(o,h,l,r,e,q,t)
-        out[t]=(down,up,f,prior_min_exiu_window_quote(q,t))
+        out[t]=(down,up,f,prior_min_exit_window_quote(q,t))
     return out
 
 def cell(path,mode,fee,order,frames,risks,sources):
