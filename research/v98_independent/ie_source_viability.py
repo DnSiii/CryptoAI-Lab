@@ -10,7 +10,7 @@ from ie_taker_sources import bundle,static_check,WARMUP,CLOCK,load_taker
 ROOT=Path(__file__).resolve().parent
 OUT=ROOT/"ie_source_viability.json"
 def run():
-    if not static_check():raise ValueError("IE_STATIC_CAUSALITY")
+    if not static_check():raise ValueError("IE_STATIE_CAUSALITY")
     frames,manifest=load_official()
     taker,taker_sha=load_taker()
     signals,updates,regimes,budgets,validity=bundle(
@@ -31,7 +31,7 @@ def run():
                 raise ValueError('IE_OI_INVALID_SLEEVE_ACTIVATED')
             counts[year][name]+=int(budgets[t,i]>1e-12 and gross>1e-12)
     viable=all(min(counts[y].values())>=8 for y in ("2023","2024"))
-    report={"decision":"PASS_IC_SOURCE_ONLY_NOT_ECONOMIC" if viable else "REJECT_IC_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
+    report={"decision":"PASS_IE_SOURCE_ONLY_NOT_ECONOMIC" if viable else "REJECT_IE_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
             "training_years":[2023,2024],"assets":["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT"],
             "warmup_hours":WARMUP,"taker_hourly_csv_sha256":taker_sha,"financed_epoch_counts":counts,
             "holdout_2025_read":False,"historical_system_pnl_computed":False,

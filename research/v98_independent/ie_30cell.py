@@ -201,8 +201,8 @@ def run(path):
             "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
-            "decision":"PASS_IC_MECHANICAL_ONLY" if len(cases)==6 and
-            all(x["passed"] for x in cases) else "BLOCK_IC_PICSICAL_SURVIVAL"}
+            "decision":"PASS_IE_MECHANICAL_ONLY" if len(cases)==6 and
+            all(x["passed"] for x in cases) else "BLOCK_IE_PICSICAL_SURVIVAL"}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()

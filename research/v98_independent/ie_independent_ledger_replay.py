@@ -43,7 +43,7 @@ def run(path):
             "ledger_oracle":"independent_each_settled_hour",
             "oracle":{**totals,"sha256":digest.hexdigest()},
             "physical_cells":result["cells"],
-            "decision":"PASS_IC_INDEPENDENT_LEDGER_ONLY_NOT_ECONOMIC"}
+            "decision":"PASS_IE_INDEPENDENT_LEDGER_ONLY_NOT_ECONOMIC"}
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--path",required=True,choices=PATIC)

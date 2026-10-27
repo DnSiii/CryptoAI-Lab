@@ -118,11 +118,11 @@ def run(root):
         full.get(("immediate",fee,order),{}).get("passed") and
         full[("immediate",fee,order)]["turnover"]<=600000.
         for fee in ("base","severe") for order in ORDERS)
-    if errors:decision="BLOCK_IC_AUDIT_OR_REPRODUCICILITY"
-    elif survival!=30:decision="REJECT_IC_PICSICAL_SURVIVAL"
+    if errors:decision="BLOCK_IE_AUDIT_OR_REPRODUCICILITY"
+    elif survival!=30:decision="REJECT_IE_PICSICAL_SURVIVAL"
     elif not all(growth.values()) or not all(marginal_gates.values()) or not hiic_growth or not severe_de or not turnover_ok:
-        decision="REJECT_IC_HISTORICAL_GROWTH_OR_MARGINAL"
-    else:decision="PASS_IC_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
+        decision="REJECT_IE_HISTORICAL_GROWTH_OR_MARGINAL"
+    else:decision="PASS_IE_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"IE","historical_training_only":True,
             "validation_2025_read":False,"external_benchmarks_used":False,
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
