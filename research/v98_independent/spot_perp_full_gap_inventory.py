@@ -66,10 +66,28 @@ if __name__=="__main__":
         raise ValueError("HQ_REJECTED_INVENTORY_DECISION_CHANGED")
     from hq_independent_receipt_reconcile import reconcile
     independent = reconcile(inventory, hq)
+    from hq_spot_masked_feature_gate import load_verified
+    feature_input = load_verified(
+        OUT.parent / "hq_gap_aware_spot_source_only" / "hq_spot_calendar_masked.csv",
+        receipt_path)
+    feature_summary = {
+        "decision": feature_input["status"],
+        "source_sha256": feature_input["source_sha256"],
+        "hours_per_asset": feature_input["hours_per_asset"],
+        "observed_asset_hours": feature_input["observed_asset_hours"],
+        "eligible_asset_hours": feature_input["eligible_asset_hours"],
+        "missing_asset_hours": feature_input["missing_asset_hours"],
+        "partial_asset_hours": feature_input["partial_asset_hours"],
+        "holdout_2025_read": feature_input["holdout_2025_read"],
+        "historical_system_pnl_computed": feature_input["historical_system_pnl_computed"],
+    }
+    inventory["separate_hq_masked_feature_input_gate"] = feature_summary
     inventory["separate_hq_masked_source_only_receipt"] = hq
     inventory["separate_hq_independent_source_reconciliation"] = independent
     OUT.write_text(json.dumps(inventory, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     print("HQ_OFFICIAL_100_SOURCE_ONLY_PASS", hq["canonical_sha256"], flush=True)
     print("HQ_INDEPENDENT_RECONCILE_PASS", independent["archive_pairs"],
           independent["eligible_full_hour_asset_hours"], flush=True)
+    print("HQ_OFFICIAL_CAUSAL_FEATURE_INPUT_PASS", feature_summary["eligible_asset_hours"],
+          feature_summary["source_sha256"], flush=True)
 
