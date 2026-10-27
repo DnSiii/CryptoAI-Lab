@@ -37,6 +37,12 @@ jobs:
                     'DD',x['max_drawdown'],'TURNOVER',x['turnover'],
                     'FEES',x['fees'],'SLIPPAGE',x['slippage'],
                     'FUNDING',x['funding'],'PF',x['hourly_net_profit_factor'],
+                    'PAYOFF',x['hourly_net_payoff'],
+                    'WIN_RATE',x['hourly_net_win_rate'],
+                    'WORST_HOUR',x['worst_hour_net_return'],
+                    'CVAR_1PCT',x['hourly_cvar_1pct'],
+                    'MAX_GROSS_NAV',x['max_gross_to_nav'],
+                    'MAX_ASSET_CONCENTRATION',x['max_single_asset_gross_concentration'],
                     'POSITIVE_DAYS',x['positive_utc_days'],'/',x['total_utc_days'])
           print('HR_FROZEN_GATES','growth',d['growth_gates_10k'],
                 'turnover',d['turnover_gate_10k'],
