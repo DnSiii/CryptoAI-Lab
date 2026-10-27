@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""IH source-only, pre-PnL viability: authenticated Clean-4, causal liquidity and funded epochs."""
+"""IH source-only, pre-PnL viability: authenticated Clean-4, causal breadth-dispersion and funded epochs."""
 from __future__ import annotations
 import json
 from pathlib import Path
 import numpy as np
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
-from ih_liquidity_sources import bundle,static_check,WARMUP,CLOCK
+from ih_breadth_sources import bundle,static_check,WARMUP,CLOCK
 
 ROOT=Path(__file__).resolve().parent
 OUT=ROOT/"ih_source_viability.json"
