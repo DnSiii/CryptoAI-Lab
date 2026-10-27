@@ -64,7 +64,12 @@ if __name__=="__main__":
     inventory = json.loads(OUT.read_text(encoding="utf-8"))
     if inventory.get("decision") != "READ_ONLY_100_ARCHIVE_SOURCE_GAP_INVENTORY_NOT_SOURCE_RESCUE":
         raise ValueError("HQ_REJECTED_INVENTORY_DECISION_CHANGED")
+    from hq_independent_receipt_reconcile import reconcile
+    independent = reconcile(inventory, hq)
     inventory["separate_hq_masked_source_only_receipt"] = hq
+    inventory["separate_hq_independent_source_reconciliation"] = independent
     OUT.write_text(json.dumps(inventory, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     print("HQ_OFFICIAL_100_SOURCE_ONLY_PASS", hq["canonical_sha256"], flush=True)
+    print("HQ_INDEPENDENT_RECONCILE_PASS", independent["archive_pairs"],
+          independent["eligible_full_hour_asset_hours"], flush=True)
 
