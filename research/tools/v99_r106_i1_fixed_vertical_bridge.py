@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
+from research.tools.v99_r106_d1_real_train_source_join import FOLD_EDGES
 from research.tools.v99_r106_i1_native_coin_account_replay import (
     Quote, Wallet, D, pair, START, END,
 )
@@ -48,6 +49,10 @@ def _check_signal(row):
     d = datetime.fromtimestamp(at_ms / 1000, tz=timezone.utc)
     if (d.weekday(), d.hour, d.minute, d.second, d.microsecond) != (0, 0, 0, 0, 0):
         raise ValueError("NONPREREGISTERED_SIGNAL_CLOCK")
+    expected_fold = next((i for i in range(1, 6)
+                          if FOLD_EDGES[i-1] <= at_ms < FOLD_EDGES[i]), None)
+    if fold != expected_fold:
+        raise ValueError("SIGNAL_FOLD_TIME_MISMATCH")
     if at_ms + 21 * DAY >= END:
         raise ValueError("SEALED_OR_RIGHT_CENSORED_SIGNAL")
     return at_ms, asset, signal
@@ -113,6 +118,8 @@ def fixture_open_fixed_vertical(wallet: Wallet, signal_row: dict,
     at_ms, asset, _ = _check_signal(signal_row)
     if wallet.asset != asset:
         raise ValueError("CROSS_COIN_COLLATERAL_NOT_ALLOWED")
+    # A no-trade decision is not permission to certify a malformed wallet.
+    wallet.check()
     selected = select_fixed_vertical(signal_row, last_asof_quotes)
     if selected is None:
         return wallet, {"decision": CASH, "fixture": True,
