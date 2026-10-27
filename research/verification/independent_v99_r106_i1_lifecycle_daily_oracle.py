@@ -75,6 +75,7 @@ def _independent_days(root: Path):
         low = int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp() * 1_000_000)
         high = low + 86_400_000_000
         good = {"BTC": False, "ETH": False}
+        last_receipt = {}
         previous = -1
         n = 0
         reader = gzip.open if filename.endswith(".gz") else open
@@ -92,35 +93,44 @@ def _independent_days(root: Path):
                         or arrival < previous):
                     raise AssertionError("OUT_OF_ORDER_OR_FUTURE_ORIGINAL_RECEIPT")
                 previous = arrival
-                # Independent original-byte replay of five-minute event freshness.
-                if arrival - venue > 300_000_000:
-                    continue
+                # Independent last-arrival-wins reconstruction: invalid and
+                # stale receipts revoke an earlier valid exact-contract book.
                 parts = row["symbol"].split("-")
                 if len(parts) != 4 or parts[0] not in good or parts[3] != "P":
                     continue
                 try:
                     expiry = datetime.strptime(parts[1].upper(), "%d%b%y").date()
-                    nums = [float(parts[2])] + [float(row[k]) for k in
-                        ("bid_price", "ask_price", "bid_amount", "ask_amount")]
-                except (ValueError, TypeError, OverflowError):
+                except (ValueError, TypeError):
                     continue
-                if (d < expiry <= d + timedelta(days=45)
-                        and all(math.isfinite(x) and x > 0 for x in nums)
-                        and nums[1] < nums[2]):
-                    good[parts[0]] = True
-                    monday = sunday_entry.get(d)
-                    if monday is not None:
-                        decision = int(datetime(monday.year, monday.month, monday.day,
-                                                tzinfo=timezone.utc).timestamp() * 1_000_000)
-                        if (decision - 300_000_000 <= venue <= arrival < decision
-                                and 28 <= (expiry - monday).days <= 35
-                                and expiry < STOP):
-                            entry_quotes[(monday.isoformat(), parts[0],
-                                          expiry.isoformat(), row["symbol"])] = (venue, arrival)
-                    for m in expiry_to_entries.get(expiry, ()):
-                        if m <= d < expiry:
-                            key = (m.isoformat(), parts[0], expiry.isoformat(), row["symbol"])
-                            masks[key] = masks.get(key, 0) | (1 << (d - m).days)
+                if not d < expiry <= d + timedelta(days=45):
+                    continue
+                try:
+                    values = [float(parts[2])] + [
+                        float(row[k]) for k in ("bid_price", "ask_price", "bid_amount", "ask_amount")]
+                    valid = (arrival - venue <= 300_000_000
+                             and all(math.isfinite(v) and v > 0 for v in values)
+                             and values[1] < values[2])
+                except (ValueError, TypeError, OverflowError):
+                    valid = False
+                if valid:
+                    good[parts[0]] = True  # Weak any-row market presence only.
+                monday = sunday_entry.get(d)
+                if monday is not None and 28 <= (expiry - monday).days <= 35 and expiry < STOP:
+                    decision = int(datetime(monday.year, monday.month, monday.day,
+                                            tzinfo=timezone.utc).timestamp() * 1_000_000)
+                    key = (monday.isoformat(), parts[0], expiry.isoformat(), row["symbol"])
+                    if valid and decision - 300_000_000 <= venue <= arrival < decision:
+                        entry_quotes[key] = (venue, arrival)
+                    else:
+                        entry_quotes.pop(key, None)
+                for m in expiry_to_entries.get(expiry, ()):
+                    if m <= d < expiry:
+                        key = (m.isoformat(), parts[0], expiry.isoformat(), row["symbol"])
+                        last_receipt[key] = valid
+        for key, is_valid in last_receipt.items():
+            if is_valid:
+                m = date.fromisoformat(key[0])
+                masks[key] = masks.get(key, 0) | (1 << (d - m).days)
         if n != entry.get("rows"):
             raise AssertionError("ORIGINAL_ROW_COUNT_FORGED")
         out.append({"date": stamp, **good, "rows": n, "sha256": sha})
