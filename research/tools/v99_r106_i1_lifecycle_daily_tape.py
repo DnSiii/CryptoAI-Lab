@@ -93,9 +93,9 @@ def audit(root: Path) -> dict:
     eligible_expiries = {}
     for monday in entry_mondays:
         # Deribit options expire 08:00 UTC: Monday+35 calendar days is
-            # 35d8h, OUTSIDE the engine's <=35d executable tenor.
-            for tenor in range(28, 35):
-                expiry = monday + timedelta(days=tenor)
+        # 35d8h, OUTSIDE the engine's <=35d executable tenor.
+        for tenor in range(28, 35):
+            expiry = monday + timedelta(days=tenor)
             if expiry < LAST_EXCLUSIVE:
                 eligible_expiries.setdefault(expiry, []).append(monday)
     # Sunday pre-decision quotes are the ONLY causal source for Monday 00:00.
