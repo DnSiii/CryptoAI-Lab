@@ -8,6 +8,7 @@ from phase243_binance_archive_ingest import _parse_month
 # Reuse the existing V98-only Phase243 CI runner for HQ offline source-contract fixtures.
 # This imports tests only; it never downloads spot archives, opens holdout or runs PnL.
 from test_hq_gap_aware_spot_source import HQSourceFixtures
+from test_hq_independent_receipt_reconcile import HQIndependentReconcileTests
 
 class ArchiveGateTests(unittest.TestCase):
     def test_hq_training_only_firewall_and_quarantined_xrp(self):
