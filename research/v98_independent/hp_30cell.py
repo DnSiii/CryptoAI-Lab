@@ -22,7 +22,7 @@ def hp_prior_only_risk_history(opening,high,low,rate,event,quote,t):
     return down,up,funding,min_quote
 
 from phase1246_ai_two_stage_margin import settle_hour
-from phase1260_aj_authenticated_source_digest import load_official,HPURS
+from phase1260_aj_authenticated_source_digest import load_official,HOURS
 
 PATHS=("HP_core_only","HP_full","HP_minus_opportunity","HP_minus_RV","HP_minus_stress")
 CAPITAL={"immediate":10000.}
@@ -56,8 +56,8 @@ def metrict(dollars,returns,positive_days,total_days):
 
 def prepare_risks(frames):
     o,h,l,c,q,r,e,ml,mh=frames
-    out=[None]*HPURS
-    for t in range(START_EXECUTION,HPURS):
+    out=[None]*HOURS
+    for t in range(START_EXECUTION,HOURS):
         down,up,f,_=hp_prior_only_risk_history(o,h,l,r,e,q,t)
         out[t]=(down,up,f,prior_min_exit_window_quote(q,t))
     return out
@@ -78,7 +78,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
            "2024":{"start_nav":None,"deltas":[],"returns":[],"days":0,"positive":0,
                    "peak":None,"de":0.}}
     day_start=initial
-    for t in range(HPURS):
+    for t in range(HOURS):
         if t>=FIRST_2023:
             yr="2023" if t<FIRST_2024 else "2024"
             y=years[yr]
@@ -122,7 +122,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                 y["days"]+=1;y["positive"]+=int(cash>day_start)
                 day_start=cash
             if t==FIRST_2024-1:years["2023"]["end_nav"]=cash
-            if t==HPURS-1:years["2024"]["end_nav"]=cash
+            if t==HOURS-1:years["2024"]["end_nav"]=cash
         # Independently funded four-expert orthogonal risk-budget composed engine.
         # Inactive experts finance Core rather than
         # simulated with zero-return synthetic PnL. Every ablation replays
@@ -159,7 +159,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
     return {"path":path,"mode":mode,"fee":fee,"order":order,"passed":True,
             "historical_training_only":True,"validation_2025_read":False,
             "external_benchmarks_used":False,"trading_authorized":False,
-            "executed_hours":HPURS-START_EXECUTION,
+            "executed_hours":HOURS-START_EXECUTION,
             "target_updates":target_updates,"physical_fill_hours":fills,
             "forced_risk_ratchets":governor.forced_ratchets,
             "initial_nav":initial,"final_nav":cash,
