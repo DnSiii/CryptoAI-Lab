@@ -12,6 +12,11 @@ RATES = {"severe": Decimal("0.0012"),
          "supersevere": Decimal("0.0024")}
 START = 1639008000000
 END = 1696118400000
+# Independently frozen chronological boundaries; never import primary selector.
+FOLD_EDGES = tuple(int(datetime.fromisoformat(x).replace(tzinfo=timezone.utc).timestamp()*1000)
+                   for x in ("2021-12-09T00:00:00", "2022-04-20T04:00:00",
+                             "2022-08-30T09:00:00", "2023-01-09T14:00:00",
+                             "2023-05-21T19:00:00", "2023-10-01T00:00:00"))
 
 
 def _d(value):
@@ -27,7 +32,10 @@ def _pairs(signal, quotes):
     dt = datetime.fromtimestamp(t / 1000, timezone.utc)
     assert (dt.weekday(), dt.hour, dt.minute, dt.second, dt.microsecond) == (0, 0, 0, 0, 0)
     assert signal["asset"] in ("BTC", "ETH")
-    assert signal["fold"] in (1, 2, 3, 4, 5)
+    assert type(signal["fold"]) is int and signal["fold"] in (1, 2, 3, 4, 5)
+    expected_fold = next((i for i in range(1, 6)
+                          if FOLD_EDGES[i-1] <= t < FOLD_EDGES[i]), None)
+    assert signal["fold"] == expected_fold, "REFERENCE_SIGNAL_FOLD_TIME_MISMATCH"
     assert t + 21 * DAY < END
     seen = set()
     for q in quotes:
@@ -98,6 +106,19 @@ def _independent_risk_reason(before, short, long, reason, initial, maintenance):
     return "INDEPENDENT_RISK_CASH_VETO_MATCH"
 
 
+def _independent_before_wallet(before):
+    """Reject a forged unchanged CASH wallet without trusting primary wallet.check."""
+    assert _d(before.initial_coin) > 0, "REFERENCE_INVALID_BEFORE_WALLET"
+    cash, reserve = _d(before.cash_coin), _d(before.reserved_coin)
+    assert cash >= reserve >= 0, "REFERENCE_INVALID_BEFORE_WALLET"
+    assert type(before.last_ms) is int and START <= before.last_ms < END, "REFERENCE_INVALID_BEFORE_WALLET"
+    names = [p.name for p in before.positions]
+    assert len(set(names + list(before.settled))) == len(names) + len(before.settled), "REFERENCE_INVALID_BEFORE_WALLET"
+    assert reserve == sum((_d(p.initial_margin_coin) for p in before.positions), Decimal(0)), "REFERENCE_INVALID_BEFORE_WALLET"
+    mark_names = [m[0] for m in before.marks]
+    assert len(mark_names) == len(set(mark_names)) and set(mark_names) <= set(names), "REFERENCE_INVALID_BEFORE_WALLET"
+
+
 def audit_fixture(signal, quotes, decision, before, after, *,
                   initial_margin_coin=None, maintenance_margin_coin=None):
     assert decision["fixture"] is True
@@ -106,6 +127,7 @@ def audit_fixture(signal, quotes, decision, before, after, *,
     assert before.asset == after.asset == signal["asset"]
     assert before.scenario == after.scenario
     assert before.scenario in RATES
+    _independent_before_wallet(before)
     assert signal["signal"] in ("POSITIVE_EX_ANTE_PREMIUM",
                                 "NO_PREMIUM", "NO_30D_HISTORY")
     candidates = _pairs(signal, quotes)
