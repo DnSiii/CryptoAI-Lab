@@ -8,6 +8,16 @@ from test_hq_spot_masked_feature_gate import HQFeatureInputTests
 
 
 class InventoryIsolationTests(unittest.TestCase):
+    def test_hr_complete_physical_engine_and_oracle_imports(self):
+        import hr_30cell as engine
+        import hr_reconcile_30cell as reconcile
+        import hr_independent_ledger_replay as oracle
+        self.assertEqual(len(engine.PATHS), 5)
+        self.assertEqual(tuple(engine.PATHS), tuple(reconcile.PATHS))
+        self.assertEqual(tuple(engine.PATHS), tuple(oracle.PATHS))
+        self.assertEqual(engine.CAPITAL, {"immediate": 10000.})
+        self.assertEqual(engine.HOURS, 18288)
+
     def test_hr_sevenslot_source_is_causal_before_any_pnl(self):
         from hr_spot_participation_sources import static_check
         self.assertTrue(static_check())
