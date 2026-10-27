@@ -44,13 +44,22 @@ def _scope_covers_train(raw):
                 continue
             if not (start <= TRAIN_START and end >= TRAIN_END):
                 continue
+            # A Deribit perpetuals-only grant may also have symbols=[].
+            # Scope dates + symbol wildcard are insufficient to certify
+            # options entitlement; the vendor's plan dimension is mandatory.
+            plan = grant.get("dataPlan")
+            if not isinstance(plan, str) or plan.strip().lower() not in {
+                "options", "derivatives", "all-exchanges",
+                "all_exchanges", "unlimited",
+            }:
+                continue
             symbols = grant.get("symbols")
             if not isinstance(symbols, list) or not all(isinstance(s, str) for s in symbols):
                 continue
-            # Empty means all symbols in the vendor's documented grant schema.
+            # Empty means all symbols WITHIN the option-inclusive plan.
             # OPTIONS is the group covering all BTC/ETH option instruments.
             # A finite list with even one BTC and one ETH put DOES NOT cover
-            # all expiry/strike combinations needed for 91 TRAIN weeks.
+            # all expiry/strike combinations needed for 90 TRAIN weeks.
             if not symbols or "OPTIONS" in symbols:
                 return True
     except (ValueError, TypeError, KeyError, OverflowError):
