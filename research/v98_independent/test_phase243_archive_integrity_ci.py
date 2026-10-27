@@ -17,6 +17,12 @@ class ArchiveGateTests(unittest.TestCase):
         self.assertEqual(MONTHS[-1], (2024, 12))
         self.assertEqual(len(MONTHS), 25)
 
+    def test_hq_mask_is_explicit_and_cannot_promote_old_grid(self):
+        from hq_gap_aware_spot_source import ASSETS, KNOWN_GAPS, GAP, PINNED_100_SHA_MANIFEST
+        self.assertEqual(KNOWN_GAPS, {(asset, GAP) for asset in ASSETS})
+        self.assertEqual(len(PINNED_100_SHA_MANIFEST), 64)
+        self.assertNotEqual(PINNED_100_SHA_MANIFEST, "0" * 64)
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.path=Path(self.tmp.name)/'BTCUSDT-1h-2023-01.zip'
