@@ -79,7 +79,7 @@ class HQFeatureInputTests(unittest.TestCase):
         repl = f"BTCUSDT,{gate.MISSING},1,1,100,110,90,105,1000\n".encode()
         self.assertIn(needle, self.raw)
         self.mutate(needle, repl)
-        with self.assertRaisesRegex(ValueError, "PARTIAL_MASK_MISMATCH|UNEXPECTED_MISSINGNESS"):
+        with self.assertRaisesRegex(ValueError, "MISSING_BAR_FILLED"):
             self.run_gate()
 
     def test_partial_bar_falsely_full_rejected(self):
