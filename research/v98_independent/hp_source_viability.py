@@ -3,7 +3,7 @@
 import json
 import numpy as np
 from hp_sources import bundle,static_check
-from phase1260_aj_authenticated_source_digest import load_official,HPURS
+from phase1260_aj_authenticated_source_digest import load_official,HOURS
 NAMES=("GrowthCore","Opportunity","RelativeValue","StressRecovery")
 def run():
     assert static_check()
@@ -11,7 +11,7 @@ def run():
     signals,updates,regimes,budgets=bundle(
         frames[0],frames[1],frames[2],frames[3],frames[5],frames[6],frames[4])
     years={};passed=True
-    for yr,start,end in (("2023",744,9504),("2024",9504,HPURS)):
+    for yr,start,end in (("2023",744,9504),("2024",9504,HOURS)):
         idx=np.flatnonzero(updates[start:end,0])+start
         y={"epochs":len(idx),"minimum_active_epochs":8}
         for i,name in enumerate(NAMES):
