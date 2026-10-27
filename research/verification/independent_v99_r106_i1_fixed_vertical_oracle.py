@@ -128,24 +128,44 @@ def audit_fixture(signal, quotes, decision, before, after, *,
     assert label == "MODELED_FIXTURE_OPEN_ONLY"
     assert signal["signal"] == "POSITIVE_EX_ANTE_PREMIUM" and selected
     assert not before.positions and not before.marks, "UNVERIFIED_OVERLAPPING_OPEN_ORACLE"
+    # An independent OPEN proof cannot certify caller-omitted margin terms.
+    assert initial_margin_coin is not None and maintenance_margin_coin is not None, "OPEN_MARGIN_TERMS_REQUIRED_FOR_INDEPENDENT_ORACLE"
     short, long = selected
     assert decision["short"] == short.symbol and decision["long"] == long.symbol
     fee = Decimal("2") * RATES[before.scenario]
     slip = Decimal("2") * RATES[before.scenario]
     assert _d(decision["modeled_fees_coin"]) == fee
     assert _d(decision["modeled_slippage_coin"]) == slip
-    expected = (_d(before.cash_coin)
-                + _d(short.bid_coin) - _d(long.ask_coin) - fee - slip)
-    assert _d(after.cash_coin) == expected, "INDEPENDENT_CASH_MISMATCH"
-    assert len(after.positions) == len(before.positions) + 1
-    assert after.positions[-1].short_symbol == short.symbol
-    assert after.positions[-1].long_symbol == long.symbol
-    assert after.positions[-1].qty == 1
-    assert _d(after.reserved_coin) == (
-        _d(before.reserved_coin) + _d(after.positions[-1].initial_margin_coin))
-    if initial_margin_coin is not None:
-        assert _d(after.positions[-1].initial_margin_coin) == _d(initial_margin_coin)
-    if maintenance_margin_coin is not None:
-        assert _d(after.positions[-1].maintenance_margin_coin) == _d(maintenance_margin_coin)
-    return {"independent_fixture": "SELECTOR_AND_COIN_CASH_MATCH",
+
+    # Independently bind the ENTIRE state transition, not just cash/reserve.
+    assert _d(before.initial_coin) > 0 and _d(before.cash_coin) >= 0
+    assert _d(before.reserved_coin) == 0, "REFERENCE_BAD_BEFORE_RESERVE"
+    assert type(before.last_ms) is int and START <= before.last_ms <= signal["decision_ms"]
+    assert _d(after.initial_coin) == _d(before.initial_coin), "REFERENCE_INITIAL_COIN_MUTATED"
+    assert after.settled == before.settled, "REFERENCE_SETTLEMENT_HISTORY_MUTATED"
+    assert after.marks == before.marks == (), "REFERENCE_UNVERIFIED_MARK_MUTATION"
+    assert type(after.last_ms) is int and after.last_ms == signal["decision_ms"], "REFERENCE_OPEN_CLOCK_MISMATCH"
+    assert len(after.positions) == 1, "REFERENCE_POSITION_COUNT_MISMATCH"
+    p = after.positions[0]
+    assert isinstance(p.name, str) and p.name and p.name not in before.settled, "REFERENCE_INVALID_POSITION_NAME"
+    assert (p.short_symbol == short.symbol and p.long_symbol == long.symbol
+            and type(p.expiry_ms) is int and p.expiry_ms == short.expiry_ms
+            and _d(p.high) == _d(short.strike_usd)
+            and _d(p.low) == _d(long.strike_usd)
+            and _d(p.high) > _d(p.low) > 0
+            and _d(p.qty) == 1), "REFERENCE_UNBOUND_POSITION_TERMS"
+    initial = _d(initial_margin_coin)
+    maintenance = _d(maintenance_margin_coin)
+    assert (initial >= maintenance > 0
+            and _d(p.initial_margin_coin) == initial
+            and _d(p.maintenance_margin_coin) == maintenance), "REFERENCE_UNVERIFIED_MARGIN_TERMS"
+    expected_cash = (_d(before.cash_coin)
+                     + _d(short.bid_coin) - _d(long.ask_coin) - fee - slip)
+    assert _d(after.cash_coin) == expected_cash, "INDEPENDENT_CASH_MISMATCH"
+    assert _d(after.reserved_coin) == initial, "REFERENCE_RESERVE_MISMATCH"
+    assert _d(after.cash_coin) >= _d(after.reserved_coin), "REFERENCE_COLLATERAL_INSOLVENT"
+    # Immediate same-clock two-sided unwind plus both scenario cost floors.
+    exit_liability = max(Decimal(0), _d(short.ask_coin) - _d(long.bid_coin)) + fee + slip
+    assert _d(after.cash_coin) - exit_liability >= maintenance, "REFERENCE_POSTENTRY_COST_MAINTENANCE_BREACH"
+    return {"independent_fixture": "SELECTOR_FULL_STATE_AND_COIN_CASH_MATCH",
             "historical_economic_train": False, "promotion_authorized": False}
