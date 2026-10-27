@@ -217,9 +217,16 @@ jobs:
           mp.write_text(json.dumps(manifest))
           overtenor=main(str(root),str(root/'overtenor_35d_report.json'))
           overtenor_oracle=oracle(str(root),str(root/'overtenor_35d_report.json'))
-          assert overtenor['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
+          # The SAME Jan-17 expiry is correctly eligible for Dec-20 (28d8h),
+          # but NOT for the intended Dec-13 (35d8h). Test the specific
+          # precommitted decision, not an invalid all-week global zero.
+          dec13=next(w for w in overtenor['weekly']
+                     if w['decision_utc']=='2021-12-13' and w['asset']=='BTC')
+          assert not dec13['same_contract_pair_preexpiry_presence']
+          assert not dec13['causal_entry_and_same_contract_pair_presence']
+          assert overtenor['asset_weeks_with_same_contract_pair_preexpiry_presence']==1
+          assert overtenor_oracle['same_contract_pair_preexpiry_asset_weeks']==1
           assert overtenor['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
-          assert overtenor_oracle['same_contract_pair_preexpiry_asset_weeks']==0
           assert overtenor_oracle['causal_entry_and_same_contract_asset_weeks']==0
           restore(tenor_snapshot)
           positive_again=main(str(root),str(root/'positive_after_controls.json'))
