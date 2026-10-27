@@ -76,8 +76,8 @@ def load_verified(path: Path, receipt_path: Path) -> dict:
                 eligible.append(False)
                 missing += 1
                 continue
-            if not full and t != PARTIAL:
-                raise ValueError("HQ_FEATURE_UNEXPECTED_PARTIAL")
+            if full == (t == PARTIAL):
+                raise ValueError("HQ_FEATURE_PARTIAL_MASK_MISMATCH")
             vals = [float(row[k]) for k in FIELDS[4:]]
             o, h, l, c, q = vals
             if (not all(math.isfinite(x) for x in vals) or min(o, h, l, c) <= 0 or
