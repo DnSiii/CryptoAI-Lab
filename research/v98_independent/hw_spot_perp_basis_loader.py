@@ -45,8 +45,11 @@ def load_spot():
         raise ValueError("HW_SPOT_ELIGIBILITY")
     valid=(full==1).T
     close=d["close"].to_numpy(dtype=float).reshape(4,HOURS).T
+    missing=(observed==0).T
+    partial=((observed==1)&(full==0)).T
     if (not np.isfinite(close[valid]).all() or np.any(close[valid]<=0) or
-        not np.isnan(close[~valid]).all()):
+        not np.isnan(close[missing]).all() or
+        not np.isfinite(close[partial]).all() or np.any(close[partial]<=0)):
         raise ValueError("HW_SPOT_MISSINGNESS_NOT_MASKED")
     partial=int((pd.Timestamp("2023-03-24T12:00:00Z")-START).total_seconds()//3600)
     missing=partial+1
