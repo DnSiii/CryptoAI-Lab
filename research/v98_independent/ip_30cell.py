@@ -7,14 +7,14 @@ from __future__ import annotations
 import argparse,hashlib,itertools,json,math
 import numpy as np
 from pathlib import Path
-from ip_distributional_tail_sources import bundle,WARMUP,static_check,GROSS,PRIPR
+from ip_distributional_tail_sources import bundle,WARMUP,static_check,GROSS,PRIOR
 from gl_order_invariant_governor import GLOrderInvariantBufferedGovernor as HEBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 # IE-local equivalent of generic prior-only risk bounds; generic helper has
 # an unrelated 2016h guard despite needing only 672h history.
 def ip_prior_only_risk_history(opening,high,low,rate,event,quote,t):
     if t<672 or t>len(opening):
-        raise ValueError("IP_INSUFFICIENT_PRIPR_RISK_HISTORY")
+        raise ValueError("IP_INSUFFICIENT_PRIOR_RISK_HISTORY")
     down=np.maximum(.40,np.max(1.-low[t-336:t]/opening[t-336:t],axis=0))
     up=np.maximum(.65,np.max(high[t-336:t]/opening[t-336:t]-1.,axis=0))
     funding=np.maximum(.0005,3.*np.max(
@@ -29,7 +29,7 @@ PATIC=("IP_core_only","IP_full","IP_minus_opportunity","IP_minus_RV","IP_minus_s
 CAPITAL={"immediate":10000.}
 FIRST_2023=744
 FIRST_2024=9504
-START_EXECUTIPN=WARMUP+1
+START_EXECUTION=WARMUP+1
 INCLUDED={
     "IP_core_only":(0,),
     "IP_full":(0,1,2,3),
@@ -58,7 +58,7 @@ def metrict(dollars,returns,positive_days,total_days):
 def prepare_risks(frames):
     o,h,l,c,q,r,e,ml,mh=frames
     out=[None]*HOURS
-    for t in range(START_EXECUTIPN,HOURS):
+    for t in range(START_EXECUTION,HOURS):
         down,up,f,_=ip_prior_only_risk_history(o,h,l,r,e,q,t)
         out[t]=(down,up,f,prior_min_exit_window_quote(q,t))
     return out
@@ -86,7 +86,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
             if t==FIRST_2024:
                 y["start_nav"]=cash;y["peak"]=cash;day_start=cash
             previous=cash
-            if t>=START_EXECUTIPN and (np.any(old) or governor.needs_authorization
+            if t>=START_EXECUTION and (np.any(old) or governor.needs_authorization
                                        or np.any(governor.authorized)):
                 try:
                     down,up,bound,exitq=risks[t]
@@ -162,7 +162,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
     return {"path":path,"mode":mode,"fee":fee,"order":order,"passed":True,
             "historical_training_only":True,"validation_2025_read":False,
             "external_benchmarks_used":False,"trading_authorized":False,
-            "executed_hours":HOURS-START_EXECUTIPN,
+            "executed_hours":HOURS-START_EXECUTION,
             "target_updates":target_updates,"physical_fill_hours":fills,
             "forced_risk_ratchets":governor.forced_ratchets,
             "initial_nav":initial,"final_nav":cash,
