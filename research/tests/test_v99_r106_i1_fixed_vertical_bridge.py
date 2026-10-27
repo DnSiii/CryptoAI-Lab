@@ -95,7 +95,9 @@ class FixedI1VerticalBridge(unittest.TestCase):
         self.assertEqual(before, after)
         self.assertEqual(decision["decision"], "CASH_RISK_VETO")
         self.assertEqual(audit_fixture(signal(), book(), decision, before,
-                                       after)["independent_fixture"], "CASH_MATCH")
+                                       after, initial_margin_coin="100",
+                                       maintenance_margin_coin="100")["independent_fixture"],
+                         "INDEPENDENT_RISK_CASH_VETO_MATCH")
 
     def test_no_historical_certification_by_caller_flags(self):
         with self.assertRaisesRegex(
@@ -116,6 +118,52 @@ class FixedI1VerticalBridge(unittest.TestCase):
             2023, 9, 25, tzinfo=timezone.utc).timestamp()*1000)
         with self.assertRaisesRegex(ValueError, "SEALED_OR_RIGHT_CENSORED"):
             select_fixed_vertical(later, [])
+
+
+    def test_independent_oracle_rejects_forged_cash_with_eligible_pair(self):
+        before = start_wallet("BTC", "severe", "100")
+        fake = {"decision": "CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL",
+                "fixture": True, "economic_train_executed": False,
+                "promotion_authorized": False}
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_FORGED_CASH_WITH_VALID_PAIR"):
+            audit_fixture(signal(), book(), fake, before, before)
+
+    def test_independent_oracle_rejects_forged_risk_cash(self):
+        before = start_wallet("BTC", "severe", "100")
+        fake = {"decision": "CASH_RISK_VETO",
+                "reason": "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO",
+                "fixture": True, "economic_train_executed": False,
+                "promotion_authorized": False}
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_UNJUSTIFIED_RISK_CASH"):
+            audit_fixture(signal(), book(), fake, before, before,
+                          initial_margin_coin="4", maintenance_margin_coin="2")
+
+    def test_independent_risk_cash_scenario_floors(self):
+        for scenario, maintenance in (("severe", ".973"),
+                                      ("supersevere", ".965")):
+            before = start_wallet("BTC", scenario, "1")
+            after, decision = fixture_open_fixed_vertical(
+                before, signal(), book(), name="thin",
+                initial_margin_coin=maintenance,
+                maintenance_margin_coin=maintenance, fixture=True)
+            self.assertEqual(before, after)
+            self.assertEqual(decision["reason"],
+                             "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO")
+            proof = audit_fixture(signal(), book(), decision, before, after,
+                                  initial_margin_coin=maintenance,
+                                  maintenance_margin_coin=maintenance)
+            self.assertEqual(proof["independent_fixture"],
+                             "INDEPENDENT_RISK_CASH_VETO_MATCH")
+
+    def test_independent_oracle_rejects_stale_quote_even_if_open_claimed(self):
+        before = start_wallet("BTC", "severe", "100")
+        after, decision = fixture_open_fixed_vertical(
+            before, signal(), book(), name="good",
+            initial_margin_coin="4", maintenance_margin_coin="2", fixture=True)
+        stale = [replace(book()[0], venue_ms=OPEN-400000,
+                         arrival_ms=OPEN-399000), book()[1]]
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_STALE_OR_FUTURE"):
+            audit_fixture(signal(), stale, decision, before, after)
 
     def test_no_promotion_or_roi_fields(self):
         before = start_wallet("BTC", "severe", "100")
