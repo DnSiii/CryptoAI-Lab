@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""IF immutable source-only pre-PnL viability: native joint flow, causal future mutation, financed epochs."""
+"""IE immutable source-only pre-PnL viability: native joint flow, causal future mutation, financed epochs."""
 from __future__ import annotations
 import json
 from pathlib import Path
@@ -31,7 +31,7 @@ def run():
                 raise ValueError('IF_OI_INVALID_SLEEVE_ACTIVATED')
             counts[year][name]+=int(budgets[t,i]>1e-12 and gross>1e-12)
     viable=all(min(counts[y].values())>=8 for y in ("2023","2024"))
-    report={"decision":"PASS_IF_SOURCE_ONLY_NOT_ECONOMIC" if viable else "REJECT_IF_SOURCE_ONLY_INSUFFICIFNT_FINANCED_EPOCHS",
+    report={"decision":"PASS_IF_SOURCE_ONLY_NOT_ECONOMIC" if viable else "REJECT_IF_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
             "training_years":[2023,2024],"assets":["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT"],
             "warmup_hours":WARMUP,"joint_hourly_csv_sha256":joint_sha,"financed_epoch_counts":counts,
             "holdout_2025_read":False,"historical_system_pnl_computed":False,
