@@ -119,7 +119,7 @@ def run(root):
     elif survival!=30:decision="REJECT_IP_PHYSICAL_SURVIVAL"
     elif not all(growth.values()) or not all(marginal_gates.values()) or not high_growth or not severe_de or not turnover_ok:
         decision="REJECT_IP_HISTORICAL_GROWTH_OR_MARGINAL"
-    else:decision="PASS_IP_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATIPN"
+    else:decision="PASS_IP_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"
     return {"architecture":"IP","historical_training_only":True,
             "validation_2025_read":False,"external_benchmarks_used":False,
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
