@@ -31,6 +31,7 @@ def run(root):
         by_path[p][os]=payload
     if len(files)!=10:errors.append(("FILE_COUNT",len(files)))
     all_source=set()
+    all_oi=set()
     reps={}
     for path in PATIC:
         pair=by_path[path]
@@ -38,6 +39,7 @@ def run(root):
             errors.append(("OS_MISSING",path));continue
         a,b=(pair[o] for o in OS)
         all_source.update((a.get("source_manifest_sha256"),b.get("source_manifest_sha256")))
+        all_oi.update((a.get("oi_hourly_csv_sha256"),b.get("oi_hourly_csv_sha256")))
         if a.get("source_manifest_sha256")!=b.get("source_manifest_sha256"):
             errors.append(("SOURCE_SHA",path))
         x,y=(z.get("cells",[]) for z in (a,b))
@@ -61,6 +63,7 @@ def run(root):
                         errors.append(("OS_YEAR",path,key,yr))
         reps[path]=aa
     if len(all_source)!=1:errors.append(("CROSS_PATH_SOURCE",len(all_source)))
+    if len(all_oi)!=1 or None in all_oi:errors.append(("CROSS_PATH_OI_SHA",len(all_oi)))
     survival=sum(c.get("passed",False) for a in reps.values() for c in a.values())
     for path,rows in reps.items():
         for key,c in rows.items():
@@ -123,6 +126,7 @@ def run(root):
     return {"architecture":"IC","historical_training_only":True,
             "validation_2025_read":False,"external_benchmarks_used":False,
             "errors":errors[:40],"source_manifest_sha256":next(iter(all_source)) if len(all_source)==1 else None,
+            "oi_hourly_csv_sha256":next(iter(all_oi)) if len(all_oi)==1 else None,
             "cross_os_reproducible":not errors and len(reps)==5,
             "cells_expected":30,"cells_survived":survival,
             "growth_gates_10k":growth,"hiic_growth_gate_10k":hiic_growth,"severe_drawdown_gate_10k":severe_de,"turnover_gate_10k":turnover_ok,
