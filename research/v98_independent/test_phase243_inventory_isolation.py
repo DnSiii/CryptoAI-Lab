@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 from phase243_evidence_inventory import inventory, classify
+# Exercise HQ canonical feature consumer in the existing isolated V98 integrity runner.
+from test_hq_spot_masked_feature_gate import HQFeatureInputTests
 
 
 class InventoryIsolationTests(unittest.TestCase):
