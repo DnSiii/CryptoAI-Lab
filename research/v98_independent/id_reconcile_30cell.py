@@ -5,7 +5,7 @@ No ID signal, allocation, risk governor or settlement imports.
 from __future__ import annotations
 import argparse,glob,json,math
 from pathlib import Path
-PATID=("ID_core_only","ID_full","ID_minus_opportunity","ID_minus_RV","ID_minus_stress")
+PATHS=("ID_core_only","ID_full","ID_minus_opportunity","ID_minus_RV","ID_minus_stress")
 MODES=("immediate",)
 FEES=("base","severe","supersevere")
 ORDERS=("carried_before_fill","new_after_fill")
@@ -18,7 +18,7 @@ def near(a,b):
 def run(root):
     files=sorted(glob.glob(str(Path(root)/'*'/'*.json')))
     errors=[];by_path={}
-    for path in PATID:
+    for path in PATHS:
         by_path[path]={}
     for filename in files:
         os=next((s for s in OS if s in Path(filename).parent.name),None)
@@ -26,14 +26,14 @@ def run(root):
         except Exception as exc:
             errors.append(("INVALID_JSON",filename,str(exc)));continue
         p=payload.get("path")
-        if os not in OS or p not in PATID or os in by_path[p]:
+        if os not in OS or p not in PATHS or os in by_path[p]:
             errors.append(("ARTIFACT_INVENTORY",filename));continue
         by_path[p][os]=payload
     if len(files)!=10:errors.append(("FILE_COUNT",len(files)))
     all_source=set()
     all_oi=set()
     reps={}
-    for path in PATID:
+    for path in PATHS:
         pair=by_path[path]
         if set(pair)!=set(OS):
             errors.append(("OS_MISSING",path));continue
@@ -119,7 +119,7 @@ def run(root):
         full[("immediate",fee,order)]["turnover"]<=600000.
         for fee in ("base","severe") for order in ORDERS)
     if errors:decision="BLOCK_ID_AUDIT_OR_REPRODUCIDILITY"
-    elif survival!=30:decision="REJECT_ID_PIDSIDAL_SURVIVAL"
+    elif survival!=30:decision="REJECT_ID_PHYSICAL_SURVIVAL"
     elif not all(growth.values()) or not all(marginal_gates.values()) or not hiid_growth or not severe_de or not turnover_ok:
         decision="REJECT_ID_HISTORIDAL_GROWTH_OR_MARGINAL"
     else:decision="PASS_ID_TRAINING_ONLY_NEEDS_SEPARATE_VALIDATION"

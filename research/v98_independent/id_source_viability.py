@@ -5,12 +5,12 @@ import json
 from pathlib import Path
 import numpy as np
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
-from id_deleveraging_sources import bundle,statid_check,WARMUP,CLOCK,load_oi
+from id_deleveraging_sources import bundle,static_check,WARMUP,CLOCK,load_oi
 
 ROOT=Path(__file__).resolve().parent
 OUT=ROOT/"id_source_viability.json"
 def run():
-    if not statid_check():raise ValueError("ID_STATID_CAUSALITY")
+    if not static_check():raise ValueError("ID_STATIC_CAUSALITY")
     frames,manifest=load_official()
     oi,oi_sha=load_oi()
     signals,updates,regimes,budgets,validity=bundle(
@@ -31,7 +31,7 @@ def run():
                 raise ValueError('ID_OI_INVALID_SLEEVE_ACTIVATED')
             counts[year][name]+=int(budgets[t,i]>1e-12 and gross>1e-12)
     viable=all(min(counts[y].values())>=8 for y in ("2023","2024"))
-    report={"decision":"PASS_ID_SOURCE_ONLY_NOT_ECONOMID" if viable else "REJECT_ID_SOURCE_ONLY_INSUFFIDIENT_FINANCED_EPOCHS",
+    report={"decision":"PASS_ID_SOURCE_ONLY_NOT_ECONOMIC" if viable else "REJECT_ID_SOURCE_ONLY_INSUFFICIENT_FINANCED_EPOCHS",
             "training_years":[2023,2024],"assets":["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT"],
             "warmup_hours":WARMUP,"oi_hourly_csv_sha256":oi_sha,"financed_epoch_counts":counts,
             "holdout_2025_read":False,"historical_system_pnl_computed":False,

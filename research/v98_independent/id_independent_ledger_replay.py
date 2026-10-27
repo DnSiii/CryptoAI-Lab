@@ -7,10 +7,10 @@ from __future__ import annotations
 import argparse,hashlib,json,struct
 import numpy as np
 import id_30cell as engine
-from v98_independent_settlement_oracle import verify_hour,statid_check
-PATID=engine.PATID
+from v98_independent_settlement_oracle import verify_hour,static_check
+PATHS=engine.PATHS
 def run(path):
-    assert statid_check()
+    assert static_check()
     original=engine.settle_hour
     totals={"settled_hours":0,"funding_event_hours":0,"trade_hours":0,
             "verified_turnover":0.,"verified_funding":0.}
@@ -34,7 +34,7 @@ def run(path):
     finally:
         engine.settle_hour=original
     if len(result["cells"])!=6 or not all(x["passed"] for x in result["cells"]):
-        raise ValueError("ID_ORACLE_PIDSIDAL_CELL_FAILURE")
+        raise ValueError("ID_ORACLE_PHYSICAL_CELL_FAILURE")
     if totals["settled_hours"]<=0 or totals["funding_event_hours"]<=0:
         raise ValueError("ID_ORACLE_INCOMPLETE_LEDGER")
     return {"architecture":"ID","path":path,"training_only":True,
@@ -43,10 +43,10 @@ def run(path):
             "ledger_oracle":"independent_each_settled_hour",
             "oracle":{**totals,"sha256":digest.hexdigest()},
             "physical_cells":result["cells"],
-            "decision":"PASS_ID_INDEPENDENT_LEDGER_ONLY_NOT_ECONOMID"}
+            "decision":"PASS_ID_INDEPENDENT_LEDGER_ONLY_NOT_ECONOMIC"}
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.add_argument("--path",required=True,choices=PATID)
+    p.add_argument("--path",required=True,choices=PATHS)
     p.add_argument("--output",required=True)
     a=p.parse_args();out=run(a.path)
     with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)

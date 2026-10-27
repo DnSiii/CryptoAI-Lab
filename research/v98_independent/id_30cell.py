@@ -7,14 +7,14 @@ from __future__ import annotations
 import argparse,hashlib,itertools,json,math
 import numpy as np
 from pathlib import Path
-from id_deleveraging_sources import bundle,WARMUP,statid_check,GROSS,PRIOR,load_oi
+from id_deleveraging_sources import bundle,WARMUP,static_check,GROSS,PRIOR,load_oi
 from gl_order_invariant_governor import GLOrderInvariantBufferedGovernor as HEBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 # ID-local equivalent of generic prior-only risk bounds; generic helper has
 # an unrelated 2016h guard despite needing only 672h history.
 def id_prior_only_risk_history(opening,high,low,rate,event,quote,t):
     if t<672 or t>len(opening):
-        raise ValueError("ID_INSUFFIDIENT_PRIOR_RISK_HISTORY")
+        raise ValueError("ID_INSUFFICIENT_PRIOR_RISK_HISTORY")
     down=np.maximum(.40,np.max(1.-low[t-336:t]/opening[t-336:t],axis=0))
     up=np.maximum(.65,np.max(high[t-336:t]/opening[t-336:t]-1.,axis=0))
     funding=np.maximum(.0005,3.*np.max(
@@ -25,7 +25,7 @@ def id_prior_only_risk_history(opening,high,low,rate,event,quote,t):
 from phase1246_ai_two_stage_margin import settle_hour
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
 
-PATID=("ID_core_only","ID_full","ID_minus_opportunity","ID_minus_RV","ID_minus_stress")
+PATHS=("ID_core_only","ID_full","ID_minus_opportunity","ID_minus_RV","ID_minus_stress")
 CAPITAL={"immediate":10000.}
 FIRST_2023=744
 FIRST_2024=9504
@@ -202,19 +202,19 @@ def run(path):
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
             "decision":"PASS_ID_MECHANIDAL_ONLY" if len(cases)==6 and
-            all(x["passed"] for x in cases) else "BLOCK_ID_PIDSIDAL_SURVIVAL"}
+            all(x["passed"] for x in cases) else "BLOCK_ID_PHYSICAL_SURVIVAL"}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.add_argument("--path",required=True,choices=PATID)
+    p.add_argument("--path",required=True,choices=PATHS)
     p.add_argument("--output",required=True)
     a=p.parse_args()
-    assert statid_check()
+    assert static_check()
     result=run(a.path)
     with open(a.output,"w") as f:json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
     for failed in result["cells"]:
         if not failed["passed"]:
-            print("ID_PIDSIDAL_FIRST_FAULT",failed["fee"],failed["order"],failed.get("reason","unknown"))
+            print("ID_PHYSICAL_FIRST_FAULT",failed["fee"],failed["order"],failed.get("reason","unknown"))
     print("ID_PATH",a.path,result["decision"],
           sum(c["passed"] for c in result["cells"]),"/",len(result["cells"]))
     raise SystemExit(0 if all(c["passed"] for c in result["cells"]) else 2)
