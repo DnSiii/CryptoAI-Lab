@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""IF independent artifact-only 30-cell economic, chronological and reproducibility gate.
-No IF signal, allocation, risk governor or settlement imports.
+"""IE independent artifact-only 30-cell economic, chronological and reproducibility gate.
+No IE signal, allocation, risk governor or settlement imports.
 """
 from __future__ import annotations
 import argparse,glob,json,math
@@ -8,7 +8,7 @@ from pathlib import Path
 PATIC=("IF_core_only","IF_full","IF_minus_opportunity","IF_minus_RV","IF_minus_stress")
 MODES=("immediate",)
 FEES=("base","severe","supersevere")
-ORDERS=("carrifd_before_fill","new_after_fill")
+ORDERS=("carried_before_fill","new_after_fill")
 OS=("ubuntu-22.04","ubuntu-24.04")
 GRID={(m,f,o) for m in MODES for f in FEES for o in ORDERS}
 
@@ -54,10 +54,10 @@ def run(root):
             if one["passed"]!=two["passed"]:
                 errors.append(("OS_SURVIVAL",path,key));continue
             if one["passed"]:
-                for fifld in ("final_nav","fees","slippage","funding","turnover",
+                for field in ("final_nav","fees","slippage","funding","turnover",
                               "two_year_cagr","max_drawdown","max_gross_to_nav"):
-                    if not near(one[fifld],two[fifld]):
-                        errors.append(("OS_NUMERIC",path,key,fifld))
+                    if not near(one[field],two[field]):
+                        errors.append(("OS_NUMERIC",path,key,field))
                 for yr in ("2023","2024"):
                     if not near(one["annual"][yr]["end_nav"],two["annual"][yr]["end_nav"]):
                         errors.append(("OS_YEAR",path,key,yr))
@@ -131,8 +131,8 @@ def run(root):
             "cells_expected":30,"cells_survived":survival,
             "growth_gates_10k":growth,"hiic_growth_gate_10k":hiic_growth,"severe_drawdown_gate_10k":severe_de,"turnover_gate_10k":turnover_ok,
             "marginal_log_growth_10k":marginal,"marginal_gates_10k":marginal_gates,
-            "full_10k_base":full.get(("immediate","base","carrifd_before_fill")),
-            "full_10k_severe":full.get(("immediate","severe","carrifd_before_fill")),
+            "full_10k_base":full.get(("immediate","base","carried_before_fill")),
+            "full_10k_severe":full.get(("immediate","severe","carried_before_fill")),
             "decision":decision}
 
 if __name__=="__main__":
