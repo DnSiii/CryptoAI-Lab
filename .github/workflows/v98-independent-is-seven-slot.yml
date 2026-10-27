@@ -54,7 +54,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ir-source-viability
+          name: is-source-viability
           path: research/v98_independent/is_source_viability.json
           retention-days: 30
           if-no-files-found: warn
@@ -171,7 +171,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ir-independent-ledger-${{ matrix.path }}
+          name: is-independent-ledger-${{ matrix.path }}
           path: research/v98_independent/is_oracle_${{ matrix.path }}.json
           retention-days: 30
           if-no-files-found: warn
