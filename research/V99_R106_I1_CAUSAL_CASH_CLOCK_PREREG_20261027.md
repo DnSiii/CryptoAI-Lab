@@ -1,0 +1,9 @@
+# V99 I1 — causal no-trade clock invariant (pre-implementation, 2026-10-27)
+
+**Scope:** fixed I1 fixture-only native wallet and its independently implemented decision oracle. No alpha changes, no C1 reuse, no economic TRAIN, no validation/holdout, no orders or promotion.
+
+**Observed defect:** a CASH or risk-veto decision at a later Monday returned the prior wallet unchanged, including its old `last_ms`. This allowed a subsequently replayed *earlier* decision to pass the wallet chronology check. The decision event must be accounted for even when exposure is zero; otherwise source replay ordering is not fail-closed.
+
+**Frozen repair rule:** after a validated signal decision at time `t`, CASH_NO_ELIGIBLE_SOURCE_OR_SIGNAL and CASH_RISK_VETO return an otherwise identical wallet with `last_ms=t` (and do not fabricate a trade, fee, mark, ROI or PnL). This requires `t >= last_ms` and, for open positions, the existing full-portfolio same-clock mark and maintenance check. An invalid quote or invalid signal still raises without changing the wallet. A subsequent decision with `t < last_ms` raises DECISION_TIME_REVERSAL. Existing successful opens are unchanged. The independent oracle must reconstruct and verify the entire nonclock wallet state and the advanced clock, not accept a forged unchanged cash wallet. Existing fixture assertions must be adapted; add an adversarial backdated replay test for both severe and supersevere, plus a risk-veto cash clock test.
+
+**Predeclared verification:** push-only GitHub CI executes fixture tests and independently reexecutes the original 182-signal/4,000-quote source intersection; 0 synchronized pairs and 0 certified lifecycles remain a BLOCK, not a passing economic result. Do not alter Frozen, paper, champion, or sealed validation/holdout. Source entitlement and original dated native terms remain external prerequisites.
