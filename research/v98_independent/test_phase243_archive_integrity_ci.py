@@ -24,6 +24,11 @@ class ArchiveGateTests(unittest.TestCase):
         self.assertEqual(len(PINNED_100_SHA_MANIFEST), 64)
         self.assertNotEqual(PINNED_100_SHA_MANIFEST, "0" * 64)
 
+    def test_hq_independent_receipt_and_source_pins_agree(self):
+        from hq_gap_aware_spot_source import PINNED_100_SHA_MANIFEST
+        from hq_independent_receipt_reconcile import PINNED_MANIFEST
+        self.assertEqual(PINNED_100_SHA_MANIFEST, PINNED_MANIFEST)
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.path=Path(self.tmp.name)/'BTCUSDT-1h-2023-01.zip'
