@@ -93,11 +93,16 @@ def bundle(opening,high,low,close,rate,event,quote):
                 targets[t,i]=target
                 previous[i]=target
         else:
-            targets[t]=core_ref
-            previous[:]=core_ref
+            # Quarantine each asset with any invalid prior-window quote;
+            # a zero-quote asset must never receive even Core fallback.
+            safe=np.all(q[t-167:t+1]>0,axis=0)
+            fallback=core_ref*safe
+            if fallback.sum()>0:fallback/=fallback.sum()
+            targets[t]=fallback
+            previous[:]=fallback
         updates[t]=True
         if (not np.all(np.isfinite(targets[t])) or
-            not np.allclose(np.abs(targets[t]).sum(axis=1),1.,atol=1e-10) or
+            not np.allclose(np.abs(targets[t]).sum(axis=1),1. if (good or np.any(targets[t])) else 0.,atol=1e-10) or
             np.any(np.abs(targets[t])>.60000000001) and good):
             raise ValueError('JA_TARGET_BUDGET_INVALID')
     return targets,updates,regimes,valid,forecasts
@@ -124,7 +129,7 @@ def static_check():
         raise ValueError('JA_GROSS_CONSERVATION')
     qgap=q.copy();qgap[700,2]=0.
     gap=bundle(o,h,l,c,r,e,qgap)
-    if gap[3][WARMUP] or not np.allclose(gap[0][WARMUP],gap[0][WARMUP,0]):
+    if gap[3][WARMUP] or not np.allclose(gap[0][WARMUP],gap[0][WARMUP,0]) or np.any(gap[0][WARMUP,:,2]):
         raise ValueError('JA_QUOTE_QUARANTINE')
     return True
 
