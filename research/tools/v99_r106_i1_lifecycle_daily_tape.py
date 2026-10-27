@@ -108,6 +108,7 @@ def audit(root: Path) -> dict:
         lower = int(datetime(day.year, day.month, day.day, tzinfo=timezone.utc).timestamp() * 1_000_000)
         upper = lower + 86_400_000_000
         seen = set()
+        last_contract_receipt_valid = {}
         count = 0
         last_arrival = None
         opener = gzip.open if p.name.endswith(".gz") else open
@@ -129,32 +130,44 @@ def audit(root: Path) -> dict:
                 if last_arrival is not None and arrival < last_arrival:
                     raise ValueError("OUT_OF_ORDER_CAPTURE")
                 last_arrival = arrival
-                # Vendor files are partitioned by LOCAL arrival date, not event date.
-                # Older venue events remain original rows but cannot certify a fresh mark.
-                asset = _valid_put(row, day) if arrival - event <= 300_000_000 else None
+                # Vendor partition uses arrival day. The LAST physical receipt
+                # for an exact contract revokes an earlier valid observation,
+                # including when the new book is stale, crossed or zero-sized.
+                fresh = arrival - event <= 300_000_000
+                asset = _valid_put(row, day) if fresh else None
                 if asset is not None:
-                    seen.add(asset)
-                    # Capture the LAST valid as-of Sunday quote for each exact
-                    # contract. Strictly earlier than Monday 00:00, <=300s old.
-                    entry = sunday_to_entry.get(day)
-                    if entry is not None:
-                        decision = int(datetime(entry.year, entry.month, entry.day,
-                                                tzinfo=timezone.utc).timestamp() * 1_000_000)
-                        entry_expiry = datetime.strptime(
-                            row["symbol"].split("-")[1].upper(), "%d%b%y").date()
-                        if (decision - 300_000_000 <= event <= arrival < decision
-                                and 28 <= (entry_expiry - entry).days <= 35
-                                and entry_expiry < LAST_EXCLUSIVE):
-                            key = (entry.isoformat(), asset, entry_expiry.isoformat(),
-                                   row["symbol"])
-                            latest_entry_quote[key] = (event, arrival)
-                    expiry = datetime.strptime(row["symbol"].split("-")[1].upper(),
-                                               "%d%b%y").date()
-                    for entry in eligible_expiries.get(expiry, ()):
-                        if entry <= day < expiry:
-                            key = (entry.isoformat(), asset, expiry.isoformat(), row["symbol"])
-                            contract_day_masks[key] = (contract_day_masks.get(key, 0)
-                                                       | (1 << (day - entry).days))
+                    seen.add(asset)  # Explicitly weak ANY-market-row presence.
+                parts = row["symbol"].split("-")
+                if len(parts) != 4 or parts[0] not in ASSETS or parts[3] != "P":
+                    continue
+                try:
+                    expiry = datetime.strptime(parts[1].upper(), "%d%b%y").date()
+                except (ValueError, TypeError):
+                    continue
+                if not day < expiry <= day + timedelta(days=45):
+                    continue
+                contract_asset = parts[0]
+                entry = sunday_to_entry.get(day)
+                if entry is not None and 28 <= (expiry - entry).days <= 35 and expiry < LAST_EXCLUSIVE:
+                    decision = int(datetime(entry.year, entry.month, entry.day,
+                                            tzinfo=timezone.utc).timestamp() * 1_000_000)
+                    key = (entry.isoformat(), contract_asset, expiry.isoformat(), row["symbol"])
+                    if (asset is not None and decision - 300_000_000 <= event
+                            <= arrival < decision):
+                        latest_entry_quote[key] = (event, arrival)
+                    else:
+                        latest_entry_quote.pop(key, None)
+                for entry in eligible_expiries.get(expiry, ()):
+                    if entry <= day < expiry:
+                        key = (entry.isoformat(), contract_asset, expiry.isoformat(),
+                               row["symbol"])
+                        last_contract_receipt_valid[key] = asset is not None
+        # Commit one bit per exact contract/day only after its final receipt.
+        for (entry, contract_asset, expiry, symbol), valid in last_contract_receipt_valid.items():
+            if valid:
+                key = (entry, contract_asset, expiry, symbol)
+                contract_day_masks[key] = (contract_day_masks.get(key, 0)
+                                           | (1 << (day - date.fromisoformat(entry)).days))
         if count != item.get("rows"):
             raise ValueError("ORIGINAL_DAILY_ROW_COUNT_MISMATCH")
         total += count
