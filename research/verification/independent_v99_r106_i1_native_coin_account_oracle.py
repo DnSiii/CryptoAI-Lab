@@ -95,6 +95,8 @@ def audit(trace, observed):
         elif typ == "mark":
             if name not in positions:
                 raise AssertionError("MISSING_REFERENCE_MARK")
+            if t >= positions[name][5]:
+                raise AssertionError("REFERENCE_MARK_AT_OR_AFTER_EXPIRY")
             qty = positions[name][0]
             fees = d(event["exit_fees_coin"])
             slippage = d(event["exit_slippage_coin"])
@@ -121,6 +123,8 @@ def audit(trace, observed):
                     raise AssertionError("REFERENCE_INVALID_FLAT_SOURCE_INDEX")
                 nav = cash
             else:
+                if any(p[5] <= t for p in positions.values()):
+                    raise AssertionError("REFERENCE_UNSETTLED_EXPIRED_POSITION")
                 if "flat_index_usd" in event:
                     raise AssertionError("REFERENCE_FLAT_INDEX_OVERRIDE_OPEN_MARKS")
                 if set(marks) != set(positions) or any(
@@ -196,6 +200,9 @@ def audit(trace, observed):
                      if key != name and pos[5] > t]
             siblings = [key for key, pos in positions.items()
                         if key != name and pos[5] == t]
+            if any(key != name and pos[5] < t
+                   for key, pos in positions.items()):
+                raise AssertionError("REFERENCE_EARLIER_EXPIRY_UNSETTLED")
             if siblings:
                 raise AssertionError("REFERENCE_SAME_EXPIRY_ATOMIC_BATCH_REQUIRED")
             if later:
