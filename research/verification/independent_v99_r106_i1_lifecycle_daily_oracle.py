@@ -51,6 +51,8 @@ def _independent_days(root: Path):
             expiry = m + timedelta(days=tenor)
             if expiry < STOP:
                 expiry_to_entries.setdefault(expiry, []).append(m)
+    sunday_entry = {m - timedelta(days=1): m for m in entries_monday}
+    entry_quotes = {}
     masks = {}
     out = []
     for stamp, entry in zip(required, entries):
@@ -106,6 +108,15 @@ def _independent_days(root: Path):
                         and all(math.isfinite(x) and x > 0 for x in nums)
                         and nums[1] < nums[2]):
                     good[parts[0]] = True
+                    monday = sunday_entry.get(d)
+                    if monday is not None:
+                        decision = int(datetime(monday.year, monday.month, monday.day,
+                                                tzinfo=timezone.utc).timestamp() * 1_000_000)
+                        if (decision - 300_000_000 <= venue <= arrival < decision
+                                and 28 <= (expiry - monday).days <= 35
+                                and expiry < STOP):
+                            entry_quotes[(monday.isoformat(), parts[0],
+                                          expiry.isoformat(), row["symbol"])] = (venue, arrival)
                     for m in expiry_to_entries.get(expiry, ()):
                         if m <= d < expiry:
                             key = (m.isoformat(), parts[0], expiry.isoformat(), row["symbol"])
@@ -114,13 +125,29 @@ def _independent_days(root: Path):
             raise AssertionError("ORIGINAL_ROW_COUNT_FORGED")
         out.append({"date": stamp, **good, "rows": n, "sha256": sha})
     full = {}
+    exact_symbols = {}
     for (m, asset, expiry, symbol), bits in masks.items():
         days = (date.fromisoformat(expiry) - date.fromisoformat(m)).days
         if bits == (1 << days) - 1:
             key = (m, asset, expiry)
             full[key] = full.get(key, 0) + 1
+            exact_symbols.setdefault(key, []).append(symbol)
+    causal = set()
+    for (m, asset, expiry), symbols in exact_symbols.items():
+        for i, a in enumerate(symbols):
+            qa = entry_quotes.get((m, asset, expiry, a))
+            if qa is None:
+                continue
+            for b in symbols[i + 1:]:
+                qb = entry_quotes.get((m, asset, expiry, b))
+                if (qb is not None and abs(qa[0] - qb[0]) <= 1_000_000
+                        and abs(qa[1] - qb[1]) <= 1_000_000):
+                    causal.add((m, asset))
+                    break
+            if (m, asset) in causal:
+                break
     pairs = {(m, asset) for (m, asset, expiry), count in full.items() if count >= 2}
-    return manifest, out, pairs
+    return manifest, out, pairs, causal
 
 
 def verify(root: Path, report: dict):
@@ -138,7 +165,7 @@ def verify(root: Path, report: dict):
             raise AssertionError("FORGED_ECONOMIC_CERTIFICATION")
     if report.get("source_manifest_self_declared_not_vendor_certified") is not True:
         raise AssertionError("FORGED_VENDOR_ATTESTATION")
-    manifest, daily, continuous_pairs = _independent_days(Path(root))
+    manifest, daily, continuous_pairs, causal_pairs = _independent_days(Path(root))
     fixed = manifest["schema"] == "V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1"
     if (report.get("source_scope") != ("FIXED_28_35D" if fixed else "LEGACY_21_45D")
             or report.get("asset_weeks") != (180 if fixed else 182)
@@ -169,7 +196,9 @@ def verify(root: Path, report: dict):
                            "first_missing_day": absent[0] if absent else None,
                            "necessary_daily_presence": len(absent) == 0,
                            "same_contract_pair_preexpiry_presence":
-                           (day.isoformat(), asset) in continuous_pairs if fixed else False})
+                           (day.isoformat(), asset) in continuous_pairs if fixed else False,
+                           "causal_entry_and_same_contract_pair_presence":
+                           (day.isoformat(), asset) in causal_pairs if fixed else False})
         day += timedelta(days=7)
     if len(weekly) != (180 if fixed else 182) or report.get("weekly") != weekly:
         raise AssertionError("FORGED_ORIGINAL_WEEKLY_COVERAGE")
@@ -179,10 +208,14 @@ def verify(root: Path, report: dict):
     continuous = sum(x["same_contract_pair_preexpiry_presence"] for x in weekly)
     if report.get("asset_weeks_with_same_contract_pair_preexpiry_presence") != continuous:
         raise AssertionError("FORGED_SAME_CONTRACT_PAIR_CONTINUITY")
+    causal_count = sum(x["causal_entry_and_same_contract_pair_presence"] for x in weekly)
+    if report.get("asset_weeks_with_causal_entry_and_same_contract_pair_presence") != causal_count:
+        raise AssertionError("FORGED_CAUSAL_HELD_PAIR_ENTRY")
     return {"status": "INDEPENDENT_ORIGINAL_661_DAY_DAILY_PRESENCE_MATCH",
             "days": len(daily), "original_rows": sum(x["rows"] for x in daily),
             "necessary_daily_presence_asset_weeks": count,
             "same_contract_pair_preexpiry_asset_weeks": continuous,
+            "causal_entry_and_same_contract_asset_weeks": causal_count,
             "certified_complete_option_lifecycles": 0,
             "economic_train_executed": False, "promotion_authorized": False}
 
