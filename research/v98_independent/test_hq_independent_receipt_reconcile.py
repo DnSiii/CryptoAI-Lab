@@ -25,7 +25,8 @@ def fake_reports():
                         "missing_utc": missing, "unexpected_utc": [],
                         "duplicate_timestamps": 0, "strictly_increasing": True})
             hq.append({"asset": asset, "month": mm, "sha256": digest,
-                       "observed": hours - len(missing), "masked": len(missing)})
+                       "observed": hours - len(missing), "masked": len(missing),
+                       "partial_hour": len(missing)})
             manifest.append(f"{asset}|{mm}|{digest}\n")
     pin = hashlib.sha256("".join(manifest).encode()).hexdigest()
     inventory = {
@@ -42,6 +43,9 @@ def fake_reports():
         "historical_system_pnl_computed": False, "trading_authorized": False,
         "publisher_checksums_verified": 100, "calendar_asset_hours": 73152,
         "observed_asset_hours": 73148, "masked_asset_hours": 4,
+        "publisher_early_close_partial_asset_hours": 4,
+        "eligible_full_hour_asset_hours": 73144,
+        "pinned_partial_close_ms": audit.PINNED_PARTIAL_CLOSE,
         "two_pass_identical": True, "publisher_manifest_sha256": pin,
         "canonical_sha256": "a" * 64, "archives": hq,
     }
