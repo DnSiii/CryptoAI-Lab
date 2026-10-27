@@ -47,4 +47,24 @@ def run():
          "trading_authorized":False}
     OUT.write_text(json.dumps(out,sort_keys=True,indent=2)+"\n")
     print("SPOT_GAP_INVENTORY",len(archives),len(errors),total,flush=True)
-if __name__=="__main__":run()
+if __name__=="__main__":
+    # Preserve the rejected complete-grid inventory unchanged. HQ is a
+    # separately preregistered masked-source protocol; its success does NOT
+    # rehabilitate that source or authorize any alpha/PNL.
+    run()
+    from hq_gap_aware_spot_source import run as run_hq
+    run_hq()
+    receipt_path = OUT.parent / "hq_gap_aware_spot_source_only" / "hq_masked_source_receipt.json"
+    hq = json.loads(receipt_path.read_text(encoding="utf-8"))
+    if (hq.get("decision") != "PASS_HQ_MASKED_SOURCE_ONLY_NOT_ECONOMIC"
+            or hq.get("complete_grid_source_rejection_still_active") is not True
+            or hq.get("validation_2025_read") is not False
+            or hq.get("historical_system_pnl_computed") is not False):
+        raise ValueError("HQ_INDEPENDENT_RECEIPT_FIREWALL")
+    inventory = json.loads(OUT.read_text(encoding="utf-8"))
+    if inventory.get("decision") != "READ_ONLY_100_ARCHIVE_SOURCE_GAP_INVENTORY_NOT_SOURCE_RESCUE":
+        raise ValueError("HQ_REJECTED_INVENTORY_DECISION_CHANGED")
+    inventory["separate_hq_masked_source_only_receipt"] = hq
+    OUT.write_text(json.dumps(inventory, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    print("HQ_OFFICIAL_100_SOURCE_ONLY_PASS", hq["canonical_sha256"], flush=True)
+
