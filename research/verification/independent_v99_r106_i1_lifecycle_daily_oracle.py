@@ -38,6 +38,20 @@ def _independent_days(root: Path):
     filenames = [e.get("file") for e in entries]
     if len(set(filenames)) != len(required):
         raise AssertionError("REUSED_SOURCE_DAY")
+    # Recompute exact-contract continuity from independent original CSV reads.
+    entries_monday = []
+    m = START + timedelta(days=(7 - START.weekday()) % 7)
+    while m + timedelta(days=28) < STOP:
+        entries_monday.append(m)
+        m += timedelta(days=7)
+    assert len(entries_monday) == 90
+    expiry_to_entries = {}
+    for m in entries_monday:
+        for tenor in range(28, 36):
+            expiry = m + timedelta(days=tenor)
+            if expiry < STOP:
+                expiry_to_entries.setdefault(expiry, []).append(m)
+    masks = {}
     out = []
     for stamp, entry in zip(required, entries):
         filename = entry.get("file")
@@ -92,17 +106,29 @@ def _independent_days(root: Path):
                         and all(math.isfinite(x) and x > 0 for x in nums)
                         and nums[1] < nums[2]):
                     good[parts[0]] = True
+                    for m in expiry_to_entries.get(expiry, ()):
+                        if m <= d < expiry:
+                            key = (m.isoformat(), parts[0], expiry.isoformat(), row["symbol"])
+                            masks[key] = masks.get(key, 0) | (1 << (d - m).days)
         if n != entry.get("rows"):
             raise AssertionError("ORIGINAL_ROW_COUNT_FORGED")
         out.append({"date": stamp, **good, "rows": n, "sha256": sha})
-    return manifest, out
+    full = {}
+    for (m, asset, expiry, symbol), bits in masks.items():
+        days = (date.fromisoformat(expiry) - date.fromisoformat(m)).days
+        if bits == (1 << days) - 1:
+            key = (m, asset, expiry)
+            full[key] = full.get(key, 0) + 1
+    pairs = {(m, asset) for (m, asset, expiry), count in full.items() if count >= 2}
+    return manifest, out, pairs
 
 
 def verify(root: Path, report: dict):
     if (report.get("schema") != "V99_I1_661_DAY_LIFECYCLE_DAILY_PRESENCE_REPORT_V1"
             or report.get("days") != 661
             or report.get("certified_complete_option_lifecycles") != 0
-            or report.get("daily_market_presence_only_not_same_contract_marks") is not True):
+            or report.get("daily_market_presence_only_not_same_contract_marks") is not True
+            or report.get("same_contract_pair_still_not_executable_or_settlement_certified") is not True):
         raise AssertionError("FORGED_LIFECYCLE_COVERAGE_HEADER")
     for k in ("native_fees_authenticated", "native_margin_authenticated",
               "size_aware_fills_authenticated", "economic_train_executed",
@@ -112,7 +138,7 @@ def verify(root: Path, report: dict):
             raise AssertionError("FORGED_ECONOMIC_CERTIFICATION")
     if report.get("source_manifest_self_declared_not_vendor_certified") is not True:
         raise AssertionError("FORGED_VENDOR_ATTESTATION")
-    manifest, daily = _independent_days(Path(root))
+    manifest, daily, continuous_pairs = _independent_days(Path(root))
     fixed = manifest["schema"] == "V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1"
     if (report.get("source_scope") != ("FIXED_28_35D" if fixed else "LEGACY_21_45D")
             or report.get("asset_weeks") != (180 if fixed else 182)
@@ -141,16 +167,22 @@ def verify(root: Path, report: dict):
                            "required_daily_marks": count_days,
                            "missing_daily_marks": len(absent),
                            "first_missing_day": absent[0] if absent else None,
-                           "necessary_daily_presence": len(absent) == 0})
+                           "necessary_daily_presence": len(absent) == 0,
+                           "same_contract_pair_preexpiry_presence":
+                           (day.isoformat(), asset) in continuous_pairs if fixed else False})
         day += timedelta(days=7)
     if len(weekly) != (180 if fixed else 182) or report.get("weekly") != weekly:
         raise AssertionError("FORGED_ORIGINAL_WEEKLY_COVERAGE")
     count = sum(x["necessary_daily_presence"] for x in weekly)
     if report.get("asset_weeks_with_necessary_daily_presence") != count:
         raise AssertionError("FORGED_ASSET_WEEK_COUNT")
+    continuous = sum(x["same_contract_pair_preexpiry_presence"] for x in weekly)
+    if report.get("asset_weeks_with_same_contract_pair_preexpiry_presence") != continuous:
+        raise AssertionError("FORGED_SAME_CONTRACT_PAIR_CONTINUITY")
     return {"status": "INDEPENDENT_ORIGINAL_661_DAY_DAILY_PRESENCE_MATCH",
             "days": len(daily), "original_rows": sum(x["rows"] for x in daily),
             "necessary_daily_presence_asset_weeks": count,
+            "same_contract_pair_preexpiry_asset_weeks": continuous,
             "certified_complete_option_lifecycles": 0,
             "economic_train_executed": False, "promotion_authorized": False}
 
