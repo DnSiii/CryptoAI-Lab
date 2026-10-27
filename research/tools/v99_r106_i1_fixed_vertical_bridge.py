@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from research.tools.v99_r106_d1_real_train_source_join import FOLD_EDGES
 from research.tools.v99_r106_i1_native_coin_account_replay import (
-    Quote, Wallet, D, pair, START, END,
+    Quote, Wallet, D, pair, account_nav, START, END,
 )
 from research.tools.v99_r106_i1_cost_bound_execution import (
     charge_floor, costed_open,
@@ -118,8 +118,18 @@ def fixture_open_fixed_vertical(wallet: Wallet, signal_row: dict,
     at_ms, asset, _ = _check_signal(signal_row)
     if wallet.asset != asset:
         raise ValueError("CROSS_COIN_COLLATERAL_NOT_ALLOWED")
-    # A no-trade decision is not permission to certify a malformed wallet.
+    # A no-trade decision must never hide an unvalued existing portfolio.
+    # A stale/absent same-clock mark is a hard failure, not a valid CASH row.
     wallet.check()
+    if at_ms < wallet.last_ms:
+        raise ValueError("DECISION_TIME_REVERSAL")
+    if wallet.positions:
+        if wallet.last_ms != at_ms:
+            raise ValueError("PREDECISION_ALL_POSITION_MARKS_REQUIRED")
+        try:
+            account_nav(wallet, at_ms)
+        except ValueError as exc:
+            raise ValueError("PREDECISION_ALL_POSITION_MARKS_REQUIRED") from exc
     selected = select_fixed_vertical(signal_row, last_asof_quotes)
     if selected is None:
         return wallet, {"decision": CASH, "fixture": True,
