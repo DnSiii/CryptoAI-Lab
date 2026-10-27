@@ -86,6 +86,10 @@ def audit(root: Path) -> dict:
             expiry = monday + timedelta(days=tenor)
             if expiry < LAST_EXCLUSIVE:
                 eligible_expiries.setdefault(expiry, []).append(monday)
+    # Sunday pre-decision quotes are the ONLY causal source for Monday 00:00.
+    # Daily Monday-after-open quotes cannot certify an entry at midnight.
+    sunday_to_entry = {m - timedelta(days=1): m for m in entry_mondays}
+    latest_entry_quote = {}
     contract_day_masks = {}
     presence = {a: {} for a in ASSETS}
     daily = []
@@ -130,6 +134,20 @@ def audit(root: Path) -> dict:
                 asset = _valid_put(row, day) if arrival - event <= 300_000_000 else None
                 if asset is not None:
                     seen.add(asset)
+                    # Capture the LAST valid as-of Sunday quote for each exact
+                    # contract. Strictly earlier than Monday 00:00, <=300s old.
+                    entry = sunday_to_entry.get(day)
+                    if entry is not None:
+                        decision = int(datetime(entry.year, entry.month, entry.day,
+                                                tzinfo=timezone.utc).timestamp() * 1_000_000)
+                        entry_expiry = datetime.strptime(
+                            row["symbol"].split("-")[1].upper(), "%d%b%y").date()
+                        if (decision - 300_000_000 <= event <= arrival < decision
+                                and 28 <= (entry_expiry - entry).days <= 35
+                                and entry_expiry < LAST_EXCLUSIVE):
+                            key = (entry.isoformat(), asset, entry_expiry.isoformat(),
+                                   row["symbol"])
+                            latest_entry_quote[key] = (event, arrival)
                     expiry = datetime.strptime(row["symbol"].split("-")[1].upper(),
                                                "%d%b%y").date()
                     for entry in eligible_expiries.get(expiry, ()):
@@ -157,12 +175,28 @@ def audit(root: Path) -> dict:
     # continuously observed on every day until expiry (exclusive).
     # No delivery index or actual exit is inferred from this necessary check.
     full_contracts = {}
+    full_contract_symbols = {}
     for (entry, asset, expiry, symbol), mask in contract_day_masks.items():
         required_mask = (1 << (date.fromisoformat(expiry) -
                                date.fromisoformat(entry)).days) - 1
         if mask == required_mask:
             key = (entry, asset, expiry)
             full_contracts[key] = full_contracts.get(key, 0) + 1
+            full_contract_symbols.setdefault(key, []).append(symbol)
+    causal_pairs = set()
+    for (entry, asset, expiry), symbols in full_contract_symbols.items():
+        for i, a in enumerate(symbols):
+            qa = latest_entry_quote.get((entry, asset, expiry, a))
+            if qa is None:
+                continue
+            for b in symbols[i + 1:]:
+                qb = latest_entry_quote.get((entry, asset, expiry, b))
+                if (qb is not None and abs(qa[0] - qb[0]) <= 1_000_000
+                        and abs(qa[1] - qb[1]) <= 1_000_000):
+                    causal_pairs.add((entry, asset))
+                    break
+            if (entry, asset) in causal_pairs:
+                break
     continuous_pairs = {
         (entry, asset) for (entry, asset, expiry), n in full_contracts.items()
         if n >= 2
@@ -186,6 +220,9 @@ def audit(root: Path) -> dict:
                            "necessary_daily_presence": not missing,
                            "same_contract_pair_preexpiry_presence":
                            (monday.isoformat(), asset) in continuous_pairs
+                           if fixed_tenor else False,
+                           "causal_entry_and_same_contract_pair_presence":
+                           (monday.isoformat(), asset) in causal_pairs
                            if fixed_tenor else False})
     complete = sum(w["necessary_daily_presence"] for w in weekly)
     return {"schema": "V99_I1_661_DAY_LIFECYCLE_DAILY_PRESENCE_REPORT_V1",
@@ -199,6 +236,8 @@ def audit(root: Path) -> dict:
             "asset_weeks_with_necessary_daily_presence": complete,
             "asset_weeks_with_same_contract_pair_preexpiry_presence":
             sum(w["same_contract_pair_preexpiry_presence"] for w in weekly),
+            "asset_weeks_with_causal_entry_and_same_contract_pair_presence":
+            sum(w["causal_entry_and_same_contract_pair_presence"] for w in weekly),
             "same_contract_pair_still_not_executable_or_settlement_certified": True,
             "certified_complete_option_lifecycles": 0,
             "source_manifest_self_declared_not_vendor_certified": True,
@@ -219,6 +258,8 @@ def main(root: str, output: str):
                       "daily_presence_asset_weeks": report["asset_weeks_with_necessary_daily_presence"],
                       "same_contract_pair_preexpiry_asset_weeks":
                       report["asset_weeks_with_same_contract_pair_preexpiry_presence"],
+                      "causal_entry_and_same_contract_asset_weeks":
+                      report["asset_weeks_with_causal_entry_and_same_contract_pair_presence"],
                       "certified_complete_option_lifecycles": 0,
                       "economic_train_executed": False, "promotion_authorized": False},
                      sort_keys=True))
