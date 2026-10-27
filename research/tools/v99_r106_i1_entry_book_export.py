@@ -1,7 +1,7 @@
 """Source-to-engine ORIGINAL I1 entry book export. No strategy, economics or orders.
 
 Exports every causally eligible last-known Deribit quote (not a selected trade)
-from the verified 91-Sunday TRAIN archive. An executable portfolio must still
+from the verified 91-Sunday legacy or 90-Sunday fixed-tenor TRAIN archive. An executable portfolio must still
 provide native fees, full holding-period books, settlement, and margin evidence.
 """
 from __future__ import annotations
@@ -25,8 +25,9 @@ def export_books(root):
     native_sources = (None if native is None else json.loads(
         (root / "native_instrument_registry.json").read_text(encoding="utf-8"))["sources"])
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    fixed = manifest["schema"] == "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1"
     books = []
-    for week, (decision, item) in enumerate(zip(eligible(), manifest["days"])):
+    for week, (decision, item) in enumerate(zip(eligible(fixed), manifest["days"])):
         cutoff = int(decision.timestamp() * 1_000_000) - 300_000_000
         end = int(decision.timestamp() * 1_000_000)
         path = safe_path(root, item["file"])
@@ -57,7 +58,8 @@ def export_books(root):
                 continue
             asset, expiry, strike = parsed
             if not (exchange >= cutoff and
-                    timedelta(days=21) <= expiry-decision <= timedelta(days=45)
+                    timedelta(days=(28 if fixed else 21)) <= expiry-decision
+                    <= timedelta(days=(35 if fixed else 45))
                     and expiry < END):
                 continue
             try:
@@ -136,7 +138,9 @@ def export_books(root):
         "quote_size_to_native_lot_conversion_certified": False,
         "historical_fee_margin_certified": False,
         "source_pairs": pairs, "synchronized_source_pairs": len(synchronized),
-        "synchronized_max_skew_us": 1_000_000, "required_pairs": 182,
+        "synchronized_max_skew_us": 1_000_000,
+        "source_scope": gate["source_scope"],
+        "required_pairs": gate["required_asset_weeks"],
         "quotes": books,
         "missing": ["historical full quote entitlement", "full holding-period quotes",
                     "historical contract multipliers and lot sizes",
