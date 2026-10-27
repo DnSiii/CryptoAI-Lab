@@ -47,13 +47,11 @@ def _scope_covers_train(raw):
             symbols = grant.get("symbols")
             if not isinstance(symbols, list) or not all(isinstance(s, str) for s in symbols):
                 continue
-            # Empty means all symbols per official /api-key-info example.
-            # A limited set must explicitly include both asset option families.
+            # Empty means all symbols in the vendor's documented grant schema.
+            # OPTIONS is the group covering all BTC/ETH option instruments.
+            # A finite list with even one BTC and one ETH put DOES NOT cover
+            # all expiry/strike combinations needed for 91 TRAIN weeks.
             if not symbols or "OPTIONS" in symbols:
-                return True
-            has_btc = any(s.startswith("BTC-") and s.endswith(("-P", "-C")) for s in symbols)
-            has_eth = any(s.startswith("ETH-") and s.endswith(("-P", "-C")) for s in symbols)
-            if has_btc and has_eth:
                 return True
     except (ValueError, TypeError, KeyError, OverflowError):
         return False
