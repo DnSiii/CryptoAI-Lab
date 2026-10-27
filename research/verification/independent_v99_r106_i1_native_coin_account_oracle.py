@@ -55,8 +55,12 @@ def audit(trace, observed):
             maintenance = d(event["maintenance_coin"])
             if not (qty > 0 and high > low > 0 and margin >= maintenance > 0):
                 raise AssertionError("BAD_REFERENCE_CONTRACT")
+            opening_fee = d(event["entry_fees_coin"])
+            opening_slippage = d(event["entry_slippage_coin"])
+            if opening_fee < 0 or opening_slippage < 0:
+                raise AssertionError("REFERENCE_NEGATIVE_OPENING_COST")
             credit = qty*(d(event["short_bid_coin"])-d(event["long_ask_coin"]))
-            credit -= d(event["entry_fees_coin"])+d(event["entry_slippage_coin"])
+            credit -= opening_fee+opening_slippage
             if credit <= 0:
                 raise AssertionError("NONPOSITIVE_REFERENCE_PREMIUM")
             cash += credit
@@ -187,7 +191,10 @@ def audit(trace, observed):
                        or marks[key][2] != idx for key in later):
                     raise AssertionError("REFERENCE_SETTLEMENT_SURVIVOR_ASOF_MARK_REQUIRED")
             due = qty*(max(high-idx, Decimal(0))-max(low-idx, Decimal(0)))/idx
-            cash -= due+d(event["delivery_fee_coin"])
+            delivery_fee = d(event["delivery_fee_coin"])
+            if delivery_fee < 0:
+                raise AssertionError("REFERENCE_NEGATIVE_SINGLE_DELIVERY_FEE")
+            cash -= due+delivery_fee
             reserve -= margin
             del positions[name]
             marks.pop(name, None)
