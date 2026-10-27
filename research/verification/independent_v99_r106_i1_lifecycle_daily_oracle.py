@@ -10,6 +10,7 @@ import hashlib
 import json
 import math
 import sys
+from decimal import Decimal, InvalidOperation
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -47,8 +48,10 @@ def _independent_days(root: Path):
     assert len(entries_monday) == 90
     expiry_to_entries = {}
     for m in entries_monday:
-        for tenor in range(28, 36):
-            expiry = m + timedelta(days=tenor)
+        # The option expires 08:00 UTC: 35 calendar days means 35d8h
+            # after the Monday 00:00 decision, outside the fixed <=35d rule.
+            for tenor in range(28, 35):
+                expiry = m + timedelta(days=tenor)
             if expiry < STOP:
                 expiry_to_entries.setdefault(expiry, []).append(m)
     sunday_entry = {m - timedelta(days=1): m for m in entries_monday}
@@ -115,7 +118,7 @@ def _independent_days(root: Path):
                 if valid:
                     good[parts[0]] = True  # Weak any-row market presence only.
                 monday = sunday_entry.get(d)
-                if monday is not None and 28 <= (expiry - monday).days <= 35 and expiry < STOP:
+                if monday is not None and 28 <= (expiry - monday).days <= 34 and expiry < STOP:
                     decision = int(datetime(monday.year, monday.month, monday.day,
                                             tzinfo=timezone.utc).timestamp() * 1_000_000)
                     key = (monday.isoformat(), parts[0], expiry.isoformat(), row["symbol"])
@@ -142,6 +145,13 @@ def _independent_days(root: Path):
             key = (m, asset, expiry)
             full[key] = full.get(key, 0) + 1
             exact_symbols.setdefault(key, []).append(symbol)
+    def numeric_strike(symbol):
+        try:
+            value = Decimal(symbol.split("-")[2])
+        except (InvalidOperation, ValueError, TypeError, IndexError):
+            return None
+        return value if value.is_finite() and value > 0 else None
+
     causal = set()
     for (m, asset, expiry), symbols in exact_symbols.items():
         for i, a in enumerate(symbols):
@@ -150,13 +160,18 @@ def _independent_days(root: Path):
                 continue
             for b in symbols[i + 1:]:
                 qb = entry_quotes.get((m, asset, expiry, b))
-                if (qb is not None and abs(qa[0] - qb[0]) <= 1_000_000
+                if (qb is not None and numeric_strike(a) is not None
+                        and numeric_strike(b) is not None
+                        and numeric_strike(a) != numeric_strike(b)
+                        and abs(qa[0] - qb[0]) <= 1_000_000
                         and abs(qa[1] - qb[1]) <= 1_000_000):
                     causal.add((m, asset))
                     break
             if (m, asset) in causal:
                 break
-    pairs = {(m, asset) for (m, asset, expiry), count in full.items() if count >= 2}
+    pairs = {(m, asset) for (m, asset, expiry), symbols in exact_symbols.items()
+             if len({numeric_strike(s) for s in symbols
+                     if numeric_strike(s) is not None}) >= 2}
     return manifest, out, pairs, causal
 
 
