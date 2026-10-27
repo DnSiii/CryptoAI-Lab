@@ -119,6 +119,39 @@ def _independent_before_wallet(before):
     assert len(mark_names) == len(set(mark_names)) and set(mark_names) <= set(names), "REFERENCE_INVALID_BEFORE_WALLET"
 
 
+def _independent_decision_clock(before, decision_ms):
+    """Independent full-portfolio mark check, including CASH/no-new-entry."""
+    assert before.last_ms <= decision_ms, "REFERENCE_DECISION_TIME_REVERSAL"
+    if not before.positions:
+        return
+    assert before.last_ms == decision_ms, "REFERENCE_UNMARKED_OPEN_WALLET"
+    names = {p.name for p in before.positions}
+    marks = {m[0]: m for m in before.marks}
+    assert set(marks) == names, "REFERENCE_UNMARKED_OPEN_WALLET"
+    indices = set()
+    liabilities = Decimal(0)
+    maintenance = Decimal(0)
+    for p in before.positions:
+        assert p.expiry_ms > decision_ms, "REFERENCE_EXPIRED_OPEN_POSITION"
+        assert (_d(p.high) > _d(p.low) > 0 and _d(p.qty) > 0
+                and _d(p.initial_margin_coin) >= _d(p.maintenance_margin_coin) > 0), "REFERENCE_INVALID_POSITION_TERMS"
+        for symbol, strike in ((p.short_symbol, p.high), (p.long_symbol, p.low)):
+            parts = symbol.split("-")
+            assert (len(parts) == 4 and parts[0] == before.asset
+                    and parts[3] == "P" and _d(parts[2]) == _d(strike)), "REFERENCE_INVALID_POSITION_ID"
+            expiry = datetime.strptime(parts[1].upper(), "%d%b%y").replace(
+                hour=8, tzinfo=timezone.utc)
+            assert int(expiry.timestamp()*1000) == p.expiry_ms, "REFERENCE_INVALID_POSITION_ID"
+        _, liability, timestamp, index = marks[p.name]
+        assert type(timestamp) is int and timestamp == decision_ms, "REFERENCE_STALE_OPEN_MARK"
+        assert _d(liability) >= 0 and _d(index) > 0, "REFERENCE_INVALID_OPEN_MARK"
+        indices.add(_d(index))
+        liabilities += _d(liability)
+        maintenance += _d(p.maintenance_margin_coin)
+    assert len(indices) == 1, "REFERENCE_CROSS_INDEX_MARKS"
+    assert _d(before.cash_coin) - liabilities >= maintenance, "REFERENCE_OPEN_WALLET_MAINTENANCE_BREACH"
+
+
 def audit_fixture(signal, quotes, decision, before, after, *,
                   initial_margin_coin=None, maintenance_margin_coin=None):
     assert decision["fixture"] is True
@@ -128,6 +161,7 @@ def audit_fixture(signal, quotes, decision, before, after, *,
     assert before.scenario == after.scenario
     assert before.scenario in RATES
     _independent_before_wallet(before)
+    _independent_decision_clock(before, signal["decision_ms"])
     assert signal["signal"] in ("POSITIVE_EX_ANTE_PREMIUM",
                                 "NO_PREMIUM", "NO_30D_HISTORY")
     candidates = _pairs(signal, quotes)
