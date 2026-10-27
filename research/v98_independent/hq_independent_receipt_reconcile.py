@@ -16,6 +16,10 @@ ROOT = Path(__file__).resolve().parent
 PINNED_MANIFEST = "02f1eef3fb3bd5a8a4f7ab7e60379474f091c961f9be98217b8b9792f75ef3a9"
 ASSETS = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
 GAP = dt.datetime(2023, 3, 24, 13, tzinfo=dt.timezone.utc)
+PINNED_PARTIAL_CLOSE = {
+    "BTCUSDT": 1679661581646, "ETHUSDT": 1679661583061,
+    "BNBUSDT": 1679661581451, "SOLUSDT": 1679661586948,
+}
 STRICT_REJECTION = "READ_ONLY_100_ARCHIVE_SOURCE_GAP_INVENTORY_NOT_SOURCE_RESCUE"
 HQ_SOURCE_PASS = "PASS_HQ_MASKED_SOURCE_ONLY_NOT_ECONOMIC"
 
@@ -42,6 +46,9 @@ def reconcile(inventory: dict, hq: dict) -> dict:
             hq.get("calendar_asset_hours") != 73152 or
             hq.get("observed_asset_hours") != 73148 or
             hq.get("masked_asset_hours") != 4 or
+            hq.get("publisher_early_close_partial_asset_hours") != 4 or
+            hq.get("eligible_full_hour_asset_hours") != 73144 or
+            hq.get("pinned_partial_close_ms") != PINNED_PARTIAL_CLOSE or
             hq.get("two_pass_identical") is not True or
             hq.get("publisher_manifest_sha256") != PINNED_MANIFEST):
         raise ValueError("HQ_AUDIT_GLOBAL_COUNTS_OR_PIN")
@@ -72,6 +79,8 @@ def reconcile(inventory: dict, hq: dict) -> dict:
             raise ValueError("HQ_AUDIT_UNEXPECTED_GAP")
         if missing and dt.datetime.fromisoformat(missing[0].replace("Z", "+00:00")) != GAP:
             raise ValueError("HQ_AUDIT_GAP_TIMESTAMP")
+        if new.get("partial_hour") != (1 if expected_gap else 0):
+            raise ValueError("HQ_AUDIT_PARTIAL_CLOSE_MASK")
         if new.get("masked") != len(missing) or old.get("unexpected_utc") or old.get("duplicate_timestamps") != 0:
             raise ValueError("HQ_AUDIT_MASK_OR_DUPLICATE")
         if old.get("strictly_increasing") is not True:
@@ -91,6 +100,8 @@ def reconcile(inventory: dict, hq: dict) -> dict:
         "calendar_asset_hours": 73152,
         "observed_asset_hours": 73148,
         "masked_asset_hours": gap_count,
+        "partial_hour_asset_hours": 4,
+        "eligible_full_hour_asset_hours": 73144,
         "canonical_sha256": canonical,
         "publisher_manifest_sha256": PINNED_MANIFEST,
         "strict_complete_grid_source_still_rejected": True,
