@@ -55,6 +55,15 @@ def audit(trace, observed):
             maintenance = d(event["maintenance_coin"])
             if not (qty > 0 and high > low > 0 and margin >= maintenance > 0):
                 raise AssertionError("BAD_REFERENCE_CONTRACT")
+            # Independently reject impossible BBO sides before cash accounting.
+            # A self-consistent forged wallet is not evidence of a real quote.
+            short_bid = d(event["short_bid_coin"])
+            short_ask = d(event["short_ask_coin"])
+            long_bid = d(event["long_bid_coin"])
+            long_ask = d(event["long_ask_coin"])
+            if not (Decimal(0) < short_bid < short_ask
+                    and Decimal(0) < long_bid < long_ask):
+                raise AssertionError("REFERENCE_INVALID_OPEN_BBO")
             opening_fee = d(event["entry_fees_coin"])
             opening_slippage = d(event["entry_slippage_coin"])
             if opening_fee < 0 or opening_slippage < 0:
@@ -92,8 +101,11 @@ def audit(trace, observed):
             index = d(event["index_usd"])
             if fees < 0 or slippage < 0 or index <= 0:
                 raise AssertionError("INVALID_REFERENCE_MARK_PROVENANCE")
-            liability = max(Decimal(0), qty*(d(event["short_ask_coin"])-
-                                            d(event["long_bid_coin"])))
+            short_ask = d(event["short_ask_coin"])
+            long_bid = d(event["long_bid_coin"])
+            if short_ask <= 0 or long_bid <= 0:
+                raise AssertionError("REFERENCE_INVALID_MARK_BBO")
+            liability = max(Decimal(0), qty*(short_ask-long_bid))
             liability += fees+slippage
             if liability < 0:
                 raise AssertionError("NEGATIVE_REFERENCE_MARK_LIABILITY")
