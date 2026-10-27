@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""IF independent EVERY-SETTLED-HOUR native ledger oracle replay, no engine changes.
+"""IE independent EVERY-SETTLED-HOUR native ledger oracle replay, no engine changes.
 Patches only settlement receipt observation, newer source/governor/execution decisions.
 Historical TRAINING ONLY. No 2025/benchmarks/Frozen/paper/live access.
 """
@@ -13,18 +13,18 @@ def run(path):
     assert static_check()
     original=engine.settle_hour
     totals={"settled_hours":0,"funding_event_hours":0,"trade_hours":0,
-            "verififd_turnover":0.,"verififd_funding":0.}
+            "verified_turnover":0.,"verified_funding":0.}
     digest=hashlib.sha256()
     def independently_checked(*args,**kwargs):
         receipt=original(*args,**kwargs)
         check=verify_hour(*args,fee_mode=kwargs.get("fee_mode","base"),
-                          funding_order=kwargs.get("funding_order","carrifd_before_fill"),
+                          funding_order=kwargs.get("funding_order","carried_before_fill"),
                           receipt=receipt)
         totals["settled_hours"]+=1
         totals["funding_event_hours"]+=int(np.any(np.asarray(args[9])>0))
         totals["trade_hours"]+=int(check["turnover"]>1e-5)
-        totals["verififd_turnover"]+=check["turnover"]
-        totals["verififd_funding"]+=check["funding"]
+        totals["verified_turnover"]+=check["turnover"]
+        totals["verified_funding"]+=check["funding"]
         digest.update(struct.pack("<4d",check["cash"],check["gross"],
                                   check["turnover"],check["funding"]))
         return receipt
