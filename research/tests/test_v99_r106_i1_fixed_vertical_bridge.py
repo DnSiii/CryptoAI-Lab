@@ -80,9 +80,11 @@ class FixedI1VerticalBridge(unittest.TestCase):
                 initial_margin_coin="4", maintenance_margin_coin="2",
                 fixture=True)
             self.assertEqual(decision["decision"], "MODELED_FIXTURE_OPEN_ONLY")
-            proof = audit_fixture(signal(), book(), decision, before, after)
+            proof = audit_fixture(signal(), book(), decision, before, after,
+                                  initial_margin_coin="4",
+                                  maintenance_margin_coin="2")
             self.assertEqual(proof["independent_fixture"],
-                             "SELECTOR_AND_COIN_CASH_MATCH")
+                             "SELECTOR_FULL_STATE_AND_COIN_CASH_MATCH")
             self.assertFalse(proof["historical_economic_train"])
             self.assertEqual(len(after.positions), 1)
 
@@ -164,6 +166,43 @@ class FixedI1VerticalBridge(unittest.TestCase):
                          arrival_ms=OPEN-399000), book()[1]]
         with self.assertRaisesRegex(AssertionError, "REFERENCE_STALE_OR_FUTURE"):
             audit_fixture(signal(), stale, decision, before, after)
+
+    def test_independent_open_requires_explicit_margin_terms(self):
+        before = start_wallet("BTC", "severe", "100")
+        after, decision = fixture_open_fixed_vertical(
+            before, signal(), book(), name="one",
+            initial_margin_coin="4", maintenance_margin_coin="2", fixture=True)
+        with self.assertRaisesRegex(AssertionError, "OPEN_MARGIN_TERMS_REQUIRED"):
+            audit_fixture(signal(), book(), decision, before, after)
+
+    def test_independent_open_rejects_forged_full_wallet_and_contract(self):
+        before = start_wallet("BTC", "severe", "100")
+        after, decision = fixture_open_fixed_vertical(
+            before, signal(), book(), name="one",
+            initial_margin_coin="4", maintenance_margin_coin="2", fixture=True)
+        p = after.positions[0]
+        tampered = (
+            replace(after, positions=(replace(p, expiry_ms=p.expiry_ms+86400000),)),
+            replace(after, positions=(replace(p, high=Decimal("44999")),)),
+            replace(after, positions=(replace(p, low=Decimal("39999")),)),
+            replace(after, positions=(replace(p, maintenance_margin_coin=Decimal("3")),)),
+            replace(after, positions=(replace(p, qty=Decimal("2")),)),
+            replace(after, last_ms=OPEN-1),
+            replace(after, initial_coin=Decimal("101")),
+            replace(after, settled=("forged",)),
+            replace(after, marks=(("one", Decimal("0.01"), OPEN, Decimal("50000")),)),
+            replace(after, reserved_coin=Decimal("5")),
+            replace(after, cash_coin=Decimal("1")),
+        )
+        for forged in tampered:
+            with self.subTest(forged=forged):
+                with self.assertRaises(AssertionError):
+                    audit_fixture(signal(), book(), decision, before, forged,
+                                  initial_margin_coin="4",
+                                  maintenance_margin_coin="2")
+        with self.assertRaisesRegex(AssertionError, "REFERENCE_UNVERIFIED_MARGIN_TERMS"):
+            audit_fixture(signal(), book(), decision, before, after,
+                          initial_margin_coin="4", maintenance_margin_coin="3")
 
     def test_no_promotion_or_roi_fields(self):
         before = start_wallet("BTC", "severe", "100")
