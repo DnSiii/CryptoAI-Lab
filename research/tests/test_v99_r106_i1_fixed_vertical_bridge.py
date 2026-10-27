@@ -323,6 +323,53 @@ class FixedI1VerticalBridge(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, "REFERENCE_CASH_CLOCK_NOT_ADVANCED"):
                 audit_fixture(later, [], decision, before, before)
 
+    def test_overlapping_index_mismatch_is_independently_vetoed_cash(self):
+        # Existing position is marked at the new Monday, but the next two-leg
+        # original-index snapshot differs. Do not silently net two indices.
+        next_monday = OPEN + 7 * 86_400_000
+        later = dict(signal())
+        later["decision_ms"] = next_monday
+        for scenario in ("severe", "supersevere"):
+            with self.subTest(scenario=scenario):
+                before = start_wallet("BTC", scenario, "100")
+                opened, _ = fixture_open_fixed_vertical(
+                    before, signal(), book(), name="first",
+                    initial_margin_coin="4", maintenance_margin_coin="2",
+                    fixture=True)
+                old_index_book = [quote("45000", ".08", ".09", 7*86_400_000),
+                                  quote("40000", ".04", ".05", 7*86_400_000)]
+                fee, slip = charge_floor(scenario, Decimal("1"))
+                marked = costed_mark(opened, "first", *old_index_book,
+                                     next_monday, fee, slip, fixture=True)
+                new_index_book = [replace(q, index_usd=Decimal("50001"))
+                                  for q in old_index_book]
+                after, decision = fixture_open_fixed_vertical(
+                    marked, later, new_index_book, name="second",
+                    initial_margin_coin="4", maintenance_margin_coin="2",
+                    fixture=True)
+                self.assertEqual(decision["decision"], "CASH_RISK_VETO")
+                self.assertEqual(decision["reason"], "POSTENTRY_UNBOUND_UNDERLYING_INDEX")
+                self.assertEqual(after, marked)
+                self.assertEqual(audit_fixture(
+                    later, new_index_book, decision, marked, after,
+                    initial_margin_coin="4", maintenance_margin_coin="2")[
+                    "independent_fixture"],
+                    "INDEPENDENT_OVERLAP_INDEX_RISK_CASH_VETO_MATCH")
+                # A forged index veto must fail if the original marks and new
+                # quotes actually share the same index.
+                with self.assertRaisesRegex(
+                        AssertionError, "REFERENCE_FORGED_INDEX_MISMATCH_VETO"):
+                    audit_fixture(later, old_index_book, decision, marked, after,
+                                  initial_margin_coin="4",
+                                  maintenance_margin_coin="2")
+                # And an empty portfolio cannot justify this overlap veto.
+                empty = replace(before, last_ms=next_monday)
+                with self.assertRaisesRegex(
+                        AssertionError, "REFERENCE_NO_OVERLAPPING_POSITION"):
+                    audit_fixture(later, new_index_book, decision, empty, empty,
+                                  initial_margin_coin="4",
+                                  maintenance_margin_coin="2")
+
     def test_no_promotion_or_roi_fields(self):
         before = start_wallet("BTC", "severe", "100")
         _, decision = fixture_open_fixed_vertical(
