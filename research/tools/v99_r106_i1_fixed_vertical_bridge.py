@@ -134,7 +134,12 @@ def fixture_open_fixed_vertical(wallet: Wallet, signal_row: dict,
             raise ValueError("PREDECISION_ALL_POSITION_MARKS_REQUIRED") from exc
     selected = select_fixed_vertical(signal_row, last_asof_quotes)
     if selected is None:
-        return replace(wallet, last_ms=at_ms), {"decision": CASH, "fixture": True,
+        # Original signal eligibility uses a 21d minimum; this fixed vertical
+        # needs >=28d and may not settle beyond sealed TRAIN. Sep-04-2023
+        # is therefore structurally CASH, not a missing-market-data verdict.
+        decision = ("CASH_FIXED_TENOR_RIGHT_CENSORED"
+                    if at_ms + 28 * DAY >= END else CASH)
+        return replace(wallet, last_ms=at_ms), {"decision": decision, "fixture": True,
                         "economic_train_executed": False,
                         "promotion_authorized": False}
     short, long = selected
