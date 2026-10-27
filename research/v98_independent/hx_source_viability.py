@@ -9,7 +9,7 @@ from hx_cross_venue_sources import bundle,static_check,WARMUP,CLOCK
 from hx_cross_venue_loader import load_cross_venue
 
 ROOT=Path(__file__).resolve().parent
-OUT=ROOT/"hw_source_viability.json"
+OUT=ROOT/"hx_source_viability.json"
 
 def run():
     if not static_check():raise ValueError("HX_STATIC_CAUSALITY")
