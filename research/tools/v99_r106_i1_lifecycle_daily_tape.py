@@ -21,6 +21,7 @@ ASSETS = ("BTC", "ETH")
 REQUIRED = {"exchange", "symbol", "timestamp", "local_timestamp",
             "bid_price", "ask_price", "bid_amount", "ask_amount"}
 SCHEMA = "V99_I1_ORIGINAL_661_DAY_TRAIN_LIFECYCLE_TAPE_V1"
+FIXED_SCHEMA = "V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1"
 
 
 def _source_path(root: Path, filename: str) -> Path:
@@ -55,7 +56,9 @@ def _valid_put(row: dict, day: date) -> str | None:
 def audit(root: Path) -> dict:
     root = Path(root)
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-    if (manifest.get("schema") != SCHEMA or manifest.get("venue") != "deribit"
+    fixed_tenor = manifest.get("schema") == FIXED_SCHEMA
+    if (manifest.get("schema") not in (SCHEMA, FIXED_SCHEMA)
+            or manifest.get("venue") != "deribit"
             or type(manifest.get("fixture")) is not bool
             or manifest.get("train_start") != FIRST.isoformat()
             or manifest.get("train_end_exclusive") != LAST_EXCLUSIVE.isoformat()):
@@ -121,28 +124,38 @@ def audit(root: Path) -> dict:
                       "sha256": digest.hexdigest()})
     mondays = []
     d = FIRST + timedelta(days=(7 - FIRST.weekday()) % 7)
-    while d + timedelta(days=21) < LAST_EXCLUSIVE:
+    minimum_tenor = 28 if fixed_tenor else 21
+    while d + timedelta(days=minimum_tenor) < LAST_EXCLUSIVE:
         mondays.append(d)
         d += timedelta(days=7)
-    if len(mondays) != 91:
+    if len(mondays) != (90 if fixed_tenor else 91):
         raise ValueError("PREREG_MATURITY_SCHEDULE_CHANGED")
     weekly = []
     for monday in mondays:
+        # This is a WEAK market-presence screen, not a contract-specific mark.
+        # Never require a sealed date, even for the longest permitted tenor.
+        final_day = (min(monday + timedelta(days=35),
+                         LAST_EXCLUSIVE - timedelta(days=1))
+                     if fixed_tenor else monday + timedelta(days=21))
+        required = (final_day - monday).days + 1
         for asset in ASSETS:
             missing = [(monday + timedelta(days=j)).isoformat()
-                       for j in range(22)
+                       for j in range(required)
                        if not presence[asset][(monday + timedelta(days=j)).isoformat()]]
             weekly.append({"decision_utc": monday.isoformat(), "asset": asset,
-                           "required_daily_marks": 22,
+                           "required_daily_marks": required,
                            "missing_daily_marks": len(missing),
                            "first_missing_day": missing[0] if missing else None,
                            "necessary_daily_presence": not missing})
     complete = sum(w["necessary_daily_presence"] for w in weekly)
     return {"schema": "V99_I1_661_DAY_LIFECYCLE_DAILY_PRESENCE_REPORT_V1",
+            "source_scope": "FIXED_28_35D" if fixed_tenor else "LEGACY_21_45D",
+            "daily_market_presence_only_not_same_contract_marks": True,
             "status": ("SYNTHETIC_FIXTURE_NOT_ECONOMICS" if manifest["fixture"]
                        else "SOURCE_DAILY_PRESENCE_ONLY_NOT_EXECUTION_CERTIFIED"),
             "fixture": manifest["fixture"], "days": DAYS, "original_rows": total,
-            "asset_weeks": 182, "required_days_per_asset_week": 22,
+            "asset_weeks": 2*len(mondays),
+            "required_days_per_asset_week": 36 if fixed_tenor else 22,
             "asset_weeks_with_necessary_daily_presence": complete,
             "certified_complete_option_lifecycles": 0,
             "source_manifest_self_declared_not_vendor_certified": True,
