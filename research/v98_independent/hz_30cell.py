@@ -7,7 +7,7 @@ from __future__ import annotations
 import argparse,hashlib,itertools,json,math
 import numpy as np
 from pathlib import Path
-from hz_intrabar_rejection_sources import bundle,WARMUP,static_check,GROSS,PRIOR
+from hz_quote_acceleration_sources import bundle,WARMUP,static_check,GROSS,PRIOR
 from gl_order_invariant_governor import GLOrderInvariantBufferedGovernor as HEBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
 # HZ-local equivalent of generic prior-only risk bounds; generic helper has
