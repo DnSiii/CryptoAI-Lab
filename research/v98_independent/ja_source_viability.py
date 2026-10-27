@@ -24,8 +24,11 @@ def run():
         if not updates[t] or not np.all(np.isfinite(targets[t])):
             raise ValueError('JA_EPOCH_INVALID')
         gross=np.abs(targets[t]).sum(axis=1)
-        if not np.allclose(gross,1.,atol=1e-10):
-            raise ValueError('JA_GROSS_NONCONSERVATION')
+        if valid[t]:
+            if not np.allclose(gross,1.,atol=1e-10):
+                raise ValueError('JA_VALID_GROSS_NONCONSERVATION')
+        elif not (np.allclose(gross,1.,atol=1e-10) or np.allclose(gross,0.,atol=1e-10)):
+            raise ValueError('JA_QUARANTINED_GROSS_NONCONSERVATION')
         if not valid[t]:
             invalid[year]+=1
             if not np.allclose(targets[t],targets[t,0]):
