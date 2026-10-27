@@ -29,6 +29,8 @@ jobs:
           test -s research/V99_R106_I1_FULL_LIFECYCLE_DAILY_TAPE_PREREG_20261026.md
           git cat-file -e 4d10f16c103aa2f605e0fc29a508adfb0fb9393c^{commit}
           test -s research/V99_R106_I1_DAILY_SOURCE_EVENT_ARRIVAL_FRESHNESS_PREREG_20261026.md
+          git merge-base --is-ancestor 420fd6db1fd712e0ad909a9c41481cd2abccff23 HEAD
+          test -s research/V99_R106_I1_EXECUTABLE_TENOR_AND_STRIKE_SOURCE_ALIGNMENT_PREREG_20261027.md
       - name: Exercise 661-day streaming lifecycle contract with explicit SYNTHETIC data
         run: |
           python - <<'PY'
@@ -150,6 +152,79 @@ jobs:
           causal_oracle=oracle(str(root),str(root/'causal_report.json'))
           assert causal['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==1
           assert causal_oracle['causal_entry_and_same_contract_asset_weeks']==1
+          # EX ANTE negative control: two distinct symbol strings are not two
+          # distinct economic strikes. Both original daily held books and the
+          # causal Sunday books must reject 27000 vs 27000.0 aliases.
+          changed=[si]+[(date(2021,12,13)+timedelta(days=j)-start).days
+                        for j in range(28)]
+          def snapshot(indices):
+              return {idx: ((root/manifest['days'][idx]['file']).read_bytes(),
+                            dict(manifest['days'][idx])) for idx in indices}
+          def restore(snap):
+              for idx,(raw,old) in snap.items():
+                  (root/old['file']).write_bytes(raw)
+                  manifest['days'][idx]=old
+              mp.write_text(json.dumps(manifest))
+          def rewrite_day(idx, transform):
+              entry=manifest['days'][idx]
+              path=root/entry['file']
+              rows=list(csv.reader(gzip.decompress(path.read_bytes()).decode().splitlines()))
+              transform(rows)
+              buf=io.StringIO(newline='')
+              csv.writer(buf).writerows(rows)
+              raw=gzip.compress(buf.getvalue().encode())
+              path.write_bytes(raw)
+              entry['sha256']=hashlib.sha256(raw).hexdigest()
+              entry['rows']=len(rows)-1
+          alias_snapshot=snapshot(changed)
+          def alias_transform(rows):
+              for row in rows[1:]:
+                  if row[1]=='BTC-10JAN22-24000-P':
+                      row[1]='BTC-10JAN22-27000.0-P'
+          for idx in changed:
+              rewrite_day(idx,alias_transform)
+          mp.write_text(json.dumps(manifest))
+          alias=main(str(root),str(root/'same_strike_alias_report.json'))
+          alias_oracle=oracle(str(root),str(root/'same_strike_alias_report.json'))
+          assert alias['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
+          assert alias['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert alias_oracle['same_contract_pair_preexpiry_asset_weeks']==0
+          assert alias_oracle['causal_entry_and_same_contract_asset_weeks']==0
+          restore(alias_snapshot)
+          # EX ANTE negative control: Deribit 08:00 UTC expiry on Monday+35
+          # calendar days is 35d8h after Monday 00:00, beyond engine max 35d.
+          # Move BOTH exact held contracts from 10JAN22 to 17JAN22, and
+          # provide all 35 original daily marks plus synchronized Sunday BBO.
+          indices_35=[si]+[(date(2021,12,13)+timedelta(days=j)-start).days
+                            for j in range(35)]
+          tenor_snapshot=snapshot(indices_35)
+          def change_expiry(rows):
+              for row in rows[1:]:
+                  if row[1] in ('BTC-10JAN22-27000-P','BTC-10JAN22-24000-P'):
+                      row[1]=row[1].replace('10JAN22','17JAN22')
+          for idx in indices_35:
+              day=date.fromisoformat(manifest['days'][idx]['date'])
+              def mutate(rows, day=day):
+                  change_expiry(rows)
+                  if date(2022,1,10) <= day < date(2022,1,17):
+                      epoch=int(datetime(day.year,day.month,day.day,
+                                         tzinfo=timezone.utc).timestamp()*1_000_000)
+                      for k,strike in enumerate((27000,24000),start=3):
+                          ts=str(epoch+k*1_000_000)
+                          rows.append(['deribit',f'BTC-17JAN22-{strike}-P',
+                                       ts,ts,'0.02','0.025','2','2'])
+              rewrite_day(idx,mutate)
+          mp.write_text(json.dumps(manifest))
+          overtenor=main(str(root),str(root/'overtenor_35d_report.json'))
+          overtenor_oracle=oracle(str(root),str(root/'overtenor_35d_report.json'))
+          assert overtenor['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
+          assert overtenor['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==0
+          assert overtenor_oracle['same_contract_pair_preexpiry_asset_weeks']==0
+          assert overtenor_oracle['causal_entry_and_same_contract_asset_weeks']==0
+          restore(tenor_snapshot)
+          positive_again=main(str(root),str(root/'positive_after_controls.json'))
+          oracle(str(root),str(root/'positive_after_controls.json'))
+          assert positive_again['asset_weeks_with_causal_entry_and_same_contract_pair_presence']==1
           # A >1s inter-leg skew must revoke causal entry, without changing
           # the weak exact-contract daily continuity count.
           skewed=list(map(list,sunday_rows))
@@ -305,6 +380,7 @@ jobs:
           print('1/180 synchronized Sunday entry + held-contract continuity,')
           print('>1s skew rejected; forged causal count independently rejected;')
           print('later invalid Sunday and Monday exact-contract receipts revoke old books;')
+          print('35d8h expiry and same-economic-strike aliases rejected by independent oracle;')
           print('last week 34 days; no sealed days;')
           print('7 boundary/integrity controls including arrival-day, stale-event and future timestamp.')
           print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
