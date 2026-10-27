@@ -35,8 +35,10 @@ def bundle(opening,high,low,close,rate,event,quote):
         valid=bool(np.all(q[t-335:t+1]>0))
         validity[t,1:]=valid
         sorted_x=np.sort(window,axis=0)
-        upper=np.mean(np.maximum(sorted_x[-12:],0.),axis=0)
-        lower=np.mean(np.maximum(-sorted_x[:12],0.),axis=0)
+        upper=np.where(np.sum(window>0,axis=0)>=12,
+                       np.mean(np.maximum(sorted_x[-12:],0.),axis=0),0.)
+        lower=np.where(np.sum(window<0,axis=0)>=12,
+                       np.mean(np.maximum(-sorted_x[:12],0.),axis=0),0.)
         tail=np.clip((upper-lower)/(upper+lower+1e-8),-1.,1.)
         participation=np.mean(window>0,axis=0)
         jump=np.mean(np.abs(window)>2.*np.median(np.abs(window),axis=0),axis=0)
