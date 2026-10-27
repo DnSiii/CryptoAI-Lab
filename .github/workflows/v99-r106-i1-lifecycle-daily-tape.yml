@@ -88,11 +88,55 @@ jobs:
           assert fixed_report['weekly'][-1]['decision_utc']=='2023-08-28'
           assert fixed_report['weekly'][-1]['first_missing_day'] is None
           assert fixed_report['certified_complete_option_lifecycles']==0
+          assert fixed_report['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
+          assert fixed_independent['same_contract_pair_preexpiry_asset_weeks']==0
+          # The original 180/180 weak screen is a FALSE POSITIVE for held
+          # contracts: each synthetic day has a different expiry.
+          # Positive control: one BTC Monday with TWO stable same-expiry puts
+          # on every original pre-expiry day, then restore all source bytes.
+          saved={}
+          for j in range(28):
+              day=date(2021,12,13)+timedelta(days=j)
+              idx=(day-start).days
+              entry=manifest['days'][idx]
+              path=root/entry['file']
+              saved[idx]=(path.read_bytes(),dict(entry))
+              table=list(csv.reader(gzip.decompress(saved[idx][0]).decode().splitlines()))
+              epoch=int(datetime(day.year,day.month,day.day,tzinfo=timezone.utc).timestamp()*1_000_000)
+              for k,strike in enumerate((27000,24000),start=3):
+                  ts=str(epoch+k*1_000_000)
+                  table.append(['deribit',f'BTC-10JAN22-{strike}-P',ts,ts,
+                                '0.02','0.025','2','2'])
+              buff=io.StringIO(newline='')
+              writer=csv.writer(buff);writer.writerows(table)
+              raw=gzip.compress(buff.getvalue().encode())
+              path.write_bytes(raw)
+              entry['sha256']=hashlib.sha256(raw).hexdigest()
+              entry['rows']=4
+          mp.write_text(json.dumps(manifest))
+          positive=main(str(root),str(root/'positive_report.json'))
+          positive_oracle=oracle(str(root),str(root/'positive_report.json'))
+          assert positive['asset_weeks_with_same_contract_pair_preexpiry_presence']==1
+          assert positive_oracle['same_contract_pair_preexpiry_asset_weeks']==1
+          assert positive['asset_weeks_with_necessary_daily_presence']==180
+          assert positive['certified_complete_option_lifecycles']==0
+          for idx,(raw,entry) in saved.items():
+              (root/entry['file']).write_bytes(raw)
+              manifest['days'][idx]=entry
+          mp.write_text(json.dumps(manifest))
+          fixed_report=main(str(root),str(root/'fixed_report.json'))
+          fixed_independent=oracle(str(root),str(root/'fixed_report.json'))
+          assert fixed_report['asset_weeks_with_same_contract_pair_preexpiry_presence']==0
           forged_fixed=json.loads(json.dumps(fixed_report))
           forged_fixed['weekly'][-1]['required_daily_marks']=36
           try: verify(root,forged_fixed)
           except AssertionError as exc: assert str(exc)=='FORGED_ORIGINAL_WEEKLY_COVERAGE'
           else: raise AssertionError('FIXED_SEALED_FUTURE_ACCEPTED')
+          forged_continuity=json.loads(json.dumps(fixed_report))
+          forged_continuity['asset_weeks_with_same_contract_pair_preexpiry_presence']=1
+          try: verify(root,forged_continuity)
+          except AssertionError as exc: assert str(exc)=='FORGED_SAME_CONTRACT_PAIR_CONTINUITY'
+          else: raise AssertionError('FORGED_CONTRACT_CONTINUITY_ACCEPTED')
           forged_scope=json.loads(json.dumps(fixed_report))
           forged_scope['source_scope']='LEGACY_21_45D'
           try: verify(root,forged_scope)
@@ -165,7 +209,9 @@ jobs:
           print('Clock controls: valid previous-day venue event ACCEPTED;')
           print('10m stale venue event NOT counted as mark; wrong arrival day REJECTED.')
           print('661/661 synthetic UTC days; legacy 182/182 22-day weak presence;')
-          print('fixed 180/180 28-35d weak presence, last week 34 days; no sealed days;')
+          print('fixed 180/180 weak presence but 0/180 exact-contract pairs;')
+          print('positive control 1/180 two stable puts pre-expiry, independently matched;')
+          print('last week 34 days; no sealed days;')
           print('7 boundary/integrity controls including arrival-day, stale-event and future timestamp.')
           print('0 certified original complete lifecycles; NO ECONOMIC TRAIN / NO ROI / NO ORDERS.')
           PY
