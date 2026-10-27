@@ -56,6 +56,8 @@ class FakeOpener:
                 grant["exchange"] = "bitmex"
             if self.scope_mode == "limited_both":
                 grant["symbols"] = ["BTC-30DEC22-15000-P", "ETH-30DEC22-1000-P"]
+            if self.scope_mode == "group_options":
+                grant["symbols"] = ["OPTIONS"]
             if self.scope_mode == "not_array":
                 return FakeResponse(200, json.dumps(grant).encode())
             return FakeResponse(200, json.dumps([grant]).encode())
@@ -113,8 +115,16 @@ class ScopeProbeTests(unittest.TestCase):
                 result = check(key="secret-test-key", opener=FakeOpener(scope_mode=mode))
                 self.assertEqual(result["status"], "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
 
-    def test_explicit_btc_and_eth_option_ids_allow_probe_only(self):
-        result = check(key="secret-test-key", opener=FakeOpener(scope_mode="limited_both"))
+    def test_two_specific_btc_eth_options_do_not_grant_full_universe(self):
+        opener = FakeOpener(scope_mode="limited_both")
+        result = check(key="secret-test-key", opener=opener)
+        self.assertFalse(result["scope_claims_train_coverage"])
+        self.assertEqual(result["status"], "BLOCKED_UNVERIFIED_2021_2023_DERIBIT_OPTIONS_ENTITLEMENT")
+        self.assertEqual(len(opener.calls), 1)
+        self.assertFalse(result["complete_2021_2023_archive_verified"])
+
+    def test_explicit_options_group_allows_bounded_probe_only(self):
+        result = check(key="secret-test-key", opener=FakeOpener(scope_mode="group_options"))
         self.assertTrue(result["scope_claims_train_coverage"])
         self.assertEqual(result["status"], "ACCESS_PROBE_ONLY_NOT_ARCHIVE_CERTIFIED")
         self.assertFalse(result["complete_2021_2023_archive_verified"])
