@@ -6,7 +6,7 @@
 - Preregistered **before IN implementation and IN PnL**: commit [18d385b](https://github.com/DnSiii/CryptoAI-Lab/commit/18d385bcd8874170909f2f9ad3b55856339fcd13).
 - Original [GitHub Actions IN run 40524927032](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40524927032), pinned native Clean-4 2022–2024 artifact from run 40064588623. Source manifest SHA256 `833013a2e18836a203afd267ca698175907cff8f4c153c919a7811f14cb80752`.
 - Only BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT, Dec-2022 warmup and 2023–2024 training. Causal completed close t and next actual open t+1, signed native funding/mark, independent USD10k physical cash books, no synthetic fills.
-- Pre-PnL source/quote/casual-future-mutation checks PASS. Financed source epochs 2023 core/opportunity/RV/stress **53/41/52/50**, 2024 **52/40/50/39**.
+- Pre-PnL source/quote/causal-future-mutation checks PASS. Financed source epochs 2023 core/opportunity/RV/stress **53/41/52/50**, 2024 **52/40/50/39**.
 - **30/30** distinct physical book x cost x funding-order economic cells survive; Ubuntu 22.04 and 24.04 receipts reproducible; audit errors []. Five independent every-settled-hour native oracle jobs PASS: 105,258 settled-hour verifications and 13,152 funding-event-hour verifications per book; totals 526,290/65,760 are verification operations, **not** distinct trades or outcomes.
 - Independently re-extracted all five original Ubuntu 22.04 book artifacts (30 physical cells) and original economic summary, recomputed all annual NAV/log-growth identities, cross-book source SHA and all 36 year x scenario x sleeve marginal differences **exactly** without rerunning economic decisions or changing parameters. Original artifacts are the source of truth.
 
