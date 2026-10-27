@@ -48,6 +48,6 @@ jobs:
                         'total',sum(years.values()))
           print('IB_FROZEN_GATES',json.dumps({
               k:x[k] for k in ('growth_gates_10k','marginal_gates_10k',
-                               'severe_drawdown_gate_10k','turnover_gate_10k','hihz_growth_gate_10k')},sort_keys=True))
+                               'severe_drawdown_gate_10k','turnover_gate_10k','hiib_growth_gate_10k')},sort_keys=True))
           print('IB_READONLY_TRAINING_REJECTION_NO_HOLDOUT_NO_LIVE')
           PY
