@@ -103,7 +103,7 @@ def bundle(opening,high,low,close,rate,event,quote):
         updates[t]=True
         if (not np.all(np.isfinite(targets[t])) or
             not np.allclose(np.abs(targets[t]).sum(axis=1),1. if (good or np.any(targets[t])) else 0.,atol=1e-10) or
-            np.any(np.abs(targets[t])>.60000000001) and good):
+            (np.any(np.abs(targets[t,1:])>.60000000001) and good)):
             raise ValueError('JA_TARGET_BUDGET_INVALID')
     return targets,updates,regimes,valid,forecasts
 
