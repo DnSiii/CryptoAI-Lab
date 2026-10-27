@@ -18,7 +18,7 @@
 
 High-growth, severe drawdown, turnover, annual positive growth and mechanical reproducibility gates passed; the complete portfolio **fails two required marginal growth gates**. The Stress/Recovery shortfall is concentrated in 2023 and cannot be cosmetically rescued by a hindsight regime switch. Relative Value is too weak even before separate validation. The Core-only base CAGR was +60.5277%, but this is **not** permission to promote a JA subset.
 
-## Native all-hour oracle status
-Independent all-settled-hour funding/mark oracle was launched within run 40604834032 after artifact audit; its final outcome must be checked before claiming all independent liquidation audits passed. Regardless of oracle outcome, the immutable economic rejection stands.
+## Native all-hour oracle status — verified complete
+All five independent original-ledger replay jobs **PASS**, within [run 40604834032](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40604834032): Core-only, Full, minus-Opportunity, minus-Relative-Value, minus-Stress. Each checked 104,256 actually settled hourly cases across the preregistered six cost/funding-order combinations, including 13,026 signed native funding-event hours; no ledger mismatch. This verifies physical accounting, **not** economic acceptance. The complete JA portfolio remains rejected on the frozen marginal growth gates.
 
 **Final JA status:** rejected, no 2025 validation access, no external V14/V15/V99 benchmark access, no future holdout, no Frozen/paper changes, no real trading. Next genuinely distinct portfolio-level hypothesis must be preregistered before code/results; no JA rescue.
