@@ -49,9 +49,9 @@ def _independent_days(root: Path):
     expiry_to_entries = {}
     for m in entries_monday:
         # The option expires 08:00 UTC: 35 calendar days means 35d8h
-            # after the Monday 00:00 decision, outside the fixed <=35d rule.
-            for tenor in range(28, 35):
-                expiry = m + timedelta(days=tenor)
+        # after the Monday 00:00 decision, outside the fixed <=35d rule.
+        for tenor in range(28, 35):
+            expiry = m + timedelta(days=tenor)
             if expiry < STOP:
                 expiry_to_entries.setdefault(expiry, []).append(m)
     sunday_entry = {m - timedelta(days=1): m for m in entries_monday}
