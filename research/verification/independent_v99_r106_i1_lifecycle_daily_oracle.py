@@ -21,7 +21,9 @@ FIELDS = ("exchange", "symbol", "timestamp", "local_timestamp",
 
 def _independent_days(root: Path):
     manifest = json.loads((root / "manifest.json").read_bytes())
-    if (manifest.get("schema") != "V99_I1_ORIGINAL_661_DAY_TRAIN_LIFECYCLE_TAPE_V1"
+    if (manifest.get("schema") not in (
+            "V99_I1_ORIGINAL_661_DAY_TRAIN_LIFECYCLE_TAPE_V1",
+            "V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1")
             or manifest.get("venue") != "deribit"
             or type(manifest.get("fixture")) is not bool
             or manifest.get("train_start") != START.isoformat()
@@ -98,9 +100,9 @@ def _independent_days(root: Path):
 
 def verify(root: Path, report: dict):
     if (report.get("schema") != "V99_I1_661_DAY_LIFECYCLE_DAILY_PRESENCE_REPORT_V1"
-            or report.get("days") != 661 or report.get("asset_weeks") != 182
-            or report.get("required_days_per_asset_week") != 22
-            or report.get("certified_complete_option_lifecycles") != 0):
+            or report.get("days") != 661
+            or report.get("certified_complete_option_lifecycles") != 0
+            or report.get("daily_market_presence_only_not_same_contract_marks") is not True):
         raise AssertionError("FORGED_LIFECYCLE_COVERAGE_HEADER")
     for k in ("native_fees_authenticated", "native_margin_authenticated",
               "size_aware_fills_authenticated", "economic_train_executed",
@@ -111,6 +113,11 @@ def verify(root: Path, report: dict):
     if report.get("source_manifest_self_declared_not_vendor_certified") is not True:
         raise AssertionError("FORGED_VENDOR_ATTESTATION")
     manifest, daily = _independent_days(Path(root))
+    fixed = manifest["schema"] == "V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1"
+    if (report.get("source_scope") != ("FIXED_28_35D" if fixed else "LEGACY_21_45D")
+            or report.get("asset_weeks") != (180 if fixed else 182)
+            or report.get("required_days_per_asset_week") != (36 if fixed else 22)):
+        raise AssertionError("FORGED_LIFECYCLE_COVERAGE_HEADER")
     expected_status = ("SYNTHETIC_FIXTURE_NOT_ECONOMICS" if manifest["fixture"]
                        else "SOURCE_DAILY_PRESENCE_ONLY_NOT_EXECUTION_CERTIFIED")
     if (report.get("status") != expected_status or report.get("fixture") != manifest["fixture"]
@@ -120,17 +127,23 @@ def verify(root: Path, report: dict):
     calendar = {x["date"]: x for x in daily}
     weekly = []
     day = START + timedelta(days=(7 - START.weekday()) % 7)
-    while day + timedelta(days=21) < STOP:
+    while day + timedelta(days=28 if fixed else 21) < STOP:
+        if fixed:
+            last = min(day + timedelta(days=35), STOP - timedelta(days=1))
+            count_days = (last - day).days + 1
+        else:
+            count_days = 22
         for asset in ("BTC", "ETH"):
             absent = [(day + timedelta(days=i)).isoformat()
-                      for i in range(22)
+                      for i in range(count_days)
                       if calendar[(day + timedelta(days=i)).isoformat()][asset] is False]
             weekly.append({"decision_utc": day.isoformat(), "asset": asset,
-                           "required_daily_marks": 22, "missing_daily_marks": len(absent),
+                           "required_daily_marks": count_days,
+                           "missing_daily_marks": len(absent),
                            "first_missing_day": absent[0] if absent else None,
                            "necessary_daily_presence": len(absent) == 0})
         day += timedelta(days=7)
-    if len(weekly) != 182 or report.get("weekly") != weekly:
+    if len(weekly) != (180 if fixed else 182) or report.get("weekly") != weekly:
         raise AssertionError("FORGED_ORIGINAL_WEEKLY_COVERAGE")
     count = sum(x["necessary_daily_presence"] for x in weekly)
     if report.get("asset_weeks_with_necessary_daily_presence") != count:
