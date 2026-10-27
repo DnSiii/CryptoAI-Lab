@@ -8,6 +8,10 @@ from test_hq_spot_masked_feature_gate import HQFeatureInputTests
 
 
 class InventoryIsolationTests(unittest.TestCase):
+    def test_hr_sevenslot_source_is_causal_before_any_pnl(self):
+        from hr_spot_participation_sources import static_check
+        self.assertTrue(static_check())
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
