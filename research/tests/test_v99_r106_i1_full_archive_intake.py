@@ -16,15 +16,15 @@ FIELDS=("exchange","symbol","timestamp","local_timestamp",
         "bid_price","ask_price","bid_amount","ask_amount")
 
 
-def make_fixture(root):
+def make_fixture(root, fixed_tenor=False):
     root=Path(root);root.mkdir(parents=True,exist_ok=True)
     ds=[]
     first=datetime(2021,12,13,tzinfo=timezone.utc)
-    for i in range(91):
+    for i in range(90 if fixed_tenor else 91):
         d=first+timedelta(days=7*i)
         sunday=d-timedelta(days=1)
         stamp=int((d-timedelta(seconds=80)).timestamp()*1_000_000)
-        expiry=(d+timedelta(days=21)).strftime("%d%b%y").upper()
+        expiry=(d+timedelta(days=(28 if fixed_tenor else 21))).strftime("%d%b%y").upper()
         name=sunday.strftime("%Y-%m-%d")+".csv"
         with (root/name).open("w",newline="",encoding="utf-8") as f:
             writer=csv.DictWriter(f,fieldnames=FIELDS)
@@ -41,7 +41,8 @@ def make_fixture(root):
                    "file":name,"sha256":hashlib.sha256(b).hexdigest(),
                    "rows":4,"complete_capture":True})
     (root/"manifest.json").write_text(json.dumps({
-        "schema":"I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1",
+        "schema":("I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1" if fixed_tenor
+                  else "I1_FULL_TRAIN_SUNDAY_ARCHIVE_V1"),
         "venue":"deribit","fixture":True,"days":ds},indent=2)+"\n")
     return ds
 
@@ -51,15 +52,16 @@ def attach_synthetic_native_bytes(root, late_first_btc=False):
     root=Path(root)
     manifest=json.loads((root/"manifest.json").read_text())
     manifest["fixture"]=False  # adversarially exercise non-fixture fail-closed path
+    fixed_tenor = manifest["schema"] == "I1_FIXED_TENOR_TRAIN_SUNDAY_ARCHIVE_V1"
     (root/"manifest.json").write_text(json.dumps(manifest))
     fields=("instrument_name","creation_timestamp","expiration_timestamp","strike",
             "option_type","settlement_currency","contract_size","min_trade_amount","tick_size")
     sources,registry={},{}
     for asset in ("BTC","ETH"):
         rows=[]
-        for i in range(91):
+        for i in range(90 if fixed_tenor else 91):
             decision=datetime(2021,12,13,tzinfo=timezone.utc)+timedelta(weeks=i)
-            expiry=decision+timedelta(days=21,hours=8)
+            expiry=decision+timedelta(days=(28 if fixed_tenor else 21),hours=8)
             for strike in (100,110):
                 created=decision-timedelta(days=1)
                 if late_first_btc and asset=="BTC" and i==0 and strike==110:
@@ -110,6 +112,65 @@ class FullArchiveIntakeTests(unittest.TestCase):
             path.write_text(json.dumps(result))
             audit(root,path)
 
+
+    def test_fixed_90_week_archive_original_byte_and_export_oracles(self):
+        from research.tools.v99_r106_i1_entry_book_export import export_books
+        from research.verification.independent_v99_r106_i1_entry_book_export import audit as audit_books
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/"fixed"
+            ds=make_fixture(root,fixed_tenor=True)
+            self.assertEqual(len(ds),90)
+            self.assertEqual(ds[-1]["date"],"2023-08-27")
+            result=evaluate(root)
+            self.assertEqual(result["source_scope"],"FIXED_28_35D")
+            self.assertEqual(result["maturity_eligible_weeks"],90)
+            self.assertEqual(result["right_censored_weeks"],4)
+            self.assertEqual(result["required_asset_weeks"],180)
+            self.assertEqual(result["two_strike_asset_weeks"],180)
+            report=root/"intake.json";report.write_text(json.dumps(result))
+            audit(root,report)
+            books=export_books(root)
+            self.assertEqual(books["required_pairs"],180)
+            self.assertEqual(books["source_pairs"],180)
+            self.assertEqual(books["synchronized_source_pairs"],180)
+            self.assertEqual(len(books["quotes"]),360)
+            exported=root/"books.json";exported.write_text(json.dumps(books))
+            self.assertEqual(audit_books(root,exported),360)
+            self.assertFalse(books["economic_train_executed"])
+
+    def test_fixed_90_week_nonfixture_original_listing_gate(self):
+        from research.tools.v99_r106_i1_entry_book_export import export_books
+        from research.verification.independent_v99_r106_i1_entry_book_export import audit as audit_books
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/"fixed"
+            make_fixture(root,fixed_tenor=True)
+            attach_synthetic_native_bytes(root,late_first_btc=True)
+            result=evaluate(root)
+            self.assertEqual(result["two_strike_asset_weeks"],179)
+            report=root/"intake.json";report.write_text(json.dumps(result))
+            audit(root,report)
+            books=export_books(root)
+            self.assertEqual(books["source_pairs"],179)
+            self.assertEqual(len(books["quotes"]),359)
+            out=root/"books.json";out.write_text(json.dumps(books))
+            self.assertEqual(audit_books(root,out),359)
+            self.assertFalse(books["economic_train_executed"])
+
+    def test_fixed_scope_rejects_legacy_extra_week_and_missing_day(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/"fixed"
+            make_fixture(root,fixed_tenor=True)
+            manifest_path=root/"manifest.json"
+            manifest=json.loads(manifest_path.read_text())
+            manifest["days"].append(dict(manifest["days"][-1]))
+            manifest_path.write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError,"INCOMPLETE_OR_DUPLICATED_DECISION_DAYS"):
+                evaluate(root)
+            manifest["days"].pop()
+            manifest["days"].pop()
+            manifest_path.write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError,"INCOMPLETE_OR_DUPLICATED_DECISION_DAYS"):
+                evaluate(root)
 
     def test_nonfixture_without_original_native_bytes_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
