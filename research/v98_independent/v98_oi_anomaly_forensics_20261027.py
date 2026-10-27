@@ -9,6 +9,13 @@ CASES=(("BTCUSDT","2024-04-01"),("BTCUSDT","2024-04-10"),
        ("BNBUSDT","2023-11-16"),("BTCUSDT","2024-02-16"),
        ("BTCUSDT","2023-04-10"))
 OUT=Path(__file__).resolve().parent/"v98_oi_anomaly_forensics_20261027.json"
+def valid_oi(value):
+    try:
+        x=float(value)
+        return math.isfinite(x) and x>0
+    except (ValueError,TypeError):
+        return False
+
 def inspect(asset,date):
     url=f"{ROOT}/{asset}/{asset}-metrics-{date}.zip"
     payload=get(url);side=get(url+".CHECKSUM").decode("utf-8-sig")
@@ -24,8 +31,7 @@ def inspect(asset,date):
     by_day=dict(collections.Counter(x.date().isoformat() for x in ts))
     diffs=[(b-a).total_seconds()/60 for a,b in zip(ts,ts[1:])]
     bad_values=[{"index":i,"timestamp":row[key],"value":row[oi_key]}
-                for i,row in enumerate(rows) if not
-                (math.isfinite(float(row[oi_key])) and float(row[oi_key])>0)]
+                for i,row in enumerate(rows) if not valid_oi(row[oi_key])]
     return {"asset":asset,"archive_day":date,"zip_sha256":sha,"checksum_pass":True,
             "rows":len(rows),"first_raw":rows[0][key],"last_raw":rows[-1][key],
             "first_utc":ts[0].isoformat(),"last_utc":ts[-1].isoformat(),
