@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""IF preregistered native joint-flow absorption and price-response divergence composed seven-slot shared-collateral 30-cell USD10k historical TRAINING only.
+"""IE preregistered native joint-flow absorption and price-response divergence composed seven-slot shared-collateral 30-cell USD10k historical TRAINING only.
 Causal completed-close source; next actual open; exact Dec-2022 warmup and pinned 2023-2024 native funding.
 No 2025, V99, frozen engines, paper, live orders or external benchmarks.
 """
@@ -10,11 +10,11 @@ from pathlib import Path
 from if_joint_sources import bundle,WARMUP,static_check,GROSS,PRIOR,load_joint
 from gl_order_invariant_governor import GLOrderInvariantBufferedGovernor as HEBufferedGovernor
 from v98_staged_exit_viability_governor_v2 import FEES,ORDERS,prior_min_exit_window_quote
-# IF-local equivalent of generic prior-only risk bounds; generic helper has
+# IE-local equivalent of generic prior-only risk bounds; generic helper has
 # an unrelated 2016h guard despite needing only 672h history.
 def if_prior_only_risk_history(opening,high,low,rate,event,quote,t):
     if t<672 or t>len(opening):
-        raise ValueError("IF_INSUFFICIFNT_PRIOR_RISK_HISTORY")
+        raise ValueError("IF_INSUFFICIENT_PRIOR_RISK_HISTORY")
     down=np.maximum(.40,np.max(1.-low[t-336:t]/opening[t-336:t],axis=0))
     up=np.maximum(.65,np.max(high[t-336:t]/opening[t-336:t]-1.,axis=0))
     funding=np.maximum(.0005,3.*np.max(
