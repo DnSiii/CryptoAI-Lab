@@ -80,7 +80,7 @@ def probe(opener=None, *, max_bytes=MAX_BYTES, clock=None):
                             return result
                         prefix = (prefix + block)[:2]
                         out.write(block)
-                if (prefix != b"\\x1f\\x8b" or result["downloaded_bytes"] < 10):
+                if (prefix != b"\x1f\x8b" or result["downloaded_bytes"] < 10):
                     result["status"] = "PUBLIC_DAY_NOT_GZIP"
                     return result
                 if declared is not None and int(declared) != result["downloaded_bytes"]:
