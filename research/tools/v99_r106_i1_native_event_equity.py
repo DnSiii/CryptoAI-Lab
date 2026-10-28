@@ -16,6 +16,7 @@ from research.tools.v99_r106_i1_native_coin_account_replay import (
     D, Quote, account_nav, mark_to_exit, open_vertical, settle_batch, start_wallet,
 )
 from research.tools.v99_r106_i1_fixed_vertical_bridge import select_fixed_vertical
+from research.tools.v99_r106_i1_full_archive_intake import eligible
 from research.tools.v99_r106_i1_cost_bound_execution import charge_floor, verify_charges
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, REGIMES, SCENARIOS, _expected_clock, _fold,
@@ -182,6 +183,76 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
     return result
 
 
+
+def _validate_decision_ledger(document):
+    """Bind each fixed BTC/ETH Monday to an explicit decision and real OPEN.
+
+    The ledger itself is self-declared; independent original source and risk
+    replay is still mandatory before any certified economic TRAIN.
+    """
+    decisions = document.get("decisions")
+    if decisions is None and document["fixture"]:
+        return  # backward-compatible synthetic smoke tests only
+    grid = [(int(day.timestamp()*1000), asset) for day in eligible(True)
+            for asset in ("BTC", "ETH")]
+    if not isinstance(decisions, list) or len(decisions) != len(grid):
+        raise ValueError("MISSING_COMPLETE_FIXED_180_DECISION_LEDGER")
+    expected_opens = set()
+    for decision, (at_ms, asset) in zip(decisions, grid):
+        if not isinstance(decision, dict) or set(decision) != {
+            "decision_ms", "asset", "fold", "signal", "action", "reason"
+        }:
+            raise ValueError("INVALID_FIXED_DECISION_ROW")
+        if (type(decision["decision_ms"]) is not int
+                or decision["decision_ms"] != at_ms
+                or decision["asset"] != asset
+                or type(decision["fold"]) is not int
+                or decision["fold"] != _fold(at_ms)):
+            raise ValueError("MISSING_DUPLICATE_OR_SHIFTED_FIXED_DECISION")
+        signal, action, reason = (decision["signal"], decision["action"],
+                                  decision["reason"])
+        if signal not in ("POSITIVE_EX_ANTE_PREMIUM", "NO_PREMIUM",
+                          "NO_30D_HISTORY"):
+            raise ValueError("INVALID_FIXED_ORIGINAL_SIGNAL")
+        if action == "OPEN":
+            if signal != "POSITIVE_EX_ANTE_PREMIUM" or reason != "FIXED_VERTICAL":
+                raise ValueError("OPEN_WITHOUT_POSITIVE_FIXED_SIGNAL")
+            expected_opens.add((at_ms, asset))
+        elif action == "CASH":
+            allowed = {
+                "POSITIVE_EX_ANTE_PREMIUM": ("NO_ELIGIBLE_FIXED_VERTICAL", "RISK_VETO"),
+                "NO_PREMIUM": ("NO_PREMIUM",),
+                "NO_30D_HISTORY": ("NO_30D_HISTORY",),
+            }
+            if reason not in allowed[signal]:
+                raise ValueError("UNJUSTIFIED_FIXED_CASH_DECISION")
+        else:
+            raise ValueError("INVALID_FIXED_DECISION_ACTION")
+    for scenario in SCENARIOS:
+        actual = set()
+        for day in document["scenarios"][scenario]:
+            if not isinstance(day, dict) or not isinstance(day.get("events"), list):
+                raise ValueError("MISSING_NATIVE_DAILY_EVENTS_OR_INDICES")
+            for event in day["events"]:
+                if not isinstance(event, dict):
+                    raise ValueError("INVALID_NATIVE_JOURNAL_EVENT")
+                if event.get("kind") != "OPEN":
+                    continue
+                key = (event.get("at_ms"), event.get("asset"))
+                if key in actual:
+                    raise ValueError("DUPLICATE_FIXED_ASSET_WEEK_ENTRY")
+                actual.add(key)
+                matching = next((row for row in decisions
+                                 if (row["decision_ms"], row["asset"]) == key), None)
+                signal = event.get("signal")
+                if (matching is None or not isinstance(signal, dict)
+                        or any(signal.get(k) != matching[k] for k in
+                               ("decision_ms", "asset", "fold", "signal"))):
+                    raise ValueError("UNBOUND_OPEN_TO_FIXED_ORIGINAL_SIGNAL")
+        if actual != expected_opens:
+            raise ValueError("MISSING_OR_SELECTIVE_FIXED_DECISION_EXECUTION")
+
+
 def replay(document):
     if (not isinstance(document, dict) or document.get("schema") != SCHEMA
             or type(document.get("fixture")) is not bool
@@ -200,6 +271,7 @@ def replay(document):
     initial_usd = sum((coin[a]*index[a] for a in coin), D(0))
     if initial_usd != D(document.get("initial_capital_usd")):
         raise ValueError("INITIAL_NATIVE_CAPITAL_NOT_SELF_FINANCING")
+    _validate_decision_ledger(document)
     results = {scenario: _run_scenario(document["scenarios"][scenario],
                                       scenario, coin, index, initial_usd)
                for scenario in SCENARIOS}
