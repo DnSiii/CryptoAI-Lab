@@ -1,0 +1,16 @@
+# V99 I1 — passive-native benchmark integrity correction, CI result (2026-10-28 04:51 BRT)
+
+**Decision: SOURCE_ONLY/HOLD — NO PROMOTION.** A genuine correctness defect in the 661-day TRAIN accounting bridge was fixed. Previously `benchmark_usd` was accepted from the event journal if positive, allowing arbitrary comparison against a flat/low benchmark while the wallet passively holds BTC+ETH. That could falsely attribute underlying coin price appreciation to the options engine.
+
+## Preregister -> implementation -> GitHub execution -> independent controls
+
+- Preregistration committed **before implementation**: `f72f46d803f57206fb97a1d1cd7d6f92797d0559` in `research/V99_R106_I1_PASSIVE_NATIVE_BENCHMARK_BINDING_PREREG_20261028.md`.
+- Engine now computes daily passive-native benchmark from **initial BTC coin × daily BTC index + initial ETH coin × daily ETH index**. Any supplied `benchmark_usd` must match exactly; otherwise `FORGED_PASSIVE_NATIVE_BENCHMARK`. The computed value, not the supplied value, is passed to numeric gates. No source-index authenticity is inferred.
+- Independent synthetic controls on 661 days: varying original-index inputs give the exact native passive benchmark; forged low/high comparisons are rejected; a rising BTC/ETH index with **no options positions** yields a positive USD NAV but **exactly the same passive benchmark ROI**, so `original_benchmark_excess=False` and `numeric_pass=False`. A rising passive coin wallet is not option alpha.
+- Intermediate Actions **40652406078**, **40652430720**, **40652555411**, **40652608586** failed during integration because the existing cross-scenario mismatch test expected a specific error message after the stronger benchmark guard correctly rejected the same corruption earlier. This was diagnosed from actual CI logs and the test was isolated/corrected; do not count failed runs as passing.
+- Final [GitHub Actions 40652683919](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40652683919) on `5a7426047dc672121a43dd62a30cfe444240b585`: **SUCCESS, 12/12 tests**, prereg ancestry and nonfixture economic block explicitly checked. The source-gate output remains `BLOCKED_ORIGINAL_ECONOMIC_SOURCE_PROVENANCE_NOT_CERTIFIED`; **0/180 original option lifecycles certified**.
+- Compared `529d343` (start of cycle) to `5a742604`: only the prereg note, event-to-equity bridge and its tests changed; no V16/V99 Frozen, champion, paper/results, validation or holdout changes. No orders.
+
+## Limits and next real critical path
+
+The benchmark fix closes one possible **false positive** in numeric gating, not the external historical provenance gap. No new historical TRAIN, real ROI, native fees, original margin or independently executed fills were established. Required: licensed 2021-12-09..2023-09-30 original Deribit BTC+ETH options BBO/size tape with venue/arrival clocks through all entry/mark/expiry lifecycles; dated native account fee-tier, contract/margin/maintenance/liquidation and delivery-index receipts; independent source-bound fill/accounting replay. Existing Tardis invoiced five-year OPTIONS entitlement or verified equivalent remains an **unacquired** potential source. Do not open sealed validation before genuine original TRAIN pass and formal freeze. Keep `SOURCE_ONLY/HOLD`, `NO PROMOTION`.
