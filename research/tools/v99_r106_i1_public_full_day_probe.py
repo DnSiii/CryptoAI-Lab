@@ -14,7 +14,7 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
-from research.tools.v99_r106_i1_local_tape_import import scan_day
+from research.tools.v99_r106_i1_local_tape_import import scan_day, require_hourly_original_coverage
 
 DAY = date(2022, 6, 1)
 URL = "https://datasets.tardis.dev/v1/deribit/quotes/2022/06/01/OPTIONS.csv.gz"
@@ -43,6 +43,7 @@ def probe(opener=None, *, max_bytes=MAX_BYTES, clock=None):
         "validation_opened": False, "holdout_opened": False,
         "promotion_authorized": False, "orders_enabled": False,
         "real_full_day_original_quote_scan_passed": False,
+        "btc_eth_24_hour_source_coverage": False,
         "downloaded_bytes": 0,
     }
     request = urllib.request.Request(URL, headers={
@@ -94,6 +95,14 @@ def probe(opener=None, *, max_bytes=MAX_BYTES, clock=None):
                     result["scan_error_type"] = type(exc).__name__
                     return result
                 result["rows"] = scanned["rows"]
+                result["qualifying_put_arrival_hours_by_asset"] = scanned[
+                    "qualifying_original_put_arrival_hours_by_asset"]
+                try:
+                    require_hourly_original_coverage(scanned)
+                except ValueError:
+                    result["status"] = "PUBLIC_DAY_HOURLY_GAP"
+                    return result
+                result["btc_eth_24_hour_source_coverage"] = True
                 result["sha256"] = scanned["sha256"]
                 result["qualifying_put_rows_by_asset"] = scanned[
                     "qualifying_original_put_quote_rows_by_asset"]
