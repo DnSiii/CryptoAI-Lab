@@ -122,7 +122,7 @@ class SourceDrivenEntryBookTests(unittest.TestCase):
                             for q in out["rows"][0]["original_books"]))
 
     def test_out_of_order_capture_rejected(self):
-        self.update_sunday([self.original[1], self.original[0]])
+        self.update_sunday([source_row("BTC-14JAN22-36000-P", SUNDAY, 23, 59, 59), self.original[0]])
         with self.assertRaisesRegex(ValueError, "ORIGINAL_CAPTURE_ORDER"):
             build(self.root, intents())
 
