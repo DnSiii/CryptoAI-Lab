@@ -15,7 +15,7 @@ WARMUP=744
 CLOCK=336
 GROSS={"NORMAL":.90,"STRESS":.72,"RECOVERY":.85}
 PATHS=("JV_core_only","JV_full","JV_minus_opportunity","JV_minus_RV","JV_minus_stress")
-PIN="JV_SOURCE_SHA_PENDING_INDEPENDENT_DUAL_OS"
+PIN="2cfc45817b5f8ec3ddc3c51332393693c5f06077c85bad43f2ae0b454c7720d2"
 COLS=("volume_hhi","signed_volume_impulse","late_volume_share","directional_efficiency")
 
 def load_verified():
