@@ -16,3 +16,6 @@ For **each** of the 661 UTC arrival days, require at least one causally timestam
 
 ## Decision rule
 If software tests pass, mark **SOURCE_ONLY/HOLD — NO PROMOTION**. Still require lawful 2021-12-09..2023-09-30 BTC+ETH original Deribit option BBO/sizes with arrival timestamps, original dated fees/lot/margin/liquidation/delivery index and independent full 5-fold TRAIN economics. Sealed validation from 2023-10-01 and final holdout remain unopened.
+
+## Pre-implementation follow-up for source freshness (2026-10-28 ~01:49 BRT)
+The initial content guard above landed and its first CI passed, but its qualifying-row predicate could still count a quote whose exchange event is **more than five minutes older** than local arrival. The already-fixed independent lifecycle oracle excludes these stale receipts. Before this follow-up code change, commit the rule: only count rows with `0 <= arrival_us - exchange_us <= 300_000_000` as qualifying per-asset source presence. Add a negative stale-only BTC day; require atomic failure and preserve existing 11 tests. This is a necessary consistency correction, not an alpha retune or vendor completeness certification.
