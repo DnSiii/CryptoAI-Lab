@@ -3,7 +3,7 @@
 No rejected alpha signal, allocation, risk governor or settlement imports.
 """
 from __future__ import annotations
-import argparse,glob,jton,math
+import argparse,glob,json,math
 from pathlib import Path
 PATIC=("JT_core_only","JT_full","JT_minus_opportunity","JT_minus_RV","JT_minus_stress")
 MODES=("immediate",)
@@ -16,13 +16,13 @@ def near(a,b):
     return math.isclose(float(a),float(b),rel_tol=1e-8,abs_tol=1e-5)
 
 def run(root):
-    files=sorted(glob.glob(str(Path(root)/'*'/'*.jton')))
+    files=sorted(glob.glob(str(Path(root)/'*'/'*.json')))
     errors=[];by_path={}
     for path in PATIC:
         by_path[path]={}
     for filename in files:
         os=next((s for s in OS if s in Path(filename).parent.name),None)
-        try:payload=jton.load(open(filename))
+        try:payload=json.load(open(filename))
         except Exception as exc:
             errors.append(("INVALID_JTON",filename,str(exc)));continue
         p=payload.get("path")
@@ -140,7 +140,7 @@ if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--root",required=True)
     p.add_argument("--output",required=True);a=p.parse_args()
     out=run(a.root)
-    with open(a.output,"w") as f:jton.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
+    with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("JT_AUDIT",out["decision"],"survived",out["cells_survived"],
           "cross_os",out["cross_os_reproducible"],"errors",out["errors"])
     for key in ("full_10k_base","full_10k_severe"):
