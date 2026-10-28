@@ -4,6 +4,9 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - research/tools/v99_r106_i1_public_full_day_probe.py
+      - research/tools/v99_r106_i1_local_tape_import.py
+      - research/tests/test_v99_r106_i1_local_tape_import.py
+      - research/V99_R106_I1_ORIGINAL_DAY_HOURLY_COVERAGE_PREREG_20261028.md
       - research/tests/test_v99_r106_i1_public_full_day_probe.py
       - .github/workflows/v99-r106-i1-public-full-day-smoke.yml
   workflow_dispatch:
@@ -26,9 +29,10 @@ jobs:
       - name: Confirm real-day preregistration predates code
         run: |
           git merge-base --is-ancestor 917d91df8cd0d3ccbba0eaa8229b0dee5335ad1d HEAD
+          git merge-base --is-ancestor df2fb82e5c4325b189d4699bc1dcaac60ab3cc2a HEAD
           test -s research/V99_R106_I1_PUBLIC_FULL_DAY_SOURCE_SMOKE_PREREG_20261028.md
       - name: Test offline adversarial controls (not market evidence)
-        run: python -m unittest research.tests.test_v99_r106_i1_public_full_day_probe -v
+        run: python -m unittest research.tests.test_v99_r106_i1_public_full_day_probe research.tests.test_v99_r106_i1_local_tape_import -v
       - name: Attempt one real free original day, bounded; never upload raw gzip
         run: python -m research.tools.v99_r106_i1_public_full_day_probe | tee public_probe_summary.json
       - name: Verify real vs fixture status and no economic claims
@@ -46,6 +50,8 @@ jobs:
                                        'holdout_opened','promotion_authorized','orders_enabled'))
           if r['status']=='PUBLIC_REAL_FULL_DAY_SOURCE_SMOKE_PASS':
               assert r['real_full_day_original_quote_scan_passed']
+              assert r['btc_eth_24_hour_source_coverage']
+              assert r['qualifying_put_arrival_hours_by_asset']=={'BTC':24,'ETH':24}
               assert r['rows']>0 and all(v>0 for v in r['qualifying_put_rows_by_asset'].values())
               print('REAL PUBLIC DAY SOURCE FORMAT VERIFIED; 660 MORE TRAIN DAYS + NATIVE TERMS MISSING; NO TRAIN')
           else:
@@ -54,7 +60,8 @@ jobs:
               # Unexpected content or importer rejection is a real code/data issue.
               assert r['status'] in ('BOUNDED_REAL_SOURCE_INCOMPLETE',
                   'PUBLIC_DAY_TIME_CAP_EXCEEDED', 'PUBLIC_DAY_HTTP_UNAVAILABLE',
-                  'PUBLIC_DAY_HTTP_NOT_200','PUBLIC_DAY_NETWORK_OR_SOURCE_UNAVAILABLE')
+                  'PUBLIC_DAY_HTTP_NOT_200','PUBLIC_DAY_NETWORK_OR_SOURCE_UNAVAILABLE',
+                  'PUBLIC_DAY_HOURLY_GAP')
           PY
       - name: Upload redacted source-only summary (NEVER archive)
         if: always()
