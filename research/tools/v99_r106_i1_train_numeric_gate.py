@@ -136,14 +136,28 @@ def _one_scenario(rows, initial, scenario):
     }
 
 
-def evaluate(document):
+def _evaluate(document, *, provisional=False):
+    # A provisional diagnostic is deliberately NOT the official economic gate.
+    # It cannot turn original-input claims into source certification.
     if (not isinstance(document, dict)
             or document.get("schema") != "V99_I1_FIXED_90W_DAILY_TRAIN_EQUITY_INPUT_V1"
-            or document.get("fixture") is not True
+            or document.get("fixture") is not (False if provisional else True)
             or set(document.get("scenarios", {})) != set(SCENARIOS)):
-        # Nonfixture economic use remains blocked until independent original
-        # source and native account provenance are actually implemented.
         raise ValueError("ORIGINAL_ECONOMIC_SOURCE_PROVENANCE_NOT_CERTIFIED")
+    if provisional:
+        required_false = (
+            "original_source_receipts_independently_authenticated",
+            "original_options_economic_train_certified",
+            "independent_original_trade_replay_verified",
+            "historical_native_fee_certified",
+            "original_historical_economic_train_executed",
+            "freeze_authorized", "promotion_authorized",
+            "validation_opened", "holdout_opened", "orders_enabled",
+            "paper_publication_authorized",
+        )
+        if (document.get("status") != "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY"
+                or any(document.get(k) is not False for k in required_false)):
+            raise ValueError("PROVISIONAL_SOURCE_OR_CERTIFICATION_FORGERY")
     initial = _money(document.get("initial_capital_usd"))
     results = {
         name: _one_scenario(document["scenarios"][name], initial, name)
@@ -159,9 +173,11 @@ def evaluate(document):
             del value[key]
     return {
         "schema": "V99_I1_TRAIN_NUMERIC_GATE_RESULT_V1",
-        "status": "FIXTURE_NUMERIC_SCREEN_ONLY_NOT_ORIGINAL_ECONOMICS",
+        "status": ("PROVISIONAL_NONFIXTURE_NUMERIC_DIAGNOSTIC_NOT_CERTIFIED"
+                   if provisional else "FIXTURE_NUMERIC_SCREEN_ONLY_NOT_ORIGINAL_ECONOMICS"),
         "days_per_scenario": DAYS,
-        "source_fixture": True,
+        "source_fixture": not provisional,
+        "numeric_screen_descriptive_only": provisional,
         "scenario_path_divergence_days": different,
         "higher_cost_scenario_more_profitable_not_alpha_evidence":
             Decimal(x["total_roi"]) > Decimal(s["total_roi"]),
@@ -169,6 +185,21 @@ def evaluate(document):
             all(value["numeric_pass"] for value in results.values()),
         "scenarios": results, **NO_AUTHORIZATION,
     }
+
+
+def evaluate(document):
+    """Official fixture-only gate. Historical economic certification stays locked."""
+    return _evaluate(document, provisional=False)
+
+
+def evaluate_provisional(document):
+    """Read-only nonfixture TRAIN diagnostic; never source certification or promotion.
+
+    Accepts only the explicitly uncertified native event replay contract.
+    An independently authenticated original source-to-event builder is still
+    required before any historical TRAIN result can be certified.
+    """
+    return _evaluate(document, provisional=True)
 
 
 def main(input_file, output_file):
