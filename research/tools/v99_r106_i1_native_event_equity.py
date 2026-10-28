@@ -195,6 +195,13 @@ def replay(document):
            (y["ts_ms"], y["regime"], y["benchmark_usd"])
            for x, y in zip(a, b)):
         raise ValueError("SCENARIO_BENCHMARK_OR_REGIME_PATH_MISMATCH")
+    # Scenario costs may change exposures, never the original market index.
+    # Compare the source path itself, not the derived NAV.
+    for severe_day, super_day in zip(document["scenarios"]["severe"],
+                                     document["scenarios"]["supersevere"]):
+        for asset in ("BTC", "ETH"):
+            if D(severe_day["index_usd"][asset]) != D(super_day["index_usd"][asset]):
+                raise ValueError("SCENARIO_ORIGINAL_INDEX_PATH_MISMATCH")
     return {
         "schema": OUTPUT_SCHEMA, "fixture": document["fixture"],
         "initial_capital_usd": str(initial_usd),
