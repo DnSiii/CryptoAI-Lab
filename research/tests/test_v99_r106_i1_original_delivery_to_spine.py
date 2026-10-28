@@ -124,7 +124,9 @@ class DeliverySourceSpineTests(unittest.TestCase):
         e["at_ms"] -= DAY_MS
         self.spine["days"][i]["market_events"].append(copy.deepcopy(e))
         self.spine["expiry_due_count"] = 2
-        self.spine["unverified_position_plan_count"] = 2
+        # One original OPEN cannot legitimately settle twice. Keep the real
+        # OPEN count unchanged so duplicate-settlement detection is exercised.
+        self.spine["unverified_position_plan_count"] = 1
         with self.assertRaisesRegex(ValueError, "DUPLICATED_SETTLEMENT_POSITION"):
             bind(self.spine, self.delivery, raw_bytes(self.delivery))
 
