@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """JS cross-asset BTC-to-alt 5m propagation SOURCE ONLY, no PnL/sign selection."""
 from __future__ import annotations
-import calendar,concurrent.futures,hashlib,io,json
+import calendar,concurrent.futures,hashlib,io,json,math
 from datetime import datetime,timezone
 from pathlib import Path
 import numpy as np
@@ -16,6 +16,11 @@ RECEIPT=HERE/"js_cross_asset_5m_propagation_source_receipt.json"
 COLS=("open_time","asset","source_valid","btc_to_alt_lag_cov",
       "alt_to_btc_lag_cov","btc_early_sell_pressure",
       "alt_late_response","btc_late_response")
+
+def canonical_feature(value):
+    x=float(value)
+    if not math.isfinite(x):raise ValueError("JS_NONFINITE_DERIVED_SOURCE")
+    return float(format(x,".12g"))
 
 def source_month(asset,month):
     if asset not in ASSETS or month not in MONTHS:
@@ -112,8 +117,8 @@ def run():
             late_btc=btc[:,6:].sum(axis=1)
             for i,stamp in enumerate(times_all[sl]):
                 usable=bool(hourly_valid[i])
-                values=(float(btc_alt[i]),float(alt_btc[i]),float(early[i]),
-                        float(late_alt[i]),float(late_btc[i])) if usable else (None,)*5
+                values=tuple(canonical_feature(v) for v in
+                             (btc_alt[i],alt_btc[i],early[i],late_alt[i],late_btc[i])) if usable else (None,)*5
                 records.append((int(stamp),asset,int(usable),*values))
         offset+=count
     if offset!=HOURS or len(records)!=HOURS*3:
