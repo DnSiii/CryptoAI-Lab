@@ -12,7 +12,7 @@ from jq_native_5m_path_source import verify_archive,parse_month,compare_1h
 
 HERE=Path(__file__).resolve().parent
 OUT=HERE/"jt_downside_resilience_hourly.csv"
-RECEIPT=HERE/"jt_cross_asset_5m_propagation_source_receipt.json"
+RECEIPT=HERE/"jt_downside_resilience_source_receipt.json"
 COLS=("open_time","asset","source_valid","down_beta","down_resilience",
       "cojump_frequency","up_capture")
 
