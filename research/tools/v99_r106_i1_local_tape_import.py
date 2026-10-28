@@ -47,6 +47,7 @@ def scan_day(path: Path, day: date) -> dict:
     count = 0
     previous = -1
     qualifying_puts = {"BTC": 0, "ETH": 0}
+    entry_tenor_28_45_rows = {"BTC": 0, "ETH": 0}
     qualifying_hour_masks = {"BTC": 0, "ETH": 0}
     try:
         with gzip.open(path, "rt", newline="", encoding="utf-8") as stream:
@@ -80,11 +81,13 @@ def scan_day(path: Path, day: date) -> dict:
                 except (ValueError, TypeError, OverflowError):
                     continue
                 if (arrival - event <= 300_000_000
-                        and day + timedelta(days=28) <= expiry <= day + timedelta(days=45)
+                        and day < expiry <= day + timedelta(days=45)
                         and all(math.isfinite(v) and v > 0 for v in
                                 (strike, bid, ask, bid_size, ask_size))
                         and bid < ask):
                     qualifying_puts[parts[0]] += 1
+                    if expiry >= day + timedelta(days=28):
+                        entry_tenor_28_45_rows[parts[0]] += 1
                     qualifying_hour_masks[parts[0]] |= 1 << ((arrival-lower)//3_600_000_000)
     except (OSError, EOFError, UnicodeError, csv.Error) as exc:
         raise ValueError("CORRUPT_ORIGINAL_GZIP:" + day.isoformat()) from exc
@@ -95,6 +98,7 @@ def scan_day(path: Path, day: date) -> dict:
             raise ValueError("MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:"
                              + day.isoformat() + ":" + asset)
     return {"date": day.isoformat(), "file": path.name,
+            "descriptive_28_45d_put_quote_rows_by_asset": entry_tenor_28_45_rows,
             "qualifying_original_put_arrival_hours_by_asset": {
                 asset: mask.bit_count() for asset, mask in qualifying_hour_masks.items()},
             "qualifying_original_put_arrival_hour_masks_by_asset": {
