@@ -14,15 +14,16 @@ DAY = datetime(2021, 12, 9, tzinfo=timezone.utc)
 DAY_US = int(DAY.timestamp() * 1_000_000)
 
 
-def fake_gzip():
+def fake_gzip(day=DAY):
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
     writer.writerow(("exchange", "symbol", "timestamp", "local_timestamp",
                      "bid_price", "ask_price", "bid_amount", "ask_amount"))
-    expiry = (DAY + timedelta(days=28)).strftime("%d%b%y").upper()
+    expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
+    day_us = int(day.timestamp() * 1_000_000)
     for i, asset, strike in ((1, "BTC", 30000), (2, "ETH", 2000)):
         writer.writerow(("deribit", f"{asset}-{expiry}-{strike}-P",
-                         DAY_US+i*1_000_000, DAY_US+i*1_000_000,
+                         day_us+i*1_000_000, day_us+i*1_000_000,
                          "0.02", "0.025", "1", "1"))
     return gzip.compress(buffer.getvalue().encode())
 
@@ -48,16 +49,17 @@ class Response:
 
 
 class Opener:
-    def __init__(self, *, valid_scope=True, body=None, content_type="application/gzip"):
+    def __init__(self, *, valid_scope=True, body=None, content_type="application/gzip", day=DAY):
         self.valid_scope = valid_scope
-        self.body = fake_gzip() if body is None else body
+        self.day = day
+        self.body = fake_gzip(day) if body is None else body
         self.content_type = content_type
         self.urls = []
     def __call__(self, request, timeout=None):
         self.urls.append(request.full_url)
         if request.full_url.endswith("api-key-info"):
             return Response(scope_bytes(self.valid_scope), content_type="application/json")
-        if not request.full_url.endswith("/2021/12/09/OPTIONS.csv.gz"):
+        if not request.full_url.endswith(self.day.strftime("/%Y/%m/%d/OPTIONS.csv.gz")):
             raise AssertionError("UNEXPECTED_OR_SEALED_NETWORK_REQUEST")
         return Response(self.body, content_type=self.content_type)
 
@@ -109,6 +111,43 @@ class LicensedTransferTests(unittest.TestCase):
         self.assertEqual(again["downloaded_days"], 0)
         self.assertEqual(again["preexisting_valid_days"], 1)
         self.assertEqual(len(opener.urls), 3)
+
+    def test_non_sample_paid_day_without_downloading_earlier_188_days(self):
+        day = datetime(2022, 6, 15, tzinfo=timezone.utc)
+        opener = Opener(day=day)
+        result = self.call(opener, start_date="2022-06-15")
+        self.assertEqual(result["planned_train_days"], 1)
+        self.assertEqual(result["downloaded_days"], 1)
+        self.assertEqual(len(opener.urls), 2)  # scope + one exact source day
+        self.assertTrue(opener.urls[-1].endswith("/2022/06/15/OPTIONS.csv.gz"))
+        self.assertEqual((self.root / "2022-06-15.csv.gz").read_bytes(),
+                         fake_gzip(day))
+        self.assertFalse((self.root / "2021-12-09.csv.gz").exists())
+        self.assertFalse(result["economic_train_executed"])
+        again = self.call(opener, start_date="2022-06-15")
+        self.assertEqual(again["preexisting_valid_days"], 1)
+        self.assertEqual(again["downloaded_days"], 0)
+
+    def test_outside_train_window_rejected_before_network_or_write(self):
+        for start, days in (("2023-09-30", 2), ("2023-10-01", 1),
+                            ("2021-12-08", 1), ("2022-06-15", 500),
+                            ("2022-06-31", 1), ("20220615", 1),
+                            (True, 1)):
+            opener = Opener()
+            with self.subTest(start=start, days=days):
+                with self.assertRaisesRegex(ValueError, "INVALID_OR_SEALED_TRAIN_SOURCE_WINDOW"):
+                    self.call(opener, start_date=start, max_days=days)
+                self.assertEqual(opener.urls, [])
+                self.assertFalse(self.root.exists())
+
+    def test_bounded_final_train_day_and_dry_run_no_network(self):
+        opener = Opener()
+        dry = transfer(self.root, start_date="2023-09-30", max_days=1,
+                       opener=opener)
+        self.assertEqual(dry["first_day"], "2023-09-30")
+        self.assertEqual(dry["last_day"], "2023-09-30")
+        self.assertEqual(opener.urls, [])
+        self.assertFalse(self.root.exists())
 
     def test_html_disguised_as_success_refused(self):
         opener = Opener(body=b"<html>paywall</html>", content_type="text/html")
