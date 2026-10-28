@@ -46,6 +46,15 @@ def run():
     if (masked["decision"]!="MASKED_5M_SOURCE_ONLY_NO_ECONOMIC_AUTHORIZATION"
         or hashlib.sha256(raw_mask).hexdigest()!=masked["feature_csv_sha256"]):
         raise ValueError("JS_MASKED_SOURCE_PIN")
+    upstream=pd.read_csv(io.BytesIO(raw_mask))
+    expected_mask_times=pd.date_range(START,periods=HOURS,freq="h",tz="UTC").strftime("%Y-%m-%dT%H:%M:%SZ").to_numpy()
+    hour_masks={}
+    for asset in ASSETS:
+        rows=upstream.loc[upstream["asset"]==asset].reset_index(drop=True)
+        if (len(rows)!=HOURS or not np.array_equal(rows["open_time"].to_numpy(),expected_mask_times)
+            or not rows["source_valid"].isin([0,1]).all()):
+            raise ValueError("JS_UPSTREAM_MASK_HOURLY_ALIGNMENT_"+asset)
+        hour_masks[asset]=rows["source_valid"].to_numpy(dtype=int).astype(bool)
     canonical={}
     for asset in ASSETS:
         raw=(HERE/"phase243_clean4_canonical"/f"{asset}_1h.csv").read_bytes()
@@ -90,6 +99,7 @@ def run():
                 compare_1h(ohlc,canonical[asset][sl])
             aligned[asset]=ret
         good=all(masked["manifest"][a+"/"+month]["verified"] for a in ASSETS)
+        hourly_valid=np.logical_and.reduce([hour_masks[a][sl] for a in ASSETS]) if good else np.zeros(count,dtype=bool)
         if good:valid_months+=1
         else:quarantine.append(month)
         btc=aligned["BTCUSDT"]
@@ -101,9 +111,10 @@ def run():
             late_alt=alt[:,6:].sum(axis=1)
             late_btc=btc[:,6:].sum(axis=1)
             for i,stamp in enumerate(times_all[sl]):
+                usable=bool(hourly_valid[i])
                 values=(float(btc_alt[i]),float(alt_btc[i]),float(early[i]),
-                        float(late_alt[i]),float(late_btc[i])) if good else (None,)*5
-                records.append((int(stamp),asset,int(good),*values))
+                        float(late_alt[i]),float(late_btc[i])) if usable else (None,)*5
+                records.append((int(stamp),asset,int(usable),*values))
         offset+=count
     if offset!=HOURS or len(records)!=HOURS*3:
         raise ValueError("JS_FULL_CALENDAR_COVERAGE")
