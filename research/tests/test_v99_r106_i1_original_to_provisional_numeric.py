@@ -168,7 +168,7 @@ class OriginalToNumericIntegration(unittest.TestCase):
         doc = self.document()
         opening = next(e for d in doc["scenarios"]["severe"]
                        for e in d["events"] if e["kind"] == "OPEN")
-        opening["quotes"][0]["bid_coin"] = "0.06"
+        opening["quotes"][0]["bid_coin"] = "0.051"
         with self.assertRaisesRegex(ValueError, "SCENARIO_SOURCE_QUOTE_MISMATCH|NATIVE_EVENT_QUOTE_NOT_EQUAL_ORIGINAL_SOURCE"):
             self.execute(doc)
 
