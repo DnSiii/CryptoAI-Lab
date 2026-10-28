@@ -186,6 +186,8 @@ def run(path):
             all(x["passed"] for x in cases) else "BLOCK_KL_PHYSICAL_SURVIVAL"}
 
 if __name__=="__main__":
+    raise SystemExit("KL_TERMINALLY_REJECTED_SOURCE_GATE_40782415431_NO_PNL")
+    # The following historical runner is intentionally unreachable.
     p=argparse.ArgumentParser()
     p.add_argument("--path",required=True,choices=PATIC)
     p.add_argument("--output",required=True)
