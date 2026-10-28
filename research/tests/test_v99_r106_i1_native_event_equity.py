@@ -220,6 +220,28 @@ class NativeEventEquityTests(unittest.TestCase):
                 self.assertEqual(Decimal(rows[i]["equity_usd"]), expected)
         self.assertFalse(report["original_options_economic_train_certified"])
 
+    def test_positive_coin_beta_is_not_option_alpha(self):
+        doc = flat_fixture()
+        for scenario in SCENARIOS:
+            for i, row in enumerate(doc["scenarios"][scenario]):
+                row["index_usd"] = {
+                    "BTC": str(Decimal("40000") + Decimal(i)*13),
+                    "ETH": str(Decimal("3000") + Decimal(i)*2),
+                }
+                del row["benchmark_usd"]
+        report = replay(doc)
+        numeric = evaluate(report)
+        for scenario in SCENARIOS:
+            outcome = numeric["scenarios"][scenario]
+            # USD NAV grows from passive BTC/ETH collateral only; the
+            # fixed native options strategy never opened a position.
+            self.assertGreater(Decimal(outcome["total_roi"]), 0)
+            self.assertEqual(outcome["total_roi"], outcome["benchmark_roi"])
+            self.assertFalse(outcome["gates"]["original_benchmark_excess"])
+            self.assertFalse(outcome["numeric_pass"])
+        self.assertFalse(numeric["numeric_train_pass_both_scenarios"])
+        self.assertFalse(numeric["promotion_authorized"])
+
     def test_forged_low_or_high_passive_benchmark_rejected(self):
         for forged in ("1", "999999999"):
             with self.subTest(forged=forged):
