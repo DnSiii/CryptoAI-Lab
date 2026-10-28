@@ -19,7 +19,7 @@ COLS=("open_time","asset","source_valid","down_beta","down_resilience",
 def canonical_feature(value):
     x=float(value)
     if not math.isfinite(x):raise ValueError("JT_NONFINITE_DERIVED_SOURCE")
-    return float(format(x,".12g"))
+    return float(format(x,".10g"))
 
 def source_month(asset,month):
     if asset not in ASSETS or month not in MONTHS:
