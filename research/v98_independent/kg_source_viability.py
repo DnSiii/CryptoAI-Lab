@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""KG source-only pre-economic activation, time, and collateral gate; no PnL."""
+from __future__ import annotations
+import json
+from pathlib import Path
+import numpy as np
+from kg_joint_capital_sources import bundle,static_check,WARMUP,CLOCK,PATHS
+from phase1260_aj_authenticated_source_digest import load_official,HOURS
+
+OUT=Path(__file__).resolve().parent/"kg_source_viability.json"
+def main():
+    assert static_check()
+    frames,manifest=load_official()
+    o,h,l,c,q,r,e,ml,mh=frames
+    targets,updates,regimes,valid,budgets=bundle(o,h,l,c,r,e,q)
+    assert len(c)==HOURS and HOURS==18288
+    assert targets.shape==(HOURS,5,4)
+    assert not updates[:WARMUP].any()
+    counts={};invalid=[];violations=[]
+    for year,lo,hi in (("2023",744,9504),("2024",9504,HOURS)):
+        epochs=np.arange(lo,hi,CLOCK)
+        counts[year]={}
+        for i,name in enumerate(("Opportunity","Relative_Value","Stress_Recovery")):
+            distances=np.abs(targets[epochs,1]-targets[epochs,i+2]).sum(axis=1)
+            counts[year][name]=int(np.sum(distances>.025))
+            if counts[year][name]<8:
+                violations.append("KG_INSUFFICIENT_"+year+"_"+name)
+        invalid.extend(int(t) for t in epochs if not valid[t])
+    epochs=np.arange(WARMUP,HOURS,CLOCK)
+    if np.any(np.abs(targets[epochs]).sum(axis=2)>1.+1e-10):
+        violations.append("KG_GROSS_NONCONSERVATION")
+    if np.any((np.abs(targets[epochs,1]-targets[epochs,0]).sum(axis=1)>1e-10) & (~valid[epochs])):
+        violations.append("KG_SOURCE_INVALID_LEAK")
+    report={"architecture":"KG","historical_training_only":True,
+        "validation_2025_read":False,"benchmark_internals_read":False,
+        "economic_pnl_computed":False,"live_trading_authorized":False,
+        "source":"canonical_phase243_clean4_pinned_1h_native_funding",
+        "epochs":int(updates.sum()),"invalid_optional_epochs":invalid,
+        "material_funded_epochs_by_year":counts,
+        "violations":violations,
+        "decision":"PASS_KG_SOURCE_ONLY_NEEDS_ECONOMIC_GATE" if not violations
+                    else "REJECT_KG_SOURCE_ONLY_NO_PNL"}
+    OUT.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
+    print("KG_SOURCE",report["decision"],"epochs",report["epochs"],
+          "counts",counts,"invalid",len(invalid),"violations",violations,flush=True)
+    return report
+if __name__=="__main__":
+    result=main()
+    raise SystemExit(0 if not result["violations"] else 2)
