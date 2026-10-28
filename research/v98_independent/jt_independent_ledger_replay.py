@@ -4,7 +4,7 @@ Patches only settlement receipt observation, newer source/governor/execution dec
 Historical TRAINING ONLY. No 2025/benchmarks/Frozen/paper/live access.
 """
 from __future__ import annotations
-import argparse,hashlib,jton,struct
+import argparse,hashlib,json,struct
 import numpy as np
 import jt_30cell as engine
 from v98_independent_settlement_oracle import verify_hour,static_check
@@ -49,7 +49,7 @@ if __name__=="__main__":
     p.add_argument("--path",required=True,choices=PATIC)
     p.add_argument("--output",required=True)
     a=p.parse_args();out=run(a.path)
-    with open(a.output,"w") as f:jton.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
+    with open(a.output,"w") as f:json.dump(out,f,indent=2,sort_keys=True,allow_nan=False)
     print("JT_INDEPENDENT_LEDGER",a.path,out["decision"],
           out["oracle"]["settled_hours"],"hours",
           out["oracle"]["funding_event_hours"],"funding-hours")
