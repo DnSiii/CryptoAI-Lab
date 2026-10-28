@@ -162,9 +162,17 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
             exposures.extend(asset+":"+p.name for p in wallet.positions)
         if total <= 0:
             raise ValueError("INSOLVENT_NATIVE_DAILY_NAV")
-        benchmark = D(row.get("benchmark_usd"))
+        # The passive benchmark is the original native BTC/ETH collateral
+        # marked at the SAME input indices as the strategy NAV. An arbitrary
+        # caller-supplied flat benchmark would misclassify coin beta as alpha.
+        # This does NOT authenticate the source indices themselves.
+        benchmark = sum((D(initial_coin[asset])*indices[asset]
+                         for asset in ("BTC", "ETH")), D(0))
         if benchmark <= 0:
             raise ValueError("INVALID_ORIGINAL_BENCHMARK")
+        if ("benchmark_usd" in row
+                and D(row["benchmark_usd"]) != benchmark):
+            raise ValueError("FORGED_PASSIVE_NATIVE_BENCHMARK")
         result.append({
             "ts_ms": clock, "fold": row["fold"], "regime": row["regime"],
             "equity_usd": str(total), "benchmark_usd": str(benchmark),
