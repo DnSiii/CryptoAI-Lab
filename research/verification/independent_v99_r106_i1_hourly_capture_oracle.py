@@ -52,7 +52,7 @@ def verify(path: Path, day: date) -> dict:
                                     ("bid_price", "ask_price", "bid_amount", "ask_amount"))
             except (ValueError, TypeError, OverflowError):
                 continue
-            if not (timedelta(days=28) <= expiry-day <= timedelta(days=45)
+            if not (timedelta(0) < expiry-day <= timedelta(days=45)
                     and 0 <= arrival-event <= 300_000_000
                     and all(math.isfinite(v) and v > 0
                             for v in (strike, bid, ask, bs, az))
