@@ -9,6 +9,7 @@ from decimal import Decimal
 from research.tools.v99_r106_i1_native_event_equity import replay, SCHEMA
 from research.tools.v99_r106_i1_full_archive_intake import eligible
 from research.verification.independent_v99_r106_i1_scenario_decision_oracle import audit as independent_scenario_audit
+from research.verification.independent_v99_r106_i1_market_path_oracle import verify as independent_market_oracle
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, REGIMES, SCENARIOS, _expected_clock, _fold, evaluate,
 )
@@ -274,6 +275,68 @@ class NativeEventEquityTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,
                                             "FORGED_PASSIVE_NATIVE_BENCHMARK"):
                     replay(doc)
+
+    def test_scenario_settlement_index_substitution_rejected_before_nav(self):
+        doc = one_position_fixture()
+        for day in doc["scenarios"]["supersevere"]:
+            for event in day["events"]:
+                if event["kind"] == "SETTLE_BATCH":
+                    # Both indices imply zero put payoff; NAV alone cannot catch
+                    # the substitution, but original market must be identical.
+                    event["delivery_index_usd"] = "39000"
+        with self.assertRaisesRegex(ValueError,
+                                    "CROSS_SCENARIO_ORIGINAL_DELIVERY_INDEX_MISMATCH"):
+            replay(doc)
+        doc["fixture"] = False
+        with self.assertRaisesRegex(AssertionError,
+                                    "ORACLE_CROSS_SCENARIO_SETTLE_BATCH_MISMATCH"):
+            independent_market_oracle(doc)
+
+    def test_scenario_mark_bbo_substitution_rejected_before_nav(self):
+        doc = one_position_fixture()
+        mark = next(event for day in doc["scenarios"]["supersevere"]
+                    for event in day["events"] if event["kind"] == "MARK")
+        mark["short"]["ask_coin"] = "0.054"
+        with self.assertRaisesRegex(ValueError,
+                                    "CROSS_SCENARIO_MARK_ORIGINAL_BOOK_MISMATCH"):
+            replay(doc)
+        doc["fixture"] = False
+        with self.assertRaisesRegex(AssertionError,
+                                    "ORACLE_CROSS_SCENARIO_MARK_MISMATCH"):
+            independent_market_oracle(doc)
+
+    def test_scenario_open_candidate_substitution_rejected_before_nav(self):
+        doc = one_position_fixture()
+        opening = next(event for day in doc["scenarios"]["supersevere"]
+                       for event in day["events"] if event["kind"] == "OPEN")
+        opening["quotes"][0]["symbol"] = "BTC-14JAN22-36500-P"
+        opening["quotes"][0]["strike_usd"] = "36500"
+        # Each scenario could select a different otherwise valid pair from
+        # caller-chosen subsets. Original inventory must be cost-independent.
+        with self.assertRaisesRegex(ValueError,
+                                    "CROSS_SCENARIO_OPEN_MARKET_INVENTORY_MISMATCH"):
+            replay(doc)
+        doc["fixture"] = False
+        with self.assertRaisesRegex(AssertionError,
+                                    "ORACLE_CROSS_SCENARIO_OPEN_MISMATCH"):
+            independent_market_oracle(doc)
+
+    def test_independent_common_market_oracle_accepts_cost_exposure_divergence(self):
+        doc = one_position_fixture()
+        doc["fixture"] = False
+        doc["scenario_decisions"] = {
+            "severe": complete_fixed_decisions(one_open=True),
+            "supersevere": complete_fixed_decisions(one_open=False),
+        }
+        doc["scenario_decisions"]["supersevere"][0]["signal"] = "POSITIVE_EX_ANTE_PREMIUM"
+        doc["scenario_decisions"]["supersevere"][0]["reason"] = "RISK_VETO"
+        for day in doc["scenarios"]["supersevere"]:
+            day["events"] = []
+        checked = independent_market_oracle(doc)
+        self.assertEqual(checked["independent_common_open_inventories"], 0)
+        self.assertEqual(checked["independent_common_delivery_indices"], 0)
+        self.assertFalse(checked["economic_train_certified"])
+        self.assertFalse(replay(doc)["promotion_authorized"])
 
     def test_nonfixture_replay_is_explicitly_uncertified(self):
         doc = flat_fixture()
