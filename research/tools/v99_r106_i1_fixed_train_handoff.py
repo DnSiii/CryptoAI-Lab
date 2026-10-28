@@ -121,7 +121,8 @@ def join_reports(signal: dict, source: dict, *, signal_sha256: str,
             "folds": folds, "rows": observed, **FLAGS}
 
 
-def run(signal_path: str, archive_root: str, output_path: str,\n        spot_root: str | None = None, dvol_root: str | None = None):
+def run(signal_path: str, archive_root: str, output_path: str,
+        spot_root: str | None = None, dvol_root: str | None = None):
     signal_file, root, out = Path(signal_path), Path(archive_root), Path(output_path)
     if not signal_file.is_file():
         raise ValueError("ORIGINAL_CAUSAL_SIGNAL_MISSING")
