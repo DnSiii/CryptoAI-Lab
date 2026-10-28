@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import numpy as np
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
-from kb_deleveraging_convexity_sources import bundle,static_check,WARMUP,CLOCK
+from kb_sign_transition_sources import bundle,static_check,WARMUP,CLOCK
 ROOT=Path(__file__).resolve().parent
 
 def run():
