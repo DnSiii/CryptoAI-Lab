@@ -13,7 +13,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from research.tools.v99_r106_i1_local_tape_import import (
-    FIRST, END, DAYS, build_manifest, run,
+    FIRST, END, DAYS, build_manifest, run, scan_day, require_hourly_original_coverage,
 )
 from research.tools.v99_r106_i1_lifecycle_daily_tape import audit
 from research.verification.independent_v99_r106_i1_lifecycle_daily_oracle import verify
@@ -161,14 +161,41 @@ class LocalTapeImportTests(unittest.TestCase):
             build_manifest(self.root, fixture=False)
         evidence = Path(self.tmp.name) / "license.txt"
         evidence.write_text("SELF DECLARED PLACEHOLDER: NOT A VALID LICENSE", encoding="utf-8")
-        manifest = build_manifest(self.root, fixture=False, license_evidence=evidence)
-        # This is a synthetic test of the input interface, NOT a nonfixture run.
+        # A self-declared license document cannot turn a partial-day synthetic
+        # archive into 661 complete original source days.
+        with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
+            build_manifest(self.root, fixture=False, license_evidence=evidence)
         self.assertFalse((self.root / 'manifest.json').exists())
-        self.assertEqual(manifest["license_evidence_sha256_not_legal_verification"],
-                         hashlib.sha256(evidence.read_bytes()).hexdigest())
-        self.assertTrue(manifest["source_manifest_self_declared_not_vendor_certified"])
-        self.assertFalse(manifest["economic_train_executed"])
-        self.assertFalse(manifest["promotion_authorized"])
+
+    def test_single_day_full_hourly_presence_is_necessary_not_sufficient(self):
+        day = FIRST
+        expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
+        start = int(datetime(day.year, day.month, day.day,
+                             tzinfo=timezone.utc).timestamp() * 1_000_000)
+        path = self.root / (day.isoformat() + ".csv.gz")
+        def write_hours(skip=None):
+            buf = io.StringIO(newline="")
+            w = csv.writer(buf)
+            w.writerow(HEADERS)
+            for hour in range(24):
+                if hour == skip:
+                    continue
+                for i, asset in enumerate(("BTC", "ETH")):
+                    t = start + hour*3_600_000_000 + (i+1)*1_000_000
+                    w.writerow(("deribit", f"{asset}-{expiry}-30000-P",
+                                t, t, "0.02", "0.025", "1", "1"))
+            path.write_bytes(gzip.compress(buf.getvalue().encode()))
+        write_hours()
+        full = scan_day(path, day)
+        require_hourly_original_coverage(full)
+        self.assertEqual(full["qualifying_original_put_arrival_hours_by_asset"],
+                         {"BTC": 24, "ETH": 24})
+        write_hours(skip=12)
+        partial = scan_day(path, day)
+        self.assertEqual(partial["qualifying_original_put_arrival_hours_by_asset"],
+                         {"BTC": 23, "ETH": 23})
+        with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
+            require_hourly_original_coverage(partial)
 
 
 if __name__ == "__main__":
