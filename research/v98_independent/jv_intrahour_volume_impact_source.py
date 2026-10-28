@@ -151,7 +151,7 @@ def run():
     RECEIPT.write_text(json.dumps(report,sort_keys=True,indent=2,allow_nan=False)+"\n")
     print("JV_INTRAHOUR_VOLUME_SOURCE_ONLY",report["decision"],
           "archives",len(data),"valid_months",valid_months,
-          "valid_alt_hours",report["valid_alt_asset_hours"],
+          "valid_alt_hours",report["valid_asset_hours"],
           "quarantine",quarantine,flush=True)
     return report
 
