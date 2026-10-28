@@ -21,6 +21,51 @@ SOURCE_SCHEMA = "V99_I1_SOURCE_DRIVEN_661D_MARK_EVENT_SPINE_V1"
 BOUND_SCHEMA = "V99_I1_FIRSTPARTY_DELIVERY_CALENDAR_SOURCE_SPINE_V1"
 
 
+
+def _independent_open_contracts(source):
+    """Reconstruct native option expiry from original OPEN identifiers independently."""
+    positions = {}
+    for day in source["days"]:
+        for e in day.get("market_events", []):
+            if e.get("kind") != "OPEN_SOURCE_ONLY":
+                continue
+            pid, asset, start = e.get("position_id"), e.get("asset"), e.get("at_ms")
+            if (not isinstance(pid, str) or not pid or pid in positions
+                    or asset not in ("BTC", "ETH") or type(start) is not int
+                    or e.get("signal_source") != "ORIGINAL_FIXED_180_GRID"
+                    or not isinstance(e.get("candidate_inventory"), list)):
+                raise ValueError("ORACLE_UNBOUND_OR_DUPLICATED_OPEN")
+            selected = [e.get("short_symbol_unverified_selection"),
+                        e.get("long_symbol_unverified_selection")]
+            dates = []
+            strikes = []
+            for symbol in selected:
+                parts = symbol.split("-") if isinstance(symbol, str) else []
+                if len(parts) != 4 or parts[0] != asset or parts[3] != "P":
+                    raise ValueError("ORACLE_INVALID_OPEN_CONTRACT")
+                try:
+                    expiry = datetime.strptime(parts[1].upper(), "%d%b%y").replace(
+                        hour=8, tzinfo=timezone.utc)
+                    strike = Decimal(parts[2])
+                except Exception as exc:
+                    raise ValueError("ORACLE_INVALID_OPEN_CONTRACT") from exc
+                if not strike.is_finite() or strike <= 0:
+                    raise ValueError("ORACLE_INVALID_OPEN_STRIKE")
+                dates.append(int(expiry.timestamp() * 1000))
+                strikes.append(strike)
+            original_ids = {q.get("symbol") for q in e["candidate_inventory"]
+                            if isinstance(q, dict)}
+            if (dates[0] != dates[1] or not start < dates[0]
+                    or dates[0] >= int(datetime(2023, 10, 1, tzinfo=timezone.utc).timestamp()*1000)
+                    or strikes[0] <= strikes[1]
+                    or not set(selected).issubset(original_ids)):
+                raise ValueError("ORACLE_ORIGINAL_OPEN_EXPIRY_INVENTORY_MISMATCH")
+            positions[pid] = (asset, dates[0])
+    if len(positions) != source.get("unverified_position_plan_count"):
+        raise ValueError("ORACLE_OPEN_POSITION_COUNT_MISMATCH")
+    return positions
+
+
 def verify(source, original_delivery_bytes, bound):
     receipt = json.loads(original_delivery_bytes)
     if (receipt.get("schema") != "V99_I1_DERIBIT_TRAIN_DELIVERY_PRICE_RECEIPTS_V1"
@@ -76,6 +121,7 @@ def verify(source, original_delivery_bytes, bound):
     if any(source.get(k) is not False or bound.get(k) is not False for k in forbidden):
         raise ValueError("ORACLE_FALSE_PROMOTION_OR_SEALED_ACCESS")
 
+    original_opens = _independent_open_contracts(source)
     expected = copy.deepcopy(source)
     total = 0
     names = set()
@@ -97,6 +143,8 @@ def verify(source, original_delivery_bytes, bound):
                     or not FIRST <= when.date() < LAST_EXCLUSIVE
                     or not row["ts_ms"] - DAY_MS + 1000 <= e["at_ms"] <= row["ts_ms"]):
                 raise ValueError("ORACLE_FORGED_SOURCE_SETTLEMENT")
+            if original_opens.get(name) != (asset, e["at_ms"]):
+                raise ValueError("ORACLE_SETTLEMENT_CONTRACT_NOT_ORIGINALLY_OPENED")
             names.add(name)
             index = asset.lower() + "_usd"
             del e["delivery_index_missing"]
@@ -108,6 +156,8 @@ def verify(source, original_delivery_bytes, bound):
                 "native_contract_delivery_index_unverified": True,
             })
             total += 1
+    if names != set(original_opens):
+        raise ValueError("ORACLE_ORIGINAL_OPEN_MISSING_SETTLEMENT")
     if (total != source.get("expiry_due_count")
             or total != source.get("unverified_position_plan_count")
             or bound.get("firstparty_calendar_delivery_prices_bound") != total):
