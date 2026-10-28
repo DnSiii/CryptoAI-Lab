@@ -15,7 +15,7 @@ WARMUP=744
 CLOCK=168
 GROSS={"NORMAL":.90,"STRESS":.72,"RECOVERY":.85}
 PATHS=("JT_core_only","JT_full","JT_minus_opportunity","JT_minus_RV","JT_minus_stress")
-PIN="PENDING_JT_AUTHENTICATED_SOURCE_SHA"
+PIN="7599bc71a93539e0ba65a48aa61be391c56c0967fc9aebfa87c7c67aff575e30"
 COLS=("down_beta","down_resilience","cojump_frequency","up_capture")
 
 def load_verified():
