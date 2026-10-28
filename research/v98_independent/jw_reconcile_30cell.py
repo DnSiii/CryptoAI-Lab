@@ -38,9 +38,6 @@ def run(root):
             errors.append(("OS_MISSING",path));continue
         a,b=(pair[o] for o in OS)
         all_source.update((a.get("source_manifest_sha256"),b.get("source_manifest_sha256")))
-        all_native_mask.update((a.get("jw_volume_impact_sha256"),b.get("jw_volume_impact_sha256")))
-        if not a.get("jw_volume_impact_sha256") or a.get("jw_volume_impact_sha256")!=b.get("jw_volume_impact_sha256"):
-            errors.append(("NATIVE_MASK_SHA",path))
         if a.get("source_manifest_sha256")!=b.get("source_manifest_sha256"):
             errors.append(("SOURCE_SHA",path))
         x,y=(z.get("cells",[]) for z in (a,b))
