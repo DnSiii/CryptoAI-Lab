@@ -186,6 +186,9 @@ class NativeEventEquityTests(unittest.TestCase):
     def test_common_original_index_path_required_for_both_cost_scenarios(self):
         doc = flat_fixture()
         doc["scenarios"]["supersevere"][120]["index_usd"]["BTC"] = "41000"
+        # Remove the optional supplied benchmark so this adversarial case
+        # reaches the independent cross-scenario original-index path guard.
+        del doc["scenarios"]["supersevere"][120]["benchmark_usd"]
         with self.assertRaisesRegex(ValueError, "SCENARIO_ORIGINAL_INDEX_PATH_MISMATCH"):
             replay(doc)
 
