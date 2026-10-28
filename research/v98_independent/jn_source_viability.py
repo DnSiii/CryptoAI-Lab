@@ -20,7 +20,8 @@ def load_taker():
         or len(receipt.get("official_archive_sha256",{}))!=4
         or any(len(v)!=25 for v in receipt["official_archive_sha256"].values())):
         raise ValueError("JN_TAKER_SOURCE_RECEIPT_FIREWALL")
-    df=pd.read_csv(ROOT/"jn_native_taker_flow_source.csv")
+    # Preserve exact IEEE-754 17-digit CSV round trips for the signed source digest.
+    df=pd.read_csv(ROOT/"jn_native_taker_flow_source.csv",float_precision="round_trip")
     if list(df.columns)!=["open_time",*ASSETS] or len(df)!=HOURS:
         raise ValueError("JN_TAKER_SOURCE_SCHEMA")
     ts=pd.to_datetime(df["open_time"],utc=True)
