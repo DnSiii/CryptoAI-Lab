@@ -5,6 +5,7 @@ on:
     paths:
       - research/tools/v99_r106_i1_original_to_provisional_numeric.py
       - research/tests/test_v99_r106_i1_original_to_provisional_numeric.py
+      - research/verification/independent_v99_r106_i1_market_path_oracle.py
       - .github/workflows/v99-r106-i1-original-to-provisional-numeric.yml
   workflow_dispatch:
 permissions:
@@ -27,6 +28,8 @@ jobs:
           python-version: '3.12'
       - name: Verify preregistration precedes implementation
         run: |
+          git merge-base --is-ancestor 8f00e6d1b91d1dc261ba5c1333513cec9b9895b2 HEAD
+          test -s research/V99_R106_I1_CROSS_SCENARIO_MARKET_PATH_INVARIANT_PREREG_20261028.md
           git merge-base --is-ancestor fa61864436a1f912eb7330b9fb4e8e4d756679d7 HEAD
           test -s research/V99_R106_I1_NONFIXTURE_ORIGINAL_TO_NUMERIC_ORCHESTRATOR_PREREG_20261028.md
       - name: Run end-to-end 661-day original-shaped synthetic and adversarial tests
