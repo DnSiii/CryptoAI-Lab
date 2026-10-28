@@ -187,6 +187,11 @@ def run():
     RECEIPT.write_text(json.dumps(report,sort_keys=True,indent=2,allow_nan=False)+"\n")
     print("JQ_5M_SOURCE",report["decision"],"archives",len(verified),"/",len(pairs),
           "rows",len(lines),"/",HOURS*4,"faults",faults[:5],flush=True)
+    if conflicts:
+        concise={a:{"bad_cells":x["bad_cells"],"bad_hour_count":x["bad_hour_count"],
+                    "affected_months":x["affected_months"],"examples":x["examples"][:6]}
+                 for a,x in conflicts.items()}
+        print("JQ_EXACT_NATIVE_SOURCE_CONFLICTS",json.dumps(concise,sort_keys=True),flush=True)
     return report
 
 if __name__=="__main__":
