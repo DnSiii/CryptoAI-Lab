@@ -1,0 +1,20 @@
+# V99 I1 — targeted lawful options archive acquisition: result (2026-10-28, 17:46 BRT)
+
+**SOURCE_ONLY/HOLD — NO PROMOTION.** No real paid historical options bytes, no historical economic TRAIN, no certified ROI, no orders.
+
+## Real critical-path blocker reduced
+The existing transfer was limited to an initial prefix beginning 2021-12-09, so a paid non-sample proof day such as 2022-06-15 or a single missing archive date required first fetching all earlier dates. Pre-registered independently in commit `6837ad8` **before implementation**. Added `--start-date YYYY-MM-DD` to the local-only licensed Tardis Deribit OPTIONS transfer; default remains 2021-12-09 and `--max-days` remains bounded. This now supports a single private paid day or a bounded retry without any earlier-day downloads. Strict `[2021-12-09, 2023-10-01)` source range is checked **before network and writes**. Still requires explicit `--execute`, historical full-options entitlement, key and local written grant, checks original gzip/CRC, venue, BTC+ETH quotes, both clocks, atomic no-overwrite. No secrets or paid bytes go to public CI.
+
+**Repro after actual lawful entitlement:** `python -m research.tools.v99_r106_i1_tardis_licensed_transfer /secure/options --execute --start-date 2022-06-15 --max-days 1 --license-evidence /secure/vendor-grant.txt`. This does not certify source completeness, native fills, or fees. A real non-sample one-day download is necessary **but not sufficient** to proceed with all 661 days.
+
+## GitHub evidence
+[Actions 40765974248](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40765974248) **SUCCESS** on commit `265dddbe`: 12 synthetic full-import/independent source-byte tests and 12 offline licensed-transfer tests = **24/24 PASS**. Targeted 2022-06-15 test requested exactly one original URL, produced one local original day, and did not fetch earlier days; invalid and sealed dates were rejected with zero network requests; resume preserved original bytes. The CI's nonfixture source check still returned `BLOCKED_ORIGINAL_LICENSED_661_DAY_OPTIONS_ARCHIVE_MISSING`. The subsequent workflow prereg-ancestry update `f71411d` also checks commit `6837ad8` is its ancestor; final CI run [40766029042](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40766029042) must be independently inspected before describing its conclusion.
+
+Last **actual authenticated vendor probe** [Actions 40563132070](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40563132070), 2026-10-27, reported `BLOCKED_NO_AUTHENTICATED_ARCHIVE_KEY_CONFIGURED`, empty `TARDIS_API_KEY`, zero original paid requests. Offline mocks do not change that.
+
+## Still blocking economic delivery
+1. Written, verified entitlement to **full-universe original BTC+ETH Deribit OPTIONS BBO+size/venue+arrival timestamps** for every UTC TRAIN day 2021-12-09 through 2023-09-30, including every 28–35-day original held-contract lifecycle; actual authenticated 661 daily source files and independent capture/gap checks. Tardis OPTIONS grant with proper date and field scope, or verified Amberdata/CoinAPI equivalent; do not purchase without non-sample proof, scope, terms, price and rights.
+2. Independently dated 2021–2023 native contract lot/size semantics, account-specific maker/taker/delivery fee tier, original settlement index/TWAP, coin initial/maintenance margin and liquidation rules. A historical **simulated** execution needs conservative size-aware fills; actual historic order receipts are not available for a strategy never traded and must not be invented.
+3. Actual ex-ante fixed distinct I1 integrated 661-day TRAIN with 5 chronological folds, 3x2 regimes, severe/supersevere, tail/DD/benchmark and independent full economic replay. Reject or freeze only by predeclared gates. Sealed validation >=2023-10-01 and final holdout remain closed; C1 remains rejected. **0/180 original economic lifecycles certified; NO PROMOTION.**
+
+Only the new prereg/result docs, local source transfer, adversarial offline tests and its CI prereg gate were changed. No Frozen, paper, champion, dashboard performance or sealed data touched.
