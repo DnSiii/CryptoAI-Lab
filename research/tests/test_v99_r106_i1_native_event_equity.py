@@ -277,9 +277,10 @@ class NativeEventEquityTests(unittest.TestCase):
     def test_nonfixture_replay_is_explicitly_uncertified(self):
         doc = flat_fixture()
         doc["fixture"] = False
-        with self.assertRaisesRegex(ValueError, "MISSING_COMPLETE_FIXED_180_DECISION_LEDGER"):
+        with self.assertRaisesRegex(ValueError, "SCENARIO_SPECIFIC_180_DECISIONS_REQUIRED"):
             replay(doc)
-        doc["decisions"] = complete_fixed_decisions()
+        doc["scenario_decisions"] = {scenario: complete_fixed_decisions()
+                                     for scenario in SCENARIOS}
         report = replay(doc)
         self.assertEqual(report["status"], "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY")
         self.assertFalse(report["original_historical_economic_train_executed"])
@@ -343,13 +344,78 @@ class NativeEventEquityTests(unittest.TestCase):
     def test_self_declared_cash_is_not_source_authentication(self):
         doc = flat_fixture()
         doc["fixture"] = False
-        doc["decisions"] = complete_fixed_decisions()
-        doc["decisions"][0]["signal"] = "POSITIVE_EX_ANTE_PREMIUM"
-        doc["decisions"][0]["reason"] = "NO_ELIGIBLE_FIXED_VERTICAL"
+        doc["scenario_decisions"] = {scenario: complete_fixed_decisions()
+                                     for scenario in SCENARIOS}
+        for scenario in SCENARIOS:
+            doc["scenario_decisions"][scenario][0]["signal"] = "POSITIVE_EX_ANTE_PREMIUM"
+            doc["scenario_decisions"][scenario][0]["reason"] = "NO_ELIGIBLE_FIXED_VERTICAL"
         report = replay(doc)
         self.assertFalse(report["original_source_receipts_independently_authenticated"])
         with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
             evaluate(report)
+
+
+    def test_scenario_cost_veto_allows_distinct_exposure_paths_without_certification(self):
+        # The same positive original signal may OPEN under severe and be
+        # independently vetoed by supersevere costs; neither veto is certified.
+        doc = one_position_fixture()
+        doc["fixture"] = False
+        doc["scenario_decisions"] = {
+            "severe": complete_fixed_decisions(one_open=True),
+            "supersevere": complete_fixed_decisions(one_open=False),
+        }
+        veto = doc["scenario_decisions"]["supersevere"][0]
+        veto["signal"] = "POSITIVE_EX_ANTE_PREMIUM"
+        veto["reason"] = "RISK_VETO"
+        for day in doc["scenarios"]["supersevere"]:
+            day["events"] = []
+        report = replay(doc)
+        severe = report["scenarios"]["severe"]
+        supersevere = report["scenarios"]["supersevere"]
+        self.assertNotEqual(severe[4]["actual_exposure_key"],
+                            supersevere[4]["actual_exposure_key"])
+        self.assertEqual(supersevere[-1]["equity_usd"], "7000.0")
+        self.assertTrue(report["scenario_decisions_self_declared_not_certified"])
+        self.assertFalse(report["original_options_economic_train_certified"])
+        self.assertFalse(report["promotion_authorized"])
+        with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
+            evaluate(report)
+
+    def test_nonfixture_global_or_missing_scenario_ledger_is_rejected(self):
+        doc = flat_fixture()
+        doc["fixture"] = False
+        doc["decisions"] = complete_fixed_decisions()
+        with self.assertRaisesRegex(ValueError, "SCENARIO_SPECIFIC_180_DECISIONS_REQUIRED"):
+            replay(doc)
+        doc["scenario_decisions"] = {"severe": complete_fixed_decisions()}
+        with self.assertRaisesRegex(ValueError, "AMBIGUOUS_GLOBAL_AND_SCENARIO_DECISIONS"):
+            replay(doc)
+        del doc["decisions"]
+        with self.assertRaisesRegex(ValueError, "MISSING_SCENARIO_DECISION_LEDGERS"):
+            replay(doc)
+
+    def test_scenario_signal_forgery_and_selective_open_rejected(self):
+        doc = one_position_fixture()
+        doc["fixture"] = False
+        doc["scenario_decisions"] = {
+            scenario: complete_fixed_decisions(one_open=True)
+            for scenario in SCENARIOS
+        }
+        forged = copy.deepcopy(doc)
+        forged["scenario_decisions"]["supersevere"][0]["signal"] = "NO_PREMIUM"
+        forged["scenario_decisions"]["supersevere"][0]["action"] = "CASH"
+        forged["scenario_decisions"]["supersevere"][0]["reason"] = "NO_PREMIUM"
+        with self.assertRaisesRegex(ValueError, "SCENARIO_ORIGINAL_SIGNAL_PATH_MISMATCH"):
+            replay(forged)
+        missing = copy.deepcopy(doc)
+        missing["scenario_decisions"]["supersevere"].pop()
+        with self.assertRaisesRegex(ValueError, "MISSING_COMPLETE_FIXED_180_DECISION_LEDGER"):
+            replay(missing)
+        omitted = copy.deepcopy(doc)
+        for day in omitted["scenarios"]["supersevere"]:
+            day["events"] = [e for e in day["events"] if e.get("kind") != "OPEN"]
+        with self.assertRaisesRegex(ValueError, "MISSING_OR_SELECTIVE_FIXED_DECISION_EXECUTION"):
+            replay(omitted)
 
 
 if __name__ == "__main__":
