@@ -6,6 +6,8 @@ on:
       - research/tools/v99_r106_i1_original_signal_option_join.py
       - research/verification/independent_v99_r106_i1_original_signal_option_oracle.py
       - research/tests/test_v99_r106_i1_stale_replacement.py
+      - research/tools/v99_r106_i1_original_intent_binding.py
+      - research/verification/independent_v99_r106_i1_original_intent_oracle.py
       - .github/workflows/v99-r106-i1-original-signal-option-join.yml
   workflow_dispatch:
 permissions:
@@ -69,6 +71,38 @@ jobs:
           assert archived==current, 'ARCHIVED_ORIGINAL_SIGNAL_NOT_REPRODUCIBLE'
           assert archived['source_original'] and archived['observations']==182
           print('182/182 ORIGINAL archived causal signals independently reproduced; NO PNL')
+          PY
+      - name: Bind actual 182 original signal receipts to all 180 fixed non-executable intents
+        run: |
+          test -s research/V99_R106_I1_ORIGINAL_180_INTENT_BINDING_PREREG_20261028.md
+          git merge-base --is-ancestor a515876f95473d1d2d00221c5fcbc7b538c10118 HEAD
+          python -m research.tools.v99_r106_i1_original_intent_binding \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            research_evidence/i1_original_join/i1_original_180_intents.json
+      - name: Independently verify 180 original signals and falsify altered signal/hash
+        run: |
+          python -m research.verification.independent_v99_r106_i1_original_intent_oracle \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            research_evidence/i1_original_join/i1_original_180_intents.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from research.tools.v99_r106_i1_original_intent_binding import audit_proposed_decisions
+          p=Path('research_evidence/i1_original_join/i1_original_180_intents.json')
+          r=json.loads(p.read_text())
+          assert r['fixed_asset_week_intents']==180 and r['original_signal_observations']==182
+          assert r['positive_fixed_intents'] > 0
+          forged=[dict(row, action='CASH', reason='NO_30D_HISTORY') for row in r['intents']]
+          forged[0]['signal']='NO_PREMIUM' if forged[0]['signal']!='NO_PREMIUM' else 'POSITIVE_EX_ANTE_PREMIUM'
+          try:
+              audit_proposed_decisions(r, forged)
+          except ValueError as exc:
+              assert str(exc)=='PROPOSED_DECISION_CONTRADICTS_ORIGINAL_SIGNAL'
+          else:
+              raise AssertionError('SELF_DECLARED_ORIGINAL_SIGNAL_FORGERY_ACCEPTED')
+          assert not r['actions_or_cash_veto_certified']
+          assert not r['original_historical_economic_train_executed']
+          print('ORIGINAL 180/180 SIGNAL INTENTS VERIFIED; OPEN/CASH VETO UNVERIFIED; 0 ORIGINAL OPTION LIFECYCLES CERTIFIED')
           PY
       - name: Actually join original 182 causal signals with original 4,000 partial option quotes
         run: |
