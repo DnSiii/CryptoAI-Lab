@@ -1,4 +1,4 @@
-name: V99 I1 661d complete-system TRAIN numeric gate (FIXTURE ONLY)
+name: V99 I1 fixture gate + uncertified nonfixture numeric diagnostic
 on:
   push:
     branches: [research/v99-r106-native-all-regime-engine]
@@ -28,7 +28,9 @@ jobs:
         run: |
           git merge-base --is-ancestor b9d59c43c708a0616b11dc548b3d0b4d9fea9977 HEAD
           test -s research/V99_R106_I1_TRAIN_ECONOMIC_NUMERIC_GATE_PREREG_20261028.md
-      - name: Exercise complete synthetic 661d dual-scenario gate and negative controls
+          git merge-base --is-ancestor 457c61e8be0c49c540715b83bfe0b6de49d78454 HEAD
+          test -s research/V99_R106_I1_NONFIXTURE_NUMERIC_DIAGNOSTIC_PREREG_20261028.md
+      - name: Exercise synthetic 661d fixture gate, provisional diagnostic and independent oracle
         run: python -m unittest -v research.tests.test_v99_r106_i1_train_numeric_gate
       - name: Assert no licensed economic evidence or promotion
         run: |
@@ -41,7 +43,7 @@ jobs:
           except ValueError as exc:
               assert str(exc) == 'ORIGINAL_ECONOMIC_SOURCE_PROVENANCE_NOT_CERTIFIED'
               print('BLOCKED_ORIGINAL_ECONOMIC_SOURCE_PROVENANCE_NOT_CERTIFIED')
-              print('0/180 original economic lifecycles certified; NO TRAIN/ROI/PROMOTION/ORDERS')
+              print('0/180 original economic lifecycles certified; PROVISIONAL DIAGNOSTIC ONLY; NO ORIGINAL TRAIN/ROI/PROMOTION/ORDERS')
           else:
               raise AssertionError('FORGED_NONFIXTURE_ECONOMIC_GATE')
           PY
