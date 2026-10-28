@@ -79,6 +79,46 @@ jobs:
               raise AssertionError('FORGED_SIGNAL_WOULD_PASS_ORIGINAL_SOURCE_ORACLE')
           print('ORIGINAL 182 SIGNALS REPLAYED; FORGED POSITIVE REJECTED; NO ECONOMICS')
           PY
+      - name: Enforce actual first-party signal replay inside the nonfixture executable handoff
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from research.tools.v99_r106_i1_fixed_train_handoff import run
+          root=Path('research_evidence')
+          archive=root/'i1_nonfixture_missing_original_option_tape'
+          archive.mkdir(exist_ok=True)
+          (archive/'manifest.json').write_text(json.dumps({
+              'schema':'V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1',
+              'venue':'deribit','fixture':False,
+              'train_start':'2021-12-09','train_end_exclusive':'2023-10-01',
+              'days':[]}))
+          signal=root/'i1_original_causal/i1_causal_signal.json'
+          okx=root/'i1_original_okx'
+          dvol=root/'i1_original_dvol'
+          try:
+              run(str(signal),str(archive),str(root/'forbidden_nonfixture_result.json'),
+                  str(okx),str(dvol))
+          except ValueError as exc:
+              assert str(exc)=='INCOMPLETE_661_DAY_LIFECYCLE_ARCHIVE',str(exc)
+          else:
+              raise AssertionError('MISSING_ORIGINAL_OPTIONS_TAPE_ACCEPTED')
+          fake=json.loads(signal.read_text())
+          row=next(r for r in fake['rows'] if r['signal']=='NO_PREMIUM')
+          row['signal']='POSITIVE_EX_ANTE_PREMIUM'
+          fake_path=root/'forged_original_signal.json'
+          fake_path.write_text(json.dumps(fake))
+          try:
+              run(str(fake_path),str(archive),str(root/'forbidden_forged_result.json'),
+                  str(okx),str(dvol))
+          except ValueError as exc:
+              assert str(exc)=='ORIGINAL_SIGNAL_REPLAY_FAILED',str(exc)
+          else:
+              raise AssertionError('FORGED_SIGNAL_ACCEPTED_BY_NONFIXTURE_HANDOFF')
+          assert not (root/'forbidden_nonfixture_result.json').exists()
+          assert not (root/'forbidden_forged_result.json').exists()
+          print('NONFIXTURE HANDOFF: ORIGINAL 182 SIGNALS REPLAYED; FORGED SIGNAL REJECTED; 661-DAY OPTIONS TAPE STILL MISSING; NO ECONOMICS')
+          PY
       - name: Prove original 182 signals cannot bypass absent full original 661-day option archive
         run: |
           python - <<'PY'
