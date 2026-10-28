@@ -2,7 +2,7 @@
 import copy
 import json
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from research.tools.v99_r106_i1_original_delivery_to_spine import bind
 from research.verification.independent_v99_r106_i1_delivery_spine_oracle import verify
 
@@ -16,6 +16,17 @@ def make_spine():
     rows = [{"ts_ms": CLOCK+i*DAY_MS, "market_events": []} for i in range(DAYS)]
     expiry_ms = 1642147200000  # 2022-01-14 08:00:00 UTC
     i = (date(2022, 1, 14)-FIRST).days
+    open_day = date(2021, 12, 13)
+    open_i = (open_day-FIRST).days
+    open_ms = int(datetime(2021, 12, 13, tzinfo=timezone.utc).timestamp()*1000)
+    short, long = "BTC-14JAN22-50000-P", "BTC-14JAN22-45000-P"
+    rows[open_i]["market_events"].append({
+        "kind": "OPEN_SOURCE_ONLY", "at_ms": open_ms, "asset": "BTC",
+        "position_id": "BTC-W1", "signal_source": "ORIGINAL_FIXED_180_GRID",
+        "candidate_inventory": [{"symbol": short}, {"symbol": long}],
+        "short_symbol_unverified_selection": short,
+        "long_symbol_unverified_selection": long,
+    })
     rows[i]["market_events"].append({
         "kind": "SETTLEMENT_DUE_SOURCE_ONLY", "at_ms": expiry_ms,
         "asset": "BTC", "position_id": "BTC-W1", "delivery_index_missing": True})
@@ -116,6 +127,34 @@ class DeliverySourceSpineTests(unittest.TestCase):
         self.spine["unverified_position_plan_count"] = 2
         with self.assertRaisesRegex(ValueError, "DUPLICATED_SETTLEMENT_POSITION"):
             bind(self.spine, self.delivery, raw_bytes(self.delivery))
+
+    def test_settlement_requires_original_open_contract_lineage(self):
+        raw = raw_bytes(self.delivery)
+        open_i = (date(2021, 12, 13)-FIRST).days
+        expiry_i = (date(2022, 1, 14)-FIRST).days
+        for mutation in ("no_open", "wrong_expiry", "wrong_asset", "not_in_inventory"):
+            spine = copy.deepcopy(self.spine)
+            opening = spine["days"][open_i]["market_events"]
+            if mutation == "no_open":
+                opening.clear()
+            elif mutation == "wrong_expiry":
+                opening[0]["long_symbol_unverified_selection"] = "BTC-21JAN22-45000-P"
+                opening[0]["candidate_inventory"].append({"symbol": "BTC-21JAN22-45000-P"})
+            elif mutation == "wrong_asset":
+                opening[0]["asset"] = "ETH"
+            else:
+                opening[0]["candidate_inventory"].pop()
+            with self.subTest(mutation=mutation):
+                with self.assertRaises(ValueError):
+                    bind(spine, self.delivery, raw)
+                with self.assertRaises(ValueError):
+                    verify(spine, raw, bind(self.spine, self.delivery, raw))
+        changed = copy.deepcopy(self.spine)
+        changed["days"][expiry_i]["market_events"][0]["position_id"] = "INVENTED"
+        with self.assertRaisesRegex(ValueError, "SETTLEMENT_NOT_LINKED"):
+            bind(changed, self.delivery, raw)
+        with self.assertRaisesRegex(ValueError, "ORACLE_SETTLEMENT_CONTRACT"):
+            verify(changed, raw, bind(self.spine, self.delivery, raw))
 
     def test_missing_firstparty_artifact_rejected(self):
         with self.assertRaisesRegex(ValueError, "UNTRUSTED_FIRSTPARTY"):
