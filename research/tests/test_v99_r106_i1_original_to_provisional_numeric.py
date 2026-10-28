@@ -168,9 +168,12 @@ class OriginalToNumericIntegration(unittest.TestCase):
 
     def test_forged_original_bbo_rejected_before_numeric(self):
         doc = self.document()
-        opening = next(e for d in doc["scenarios"]["severe"]
-                       for e in d["events"] if e["kind"] == "OPEN")
-        opening["quotes"][0]["bid_coin"] = "0.051"
+        # Mutate BOTH paths identically, so scenario parity still passes;
+        # original source-byte identity must independently reject the forgery.
+        for scenario in ("severe", "supersevere"):
+            opening = next(e for d in doc["scenarios"][scenario]
+                           for e in d["events"] if e["kind"] == "OPEN")
+            opening["quotes"][0]["bid_coin"] = "0.051"
         with self.assertRaisesRegex(ValueError, "SCENARIO_SOURCE_QUOTE_MISMATCH|NATIVE_EVENT_QUOTE_NOT_EQUAL_ORIGINAL_SOURCE"):
             self.execute(doc)
 
