@@ -29,7 +29,7 @@ def get(url):
 def sidecar(raw,filename):
     line=raw.decode("utf-8").strip().splitlines()
     if len(line)!=1:raise ValueError("SIDECAR_LINE_COUNT")
-    m=re.fullmatch(r"([0-9a-fA-F]{64})(?:\\s+\\*?([^\\s]+))?",line[0].strip())
+    m=re.fullmatch(r"([0-9a-fA-F]{64})(?:\s+\*?([^\s]+))?",line[0].strip())
     if not m:raise ValueError("SIDECAR_SCHEMA")
     if m.group(2) and m.group(2).split("/")[-1]!=filename:
         raise ValueError("SIDECAR_WRONG_FILENAME")
@@ -118,6 +118,6 @@ def main():
         "canonical_manifest_sha256":digest(json.dumps(manifest,sort_keys=True,separators=(",",":")).encode()),
         "rows":rows,"first_faults":fail,
         "decision":"PASS_SOURCE_ONLY_REQUIRES_INDEPENDENT_REPLAY" if passed==EXPECTED else "REJECT_1M_SOURCE_NO_PNL"}
-    REPORT.write_text(json.dumps(receipt,sort_keys=True,indent=2,allow_nan=False)+"\\n")
+    REPORT.write_text(json.dumps(receipt,sort_keys=True,indent=2,allow_nan=False)+"\n")
     print("V98_1M_PROVENANCE",receipt["decision"],passed,"/",EXPECTED,flush=True)
 if __name__=="__main__":main()
