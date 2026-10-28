@@ -25,6 +25,8 @@ def run():
         if not updates[t] or not np.isfinite(targets[t]).all():
             raise ValueError("KA_NONFINITE_EPOCH")
         gross=np.abs(targets[t]).sum(axis=1)
+        if np.any(targets[t,0]<-1e-12) or not np.isclose(targets[t,0].sum(),1.,atol=1e-10):
+            raise ValueError("KA_CORE_COLLATERAL_CONSERVATION")
         if np.any(gross>1.+1e-10):
             raise ValueError("KA_GROSS_NONCONSERVATION")
         if not valid[t]:
