@@ -1,0 +1,7 @@
+# V99 I1 — source-field compatibility correction (2026-10-28 09:4x BRT)
+
+Before any economic source-to-event certification, checked Tardis official downloadable CSV schema: **`quotes` includes exchange, symbol, timestamp, local_timestamp, bid_price/amount and ask_price/amount, but NO underlying/index price**. Deribit `options_chain` provides `underlying_price` separately. The initial original-event quote auditor mistakenly required `index_price` in the quotes CSV, which would make genuine Tardis archives impossible to ingest.
+
+**Precommitted correction:** independently match last pre-event original quote **BBO, size-in-source-units and venue/arrival microsecond clocks only**. Never infer the underlying index from BBO or treat source amount as authenticated native lots. Expose explicit `original_underlying_index_bound:false`, `source_size_unit_is_native_lot_certified:false`, and retain all no-certification flags. A separate original `options_chain` or exchange index receipt with causal same-update binding must be added before complete event/portfolio certification. A forged journal index must not be treated as verified merely because the BBO matches. Reject any caller attempting to promote this BBO-only audit to economic certification.
+
+Source: https://docs.tardis.dev/downloadable-csv-files/data-types (quotes vs options_chain schemas). This corrects source compatibility, not a strategy, PnL or holdout result. No original licensed 661-day archive is available.
