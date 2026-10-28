@@ -27,7 +27,7 @@ FLAGS = dict(economic_train_executed=False, historical_option_fills_certified=Fa
 
 
 def _expected():
-    return [(int(d.timestamp() * 1000), asset) for d in eligible()
+    return [(int(d.timestamp() * 1000), asset) for d in eligible(True)
             for asset in ("BTC", "ETH")]
 
 
@@ -55,8 +55,6 @@ def join_reports(signal: dict, source: dict, *, signal_sha256: str,
     rows = signal.get("rows")
     if not isinstance(rows, list) or len(rows) != 182:
         raise ValueError("MISSING_91_WEEK_ORIGINAL_SIGNAL")
-    original_grid = [(int(d.timestamp()*1000), a) for d in eligible()
-                     for a in ("BTC", "ETH")]
     # The original signal has exactly 91 maturity-eligible 21-day Mondays;
     # fixed 28-day I1 contracts have exactly 90. The final two signal rows
     # must be excluded as RIGHT CENSORED, not counted as losing trades.
