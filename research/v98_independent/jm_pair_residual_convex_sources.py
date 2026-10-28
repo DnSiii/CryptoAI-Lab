@@ -108,6 +108,10 @@ def bundle(opening,high,low,close,rate,event,quote):
                 if i>=2:budgets[i-2]=0.
                 for k in range(3):
                     if np.abs(experts[k+1]).sum()<1e-12:budgets[k]=0.
+                # Preregistered Core floor takes priority over sleeve budgets:
+                # proportionally shrink simultaneous optional reservations.
+                if budgets.sum()>.42:
+                    budgets*=.42/float(budgets.sum())
                 core_weight=1.-float(budgets.sum())
                 if core_weight<.58-1e-12:raise ValueError("JM_CORE_FLOOR")
                 proposed=_gross(core_weight*core+budgets@experts[1:])
