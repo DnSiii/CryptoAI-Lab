@@ -172,10 +172,10 @@ def _equal(q, source, at):
             and fields[2] > 0 and fields[3] > 0):
         raise ValueError("LATEST_ORIGINAL_RECEIPT_INVALID_REVOKES_EARLIER")
     if fields != (q.bid_coin, q.ask_coin, q.bid_native_lots,
-                  q.ask_native_lots, q.index_usd):
+                  q.ask_native_lots):
         raise ValueError("NATIVE_EVENT_QUOTE_NOT_EQUAL_ORIGINAL_SOURCE")
-    # Equality of displayed source size and native_lots is NOT proof that
-    # the source unit is a Deribit native contract. Never certify quantity.
+    # Tardis quotes omit the underlying index. Original BBO/size equality
+    # cannot authenticate the supplied index or native contract lot units.
     return True
 
 
@@ -190,7 +190,8 @@ def audit(root, journal):
         "status": "ORIGINAL_BBO_CLOCK_BYTES_EQUAL_INDEX_AND_NATIVE_UNITS_UNVERIFIED",
         "original_manifest_sha256": manifest_sha,
         "original_quote_events_checked": len(requests),
-        "original_bbo_size_clock_bytes_equal": True,\n        "original_underlying_index_bound": False,
+        "original_bbo_size_clock_bytes_equal": True,
+        "original_underlying_index_bound": False,
         "vendor_completeness_independently_certified": False,
         "source_size_unit_is_native_lot_certified": False,
         "original_delivery_index_and_fee_certified": False,
