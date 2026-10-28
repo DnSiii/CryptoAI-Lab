@@ -59,8 +59,14 @@ jobs:
               assert r['btc_eth_24_hour_source_coverage']
               assert r['independent_btc_eth_hourly_verification']
               assert r['qualifying_put_arrival_hours_by_asset']=={'BTC':24,'ETH':24}
-              assert r['rows']>0 and all(v>0 for v in r['qualifying_put_rows_by_asset'].values())
-              print('REAL PUBLIC DAY SOURCE FORMAT VERIFIED; 660 MORE TRAIN DAYS + NATIVE TERMS MISSING; NO TRAIN')
+              # Ex-ante 2026-10-28 real-byte parity pin: reject a changed
+              # vendor day rather than silently treating a different tape as
+              # the same historical input. This is NOT a PnL or fill gate.
+              assert r['sha256']=='9d7b1e62fb7f16648348154ebcece472461d3038c96e61ca7e96de4ce8adcdbd'
+              assert r['downloaded_bytes']==217070416
+              assert r['rows']==14720180
+              assert r['qualifying_put_rows_by_asset']=={'BTC':1778798,'ETH':3138873}
+              print('PINNED ORIGINAL 2022-06-01 BYTES/ROWS/ASSETS + INDEPENDENT HOURS MATCH; NO TRAIN')
           else:
               assert not r['real_full_day_original_quote_scan_passed']
               print('REAL PUBLIC DAY INCOMPLETE OR UNAVAILABLE:',r['status'])
