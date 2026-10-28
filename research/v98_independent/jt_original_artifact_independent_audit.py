@@ -4,7 +4,7 @@ Consumes 10 raw GitHub Actions JTON book artifacts, two OS x five books x six ph
 Training 2023-24 only; no 2025, benchmark internals, Frozen, paper or orders.
 """
 from __future__ import annotations
-import argparse,glob,hashlib,jton,math
+import argparse,glob,hashlib,json,math
 from pathlib import Path
 
 BOOKS=("JT_core_only","JT_full","JT_minus_opportunity","JT_minus_RV","JT_minus_stress")
@@ -23,10 +23,10 @@ def audit(root):
     books={}
     fingerprints={}
     seen=set()
-    paths=sorted(glob.glob(str(Path(root)/"**"/"*.jton"),recursive=True))
+    paths=sorted(glob.glob(str(Path(root)/"**"/"*.json"),recursive=True))
     for filename in paths:
         try:
-            data=jton.loads(Path(filename).read_text())
+            data=json.loads(Path(filename).read_text())
             book=data["path"]
             platform=next(p for p in PLATFORMS if p in filename)
             key=(platform,book)
@@ -152,11 +152,11 @@ if __name__=="__main__":
     p.add_argument("--root",required=True);p.add_argument("--output",required=True)
     a=p.parse_args()
     result=audit(a.root)
-    Path(a.output).write_text(jton.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
+    Path(a.output).write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
     print("JT_ORIGINAL_ARTIFACT_INDEPENDENT_AUDIT",result["decision"],
           "raw",result["raw_files"],"receipts",result["distinct_original_receipts"],
           "cells",result["physical_cells"],"errors",result["errors"][:3])
     for key in ("full_base","full_severe"):
         if result[key]:print(key,result[key])
-    print("JT_INDEPENDENT_MARGINALS",jton.dumps(result["marginal_log_growth"],sort_keys=True))
+    print("JT_INDEPENDENT_MARGINALS",json.dumps(result["marginal_log_growth"],sort_keys=True))
     raise SystemExit(2 if result["errors"] else 0)
