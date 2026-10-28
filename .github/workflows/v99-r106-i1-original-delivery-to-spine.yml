@@ -32,6 +32,8 @@ jobs:
       - name: Verify ex-ante preregistration predates integration
         run: |
           git merge-base --is-ancestor 11bb0ec540f77bd587abca9903538b23f68816c2 HEAD
+          git merge-base --is-ancestor d2f375327b589de38d35316ad22a39d04d91b6dd HEAD
+          test -s research/V99_R106_I1_SETTLEMENT_POSITION_LINEAGE_PREREG_20261028.md
           test -s research/V99_R106_I1_ORIGINAL_DELIVERY_TO_SPINE_PREREG_20261028.md
       - name: Run synthetic controls and independent calendar-join oracle
         run: python -m unittest -v research.tests.test_v99_r106_i1_original_delivery_to_spine research.tests.test_v99_r106_i1_delivery_pagination_oracle
