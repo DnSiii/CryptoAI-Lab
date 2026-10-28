@@ -1,0 +1,37 @@
+name: V98 Independent JP Original Receipt Independent Economic Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/jp_original_audit_trigger_20261028.md'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  original_receipt_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download only original JP 2023-2024 native physical book artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: jn30-ubuntu-*
+          run-id: 40660097880
+          github-token: ${{ github.token }}
+          path: original-receipts
+      - name: Independently recalculate original 60 physical receipts without engine imports
+        run: |
+          python -m py_compile research/v98_independent/jp_original_artifact_independent_audit.py
+          python research/v98_independent/jp_original_artifact_independent_audit.py --root original-receipts --output jp_original_independent_economic_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jp-original-independent-economic-audit
+          path: jp_original_independent_economic_audit.json
+          retention-days: 30
+          if-no-files-found: warn
