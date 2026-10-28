@@ -21,6 +21,9 @@ from research.verification.independent_v99_r106_i1_original_intent_oracle import
 from research.verification.independent_v99_r106_i1_scenario_decision_oracle import (
     audit as independent_decisions,
 )
+from research.verification.independent_v99_r106_i1_market_path_oracle import (
+    verify as independent_market_path,
+)
 from research.tools.v99_r106_i1_original_event_quote_identity import (
     audit as original_bbo,
 )
@@ -77,6 +80,11 @@ def run(original_signal_path, original_quotes_root, journal_path):
     if independent["independent_fixed_grid"] != 180:
         raise ValueError("INDEPENDENT_SCENARIO_LEDGER_MISMATCH")
 
+    # Independent common-market path parity BEFORE original BBO and any NAV.
+    market_path = independent_market_path(journal)
+    if market_path["original_source_certified"] is not False:
+        raise ValueError("INDEPENDENT_MARKET_ORACLE_FALSE_CERTIFICATION")
+
     # This must happen BEFORE any NAV, even provisional NAV, is calculated.
     # A missing original archive fails here, never falls back to fixtures.
     quote_identity = original_bbo(original_quotes_root, journal)
@@ -102,6 +110,11 @@ def run(original_signal_path, original_quotes_root, journal_path):
         "original_positive_signal_intents": original["positive_fixed_intents"],
         "original_quote_event_identities_checked": quote_identity["original_quote_events_checked"],
         "original_quote_manifest_sha256": quote_identity["original_manifest_sha256"],
+        "independent_common_market_observations": {
+            "open_inventories": market_path["independent_common_open_inventories"],
+            "mark_books": market_path["independent_common_mark_books"],
+            "delivery_indices": market_path["independent_common_delivery_indices"],
+        },
         "scenario_opens": {
             "severe": independent["severe_opens"],
             "supersevere": independent["supersevere_opens"],
