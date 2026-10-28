@@ -1,0 +1,13 @@
+# V99 I1 — ex ante cross-scenario market-path invariant (2026-10-28 11:xx BRT)
+
+## Observed correctness gap and precommitted remedy
+The current 661-day native event replay correctly permits **different severe/supersevere exposure paths** because scenario-specific costs may trigger different risk vetoes. However, where both paths use the **same original market observation**, they must never select different underlying option inventory, bid/ask or delivery settlement index merely because costs differ. The existing replay compares daily BTC/ETH indices and passive benchmarks but does not compare same-clock settlement indices, same-clock MARK quote prices, or both-scenario OPEN option candidate inventories. A malicious self-consistent journal could make one cost scenario look more profitable by substituting a different contract/mark/delivery index.
+
+Before changing code, freeze these invariant rules:
+1. For every asset and Monday OPEN clock present in **both** scenarios, require the identical full ex ante native Quote candidate inventory (by symbol and all quote fields, including clocks, index, sizes and prices). The scenario may still choose CASH in one path. Fees, slippage, collateral and risk veto may differ; source market inventory may not.
+2. For every same asset, clock and exact short/long contract pair marked in both paths, require identical original short and long Quote fields. Do not require identical positions or same number of marks across cost paths.
+3. For every same asset and contractual expiry timestamp with SETTLE_BATCH present in both paths, require exactly the same delivery index, independent of scenario fees, position IDs or collateral.
+4. Run these checks **before** 661-day NAV replay; independently reimplement the comparison in a verification oracle without importing the production implementation. Test at least three adversarial cases (different selected OPEN instrument, different MARK BBO, different delivery index) plus a legitimate severe-OPEN/supersevere-CASH divergence. Reuse existing 661-day synthetic fixture, never open validation/holdout.
+5. No source certification is implied: equal self-declared prices can still be false in **both** scenarios. The missing licensed original Deribit BTC/ETH 2021–2023 full lifecycle archive, dated index/fee/margin/delivery terms and conservative executable fill evidence remain critical external dependencies. No ROI, paper, orders, Frozen or promotion.
+
+Decision rule: any divergent common original market observation => **REJECT / NO PROMOTION**. CI green is software control only, never economic TRAIN.
