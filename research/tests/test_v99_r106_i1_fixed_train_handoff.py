@@ -170,6 +170,18 @@ class Fixed90WeekHandoffTests(unittest.TestCase):
             self.assertFalse(report["economic_train_executed"])
             self.assertFalse(report["promotion_authorized"])
 
+            # A synthetic CSV relabeled as 'original' cannot reach the
+            # 661-day handoff without original first-party signal receipts.
+            # This is a direct executable-run gate, not just workflow policy.
+            manifest["fixture"] = False
+            (archive / "manifest.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError, "ORIGINAL_SIGNAL_REPLAY_RECEIPTS_REQUIRED"):
+                run(str(signal_file), str(archive), str(root / "forged.json"))
+            with self.assertRaisesRegex(ValueError, "ORIGINAL_SIGNAL_REPLAY_FAILED"):
+                run(str(signal_file), str(archive), str(root / "forged.json"),
+                    str(root / "missing_okx"), str(root / "missing_dvol"))
+            self.assertFalse((root / "forged.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
