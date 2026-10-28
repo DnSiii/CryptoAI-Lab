@@ -140,6 +140,8 @@ class OriginalToNumericIntegration(unittest.TestCase):
         report = self.execute(self.document())
         self.assertEqual(report["original_signal_intents_checked"], 180)
         self.assertEqual(report["scenario_opens"], {"severe": 1, "supersevere": 1})
+        self.assertEqual(report["independent_common_market_observations"]["open_inventories"], 1)
+        self.assertEqual(report["independent_common_market_observations"]["delivery_indices"], 1)
         self.assertGreater(report["original_quote_event_identities_checked"], 2)
         self.assertEqual(report["original_complete_option_lifecycles_certified"], 0)
         self.assertFalse(report["original_options_economic_train_certified"])
@@ -175,6 +177,25 @@ class OriginalToNumericIntegration(unittest.TestCase):
     def test_zero_original_event_identities_is_not_source_proof(self):
         with self.assertRaisesRegex(ValueError, "ZERO_ORIGINAL_BBO_EVENT_IDENTITIES"):
             self.execute(self.document(opening=False))
+
+    def test_integrated_oracle_rejects_cost_specific_delivery_price(self):
+        doc = self.document()
+        for day in doc["scenarios"]["supersevere"]:
+            for event in day["events"]:
+                if event["kind"] == "SETTLE_BATCH":
+                    event["delivery_index_usd"] = "39000"
+        with self.assertRaisesRegex(AssertionError,
+                                    "ORACLE_CROSS_SCENARIO_SETTLE_BATCH_MISMATCH"):
+            self.execute(doc)
+
+    def test_integrated_oracle_rejects_cost_specific_original_mark(self):
+        doc = self.document()
+        mark = next(e for day in doc["scenarios"]["supersevere"]
+                    for e in day["events"] if e["kind"] == "MARK")
+        mark["short"]["ask_coin"] = "0.054"
+        with self.assertRaisesRegex(AssertionError,
+                                    "ORACLE_CROSS_SCENARIO_MARK_MISMATCH"):
+            self.execute(doc)
 
     def test_fixture_and_self_declared_promotion_rejected(self):
         doc = self.document()
