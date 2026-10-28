@@ -175,6 +175,32 @@ class NumericTrainGateTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "INDEPENDENT_NUMERIC_METRIC_MISMATCH"):
             independent_verify(source, forged)
 
+    def test_explicit_provisional_cli_replay_is_never_certified(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from research.tools.v99_r106_i1_train_numeric_gate import main
+        from research.tests.test_v99_r106_i1_native_event_equity import (
+            flat_fixture, complete_fixed_decisions,
+        )
+        from research.tools.v99_r106_i1_native_event_equity import replay
+        source = flat_fixture()
+        source["fixture"] = False
+        source["decisions"] = complete_fixed_decisions()
+        journal = replay(source)
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"native.json", Path(tmp)/"diagnostic.json"
+            inp.write_text(json.dumps(journal), encoding="utf-8")
+            result = main(inp, out, provisional=True)
+            disk = json.loads(out.read_text(encoding="utf-8"))
+            self.assertEqual(result, disk)
+            self.assertEqual(independent_verify(journal, disk)["status"],
+                             "INDEPENDENT_PROVISIONAL_NUMERIC_REPLAY_MATCH_NOT_CERTIFIED")
+            self.assertFalse(disk["original_options_economic_train_certified"])
+            self.assertFalse(disk["promotion_authorized"])
+            with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
+                main(inp, out)  # cannot silently choose provisional mode
+
     def test_provisional_diagnostic_fails_closed_on_forged_provenance(self):
         from research.tests.test_v99_r106_i1_native_event_equity import (
             flat_fixture, complete_fixed_decisions,
