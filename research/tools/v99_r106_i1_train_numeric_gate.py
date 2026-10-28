@@ -202,12 +202,15 @@ def evaluate_provisional(document):
     return _evaluate(document, provisional=True)
 
 
-def main(input_file, output_file):
-    report = evaluate(json.loads(Path(input_file).read_text(encoding="utf-8")))
+def main(input_file, output_file, *, provisional=False):
+    source = json.loads(Path(input_file).read_text(encoding="utf-8"))
+    report = (evaluate_provisional(source) if provisional else evaluate(source))
     Path(output_file).write_text(
         json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n",
         encoding="utf-8")
     print(json.dumps({"status": report["status"],
+                      "numeric_screen_descriptive_only":
+                      report["numeric_screen_descriptive_only"],
                       "numeric_train_pass_both_scenarios":
                       report["numeric_train_pass_both_scenarios"],
                       "original_options_economic_train_certified": False,
@@ -216,6 +219,6 @@ def main(input_file, output_file):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        raise SystemExit("usage: python -m research.tools.v99_r106_i1_train_numeric_gate FIXTURE_EQUITY_JSON OUT_JSON")
-    main(*sys.argv[1:])
+    if len(sys.argv) not in (3, 4) or (len(sys.argv) == 4 and sys.argv[3] != "provisional"):
+        raise SystemExit("usage: python -m research.tools.v99_r106_i1_train_numeric_gate INPUT_EQUITY_JSON OUT_JSON [provisional]")
+    main(sys.argv[1], sys.argv[2], provisional=len(sys.argv) == 4)
