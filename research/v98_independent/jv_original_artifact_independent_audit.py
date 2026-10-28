@@ -12,7 +12,7 @@ PLATFORMS=("ubuntu-22.04","ubuntu-24.04")
 COSTS=("base","severe","supersevere")
 ORDERS=("carried_before_fill","new_after_fill")
 EXPECTED_SHA="833013a2e18836a203afd267ca698175907cff8f4c153c919a7811f14cb80752"
-EXPECTED_NATIVE_MASK_SHA="JV_SOURCE_SHA_PENDING_INDEPENDENT_DUAL_OS"
+EXPECTED_NATIVE_MASK_SHA="2cfc45817b5f8ec3ddc3c51332393693c5f06077c85bad43f2ae0b454c7720d2"
 EPS=1e-7
 
 def close(x,y,abs_tol=2e-5):
