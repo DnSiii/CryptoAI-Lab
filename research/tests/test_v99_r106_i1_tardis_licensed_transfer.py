@@ -72,7 +72,8 @@ class LicensedTransferTests(unittest.TestCase):
         self.license = Path(self.tmp.name) / "vendor-grant.txt"
         self.license.write_text("OFFLINE TEST PLACEHOLDER NOT A REAL LICENSE")
     def call(self, opener, **kw):
-        return transfer(self.root, execute=True, max_days=1, key="test-secret",
+        kw.setdefault("max_days", 1)
+        return transfer(self.root, execute=True, key="test-secret",
                         license_evidence=self.license, opener=opener, **kw)
 
     def test_default_dry_run_no_key_no_network(self):
