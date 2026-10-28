@@ -17,6 +17,7 @@ from research.tests.test_v99_r106_i1_source_driven_entry_book import (
 from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS, SCHEMA
 from research.tools.v99_r106_i1_source_driven_entry_book import build
 from research.tools.v99_r106_i1_source_to_mark_event_spine import compile_spine
+from research.verification.independent_v99_r106_i1_source_mark_spine_oracle import verify as independent_spine
 
 SHORT = "BTC-14JAN22-36000-P"
 LONG = "BTC-14JAN22-32000-P"
@@ -107,6 +108,9 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
         self.assertFalse(result["native_economic_train_executed"])
         self.assertFalse(result["promotion_authorized"])
         self.assertFalse(result["original_delivery_index_authenticated"])
+        independently = independent_spine(self.root, self.entry, result)
+        self.assertEqual(independently["independent_held_contract_mark_pairs"], 32)
+        self.assertEqual(independently["independent_expiry_due"], 1)
 
     def test_missing_exact_held_mark_fails_closed(self):
         d = datetime(2021, 12, 15, tzinfo=timezone.utc)
@@ -141,6 +145,22 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
         forged[0]["long_symbol"] = "BTC-14JAN22-31000-P"
         with self.assertRaisesRegex(ValueError, "POSITION_NOT_IN_FULL_ORIGINAL"):
             compile_spine(self.root, self.entry, forged)
+
+    def test_independent_oracle_rejects_forged_original_mark(self):
+        result = compile_spine(self.root, self.entry, self.plan)
+        mark = next(e for day in result["days"] for e in day["market_events"]
+                    if e["kind"] == "MARK_SOURCE_ONLY")
+        mark["short"]["bid_coin"] = "0.99"
+        with self.assertRaisesRegex(ValueError, "ORACLE_MARK_NOT_EQUAL_ORIGINAL"):
+            independent_spine(self.root, self.entry, result)
+
+    def test_independent_oracle_rejects_missing_expiry(self):
+        result = compile_spine(self.root, self.entry, self.plan)
+        expiry = next(day for day in result["days"] if any(
+            e["kind"] == "SETTLEMENT_DUE_SOURCE_ONLY" for e in day["market_events"]))
+        expiry["market_events"] = []
+        with self.assertRaisesRegex(ValueError, "ORACLE_MISSING_DUPLICATED"):
+            independent_spine(self.root, self.entry, result)
 
     def test_missing_original_manifest_no_fixture_fallback(self):
         with tempfile.TemporaryDirectory() as root:
