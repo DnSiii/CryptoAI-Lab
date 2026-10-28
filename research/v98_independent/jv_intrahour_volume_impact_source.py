@@ -113,9 +113,13 @@ def run():
         for asset in ASSETS:
             ret,bar_ret,q5,ohlc=aligned[asset]
             total=q5.sum(axis=1)
-            if np.any(total<=0) or not np.isfinite(total).all():
-                raise ValueError("JV_NONPOSITIVE_HOURLY_NATIVE_QUOTE_"+asset)
-            share=q5/total[:,None]
+            bad=(total<=0)|(~np.isfinite(total))
+            if np.any(bad & hourly_valid):
+                raise ValueError("JV_NONPOSITIVE_VERIFIED_HOURLY_NATIVE_QUOTE_"+asset)
+            # Quarantined month-hours remain invalid; zero native volume in
+            # those excluded hours must never leak into source features/PnL.
+            safe_total=np.where(bad,1.,total)
+            share=q5/safe_total[:,None]
             volume_hhi=np.square(share).sum(axis=1)
             impulse=np.sum(share*bar_ret,axis=1)
             late_share=np.sum(share[:,8:],axis=1)
