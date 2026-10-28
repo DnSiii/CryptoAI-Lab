@@ -99,7 +99,7 @@ class LocalTapeImportTests(unittest.TestCase):
 
     def _rewrite_first_day(self, *, btc_symbol=None, eth_symbol=None,
                            eth_bid="0.02", eth_ask="0.025", eth_size="1",
-                           include_eth=True):
+                           include_eth=True, btc_event_age_us=0):
         day = FIRST
         expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
         start = int(datetime(day.year, day.month, day.day,
@@ -108,7 +108,7 @@ class LocalTapeImportTests(unittest.TestCase):
         writer = csv.writer(buffer)
         writer.writerow(HEADERS)
         writer.writerow(("deribit", btc_symbol or f"BTC-{expiry}-30000-P",
-                         start+1_000_000, start+1_000_000,
+                         start+1_000_000-btc_event_age_us, start+1_000_000,
                          "0.02", "0.025", "1", "1"))
         if include_eth:
             writer.writerow(("deribit", eth_symbol or f"ETH-{expiry}-2000-P",
@@ -131,6 +131,12 @@ class LocalTapeImportTests(unittest.TestCase):
 
     def test_expired_btc_put_rejected_atomically(self):
         self._rewrite_first_day(btc_symbol="BTC-01DEC21-30000-P")
+        with self.assertRaisesRegex(ValueError, "MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:2021-12-09:BTC"):
+            run(self.root, fixture=True)
+        self.assertFalse((self.root / "manifest.json").exists())
+
+    def test_stale_only_btc_receipt_rejected_atomically(self):
+        self._rewrite_first_day(btc_event_age_us=301_000_000)
         with self.assertRaisesRegex(ValueError, "MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:2021-12-09:BTC"):
             run(self.root, fixture=True)
         self.assertFalse((self.root / "manifest.json").exists())
