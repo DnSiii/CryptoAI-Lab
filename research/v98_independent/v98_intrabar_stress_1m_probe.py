@@ -64,12 +64,35 @@ def same(x,y,kind):
     tol=max(1e-8,1e-10*max(abs(x),abs(y))) if kind=="price" else max(1e-6,1e-8*max(abs(x),abs(y)))
     return abs(x-y)<=tol
 def synthetic():
-    base=[i*60000 for i in range(1440)]
-    assert len(base)==1440 and len(set(base))==1440
-    for altered in (base[:-1],base[:10]+base[9:10]+base[11:],base[:10]+base[11:12]+base[10:11]+base[12:]):
-        if len(altered)==1440 and altered==base:raise ValueError("SYNTHETIC_TEST_FAILED")
-    assert digest(b"raw")!=digest(b"tampered")
-    assert not same(100.,101.,"price")
+    """Exercise the actual ZIP parser against deterministic corrupt raw archives."""
+    name="BTCUSDT-1m-2023-01-15.zip"
+    midnight=int(datetime(2023,1,15,tzinfo=timezone.utc).timestamp()*1000)
+    rows=[]
+    for i in range(1440):
+        t=midnight+i*60000
+        rows.append([str(t),"100","101","99","100.5","1",str(t+59999),
+                     "100.4","3","0.5","50.2","0"])
+    def zipped(lines):
+        out=io.BytesIO()
+        with zipfile.ZipFile(out,"w",compression=zipfile.ZIP_DEFLATED) as f:
+            f.writestr(name.replace(".zip",".csv"),
+                       "\n".join(",".join(x) for x in lines)+"\n")
+        return out.getvalue()
+    good=zipped(rows)
+    if len(parse(good,name,midnight))!=1440:raise ValueError("SYNTHETIC_GOOD_FAIL")
+    variants=[]
+    variants.append(rows[:-1])
+    dup=[x.copy() for x in rows];dup[11]=dup[10].copy();variants.append(dup)
+    reversed_rows=[x.copy() for x in rows]
+    reversed_rows[10],reversed_rows[11]=reversed_rows[11],reversed_rows[10]
+    variants.append(reversed_rows)
+    altered=[x.copy() for x in rows];altered[10][4]="999";variants.append(altered)
+    for k,variant in enumerate(variants):
+        try:parse(zipped(variant),name,midnight)
+        except ValueError:continue
+        raise ValueError("SYNTHETIC_CORRUPTION_NOT_REJECTED_"+str(k))
+    if digest(good)==digest(good+b"tampered"):raise ValueError("SYNTHETIC_HASH_FAIL")
+    if same(100.,101.,"price"):raise ValueError("SYNTHETIC_TOLERANCE_FAIL")
     return True
 def main():
     assert synthetic()
