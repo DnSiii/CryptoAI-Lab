@@ -1,0 +1,3 @@
+# V98 Independent JS — cross-OS original source artifact forensics (2026-10-28)
+
+The first JS cross-asset 5m source-only run 40669340031 authenticated 100/100 vendor archives on both Ubuntu 22.04/24.04, but the independent byte-exact feature/manifest comparison **failed**. This is an unresolved source reproducibility gate; do not authorize JS economics. Compare the two **original immutable source artifacts**, find the first differing field/byte and identify whether it is an archive SHA/source mask conflict or only derived floating-point serialization. No source replacement, silent rounding, strategy PnL, benchmark, 2025, Frozen or paper.
