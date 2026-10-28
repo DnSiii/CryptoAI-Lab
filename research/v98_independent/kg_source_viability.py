@@ -17,8 +17,11 @@ def main():
     assert targets.shape==(HOURS,5,4)
     assert not updates[:WARMUP].any()
     counts={};invalid=[];violations=[]
+    # Anchor all decisions at the immutable Dec-2022 warmup, NOT each
+    # calendar-year boundary (2023 has 365 days, not a whole 168h multiple).
+    all_epochs=np.arange(WARMUP,HOURS,CLOCK)
     for year,lo,hi in (("2023",744,9504),("2024",9504,HOURS)):
-        epochs=np.arange(lo,hi,CLOCK)
+        epochs=all_epochs[(all_epochs>=lo)&(all_epochs<hi)]
         counts[year]={}
         for i,name in enumerate(("Opportunity","Relative_Value","Stress_Recovery")):
             distances=np.abs(targets[epochs,1]-targets[epochs,i+2]).sum(axis=1)
@@ -26,7 +29,7 @@ def main():
             if counts[year][name]<8:
                 violations.append("KG_INSUFFICIENT_"+year+"_"+name)
         invalid.extend(int(t) for t in epochs if not valid[t])
-    epochs=np.arange(WARMUP,HOURS,CLOCK)
+    epochs=all_epochs
     if np.any(np.abs(targets[epochs]).sum(axis=2)>1.+1e-10):
         violations.append("KG_GROSS_NONCONSERVATION")
     if np.any((np.abs(targets[epochs,1]-targets[epochs,0]).sum(axis=1)>1e-10) & (~valid[epochs])):
