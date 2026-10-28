@@ -6,6 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from decimal import Decimal
 
+from research.verification.independent_v99_r106_i1_train_numeric_oracle import verify as independent_verify
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, FIRST, REGIMES, SCENARIOS, _expected_clock, _fold, evaluate,
 )
@@ -45,6 +46,12 @@ class NumericTrainGateTests(unittest.TestCase):
         source = fixture()
         result = evaluate(source)
         self.assertEqual(result["days_per_scenario"], 661)
+        self.assertEqual(independent_verify(source, result)["status"],
+                         "INDEPENDENT_FIXTURE_NUMERIC_REPLAY_MATCH")
+        forged = copy.deepcopy(result)
+        forged["scenarios"]["severe"]["remove_best_day_roi"] = "999"
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_NUMERIC_METRIC_MISMATCH"):
+            independent_verify(source, forged)
         self.assertTrue(result["numeric_train_pass_both_scenarios"])
         self.assertEqual(result["scenario_path_divergence_days"], len(range(0, DAYS, 19)))
         self.assertFalse(result["promotion_authorized"])
