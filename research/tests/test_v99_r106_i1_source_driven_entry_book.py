@@ -13,6 +13,7 @@ from pathlib import Path
 from research.tools.v99_r106_i1_full_archive_intake import eligible
 from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS, SCHEMA
 from research.tools.v99_r106_i1_source_driven_entry_book import build
+from research.verification.independent_v99_r106_i1_source_entry_book_oracle import verify
 
 HEADER = ("exchange", "symbol", "timestamp", "local_timestamp",
           "bid_price", "ask_price", "bid_amount", "ask_amount")
@@ -105,6 +106,15 @@ class SourceDrivenEntryBookTests(unittest.TestCase):
         self.assertFalse(out["economic_train_executed"])
         self.assertFalse(out["original_underlying_index_authenticated"])
         self.assertFalse(out["promotion_authorized"])
+
+    def test_independent_original_byte_replay_and_adversarial_book(self):
+        out = build(self.root, intents())
+        verified = verify(self.root, out)
+        self.assertEqual(verified['independently_verified_asset_weeks'], 180)
+        self.assertEqual(verified['independently_verified_sundays'], 90)
+        out['rows'][0]['original_books'][0]['bid_coin'] = '999'
+        with self.assertRaisesRegex(ValueError, 'ORACLE_SOURCE_DRIVEN_BOOK_DIVERGENCE'):
+            verify(self.root, out)
 
     def test_last_invalid_quote_revokes_earlier_valid(self):
         self.update_sunday(self.original + [
