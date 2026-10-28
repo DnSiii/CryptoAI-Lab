@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import numpy as np
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
-from jh_range_residual_recovery_sources import bundle,static_check,WARMUP,CLOCK,PATHS
+from jh_capital_flow_migration_sources import bundle,static_check,WARMUP,CLOCK,PATHS
 OUT=Path(__file__).with_name('jh_source_viability.json')
 
 def run():
