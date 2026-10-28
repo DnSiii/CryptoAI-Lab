@@ -85,7 +85,8 @@ def bundle(opening,high,low,close,rate,event,quote,source=None):
             if np.any(opp>0):
                 experts[1,int(np.argmax(opp))]=1.;budgets[0]=.16
             rv=np.mean(shift,axis=0)/np.maximum(np.mean(vol,axis=0),.001)
-            hi=int(np.argmax(rv));lo=int(np.argmin(rv))
+            rank=np.argsort(rv,kind="stable")
+            hi=int(rank[-1]);lo=int(rank[0])
             if hi==lo:raise ValueError("JR_RV_DISTINCT_ASSETS")
             experts[2,hi]=.5;experts[2,lo]=-.5;budgets[1]=.14
             v24=float(np.mean(f[t-23:t+1,:,3]))
