@@ -22,16 +22,19 @@ class Response:
         return self.body.read(n)
 
 
-def day_gzip(*, day=datetime(2022, 6, 1, tzinfo=timezone.utc), eth=True):
+def day_gzip(*, day=datetime(2022, 6, 1, tzinfo=timezone.utc), eth=True, missing_hour=None):
     out = io.StringIO(newline="")
     writer = csv.writer(out)
     writer.writerow(("exchange", "symbol", "timestamp", "local_timestamp",
                      "bid_price", "ask_price", "bid_amount", "ask_amount"))
-    for i, asset in enumerate(("BTC", "ETH") if eth else ("BTC",)):
-        expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
-        us = int(day.timestamp()*1_000_000) + (i+1)*1_000_000
-        writer.writerow(("deribit", f"{asset}-{expiry}-2000-P", us, us,
-                         "0.02", "0.025", "1", "1"))
+    for hour in range(24):
+        if hour == missing_hour:
+            continue
+        for i, asset in enumerate(("BTC", "ETH") if eth else ("BTC",)):
+            expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
+            us = int(day.timestamp()*1_000_000) + hour*3_600_000_000 + (i+1)*1_000_000
+            writer.writerow(("deribit", f"{asset}-{expiry}-2000-P", us, us,
+                             "0.02", "0.025", "1", "1"))
     return gzip.compress(out.getvalue().encode())
 
 
@@ -55,9 +58,17 @@ class PublicFullDayTests(unittest.TestCase):
     def test_full_day_valid_offline_fixture_not_certified(self):
         result = self.call()
         self.assertEqual(result["status"], "OFFLINE_FIXTURE_FULL_DAY_PASS_NOT_MARKET_EVIDENCE")
-        self.assertEqual(result["rows"], 2)
-        self.assertEqual(result["qualifying_put_rows_by_asset"], {"BTC": 1, "ETH": 1})
+        self.assertEqual(result["rows"], 48)
+        self.assertEqual(result["qualifying_put_rows_by_asset"], {"BTC": 24, "ETH": 24})
+        self.assertEqual(result["qualifying_put_arrival_hours_by_asset"], {"BTC": 24, "ETH": 24})
+        self.assertTrue(result["btc_eth_24_hour_source_coverage"])
         self.assertEqual(len(result["sha256"]), 64)
+
+    def test_crc_valid_23_hour_partial_capture_rejected(self):
+        result = self.call(day_gzip(missing_hour=12))
+        self.assertEqual(result["status"], "PUBLIC_DAY_HOURLY_GAP")
+        self.assertEqual(result["qualifying_put_arrival_hours_by_asset"], {"BTC": 23, "ETH": 23})
+        self.assertFalse(result["btc_eth_24_hour_source_coverage"])
 
     def test_wrong_utc_day_rejected(self):
         result = self.call(day_gzip(day=datetime(2022, 7, 1, tzinfo=timezone.utc)))
