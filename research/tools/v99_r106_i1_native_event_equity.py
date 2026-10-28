@@ -103,6 +103,7 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
         raise ValueError("INCOMPLETE_661_DAY_EVENT_JOURNAL")
     wallets = {a: start_wallet(a, scenario, initial_coin[a]) for a in ("BTC", "ETH")}
     result = []
+    opened_asset_weeks = set()  # fixed 90 Mondays x BTC/ETH, max one entry each
     prev_clock = min(w.last_ms for w in wallets.values()) - 1
     for i, row in enumerate(rows):
         clock = _expected_clock(i)
@@ -130,7 +131,11 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
             last_event = at_ms
             wallet = wallets[asset]
             if kind == "OPEN":
+                key = (asset, at_ms)
+                if key in opened_asset_weeks:
+                    raise ValueError("DUPLICATE_FIXED_ASSET_WEEK_ENTRY")
                 wallet = _open(wallet, event, at_ms)
+                opened_asset_weeks.add(key)
             elif kind == "MARK":
                 wallet = _mark(wallet, event, at_ms)
             elif kind == "SETTLE_BATCH":
