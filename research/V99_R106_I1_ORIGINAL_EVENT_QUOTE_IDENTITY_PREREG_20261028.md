@@ -1,0 +1,13 @@
+# V99 I1 — original source-to-native-event quote identity preregistration (2026-10-28 09:4x BRT)
+
+## Critical path, not another alpha search
+The current 661-day event-to-equity bridge accepts OPEN/MARK Quote objects supplied by its caller. Even `fixture=false` does not prove that those BBO, size, arrival/venue clocks or indices occurred in original Deribit historical bytes. A forged favorable quote stream could produce an attractive provisional NAV. The official economic gate remains locked, but the source-to-event identity gap must be closed before any original TRAIN.
+
+## Fixed implementation contract
+1. Implement a separate fail-closed, read-only source-to-event quote oracle. For each OPEN quote (all candidates, not only selected winner) and MARK short/long quote, recover the **last** original raw Deribit CSV quote receipt at or before the event clock from the exact original arrival-day gzip, including the prior UTC day for Monday 00:00. Never use postdecision or sealed >=2023-10-01 data. Replayed venue and arrival clocks must be causal and within the pre-existing 300s age. A later invalid/zero/crossed receipt **revokes** an earlier valid one. Reject missing, ambiguous, mismatched or stale receipts, duplicate contract observations, changed BBO/size, index and original file hash.
+2. The source auditor must require an exact 661-day nonfixture manifest with original gzip SHA256 and per-day row counts, and independently verify the source file hashes it reads. No arbitrary supplied 'verified' boolean or self-declared file path counts as independent provenance. If source quote rows lack a trustworthy original underlying-index column or native lot-size mapping, reject rather than infer it.
+3. Bind every OPEN/MARK event quote to source bytes. Independently verify original 182 -> fixed 180 signal intents before calling the provisional economic replay in a future integrated runner. This commit only closes the quote identity boundary; no certification of vendor completeness, fees, margin, delivery index, executable fills, risk-veto decisions or strategy performance.
+4. Add adversarial fixture controls for last invalid receipt revocation, forged price/size, postdecision quote, missing day, wrong original digest, and a passing original-row equality example. Execute GitHub Actions, poll and document failures. Do not alter C1, Frozen, paper, champion, validation or holdout.
+
+## Decision
+No original 661-day licensed BTC/ETH options archive is currently accessible. The new oracle must fail closed on actual missing original source, not emit synthetic profit. Keep SOURCE_ONLY/HOLD — NO PROMOTION, 0/180 original lifecycles certified, no orders.
