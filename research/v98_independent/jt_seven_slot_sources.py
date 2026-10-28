@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""JT preregistered complete cross-asset propagation seven-slot engine, source/targets only.
+"""JT preregistered contemporaneous downside-resilience seven-slot engine, source/targets only.
 Completed t features -> actual t+1 open; 2023-2024 training only.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ COLS=("down_beta","down_resilience","cojump_frequency","up_capture")
 def load_verified():
     p=HERE/"jt_downside_resilience_hourly.csv"
     raw=p.read_bytes()
-    receipt=json.loads((HERE/"jt_cross_asset_5m_propagation_source_receipt.json").read_text())
+    receipt=json.loads((HERE/"jt_downside_resilience_source_receipt.json").read_text())
     if (hashlib.sha256(raw).hexdigest()!=PIN
         or receipt.get("source_feature_sha256")!=PIN
         or receipt.get("decision")!="PASS_JT_DOWNSIDE_SOURCE_ONLY_NOT_ECONOMIC"
