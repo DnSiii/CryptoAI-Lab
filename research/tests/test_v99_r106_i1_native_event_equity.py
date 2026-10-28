@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from research.tools.v99_r106_i1_native_event_equity import replay, SCHEMA
 from research.tools.v99_r106_i1_full_archive_intake import eligible
+from research.verification.independent_v99_r106_i1_scenario_decision_oracle import audit as independent_scenario_audit
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, REGIMES, SCENARIOS, _expected_clock, _fold, evaluate,
 )
@@ -369,6 +370,10 @@ class NativeEventEquityTests(unittest.TestCase):
         veto["reason"] = "RISK_VETO"
         for day in doc["scenarios"]["supersevere"]:
             day["events"] = []
+        independent = independent_scenario_audit(doc)
+        self.assertEqual(independent["severe_opens"], 1)
+        self.assertEqual(independent["supersevere_opens"], 0)
+        self.assertFalse(independent["risk_veto_authenticated"])
         report = replay(doc)
         severe = report["scenarios"]["severe"]
         supersevere = report["scenarios"]["supersevere"]
@@ -407,15 +412,21 @@ class NativeEventEquityTests(unittest.TestCase):
         forged["scenario_decisions"]["supersevere"][0]["reason"] = "NO_PREMIUM"
         with self.assertRaisesRegex(ValueError, "SCENARIO_ORIGINAL_SIGNAL_PATH_MISMATCH"):
             replay(forged)
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_ORIGINAL_SIGNAL_DIVERGENCE"):
+            independent_scenario_audit(forged)
         missing = copy.deepcopy(doc)
         missing["scenario_decisions"]["supersevere"].pop()
         with self.assertRaisesRegex(ValueError, "MISSING_COMPLETE_FIXED_180_DECISION_LEDGER"):
             replay(missing)
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_INCOMPLETE_180_GRID"):
+            independent_scenario_audit(missing)
         omitted = copy.deepcopy(doc)
         for day in omitted["scenarios"]["supersevere"]:
             day["events"] = [e for e in day["events"] if e.get("kind") != "OPEN"]
         with self.assertRaisesRegex(ValueError, "MISSING_OR_SELECTIVE_FIXED_DECISION_EXECUTION"):
             replay(omitted)
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_MISSING_OR_EXTRA_OPEN"):
+            independent_scenario_audit(omitted)
 
 
 if __name__ == "__main__":
