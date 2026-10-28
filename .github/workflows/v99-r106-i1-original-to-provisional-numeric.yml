@@ -4,6 +4,8 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - research/tools/v99_r106_i1_original_to_provisional_numeric.py
+      - research/tools/v99_r106_i1_source_driven_entry_book.py
+      - research/verification/independent_v99_r106_i1_source_entry_book_oracle.py
       - research/tests/test_v99_r106_i1_original_to_provisional_numeric.py
       - research/verification/independent_v99_r106_i1_market_path_oracle.py
       - .github/workflows/v99-r106-i1-original-to-provisional-numeric.yml
@@ -28,6 +30,8 @@ jobs:
           python-version: '3.12'
       - name: Verify preregistration precedes implementation
         run: |
+          git merge-base --is-ancestor b6571b0d7a514fa6117403fa084e8e8400cdc957 HEAD
+          test -s research/V99_R106_I1_FULL_ORIGINAL_OPEN_INVENTORY_BINDING_PREREG_20261028.md
           git merge-base --is-ancestor 8f00e6d1b91d1dc261ba5c1333513cec9b9895b2 HEAD
           test -s research/V99_R106_I1_CROSS_SCENARIO_MARKET_PATH_INVARIANT_PREREG_20261028.md
           git merge-base --is-ancestor fa61864436a1f912eb7330b9fb4e8e4d756679d7 HEAD
