@@ -1,0 +1,31 @@
+name: V98 Independent KE Native BookDepth Source Only Feasibility
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ke-bookdepth-source.yml'
+      - 'research/v98_independent/ke_bookdepth_source_feasibility.py'
+      - 'research/v98_independent/ke_bookdepth_source_feasibility_prereg_20261028.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax and strict scope gate
+        run: python -m py_compile research/v98_independent/ke_bookdepth_source_feasibility.py
+      - name: Probe fixed original 2023-24 publisher bookDepth archive availability (NO PnL)
+        run: python research/v98_independent/ke_bookdepth_source_feasibility.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ke-bookdepth-source-only-feasibility
+          path: research/v98_independent/ke_bookdepth_source_feasibility.json
+          retention-days: 30
+          if-no-files-found: warn
