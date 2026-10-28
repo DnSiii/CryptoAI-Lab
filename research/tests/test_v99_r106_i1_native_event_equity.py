@@ -189,7 +189,10 @@ class NativeEventEquityTests(unittest.TestCase):
         # Remove the optional supplied benchmark so this adversarial case
         # reaches the independent cross-scenario original-index path guard.
         del doc["scenarios"]["supersevere"][120]["benchmark_usd"]
-        with self.assertRaisesRegex(ValueError, "SCENARIO_ORIGINAL_INDEX_PATH_MISMATCH"):
+        # Passive native benchmark is derived from each scenario's indices,
+        # so mismatched original paths also mismatch the benchmark first.
+        with self.assertRaisesRegex(ValueError,
+                                    "SCENARIO_(BENCHMARK_OR_REGIME|ORIGINAL_INDEX)_PATH_MISMATCH"):
             replay(doc)
 
     def test_original_native_scenario_fee_floor_enforced(self):
