@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parent
 CSV=ROOT/"kd_trade_count_2022_2024_native.csv"
 RECEIPT=ROOT/"kd_trade_count_source_receipt.json"
 HOURS=18288
+PINNED_COUNT_SHA="3cd3c6e88826d0ed9faa0c9a39c084ab01810ded33609d7d1655a5073dc01a8d"
 START=pd.Timestamp("2022-12-01T00:00:00Z")
 NAMES=("open_time","open","high","low","close","volume","close_time",
        "quote_volume","trade_count","taker_buy_base","taker_buy_quote","ignore")
@@ -65,6 +66,7 @@ def run():
     timestamps=pd.date_range(START,periods=HOURS,freq="h",tz="UTC")
     out=pd.DataFrame({"open_time":timestamps,**counts})
     raw=out.to_csv(index=False).encode()
+    if sha(raw)!=PINNED_COUNT_SHA:raise ValueError("KD_IMMUTABLE_COUNT_DIGEST_DRIFT")
     CSV.write_bytes(raw)
     result={"architecture":"KD","source_only":True,"historical_system_pnl_computed":False,
             "validation_2025_read":False,"holdout_accessed":False,
@@ -84,7 +86,7 @@ def load_native(root=ROOT):
     if receipt["decision"]!="PASS_KD_100_PUBLISHER_ZIPS_NATIVE_COUNT_ONLY" or receipt["publisher_archives"]!=100:
         raise ValueError("KD_SOURCE_NOT_ATTESTED")
     raw=(root/CSV.name).read_bytes()
-    if sha(raw)!=receipt["trade_count_csv_sha256"]:
+    if sha(raw)!=PINNED_COUNT_SHA or receipt["trade_count_csv_sha256"]!=PINNED_COUNT_SHA:
         raise ValueError("KD_TRADE_COUNT_PIN")
     frame=pd.read_csv(io.BytesIO(raw))
     if list(frame.columns)!=["open_time",*ASSETS] or len(frame)!=HOURS:
