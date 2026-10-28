@@ -1,0 +1,12 @@
+# V99 I1 — licensed Tardis OPTIONS archive transfer: ex-ante implementation contract (2026-10-28 16:xx BRT)
+
+**Scope: local-only authenticated source acquisition, never an economic backtest.** Existing 661-day importer expects 2021-12-09..2023-09-30 original Deribit BTC/ETH OPTIONS `YYYY-MM-DD.csv.gz` files; no archive/key or vendor grant exists in this run. No orders, purchases, licensed data upload, holdout, Frozen, paper or champion changes.
+
+## Fixed behavior before implementation
+1. New opt-in CLI transfers only the 661 preregistered TRAIN UTC days, from `https://datasets.tardis.dev/v1/deribit/quotes/YYYY/MM/DD/OPTIONS.csv.gz`, to a **user-supplied local secure directory**. It must not run in Actions and must not fetch anything without explicit command, `TARDIS_API_KEY`, and a nonempty local license-evidence file. No key, headers, license contents, or licensed rows printed.
+2. Require the vendor's `/v1/api-key-info` OPTIONS-inclusive 2021–2023 grant *before* any historical download. This only proves the reported scope, **not lawful written rights, market completeness, option lot conversion, native fees, fills, margin or settlement**. Refuse HTML, HTTP errors, empty data, gzip corruption, oversize streams and any date outside TRAIN. Atomic temporary download, no overwrite, skip preexisting valid gzip only; fail closed on conflicting preexisting file. No hidden retries or silently skipped days.
+3. Default dry-run displays 661 intended days without network, and explicit `--execute --max-days N` can cautiously download a bounded prefix (not a complete archive). Never publish `manifest.json` automatically: separate `v99_r106_i1_local_tape_import` validates all 661 days and independently scans original bytes. No claim of vendor gap certification.
+4. Tests must mock network, including grant denial, missing key, HTML masquerading as gzip, corrupt gzip, duplicate/conflicting existing file, bound prefix, successful atomic download and no sealed date. Existing local importer CI must run new tests without network. No source file changes to existing immutable/financial outputs.
+5. Outcome: **SOURCE_ONLY/HOLD — NO PROMOTION** until licensed original full tape, dated native terms, independent execution accounting and TRAIN gates genuinely pass. Even successful transfer is only source acquisition, not profit or exchange-certified historical fills.
+
+This preregistration must be committed **before** the downloader and tests.
