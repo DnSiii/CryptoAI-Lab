@@ -47,6 +47,7 @@ def scan_day(path: Path, day: date) -> dict:
     count = 0
     previous = -1
     qualifying_puts = {"BTC": 0, "ETH": 0}
+    qualifying_hour_masks = {"BTC": 0, "ETH": 0}
     try:
         with gzip.open(path, "rt", newline="", encoding="utf-8") as stream:
             reader = csv.DictReader(stream)
@@ -79,11 +80,12 @@ def scan_day(path: Path, day: date) -> dict:
                 except (ValueError, TypeError, OverflowError):
                     continue
                 if (arrival - event <= 300_000_000
-                        and day < expiry <= day + timedelta(days=45)
+                        and day + timedelta(days=28) <= expiry <= day + timedelta(days=45)
                         and all(math.isfinite(v) and v > 0 for v in
                                 (strike, bid, ask, bid_size, ask_size))
                         and bid < ask):
                     qualifying_puts[parts[0]] += 1
+                    qualifying_hour_masks[parts[0]] |= 1 << ((arrival-lower)//3_600_000_000)
     except (OSError, EOFError, UnicodeError, csv.Error) as exc:
         raise ValueError("CORRUPT_ORIGINAL_GZIP:" + day.isoformat()) from exc
     if count == 0:
@@ -93,10 +95,24 @@ def scan_day(path: Path, day: date) -> dict:
             raise ValueError("MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:"
                              + day.isoformat() + ":" + asset)
     return {"date": day.isoformat(), "file": path.name,
+            "qualifying_original_put_arrival_hours_by_asset": {
+                asset: mask.bit_count() for asset, mask in qualifying_hour_masks.items()},
+            "qualifying_original_put_arrival_hour_masks_by_asset": {
+                asset: format(mask, "024b") for asset, mask in qualifying_hour_masks.items()},
             "sha256": sha256(path), "rows": count,
             "qualifying_original_put_quote_rows_by_asset": qualifying_puts,
             # Self-declared from local import, NOT a vendor gap attestation.
             "complete_capture": True}
+
+
+def require_hourly_original_coverage(scanned: dict) -> None:
+    """Necessary, not sufficient, evidence against a partial-day capture."""
+    coverage = scanned.get("qualifying_original_put_arrival_hours_by_asset", {})
+    if (not isinstance(coverage, dict) or set(coverage) != {"BTC", "ETH"}
+            or any(type(coverage[a]) is not int or coverage[a] != 24
+                   for a in ("BTC", "ETH"))):
+        raise ValueError("ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP:"
+                         + str(scanned.get("date", "UNKNOWN")))
 
 
 def build_manifest(root: Path, *, fixture: bool, license_evidence: Path | None = None) -> dict:
@@ -127,6 +143,9 @@ def build_manifest(root: Path, *, fixture: bool, license_evidence: Path | None =
                          + str(len(expected-observed)) + "_missing_"
                          + str(len(observed-expected)) + "_extra")
     days = [scan_day(_day_file(root, d), d) for d in dates]
+    if not fixture:
+        for scanned in days:
+            require_hourly_original_coverage(scanned)
     return {"schema": SCHEMA, "venue": "deribit", "fixture": fixture,
             "train_start": FIRST.isoformat(), "train_end_exclusive": END.isoformat(),
             "days": days,
