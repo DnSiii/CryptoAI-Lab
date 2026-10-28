@@ -272,6 +272,53 @@ def _validate_decision_ledger(document):
             raise ValueError("MISSING_OR_SELECTIVE_FIXED_DECISION_EXECUTION")
 
 
+
+def _validate_cross_scenario_market_path(document):
+    """Costs may change exposure, NEVER the common original market observation.
+
+    Same-path agreement is a necessary internal integrity check, not proof
+    that either path's quotes or settlement index came from the exchange.
+    """
+    observations = {}
+    for scenario in SCENARIOS:
+        groups = {"OPEN": {}, "MARK": {}, "SETTLE_BATCH": {}}
+        for day in document["scenarios"][scenario]:
+            for event in day["events"]:
+                kind = event.get("kind")
+                if kind not in groups:
+                    continue  # _run_scenario rejects unknown cash flows.
+                at_ms, asset = event.get("at_ms"), event.get("asset")
+                if kind == "OPEN":
+                    quotes = event.get("quotes")
+                    if not isinstance(quotes, list):
+                        raise ValueError("INVALID_OPEN_MARKET_INVENTORY")
+                    observation = tuple(sorted((_quote(q) for q in quotes),
+                                               key=lambda q: q.symbol))
+                    key = (at_ms, asset)
+                elif kind == "MARK":
+                    short, long = _quote(event.get("short")), _quote(event.get("long"))
+                    key = (at_ms, asset, short.symbol, long.symbol)
+                    observation = (short, long)
+                else:
+                    key = (at_ms, asset)
+                    observation = D(event.get("delivery_index_usd"))
+                previous = groups[kind].get(key)
+                if previous is not None and previous != observation:
+                    raise ValueError("INTRA_SCENARIO_ORIGINAL_MARKET_PATH_DIVERGENCE")
+                groups[kind][key] = observation
+        observations[scenario] = groups
+    a, b = (observations[scenario] for scenario in SCENARIOS)
+    for kind, error in (
+        ("OPEN", "CROSS_SCENARIO_OPEN_MARKET_INVENTORY_MISMATCH"),
+        ("MARK", "CROSS_SCENARIO_MARK_ORIGINAL_BOOK_MISMATCH"),
+        ("SETTLE_BATCH", "CROSS_SCENARIO_ORIGINAL_DELIVERY_INDEX_MISMATCH"),
+    ):
+        for key in a[kind].keys() & b[kind].keys():
+            if a[kind][key] != b[kind][key]:
+                raise ValueError(error)
+
+
+
 def replay(document):
     if (not isinstance(document, dict) or document.get("schema") != SCHEMA
             or type(document.get("fixture")) is not bool
@@ -291,6 +338,7 @@ def replay(document):
     if initial_usd != D(document.get("initial_capital_usd")):
         raise ValueError("INITIAL_NATIVE_CAPITAL_NOT_SELF_FINANCING")
     _validate_decision_ledger(document)
+    _validate_cross_scenario_market_path(document)
     results = {scenario: _run_scenario(document["scenarios"][scenario],
                                       scenario, coin, index, initial_usd)
                for scenario in SCENARIOS}
