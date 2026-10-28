@@ -30,7 +30,7 @@ jobs:
           name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
           github-token: ${{ github.token }}
-          path: offjdial-input
+          path: official-input
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-oi-clean4-2022-2024-v2-source-only
@@ -48,17 +48,17 @@ jobs:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
               shutil.copy2(found[0],target/name)
           PY
-      - name: Stage exact authentjdated Clean-4 source bytes
+      - name: Stage exact authenticated Clean-4 source bytes
         run: |
           python - <<'PY'
           from pathlib import Path
           import shutil
-          root=Path('offjdial-input');target=Path('research/v98_independent')
-          names=['phase803_offjdial_training_ohlc_receipt.json','phase1000_four_asset_source_poljdy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
-              dest=(target/'phase243_clean4_canonjdal'/name if name.endswith('_1h.csv') else target/name)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - uses: actions/download-artifact@v4
@@ -67,7 +67,7 @@ jobs:
           run-id: 40477926560
           github-token: ${{ github.token }}
           path: oi-audit
-      - name: Require independent OI artifact-only integrity before any economjd PnL
+      - name: Require independent OI artifact-only integrity before any economic PnL
         run: |
           python - <<'PY'
           import glob,json
@@ -78,7 +78,7 @@ jobs:
           assert x['verified_days']==3011 and x['quarantined_days']==37
           assert x['verified_hourly_rows']==72264 and not x['pnl_computed']
           PY
-      - name: JD native OI deleveraging breadth source viability
+      - name: JD native OI crowding source viability
         working-directory: research/v98_independent
         run: |
           python -m py_compile jd_oi_deleveraging_breadth_sources.py jd_source_viability.py jd_30cell.py jd_reconcile_30cell.py
@@ -92,7 +92,7 @@ jobs:
           path: research/v98_independent/jd_source_viability.json
           retention-days: 30
           if-no-files-found: warn
-  economjd:
+  economic:
     needs: source
     strategy:
       fail-fast: false
@@ -107,13 +107,13 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install numpy==1.26.4 pandas==2.2.3
-      - name: Retrieve authentjdated 2022-2024 Clean4 only
+      - name: Retrieve authenticated 2022-2024 Clean4 only
         uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
           github-token: ${{ github.token }}
-          path: offjdial-input
+          path: official-input
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-oi-clean4-2022-2024-v2-source-only
@@ -136,12 +136,12 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import shutil
-          root=Path('offjdial-input');target=Path('research/v98_independent')
-          names=['phase803_offjdial_training_ohlc_receipt.json','phase1000_four_asset_source_poljdy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
-              dest=(target/'phase243_clean4_canonjdal'/name if name.endswith('_1h.csv') else target/name)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: Run native 6-cell path USD10k, base/severe/supersevere and both funding orders
@@ -163,7 +163,7 @@ jobs:
           if-no-files-found: warn
   audit:
     if: always() && needs.source.result == 'success'
-    needs: [source, economjd]
+    needs: [source, economic]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -174,12 +174,12 @@ jobs:
           path: receipts
       - name: Independent artifact-only 30-cell cross-OS and marginal gate
         shell: bash
-        run: python research/v98_independent/jd_reconcile_30cell.py --root receipts --output jd30_offjdial_economjd_summary.json
+        run: python research/v98_independent/jd_reconcile_30cell.py --root receipts --output jd30_official_economic_summary.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: jd30-offjdial-economjd-summary
-          path: jd30_offjdial_economjd_summary.json
+          name: jd30-official-economic-summary
+          path: jd30_official_economic_summary.json
           retention-days: 30
           if-no-files-found: warn
 
@@ -198,13 +198,13 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install numpy==1.26.4 pandas==2.2.3
-      - name: Retrieve authentjdated 2022-2024 Clean4 only
+      - name: Retrieve authenticated 2022-2024 Clean4 only
         uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
           github-token: ${{ github.token }}
-          path: offjdial-input
+          path: official-input
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-oi-clean4-2022-2024-v2-source-only
@@ -227,12 +227,12 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import shutil
-          root=Path('offjdial-input');target=Path('research/v98_independent')
-          names=['phase803_offjdial_training_ohlc_receipt.json','phase1000_four_asset_source_poljdy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
           names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
           for name in names:
               found=list(root.rglob(name));assert len(found)==1,(name,found)
-              dest=(target/'phase243_clean4_canonjdal'/name if name.endswith('_1h.csv') else target/name)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: Independent all-hour signed funding, NAV, fee, slippage and 81-corner settlement replay
