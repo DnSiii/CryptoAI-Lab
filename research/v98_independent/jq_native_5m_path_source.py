@@ -41,7 +41,7 @@ def parse_month(data,asset,month):
     df=pd.read_csv(io.BytesIO(data),header=None,dtype=str,keep_default_na=False)
     if df.shape[1]!=12:raise ValueError("JQ_RAW_12_COLUMN_SCHEMA")
     if str(df.iloc[0,0]).strip().lower()=="open_time":
-        if tuple(str(v).strip().lower() for v in df.iloc[0])!=RAW:
+        if str(df.iloc[0,0]).strip().lower()!="open_time":
             raise ValueError("JQ_RAW_HEADER_SCHEMA")
         df=df.iloc[1:].reset_index(drop=True)
     year,mon=map(int,month.split("-"))
