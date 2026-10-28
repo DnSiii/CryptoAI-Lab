@@ -164,6 +164,20 @@ class NativeEventEquityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "UNBOUND_ORIGINAL_INDEX"):
             replay(doc)
 
+    def test_common_original_index_path_required_for_both_cost_scenarios(self):
+        doc = flat_fixture()
+        doc["scenarios"]["supersevere"][120]["index_usd"]["BTC"] = "41000"
+        with self.assertRaisesRegex(ValueError, "SCENARIO_ORIGINAL_INDEX_PATH_MISMATCH"):
+            replay(doc)
+
+    def test_original_native_scenario_fee_floor_enforced(self):
+        doc = one_position_fixture()
+        first = next(x for x in doc["scenarios"]["severe"] if x["ts_ms"] ==
+                     ms(2021, 12, 13, 23, 59, 59))
+        first["events"][0]["fee_coin"] = "0.0001"
+        with self.assertRaisesRegex(ValueError, "SEVERE_SUPERSEVERE_FRICTION_UNDERPAYMENT"):
+            replay(doc)
+
     def test_nonfixture_replay_is_explicitly_uncertified(self):
         doc = flat_fixture()
         doc["fixture"] = False
