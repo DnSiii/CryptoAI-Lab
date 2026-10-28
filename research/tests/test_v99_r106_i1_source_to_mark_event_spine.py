@@ -115,7 +115,7 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
     def test_missing_exact_held_mark_fails_closed(self):
         d = datetime(2021, 12, 15, tzinfo=timezone.utc)
         self._change("2021-12-15", [source_row(SHORT,d,23,59,58)])
-        with self.assertRaisesRegex(ValueError, "MISSING_ORIGINAL_HELD_CONTRACT_DAILY_MARK"):
+        with self.assertRaisesRegex(ValueError, "STALE_FUTURE_OR_WRONG_ORIGINAL_HELD_MARK"):
             compile_spine(self.root, build(self.root, intents()), self.plan)
 
     def test_later_invalid_held_book_revokes_earlier_valid(self):
