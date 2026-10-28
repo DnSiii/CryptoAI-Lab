@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from research.tools.v99_r106_i1_native_event_equity import replay, SCHEMA
+from research.tools.v99_r106_i1_full_archive_intake import eligible
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, REGIMES, SCENARIOS, _expected_clock, _fold, evaluate,
 )
@@ -86,6 +87,25 @@ def one_position_fixture():
                 })
         # The daily events are chronological within the expiry date.
     return doc
+
+
+
+def complete_fixed_decisions(*, one_open=False):
+    """Synthetic 180-row audit ledger, NOT independently verified signals."""
+    rows = []
+    for day in eligible(True):
+        at = int(day.timestamp()*1000)
+        for asset in ("BTC", "ETH"):
+            opening = one_open and asset == "BTC" and at == ms(2021, 12, 13)
+            rows.append({
+                "decision_ms": at, "asset": asset, "fold": _fold(at),
+                "signal": ("POSITIVE_EX_ANTE_PREMIUM" if opening
+                           else "NO_30D_HISTORY"),
+                "action": "OPEN" if opening else "CASH",
+                "reason": "FIXED_VERTICAL" if opening else "NO_30D_HISTORY",
+            })
+    assert len(rows) == 180
+    return rows
 
 
 class NativeEventEquityTests(unittest.TestCase):
@@ -257,12 +277,77 @@ class NativeEventEquityTests(unittest.TestCase):
     def test_nonfixture_replay_is_explicitly_uncertified(self):
         doc = flat_fixture()
         doc["fixture"] = False
+        with self.assertRaisesRegex(ValueError, "MISSING_COMPLETE_FIXED_180_DECISION_LEDGER"):
+            replay(doc)
+        doc["decisions"] = complete_fixed_decisions()
         report = replay(doc)
         self.assertEqual(report["status"], "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY")
         self.assertFalse(report["original_historical_economic_train_executed"])
         self.assertFalse(report["promotion_authorized"])
         # The official numeric gate still refuses nonfixture without independent
         # original source/fill/fee/margin attestation.
+        with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
+            evaluate(report)
+
+
+    def test_180_decisions_cover_actual_one_open_in_both_cost_paths(self):
+        doc = one_position_fixture()
+        doc["decisions"] = complete_fixed_decisions(one_open=True)
+        report = replay(doc)
+        self.assertEqual(len(report["scenarios"]["severe"]), 661)
+        self.assertFalse(report["original_options_economic_train_certified"])
+        self.assertFalse(report["promotion_authorized"])
+
+    def test_missing_shifted_duplicate_and_cherrypicked_decisions_rejected(self):
+        original = one_position_fixture()
+        original["decisions"] = complete_fixed_decisions(one_open=True)
+        for mode, expected in (
+            ("missing", "MISSING_COMPLETE_FIXED_180_DECISION_LEDGER"),
+            ("duplicate", "MISSING_DUPLICATE_OR_SHIFTED_FIXED_DECISION"),
+            ("shifted", "MISSING_DUPLICATE_OR_SHIFTED_FIXED_DECISION"),
+            ("cash_with_open", "MISSING_OR_SELECTIVE_FIXED_DECISION_EXECUTION"),
+            ("open_without_event", "MISSING_OR_SELECTIVE_FIXED_DECISION_EXECUTION"),
+            ("open_without_positive_signal", "OPEN_WITHOUT_POSITIVE_FIXED_SIGNAL"),
+            ("cash_wrong_reason", "UNJUSTIFIED_FIXED_CASH_DECISION"),
+            ("open_signal_forged", "UNBOUND_OPEN_TO_FIXED_ORIGINAL_SIGNAL"),
+        ):
+            with self.subTest(mode=mode):
+                doc = copy.deepcopy(original)
+                if mode == "missing":
+                    doc["decisions"].pop()
+                elif mode == "duplicate":
+                    doc["decisions"][1] = copy.deepcopy(doc["decisions"][0])
+                elif mode == "shifted":
+                    doc["decisions"][2]["decision_ms"] += 60_000
+                elif mode == "cash_with_open":
+                    doc["decisions"][0]["action"] = "CASH"
+                    doc["decisions"][0]["reason"] = "RISK_VETO"
+                elif mode == "open_without_event":
+                    for scenario in SCENARIOS:
+                        for row in doc["scenarios"][scenario]:
+                            row["events"] = [event for event in row["events"]
+                                             if event.get("kind") != "OPEN"]
+                elif mode == "open_without_positive_signal":
+                    doc["decisions"][0]["signal"] = "NO_PREMIUM"
+                elif mode == "cash_wrong_reason":
+                    doc["decisions"][1]["reason"] = "RISK_VETO"
+                elif mode == "open_signal_forged":
+                    for scenario in SCENARIOS:
+                        for row in doc["scenarios"][scenario]:
+                            for event in row["events"]:
+                                if event.get("kind") == "OPEN":
+                                    event["signal"]["signal"] = "NO_PREMIUM"
+                with self.assertRaisesRegex(ValueError, expected):
+                    replay(doc)
+
+    def test_self_declared_cash_is_not_source_authentication(self):
+        doc = flat_fixture()
+        doc["fixture"] = False
+        doc["decisions"] = complete_fixed_decisions()
+        doc["decisions"][0]["signal"] = "POSITIVE_EX_ANTE_PREMIUM"
+        doc["decisions"][0]["reason"] = "NO_ELIGIBLE_FIXED_VERTICAL"
+        report = replay(doc)
+        self.assertFalse(report["original_source_receipts_independently_authenticated"])
         with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
             evaluate(report)
 
