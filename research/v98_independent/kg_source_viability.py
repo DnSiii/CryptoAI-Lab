@@ -31,18 +31,27 @@ def main():
         violations.append("KG_GROSS_NONCONSERVATION")
     if np.any((np.abs(targets[epochs,1]-targets[epochs,0]).sum(axis=1)>1e-10) & (~valid[epochs])):
         violations.append("KG_SOURCE_INVALID_LEAK")
+    zero_quote_hours_by_year={"2023":int(np.sum(np.any(q[744:9504]<=0,axis=1))),
+                              "2024":int(np.sum(np.any(q[9504:]<=0,axis=1)))}
+    invalid_epoch_by_year={"2023":sum(744<=t<9504 for t in invalid),
+                           "2024":sum(9504<=t<HOURS for t in invalid)}
     report={"architecture":"KG","historical_training_only":True,
         "validation_2025_read":False,"benchmark_internals_read":False,
         "economic_pnl_computed":False,"live_trading_authorized":False,
         "source":"canonical_phase243_clean4_pinned_1h_native_funding",
         "epochs":int(updates.sum()),"invalid_optional_epochs":invalid,
+        "zero_quote_hours_by_year":zero_quote_hours_by_year,
+        "invalid_epoch_by_year":invalid_epoch_by_year,
         "material_funded_epochs_by_year":counts,
         "violations":violations,
         "decision":"PASS_KG_SOURCE_ONLY_NEEDS_ECONOMIC_GATE" if not violations
                     else "REJECT_KG_SOURCE_ONLY_NO_PNL"}
     OUT.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
     print("KG_SOURCE",report["decision"],"epochs",report["epochs"],
-          "counts",counts,"invalid",len(invalid),"violations",violations,flush=True)
+          "counts",counts,"invalid",len(invalid),
+          "invalid_by_year",invalid_epoch_by_year,
+          "zero_quote_hours_by_year",zero_quote_hours_by_year,
+          "first_invalid",invalid[:10],"violations",violations,flush=True)
     return report
 if __name__=="__main__":
     result=main()
