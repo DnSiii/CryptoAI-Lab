@@ -21,7 +21,7 @@ from research.tools.v99_r106_i1_native_coin_account_replay import D
 
 SCHEMA_OUT = "V99_I1_ORIGINAL_NATIVE_EVENT_QUOTE_IDENTITY_V1"
 COLUMNS = {"exchange", "symbol", "timestamp", "local_timestamp",
-           "bid_price", "ask_price", "bid_amount", "ask_amount", "index_price"}
+           "bid_price", "ask_price", "bid_amount", "ask_amount"}
 
 
 def _digest(path):
@@ -125,7 +125,7 @@ def _last_original_quotes(files, requests):
         with gzip.open(path, "rt", newline="", encoding="utf-8") as stream:
             reader = csv.DictReader(stream)
             if not COLUMNS.issubset(reader.fieldnames or []):
-                raise ValueError("ORIGINAL_INDEX_OR_QUOTE_COLUMNS_MISSING")
+                raise ValueError("ORIGINAL_QUOTE_COLUMNS_MISSING")
             for row in reader:
                 count += 1
                 if row["exchange"] != "deribit":
@@ -165,11 +165,11 @@ def _equal(q, source, at):
         raise ValueError("STALE_FUTURE_OR_FORGED_ORIGINAL_CLOCK")
     try:
         fields = (D(row["bid_price"]), D(row["ask_price"]),
-                  D(row["bid_amount"]), D(row["ask_amount"]), D(row["index_price"]))
+                  D(row["bid_amount"]), D(row["ask_amount"]))
     except (ValueError, TypeError, KeyError) as exc:
-        raise ValueError("MISSING_OR_INVALID_ORIGINAL_INDEX_OR_BOOK") from exc
+        raise ValueError("MISSING_OR_INVALID_ORIGINAL_BOOK") from exc
     if not (fields[0] > 0 and fields[0] < fields[1]
-            and fields[2] > 0 and fields[3] > 0 and fields[4] > 0):
+            and fields[2] > 0 and fields[3] > 0):
         raise ValueError("LATEST_ORIGINAL_RECEIPT_INVALID_REVOKES_EARLIER")
     if fields != (q.bid_coin, q.ask_coin, q.bid_native_lots,
                   q.ask_native_lots, q.index_usd):
@@ -187,10 +187,10 @@ def audit(root, journal):
         _equal(q, last.get(key), key[0])
     return {
         "schema": SCHEMA_OUT,
-        "status": "ORIGINAL_QUOTE_BYTES_EQUAL_ONLY_NATIVE_TERMS_UNCERTIFIED",
+        "status": "ORIGINAL_BBO_CLOCK_BYTES_EQUAL_INDEX_AND_NATIVE_UNITS_UNVERIFIED",
         "original_manifest_sha256": manifest_sha,
         "original_quote_events_checked": len(requests),
-        "original_source_quote_equality": True,
+        "original_bbo_size_clock_bytes_equal": True,\n        "original_underlying_index_bound": False,
         "vendor_completeness_independently_certified": False,
         "source_size_unit_is_native_lot_certified": False,
         "original_delivery_index_and_fee_certified": False,
