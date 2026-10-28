@@ -23,15 +23,33 @@ def dec(x):
 
 
 def verify(source, report):
-    if (source.get("fixture") is not True or
-            report.get("source_fixture") is not True or
-            report.get("schema") != "V99_I1_TRAIN_NUMERIC_GATE_RESULT_V1" or
-            report.get("original_options_economic_train_certified") is not False or
-            report.get("independent_original_trade_replay_verified") is not False or
-            any(report.get(key) is not False for key in (
+    provisional = source.get("fixture") is False
+    expected_status = ("PROVISIONAL_NONFIXTURE_NUMERIC_DIAGNOSTIC_NOT_CERTIFIED"
+                       if provisional else "FIXTURE_NUMERIC_SCREEN_ONLY_NOT_ORIGINAL_ECONOMICS")
+    if (source.get("fixture") is not (False if provisional else True)
+            or report.get("source_fixture") is not (not provisional)
+            or report.get("status") != expected_status
+            or report.get("numeric_screen_descriptive_only") is not provisional
+            or report.get("schema") != "V99_I1_TRAIN_NUMERIC_GATE_RESULT_V1"
+            or report.get("original_options_economic_train_certified") is not False
+            or report.get("independent_original_trade_replay_verified") is not False
+            or any(report.get(key) is not False for key in (
                 "promotion_authorized", "freeze_authorized",
-                "validation_opened", "holdout_opened", "orders_enabled"))):
+                "validation_opened", "holdout_opened", "orders_enabled",
+                "paper_publication_authorized"))):
         raise AssertionError("FORGED_ECONOMIC_CERTIFICATION")
+    if provisional:
+        flags = ("original_source_receipts_independently_authenticated",
+                 "original_options_economic_train_certified",
+                 "independent_original_trade_replay_verified",
+                 "historical_native_fee_certified",
+                 "original_historical_economic_train_executed",
+                 "freeze_authorized", "promotion_authorized",
+                 "validation_opened", "holdout_opened", "orders_enabled",
+                 "paper_publication_authorized")
+        if (source.get("status") != "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY"
+                or any(source.get(k) is not False for k in flags)):
+            raise AssertionError("FORGED_PROVISIONAL_SOURCE")
     scenarios = ("severe", "supersevere")
     if set(source.get("scenarios", {})) != set(scenarios) or set(
             report.get("scenarios", {})) != set(scenarios):
@@ -142,7 +160,8 @@ def verify(source, report):
                 Decimal(report["scenarios"]["supersevere"]["total_roi"]) >
                 Decimal(report["scenarios"]["severe"]["total_roi"]))):
         raise AssertionError("INDEPENDENT_PAIRED_SCENARIO_MISMATCH")
-    return {"status": "INDEPENDENT_FIXTURE_NUMERIC_REPLAY_MATCH",
+    return {"status": ("INDEPENDENT_PROVISIONAL_NUMERIC_REPLAY_MATCH_NOT_CERTIFIED"
+                       if provisional else "INDEPENDENT_FIXTURE_NUMERIC_REPLAY_MATCH"),
             "days_per_scenario": n, "scenario_path_divergence_days": divergent,
             "original_options_economic_train_certified": False,
             "promotion_authorized": False}
