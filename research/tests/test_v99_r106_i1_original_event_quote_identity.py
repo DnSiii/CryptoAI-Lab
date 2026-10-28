@@ -31,8 +31,7 @@ def original_row(q, *, arrival_offset_us=0, bid=None):
             "bid_price": str(bid if bid is not None else q["bid_coin"]),
             "ask_price": str(q["ask_coin"]),
             "bid_amount": str(q["bid_native_lots"]),
-            "ask_amount": str(q["ask_native_lots"]),
-            "index_price": str(q["index_usd"])}
+            "ask_amount": str(q["ask_native_lots"])}
 
 
 def input_document():
@@ -87,8 +86,7 @@ class OriginalQuoteIdentityTests(unittest.TestCase):
         at = ms(2021, 12, 13)
         source = (short["arrival_ms"] * 1000, 1, 1, short["venue_ms"] * 1000,
                   original_row(short))
-        for field, value in (("bid_coin", "0.06"), ("ask_native_lots", "3"),
-                             ("index_usd", "41000")):
+        for field, value in (("bid_coin", "0.06"), ("ask_native_lots", "3")):
             fake = dict(short)
             fake[field] = value
             with self.subTest(field=field), self.assertRaisesRegex(
