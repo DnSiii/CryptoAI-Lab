@@ -6,6 +6,7 @@ import csv
 import gzip
 import hashlib
 import json
+import shutil
 import tempfile
 import unittest
 from collections import defaultdict
@@ -176,6 +177,36 @@ class OriginalToNumericIntegration(unittest.TestCase):
             opening["quotes"][0]["bid_coin"] = "0.051"
         with self.assertRaisesRegex(ValueError, "SCENARIO_SOURCE_QUOTE_MISMATCH|NATIVE_EVENT_QUOTE_NOT_EQUAL_ORIGINAL_SOURCE"):
             self.execute(doc)
+
+    def test_extra_original_eligible_strike_cannot_be_hidden_from_selector(self):
+        # The original selected short/long BBOs are authentic, but a third
+        # equally fresh source candidate is omitted from the caller journal.
+        # Old selected-quote identity alone would have accepted this.
+        doc = self.document()
+        opening = next(e for d in doc["scenarios"]["severe"]
+                       for e in d["events"] if e["kind"] == "OPEN")
+        extra = dict(opening["quotes"][0])
+        extra.update(symbol="BTC-14JAN22-34000-P", strike_usd="34000",
+                     bid_coin="0.03", ask_coin="0.032")
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp)/"original"
+            shutil.copytree(self.quotes, source)
+            day = source/"2021-12-12.csv.gz"
+            with gzip.open(day, "rt", newline="", encoding="utf-8") as f:
+                rows = list(csv.DictReader(f))
+            rows.append(original_row(extra))
+            rows.sort(key=lambda row: int(row["local_timestamp"]))
+            write_csv_gz(day, rows)
+            manifest_path = source/"manifest.json"
+            manifest = json.loads(manifest_path.read_text())
+            item = next(x for x in manifest["days"]
+                        if x["date"] == "2021-12-12")
+            item["rows"] = len(rows)
+            item["sha256"] = hashlib.sha256(day.read_bytes()).hexdigest()
+            manifest_path.write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(
+                    ValueError, "SOURCE_DRIVEN_OPEN_INVENTORY_MISMATCH"):
+                self.execute(doc, root=source)
 
     def test_zero_original_event_identities_is_not_source_proof(self):
         with self.assertRaisesRegex(ValueError, "ZERO_ORIGINAL_BBO_EVENT_IDENTITIES"):
