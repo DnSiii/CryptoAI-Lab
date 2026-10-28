@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """JT contemporaneous 5m downside resilience SOURCE ONLY, no PnL/sign selection."""
 from __future__ import annotations
-import calendar,concurrent.futures,hashlib,io,jton,math
+import calendar,concurrent.futures,hashlib,io,json,math
 from datetime import datetime,timezone
 from pathlib import Path
 import numpy as np
@@ -12,7 +12,7 @@ from jq_native_5m_path_source import verify_archive,parse_month,compare_1h
 
 HERE=Path(__file__).resolve().parent
 OUT=HERE/"jt_downside_resilience_hourly.csv"
-RECEIPT=HERE/"jt_cross_asset_5m_propagation_source_receipt.jton"
+RECEIPT=HERE/"jt_cross_asset_5m_propagation_source_receipt.json"
 COLS=("open_time","asset","source_valid","down_beta","down_resilience",
       "cojump_frequency","up_capture")
 
@@ -45,7 +45,7 @@ def source_month(asset,month):
 def run():
     if HOURS!=18288 or len(ASSETS)!=4 or len(MONTHS)!=25 or MONTHS[-1]!="2024-12":
         raise ValueError("JT_TRAINING_CALENDAR")
-    masked=jton.loads((HERE/"native_5m_masked_source_receipt.jton").read_text())
+    masked=json.loads((HERE/"native_5m_masked_source_receipt.json").read_text())
     raw_mask=(HERE/"native_5m_masked_verified_hourly_features.csv").read_bytes()
     if (masked["decision"]!="MASKED_5M_SOURCE_ONLY_NO_ECONOMIC_AUTHORIZATION"
         or hashlib.sha256(raw_mask).hexdigest()!=masked["feature_csv_sha256"]):
@@ -139,7 +139,7 @@ def run():
             "source_feature_sha256":hashlib.sha256(raw).hexdigest(),
             "upstream_mask_sha256":masked["feature_csv_sha256"],
             "decision":"PASS_JT_DOWNSIDE_SOURCE_ONLY_NOT_ECONOMIC"}
-    RECEIPT.write_text(jton.dumps(report,sort_keys=True,indent=2,allow_nan=False)+"\n")
+    RECEIPT.write_text(json.dumps(report,sort_keys=True,indent=2,allow_nan=False)+"\n")
     print("JT_CROSS_ASSET_SOURCE_ONLY",report["decision"],
           "archives",len(data),"valid_months",valid_months,
           "valid_alt_hours",report["valid_alt_asset_hours"],
