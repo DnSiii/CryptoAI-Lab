@@ -4,7 +4,7 @@ Causal completed-close source; next actual open; exact Dec-2022 warmup and pinne
 No 2025, V99, frozen engines, paper, live orders or external benchmarks.
 """
 from __future__ import annotations
-import argparse,hashlib,itertools,jton,math
+import argparse,hashlib,itertools,json,math
 import numpy as np
 from pathlib import Path
 from jt_seven_slot_sources import bundle,WARMUP,static_check,GROSS
@@ -181,7 +181,7 @@ def run(path):
             "jt_downside_5m_sha256":hashlib.sha256(
                 (Path(__file__).resolve().parent/"jt_downside_resilience_hourly.csv").read_bytes()
             ).hexdigest(),
-            "source_manifest_sha256":hashlib.sha256(jton.dumps(
+            "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
             "decision":"PASS_JT_MECHANICAL_ONLY" if len(cases)==6 and
@@ -194,7 +194,7 @@ if __name__=="__main__":
     a=p.parse_args()
     assert static_check()
     result=run(a.path)
-    with open(a.output,"w") as f:jton.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
+    with open(a.output,"w") as f:json.dump(result,f,sort_keys=True,indent=2,allow_nan=False)
     for failed in result["cells"]:
         if not failed["passed"]:
             print("JT_PHYSICAL_FITST_FAULT",failed["fee"],failed["order"],failed.get("reason","unknown"))
