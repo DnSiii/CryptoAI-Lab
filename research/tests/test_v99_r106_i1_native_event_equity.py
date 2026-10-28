@@ -173,6 +173,16 @@ class NativeEventEquityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "UNBOUND_ORIGINAL_INDEX"):
             replay(doc)
 
+    def test_one_entry_per_asset_week_is_not_bypassable(self):
+        doc = one_position_fixture()
+        first = next(x for x in doc["scenarios"]["severe"] if x["ts_ms"] ==
+                     ms(2021, 12, 13, 23, 59, 59))
+        forged = copy.deepcopy(first["events"][0])
+        forged["position_id"] = "BTC-W1-EXTRA"
+        first["events"].insert(1, forged)
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_FIXED_ASSET_WEEK_ENTRY"):
+            replay(doc)
+
     def test_common_original_index_path_required_for_both_cost_scenarios(self):
         doc = flat_fixture()
         doc["scenarios"]["supersevere"][120]["index_usd"]["BTC"] = "41000"
