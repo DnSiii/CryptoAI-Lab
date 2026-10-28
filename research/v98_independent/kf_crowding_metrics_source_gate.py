@@ -109,7 +109,7 @@ def main():
     print("KF_SOURCE_GATE",decision,"verified",verified,"full",full,"errors",failures,flush=True)
     for row in rows:
         print("KF_DAY",row["asset"],row["day"],row["status"],
-              row.get("csv_rows"),row.get("observed_utc_hours"),row.get("error",""),flush=True)
+              row.get("csv_rows"),row.get("observed_utc_hours"),"full",row.get("full_utc_day"),"ordered",row.get("strict_time_order"),"unique",row.get("unique_timestamps"),"invalid",row.get("invalid_physical_fields"),row.get("error",""),flush=True)
     return result
 
 if __name__=="__main__":main()
