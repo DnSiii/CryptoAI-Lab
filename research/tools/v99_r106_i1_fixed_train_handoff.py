@@ -121,7 +121,7 @@ def join_reports(signal: dict, source: dict, *, signal_sha256: str,
             "folds": folds, "rows": observed, **FLAGS}
 
 
-def run(signal_path: str, archive_root: str, output_path: str):
+def run(signal_path: str, archive_root: str, output_path: str,\n        spot_root: str | None = None, dvol_root: str | None = None):
     signal_file, root, out = Path(signal_path), Path(archive_root), Path(output_path)
     if not signal_file.is_file():
         raise ValueError("ORIGINAL_CAUSAL_SIGNAL_MISSING")
@@ -130,8 +130,28 @@ def run(signal_path: str, archive_root: str, output_path: str):
     if not (root / "manifest.json").is_file():
         raise ValueError("BLOCKED_ORIGINAL_LIFECYCLE_ARCHIVE_MISSING")
     manifest_bytes = (root / "manifest.json").read_bytes()
-    if json.loads(manifest_bytes).get("schema") != FIXED_SCHEMA:
+    manifest = json.loads(manifest_bytes)
+    if manifest.get("schema") != FIXED_SCHEMA:
         raise ValueError("WRONG_FIXED_TENOR_SOURCE_MANIFEST")
+    # A source_original boolean and a caller-provided SHA do NOT prove the
+    # 182 decisions came from first-party OKX/DVOL receipts. The workflow's
+    # upstream replay must not be the only line of defense: enforce it here.
+    if type(manifest.get("fixture")) is not bool:
+        raise ValueError("UNVERIFIED_SOURCE_FIXTURE_FLAG")
+    if manifest["fixture"] is False:
+        if not spot_root or not dvol_root:
+            raise ValueError("ORIGINAL_SIGNAL_REPLAY_RECEIPTS_REQUIRED")
+        from research.tools.v99_r106_e1_spot_engine import load_original_spot
+        from research.tools.v99_r106_h1_dvol_spot_engine import load_original_dvol
+        from research.verification.independent_v99_r106_i1_causal_signal_oracle import (
+            verify as verify_original_signal,
+        )
+        try:
+            prices = load_original_spot(Path(spot_root))
+            dvol = load_original_dvol(Path(dvol_root))
+            verify_original_signal(prices, dvol, signal)
+        except (AssertionError, ValueError, KeyError, OSError) as exc:
+            raise ValueError("ORIGINAL_SIGNAL_REPLAY_FAILED") from exc
     source = audit(root)
     verify(root, source)  # separate original-byte, 661-day oracle
     result = join_reports(signal, source,
@@ -148,6 +168,6 @@ def run(signal_path: str, archive_root: str, output_path: str):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        raise SystemExit("usage: python -m research.tools.v99_r106_i1_fixed_train_handoff SIGNAL_JSON FULL_TRAIN_ARCHIVE_DIR OUT_JSON")
+    if len(sys.argv) not in (4, 6):
+        raise SystemExit("usage: python -m research.tools.v99_r106_i1_fixed_train_handoff SIGNAL_JSON FULL_TRAIN_ARCHIVE_DIR OUT_JSON [ORIGINAL_OKX_ROOT ORIGINAL_DVOL_ROOT]")
     run(*sys.argv[1:])
