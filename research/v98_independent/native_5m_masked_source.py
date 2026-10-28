@@ -66,8 +66,8 @@ def run():
             for i,stamp in enumerate(t):
                 value=(features[i] if valid else None)
                 usable=bool(valid and np.isfinite(value).all())
-                records.append((int(stamp),asset,int(usable),
-                                *(float(v) for v in value) if usable else (None,)*6))
+                values=tuple(float(v) for v in value) if usable else (None,)*6
+                records.append((int(stamp),asset,int(usable),*values))
             offset+=hours
         if offset!=HOURS:raise ValueError("MASKED_5M_CALENDAR_OFFSET")
     out=pd.DataFrame(records,columns=COLS)
