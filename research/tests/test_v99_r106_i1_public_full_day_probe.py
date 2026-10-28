@@ -22,7 +22,7 @@ class Response:
         return self.body.read(n)
 
 
-def day_gzip(*, day=datetime(2022, 6, 1, tzinfo=timezone.utc), eth=True, missing_hour=None):
+def day_gzip(*, day=datetime(2022, 6, 1, tzinfo=timezone.utc), eth=True, missing_hour=None, expiry_days=28):
     out = io.StringIO(newline="")
     writer = csv.writer(out)
     writer.writerow(("exchange", "symbol", "timestamp", "local_timestamp",
@@ -31,7 +31,7 @@ def day_gzip(*, day=datetime(2022, 6, 1, tzinfo=timezone.utc), eth=True, missing
         if hour == missing_hour:
             continue
         for i, asset in enumerate(("BTC", "ETH") if eth else ("BTC",)):
-            expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
+            expiry = (day + timedelta(days=expiry_days)).strftime("%d%b%y").upper()
             us = int(day.timestamp()*1_000_000) + hour*3_600_000_000 + (i+1)*1_000_000
             writer.writerow(("deribit", f"{asset}-{expiry}-2000-P", us, us,
                              "0.02", "0.025", "1", "1"))
@@ -64,6 +64,13 @@ class PublicFullDayTests(unittest.TestCase):
         self.assertTrue(result["btc_eth_24_hour_source_coverage"])
         self.assertTrue(result["independent_btc_eth_hourly_verification"])
         self.assertEqual(len(result["sha256"]), 64)
+
+    def test_nonentry_day_with_7d_puts_is_valid_source_not_trade(self):
+        result = self.call(day_gzip(expiry_days=7))
+        self.assertEqual(result["status"], "OFFLINE_FIXTURE_FULL_DAY_PASS_NOT_MARKET_EVIDENCE")
+        self.assertEqual(result["qualifying_put_arrival_hours_by_asset"], {"BTC": 24, "ETH": 24})
+        self.assertTrue(result["independent_btc_eth_hourly_verification"])
+        self.assertFalse(result["economic_train_executed"])
 
     def test_crc_valid_23_hour_partial_capture_rejected(self):
         result = self.call(day_gzip(missing_hour=12))
