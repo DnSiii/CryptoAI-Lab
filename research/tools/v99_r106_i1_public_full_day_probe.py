@@ -6,6 +6,7 @@ Never uses credentials, publishes source bytes, accesses sealed periods or trade
 from __future__ import annotations
 
 import json
+import csv
 import os
 import tempfile
 import time
@@ -15,6 +16,7 @@ from datetime import date
 from pathlib import Path
 
 from research.tools.v99_r106_i1_local_tape_import import scan_day, require_hourly_original_coverage
+from research.verification.independent_v99_r106_i1_hourly_capture_oracle import verify as independent_hours
 
 DAY = date(2022, 6, 1)
 URL = "https://datasets.tardis.dev/v1/deribit/quotes/2022/06/01/OPTIONS.csv.gz"
@@ -44,6 +46,7 @@ def probe(opener=None, *, max_bytes=MAX_BYTES, clock=None):
         "promotion_authorized": False, "orders_enabled": False,
         "real_full_day_original_quote_scan_passed": False,
         "btc_eth_24_hour_source_coverage": False,
+        "independent_btc_eth_hourly_verification": False,
         "downloaded_bytes": 0,
     }
     request = urllib.request.Request(URL, headers={
@@ -103,6 +106,15 @@ def probe(opener=None, *, max_bytes=MAX_BYTES, clock=None):
                     result["status"] = "PUBLIC_DAY_HOURLY_GAP"
                     return result
                 result["btc_eth_24_hour_source_coverage"] = True
+                try:
+                    independently = independent_hours(path, DAY)
+                    if independently["independently_verified_original_arrival_hours"] != (
+                            result["qualifying_put_arrival_hours_by_asset"]):
+                        raise ValueError("INDEPENDENT_HOURLY_COUNT_DISAGREEMENT")
+                except (ValueError, OSError, EOFError, UnicodeError, csv.Error):
+                    result["status"] = "PUBLIC_DAY_HOURLY_ORACLE_MISMATCH"
+                    return result
+                result["independent_btc_eth_hourly_verification"] = True
                 result["sha256"] = scanned["sha256"]
                 result["qualifying_put_rows_by_asset"] = scanned[
                     "qualifying_original_put_quote_rows_by_asset"]
