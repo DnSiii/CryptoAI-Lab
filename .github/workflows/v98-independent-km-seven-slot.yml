@@ -45,7 +45,7 @@ jobs:
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: KM authenticated 1h funding and causal source viability
-        workmng-directory: research/v98_independent
+        working-directory: research/v98_independent
         run: |
           python -m py_compile km_persistent_carry_sources.py km_source_viability.py km_30cell.py km_reconcile_30cell.py km_original_artifact_independent_audit.py km_independent_ledger_replay.py
           python km_persistent_carry_sources.py
@@ -93,7 +93,7 @@ jobs:
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: Run pinned native funding 6-cell path USD10k, base/severe/supersevere and both funding orders
-        workmng-directory: research/v98_independent
+        working-directory: research/v98_independent
         shell: bash
         run: |
           set +e
@@ -188,7 +188,7 @@ jobs:
               dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
           PY
       - name: Independent all-hour signed funding, NAV, fee, slippage and 81-corner settlement replay
-        workmng-directory: research/v98_independent
+        working-directory: research/v98_independent
         run: |
           python -m py_compile v98_independent_settlement_oracle.py km_independent_ledger_replay.py
           python km_independent_ledger_replay.py --path ${{ matrix.path }} --output km_oracle_${{ matrix.path }}.json
