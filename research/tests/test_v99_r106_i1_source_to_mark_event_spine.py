@@ -59,6 +59,7 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
             "days": cls.manifest_days,
         }
         cls._save()
+        cls.baseline_rows = {d["date"]: d["rows"] for d in cls.manifest_days}
         cls.entry = build(cls.root, intents())
         cls.plan = [{"position_id": "BTC-W1", "decision_ms": ENTRY,
                      "asset": "BTC", "short_symbol": SHORT, "long_symbol": LONG}]
@@ -76,6 +77,7 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
             (self.root/name).write_bytes(raw)
         self.changed = []
         for item in self.manifest_days:
+            item["rows"] = self.baseline_rows[item["date"]]
             item["sha256"] = hashlib.sha256(
                 (self.root/item["file"]).read_bytes()).hexdigest()
         self._save()
@@ -110,7 +112,7 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
         d = datetime(2021, 12, 15, tzinfo=timezone.utc)
         self._change("2021-12-15", [source_row(SHORT,d,23,59,58)])
         with self.assertRaisesRegex(ValueError, "MISSING_ORIGINAL_HELD_CONTRACT_DAILY_MARK"):
-            compile_spine(self.root, self.entry, self.plan)
+            compile_spine(self.root, build(self.root, intents()), self.plan)
 
     def test_later_invalid_held_book_revokes_earlier_valid(self):
         d = datetime(2021, 12, 16, tzinfo=timezone.utc)
@@ -122,7 +124,7 @@ class SourceToMarkEventSpineTests(unittest.TestCase):
         rows.append(late)
         self._change("2021-12-16", rows)
         with self.assertRaisesRegex(ValueError, "LAST_INVALID_HELD_MARK_REVOKES_EARLIER"):
-            compile_spine(self.root, self.entry, self.plan)
+            compile_spine(self.root, build(self.root, intents()), self.plan)
 
     def test_changed_original_bytes_without_manifest_rejected(self):
         path = self.root/"2021-12-20.csv.gz"
