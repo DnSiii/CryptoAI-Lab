@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from research.verification.independent_v99_r106_i1_train_numeric_oracle import verify as independent_verify
 from research.tools.v99_r106_i1_train_numeric_gate import (
-    DAYS, FIRST, REGIMES, SCENARIOS, _expected_clock, _fold, evaluate,
+    DAYS, FIRST, REGIMES, SCENARIOS, _expected_clock, _fold, evaluate, evaluate_provisional,
 )
 
 
@@ -144,6 +144,65 @@ class NumericTrainGateTests(unittest.TestCase):
                 doc["scenarios"]["severe"][2][key] = value
                 with self.assertRaises(ValueError):
                     evaluate(doc)
+
+
+    def test_uncertified_nonfixture_native_event_replay_diagnostic(self):
+        # This is an explicitly SYNTHETIC 661-day journal with no original
+        # Deribit options lifecycle; the nonfixture tag does not certify it.
+        from research.tests.test_v99_r106_i1_native_event_equity import (
+            flat_fixture, complete_fixed_decisions,
+        )
+        from research.tools.v99_r106_i1_native_event_equity import replay
+        doc = flat_fixture()
+        doc["fixture"] = False
+        doc["decisions"] = complete_fixed_decisions()
+        source = replay(doc)
+        self.assertEqual(source["status"], "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY")
+        with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
+            evaluate(source)  # the OFFICIAL gate remains sealed
+        report = evaluate_provisional(source)
+        self.assertEqual(report["status"],
+                         "PROVISIONAL_NONFIXTURE_NUMERIC_DIAGNOSTIC_NOT_CERTIFIED")
+        self.assertFalse(report["source_fixture"])
+        self.assertTrue(report["numeric_screen_descriptive_only"])
+        self.assertFalse(report["original_options_economic_train_certified"])
+        self.assertFalse(report["promotion_authorized"])
+        self.assertFalse(report["numeric_train_pass_both_scenarios"])
+        self.assertEqual(independent_verify(source, report)["status"],
+                         "INDEPENDENT_PROVISIONAL_NUMERIC_REPLAY_MATCH_NOT_CERTIFIED")
+        forged = copy.deepcopy(report)
+        forged["scenarios"]["severe"]["max_drawdown"] = "0.99"
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_NUMERIC_METRIC_MISMATCH"):
+            independent_verify(source, forged)
+
+    def test_provisional_diagnostic_fails_closed_on_forged_provenance(self):
+        from research.tests.test_v99_r106_i1_native_event_equity import (
+            flat_fixture, complete_fixed_decisions,
+        )
+        from research.tools.v99_r106_i1_native_event_equity import replay
+        doc = flat_fixture()
+        doc["fixture"] = False
+        doc["decisions"] = complete_fixed_decisions()
+        original = replay(doc)
+        for key, value in (
+            ("fixture", True),
+            ("status", "ORIGINAL_ECONOMIC_TRAIN_CERTIFIED"),
+            ("original_source_receipts_independently_authenticated", True),
+            ("original_options_economic_train_certified", True),
+            ("historical_native_fee_certified", True),
+            ("promotion_authorized", True),
+            ("validation_opened", True),
+        ):
+            with self.subTest(key=key):
+                source = copy.deepcopy(original)
+                source[key] = value
+                with self.assertRaisesRegex(ValueError,
+                        "PROVENANCE_NOT_CERTIFIED|PROVISIONAL_SOURCE_OR_CERTIFICATION_FORGERY"):
+                    evaluate_provisional(source)
+        incomplete = copy.deepcopy(original)
+        incomplete["scenarios"]["severe"].pop()
+        with self.assertRaisesRegex(ValueError, "INCOMPLETE_661_DAY"):
+            evaluate_provisional(incomplete)
 
 
 if __name__ == "__main__":
