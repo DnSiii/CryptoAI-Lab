@@ -31,6 +31,7 @@ def run(root):
         by_path[p][os]=payload
     if len(files)!=10:errors.append(("FILE_COUNT",len(files)))
     all_source=set()
+    all_native_mask=set()
     reps={}
     for path in PATIC:
         pair=by_path[path]
@@ -38,6 +39,9 @@ def run(root):
             errors.append(("OS_MISSING",path));continue
         a,b=(pair[o] for o in OS)
         all_source.update((a.get("source_manifest_sha256"),b.get("source_manifest_sha256")))
+        all_native_mask.update((a.get("masked_native_5m_sha256"),b.get("masked_native_5m_sha256")))
+        if not a.get("masked_native_5m_sha256") or a.get("masked_native_5m_sha256")!=b.get("masked_native_5m_sha256"):
+            errors.append(("NATIVE_MASK_SHA",path))
         if a.get("source_manifest_sha256")!=b.get("source_manifest_sha256"):
             errors.append(("SOURCE_SHA",path))
         x,y=(z.get("cells",[]) for z in (a,b))
@@ -61,6 +65,7 @@ def run(root):
                         errors.append(("OS_YEAR",path,key,yr))
         reps[path]=aa
     if len(all_source)!=1:errors.append(("CROSS_PATH_SOURCE",len(all_source)))
+    if len(all_native_mask)!=1:errors.append(("CROSS_PATH_NATIVE_MASK",len(all_native_mask)))
     survival=sum(c.get("passed",False) for a in reps.values() for c in a.values())
     for path,rows in reps.items():
         for key,c in rows.items():
