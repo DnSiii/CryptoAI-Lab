@@ -71,6 +71,48 @@ def validate_delivery(payload):
     return lookup
 
 
+
+def _original_open_lineage(spine):
+    """Bind settlement to the same originally selected contracts, not a calendar date alone."""
+    opened = {}
+    for day in spine["days"]:
+        for event in day["market_events"]:
+            if event.get("kind") != "OPEN_SOURCE_ONLY":
+                continue
+            name, asset, at = event.get("position_id"), event.get("asset"), event.get("at_ms")
+            if (not isinstance(name, str) or not name or name in opened
+                    or asset not in ("BTC", "ETH") or type(at) is not int
+                    or not isinstance(event.get("candidate_inventory"), list)
+                    or event.get("signal_source") != "ORIGINAL_FIXED_180_GRID"):
+                raise ValueError("UNBOUND_DUPLICATE_OR_FORGED_ORIGINAL_OPEN")
+            symbols = (event.get("short_symbol_unverified_selection"),
+                       event.get("long_symbol_unverified_selection"))
+            expiries, strikes = [], []
+            for symbol in symbols:
+                parts = symbol.split("-") if isinstance(symbol, str) else []
+                if len(parts) != 4 or parts[0] != asset or parts[3] != "P":
+                    raise ValueError("INVALID_ORIGINAL_OPEN_CONTRACT")
+                try:
+                    expiry = datetime.strptime(parts[1].upper(), "%d%b%y").replace(
+                        hour=8, tzinfo=timezone.utc)
+                    strike = _price(parts[2])
+                except (ValueError, TypeError) as exc:
+                    raise ValueError("INVALID_ORIGINAL_OPEN_CONTRACT") from exc
+                expiries.append(int(expiry.timestamp() * 1000))
+                strikes.append(strike)
+            if (expiries[0] != expiries[1] or strikes[0] <= strikes[1]
+                    or not at < expiries[0] or expiries[0] >= int(
+                        datetime(END.year, END.month, END.day, tzinfo=timezone.utc).timestamp()*1000)
+                    or not set(symbols).issubset({
+                        q.get("symbol") for q in event["candidate_inventory"]
+                        if isinstance(q, dict)})):
+                raise ValueError("ORIGINAL_OPEN_CONTRACT_EXPIRY_OR_INVENTORY_MISMATCH")
+            opened[name] = (asset, at, expiries[0])
+    if len(opened) != spine.get("unverified_position_plan_count"):
+        raise ValueError("MISSING_OR_DUPLICATE_ORIGINAL_OPEN_POSITION")
+    return opened
+
+
 def bind(spine, delivery, delivery_raw_bytes):
     fixes = validate_delivery(delivery)
     if (not isinstance(spine, dict) or spine.get("schema") != SOURCE_SCHEMA
@@ -80,6 +122,7 @@ def bind(spine, delivery, delivery_raw_bytes):
             or any(spine.get(key) is not False for key in DENIED)
             or not isinstance(spine.get("days"), list) or len(spine["days"]) != DAYS):
         raise ValueError("UNVERIFIED_OR_INCOMPLETE_SOURCE_SPINE")
+    opened = _original_open_lineage(spine)
     result = copy.deepcopy(spine)
     seen = set()
     bound = 0
@@ -110,6 +153,8 @@ def bind(spine, delivery, delivery_raw_bytes):
                 raise ValueError("SEALED_OR_SHIFTED_SETTLEMENT_DATE")
             if name in seen:
                 raise ValueError("DUPLICATED_SETTLEMENT_POSITION")
+            if opened.get(name) != (asset, opened.get(name, (None, None, None))[1], at):
+                raise ValueError("SETTLEMENT_NOT_LINKED_TO_ORIGINAL_OPEN_CONTRACT")
             seen.add(name)
             index = asset.lower() + "_usd"
             event.pop("delivery_index_missing")
@@ -121,6 +166,8 @@ def bind(spine, delivery, delivery_raw_bytes):
                 "native_contract_delivery_index_unverified": True,
             })
             bound += 1
+    if seen != set(opened):
+        raise ValueError("ORIGINAL_OPEN_WITHOUT_CONTRACT_SETTLEMENT")
     if bound != spine.get("expiry_due_count") or bound != spine.get("unverified_position_plan_count"):
         raise ValueError("INCOMPLETE_SOURCE_SETTLEMENT_BINDING")
     result.update({
