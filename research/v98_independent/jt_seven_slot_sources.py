@@ -3,7 +3,7 @@
 Completed t features -> actual t+1 open; 2023-2024 training only.
 """
 from __future__ import annotations
-import hashlib,jton
+import hashlib,json
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ COLS=("down_beta","down_resilience","cojump_frequency","up_capture")
 def load_verified():
     p=HERE/"jt_downside_resilience_hourly.csv"
     raw=p.read_bytes()
-    receipt=jton.loads((HERE/"jt_cross_asset_5m_propagation_source_receipt.jton").read_text())
+    receipt=json.loads((HERE/"jt_cross_asset_5m_propagation_source_receipt.json").read_text())
     if (hashlib.sha256(raw).hexdigest()!=PIN
         or receipt.get("source_feature_sha256")!=PIN
         or receipt.get("decision")!="PASS_JT_DOWNSIDE_SOURCE_ONLY_NOT_ECONOMIC"
