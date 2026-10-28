@@ -27,6 +27,8 @@ jobs:
         run: |
           git merge-base --is-ancestor 76f68a0013ee1b667efd92bf32e2d23f62c57cf6 HEAD
           test -s research/V99_R106_I1_NATIVE_EVENT_TO_661D_EQUITY_PREREG_20261028.md
+          git merge-base --is-ancestor b026c92d00b694022d129aba7e3830cc639f0223 HEAD
+          test -s research/V99_R106_I1_SCENARIO_DECISION_LEDGER_PREREG_20261028.md
       - name: Execute 661d dual-scenario event replay and independent native cash identity controls
         run: python -m unittest -v research.tests.test_v99_r106_i1_native_event_equity
       - name: Confirm historical certification still blocked
@@ -40,14 +42,15 @@ jobs:
           try:
               replay(data)
           except ValueError as exc:
-              assert str(exc)=='MISSING_COMPLETE_FIXED_180_DECISION_LEDGER'
+              assert str(exc)=='SCENARIO_SPECIFIC_180_DECISIONS_REQUIRED'
           else:
               raise AssertionError('MISSING_180_DECISION_LEDGER_BYPASS')
-          data['decisions']=complete_fixed_decisions()
+          data['scenario_decisions']={s: complete_fixed_decisions() for s in ('severe','supersevere')}
           result=replay(data)
           assert result['status']=='PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY'
           assert result['original_options_economic_train_certified'] is False
           assert result['promotion_authorized'] is False
+          assert result['scenario_decisions_self_declared_not_certified'] is True
           try:
               evaluate(result)
           except ValueError as exc:
