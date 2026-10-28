@@ -21,7 +21,7 @@ from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS, SCHEMA as 
 from research.tools.v99_r106_i1_native_event_equity import _quote
 
 HEADER = ["exchange", "symbol", "timestamp", "local_timestamp",
-          "bid_price", "ask_price", "bid_amount", "ask_amount", "index_price"]
+          "bid_price", "ask_price", "bid_amount", "ask_amount"]
 
 
 def original_row(q, *, arrival_offset_us=0, bid=None):
@@ -95,7 +95,7 @@ class OriginalQuoteIdentityTests(unittest.TestCase):
                     ValueError, "NOT_EQUAL_ORIGINAL_SOURCE"):
                 _equal(_quote(fake), source, at)
 
-    def test_postdecision_original_row_not_usable(self):
+    def test_quote_csv_cannot_certify_underlying_index(self):\n        doc, short, _ = input_document()\n        at = ms(2021, 12, 13)\n        source = (short["arrival_ms"] * 1000, 1, 1, short["venue_ms"] * 1000,\n                  original_row(short))\n        forged = dict(short)\n        forged["index_usd"] = "41000"\n        # BBO-only oracle must not claim it detected or authenticated index.\n        self.assertTrue(_equal(_quote(forged), source, at))\n\n    def test_postdecision_original_row_not_usable(self):
         doc, short, long = input_document()
         at = ms(2021, 12, 13)
         with tempfile.TemporaryDirectory() as tmp:
@@ -147,7 +147,7 @@ class OriginalQuoteIdentityTests(unittest.TestCase):
             (root / "manifest.json").write_text(json.dumps(manifest))
             result = audit(root, doc)
             self.assertEqual(result["original_quote_events_checked"], 2)
-            self.assertFalse(result["source_size_unit_is_native_lot_certified"])
+            self.assertFalse(result["source_size_unit_is_native_lot_certified"])\n            self.assertFalse(result["original_underlying_index_bound"])
             self.assertFalse(result["promotion_authorized"])
             with gzip.open(root / "2021-12-12.csv.gz", "ab") as stream:
                 stream.write(b"tamper")
