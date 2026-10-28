@@ -105,7 +105,9 @@ class LocalTapeImportTests(unittest.TestCase):
             build_manifest(self.root, fixture=False)
         evidence = Path(self.tmp.name) / "license.txt"
         evidence.write_text("SELF DECLARED PLACEHOLDER: NOT A VALID LICENSE", encoding="utf-8")
-        manifest = run(self.root, fixture=False, license_evidence=evidence)
+        manifest = build_manifest(self.root, fixture=False, license_evidence=evidence)
+        # This is a synthetic test of the input interface, NOT a nonfixture run.
+        self.assertFalse((self.root / 'manifest.json').exists())
         self.assertEqual(manifest["license_evidence_sha256_not_legal_verification"],
                          hashlib.sha256(evidence.read_bytes()).hexdigest())
         self.assertTrue(manifest["source_manifest_self_declared_not_vendor_certified"])
