@@ -168,6 +168,52 @@ def build(root, original_intents):
     }
 
 
+
+def bind_full_open_inventories(source_book_report, journal):
+    """An OPEN must expose the ENTIRE original eligible candidate book.
+
+    This prevents caller-selected source subsets. Index and native lot unit
+    provenance remain external and explicitly UNVERIFIED.
+    """
+    books = {(r["decision_ms"], r["asset"]): r["original_books"]
+             for r in source_book_report["rows"]}
+    opens = 0
+    for scenario in ("severe", "supersevere"):
+        for day in journal["scenarios"][scenario]:
+            for event in day["events"]:
+                if event.get("kind") != "OPEN":
+                    continue
+                opens += 1
+                key = (event.get("at_ms"), event.get("asset"))
+                expected = books.get(key)
+                if expected is None or not expected:
+                    raise ValueError("SOURCE_DRIVEN_OPEN_HAS_NO_ELIGIBLE_ORIGINAL_BOOK")
+                received = event.get("quotes")
+                if not isinstance(received, list) or len(received) != len(expected):
+                    raise ValueError("SOURCE_DRIVEN_OPEN_INVENTORY_MISMATCH")
+                expected_by_symbol = {q["symbol"]: q for q in expected}
+                received_by_symbol = {q.get("symbol"): q for q in received
+                                      if isinstance(q, dict)}
+                if (len(received_by_symbol) != len(received)
+                        or set(received_by_symbol) != set(expected_by_symbol)):
+                    raise ValueError("SOURCE_DRIVEN_OPEN_INVENTORY_MISMATCH")
+                for symbol, original in expected_by_symbol.items():
+                    q = received_by_symbol[symbol]
+                    if (q.get("asset") != key[1]
+                            or q.get("expiry_ms") != original["expiry_ms"]
+                            or D(q.get("strike_usd")) != D(original["strike_usd"])
+                            or D(q.get("bid_coin")) != D(original["bid_coin"])
+                            or D(q.get("ask_coin")) != D(original["ask_coin"])
+                            or D(q.get("bid_native_lots")) != D(original["bid_size_source_units"])
+                            or D(q.get("ask_native_lots")) != D(original["ask_size_source_units"])
+                            or q.get("venue_ms") != original["venue_us"] // 1000
+                            or q.get("arrival_ms") != original["arrival_us"] // 1000):
+                        raise ValueError("SOURCE_DRIVEN_OPEN_ORIGINAL_BOOK_MISMATCH")
+    return {"source_driven_open_inventories_checked": opens,
+            "original_index_authenticated": False,
+            "source_size_unit_native_lot_certified": False,
+            "economic_train_certified": False, "promotion_authorized": False}
+
 def main(root, original_signal_path, output_path):
     original = bind(Path(original_signal_path))
     report = build(root, original["intents"])
