@@ -129,6 +129,15 @@ class NativeEventEquityTests(unittest.TestCase):
                             Decimal("7000"))
         self.assertFalse(report["original_source_receipts_independently_authenticated"])
         self.assertFalse(report["historical_native_fee_certified"])
+        # Run the existing ex-ante numeric gate on the DERIVED event equity,
+        # not a hand-written profitable NAV series. One winning fold is not
+        # stable growth; the synthetic trade must NOT be promoted.
+        numeric = evaluate(report)
+        self.assertFalse(numeric["numeric_train_pass_both_scenarios"])
+        for scenario in SCENARIOS:
+            self.assertEqual(numeric["scenarios"][scenario]["positive_folds"], 1)
+            self.assertFalse(numeric["scenarios"][scenario]["gates"]["fold_positive"])
+        self.assertFalse(numeric["promotion_authorized"])
 
     def test_missing_mark_after_open_fails_closed(self):
         doc = one_position_fixture()
