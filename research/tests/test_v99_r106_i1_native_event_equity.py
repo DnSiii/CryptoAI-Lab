@@ -197,6 +197,35 @@ class NativeEventEquityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SEVERE_SUPERSEVERE_FRICTION_UNDERPAYMENT"):
             replay(doc)
 
+    def test_661d_varying_native_collateral_benchmark_is_derived(self):
+        doc = flat_fixture()
+        for scenario in SCENARIOS:
+            for i, row in enumerate(doc["scenarios"][scenario]):
+                btc = Decimal("40000") + Decimal(i)*Decimal("13")
+                eth = Decimal("3000") - Decimal(i)*Decimal("2")
+                row["index_usd"] = {"BTC": str(btc), "ETH": str(eth)}
+                # No caller-supplied benchmark: it must be derived from
+                # initial 0.1 BTC + 1 ETH, not the static USD initial NAV.
+                del row["benchmark_usd"]
+        report = replay(doc)
+        for scenario in SCENARIOS:
+            rows = report["scenarios"][scenario]
+            for i in (0, 1, 120, 330, 660):
+                expected = (Decimal("0.1")*(Decimal("40000")+Decimal(i)*13)
+                            + Decimal("3000")-Decimal(i)*2)
+                self.assertEqual(Decimal(rows[i]["benchmark_usd"]), expected)
+                self.assertEqual(Decimal(rows[i]["equity_usd"]), expected)
+        self.assertFalse(report["original_options_economic_train_certified"])
+
+    def test_forged_low_or_high_passive_benchmark_rejected(self):
+        for forged in ("1", "999999999"):
+            with self.subTest(forged=forged):
+                doc = flat_fixture()
+                doc["scenarios"]["severe"][40]["benchmark_usd"] = forged
+                with self.assertRaisesRegex(ValueError,
+                                            "FORGED_PASSIVE_NATIVE_BENCHMARK"):
+                    replay(doc)
+
     def test_nonfixture_replay_is_explicitly_uncertified(self):
         doc = flat_fixture()
         doc["fixture"] = False
