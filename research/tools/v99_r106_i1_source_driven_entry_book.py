@@ -125,6 +125,8 @@ def build(root, original_intents):
             raise ValueError("UNBOUND_FIXED_TRAIN_INTENT_GRID")
     # Fail BEFORE producing partial output, even if only one day is missing.
     files, manifest_sha = _original_manifest(root)
+    day_hashes = {item['date']: item['sha256'] for item in
+                  json.loads((Path(root)/'manifest.json').read_text(encoding='utf-8'))['days']}
     rows = []
     for i in range(0, 180, 2):
         clock = grid[i][0]
@@ -138,7 +140,9 @@ def build(root, original_intents):
             rows.append({
                 "decision_ms": clock, "asset": asset,
                 "fold": intent["fold"], "signal": intent["signal"],
-                "source_day": sunday.isoformat(), "source_rows_scanned": count,
+                "source_day": sunday.isoformat(),
+                "source_day_sha256": day_hashes[sunday.isoformat()],
+                "source_rows_scanned": count,
                 "last_eligible_invalid_books": invalid[asset],
                 "last_eligible_stale_books": stale[asset],
                 "original_books": books[asset],
