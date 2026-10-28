@@ -178,6 +178,9 @@ def run(path):
     return {"architecture":"JR","path":path,
             "historical_training_only":True,"validation_2025_read":False,
             "external_benchmarks_used":False,
+            "masked_native_5m_sha256":hashlib.sha256(
+                (Path(__file__).resolve().parent/"native_5m_masked_verified_hourly_features.csv").read_bytes()
+            ).hexdigest(),
             "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
             "cells_expected":6,"cells":cases,
