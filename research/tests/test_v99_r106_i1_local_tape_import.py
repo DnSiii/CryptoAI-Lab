@@ -167,6 +167,38 @@ class LocalTapeImportTests(unittest.TestCase):
             build_manifest(self.root, fixture=False, license_evidence=evidence)
         self.assertFalse((self.root / 'manifest.json').exists())
 
+    def test_repeated_symbol_cache_never_caches_market_quote_validity(self):
+        # Same contract appears with changing market fields. Only the immutable
+        # expiry/strike may be cached; later crossed books stay invalid.
+        day = FIRST
+        expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
+        start = int(datetime(day.year, day.month, day.day,
+                             tzinfo=timezone.utc).timestamp() * 1_000_000)
+        path = self.root / (day.isoformat() + ".csv.gz")
+        buf = io.StringIO(newline="")
+        writer = csv.writer(buf)
+        writer.writerow(HEADERS)
+        for hour in range(24):
+            t = start + hour * 3_600_000_000
+            btc = f"BTC-{expiry}-30000-P"
+            eth = f"ETH-{expiry}-2000-P"
+            writer.writerow(("deribit", btc, t+1, t+1,
+                             "0.02", "0.025", "1", "1"))
+            writer.writerow(("deribit", btc, t+2, t+2,
+                             "0.03", "0.025", "1", "1"))
+            writer.writerow(("deribit", eth, t+3, t+3,
+                             "0.02", "0.025", "1", "1"))
+            writer.writerow(("deribit", "BTC-NOTADATE-30000-P", t+4, t+4,
+                             "0.02", "0.025", "1", "1"))
+        path.write_bytes(gzip.compress(buf.getvalue().encode()))
+        result = scan_day(path, day)
+        self.assertEqual(result["rows"], 96)
+        self.assertEqual(result["qualifying_original_put_quote_rows_by_asset"],
+                         {"BTC": 24, "ETH": 24})
+        self.assertEqual(result["descriptive_28_45d_put_quote_rows_by_asset"],
+                         {"BTC": 24, "ETH": 24})
+        require_hourly_original_coverage(result)
+
     def test_single_day_full_hourly_presence_is_necessary_not_sufficient(self):
         day = FIRST
         expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
