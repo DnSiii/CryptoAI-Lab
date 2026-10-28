@@ -90,6 +90,30 @@ def compare_1h(actual,canonical):
         raise ValueError(f"JQ_PINNED_1H_RECONCILIATION_{int(i)}_{int(j)}")
     return diff.max(axis=0).tolist()
 
+def conflict_evidence(actual,canonical,times,entries):
+    """SOURCE FORENSIC ONLY. Never relax or override the precommitted gate."""
+    delta=np.abs(actual-canonical)
+    tolerance=np.array([1e-8,1e-8,1e-8,1e-8,1e-6])+np.abs(canonical)*np.array(
+        [2e-10,2e-10,2e-10,2e-10,2e-8])
+    bad=np.argwhere(delta>tolerance)
+    fields=("open","high","low","close","quote_volume")
+    by_month={e[1]:e[2] for e in entries}
+    rows=[]
+    for i,j in bad[:40]:
+        date=pd.to_datetime(int(times[i]),unit="ms",utc=True)
+        rows.append({"hour_utc":date.isoformat(),"field":fields[int(j)],
+                     "native_5m_aggregate":float(actual[i,j]),
+                     "pinned_1h":float(canonical[i,j]),
+                     "absolute_difference":float(delta[i,j]),
+                     "relative_difference":float(delta[i,j]/max(abs(canonical[i,j]),1e-12)),
+                     "vendor_5m_zip_sha256":by_month[date.strftime("%Y-%m")]})
+    months=sorted({pd.to_datetime(int(times[i]),unit="ms",utc=True).strftime("%Y-%m")
+                   for i in np.unique(bad[:,0])})
+    return {"bad_cells":int(len(bad)),
+            "bad_hour_count":int(len(np.unique(bad[:,0]))),
+            "affected_months":months,
+            "examples":rows}
+
 def fetch_month(asset,month):
     if asset not in ASSETS or month not in MONTHS:raise ValueError("JQ_TRAINING_FIREWALL")
     name=f"{asset}-5m-{month}.zip"
@@ -122,7 +146,7 @@ def run():
                 faults.append({"asset":asset,"month":month,
                                "first_fault":type(exc).__name__+": "+str(exc)[:260]})
     faults.sort(key=lambda x:(x["asset"],x["month"]))
-    manifests={};lines=[];maxdiff={}
+    manifests={};lines=[];maxdiff={};conflicts={}
     for asset in ASSETS:
         if any((asset,m) not in verified for m in MONTHS):continue
         entries=[verified[(asset,m)] for m in MONTHS]
@@ -130,17 +154,19 @@ def run():
         if not np.array_equal(times,official_times):
             faults.append({"asset":asset,"month":"FULL","first_fault":"JQ_FULL_UTC_ALIGNMENT"})
             continue
+        manifests[asset]={e[1]:{"zip_sha256":e[2],"csv_sha256":e[3],
+                                 "hours":len(e[4])} for e in entries}
         actual=np.concatenate([e[5] for e in entries])
         try:maxdiff[asset]=compare_1h(actual,canonical[asset])
         except Exception as exc:
-            faults.append({"asset":asset,"month":"FULL","first_fault":str(exc)})
+            conflicts[asset]=conflict_evidence(actual,canonical[asset],times,entries)
+            faults.append({"asset":asset,"month":"FULL","first_fault":str(exc),
+                           "affected_months":conflicts[asset]["affected_months"]})
             continue
         features=np.concatenate([e[6] for e in entries])
         for i,t in enumerate(times):
             vals=[None if np.isnan(v) else float(v) for v in features[i]]
             lines.append((int(t),asset,*vals))
-        manifests[asset]={e[1]:{"zip_sha256":e[2],"csv_sha256":e[3],
-                                 "hours":len(e[4])} for e in entries}
     faults.sort(key=lambda x:(x["asset"],x["month"]))
     report={"source_only":True,"historical_training_only":True,
             "historical_system_pnl_computed":False,"validation_2025_read":False,
@@ -149,7 +175,7 @@ def run():
             "archives_checksum_and_schema_verified":len(verified),
             "hourly_rows_reconciled":len(lines),"hourly_rows_expected":HOURS*4,
             "max_absolute_hourly_1h_differences":maxdiff,
-            "archive_manifest":manifests,"first_faults":faults[:100],
+            "archive_manifest":manifests,"cross_source_conflicts":conflicts,"first_faults":faults[:100],
             "fault_count":len(faults),"decision":"BLOCK_JQ_NATIVE_5M_SOURCE_INCOMPLETE"}
     if not faults and len(lines)==HOURS*4:
         out=pd.DataFrame(lines,columns=FIELDS)
