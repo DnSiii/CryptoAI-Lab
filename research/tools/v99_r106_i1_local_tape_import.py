@@ -10,6 +10,7 @@ import csv
 import gzip
 import hashlib
 import json
+import math
 import os
 import sys
 import tempfile
@@ -45,6 +46,7 @@ def scan_day(path: Path, day: date) -> dict:
     upper = lower + 86_400_000_000
     count = 0
     previous = -1
+    qualifying_puts = {"BTC": 0, "ETH": 0}
     try:
         with gzip.open(path, "rt", newline="", encoding="utf-8") as stream:
             reader = csv.DictReader(stream)
@@ -62,12 +64,36 @@ def scan_day(path: Path, day: date) -> dict:
                         and previous <= arrival):
                     raise ValueError("NONCAUSAL_OR_OUT_OF_ORDER_CLOCK:" + day.isoformat())
                 previous = arrival
+                # A dated file with futures, only one coin, or zero-sized books
+                # is NOT a complete two-asset options source inventory.
+                # Invalid market rows are retained in the original bytes but
+                # cannot qualify as necessary option-source evidence.
+                parts = row["symbol"].split("-")
+                if len(parts) != 4 or parts[0] not in qualifying_puts or parts[3] != "P":
+                    continue
+                try:
+                    expiry = datetime.strptime(parts[1].upper(), "%d%b%y").date()
+                    strike = float(parts[2])
+                    bid, ask, bid_size, ask_size = (float(row[k]) for k in
+                        ("bid_price", "ask_price", "bid_amount", "ask_amount"))
+                except (ValueError, TypeError, OverflowError):
+                    continue
+                if (day < expiry <= day + timedelta(days=45)
+                        and all(math.isfinite(v) and v > 0 for v in
+                                (strike, bid, ask, bid_size, ask_size))
+                        and bid < ask):
+                    qualifying_puts[parts[0]] += 1
     except (OSError, EOFError, UnicodeError, csv.Error) as exc:
         raise ValueError("CORRUPT_ORIGINAL_GZIP:" + day.isoformat()) from exc
     if count == 0:
         raise ValueError("EMPTY_ORIGINAL_DAY:" + day.isoformat())
+    for asset, n in qualifying_puts.items():
+        if n == 0:
+            raise ValueError("MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:"
+                             + day.isoformat() + ":" + asset)
     return {"date": day.isoformat(), "file": path.name,
             "sha256": sha256(path), "rows": count,
+            "qualifying_original_put_quote_rows_by_asset": qualifying_puts,
             # Self-declared from local import, NOT a vendor gap attestation.
             "complete_capture": True}
 
@@ -105,6 +131,7 @@ def build_manifest(root: Path, *, fixture: bool, license_evidence: Path | None =
             "days": days,
             "import_original_compressed_bytes_hashed": True,
             "source_manifest_self_declared_not_vendor_certified": True,
+            "quote_content_presence_not_lifecycle_or_vendor_certified": True,
             "license_evidence_sha256_not_legal_verification": evidence_sha,
             "economic_train_executed": False, "validation_opened": False,
             "holdout_opened": False, "orders_enabled": False,
