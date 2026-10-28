@@ -14,6 +14,7 @@ import math
 import os
 import sys
 import tempfile
+from functools import lru_cache
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -49,6 +50,21 @@ def scan_day(path: Path, day: date) -> dict:
     qualifying_puts = {"BTC": 0, "ETH": 0}
     entry_tenor_28_45_rows = {"BTC": 0, "ETH": 0}
     qualifying_hour_masks = {"BTC": 0, "ETH": 0}
+    # Immutable contract metadata repeats millions of times within a daily
+    # quote tape. Cache ONLY symbol parsing, never the row's market data,
+    # timestamps, freshness or validity. Keep the cache bounded per day.
+    @lru_cache(maxsize=32768)
+    def contract_metadata(symbol):
+        parts = symbol.split("-")
+        if len(parts) != 4 or parts[0] not in qualifying_puts or parts[3] != "P":
+            return None
+        try:
+            expiry = datetime.strptime(parts[1].upper(), "%d%b%y").date()
+            strike = float(parts[2])
+        except (ValueError, TypeError, OverflowError):
+            return None
+        return parts[0], expiry, strike
+
     try:
         with gzip.open(path, "rt", newline="", encoding="utf-8") as stream:
             reader = csv.DictReader(stream)
@@ -70,12 +86,11 @@ def scan_day(path: Path, day: date) -> dict:
                 # is NOT a complete two-asset options source inventory.
                 # Invalid market rows are retained in the original bytes but
                 # cannot qualify as necessary option-source evidence.
-                parts = row["symbol"].split("-")
-                if len(parts) != 4 or parts[0] not in qualifying_puts or parts[3] != "P":
+                contract = contract_metadata(row["symbol"])
+                if contract is None:
                     continue
+                asset, expiry, strike = contract
                 try:
-                    expiry = datetime.strptime(parts[1].upper(), "%d%b%y").date()
-                    strike = float(parts[2])
                     bid, ask, bid_size, ask_size = (float(row[k]) for k in
                         ("bid_price", "ask_price", "bid_amount", "ask_amount"))
                 except (ValueError, TypeError, OverflowError):
@@ -85,10 +100,10 @@ def scan_day(path: Path, day: date) -> dict:
                         and all(math.isfinite(v) and v > 0 for v in
                                 (strike, bid, ask, bid_size, ask_size))
                         and bid < ask):
-                    qualifying_puts[parts[0]] += 1
+                    qualifying_puts[asset] += 1
                     if expiry >= day + timedelta(days=28):
-                        entry_tenor_28_45_rows[parts[0]] += 1
-                    qualifying_hour_masks[parts[0]] |= 1 << ((arrival-lower)//3_600_000_000)
+                        entry_tenor_28_45_rows[asset] += 1
+                    qualifying_hour_masks[asset] |= 1 << ((arrival-lower)//3_600_000_000)
     except (OSError, EOFError, UnicodeError, csv.Error) as exc:
         raise ValueError("CORRUPT_ORIGINAL_GZIP:" + day.isoformat()) from exc
     if count == 0:
