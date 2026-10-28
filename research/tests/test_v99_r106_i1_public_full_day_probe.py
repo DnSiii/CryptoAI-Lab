@@ -62,6 +62,7 @@ class PublicFullDayTests(unittest.TestCase):
         self.assertEqual(result["qualifying_put_rows_by_asset"], {"BTC": 24, "ETH": 24})
         self.assertEqual(result["qualifying_put_arrival_hours_by_asset"], {"BTC": 24, "ETH": 24})
         self.assertTrue(result["btc_eth_24_hour_source_coverage"])
+        self.assertTrue(result["independent_btc_eth_hourly_verification"])
         self.assertEqual(len(result["sha256"]), 64)
 
     def test_crc_valid_23_hour_partial_capture_rejected(self):
@@ -69,6 +70,7 @@ class PublicFullDayTests(unittest.TestCase):
         self.assertEqual(result["status"], "PUBLIC_DAY_HOURLY_GAP")
         self.assertEqual(result["qualifying_put_arrival_hours_by_asset"], {"BTC": 23, "ETH": 23})
         self.assertFalse(result["btc_eth_24_hour_source_coverage"])
+        self.assertFalse(result["independent_btc_eth_hourly_verification"])
 
     def test_wrong_utc_day_rejected(self):
         result = self.call(day_gzip(day=datetime(2022, 7, 1, tzinfo=timezone.utc)))
