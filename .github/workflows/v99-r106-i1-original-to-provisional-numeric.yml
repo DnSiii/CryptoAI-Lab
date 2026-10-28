@@ -1,0 +1,73 @@
+name: V99 I1 original source to nonfixture numeric integration (HOLD)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_original_to_provisional_numeric.py
+      - research/tests/test_v99_r106_i1_original_to_provisional_numeric.py
+      - .github/workflows/v99-r106-i1-original-to-provisional-numeric.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-to-provisional-gated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration precedes implementation
+        run: |
+          git merge-base --is-ancestor fa61864436a1f912eb7330b9fb4e8e4d756679d7 HEAD
+          test -s research/V99_R106_I1_NONFIXTURE_ORIGINAL_TO_NUMERIC_ORCHESTRATOR_PREREG_20261028.md
+      - name: Run end-to-end 661-day original-shaped synthetic and adversarial tests
+        run: python -m unittest -v research.tests.test_v99_r106_i1_original_to_provisional_numeric
+      - name: Restore actual archived original 182 causal signals
+        run: |
+          gh run download 40326586848 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-causal-signal-40326586848 \
+            --dir research_evidence/i1_original_causal
+      - name: Actually attempt nonfixture integrated runner with real 182 signals and no licensed options tape
+        run: |
+          python - <<'PY'
+          import json
+          import tempfile
+          from pathlib import Path
+          from research.tests.test_v99_r106_i1_native_event_equity import flat_fixture
+          from research.tools.v99_r106_i1_original_intent_binding import bind
+          from research.tools.v99_r106_i1_original_to_provisional_numeric import run
+          signal=Path("research_evidence/i1_original_causal/i1_causal_signal.json")
+          original=bind(signal)
+          assert len(original["intents"])==180 and original["positive_fixed_intents"]==132
+          doc=flat_fixture()
+          doc["fixture"]=False
+          decisions=[]
+          for intent in original["intents"]:
+              positive=intent["signal"]=="POSITIVE_EX_ANTE_PREMIUM"
+              decisions.append({**intent,"action":"CASH",
+                  "reason":"RISK_VETO" if positive else intent["signal"]})
+          doc["scenario_decisions"]={"severe":decisions,"supersevere":decisions}
+          with tempfile.TemporaryDirectory() as root:
+              journal=Path(root)/"journal.json"
+              journal.write_text(json.dumps(doc),encoding="utf-8")
+              quotes=Path(root)/"missing_original_661d_quotes"
+              quotes.mkdir()
+              try:
+                  run(signal,quotes,journal)
+              except ValueError as exc:
+                  assert str(exc)=="ORIGINAL_661D_MANIFEST_NOT_DELIVERED",str(exc)
+                  print("ACTUAL ORIGINAL 182/182 SIGNALS, 180/180 INTENTS, 132 POSITIVE")
+                  print("BLOCKED_ORIGINAL_661D_LICENSED_DERIBIT_OPTIONS_ARCHIVE_NOT_DELIVERED")
+                  print("NO NATIVE ECONOMIC TRAIN; 0/180 CERTIFIED; NO PROMOTION/ORDERS")
+              else:
+                  raise AssertionError("MISSING_LICENSED_ARCHIVE_BYPASSED")
+          PY
