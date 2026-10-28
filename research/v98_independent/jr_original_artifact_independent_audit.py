@@ -12,6 +12,7 @@ PLATFORMS=("ubuntu-22.04","ubuntu-24.04")
 COSTS=("base","severe","supersevere")
 ORDERS=("carried_before_fill","new_after_fill")
 EXPECTED_SHA="833013a2e18836a203afd267ca698175907cff8f4c153c919a7811f14cb80752"
+EXPECTED_NATIVE_MASK_SHA="423b2394d8478157361c2d7c72238771ffb2ec01fcad6ae53142733e03840e6c"
 EPS=1e-7
 
 def close(x,y,abs_tol=2e-5):
@@ -35,6 +36,8 @@ def audit(root):
             books[key]=data
             sha=data["source_manifest_sha256"]
             if sha!=EXPECTED_SHA:errors.append(["SOURCE_PIN",platform,book,sha])
+            if data.get("masked_native_5m_sha256")!=EXPECTED_NATIVE_MASK_SHA:
+                errors.append(["NATIVE_5M_MASK_PIN",platform,book])
             if (data.get("historical_training_only") is not True or
                 data.get("validation_2025_read") is not False or
                 data.get("external_benchmarks_used") is not False):
