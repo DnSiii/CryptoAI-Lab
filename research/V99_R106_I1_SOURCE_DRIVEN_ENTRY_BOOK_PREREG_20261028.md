@@ -1,0 +1,12 @@
+# V99 I1 — source-driven original 90-week entry book preregistration (2026-10-28 12:xx BRT)
+
+**Fixed before implementation; SOURCE_ONLY/HOLD, no NAV or economic TRAIN.** This addresses the remaining internal handoff from a full lawful original options archive to an exhaustive, source-selected Monday entry inventory. The 180 historical signal intents and I1 fixed 28–35d vertical rule are unchanged. No C1 retune, no sealed dates.
+
+## Deterministic rule
+- Read **only** the already fixed 661-day TRAIN Deribit original manifest; verify every day hash and complete 661-day date grid. Never synthesize an absent day, instrument, bid/ask, size, index, fee, or fill.
+- For each of the 90 fixed Monday 00:00 UTC decision instants and both BTC/ETH, stream the **immediately preceding Sunday original gzip**, choosing the physically **last arrived** pre-decision record per symbol (including invalid records, which revoke earlier good quotes).
+- Filter only Deribit BTC/ETH PUT symbols with contractual 08:00 UTC expiry strictly inside TRAIN and 28–35 days from Monday; require original exchange <= arrival < decision, <=300s age for both, noncrossed positive bid/ask and sizes. **Do not** infer an underlying index from Tardis quotes, do not infer source size units as native lots, do not choose a profitable strike ex post.
+- Emit **all** causally fresh eligible quotes with exact source microsecond clocks, day file SHA, original row ordinal and bid/ask/size strings, sorted deterministically; also emit invalid-last-receipt counts. No caller-selected subset, no OPEN/CASH decision, no PnL.
+- Fail closed on missing original archive, tampered manifest, out-of-order capture, post-decision receipt, duplicate/unsafe day. Do not touch immutable Frozen/paper/champion or sealed validation/holdout.
+- Independent tests must catch a late invalid quote revoking an earlier valid quote, future/after-decision leakage, symbol tenor and expiry bounds, missing archive and byte tampering. CI must **actually attempt** original nonfixture source and report the precise missing-evidence error.
+- The output is only a **source-to-event prerequisite**. Remaining work: independently authenticate same-clock underlying indices, original native lot/fee/margin/delivery terms and then generate deterministic scenario-specific OPEN/MARK/SETTLE journals, independent economics, and 5-fold TRAIN gates. No promotion or orders.
