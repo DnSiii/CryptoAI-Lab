@@ -185,50 +185,70 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
 
 
 def _validate_decision_ledger(document):
-    """Bind each fixed BTC/ETH Monday to an explicit decision and real OPEN.
+    """Require complete 180-row scenario-specific OPEN/CASH decisions.
 
-    The ledger itself is self-declared; independent original source and risk
-    replay is still mandatory before any certified economic TRAIN.
+    Synthetic legacy fixtures may retain one shared ledger. Nonfixture cost
+    paths MUST be separate; self-declared CASH/risk vetoes are NOT evidence
+    of source or economic certification.
     """
-    decisions = document.get("decisions")
-    if decisions is None and document["fixture"]:
-        return  # backward-compatible synthetic smoke tests only
     grid = [(int(day.timestamp()*1000), asset) for day in eligible(True)
             for asset in ("BTC", "ETH")]
-    if not isinstance(decisions, list) or len(decisions) != len(grid):
-        raise ValueError("MISSING_COMPLETE_FIXED_180_DECISION_LEDGER")
-    expected_opens = set()
-    for decision, (at_ms, asset) in zip(decisions, grid):
-        if not isinstance(decision, dict) or set(decision) != {
-            "decision_ms", "asset", "fold", "signal", "action", "reason"
-        }:
-            raise ValueError("INVALID_FIXED_DECISION_ROW")
-        if (type(decision["decision_ms"]) is not int
-                or decision["decision_ms"] != at_ms
-                or decision["asset"] != asset
-                or type(decision["fold"]) is not int
-                or decision["fold"] != _fold(at_ms)):
-            raise ValueError("MISSING_DUPLICATE_OR_SHIFTED_FIXED_DECISION")
-        signal, action, reason = (decision["signal"], decision["action"],
-                                  decision["reason"])
-        if signal not in ("POSITIVE_EX_ANTE_PREMIUM", "NO_PREMIUM",
-                          "NO_30D_HISTORY"):
-            raise ValueError("INVALID_FIXED_ORIGINAL_SIGNAL")
-        if action == "OPEN":
-            if signal != "POSITIVE_EX_ANTE_PREMIUM" or reason != "FIXED_VERTICAL":
-                raise ValueError("OPEN_WITHOUT_POSITIVE_FIXED_SIGNAL")
-            expected_opens.add((at_ms, asset))
-        elif action == "CASH":
-            allowed = {
-                "POSITIVE_EX_ANTE_PREMIUM": ("NO_ELIGIBLE_FIXED_VERTICAL", "RISK_VETO"),
-                "NO_PREMIUM": ("NO_PREMIUM",),
-                "NO_30D_HISTORY": ("NO_30D_HISTORY",),
-            }
-            if reason not in allowed[signal]:
-                raise ValueError("UNJUSTIFIED_FIXED_CASH_DECISION")
-        else:
-            raise ValueError("INVALID_FIXED_DECISION_ACTION")
+    scenario_ledgers = document.get("scenario_decisions")
+    shared = document.get("decisions")
+    if scenario_ledgers is None:
+        if document["fixture"] and shared is None:
+            return  # backward-compatible fixture smoke tests only
+        if not document["fixture"]:
+            raise ValueError("SCENARIO_SPECIFIC_180_DECISIONS_REQUIRED")
+        scenario_ledgers = {scenario: shared for scenario in SCENARIOS}
+    elif shared is not None:
+        raise ValueError("AMBIGUOUS_GLOBAL_AND_SCENARIO_DECISIONS")
+    if not isinstance(scenario_ledgers, dict) or set(scenario_ledgers) != set(SCENARIOS):
+        raise ValueError("MISSING_SCENARIO_DECISION_LEDGERS")
+    original_signals = None
     for scenario in SCENARIOS:
+        decisions = scenario_ledgers[scenario]
+        if not isinstance(decisions, list) or len(decisions) != len(grid):
+            raise ValueError("MISSING_COMPLETE_FIXED_180_DECISION_LEDGER")
+        expected_opens = set()
+        signals = []
+        decision_by_key = {}
+        for decision, (at_ms, asset) in zip(decisions, grid):
+            if not isinstance(decision, dict) or set(decision) != {
+                "decision_ms", "asset", "fold", "signal", "action", "reason"
+            }:
+                raise ValueError("INVALID_FIXED_DECISION_ROW")
+            if (type(decision["decision_ms"]) is not int
+                    or decision["decision_ms"] != at_ms
+                    or decision["asset"] != asset
+                    or type(decision["fold"]) is not int
+                    or decision["fold"] != _fold(at_ms)):
+                raise ValueError("MISSING_DUPLICATE_OR_SHIFTED_FIXED_DECISION")
+            signal, action, reason = (decision["signal"], decision["action"],
+                                      decision["reason"])
+            if signal not in ("POSITIVE_EX_ANTE_PREMIUM", "NO_PREMIUM",
+                              "NO_30D_HISTORY"):
+                raise ValueError("INVALID_FIXED_ORIGINAL_SIGNAL")
+            signals.append((at_ms, asset, decision["fold"], signal))
+            decision_by_key[(at_ms, asset)] = decision
+            if action == "OPEN":
+                if signal != "POSITIVE_EX_ANTE_PREMIUM" or reason != "FIXED_VERTICAL":
+                    raise ValueError("OPEN_WITHOUT_POSITIVE_FIXED_SIGNAL")
+                expected_opens.add((at_ms, asset))
+            elif action == "CASH":
+                allowed = {
+                    "POSITIVE_EX_ANTE_PREMIUM": ("NO_ELIGIBLE_FIXED_VERTICAL", "RISK_VETO"),
+                    "NO_PREMIUM": ("NO_PREMIUM",),
+                    "NO_30D_HISTORY": ("NO_30D_HISTORY",),
+                }
+                if reason not in allowed[signal]:
+                    raise ValueError("UNJUSTIFIED_FIXED_CASH_DECISION")
+            else:
+                raise ValueError("INVALID_FIXED_DECISION_ACTION")
+        if original_signals is None:
+            original_signals = signals
+        elif signals != original_signals:
+            raise ValueError("SCENARIO_ORIGINAL_SIGNAL_PATH_MISMATCH")
         actual = set()
         for day in document["scenarios"][scenario]:
             if not isinstance(day, dict) or not isinstance(day.get("events"), list):
@@ -242,8 +262,7 @@ def _validate_decision_ledger(document):
                 if key in actual:
                     raise ValueError("DUPLICATE_FIXED_ASSET_WEEK_ENTRY")
                 actual.add(key)
-                matching = next((row for row in decisions
-                                 if (row["decision_ms"], row["asset"]) == key), None)
+                matching = decision_by_key.get(key)
                 signal = event.get("signal")
                 if (matching is None or not isinstance(signal, dict)
                         or any(signal.get(k) != matching[k] for k in
@@ -295,6 +314,7 @@ def replay(document):
                    else "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY"),
         "original_source_receipts_independently_authenticated": False,
         "original_historical_economic_train_executed": False,
+        "scenario_decisions_self_declared_not_certified": True,
         **NO_PROMOTION,
     }
 
