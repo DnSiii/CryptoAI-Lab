@@ -14,6 +14,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: v99-i1-public-original-source-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   public-original-source-smoke:
     runs-on: ubuntu-latest
