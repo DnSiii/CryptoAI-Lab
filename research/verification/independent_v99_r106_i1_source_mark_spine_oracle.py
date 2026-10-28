@@ -70,7 +70,11 @@ def verify(root, entry_report, spine):
             or spine.get("status") != "ORIGINAL_MARKET_SPINE_ONLY_NOT_ECONOMIC_JOURNAL"
             or spine.get("promotion_authorized") is not False
             or spine.get("native_economic_train_executed") is not False
-            or spine.get("original_complete_option_lifecycles_certified") != 0):
+            or spine.get("original_complete_option_lifecycles_certified") != 0
+            or spine.get("original_underlying_index_authenticated") is not False
+            or spine.get("original_native_lot_conversion_authenticated") is not False
+            or spine.get("historical_native_fees_margin_liquidation_authenticated") is not False
+            or spine.get("original_delivery_index_authenticated") is not False):
         raise ValueError("ORACLE_FALSE_SOURCE_SPINE_CERTIFICATION")
     verify_entry_source(root, entry_report)
     root = Path(root)
@@ -83,6 +87,7 @@ def verify(root, entry_report, spine):
     if not isinstance(rows, list) or len(rows) != DAYS:
         raise ValueError("ORACLE_INCOMPLETE_661D_SPINE")
     positions = {}
+    fixed_asset_weeks = set()
     for row in rows:
         for event in row.get("market_events", []):
             if event.get("kind") != "OPEN_SOURCE_ONLY":
@@ -91,6 +96,7 @@ def verify(root, entry_report, spine):
             key = (event.get("at_ms"),event.get("asset"))
             source = entry.get(key)
             if (not isinstance(name,str) or not name or name in positions
+                    or key in fixed_asset_weeks
                     or source is None or source["signal"] != "POSITIVE_EX_ANTE_PREMIUM"
                     or event.get("candidate_inventory") != source["original_books"]):
                 raise ValueError("ORACLE_FORGED_OR_DUPLICATE_SOURCE_OPEN")
@@ -107,6 +113,7 @@ def verify(root, entry_report, spine):
                     or abs(s["venue_us"]-l["venue_us"]) > 1_000_000):
                 raise ValueError("ORACLE_UNSYNCHRONIZED_SOURCE_OPEN")
             positions[name] = (key[0],key[1],s,l)
+            fixed_asset_weeks.add(key)
     if not positions or spine.get("unverified_position_plan_count") != len(positions):
         raise ValueError("ORACLE_INCOMPLETE_POSITION_PLAN")
     count = 0
