@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """JT source-only causal and funded-epoch activation gate, NO system PnL."""
 from __future__ import annotations
-import jton
+import json
 from pathlib import Path
 import numpy as np
 from phase1260_aj_authenticated_source_digest import load_official,HOURS
@@ -41,9 +41,9 @@ def run():
             "invalid_epochs":invalid,"regimes":states,
             "decision":"PASS_JT_SOURCE_ONLY_NOT_ECONOMIC" if viable else
                        "REJECT_JT_SOURCE_ONLY_INSUFFICIENT_FUNDED_EPOCHS"}
-    (ROOT/"jt_source_viability.jton").write_text(
-        jton.dumps(result,sort_keys=True,indent=2,default=str)+"\n")
-    print("JT_SOURCE_ONLY",result["decision"],jton.dumps(counts,sort_keys=True),flush=True)
+    (ROOT/"jt_source_viability.json").write_text(
+        json.dumps(result,sort_keys=True,indent=2,default=str)+"\n")
+    print("JT_SOURCE_ONLY",result["decision"],json.dumps(counts,sort_keys=True),flush=True)
     if not viable:raise SystemExit(2)
     return result
 if __name__=="__main__":run()
