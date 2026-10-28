@@ -7,9 +7,6 @@ Prereg: V99_R106_I1_LICENSED_TARDIS_TRANSFER_PREREG_20261028.md.
 from __future__ import annotations
 
 import argparse
-import csv
-import gzip
-import io
 import json
 import os
 import tempfile
@@ -24,10 +21,6 @@ from research_tools.v99_r106_tardis_authenticated_scope import (
 )
 
 MAX_DAY_BYTES = 8 * 1024**3
-REQUIRED = {"exchange", "symbol", "timestamp", "local_timestamp",
-            "bid_price", "ask_price", "bid_amount", "ask_amount"}
-
-
 def _scope(opener, key):
     req = urllib.request.Request(
         SCOPE_URL, headers={"Authorization": "Bearer " + key,
@@ -45,20 +38,11 @@ def _scope(opener, key):
 
 
 def _validate_gzip(path, day):
-    """Verify gzip CRC and CSV schema; importer checks both assets and clocks."""
-    try:
-        with gzip.open(path, "rt", encoding="utf-8", newline="") as stream:
-            reader = csv.DictReader(stream)
-            if not REQUIRED.issubset(reader.fieldnames or []):
-                raise ValueError("LICENSED_OPTIONS_CSV_SCHEMA_MISSING")
-            if next(reader, None) is None:
-                raise ValueError("LICENSED_OPTIONS_CSV_EMPTY")
-            # Exhaust stream to force gzip CRC verification, including trailer.
-            for _ in reader:
-                pass
-        scan_day(path, day)
-    except (OSError, EOFError, UnicodeError, csv.Error, gzip.BadGzipFile) as exc:
-        raise ValueError("LICENSED_OPTIONS_GZIP_OR_CSV_CORRUPT") from None
+    """One streaming CRC/CSV/causal-day pass; no duplicate multi-GB decompression.
+
+    The existing independent 661-day importer later replays source bytes.
+    """
+    scan_day(path, day)
 
 
 def transfer(root, *, execute=False, max_days=1, key=None,
