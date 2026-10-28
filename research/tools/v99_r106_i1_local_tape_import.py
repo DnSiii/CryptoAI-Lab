@@ -78,7 +78,8 @@ def scan_day(path: Path, day: date) -> dict:
                         ("bid_price", "ask_price", "bid_amount", "ask_amount"))
                 except (ValueError, TypeError, OverflowError):
                     continue
-                if (day < expiry <= day + timedelta(days=45)
+                if (arrival - event <= 300_000_000
+                        and day < expiry <= day + timedelta(days=45)
                         and all(math.isfinite(v) and v > 0 for v in
                                 (strike, bid, ask, bid_size, ask_size))
                         and bid < ask):
