@@ -36,6 +36,49 @@ jobs:
           gh run download 40326586848 --repo "$GITHUB_REPOSITORY" \
             --name v99-i1-original-causal-signal-40326586848 \
             --dir research_evidence/i1_original_causal
+      - name: Restore independently verified ORIGINAL TRAIN-only OKX spot receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/i1_original_okx
+      - name: Restore independently verified ORIGINAL TRAIN-only Deribit DVOL receipts
+        run: |
+          gh run download 40072202459 --repo "$GITHUB_REPOSITORY" \
+            --name v99-deribit-dvol-original-pit-train \
+            --dir research_evidence/i1_original_dvol
+      - name: Independently re-execute all 182 archived original signals from first-party receipts
+        run: |
+          python -m research.verification.independent_v99_r106_i1_causal_signal_oracle \
+            research_evidence/i1_original_okx research_evidence/i1_original_dvol \
+            research_evidence/i1_original_causal/i1_causal_signal.json
+      - name: Falsify a forged signal that the structural handoff alone cannot detect
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from research.tools.v99_r106_e1_spot_engine import load_original_spot
+          from research.tools.v99_r106_h1_dvol_spot_engine import load_original_dvol
+          from research.verification.independent_v99_r106_i1_causal_signal_oracle import verify
+          root=Path('research_evidence')
+          signal_path=root/'i1_original_causal/i1_causal_signal.json'
+          original=json.loads(signal_path.read_text())
+          receipt=json.loads((signal_path.parent/'i1_causal_signal_independent_oracle.json').read_text())
+          assert receipt['status']=='INDEPENDENT_ORIGINAL_T_MINUS_ONE_SIGNAL_MATCH'
+          assert receipt['observations']==182 and receipt['tampered_report_rejected']
+          assert receipt['future_price_mutation_invariant'] and receipt['prior_price_mutation_detected']
+          prices=load_original_spot(root/'i1_original_okx')
+          weekly=load_original_dvol(root/'i1_original_dvol')
+          fake=json.loads(json.dumps(original))
+          target=next(row for row in fake['rows'] if row['signal']=='NO_PREMIUM')
+          target['signal']='POSITIVE_EX_ANTE_PREMIUM'
+          try:
+              verify(prices,weekly,fake)
+          except AssertionError as exc:
+              assert str(exc)=='FORGED_EX_ANTE_SIGNAL',str(exc)
+          else:
+              raise AssertionError('FORGED_SIGNAL_WOULD_PASS_ORIGINAL_SOURCE_ORACLE')
+          print('ORIGINAL 182 SIGNALS REPLAYED; FORGED POSITIVE REJECTED; NO ECONOMICS')
+          PY
       - name: Prove original 182 signals cannot bypass absent full original 661-day option archive
         run: |
           python - <<'PY'
