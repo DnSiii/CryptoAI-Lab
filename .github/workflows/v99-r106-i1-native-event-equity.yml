@@ -32,11 +32,18 @@ jobs:
       - name: Confirm historical certification still blocked
         run: |
           python - <<'PY'
-          from research.tests.test_v99_r106_i1_native_event_equity import flat_fixture
+          from research.tests.test_v99_r106_i1_native_event_equity import flat_fixture, complete_fixed_decisions
           from research.tools.v99_r106_i1_native_event_equity import replay
           from research.tools.v99_r106_i1_train_numeric_gate import evaluate
           data=flat_fixture()
           data['fixture']=False
+          try:
+              replay(data)
+          except ValueError as exc:
+              assert str(exc)=='MISSING_COMPLETE_FIXED_180_DECISION_LEDGER'
+          else:
+              raise AssertionError('MISSING_180_DECISION_LEDGER_BYPASS')
+          data['decisions']=complete_fixed_decisions()
           result=replay(data)
           assert result['status']=='PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY'
           assert result['original_options_economic_train_certified'] is False
