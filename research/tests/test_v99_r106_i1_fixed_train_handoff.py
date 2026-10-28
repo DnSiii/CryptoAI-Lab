@@ -113,5 +113,63 @@ class Fixed90WeekHandoffTests(unittest.TestCase):
             self.join(signal, source)
 
 
+    def test_end_to_end_661_day_source_and_independent_byte_oracle(self):
+        """Exercise actual scanner -> independent reparse -> 90-week join.
+
+        Explicitly synthetic 661-day tape; never economic or original evidence.
+        """
+        import csv
+        import gzip
+        import hashlib
+        import io
+        import json
+        import tempfile
+        from datetime import date, datetime, timedelta, timezone
+        from pathlib import Path
+        from research.tools.v99_r106_i1_fixed_train_handoff import run
+
+        signal, _ = sample()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = root / "synthetic_661_day_tape"
+            archive.mkdir()
+            entries = []
+            start = date(2021, 12, 9)
+            headers = ["exchange", "symbol", "timestamp", "local_timestamp",
+                       "bid_price", "ask_price", "bid_amount", "ask_amount"]
+            for i in range(661):
+                day = start + timedelta(days=i)
+                expiry = day + timedelta(days=28)
+                epoch = int(datetime(day.year, day.month, day.day,
+                                     tzinfo=timezone.utc).timestamp() * 1_000_000)
+                buffer = io.StringIO(newline="")
+                writer = csv.writer(buffer)
+                writer.writerow(headers)
+                for k, (asset, strike) in enumerate((("BTC", 30000), ("ETH", 2000))):
+                    t = str(epoch + (k + 1) * 1_000_000)
+                    writer.writerow(("deribit",
+                                     f"{asset}-{expiry.strftime('%d%b%y').upper()}-{strike}-P",
+                                     t, t, "0.02", "0.025", "2", "2"))
+                compressed = gzip.compress(buffer.getvalue().encode())
+                name = day.isoformat() + ".csv.gz"
+                (archive / name).write_bytes(compressed)
+                entries.append(dict(date=day.isoformat(), file=name,
+                                    sha256=hashlib.sha256(compressed).hexdigest(),
+                                    rows=2, complete_capture=True))
+            manifest = dict(schema="V99_I1_FIXED_28_35D_661_DAY_TRAIN_LIFECYCLE_TAPE_V1",
+                            venue="deribit", fixture=True,
+                            train_start="2021-12-09",
+                            train_end_exclusive="2023-10-01", days=entries)
+            (archive / "manifest.json").write_text(json.dumps(manifest))
+            signal_file = root / "synthetic_signal.json"
+            signal_file.write_text(json.dumps(signal))
+            report = run(str(signal_file), str(archive), str(root / "report.json"))
+            self.assertEqual(report["status"], "BLOCKED_FIXTURE_SOURCE_NOT_ORIGINAL")
+            self.assertEqual(report["fixed_maturity_eligible_asset_weeks"], 180)
+            self.assertEqual(report["signal_and_necessary_source_asset_weeks"], 0)
+            self.assertFalse(report["economic_train_executed"])
+            self.assertFalse(report["promotion_authorized"])
+
+
 if __name__ == "__main__":
     unittest.main()
