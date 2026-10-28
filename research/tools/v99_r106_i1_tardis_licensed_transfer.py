@@ -12,10 +12,10 @@ import os
 import tempfile
 import urllib.error
 import urllib.request
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
-from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS, scan_day
+from research.tools.v99_r106_i1_local_tape_import import FIRST, END, DAYS, scan_day
 from research_tools.v99_r106_tardis_authenticated_scope import (
     SCOPE_URL, _scope_covers_train,
 )
@@ -45,16 +45,31 @@ def _validate_gzip(path, day):
     scan_day(path, day)
 
 
-def transfer(root, *, execute=False, max_days=1, key=None,
+def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
              license_evidence=None, opener=None, max_day_bytes=MAX_DAY_BYTES):
     if type(execute) is not bool or type(max_days) is not int or not 1 <= max_days <= DAYS:
         raise ValueError("INVALID_BOUNDED_TRAIN_TRANSFER_REQUEST")
     if type(max_day_bytes) is not int or not 1 <= max_day_bytes <= MAX_DAY_BYTES:
         raise ValueError("INVALID_SOURCE_BYTE_LIMIT")
+    # Validate the entire requested window before network, auth or writes.
+    # Allows a non-sample paid entitlement proof and bounded missing-day retry.
+    if start_date is None:
+        start_date = FIRST
+    elif isinstance(start_date, str):
+        if (len(start_date) != 10 or start_date[4] != "-"
+                or start_date[7] != "-"):
+            raise ValueError("INVALID_OR_SEALED_TRAIN_SOURCE_WINDOW")
+        try:
+            start_date = date.fromisoformat(start_date)
+        except ValueError as exc:
+            raise ValueError("INVALID_OR_SEALED_TRAIN_SOURCE_WINDOW") from exc
+    if (type(start_date) is not date or start_date < FIRST
+            or start_date + timedelta(days=max_days) > END):
+        raise ValueError("INVALID_OR_SEALED_TRAIN_SOURCE_WINDOW")
     root = Path(root)
     if root.is_symlink() or (root.exists() and not root.is_dir()):
         raise ValueError("UNSAFE_LOCAL_LICENSED_TAPE_DIRECTORY")
-    dates = [FIRST + timedelta(days=i) for i in range(max_days)]
+    dates = [start_date + timedelta(days=i) for i in range(max_days)]
     if not execute:
         return {"status": "DRY_RUN_NO_NETWORK_NO_ARCHIVE", "planned_train_days": len(dates),
                 "first_day": dates[0].isoformat(), "last_day": dates[-1].isoformat(),
@@ -145,10 +160,11 @@ def main():
     parser.add_argument("secure_root")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--max-days", type=int, default=1)
+    parser.add_argument("--start-date", help="first UTC TRAIN date, YYYY-MM-DD")
     parser.add_argument("--license-evidence")
     args = parser.parse_args()
     print(json.dumps(transfer(args.secure_root, execute=args.execute,
-                              max_days=args.max_days,
+                              max_days=args.max_days, start_date=args.start_date,
                               license_evidence=args.license_evidence), sort_keys=True))
 
 
