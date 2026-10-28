@@ -1,0 +1,14 @@
+# V98 Independent — 1m monthly/daily publisher source-conflict resolution preregistration (2026-10-28)
+
+**Source-integrity-only preregistration BEFORE obtaining the independent daily archives or seeing their contents.** The full official Binance USD-M 1m monthly audit (run 40767407848, primary completed) authenticated 100/100 monthly publisher SHA sidecars but found first-hour discrepancies against the immutable Clean-4 1h source in 10 asset-months; only 90/100 monthly archives were entirely reconcilable. Independent original replay is pending. The successful earlier 32 asset-day calendar sample does not override full-history failure. KH **must not execute economic PnL** unless an entire uniform source family independently passes.
+
+## Fixed forensic sample (chosen from SOURCE mismatches, not returns or profitability)
+Official Binance USD-M **daily** 1m kline ZIP + its original publisher SHA256 `.CHECKSUM`, all four Clean-4 assets on **2023-08-16, 2023-11-10, 2023-11-14, 2024-10-28 UTC**: exactly 16 asset-days / 23,040 minute records / 384 daily hourly aggregates. Dates are first-fault forensic anchors of monthly-vs-1h discrepancies, not strategy training dates. Authenticate daily ZIPs and sidecars, validate all 1m UTC bars, independently compare (a) original publisher-authenticated monthly 1m rows for the same day and (b) the original pinned 1h OHLC/base/quote for each of 24 hours. Report each discrepancy class and first differing minute/hour/field. Never modify the pinned 1h, funding, monthly archives or prior receipts.
+
+## Decision protocol, fixed in advance
+- If daily original publisher archives **also** disagree with pinned 1h, declare unresolved cross-frequency publisher conflict; **quarantine 1m for KH** and do not compute KH PnL. Require a separate external publisher correction/provenance document identifying authoritative version, or a genuinely independent source that reconciles ALL hours under separately preregistered rules.
+- If daily matches pinned 1h but monthly differs, this establishes a provider **version disagreement**, not authorization to cherry-pick or replace only failing hours. Only a **uniform, separately preregistered full 762-day x four-asset daily 1m source** with all original checksums, complete 4,389,120 rows, all 73,152 hourly matches and independent replay may be admitted. No selective patches, interpolation or post-result source choice.
+- If daily and monthly match but both differ from pinned 1h, fail closed and retain the full-source quarantine.
+- If all checks agree for these days but full-history still fails elsewhere, full source remains quarantined; sample success cannot supersede full gate.
+
+No strategy returns, signals, budgets, cost tuning, 2025, 2026+, XRP, Phase083, V14/V15/V99 internals, Frozen or paper. This is a provenance decision only, not a new engine or training PASS. No paper/live authorization.
