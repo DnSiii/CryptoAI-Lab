@@ -28,7 +28,7 @@ jobs:
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
-          github-token: \${{ github.token }}
+          github-token: ${{ github.token }}
           path: official-input
       - name: Authenticate original byte-level training source and native funding
         run: |
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v98-clean4-standalone-source-audit-\${{ github.run_id }}
+          name: v98-clean4-standalone-source-audit-${{ github.run_id }}
           path: research/v98_independent/lj_source_ci_receipt.json
           retention-days: 30
           if-no-files-found: warn
