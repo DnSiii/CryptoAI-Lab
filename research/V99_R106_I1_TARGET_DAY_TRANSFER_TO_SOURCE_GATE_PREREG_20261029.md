@@ -1,0 +1,9 @@
+# V99 I1 — preregistered atomic paid-day transfer -> independent source feasibility handoff (2026-10-29 19:xx BRT)
+
+**Purpose:** eliminate the last manual handoff after lawful 2022-01-23 OPTIONS quote acquisition. The opt-in transfer currently checks 24h BTC/ETH arrival-hour coverage but does not run the already-frozen independent 28–35d synchronized two-strike source-feasibility oracle. A successful download alone MUST NOT be misread as a reason to buy 658 further days.
+
+**Fixed scope:** ONLY an explicitly authorized one-day transfer with `start_date=2022-01-23`, `max_days=1`, `execute=True`. After successful original-byte atomic transfer (or existing immutable validated day), call the pre-existing `inspect` gate on exactly `2022-01-23.csv.gz` with the same local written license evidence. Require its independent original-byte replay, both clocks, 24/24 BTC/ETH hours, last-update-wins, <=300s freshness, <=1s pair synchronization, 28–35d puts. Never alter I1 signal, risk, selection, scenarios, costs, or gates. No alternative date after a source veto.
+
+**Decision:** report a nested source-only result, with status `SOURCE_FEASIBLE_ONLY_NOT_ECONOMICS` or `SOURCE_VETO_NOT_LOSS`; a valid transfer without qualifying pairs remains a source veto and MUST NOT trigger full archive acquisition. For other TRAIN windows, retain existing behavior. No original bytes or license content in GitHub logs, only safe summary counts and hashes. The sample is NOT vendor-gap-certified, legally verified by code, native-fill-certified, economic TRAIN, or ROI.
+
+**Negative controls:** missing/invalid license, partial hourly source, wrong day, stale/skewed two-strike books, invalid last book and independent oracle mismatch must not result in a feasibility claim. Synthetic mock data only in CI. Full source still missing; never touch Frozen, champion, paper, validation, holdout or orders.
