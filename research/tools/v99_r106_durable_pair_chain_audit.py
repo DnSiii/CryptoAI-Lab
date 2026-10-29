@@ -180,12 +180,14 @@ def verify_aligned_source_pairs(root, market, native):
         try:
             witness = pair_gate.audit(root / MARKET / bucket, root / TERMS / bucket)
         except ValueError as exc:
-            # Preserve the hard source veto while exposing which immutable
-            # original receipt pairs failed and their actual capture clocks.
-            # Do not rewrite, silently omit, or count invalid pairs as valid.
-            failures.append((bucket, str(exc),
-                             market[bucket].get("acquired_utc", "unknown"),
-                             native[bucket].get("acquired_utc", "unknown")))
+            # A timestamp-skewed same-hour pair is real but NOT atomic.
+            # Quarantine it without rewriting originals or counting it as
+            # verified. Any other integrity error still aborts immediately.
+            if str(exc) != "terms/market observation >25m apart":
+                raise ValueError("crosssource_gate_failed:" + bucket + ":" + str(exc)) from exc
+            failures.append({"bucket": bucket, "reason": str(exc),
+                             "market_acquired_utc": market[bucket].get("acquired_utc", "unknown"),
+                             "terms_acquired_utc": native[bucket].get("acquired_utc", "unknown")})
             continue
         if (witness.get("status") != "TWO_FIRST_PARTY_SOURCE_STREAMS_CONSISTENT_DATA_ONLY"
                 or witness.get("promotion_authorized") is not False
@@ -201,14 +203,9 @@ def verify_aligned_source_pairs(root, market, native):
             "exchange_signed": False, "funding_cashflows_proven": False,
             "native_fee_tier_proven": False,
         }
-    if failures:
-        # Every failing original bucket is a genuine unverified source pair.
-        # Aggregate bounded diagnostics; never issue a partial PASS report.
-        detail = ";".join(f"{bucket}:market={pm}:terms={pt}:{why}"
-                          for bucket, why, pm, pt in failures[:8])
-        raise ValueError(f"crosssource_gate_failed_original_receipts:"
-                         f"{len(failures)}_bucket(s):{detail}")
-    return result
+    # Never drop the invalid original receipts from the audit denominator.
+    # Only verified pairs appear in the positive witness mapping.
+    return result, failures
 
 
 def audit(root):
@@ -219,9 +216,15 @@ def audit(root):
         if len(ids) != len(set(ids)):
             raise ValueError("same_run_id_recorded_for_multiple_hours")
     summary = summarize(market, terms_)
-    summary["native_crosssource_pairs"] = verify_aligned_source_pairs(root, market, terms_)
-    if len(summary["native_crosssource_pairs"]) != summary["paired_hours"]:
+    verified, invalid = verify_aligned_source_pairs(root, market, terms_)
+    summary["native_crosssource_pairs"] = verified
+    summary["invalid_native_crosssource_pairs"] = invalid
+    summary["invalid_native_crosssource_pair_count"] = len(invalid)
+    if len(verified) + len(invalid) != summary["paired_hours"]:
         raise ValueError("crosssource_pair_count_mismatch")
+    if invalid:
+        summary["status"] = "DATA_ONLY_HOLD_ORIGINAL_PAIR_CLOCK_SKEW"
+        summary["minimum_two_consecutive_atomic_hours_authenticated"] = False
     return summary
 
 
@@ -236,6 +239,7 @@ def main():
     print(json.dumps({"status": result["status"], "paired_hours": result["paired_hours"],
                       "missing": len(result["missing_paired_hours"]),
                       "adjacent_verified": result["verified_adjacent_links"],
+                      "invalid_original_pairs": result["invalid_native_crosssource_pair_count"],
                       "economic_trials": 0, "promotion_authorized": False}))
 
 
