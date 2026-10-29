@@ -25,6 +25,7 @@ from research.tools.v99_r106_i1_local_tape_import import (
 )
 from research.tools.v99_r106_i1_train_numeric_gate import _fold
 from research.tools.v99_r106_i1_original_to_provisional_numeric import run
+from research.verification.independent_v99_r106_i1_source_spine_journal_parity import verify as independent_spine
 
 
 def original_signal_document():
@@ -265,6 +266,29 @@ class OriginalToNumericIntegration(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,
                                     "ORIGINAL_SPINE_NATIVE_EVENT_SCHEDULE_MISMATCH"):
             self.execute(doc)
+
+    def test_independent_oracle_rejects_missing_mark_even_if_report_forged(self):
+        doc = self.document()
+        report = self.execute(doc)["original_source_spine_to_native_journal_parity"]
+        for scenario in ("severe", "supersevere"):
+            for day in doc["scenarios"][scenario]:
+                marks = [e for e in day["events"] if e["kind"] == "MARK"]
+                if marks:
+                    day["events"].remove(marks[0])
+                    break
+        with self.assertRaisesRegex(AssertionError,
+                                    "INDEPENDENT_HELD_MARK_GRID_MISMATCH"):
+            independent_spine(doc, report)
+
+    def test_independent_oracle_rejects_missing_settlement_even_if_report_forged(self):
+        doc = self.document()
+        report = self.execute(doc)["original_source_spine_to_native_journal_parity"]
+        for scenario in ("severe", "supersevere"):
+            for day in doc["scenarios"][scenario]:
+                day["events"] = [e for e in day["events"] if e["kind"] != "SETTLE_BATCH"]
+        with self.assertRaisesRegex(AssertionError,
+                                    "INDEPENDENT_MISSING_OR_EXTRA_POSITION_LIFECYCLE"):
+            independent_spine(doc, report)
 
     def test_fixture_and_self_declared_promotion_rejected(self):
         doc = self.document()
