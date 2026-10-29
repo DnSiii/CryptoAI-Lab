@@ -1,0 +1,14 @@
+# V99 I1 — exact chronological TRAIN fold boundary integrity correction (2026-10-29 01:xx BRT)
+
+**PREREGISTERED SOFTWARE INTEGRITY CORRECTION, NOT A NEW STRATEGY OR ECONOMIC TRIAL. SOURCE_ONLY/HOLD — NO PROMOTION.**
+
+The original immutable five R106 TRAIN fold boundaries are 2021-12-09 00:00, 2022-04-20 04:00, 2022-08-30 09:00, 2023-01-09 14:00, 2023-05-21 19:00 and 2023-10-01 00:00 UTC. The I1 661-row NAV input has **only daily 23:59:59 UTC** snapshots. Its current numeric evaluator allocates the *entire boundary day's* return to whichever fold contains 23:59:59, even though the previous fold still held exposure for 4/9/14/19 hours that day. This is not an exact five-fold result and may change the 4/5 or 3/5 fold gate. The independent oracle currently repeats the same daily convention, so agreement does not cure the loss of intraday evidence.
+
+## Predeclared change
+
+1. Preserve original fold edges, strategy, positions, source partitions, historical rejections, existing daily proxy metrics and gate thresholds. Do **not** interpolate, infer intraday NAV from daily values, or use validation/holdout.
+2. Explicitly label the 661-day fold results as **DAILY_PROXY_NOT_EXACT** in both fixture and provisional diagnostics, list the four missing intraday fold-edge UTC timestamps, and set `exact_chronological_fold_gate_evaluable=false` and `exact_chronological_fold_gate_pass=false`. A daily-only numeric screen may remain descriptive, but cannot be used as a formal 5-fold economic TRAIN pass or freeze trigger. Add a non-promotion warning that exact fold boundary NAV must be reconstructed from original same-clock BTC/ETH native account positions, as-of underlying indices and option BBO/settlement marks, then independently reexecuted.
+3. Independently verify these explicit limitations in the separate oracle and add a regression test that the four interior fold boundaries are **not** 23:59:59 daily snapshot clocks. A forged exact-fold claim must fail independent verification.
+4. Run actual push-triggered GitHub Actions and harvest result; synthetic tests prove software controls only. No original options economic return, 0/180 certified original lifecycles, no orders.
+
+**External critical-path blocker remains:** lawful complete original 2021-12-09..2023-09-30 BTC+ETH Deribit options BBO/sizes/arrival/mark/delivery archive (658 days missing beyond 3 samples), dated original fee tier, margin/liquidation/settlement terms, and conservative size-aware hypothetical fills. A single preselected calendar-eligible positive TRAIN Monday with licensed original quotes is a narrower source-feasibility alternative; it cannot replace 661-day economics. The exact intraday boundary marks are an additional required input for *formal* fold attribution, not an invitation to change fold dates. Preserve V16/V99 Frozen, paper, legacy champion, validation and final holdout. **NO PROMOTION.**
