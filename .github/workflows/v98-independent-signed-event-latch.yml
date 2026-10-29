@@ -1,0 +1,30 @@
+name: V98 Independent Signed Event Latch Prospective Execution Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-signed-event-latch.yml'
+      - 'research/v98_independent/v98_signed_event_latch.py'
+      - 'research/v98_independent/v98_signed_cash_aware_allocator.py'
+permissions:
+  contents: read
+jobs:
+  signed_latch:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Prospective signed collateral and 200-hour no-reentry execution tests
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_signed_event_latch.py v98_signed_cash_aware_allocator.py
+          python v98_signed_cash_aware_allocator.py
+          python v98_signed_event_latch.py
