@@ -1,0 +1,16 @@
+# V99 I1 — single-day procurement target, ex-ante source-only selection (2026-10-29 16:xx BRT)
+
+**NO ECONOMIC TRAIN, NO ROI, NO PROMOTION.** The purpose is to replace the arbitrary 2022-06-15 paid sample request with **one historically calendar-eligible, preregistered, positive-signal and originally listed I1 Monday**, before purchasing 658 missing days. This is source-acquisition triage only, not a new trading strategy, model retune, sample-based winner selection, or validation.
+
+## Immutable source and eligibility
+- Use only original archived TRAIN causal I1 signal JSON from GitHub Actions **40326586848**, and original Deribit expired-instrument registry gzip and JSON from **40148052668**. Both are pre-existing historical artifacts. Independently verify the original Deribit gzip SHA and raw instrument counts before using any listed pair.
+- Recompute all **180** fixed original Monday asset-week intents (90 Mondays, BTC/ETH) from the original 182-row signal. Never use data >= 2023-10-01, validation, holdout, quote market data for candidate selection, or any historical PnL.
+- Eligible asset requires the original signal `POSITIVE_EX_ANTE_PREMIUM` AND at least two original native **put** strikes of the same expiry, created <= Monday 00:00 UTC, expiry in **[28d,35d]** from decision, expiry < TRAIN_END, settlement currency = asset, and positive original strike/contract size/min trade amount/tick. This is only a *necessary* retrospective listing screen, not verified BBO or executable source.
+- Candidate Monday must have preceding **Sunday UTC date not equal to the 1st of a month** (non-free Tardis source) and at least one eligible asset. Rank by **descending number of eligible assets**, then **earliest Monday UTC**. Select exactly **one** Monday/Sunday. If none exists, emit `NO_ELIGIBLE_TARGET` and stop without a purchase request.
+- Report the exact original candidate Sunday date, Monday decision timestamp, qualifying assets, same-expiry native put symbols (at least two per qualifying asset), fold and source hashes; include all eligible Mondays count only as an audit checksum. Do not expose or optimize any option returns.
+- An independently written oracle must reparse original raw Deribit bytes and recompute the target without importing the primary selector. Injected falsification of target date/asset must be rejected.
+
+## Procurement acceptance, never self-certification
+Request only a legally authorized **24-hour full-universe Deribit OPTIONS quotes/OPTIONS gzip for the selected Sunday**, BTC and ETH, original venue and local arrival clocks, BBO/size, all strikes/expiries, SHA256, dated vendor entitlement and coverage/gap/universe attestation. The original source must show a strictly pre-Monday 300s-fresh, synchronized, 28–35d two-strike book for at least one preregistered positive asset; if absent, source-veto CASH, not an economic loss. This single-day test does **not** certify the other 658 days, historical account fees, native lot/margin/settlement, actual fills or strategy profitability.
+
+**No orders. No changes to V16/V99 Frozen, legacy champion, paper-results, sealed validation [2023-10-01,2024-01-18) or final holdout >=2024-01-18.** Do not proceed to full acquisition solely because this one source sample passes.
