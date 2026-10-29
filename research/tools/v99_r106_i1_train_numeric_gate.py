@@ -229,6 +229,15 @@ def _evaluate(document, *, provisional=False):
                 results[scenario]["exact_positive_folds"] >=
                 (4 if scenario == "severe" else 3))
         exact_screen_pass = all(results[s]["exact_fold_screen_pass"] for s in SCENARIOS)
+    # Daily-close fold labels are a descriptive proxy only. The immutable
+    # four intraday boundaries, not daily closes, control the numeric screen.
+    daily_proxy_pass = all(value["numeric_pass"] for value in results.values())
+    nonfold_gates_pass = all(
+        all(passed for gate, passed in results[scenario]["gates"].items()
+            if gate != "fold_positive")
+        for scenario in SCENARIOS
+    )
+    exact_controlled_pass = complete and exact_screen_pass and nonfold_gates_pass
     return {
         "schema": "V99_I1_TRAIN_NUMERIC_GATE_RESULT_V1",
         "fold_attribution": ("EXACT_NATIVE_EVENT_EDGE_PROVISIONAL_NOT_CERTIFIED"
@@ -247,8 +256,8 @@ def _evaluate(document, *, provisional=False):
         "scenario_path_divergence_days": different,
         "higher_cost_scenario_more_profitable_not_alpha_evidence":
             Decimal(x["total_roi"]) > Decimal(s["total_roi"]),
-        "numeric_train_pass_both_scenarios":
-            all(value["numeric_pass"] for value in results.values()),
+        "daily_proxy_numeric_screen_pass_both_scenarios": daily_proxy_pass,
+        "numeric_train_pass_both_scenarios": exact_controlled_pass,
         "scenarios": results, **NO_AUTHORIZATION,
     }
 
