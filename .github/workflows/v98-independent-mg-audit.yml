@@ -1,0 +1,31 @@
+name: V98 Independent MG Read-Only 30-Cell Economic Rejection Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-mg-audit.yml'
+      - 'research/v98_independent/mg_independent_receipt_arithmetic_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  mg-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download original immutable MG 30-cell receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-mg-physical-40961127498
+          run-id: 40961127498
+          github-token: ${{ github.token }}
+          path: mg-receipt
+      - name: Independently reconcile 30 cells, marginal economics and rejection
+        run: python research/v98_independent/mg_independent_receipt_arithmetic_audit.py --receipt mg-receipt/mg_30cell_training_receipt.json
