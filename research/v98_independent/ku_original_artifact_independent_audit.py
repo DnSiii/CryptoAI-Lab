@@ -37,7 +37,7 @@ def audit(root):
             if sha!=EXPECTED_SHA:errors.append(["SOURCE_PIN",platform,book,sha])
             if (data.get("historical_training_only") is not True or
                 data.get("validation_2025_read") is not False or
-                data.get("external_benchmarku_used") is not False):
+                data.get("external_benchmarks_used") is not False):
                 errors.append(["SOURCE_FIREWALL",platform,book])
             cells=data.get("cells",[])
             if len(cells)!=6:errors.append(["CELL_INVENTORY",platform,book,len(cells)])
@@ -52,7 +52,7 @@ def audit(root):
                     continue
                 if (c.get("validation_2025_read") is not False or
                     c.get("trading_authorized") is not False or
-                    c.get("external_benchmarku_used") is not False):
+                    c.get("external_benchmarks_used") is not False):
                     errors.append(["CELL_FIREWALL",platform,book,str(k)])
                 a,b=float(c["initial_nav"]),float(c["final_nav"])
                 y0,y1=c["annual"]["2023"],c["annual"]["2024"]
