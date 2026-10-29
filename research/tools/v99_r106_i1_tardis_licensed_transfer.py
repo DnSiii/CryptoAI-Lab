@@ -12,18 +12,18 @@ import os
 import tempfile
 import urllib.error
 import urllib.request
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from research.tools.v99_r106_i1_local_tape_import import (
     FIRST, END, DAYS, scan_day, require_hourly_original_coverage,
 )
 from research_tools.v99_r106_tardis_authenticated_scope import (
-    SCOPE_URL, _scope_covers_train,
+    SCOPE_URL, _scope_covers_window,
 )
 
 MAX_DAY_BYTES = 8 * 1024**3
-def _scope(opener, key):
+def _scope(opener, key, start_date, end_date):
     req = urllib.request.Request(
         SCOPE_URL, headers={"Authorization": "Bearer " + key,
                             "User-Agent": "V99-I1-local-licensed-source-transfer/1.0"})
@@ -32,7 +32,9 @@ def _scope(opener, key):
             if int(response.status) != 200:
                 raise ValueError("VENDOR_OPTIONS_ENTITLEMENT_UNVERIFIED")
             raw = response.read(16_385)
-            if len(raw) > 16_384 or not _scope_covers_train(raw):
+            if len(raw) > 16_384 or not _scope_covers_window(
+                    raw, datetime.combine(start_date, datetime.min.time(), timezone.utc),
+                    datetime.combine(end_date, datetime.min.time(), timezone.utc)):
                 raise ValueError("VENDOR_OPTIONS_ENTITLEMENT_UNVERIFIED")
     except (urllib.error.HTTPError, urllib.error.URLError, OSError,
             TimeoutError) as exc:
@@ -89,7 +91,7 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
             or license_evidence.is_symlink() or license_evidence.stat().st_size == 0):
         raise ValueError("LOCAL_WRITTEN_LICENSE_EVIDENCE_REQUIRED")
     opener = opener or urllib.request.urlopen
-    _scope(opener, key.strip())
+    _scope(opener, key.strip(), dates[0], dates[-1] + timedelta(days=1))
     root.mkdir(parents=True, exist_ok=True)
     if root.is_symlink():
         raise ValueError("UNSAFE_LOCAL_LICENSED_TAPE_DIRECTORY")
