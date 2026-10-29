@@ -171,8 +171,24 @@ def _evaluate(document, *, provisional=False):
     for value in results.values():
         for key in ("_keys", "_benchmarks", "_regimes"):
             del value[key]
+    # The four internal R106 fold edges are intraday (04/09/14/19 UTC).
+    # 661 end-of-day NAVs cannot establish the exact original five folds.
+    # The descriptive daily-proxy fold screen is retained for reproducibility,
+    # but must NEVER be interpreted as a formal chronological TRAIN gate.
+    missing_intraday_edges = [
+        datetime.fromtimestamp(edge / 1000, timezone.utc).isoformat()
+        for edge in FOLD_EDGES[1:-1]
+        if edge not in {_expected_clock(i) for i in range(DAYS)}
+    ]
+    if len(missing_intraday_edges) != 4:
+        raise ValueError("UNEXPECTED_EXACT_FOLD_BOUNDARY_GEOMETRY")
     return {
         "schema": "V99_I1_TRAIN_NUMERIC_GATE_RESULT_V1",
+        "fold_attribution": "DAILY_PROXY_NOT_EXACT",
+        "missing_intraday_fold_boundary_utc": missing_intraday_edges,
+        "exact_chronological_fold_gate_evaluable": False,
+        "exact_chronological_fold_gate_pass": False,
+        "formal_train_freeze_blocked_by_missing_intraday_nav": True,
         "status": ("PROVISIONAL_NONFIXTURE_NUMERIC_DIAGNOSTIC_NOT_CERTIFIED"
                    if provisional else "FIXTURE_NUMERIC_SCREEN_ONLY_NOT_ORIGINAL_ECONOMICS"),
         "days_per_scenario": DAYS,
