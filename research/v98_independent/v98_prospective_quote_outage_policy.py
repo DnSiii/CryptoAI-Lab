@@ -37,8 +37,8 @@ def static_check():
     assert quote_safe(q,700,lags,windows)
     # Single asset outage at t=600: cooldown, continuous windows and endpoint.
     q[600,2]=0.
-    for t in (600,601,623,650,767,768,936):
-        if t<len(q) and t<=767:assert not quote_safe(q,t,lags,windows)
+    for t in (600,601,623,650,767,768):
+        assert not quote_safe(q,t,lags,windows)
     assert quote_safe(q,769,lags,windows)
     # Endpoint-only contamination after continuous-window clearance.
     q=np.ones((1000,4));q[100,1]=0.
