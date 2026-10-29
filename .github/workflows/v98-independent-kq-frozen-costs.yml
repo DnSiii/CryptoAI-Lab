@@ -1,0 +1,30 @@
+name: V98 Independent KQ Frozen Original Receipt Cost Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-kq-frozen-receipts.yml'
+      - 'research/v98_independent/kq_frozen_original_cost_forensics.py'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: kn30-ubuntu-*
+          run-id: 40808742939
+          github-token: ${{ github.token }}
+          path: original-kq-receipts
+      - name: Independent KQ frozen receipt attribution without signal or PnL rerun
+        run: python research/v98_independent/kq_frozen_receipt_attribution.py --root original-kq-receipts --output kq_frozen_original_cost_forensics.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kq-frozen-original-cost-forensics
+          path: kq_frozen_receipt_attribution.json
+          retention-days: 30
