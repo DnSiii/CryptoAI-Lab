@@ -22,6 +22,35 @@ def dec(x):
     return value
 
 
+def independent_exact_folds(rows, snapshots, initial, edges):
+    """Reference recomposition of returns across original fold timestamps."""
+    by_day = {}
+    for snapshot in snapshots:
+        stamp = snapshot.get("ts_ms")
+        if type(stamp) is not int or stamp not in edges or stamp in by_day:
+            raise AssertionError("INDEPENDENT_FORGED_FOLD_SNAPSHOT_CLOCK")
+        by_day[stamp] = dec(snapshot.get("equity_usd"))
+    factors = [Decimal(1)] * 5
+    prior = initial
+    for row in rows:
+        close = row["ts_ms"]
+        value = dec(row["equity_usd"])
+        intraday = next((t for t in edges[1:-1]
+                         if datetime.fromtimestamp(t/1000, timezone.utc).date() ==
+                            datetime.fromtimestamp(close/1000, timezone.utc).date()), None)
+        if intraday is not None and intraday in by_day:
+            edge_value = by_day[intraday]
+            old = next(j for j in range(5) if edges[j] <= intraday-1 < edges[j+1])
+            new = next(j for j in range(5) if edges[j] <= intraday < edges[j+1])
+            factors[old] *= edge_value/prior
+            factors[new] *= value/edge_value
+        else:
+            j = next(j for j in range(5) if edges[j] <= close < edges[j+1])
+            factors[j] *= value/prior
+        prior = value
+    return [str(f-1) for f in factors]
+
+
 def verify(source, report):
     provisional = source.get("fixture") is False
     expected_status = ("PROVISIONAL_NONFIXTURE_NUMERIC_DIAGNOSTIC_NOT_CERTIFIED"
@@ -73,16 +102,56 @@ def verify(source, report):
                      tzinfo=timezone.utc).timestamp() * 1000)
         for i in range(n)
     }
-    intraday = [t for t in folds[1:-1] if t not in daily_clocks]
-    if (len(intraday) != 4
-            or report.get("fold_attribution") != "DAILY_PROXY_NOT_EXACT"
-            or report.get("missing_intraday_fold_boundary_utc") !=
-               [datetime.fromtimestamp(t / 1000, timezone.utc).isoformat()
-                for t in intraday]
-            or report.get("exact_chronological_fold_gate_evaluable") is not False
+    if any(t in daily_clocks for t in folds[1:-1]):
+        raise AssertionError("UNEXPECTED_DAILY_BOUNDARY_ALIGNMENT")
+    source_edges = source.get("fold_edge_snapshots", {s: [] for s in scenarios})
+    if not isinstance(source_edges, dict) or set(source_edges) != set(scenarios):
+        raise AssertionError("INDEPENDENT_INCOMPLETE_FOLD_SCENARIOS")
+    found = {}
+    for scenario in scenarios:
+        snapshots = source_edges[scenario]
+        if not isinstance(snapshots, list):
+            raise AssertionError("INDEPENDENT_INVALID_FOLD_SNAPSHOTS")
+        stamps = [e.get("ts_ms") for e in snapshots if isinstance(e, dict)]
+        if (len(stamps) != len(snapshots) or len(set(stamps)) != len(stamps)
+                or any(t not in folds[1:-1] for t in stamps)):
+            raise AssertionError("INDEPENDENT_FORGED_FOLD_SNAPSHOT_CLOCK")
+        found[scenario] = set(stamps)
+    if found["severe"] != found["supersevere"]:
+        raise AssertionError("INDEPENDENT_FOLD_EDGE_PATH_MISMATCH")
+    missing = [t for t in folds[1:-1] if t not in found["severe"]]
+    complete = not missing
+    if (source.get("exact_fold_edge_nav_available", complete) is not complete
+            or report.get("fold_attribution") != (
+                "EXACT_NATIVE_EVENT_EDGE_PROVISIONAL_NOT_CERTIFIED"
+                if complete else "DAILY_PROXY_NOT_EXACT")
+            or report.get("missing_intraday_fold_boundary_utc") != [
+                datetime.fromtimestamp(t/1000, timezone.utc).isoformat() for t in missing]
+            or report.get("exact_chronological_fold_gate_evaluable") is not complete
             or report.get("exact_chronological_fold_gate_pass") is not False
-            or report.get("formal_train_freeze_blocked_by_missing_intraday_nav") is not True):
+            or report.get("formal_train_freeze_blocked_by_missing_intraday_nav") is not (not complete)
+            or report.get("formal_numeric_train_pass_both_scenarios") is not False):
         raise AssertionError("INDEPENDENT_EXACT_FOLD_BOUNDARY_UNRESOLVED")
+    exact_passes = []
+    if complete:
+        benchmarks = [[dec(x["benchmark_usd"]) for x in source_edges[s]]
+                      for s in scenarios]
+        if benchmarks[0] != benchmarks[1]:
+            raise AssertionError("INDEPENDENT_EXACT_FOLD_BENCHMARK_MISMATCH")
+        for scenario in scenarios:
+            expected = independent_exact_folds(source["scenarios"][scenario],
+                                               source_edges[scenario], initial, folds)
+            got = report["scenarios"][scenario]
+            count = sum(Decimal(x)>0 for x in expected)
+            passed = count >= (4 if scenario == "severe" else 3)
+            if (got.get("exact_fold_roi_descriptive_only") != expected
+                    or got.get("exact_positive_folds") != count
+                    or got.get("exact_fold_screen_pass") is not passed):
+                raise AssertionError("INDEPENDENT_EXACT_FOLD_RECOMPOSITION_MISMATCH")
+            exact_passes.append(passed)
+    if report.get("exact_fold_screen_pass_both_scenarios") is not (
+            complete and all(exact_passes)):
+        raise AssertionError("INDEPENDENT_EXACT_FOLD_SCREEN_FORGERY")
     aligned = []
     exposure = []
     passes = []
