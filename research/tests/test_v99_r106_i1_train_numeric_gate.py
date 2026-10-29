@@ -41,6 +41,33 @@ def fixture():
     return result
 
 
+
+def with_exact_synthetic_snapshots(doc, *, two_negative_folds=False):
+    """Synthetic same-clock NAV controls; NOT original Deribit market evidence."""
+    clocks = tuple(int(datetime(y, m, d, h, tzinfo=timezone.utc)
+                       .timestamp() * 1000) for y, m, d, h in (
+        (2022, 4, 20, 4), (2022, 8, 30, 9),
+        (2023, 1, 9, 14), (2023, 5, 21, 19),
+    ))
+    snapshots = {}
+    for scenario in SCENARIOS:
+        rows = doc["scenarios"][scenario]
+        events = []
+        for j, clock in enumerate(clocks):
+            day = next(i for i, row in enumerate(rows) if row["ts_ms"] >= clock)
+            previous = rows[day - 1]
+            nav = ("1000" if j == 0 else "100") if (
+                two_negative_folds and j < 2) else previous["equity_usd"]
+            events.append({
+                "ts_ms": clock, "equity_usd": nav,
+                "benchmark_usd": previous["benchmark_usd"],
+            })
+        snapshots[scenario] = events
+    doc["fold_edge_snapshots"] = snapshots
+    doc["exact_fold_edge_nav_available"] = True
+    return doc
+
+
 class NumericTrainGateTests(unittest.TestCase):
     def test_full_661_day_dual_scenario_synthetic_screen_and_independent_roi(self):
         source = fixture()
@@ -52,7 +79,8 @@ class NumericTrainGateTests(unittest.TestCase):
         forged["scenarios"]["severe"]["remove_best_day_roi"] = "999"
         with self.assertRaisesRegex(AssertionError, "INDEPENDENT_NUMERIC_METRIC_MISMATCH"):
             independent_verify(source, forged)
-        self.assertTrue(result["numeric_train_pass_both_scenarios"])
+        self.assertTrue(result["daily_proxy_numeric_screen_pass_both_scenarios"])
+        self.assertFalse(result["numeric_train_pass_both_scenarios"])
         self.assertEqual(result["scenario_path_divergence_days"], len(range(0, DAYS, 19)))
         self.assertFalse(result["promotion_authorized"])
         self.assertFalse(result["freeze_authorized"])
@@ -76,7 +104,8 @@ class NumericTrainGateTests(unittest.TestCase):
         result = evaluate(doc)
         # Synthetic daily-proxy screen may pass 5/5, but the actual original
         # folds switch at 04, 09, 14, 19 UTC rather than daily 23:59:59.
-        self.assertTrue(result["numeric_train_pass_both_scenarios"])
+        self.assertTrue(result["daily_proxy_numeric_screen_pass_both_scenarios"])
+        self.assertFalse(result["numeric_train_pass_both_scenarios"])
         self.assertEqual(result["fold_attribution"], "DAILY_PROXY_NOT_EXACT")
         self.assertFalse(result["exact_chronological_fold_gate_evaluable"])
         self.assertFalse(result["exact_chronological_fold_gate_pass"])
@@ -99,6 +128,41 @@ class NumericTrainGateTests(unittest.TestCase):
                 with self.assertRaisesRegex(
                         AssertionError, "INDEPENDENT_EXACT_FOLD_BOUNDARY_UNRESOLVED"):
                     independent_verify(doc, forged)
+
+    def test_exact_positive_synthetic_folds_control_numeric_screen_not_promotion(self):
+        doc = with_exact_synthetic_snapshots(fixture())
+        report = evaluate(doc)
+        self.assertTrue(report["daily_proxy_numeric_screen_pass_both_scenarios"])
+        self.assertTrue(report["exact_chronological_fold_gate_evaluable"])
+        self.assertTrue(report["exact_fold_screen_pass_both_scenarios"])
+        self.assertTrue(report["numeric_train_pass_both_scenarios"])
+        self.assertFalse(report["formal_numeric_train_pass_both_scenarios"])
+        self.assertFalse(report["exact_chronological_fold_gate_pass"])
+        self.assertFalse(report["promotion_authorized"])
+        independent_verify(doc, report)
+
+    def test_daily_winning_proxy_cannot_hide_two_negative_exact_folds(self):
+        doc = with_exact_synthetic_snapshots(fixture(), two_negative_folds=True)
+        report = evaluate(doc)
+        self.assertTrue(report["daily_proxy_numeric_screen_pass_both_scenarios"])
+        self.assertTrue(report["exact_chronological_fold_gate_evaluable"])
+        self.assertFalse(report["exact_fold_screen_pass_both_scenarios"])
+        self.assertFalse(report["numeric_train_pass_both_scenarios"])
+        self.assertEqual(report["scenarios"]["severe"]["exact_positive_folds"], 3)
+        independent_verify(doc, report)
+        forged = copy.deepcopy(report)
+        forged["numeric_train_pass_both_scenarios"] = True
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_PAIRED_SCENARIO_MISMATCH"):
+            independent_verify(doc, forged)
+
+    def test_missing_exact_edges_cannot_forge_numeric_pass(self):
+        doc = fixture()
+        report = evaluate(doc)
+        self.assertTrue(report["daily_proxy_numeric_screen_pass_both_scenarios"])
+        forged = copy.deepcopy(report)
+        forged["numeric_train_pass_both_scenarios"] = True
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_PAIRED_SCENARIO_MISMATCH"):
+            independent_verify(doc, forged)
 
     def test_loss_must_reject_not_promote(self):
         doc = fixture()
