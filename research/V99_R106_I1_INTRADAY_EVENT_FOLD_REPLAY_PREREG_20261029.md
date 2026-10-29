@@ -1,0 +1,13 @@
+# V99 I1 — exact intraday fold NAV from original native events (preregistered 2026-10-29 02:48 BRT)
+
+## Scope / fixed contract
+This is an **accounting integrity repair**, not an I1 strategy retune, new candidate, source purchase, backtest result, ROI, or promotion. The four preexisting immutable R106 TRAIN fold boundaries are 2022-04-20 04:00, 2022-08-30 09:00, 2023-01-09 14:00 and 2023-05-21 19:00 UTC. Daily 23:59:59 snapshots cannot exactly allocate boundary-day returns.
+
+Before writing the implementation, fix this algorithm: on **only** the four boundary days, accept an optional `fold_edge_index_usd` with exactly BTC and ETH original index prices, never an externally supplied NAV. For a nonfixture *formal* claim, all four boundaries must be present; missing any leaves exact-fold status **BLOCKED**. Walk the same chronological original OPEN/MARK/SETTLE_BATCH native event ledger, split at each fixed fold timestamp, and derive each boundary NAV from the same self-financing BTC/ETH wallets. All live positions must have same-clock, same-index original BBO MARKs at the edge; flat wallets must use the as-of source index. Reject stale marks, nonpositive indices, boundary dates outside the fixed set, scenario index divergence, and forged caller-provided fold NAV. Never infer missing intraday NAV from daily values. Use the original day-end NAV unchanged.
+
+Compute exact fold ROI by assigning the factor from previous close to boundary NAV to the **previous** fold, and the factor from boundary NAV to daily close to the **next** fold. Preserve original 5 folds, fixed 661 TRAIN dates, two independent severe/supersevere cost paths, source and scenario provenance checks. If a boundary is missing, retain only the explicitly descriptive daily proxy and prohibit exact-fold pass. Cross-scenario original index observations must match even if exposure and NAV differ legitimately due cost path.
+
+The output remains provisional/fixture-only and may never certify original Deribit quotes, dated fee/margin/liquidation terms, execution fills, economic TRAIN, validation, holdout, Frozen, paper, champion, or order placement. An independent reference check must recompute exact split factors and reject tampered boundary values/claims; software-only CI success is **not** economic success.
+
+## Decision rule
+No promotion regardless of synthetic tests. A formal candidate freeze still requires the complete lawful 661-day original BTC+ETH Deribit options BBO/size/arrival/marks/delivery tape, independently authenticated original source and 2021–2023 fee/margin/settlement terms, conservative size-aware hypothetical fills, original 5-fold severe/supersevere economic gates and independent replay. No data >=2023-10-01 may be opened.
