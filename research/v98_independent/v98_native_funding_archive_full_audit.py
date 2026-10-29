@@ -25,9 +25,10 @@ def fetch_archive(symbol,period,kind='monthly',fetch=None):
         out={}
         for row in reader:
             t=int(row['calc_time']);r=float(row['last_funding_rate']);interval=float(row['funding_interval_hours'])
-            if t in out or not np.isfinite(r) or not np.isfinite(interval) or interval<=0:
-                raise ValueError('V98_FUNDING_ARCHIVE_INVALID_'+symbol+'_'+period)
-            out[t]=(r,interval)
+            slot=int(round(t/(8*3600000)))*(8*3600000);offset=t-slot
+            if abs(offset)>60000 or slot in out or not np.isfinite(r) or not np.isfinite(interval) or interval<=0:
+                raise ValueError('V98_FUNDING_ARCHIVE_INVALID_SLOT_'+symbol+'_'+period+'_'+str(t))
+            out[slot]=(r,interval,offset)
     if not out:raise ValueError('V98_FUNDING_ARCHIVE_EMPTY_'+symbol+'_'+period)
     return out,sha
 
@@ -41,7 +42,7 @@ def audit(d,fetch=None):
             month=datetime.datetime.fromtimestamp(ms/1000,datetime.timezone.utc).strftime('%Y-%m')
             if month not in bymonth:raise ValueError('V98_FUNDING_ARCHIVE_OUTSIDE_TRAINING')
             bymonth[month].append((int(t),ms))
-        diffs=[];intervals=[];hashes={};daily_sha={};recovered=0
+        diffs=[];intervals=[];offsets=[];hashes={};daily_sha={};recovered=0
         for month in MONTHS:
             print('V98_FUNDING_ARCHIVE_FETCH',symbol,month,flush=True)
             rows,sha=fetch_archive(symbol,month,'monthly',fetch);hashes[month]=sha
@@ -55,12 +56,14 @@ def audit(d,fetch=None):
             for t,ms in bymonth[month]:
                 if ms not in rows:raise ValueError('V98_FUNDING_ARCHIVE_MISSING_'+symbol+'_'+str(ms))
                 if (t,ms) in missing:recovered+=1
-                rate,interval=rows[ms];diffs.append(abs(rate-float(d['rate'][t,j])));intervals.append(interval)
+                rate,interval,offset=rows[ms];diffs.append(abs(rate-float(d['rate'][t,j])));intervals.append(interval);offsets.append(offset)
         if len(diffs)!=2286:raise ValueError('V98_FUNDING_ARCHIVE_INCOMPLETE_'+symbol)
         maxdiff=float(np.max(diffs))
         if maxdiff>1e-10:raise ValueError('V98_FUNDING_ARCHIVE_RATE_CONFLICT_'+symbol+':'+str(maxdiff))
         summary[symbol]={'events_verified':len(diffs),'max_abs_funding_rate_diff':maxdiff,
            'funding_interval_hours':sorted(set(intervals)),
+           'max_abs_exchange_funding_time_offset_ms':max(abs(z) for z in offsets),
+           'nonzero_exchange_time_offset_events':sum(z!=0 for z in offsets),
            'events_recovered_from_official_daily':recovered}
         all_hashes[symbol]=hashes;daily_hashes[symbol]=daily_sha;total+=len(diffs)
     return {'decision':'PASS_FULL_NATIVE_SIGNED_FUNDING_RATE_ARCHIVE_NOT_EXACT_MARK_PRICE',
