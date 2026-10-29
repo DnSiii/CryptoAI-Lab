@@ -239,6 +239,7 @@ class OriginalToNumericIntegration(unittest.TestCase):
         self.assertGreater(parity["scenarios"]["severe"]["source_mark_events"], 20)
         self.assertEqual(parity["scenarios"]["severe"]["source_expiry_due_events"], 1)
         self.assertFalse(parity["promotion_authorized"])
+        self.assertEqual(report["independent_held_contract_lifecycle_schedule"]["scenarios"]["severe"]["positions"], 1)
 
     def test_missing_original_settlement_due_rejected_before_nav(self):
         doc = self.document()
