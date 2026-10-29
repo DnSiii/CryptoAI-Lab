@@ -97,7 +97,7 @@ def run(root,envelope_path,tiers=('base','severe','supersevere'),orders=('carrie
             'original_30cell_workflow':False,'holdout_accessed':False}
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--envelope-csv',required=True);p.add_argument('--output',required=True)
-    p.add_argument('--tiers',nargs='+',default=['base','severe'],choices=tuple(COSTS));p.add_argument('--orders',nargs='+',default=['carried_before_fill'],choices=('carried_before_fill','new_after_fill'))
+    p.add_argument('--tiers',nargs='+',default=['base','severe','supersevere'],choices=tuple(COSTS));p.add_argument('--orders',nargs='+',default=['carried_before_fill','new_after_fill'],choices=('carried_before_fill','new_after_fill'))
     a=p.parse_args();result=run(a.root,a.envelope_csv,a.tiers,a.orders)
     open(a.output,'w').write(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+'\n')
     print('LV_ECONOMIC_GATE',result['decision'],result['gate_failures'],flush=True)
