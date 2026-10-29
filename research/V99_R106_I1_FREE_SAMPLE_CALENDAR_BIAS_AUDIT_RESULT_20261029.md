@@ -1,0 +1,20 @@
+# V99 R106 I1 — correction of free-source selection bias (2026-10-29 00:54 BRT)
+
+**SOURCE_ONLY/HOLD — NO PROMOTION.** This is an independent methodological correction, **not** a revived I1 strategy, a new PnL trial, or a reason to spend on 658 unlicensed days.
+
+## Executed and verified
+
+- Calendar-only audit preregistered in [commit 6c12e9d](https://github.com/DnSiii/CryptoAI-Lab/commit/6c12e9ddc311e662fd59891d3c15788c4b35e206), before implementation; source-only code, independent calendar oracle and fail-closed workflow committed separately.
+- [GitHub Actions 40814680323](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40814680323): **SUCCESS**, 6/6 independent tests, deterministic double replay, explicit no-promotion assertions, archived source-only JSON artifact `v99-i1-source-calendar-bias-40814680323` (ID 12871039521). No market data, fee, funding, sealed period or options PnL accessed.
+- The original fixed I1 TRAIN grid contains **90 Monday UTC-midnight decisions**. In the **monthly/quarterly last-Friday calendar only**, **21/90 Mondays** have an expiry at 08:00 UTC **28–35 days** after the decision; **69/90 do not**. These are calendar possibilities, **not** as-of listed contracts, quoted books, complete instrument-universe upper bounds or tradable positions.
+- Both previously verified free original Tardis source-negative dates had exactly the same deterministic calendar geometry: Sunday **2022-05-01** -> Monday **2022-05-02**, and Sunday **2023-01-01** -> Monday **2023-01-02**. The next monthly expiry was **25 days 8 hours** away on both Mondays, **outside** I1's immutable 28–35d band. The two 0-book results were genuine source observations but **cannot be treated as two independent liquidity failures** for the full TRAIN calendar. Free historical data is selected by **first day of each month**, not randomly sampled fixed Mondays. The third original 2022-06-01 file was not the immediately preceding Sunday for an I1 Monday.
+
+## Corrected scientific interpretation
+
+The prior I1 de-prioritization is **retained**: only **31/132 original positive asset-week signals** had necessary retrospective first-party listed-pair coverage, not original executable two-sided quotes; this registry may be incomplete. There remain **0/180 economically certified lifecycles**. The two negative public-day quotes add **no independent evidence of market illiquidity on calendar-eligible Mondays**, because their month-end maturity was already out of scope. This audit reduces the evidential weight of the two source vetoes; it **does not** improve I1's economics or justify tenor/schedule retuning.
+
+**Exact external blockers:** lawful original BTC+ETH Deribit options BBO/size/arrival and lifecycle marks/delivery over the fixed 2021-12-09..2023-09-30 TRAIN (658 original days still missing, besides three samples), historical dated native fee tier, margin/liquidation and settlement documentation, and a conservative independently verified fill/accounting simulation. A narrower procurement alternative is a **single preselected calendar-eligible, original-positive, first-party-listed Monday** with the immediately preceding Sunday quote archive, before paying for 658 days; it must be selected from already sealed TRAIN-only signals **before seeing new quote bytes** and must not alter I1's rules. This is an optional source-feasibility check, **not** permission for more uncontrolled I1 probes or a new PnL test.
+
+Priority remains a genuinely distinct, mechanism-first complete engine only if its native source/cost evidence is obtainable; no serial alpha grid, no holdout exploration, no C1/C2/D1/E1/F1/G1/H1 retune. Frozen V16/V99, champion, paper/results, validation [2023-10-01,2024-01-18), final holdout >=2024-01-18 and orders untouched. **NO ECONOMIC TRAIN / NO ROI / NO PROMOTION.**
+
+References: [Deribit official introduction policy](https://support.deribit.com/hc/en-us/articles/25944688876957-Contract-Introduction-Policy), [Tardis first-day-of-month free-data rule](https://docs.tardis.dev/downloadable-csv-files).
