@@ -153,9 +153,10 @@ class TestDurableSourceChain(unittest.TestCase):
             "assets":{key:{} for key in audit.okx.INSTS},
         }
         with patch.object(audit.pair_gate, "audit", return_value=original):
-            pairs=audit.verify_aligned_source_pairs(Path("/sample"),
+            pairs, invalid=audit.verify_aligned_source_pairs(Path("/sample"),
                 fake("2026-10-15T20"), fake("2026-10-15T20"))
         self.assertEqual(len(pairs),1)
+        self.assertEqual(invalid, [])
         self.assertFalse(pairs["2026-10-15T20"]["funding_cashflows_proven"])
 
 
