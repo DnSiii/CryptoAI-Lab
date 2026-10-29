@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import tempfile
 import urllib.error
 import urllib.request
@@ -41,12 +42,14 @@ def _scope(opener, key, start_date, end_date):
         raise ValueError("VENDOR_OPTIONS_ENTITLEMENT_UNAVAILABLE") from None
 
 
-def _validate_gzip(path, day):
+def _validate_gzip(path, day, expected_sha256=None):
     """One streaming CRC/CSV/causal-day pass; no duplicate multi-GB decompression.
 
     The existing independent 661-day importer later replays source bytes.
     """
     scanned = scan_day(path, day)
+    if expected_sha256 is not None and scanned["sha256"] != expected_sha256:
+        raise ValueError("EXTERNAL_SOURCE_SHA256_MISMATCH")
     # The downstream nonfixture 661-day importer already requires 24/24
     # original arrival hours for BOTH BTC and ETH. Reject a partial paid day
     # before publishing or counting it as a successfully transferred source.
@@ -54,7 +57,8 @@ def _validate_gzip(path, day):
 
 
 def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
-             license_evidence=None, opener=None, max_day_bytes=MAX_DAY_BYTES):
+             license_evidence=None, opener=None, max_day_bytes=MAX_DAY_BYTES,
+             expected_sha256=None):
     if type(execute) is not bool or type(max_days) is not int or not 1 <= max_days <= DAYS:
         raise ValueError("INVALID_BOUNDED_TRAIN_TRANSFER_REQUEST")
     if type(max_day_bytes) is not int or not 1 <= max_day_bytes <= MAX_DAY_BYTES:
@@ -78,6 +82,11 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
     if root.is_symlink() or (root.exists() and not root.is_dir()):
         raise ValueError("UNSAFE_LOCAL_LICENSED_TAPE_DIRECTORY")
     dates = [start_date + timedelta(days=i) for i in range(max_days)]
+    if expected_sha256 is not None and (
+            dates != [date(2022, 1, 23)]
+            or not isinstance(expected_sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", expected_sha256) is None):
+        raise ValueError("INVALID_TARGET_DAY_EXTERNAL_SHA256_REQUEST")
     if not execute:
         return {"status": "DRY_RUN_NO_NETWORK_NO_ARCHIVE", "planned_train_days": len(dates),
                 "first_day": dates[0].isoformat(), "last_day": dates[-1].isoformat(),
@@ -104,7 +113,7 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
         if destination.exists():
             if not destination.is_file():
                 raise ValueError("CONFLICTING_EXISTING_LICENSED_DAY")
-            _validate_gzip(destination, day)
+            _validate_gzip(destination, day, expected_sha256)
             existing += 1
             continue
         url = (f"https://datasets.tardis.dev/v1/deribit/quotes/"
@@ -145,7 +154,7 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
                     raise ValueError("LICENSED_OPTIONS_TRANSFER_FAILED") from None
                 stream.flush()
                 os.fsync(stream.fileno())
-            _validate_gzip(Path(temporary), day)
+            _validate_gzip(Path(temporary), day, expected_sha256)
             # No overwrite, including an unexpected concurrent writer.
             if destination.exists() or destination.is_symlink():
                 raise ValueError("CONCURRENT_OR_CONFLICTING_LICENSED_DAY")
@@ -161,7 +170,8 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
     if len(dates) == 1 and dates[0] == date(2022, 1, 23):
         from research.tools.v99_r106_i1_single_day_source_feasibility import inspect
         checked = inspect(root / "2022-01-23.csv.gz",
-                          license_evidence=license_evidence)
+                          license_evidence=license_evidence,
+                          expected_sha256=expected_sha256)
         if checked["status"] not in ("SOURCE_FEASIBLE_ONLY_NOT_ECONOMICS",
                                       "SOURCE_VETO_NOT_LOSS") or not checked[
                                           "independent_original_byte_replay_passed"]:
@@ -169,6 +179,7 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
         target_day_gate = {
             "status": checked["status"],
             "source_day": checked["source_day"],
+            "external_sha256_matched": checked["external_sha256_matched"],
             "original_gzip_sha256": checked["original_gzip_sha256"],
             "source_hour_coverage": checked["source_hour_coverage"],
             "fresh_synchronized_two_strike_pairs_by_asset":
@@ -196,10 +207,13 @@ def main():
     parser.add_argument("--max-days", type=int, default=1)
     parser.add_argument("--start-date", help="first UTC TRAIN date, YYYY-MM-DD")
     parser.add_argument("--license-evidence")
+    parser.add_argument("--expected-sha256",
+                        help="independently supplied vendor digest for fixed 2022-01-23")
     args = parser.parse_args()
     print(json.dumps(transfer(args.secure_root, execute=args.execute,
                               max_days=args.max_days, start_date=args.start_date,
-                              license_evidence=args.license_evidence), sort_keys=True))
+                              license_evidence=args.license_evidence,
+                              expected_sha256=args.expected_sha256), sort_keys=True))
 
 
 if __name__ == "__main__":
