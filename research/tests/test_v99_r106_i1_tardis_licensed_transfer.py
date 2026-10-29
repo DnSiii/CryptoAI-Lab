@@ -1,6 +1,7 @@
 """Offline-only tests of licensed-transfer preflight; synthetic bytes are NOT market evidence."""
 import csv
 import gzip
+import hashlib
 import io
 import json
 import tempfile
@@ -193,6 +194,49 @@ class LicensedTransferTests(unittest.TestCase):
         self.assertFalse(report["promotion_authorized"])
         self.assertFalse(report["economic_train_executed"])
         self.assertEqual(len(opener.urls), 2)
+
+    def test_external_vendor_digest_match_is_source_only_not_legal_certification(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        body = fake_gzip(day)
+        digest = hashlib.sha256(body).hexdigest()
+        opener = Opener(day=day, body=body)
+        report = self.call(opener, start_date="2022-01-23",
+                           expected_sha256=digest)
+        gate = report["preselected_one_day_source_gate"]
+        self.assertTrue(gate["external_sha256_matched"])
+        self.assertEqual(gate["original_gzip_sha256"], digest)
+        self.assertEqual(gate["status"], "SOURCE_VETO_NOT_LOSS")
+        self.assertFalse(gate["vendor_completeness_attested"])
+        self.assertFalse(report["economic_train_executed"])
+
+    def test_wrong_vendor_digest_never_publishes_new_day_or_reuses_existing(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        body = fake_gzip(day)
+        opener = Opener(day=day, body=body)
+        with self.assertRaisesRegex(ValueError, "EXTERNAL_SOURCE_SHA256_MISMATCH"):
+            self.call(opener, start_date="2022-01-23",
+                      expected_sha256="0" * 64)
+        target = self.root / "2022-01-23.csv.gz"
+        self.assertFalse(target.exists())
+        self.assertEqual(list(self.root.glob("*.part")), [])
+        self.root.mkdir(exist_ok=True)
+        target.write_bytes(body)
+        with self.assertRaisesRegex(ValueError, "EXTERNAL_SOURCE_SHA256_MISMATCH"):
+            self.call(opener, start_date="2022-01-23",
+                      expected_sha256="0" * 64)
+        self.assertEqual(target.read_bytes(), body)
+
+    def test_external_digest_wrong_scope_or_format_vetoes_before_network(self):
+        for start, digest in (("2022-01-23", "not-a-digest"),
+                              ("2022-01-23", "A" * 64),
+                              ("2022-06-15", "0" * 64)):
+            opener = Opener()
+            with self.subTest(start=start, digest=digest):
+                with self.assertRaisesRegex(ValueError,
+                                            "INVALID_TARGET_DAY_EXTERNAL_SHA256_REQUEST"):
+                    self.call(opener, start_date=start, expected_sha256=digest)
+                self.assertEqual(opener.urls, [])
+                self.assertFalse(self.root.exists())
 
     def test_day_only_entitlement_never_authorizes_adjacent_day_or_full_train(self):
         day = datetime(2022, 1, 23, tzinfo=timezone.utc)
