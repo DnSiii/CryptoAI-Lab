@@ -15,7 +15,9 @@ import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
-from research.tools.v99_r106_i1_local_tape_import import FIRST, END, DAYS, scan_day
+from research.tools.v99_r106_i1_local_tape_import import (
+    FIRST, END, DAYS, scan_day, require_hourly_original_coverage,
+)
 from research_tools.v99_r106_tardis_authenticated_scope import (
     SCOPE_URL, _scope_covers_train,
 )
@@ -42,7 +44,11 @@ def _validate_gzip(path, day):
 
     The existing independent 661-day importer later replays source bytes.
     """
-    scan_day(path, day)
+    scanned = scan_day(path, day)
+    # The downstream nonfixture 661-day importer already requires 24/24
+    # original arrival hours for BOTH BTC and ETH. Reject a partial paid day
+    # before publishing or counting it as a successfully transferred source.
+    require_hourly_original_coverage(scanned)
 
 
 def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
