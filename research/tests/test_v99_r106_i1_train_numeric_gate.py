@@ -184,7 +184,9 @@ class NumericTrainGateTests(unittest.TestCase):
         from research.tools.v99_r106_i1_native_event_equity import replay
         doc = flat_fixture()
         doc["fixture"] = False
-        doc["decisions"] = complete_fixed_decisions()
+        doc["scenario_decisions"] = {
+            scenario: complete_fixed_decisions() for scenario in SCENARIOS
+        }
         source = replay(doc)
         self.assertEqual(source["status"], "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY")
         with self.assertRaisesRegex(ValueError, "PROVENANCE_NOT_CERTIFIED"):
@@ -215,7 +217,9 @@ class NumericTrainGateTests(unittest.TestCase):
         from research.tools.v99_r106_i1_native_event_equity import replay
         source = flat_fixture()
         source["fixture"] = False
-        source["decisions"] = complete_fixed_decisions()
+        source["scenario_decisions"] = {
+            scenario: complete_fixed_decisions() for scenario in SCENARIOS
+        }
         journal = replay(source)
         with tempfile.TemporaryDirectory() as tmp:
             inp, out = Path(tmp)/"native.json", Path(tmp)/"diagnostic.json"
@@ -237,7 +241,9 @@ class NumericTrainGateTests(unittest.TestCase):
         from research.tools.v99_r106_i1_native_event_equity import replay
         doc = flat_fixture()
         doc["fixture"] = False
-        doc["decisions"] = complete_fixed_decisions()
+        doc["scenario_decisions"] = {
+            scenario: complete_fixed_decisions() for scenario in SCENARIOS
+        }
         original = replay(doc)
         for key, value in (
             ("fixture", True),
