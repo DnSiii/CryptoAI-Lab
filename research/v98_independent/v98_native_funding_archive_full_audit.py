@@ -46,6 +46,7 @@ def audit(d,fetch=None):
             print('V98_FUNDING_ARCHIVE_FETCH',symbol,month,flush=True)
             rows,sha=fetch_archive(symbol,month,'monthly',fetch);hashes[month]=sha
             missing=[(t,ms) for t,ms in bymonth[month] if ms not in rows]
+            print('V98_FUNDING_ARCHIVE_DEBUG',symbol,month,'rows',len(rows),'first',list(rows.items())[:3],'expected',bymonth[month][:3],'missing',len(missing),flush=True)
             for date in sorted(set(datetime.datetime.fromtimestamp(ms/1000,datetime.timezone.utc).strftime('%Y-%m-%d') for t,ms in missing)):
                 daily,dsha=fetch_archive(symbol,date,'daily',fetch)
                 for ms in set(rows).intersection(daily):
