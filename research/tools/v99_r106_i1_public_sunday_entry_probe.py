@@ -56,11 +56,13 @@ def analyze_file(path: Path, intents: list[dict]) -> dict:
             digest.update(block)
     if digest.hexdigest() != scanned["sha256"]:
         raise ValueError("ORIGINAL_SUNDAY_BYTE_HASH_DIVERGENCE")
-    if any(not actual[asset] for asset in ("BTC", "ETH")):
-        raise ValueError("NO_CAUSAL_FIXED_TENOR_ENTRY_BOOK_FOR_BOTH_ASSETS")
+    # A missing fresh book is an actual source-based CASH veto, not a
+    # software exception or a reason to relax the fixed 300s freshness gate.
+    both_books = all(actual[asset] for asset in ("BTC", "ETH"))
     return {
         "schema": "V99_I1_REAL_SUNDAY_FIXED_MONDAY_ENTRY_FEASIBILITY_V1",
-        "status": "ORIGINAL_SHAPED_ENTRY_BOOK_REPLAY_ONLY_NOT_CERTIFIED",
+        "status": ("ORIGINAL_SHAPED_ENTRY_BOOK_REPLAY_ONLY_NOT_CERTIFIED"
+                   if both_books else "ORIGINAL_SHAPED_NO_FRESH_ENTRY_BOOK_VETO"),
         "source_day": SUNDAY.isoformat(),
         "decision_day": MONDAY.isoformat(),
         "compressed_sha256": scanned["sha256"],
@@ -68,6 +70,7 @@ def analyze_file(path: Path, intents: list[dict]) -> dict:
         "hourly_qualifying_put_coverage": scanned[
             "qualifying_original_put_arrival_hours_by_asset"],
         "original_books_by_asset": {a: len(actual[a]) for a in ("BTC", "ETH")},
+        "both_assets_have_fresh_fixed_tenor_books": both_books,
         "invalid_last_books_by_asset": invalid,
         "stale_last_books_by_asset": stale,
         "fixed_original_signal_by_asset": {
@@ -137,7 +140,10 @@ def probe_live(original_signal_path: Path) -> dict:
                     return result
                 summary = analyze_file(path, original["intents"])
                 result.update(summary)
-                result["status"] = "REAL_ORIGINAL_SUNDAY_ENTRY_BOOK_REPLAY_PASS_SOURCE_ONLY"
+                result["status"] = (
+                    "REAL_ORIGINAL_SUNDAY_ENTRY_BOOK_REPLAY_PASS_SOURCE_ONLY"
+                    if summary["both_assets_have_fresh_fixed_tenor_books"]
+                    else "REAL_ORIGINAL_SUNDAY_NO_FRESH_ENTRY_BOOK_VETO_SOURCE_ONLY")
                 result["source_fixture"] = False
                 result["real_original_day_verified"] = True
                 return result
