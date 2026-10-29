@@ -4,7 +4,7 @@
 
 **Data firewall:** SHA-pinned Clean4 artifact 12549265452 (BTC/ETH/BNB/SOL Binance USD-M 1h), Dec-2022 warmup and 2023/24 training only, 18,288 rows per asset, 9,144 native signed funding events. 2025+ reserved for separate future validation/holdout; never touch XRP, contaminated Phase083, V14/V15/V99 internals, Frozen, paper or live orders. Native funding rate is independently archive-attested, exact funding tick mark unavailable (HTTP 451); conservative two-sided SHA-pinned official OHLC worst-mark envelope required.
 
-**Seven-slot composition, completed close t signal / actual next-hour open fill:**
+**Signal warmup:** no positions or entries until completed-close index t>=1008 (2023-01-12); the 1008h lookback cannot be read before it exists. Initial capital stays in cash during this extended 264h training-only warmup. No negative indexing or synthetic lookback fill.\n\n**Seven-slot composition, completed close t signal / actual next-hour open fill:**
 1. Growth Core: on fixed 336h clock only, rank 1008h log returns and long 0.70 highest positive-return asset, else cash. No median/breadth cash veto and no interim NAV retarget.
 2. Opportunity: on 168h clock, long 0.08 asset with strongest positive 24h return only when its own 168h return is positive; 168h hold, no same-close expiry/reentry.
 3. Relative Value: on 168h clock, if BTC 336h log return >0, compute each asset's 336h log return divided by the standard deviation of its 336 hourly log returns (positive denominator, fixed 336 observations). Long highest risk-adjusted 336h trend asset 0.03, short lowest 0.03, 168h hold. This is *quality/momentum spread*, NOT LV funding carry or LW short-horizon reversal. Ties broken by index, no signal threshold.
