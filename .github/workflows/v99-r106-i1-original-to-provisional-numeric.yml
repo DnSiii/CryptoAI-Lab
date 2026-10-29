@@ -5,6 +5,7 @@ on:
     paths:
       - research/tools/v99_r106_i1_original_to_provisional_numeric.py
       - research/tools/v99_r106_i1_source_cash_veto.py
+      - research/tools/v99_r106_i1_source_spine_journal_parity.py
       - research/verification/independent_v99_r106_i1_source_cash_veto.py
       - research/tests/test_v99_r106_i1_source_cash_veto.py
       - research/tools/v99_r106_i1_source_driven_entry_book.py
@@ -41,6 +42,10 @@ jobs:
           test -s research/V99_R106_I1_NONFIXTURE_ORIGINAL_TO_NUMERIC_ORCHESTRATOR_PREREG_20261028.md
       - name: Run source-grounded CASH veto independent and adversarial tests
         run: python -m unittest -v research.tests.test_v99_r106_i1_source_cash_veto
+      - name: Confirm source spine preregistration before implementation
+        run: |
+          git merge-base --is-ancestor 0c054f35bee2fcc86baf9c4286cb1ab4d6b9a8a2 HEAD
+          test -s research/V99_R106_I1_ORIGINAL_SPINE_TO_NATIVE_JOURNAL_PARITY_PREREG_20261029.md
       - name: Run end-to-end 661-day original-shaped synthetic and adversarial tests
         run: python -m unittest -v research.tests.test_v99_r106_i1_original_to_provisional_numeric
       - name: Restore actual archived original 182 causal signals
