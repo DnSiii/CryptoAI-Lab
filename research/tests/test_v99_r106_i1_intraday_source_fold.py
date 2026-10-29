@@ -128,6 +128,102 @@ class ExactIntradayOriginalFoldSource(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "INDEPENDENT_HELD_MARK_GRID_MISMATCH"):
             independent_lifecycle(journal, report)
 
+    def test_source_edge_mark_reaches_native_exact_fold_wallet(self):
+        """Synthetic source spine -> 661d wallet replay at exact edge, no PnL claim."""
+        from research.tests.test_v99_r106_i1_native_event_equity import flat_fixture
+        from research.tools.v99_r106_i1_native_event_equity import replay
+        from research.tools.v99_r106_i1_full_archive_intake import eligible
+        from research.tools.v99_r106_i1_train_numeric_gate import _fold
+
+        spine = self.compile()
+        journal = flat_fixture()
+        journal["fixture"] = False
+        decisions = []
+        for day in eligible(True):
+            at = int(day.timestamp() * 1000)
+            for asset in ("BTC", "ETH"):
+                positive = at == self.open and asset == "BTC"
+                decisions.append({
+                    "decision_ms": at, "asset": asset, "fold": _fold(at),
+                    "signal": "POSITIVE_EX_ANTE_PREMIUM" if positive else "NO_30D_HISTORY",
+                    "action": "OPEN" if positive else "CASH",
+                    "reason": "FIXED_VERTICAL" if positive else "NO_30D_HISTORY",
+                })
+        journal["scenario_decisions"] = {
+            "severe": [dict(row) for row in decisions],
+            "supersevere": [dict(row) for row in decisions],
+        }
+
+        def native_quote(source):
+            symbol = source["symbol"]
+            return {
+                "asset": "BTC", "symbol": symbol, "expiry_ms": self.expiry,
+                "strike_usd": symbol.split("-")[2],
+                "bid_coin": source["bid_coin"], "ask_coin": source["ask_coin"],
+                "bid_native_lots": source.get("bid_size_source_units", "2"),
+                "ask_native_lots": source.get("ask_size_source_units", "2"),
+                "venue_ms": source["venue_us"] // 1000,
+                "arrival_ms": source["arrival_us"] // 1000,
+                "index_usd": "40000",
+            }
+
+        for scenario in ("severe", "supersevere"):
+            fee = "0.0024" if scenario == "severe" else "0.0048"
+            for native_day, source_day in zip(journal["scenarios"][scenario],
+                                              spine["days"]):
+                self.assertEqual(native_day["ts_ms"], source_day["ts_ms"])
+                for source in source_day["market_events"]:
+                    kind = source["kind"]
+                    event = {"at_ms": source["at_ms"], "asset": "BTC"}
+                    if kind == "OPEN_SOURCE_ONLY":
+                        event.update({
+                            "kind": "OPEN", "position_id": source["position_id"],
+                            "signal": {"decision_ms": self.open, "asset": "BTC",
+                                       "fold": _fold(self.open),
+                                       "signal": "POSITIVE_EX_ANTE_PREMIUM"},
+                            "quotes": [native_quote(q) for q in source["candidate_inventory"]],
+                            "fee_coin": fee, "slippage_coin": fee,
+                            "initial_margin_coin": "0.01",
+                            "maintenance_margin_coin": "0.005",
+                        })
+                    elif kind == "MARK_SOURCE_ONLY":
+                        event.update({
+                            "kind": "MARK", "position_id": source["position_id"],
+                            "short": native_quote(source["short"]),
+                            "long": native_quote(source["long"]),
+                            "fee_coin": fee, "slippage_coin": fee,
+                        })
+                    else:
+                        event.update({
+                            "kind": "SETTLE_BATCH", "position_ids": [source["position_id"]],
+                            "delivery_index_usd": "40000",
+                            "delivery_fees_coin": {source["position_id"]: fee},
+                        })
+                    native_day["events"].append(event)
+                native_day["events"].sort(key=lambda e: e["at_ms"])
+                if any(native_day["ts_ms"] - 86_399_000 <= edge <= native_day["ts_ms"]
+                       for edge in EXACT_FOLD_EDGES):
+                    native_day["fold_edge_index_usd"] = {"BTC": "40000", "ETH": "3000"}
+
+        replayed = replay(journal)
+        self.assertTrue(replayed["exact_fold_edge_nav_available"])
+        self.assertEqual(
+            [s["ts_ms"] for s in replayed["fold_edge_snapshots"]["severe"]],
+            list(EXACT_FOLD_EDGES),
+        )
+        self.assertFalse(replayed["original_historical_economic_train_executed"])
+        self.assertFalse(replayed["promotion_authorized"])
+
+        # Adversarial: removing the exact edge mark cannot fall back to
+        # previous day's quote, even with a same-day 23:59:59 mark present.
+        for scenario in ("severe", "supersevere"):
+            for day in journal["scenarios"][scenario]:
+                day["events"] = [e for e in day["events"]
+                                 if not (e["kind"] == "MARK"
+                                         and e["at_ms"] == self.edge)]
+        with self.assertRaisesRegex(ValueError, "MISSING_EXACT_FOLD_SAME_CLOCK_OPEN_MARKS"):
+            replay(journal)
+
     def test_missing_actual_preedge_original_quote_blocks(self):
         with self.assertRaisesRegex(ValueError,
                                     "MISSING_ORIGINAL_HELD_CONTRACT_DAILY_MARK"):
