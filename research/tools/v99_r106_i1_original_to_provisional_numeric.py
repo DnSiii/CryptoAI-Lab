@@ -36,6 +36,10 @@ from research.verification.independent_v99_r106_i1_source_entry_book_oracle impo
 from research.tools.v99_r106_i1_native_event_equity import (
     replay, SCHEMA as JOURNAL_SCHEMA,
 )
+from research.tools.v99_r106_i1_source_cash_veto import assess as source_cash_veto
+from research.verification.independent_v99_r106_i1_source_cash_veto import (
+    verify as independent_source_cash_veto,
+)
 from research.tools.v99_r106_i1_train_numeric_gate import evaluate_provisional
 from research.verification.independent_v99_r106_i1_train_numeric_oracle import (
     verify as independent_numeric,
@@ -110,6 +114,12 @@ def run(original_signal_path, original_quotes_root, journal_path):
     if original_book_oracle["independently_verified_asset_weeks"] != 180:
         raise ValueError("INDEPENDENT_FULL_ENTRY_BOOK_GRID_MISMATCH")
 
+    # Source-grounded CASH/OPEN classifications must be checked BEFORE NAV.
+    # Empty observed tenor book is conditional on vendor archive completeness;
+    # moneyness, fees, margin and risk vetoes remain UNVERIFIED.
+    source_veto = source_cash_veto(entry_books, journal)
+    independent_source_cash_veto(entry_books, journal, source_veto)
+
     equity = replay(journal)
     if equity["fixture"] is not False:
         raise ValueError("FIXTURE_EQUITY_FORBIDDEN")
@@ -126,6 +136,7 @@ def run(original_signal_path, original_quotes_root, journal_path):
         "original_quote_event_identities_checked": quote_identity["original_quote_events_checked"],
         "full_original_source_asset_week_books_independently_verified": 180,
         "full_original_open_inventories_checked": inventory["source_driven_open_inventories_checked"],
+        "source_cash_veto_conditional_only": source_veto,
         "original_entry_source_index_and_native_lot_units_unverified": True,
         "original_quote_manifest_sha256": quote_identity["original_manifest_sha256"],
         "independent_common_market_observations": {
