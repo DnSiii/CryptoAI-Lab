@@ -231,6 +231,40 @@ class OriginalToNumericIntegration(unittest.TestCase):
                                     "ORACLE_CROSS_SCENARIO_MARK_MISMATCH"):
             self.execute(doc)
 
+    def test_original_spine_schedule_is_bound_before_nav(self):
+        report = self.execute(self.document())
+        parity = report["original_source_spine_to_native_journal_parity"]
+        self.assertEqual(parity["scenarios"]["severe"]["positions"], 1)
+        self.assertEqual(parity["scenarios"]["supersevere"]["positions"], 1)
+        self.assertGreater(parity["scenarios"]["severe"]["source_mark_events"], 20)
+        self.assertEqual(parity["scenarios"]["severe"]["source_expiry_due_events"], 1)
+        self.assertFalse(parity["promotion_authorized"])
+
+    def test_missing_original_settlement_due_rejected_before_nav(self):
+        doc = self.document()
+        for scenario in ("severe", "supersevere"):
+            for day in doc["scenarios"][scenario]:
+                day["events"] = [event for event in day["events"]
+                                 if event["kind"] != "SETTLE_BATCH"]
+        with self.assertRaisesRegex(ValueError,
+                                    "ORIGINAL_SPINE_NATIVE_EVENT_SCHEDULE_MISMATCH"):
+            self.execute(doc)
+
+    def test_missing_held_original_daily_mark_rejected_before_nav(self):
+        doc = self.document()
+        for scenario in ("severe", "supersevere"):
+            removed = False
+            for day in doc["scenarios"][scenario]:
+                for event in list(day["events"]):
+                    if event["kind"] == "MARK" and not removed:
+                        day["events"].remove(event)
+                        removed = True
+                        break
+            self.assertTrue(removed)
+        with self.assertRaisesRegex(ValueError,
+                                    "ORIGINAL_SPINE_NATIVE_EVENT_SCHEDULE_MISMATCH"):
+            self.execute(doc)
+
     def test_fixture_and_self_declared_promotion_rejected(self):
         doc = self.document()
         doc["fixture"] = True
