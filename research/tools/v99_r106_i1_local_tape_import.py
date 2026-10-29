@@ -48,8 +48,10 @@ def scan_day(path: Path, day: date) -> dict:
     count = 0
     previous = -1
     qualifying_puts = {"BTC": 0, "ETH": 0}
+    live_puts = {"BTC": 0, "ETH": 0}
     entry_tenor_28_45_rows = {"BTC": 0, "ETH": 0}
     qualifying_hour_masks = {"BTC": 0, "ETH": 0}
+    live_hour_masks = {"BTC": 0, "ETH": 0}
     # Immutable contract metadata repeats millions of times within a daily
     # quote tape. Cache ONLY symbol parsing, never the row's market data,
     # timestamps, freshness or validity. Keep the cache bounded per day.
@@ -96,19 +98,24 @@ def scan_day(path: Path, day: date) -> dict:
                 except (ValueError, TypeError, OverflowError):
                     continue
                 if (arrival - event <= 300_000_000
-                        and day < expiry <= day + timedelta(days=45)
+                        and day < expiry
                         and all(math.isfinite(v) and v > 0 for v in
                                 (strike, bid, ask, bid_size, ask_size))
                         and bid < ask):
-                    qualifying_puts[asset] += 1
-                    if expiry >= day + timedelta(days=28):
-                        entry_tenor_28_45_rows[asset] += 1
-                    qualifying_hour_masks[asset] |= 1 << ((arrival-lower)//3_600_000_000)
+                    hour = (arrival-lower)//3_600_000_000
+                    live_puts[asset] += 1
+                    live_hour_masks[asset] |= 1 << hour
+                    # Tenor eligibility is descriptive, not transport presence.
+                    if expiry <= day + timedelta(days=45):
+                        qualifying_puts[asset] += 1
+                        if expiry >= day + timedelta(days=28):
+                            entry_tenor_28_45_rows[asset] += 1
+                        qualifying_hour_masks[asset] |= 1 << hour
     except (OSError, EOFError, UnicodeError, csv.Error) as exc:
         raise ValueError("CORRUPT_ORIGINAL_GZIP:" + day.isoformat()) from exc
     if count == 0:
         raise ValueError("EMPTY_ORIGINAL_DAY:" + day.isoformat())
-    for asset, n in qualifying_puts.items():
+    for asset, n in live_puts.items():
         if n == 0:
             raise ValueError("MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:"
                              + day.isoformat() + ":" + asset)
@@ -120,13 +127,16 @@ def scan_day(path: Path, day: date) -> dict:
                 asset: format(mask, "024b") for asset, mask in qualifying_hour_masks.items()},
             "sha256": sha256(path), "rows": count,
             "qualifying_original_put_quote_rows_by_asset": qualifying_puts,
+            "live_original_put_quote_rows_by_asset": live_puts,
+            "live_original_put_arrival_hours_by_asset": {
+                asset: mask.bit_count() for asset, mask in live_hour_masks.items()},
             # Self-declared from local import, NOT a vendor gap attestation.
             "complete_capture": True}
 
 
 def require_hourly_original_coverage(scanned: dict) -> None:
     """Necessary, not sufficient, evidence against a partial-day capture."""
-    coverage = scanned.get("qualifying_original_put_arrival_hours_by_asset", {})
+    coverage = scanned.get("live_original_put_arrival_hours_by_asset", {})
     if (not isinstance(coverage, dict) or set(coverage) != {"BTC", "ETH"}
             or any(type(coverage[a]) is not int or coverage[a] != 24
                    for a in ("BTC", "ETH"))):
