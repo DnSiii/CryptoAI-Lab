@@ -114,7 +114,7 @@ def synthetic_tests():
     except ValueError as e:assert 'FEE' in str(e)
     else:raise AssertionError('V98_ORACLE_FEE_TAMPER_UNDETECTED')
     bad=[dict(x) for x in rows];bad[1]['qty_before']=q0.tolist()
-    try:replay(d,bad,o,o,.0004,.0002,'new_after_fill',1,3)
+    try:replay(d,bad,marklo,markhi,.0004,.0002,'new_after_fill',1,3)
     except ValueError as e:assert 'POSITION_CONTINUITY' in str(e)
     else:raise AssertionError('V98_ORACLE_POSITION_TAMPER_UNDETECTED')
     # Carried-before-fill signed event on a preexisting long position.
@@ -126,6 +126,7 @@ def synthetic_tests():
     carried[0]['funding_cash']=0.;carried[0]['equity_close']=9999.4
     carried[1]['equity_before']=9999.4
     carried[1]['funding_cash']=-.1;carried[1]['equity_close']=9999.3
+    marklo[2,0]=markhi[2,0]=100.
     out2=replay(d2,carried,marklo,markhi,.0004,.0002,'carried_before_fill',1,3)
     assert abs(out2['final_equity']-9999.3)<1e-8
     tampered=[dict(x) for x in carried];tampered[1]['funding_cash']=+.1
