@@ -35,11 +35,11 @@ def fake_gzip(day=DAY, *, missing_hour=None, missing_asset_hour=None):
     return gzip.compress(buffer.getvalue().encode())
 
 
-def scope_bytes(valid=True):
-    return json.dumps([{"exchange": "deribit", "from": "2021-01-01T00:00:00Z",
-                        "to": "2024-01-01T00:00:00Z",
+def scope_bytes(valid=True, *, start="2021-01-01T00:00:00Z",
+                end="2024-01-01T00:00:00Z", symbols=None, exchange="deribit"):
+    return json.dumps([{"exchange": exchange, "from": start, "to": end,
                         "dataPlan": "options" if valid else "perpetuals",
-                        "symbols": ["OPTIONS"]}]).encode()
+                        "symbols": ["OPTIONS"] if symbols is None else symbols}]).encode()
 
 
 class Response:
@@ -56,8 +56,9 @@ class Response:
 
 
 class Opener:
-    def __init__(self, *, valid_scope=True, body=None, content_type="application/gzip", day=DAY):
+    def __init__(self, *, valid_scope=True, body=None, content_type="application/gzip", day=DAY, scope_kwargs=None):
         self.valid_scope = valid_scope
+        self.scope_kwargs = scope_kwargs or {}
         self.day = day
         self.body = fake_gzip(day) if body is None else body
         self.content_type = content_type
@@ -65,7 +66,7 @@ class Opener:
     def __call__(self, request, timeout=None):
         self.urls.append(request.full_url)
         if request.full_url.endswith("api-key-info"):
-            return Response(scope_bytes(self.valid_scope), content_type="application/json")
+            return Response(scope_bytes(self.valid_scope, **self.scope_kwargs), content_type="application/json")
         if not request.full_url.endswith(self.day.strftime("/%Y/%m/%d/OPTIONS.csv.gz")):
             raise AssertionError("UNEXPECTED_OR_SEALED_NETWORK_REQUEST")
         return Response(self.body, content_type=self.content_type)
@@ -135,6 +136,50 @@ class LicensedTransferTests(unittest.TestCase):
         again = self.call(opener, start_date="2022-06-15")
         self.assertEqual(again["preexisting_valid_days"], 1)
         self.assertEqual(again["downloaded_days"], 0)
+
+    def test_exact_2022_january_23_one_day_entitlement_no_full_train_purchase(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        scope = {"start": "2022-01-23T00:00:00Z",
+                 "end": "2022-01-24T00:00:00Z"}
+        opener = Opener(day=day, scope_kwargs=scope)
+        result = self.call(opener, start_date="2022-01-23")
+        self.assertEqual(result["downloaded_days"], 1)
+        self.assertTrue(opener.urls[-1].endswith("/2022/01/23/OPTIONS.csv.gz"))
+        self.assertEqual((self.root/"2022-01-23.csv.gz").read_bytes(), fake_gzip(day))
+        self.assertFalse(result["full_661_days_transferred"])
+        self.assertFalse(result["vendor_gap_attestation_verified"])
+        self.assertFalse(result["economic_train_executed"])
+
+    def test_day_only_entitlement_never_authorizes_adjacent_day_or_full_train(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        scope = {"start": "2022-01-23T00:00:00Z",
+                 "end": "2022-01-24T00:00:00Z"}
+        for start, count in (("2022-01-23", 2), ("2022-01-22", 1),
+                             ("2021-12-09", 1)):
+            opener = Opener(day=day, scope_kwargs=scope)
+            with self.subTest(start=start, count=count):
+                with self.assertRaisesRegex(ValueError, "ENTITLEMENT_UNVERIFIED"):
+                    self.call(opener, start_date=start, max_days=count)
+                self.assertEqual(len(opener.urls), 1)  # scope only
+                self.assertFalse(self.root.exists())
+
+    def test_partial_symbols_wrong_exchange_and_short_grant_fail_closed(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        base = {"start": "2022-01-23T00:00:00Z",
+                "end": "2022-01-24T00:00:00Z"}
+        variants = (
+            dict(base, symbols=["BTC-25FEB22-30000-P", "ETH-25FEB22-2000-P"]),
+            dict(base, exchange="bitmex"),
+            dict(base, end="2022-01-23T23:59:59Z"),
+            dict(base, start="2022-01-23T00:00:00"),
+        )
+        for scope in variants:
+            opener = Opener(day=day, scope_kwargs=scope)
+            with self.subTest(scope=scope):
+                with self.assertRaisesRegex(ValueError, "ENTITLEMENT_UNVERIFIED"):
+                    self.call(opener, start_date="2022-01-23")
+                self.assertEqual(len(opener.urls), 1)
+                self.assertFalse(self.root.exists())
 
     def test_outside_train_window_rejected_before_network_or_write(self):
         for start, days in (("2023-09-30", 2), ("2023-10-01", 1),
