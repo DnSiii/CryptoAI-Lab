@@ -105,7 +105,7 @@ def _independent_days(root: Path):
                     expiry = datetime.strptime(parts[1].upper(), "%d%b%y").date()
                 except (ValueError, TypeError):
                     continue
-                if not d < expiry <= d + timedelta(days=45):
+                if not d < expiry:
                     continue
                 try:
                     values = [float(parts[2])] + [
@@ -116,7 +116,9 @@ def _independent_days(root: Path):
                 except (ValueError, TypeError, OverflowError):
                     valid = False
                 if valid:
-                    good[parts[0]] = True  # Weak any-row market presence only.
+                    good[parts[0]] = True  # Weak live-any-tenor feed presence only.
+                if expiry > d + timedelta(days=45):
+                    continue  # Never claim a held-contract/entry-eligible option.
                 monday = sunday_entry.get(d)
                 if monday is not None and 28 <= (expiry - monday).days <= 34 and expiry < STOP:
                     decision = int(datetime(monday.year, monday.month, monday.day,
