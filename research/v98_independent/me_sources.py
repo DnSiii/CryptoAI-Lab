@@ -13,7 +13,7 @@ def bundle(o,h,l,c,q,rate,event):
         raise ValueError('ME_SHAPE')
     if any(not np.isfinite(z).all() for z in (o,h,l,c,q,rate)):
         raise ValueError('ME_NONFINITE')
-    if np.any(l<=0) or np.any(l>np.minimum(o,c)) or np.any(h<np.maximum(o,c)) or np.any(q<=0):
+    if np.any(l<=0) or np.any(l>np.minimum(o,c)) or np.any(h<np.maximum(o,c)) or np.any(q<0):
         raise ValueError('ME_OHLC_VOLUME')
     if not np.all(event[::8]) or np.any(event[np.arange(HOURS)%8!=0]):
         raise ValueError('ME_FUNDING_CALENDAR')
