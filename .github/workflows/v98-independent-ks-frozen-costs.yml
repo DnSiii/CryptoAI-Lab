@@ -1,0 +1,30 @@
+name: V98 Independent KS Frozen Original Receipt Cost Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ks-frozen-costs.yml'
+      - 'research/v98_independent/ks_frozen_original_cost_forensics.py'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ks30-ubuntu-*
+          run-id: 40814872078
+          github-token: ${{ github.token }}
+          path: original-ks-receipts
+      - name: Independent KS frozen receipt attribution without signal or PnL rerun
+        run: python research/v98_independent/ks_frozen_original_cost_forensics.py --root original-ks-receipts --output ks_frozen_original_cost_forensics.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ks-frozen-original-cost-forensics
+          path: ks_frozen_original_cost_forensics.json
+          retention-days: 30
