@@ -46,18 +46,16 @@ def make_day(*, crossed_last=False, stale=False, omit_eth=False, missing_hour=No
                 writer.writerow(("deribit", symbol, us, us, ".01", ".02", "3", "4"))
     # Full-day hourly capture is distinct from a fresh pre-Monday entry book.
     # Four valid latest rows physically arrive at 23:59:58 UTC.
-    for asset in (("BTC",) if omit_eth else ("BTC", "ETH")):
-        for strike in (2000, 2100):
-            us = start + 86_398_000_000
-            writer.writerow(("deribit", f"{asset}-03JUN22-{strike}-P",
-                             us, us, ".01", ".02", "3", "4"))
+    if not stale:
+        for asset in (("BTC",) if omit_eth else ("BTC", "ETH")):
+            for strike in (2000, 2100):
+                us = start + 86_398_000_000
+                writer.writerow(("deribit", f"{asset}-03JUN22-{strike}-P",
+                                 us, us, ".01", ".02", "3", "4"))
     if crossed_last:
         us = start + 86_399_000_000
         writer.writerow(("deribit", "BTC-03JUN22-2000-P", us, us,
                          ".03", ".02", "3", "4"))
-    if stale:
-        # last row remains stale for one strike, but 24h BTC/ETH coverage stays.
-        pass
     return gzip.compress(rows.getvalue().encode())
 
 
@@ -85,6 +83,13 @@ class SundayEntryTests(unittest.TestCase):
         self.assertEqual(r["original_books_by_asset"], {"BTC": 2, "ETH": 2})
         self.assertEqual(r["fixed_original_signal_by_asset"], {
             "BTC": "POSITIVE_EX_ANTE_PREMIUM", "ETH": "POSITIVE_EX_ANTE_PREMIUM"})
+
+    def test_no_fresh_last_books_is_source_veto_not_fake_trade(self):
+        r = self.check(make_day(stale=True))
+        self.assertEqual(r["hourly_qualifying_put_coverage"], {"BTC": 24, "ETH": 24})
+        self.assertEqual(r["original_books_by_asset"], {"BTC": 0, "ETH": 0})
+        self.assertEqual(r["status"], "ORIGINAL_SHAPED_NO_FRESH_ENTRY_BOOK_VETO")
+        self.assertFalse(r["both_assets_have_fresh_fixed_tenor_books"])
 
     def test_crossed_latest_revokes_one_book(self):
         r = self.check(make_day(crossed_last=True))
