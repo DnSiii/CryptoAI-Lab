@@ -152,7 +152,7 @@ def cell(path,mode,fee,order,frames,risks,sources):
                     **metrict(y["deltas"],y["returns"],y["positive"],y["days"])}
     return {"path":path,"mode":mode,"fee":fee,"order":order,"passed":True,
             "historical_training_only":True,"validation_2025_read":False,
-            "external_benchmarku_used":False,"trading_authorized":False,
+            "external_benchmarks_used":False,"trading_authorized":False,
             "executed_hours":HOURS-START_EXECUTION,
             "target_updates":target_updates,"physical_fill_hours":fills,
             "blocked_events":blocked_events,"signed_latch_cut_hours":latch_cut_hours,
@@ -187,7 +187,7 @@ def run(path):
                           "historical_training_only":True,"validation_2025_read":False})
     return {"architecture":"KU","path":path,
             "historical_training_only":True,"validation_2025_read":False,
-            "external_benchmarku_used":False,
+            "external_benchmarks_used":False,
             "source_manifest_sha256":hashlib.sha256(json.dumps(
                 manifest,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
                     "cells_expected":6,"cells":cases,
