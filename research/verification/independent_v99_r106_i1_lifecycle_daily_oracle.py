@@ -78,6 +78,8 @@ def _independent_days(root: Path):
         low = int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp() * 1_000_000)
         high = low + 86_400_000_000
         good = {"BTC": False, "ETH": False}
+        live_counts = {"BTC": 0, "ETH": 0}
+        live_hour_masks = {"BTC": 0, "ETH": 0}
         last_receipt = {}
         previous = -1
         n = 0
@@ -116,7 +118,10 @@ def _independent_days(root: Path):
                 except (ValueError, TypeError, OverflowError):
                     valid = False
                 if valid:
-                    good[parts[0]] = True  # Weak live-any-tenor feed presence only.
+                    asset = parts[0]
+                    good[asset] = True  # Weak live-any-tenor feed presence only.
+                    live_counts[asset] += 1
+                    live_hour_masks[asset] |= 1 << ((arrival-low)//3_600_000_000)
                 if expiry > d + timedelta(days=45):
                     continue  # Never claim a held-contract/entry-eligible option.
                 monday = sunday_entry.get(d)
@@ -138,6 +143,13 @@ def _independent_days(root: Path):
                 masks[key] = masks.get(key, 0) | (1 << (d - m).days)
         if n != entry.get("rows"):
             raise AssertionError("ORIGINAL_ROW_COUNT_FORGED")
+        # Independently rederive new import fields from original bytes. Legacy
+        # fixture manifests may omit them; nonfixture licensed input may not.
+        if not manifest["fixture"] or "live_original_put_quote_rows_by_asset" in entry:
+            if (entry.get("live_original_put_quote_rows_by_asset") != live_counts
+                    or entry.get("live_original_put_arrival_hours_by_asset") != {
+                        a: live_hour_masks[a].bit_count() for a in ("BTC", "ETH")}):
+                raise AssertionError("INDEPENDENT_LIVE_OPTION_FEED_COVERAGE_MISMATCH")
         out.append({"date": stamp, **good, "rows": n, "sha256": sha})
     full = {}
     exact_symbols = {}
