@@ -71,6 +71,35 @@ class NumericTrainGateTests(unittest.TestCase):
             self.assertLess(Decimal(actual["max_drawdown"]), 0)
             self.assertGreater(Decimal(actual["remove_best_day_roi"]), 0)
 
+    def test_daily_only_nav_cannot_claim_exact_intraday_fold_gate(self):
+        doc = fixture()
+        result = evaluate(doc)
+        # Synthetic daily-proxy screen may pass 5/5, but the actual original
+        # folds switch at 04, 09, 14, 19 UTC rather than daily 23:59:59.
+        self.assertTrue(result["numeric_train_pass_both_scenarios"])
+        self.assertEqual(result["fold_attribution"], "DAILY_PROXY_NOT_EXACT")
+        self.assertFalse(result["exact_chronological_fold_gate_evaluable"])
+        self.assertFalse(result["exact_chronological_fold_gate_pass"])
+        self.assertTrue(result["formal_train_freeze_blocked_by_missing_intraday_nav"])
+        self.assertEqual(result["missing_intraday_fold_boundary_utc"], [
+            "2022-04-20T04:00:00+00:00",
+            "2022-08-30T09:00:00+00:00",
+            "2023-01-09T14:00:00+00:00",
+            "2023-05-21T19:00:00+00:00",
+        ])
+        for key, forged_value in (
+            ("exact_chronological_fold_gate_evaluable", True),
+            ("exact_chronological_fold_gate_pass", True),
+            ("missing_intraday_fold_boundary_utc", []),
+            ("fold_attribution", "EXACT"),
+        ):
+            forged = copy.deepcopy(result)
+            forged[key] = forged_value
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(
+                        AssertionError, "INDEPENDENT_EXACT_FOLD_BOUNDARY_UNRESOLVED"):
+                    independent_verify(doc, forged)
+
     def test_loss_must_reject_not_promote(self):
         doc = fixture()
         for name in SCENARIOS:
