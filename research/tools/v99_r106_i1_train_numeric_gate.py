@@ -136,6 +136,34 @@ def _one_scenario(rows, initial, scenario):
     }
 
 
+def _exact_fold_roi(rows, edge_rows, initial):
+    """Split four boundary-day factors at original intraday native NAVs."""
+    if not isinstance(edge_rows, list):
+        raise ValueError("INVALID_EXACT_FOLD_NAV_SERIES")
+    by_clock = {}
+    for entry in edge_rows:
+        if (not isinstance(entry, dict) or type(entry.get("ts_ms")) is not int
+                or entry["ts_ms"] not in FOLD_EDGES[1:-1]
+                or entry["ts_ms"] in by_clock):
+            raise ValueError("FORGED_EXACT_FOLD_EDGE_CLOCK")
+        by_clock[entry["ts_ms"]] = _money(entry.get("equity_usd"))
+    factors = [Decimal(1)] * 5
+    previous = initial
+    for row in rows:
+        current_clock = row["ts_ms"]
+        current = _money(row["equity_usd"])
+        boundary = next((edge for edge in FOLD_EDGES[1:-1]
+                         if current_clock - 86_399_000 <= edge <= current_clock), None)
+        if boundary is not None and boundary in by_clock:
+            mid = by_clock[boundary]
+            factors[_fold(boundary - 1) - 1] *= mid / previous
+            factors[_fold(boundary) - 1] *= current / mid
+        else:
+            factors[_fold(current_clock) - 1] *= current / previous
+        previous = current
+    return [str(factor - 1) for factor in factors]
+
+
 def _evaluate(document, *, provisional=False):
     # A provisional diagnostic is deliberately NOT the official economic gate.
     # It cannot turn original-input claims into source certification.
@@ -171,24 +199,46 @@ def _evaluate(document, *, provisional=False):
     for value in results.values():
         for key in ("_keys", "_benchmarks", "_regimes"):
             del value[key]
-    # The four internal R106 fold edges are intraday (04/09/14/19 UTC).
-    # 661 end-of-day NAVs cannot establish the exact original five folds.
-    # The descriptive daily-proxy fold screen is retained for reproducibility,
-    # but must NEVER be interpreted as a formal chronological TRAIN gate.
+    # Only same-clock native event replay can resolve four intraday edges.
+    # Direct caller-supplied NAV is never source certification; the official
+    # economic gate remains locked even when all four snapshots are present.
+    edges = document.get("fold_edge_snapshots", {s: [] for s in SCENARIOS})
+    if not isinstance(edges, dict) or set(edges) != set(SCENARIOS):
+        raise ValueError("INCOMPLETE_EXACT_FOLD_SCENARIOS")
+    for scenario in SCENARIOS:
+        _exact_fold_roi(document["scenarios"][scenario], edges[scenario], initial)
+    seen = {s: {x["ts_ms"] for x in edges[s]} for s in SCENARIOS}
+    if seen["severe"] != seen["supersevere"]:
+        raise ValueError("SCENARIO_FOLD_EDGE_PRESENCE_MISMATCH")
     missing_intraday_edges = [
         datetime.fromtimestamp(edge / 1000, timezone.utc).isoformat()
-        for edge in FOLD_EDGES[1:-1]
-        if edge not in {_expected_clock(i) for i in range(DAYS)}
+        for edge in FOLD_EDGES[1:-1] if edge not in seen["severe"]
     ]
-    if len(missing_intraday_edges) != 4:
-        raise ValueError("UNEXPECTED_EXACT_FOLD_BOUNDARY_GEOMETRY")
+    complete = not missing_intraday_edges
+    if document.get("exact_fold_edge_nav_available", complete) is not complete:
+        raise ValueError("FORGED_EXACT_FOLD_EDGE_AVAILABILITY")
+    exact_screen_pass = False
+    if complete:
+        for scenario in SCENARIOS:
+            exact = _exact_fold_roi(document["scenarios"][scenario],
+                                    edges[scenario], initial)
+            results[scenario]["exact_fold_roi_descriptive_only"] = exact
+            results[scenario]["exact_positive_folds"] = sum(
+                Decimal(x) > 0 for x in exact)
+            results[scenario]["exact_fold_screen_pass"] = (
+                results[scenario]["exact_positive_folds"] >=
+                (4 if scenario == "severe" else 3))
+        exact_screen_pass = all(results[s]["exact_fold_screen_pass"] for s in SCENARIOS)
     return {
         "schema": "V99_I1_TRAIN_NUMERIC_GATE_RESULT_V1",
-        "fold_attribution": "DAILY_PROXY_NOT_EXACT",
+        "fold_attribution": ("EXACT_NATIVE_EVENT_EDGE_PROVISIONAL_NOT_CERTIFIED"
+                             if complete else "DAILY_PROXY_NOT_EXACT"),
         "missing_intraday_fold_boundary_utc": missing_intraday_edges,
-        "exact_chronological_fold_gate_evaluable": False,
+        "exact_chronological_fold_gate_evaluable": complete,
         "exact_chronological_fold_gate_pass": False,
-        "formal_train_freeze_blocked_by_missing_intraday_nav": True,
+        "exact_fold_screen_pass_both_scenarios": exact_screen_pass,
+        "formal_numeric_train_pass_both_scenarios": False,
+        "formal_train_freeze_blocked_by_missing_intraday_nav": not complete,
         "status": ("PROVISIONAL_NONFIXTURE_NUMERIC_DIAGNOSTIC_NOT_CERTIFIED"
                    if provisional else "FIXTURE_NUMERIC_SCREEN_ONLY_NOT_ORIGINAL_ECONOMICS"),
         "days_per_scenario": DAYS,
