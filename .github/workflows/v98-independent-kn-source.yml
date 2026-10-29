@@ -8,8 +8,7 @@ on:
       - 'research/v98_independent/kn_leadership_sources.py'
       - 'research/v98_independent/kn_source_viability.py'
       - 'research/v98_independent/kn_event_latch.py'
-      - 'research/v98_independent/kn_event_latch.py'
-      - 'research/v98_independent/kn_event_latch.py'
+      - 'research/v98_independent/kn_latch_physical_integration.py'
   workflow_dispatch:
 permissions:
   actions: read
@@ -47,8 +46,9 @@ jobs:
       - name: KN authenticated 1h funding and causal source viability
         working-directory: research/v98_independent
         run: |
-          python -m py_compile kn_leadership_sources.py kn_source_viability.py kn_event_latch.py kn_event_latch.py kn_event_latch.py kn_event_latch.py
+          python -m py_compile kn_leadership_sources.py kn_source_viability.py kn_event_latch.py kn_latch_physical_integration.py
           python kn_event_latch.py
+          python kn_latch_physical_integration.py
           python kn_leadership_sources.py
           python kn_source_viability.py
       - uses: actions/upload-artifact@v4
