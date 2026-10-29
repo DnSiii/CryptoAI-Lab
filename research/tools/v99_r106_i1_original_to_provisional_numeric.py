@@ -38,6 +38,7 @@ from research.tools.v99_r106_i1_native_event_equity import (
 )
 from research.tools.v99_r106_i1_source_cash_veto import assess as source_cash_veto
 from research.tools.v99_r106_i1_source_spine_journal_parity import verify_source_spine
+from research.verification.independent_v99_r106_i1_source_spine_journal_parity import verify as independent_source_spine
 from research.verification.independent_v99_r106_i1_source_cash_veto import (
     verify as independent_source_cash_veto,
 )
@@ -125,6 +126,7 @@ def run(original_signal_path, original_quotes_root, journal_path):
     # event to the actual cost-specific journal BEFORE any NAV. Authentic
     # individual BBOs alone do not prove complete event schedules.
     spine_parity = verify_source_spine(original_quotes_root, entry_books, journal)
+    independent_spine_parity = independent_source_spine(journal, spine_parity)
     if spine_parity["promotion_authorized"] is not False:
         raise ValueError("SOURCE_SPINE_FALSE_PROMOTION")
 
@@ -146,6 +148,7 @@ def run(original_signal_path, original_quotes_root, journal_path):
         "full_original_open_inventories_checked": inventory["source_driven_open_inventories_checked"],
         "source_cash_veto_conditional_only": source_veto,
         "original_source_spine_to_native_journal_parity": spine_parity,
+        "independent_held_contract_lifecycle_schedule": independent_spine_parity,
         "original_entry_source_index_and_native_lot_units_unverified": True,
         "original_quote_manifest_sha256": quote_identity["original_manifest_sha256"],
         "independent_common_market_observations": {
