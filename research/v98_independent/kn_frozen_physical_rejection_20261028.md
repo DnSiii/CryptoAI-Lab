@@ -1,0 +1,16 @@
+# V98 Independent KN — terminal physical-survival rejection (2026-10-28)
+
+**Decision: REJECT KN PERMANENTLY.** KN was preregistered before source code and historical observations at commit `76318d94f8284709f4a1b9f77518928b52f0690c`. No post-result threshold, sign, gross, execution, funding or window rescue is allowed. No KN 2025 validation, external benchmark comparison, future holdout or paper/live promotion.
+
+## Evidence
+
+- [Source-only gate run 40796552779](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40796552779) passed authenticated Dec-2022–Dec-2024 Phase243 Clean-4 source, signed native funding, causal future mutation, quote quarantine and row-event integrity. 2023/2024 source-intent episode counts: Opportunity 45/39; Relative Value 21/21; Stress/Recovery 33/39. All above 8/year. These are **intent counts**, not fills or positive PnL.
+- [Independent real-governor integration run 40796730040](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40796730040) passed 200h no-automatic-reentry latch, real 0.25% prior-hour participation, forced capacity exit and zero-quote impossible-exit hard failure. This proves only those deterministic invariants, not live readiness.
+- [Full physical historical 30-cell attempt 40796650808](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40796650808): 5 independent books x 3 cost tiers x 2 native funding orders x 2 OS. Only **12 of 30** cells survived all required physical checks. Both OS reproduce failures. Full book: all six cost/order cases failed **KN_ACTUAL_GROSS_OVER_NAV**, at t=8401 (base/severe, both orders) and t=3145 (supersevere, both orders). The actual gross/NAV exceeded 1.0 after physical settlement; hard-fail was intentional and is not an accounting artifact. No Full economic CAGR, independent marginal attribution or 2025 validation is admissible from these incomplete cases.
+- Independent original-receipt audit read 10 original artifacts / 24 nonfailed-or-failed physical receipts, found 12 physical failure errors, decision **BLOCK_KN_INDEPENDENT_RECEIPT_AUDIT**. Separate cross-OS audit decision **REJECT_KN_PHYSICAL_SURVIVAL**, with no cross-OS numeric discrepancies among completed cells. Independent all-hour oracle was correctly skipped after survival failure. Mechanical job success is not economic success.
+
+## Critical path and scope
+
+The event latch eliminates **automatic refilling** after an underfilled or forced-cut inventory in deterministic tests, but KN's long-only overlapping sleeves can still breach gross/NAV after market movement even when initial source weights sum to 0.94. The governor's staged stress feasibility is **not** an explicit all-hour actual-gross<=1 guarantee. The next genuinely distinct architecture must use a prospectively specified pre-trade gross/NAV authorization and price-shock headroom (not a KN parameter rescue), with an economically distinct source of compounding returns and independently attributed sleeves. It must still maximize long-run compounded wealth subject to survival, not minimize risk as the objective.
+
+**No approved complete V98.** No 2025, future holdout, XRP, 1m, external benchmark internals, V16/V99 Frozen, V99 research/workflows/paper or live orders were accessed or changed.
