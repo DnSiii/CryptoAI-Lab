@@ -1,0 +1,103 @@
+name: V99 I1 first-party fixed 28-35d listed-pair five-fold feasibility (NO ECONOMICS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_fixed_tenor_listing_gate.py
+      - research/verification/independent_v99_r106_i1_fixed_tenor_listing_oracle.py
+      - .github/workflows/v99-r106-i1-fixed-tenor-listing-gate.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-fixed-tenor-listing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 64
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration predates analysis code
+        run: |
+          git merge-base --is-ancestor 62e1b2ab712e9ba9cd2d4baa7bca5d9721e5087d HEAD
+          test -s research/V99_R106_I1_FIXED_TENOR_FIRSTPARTY_LISTING_GATE_PREREG_20261028.md
+      - name: Restore previously archived original Deribit instrument bytes and original causal signals
+        run: |
+          mkdir -p research_evidence/i1_native_instruments research_evidence/i1_original_causal
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          gh run download 40326586848 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-causal-signal-40326586848 \
+            --dir research_evidence/i1_original_causal
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+          test -s research_evidence/i1_original_causal/i1_causal_signal.json
+      - name: Independently audit original first-party Deribit raw instrument JSON
+        run: python -m research.verification.independent_v99_r106_i1_historical_instruments research_evidence/i1_native_instruments
+      - name: Run exact frozen 28-35d listed-pair screen on all original 180 intents
+        run: |
+          python -m research.tools.v99_r106_i1_fixed_tenor_listing_gate \
+            research_evidence/i1_native_instruments/native_instrument_registry.json \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            fixed_tenor_original_listing_report.json
+      - name: Independently recompute 180 decisions from ORIGINAL raw Deribit JSON
+        run: |
+          python -m research.verification.independent_v99_r106_i1_fixed_tenor_listing_oracle \
+            research_evidence/i1_native_instruments \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            fixed_tenor_original_listing_report.json
+      - name: Adversarial changed listing row must fail independently
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_fixed_tenor_listing_oracle import verify
+          p=Path("fixed_tenor_original_listing_report.json")
+          report=json.loads(p.read_text())
+          report["rows"][0]["max_same_expiry_native_put_strikes"]+=1
+          with tempfile.TemporaryDirectory() as tmp:
+              bad=Path(tmp)/"forged.json"
+              bad.write_text(json.dumps(report))
+              try:
+                  verify("research_evidence/i1_native_instruments",
+                         "research_evidence/i1_original_causal/i1_causal_signal.json",bad)
+              except ValueError as exc:
+                  assert "ORACLE_ORIGINAL_FIXED_TENOR_LISTING_DISAGREEMENT" in str(exc)
+                  print("INDEPENDENT_ADVERSARIAL_LISTING_MUTATION_REJECTED")
+              else:
+                  raise AssertionError("FORGED_ORIGINAL_LISTING_ACCEPTED")
+          PY
+      - name: Emit only source-feasibility summary; never promote
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("fixed_tenor_original_listing_report.json").read_text())
+          assert r["asset_week_intents"]==180 and r["positive_intents"]==132
+          assert r["historical_option_lifecycles_certified"]==0
+          assert not any(r[k] for k in ("native_fee_margin_index_authenticated",
+              "economic_train_executed","roi_calculated","validation_opened",
+              "holdout_opened","orders_enabled","promotion_authorized"))
+          assert (r["status"]=="STRUCTURALLY_REJECT_FIXED_I1_ZERO_POSITIVE_LISTING_FOLD")==bool(r["zero_positive_listed_folds"])
+          summary={k:r[k] for k in ("status","asset_week_intents","positive_intents",
+              "listed_pair_intents","positive_and_listed_intents","positive_without_listing",
+              "zero_positive_listed_folds","folds","economic_train_executed",
+              "historical_option_lifecycles_certified","promotion_authorized")}
+          Path("fixed_tenor_source_only_summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n")
+          print("FIXED TENOR FIRSTPARTY SOURCE-ONLY GATE:",json.dumps(summary,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-firstparty-fixed-tenor-summary-${{ github.run_id }}
+          path: fixed_tenor_source_only_summary.json
+          if-no-files-found: warn
+          retention-days: 30
