@@ -21,6 +21,10 @@ from research.tools.v99_r106_i1_cost_bound_execution import charge_floor, verify
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, REGIMES, SCENARIOS, _expected_clock, _fold,
 )
+from research.tools.v99_r106_d1_real_train_source_join import FOLD_EDGES
+
+# Immutable four intraday TRAIN fold edges, never inferred from daily NAV.
+INTRADAY_FOLD_EDGES = tuple(FOLD_EDGES[1:-1])
 
 SCHEMA = "V99_I1_NATIVE_EVENT_TO_661D_TRAIN_EQUITY_V1"
 OUTPUT_SCHEMA = "V99_I1_FIXED_90W_DAILY_TRAIN_EQUITY_INPUT_V1"
@@ -99,11 +103,43 @@ def _settle(wallet, event, at_ms):
     return settle_batch(wallet, names, at_ms, event["delivery_index_usd"], fees)
 
 
+def _fold_snapshot(wallets, edge_ms, indices, initial_coin):
+    """Same-clock native wallet NAV; no caller-supplied fold equity accepted."""
+    if (not isinstance(indices, dict) or set(indices) != {"BTC", "ETH"}):
+        raise ValueError("MISSING_EXACT_FOLD_SOURCE_INDICES")
+    indices = {a: D(indices[a]) for a in ("BTC", "ETH")}
+    if any(not v.is_finite() or v <= 0 for v in indices.values()):
+        raise ValueError("INVALID_EXACT_FOLD_SOURCE_INDEX")
+    total = D(0)
+    exposures = []
+    for asset, wallet in wallets.items():
+        if wallet.positions:
+            if wallet.last_ms != edge_ms:
+                raise ValueError("MISSING_EXACT_FOLD_SAME_CLOCK_OPEN_MARKS")
+            nav = account_nav(wallet, edge_ms)
+            if D(nav["nav_usd_equivalent_at_source_index"]) != (
+                    D(nav["nav_coin"])*indices[asset]):
+                raise ValueError("UNBOUND_EXACT_FOLD_MARK_INDEX")
+        else:
+            wallet = replace(wallet, last_ms=edge_ms)
+            wallets[asset] = wallet
+            nav = account_nav(wallet, edge_ms, flat_index_usd=indices[asset])
+        total += D(nav["nav_usd_equivalent_at_source_index"])
+        exposures.extend(asset+":"+p.name for p in wallet.positions)
+    if total <= 0:
+        raise ValueError("INSOLVENT_EXACT_FOLD_NATIVE_NAV")
+    benchmark = sum((D(initial_coin[a])*indices[a] for a in ("BTC", "ETH")), D(0))
+    return {"ts_ms": edge_ms, "equity_usd": str(total),
+            "benchmark_usd": str(benchmark),
+            "actual_exposure_key": "|".join(sorted(exposures)) or "CASH"}
+
+
 def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
     if not isinstance(rows, list) or len(rows) != DAYS:
         raise ValueError("INCOMPLETE_661_DAY_EVENT_JOURNAL")
     wallets = {a: start_wallet(a, scenario, initial_coin[a]) for a in ("BTC", "ETH")}
     result = []
+    fold_snapshots = []
     opened_asset_weeks = set()  # fixed 90 Mondays x BTC/ETH, max one entry each
     prev_clock = min(w.last_ms for w in wallets.values()) - 1
     for i, row in enumerate(rows):
@@ -120,6 +156,13 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
         indices = {asset: D(indices[asset]) for asset in ("BTC", "ETH")}
         if any(v <= 0 for v in indices.values()):
             raise ValueError("INVALID_ORIGINAL_INDEX")
+        edge = next((e for e in INTRADAY_FOLD_EDGES if prev_clock < e <= clock), None)
+        edge_indices = row.get("fold_edge_index_usd")
+        if edge is None and edge_indices is not None:
+            raise ValueError("UNREGISTERED_OR_SEALED_FOLD_EDGE_SOURCE")
+        if "fold_edge_equity_usd" in row or "fold_edge_nav" in row:
+            raise ValueError("FORGED_CALLER_SUPPLIED_FOLD_NAV")
+        captured = False
         last_event = prev_clock
         for event in events:
             if not isinstance(event, dict):
@@ -129,6 +172,9 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
             if (type(at_ms) is not int or not prev_clock < at_ms <= clock
                     or at_ms < last_event or asset not in wallets):
                 raise ValueError("NONCHRONOLOGICAL_OR_SEALED_NATIVE_EVENT")
+            if edge is not None and edge_indices is not None and not captured and at_ms > edge:
+                fold_snapshots.append(_fold_snapshot(wallets, edge, edge_indices, initial_coin))
+                captured = True
             last_event = at_ms
             wallet = wallets[asset]
             if kind == "OPEN":
@@ -144,6 +190,8 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
             else:
                 raise ValueError("UNREGISTERED_NATIVE_CASH_FLOW")
             wallets[asset] = wallet
+        if edge is not None and edge_indices is not None and not captured:
+            fold_snapshots.append(_fold_snapshot(wallets, edge, edge_indices, initial_coin))
         total = D(0)
         exposures = []
         for asset, wallet in wallets.items():
@@ -180,7 +228,7 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd):
             "actual_exposure_key": "|".join(sorted(exposures)) or "CASH",
         })
         prev_clock = clock
-    return result
+    return result, fold_snapshots
 
 
 
@@ -339,9 +387,11 @@ def replay(document):
         raise ValueError("INITIAL_NATIVE_CAPITAL_NOT_SELF_FINANCING")
     _validate_decision_ledger(document)
     _validate_cross_scenario_market_path(document)
-    results = {scenario: _run_scenario(document["scenarios"][scenario],
-                                      scenario, coin, index, initial_usd)
-               for scenario in SCENARIOS}
+    replayed = {scenario: _run_scenario(document["scenarios"][scenario],
+                                       scenario, coin, index, initial_usd)
+                for scenario in SCENARIOS}
+    results = {scenario: replayed[scenario][0] for scenario in SCENARIOS}
+    fold_snapshots = {scenario: replayed[scenario][1] for scenario in SCENARIOS}
     a, b = (results[name] for name in SCENARIOS)
     if any((x["ts_ms"], x["regime"], x["benchmark_usd"]) !=
            (y["ts_ms"], y["regime"], y["benchmark_usd"])
@@ -354,10 +404,25 @@ def replay(document):
         for asset in ("BTC", "ETH"):
             if D(severe_day["index_usd"][asset]) != D(super_day["index_usd"][asset]):
                 raise ValueError("SCENARIO_ORIGINAL_INDEX_PATH_MISMATCH")
+        first, second = (severe_day.get("fold_edge_index_usd"),
+                         super_day.get("fold_edge_index_usd"))
+        if (first is None) != (second is None):
+            raise ValueError("SCENARIO_FOLD_SOURCE_PRESENCE_MISMATCH")
+        if first is not None:
+            if set(first) != {"BTC", "ETH"} or set(second) != {"BTC", "ETH"} or any(
+                    D(first[asset]) != D(second[asset]) for asset in ("BTC", "ETH")):
+                raise ValueError("SCENARIO_ORIGINAL_FOLD_INDEX_PATH_MISMATCH")
+    if [x["ts_ms"] for x in fold_snapshots["severe"]] != [
+            x["ts_ms"] for x in fold_snapshots["supersevere"]]:
+        raise ValueError("SCENARIO_FOLD_CLOCK_PATH_MISMATCH")
     return {
         "schema": OUTPUT_SCHEMA, "fixture": document["fixture"],
         "initial_capital_usd": str(initial_usd),
         "scenarios": results,
+        "fold_edge_snapshots": fold_snapshots,
+        "exact_fold_edge_nav_available": all(
+            [x["ts_ms"] for x in fold_snapshots[scenario]] == list(INTRADAY_FOLD_EDGES)
+            for scenario in SCENARIOS),
         "status": ("FIXTURE_NATIVE_EVENT_EQUITY_ONLY" if document["fixture"]
                    else "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY"),
         "original_source_receipts_independently_authenticated": False,
