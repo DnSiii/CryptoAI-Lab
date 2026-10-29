@@ -61,6 +61,8 @@ def check(d):
     event_mismatches=int(np.count_nonzero(a[2]!=entries))
     silent=int(np.count_nonzero((np.abs(np.diff(a[0],axis=0)).sum(axis=2)>1e-12)&~a[1][1:]))
     missing_refresh=int(np.count_nonzero(refresh&~a[1][:,0]))
+    calendar=np.arange(WARMUP,HOURS,672)
+    scheduled_missed=[int(t) for t in calendar if not a[1][t,0]]
     invalid=int(np.count_nonzero(a[2][~a[3]]))
     counts={str(y):{n:int(a[2][lo:hi,k].sum()) for k,n in enumerate(NAMES)}
             for y,lo,hi in ((2023,744,9504),(2024,9504,HOURS))}
@@ -68,6 +70,7 @@ def check(d):
     failures=[]
     if mismatches or event_mismatches:failures.append('INDEPENDENT_SOURCE_MISMATCH')
     if silent or missing_refresh:failures.append('SILENT_OR_MISSING_FORCED_REFRESH')
+    if scheduled_missed:failures.append('CORE_REFRESH_MISSED_PREREGISTERED_CALENDAR')
     if invalid:failures.append('INVALID_SOURCE_ENTRY')
     if gross>.88+1e-10:failures.append('TARGET_GROSS')
     if any(counts[str(y)][name]<MINIMUM[k] for y in (2023,2024)
@@ -78,7 +81,9 @@ def check(d):
             'independent_hourly_weight_mismatches':mismatches,
             'independent_entry_mismatches':event_mismatches,
             'silent_updates':silent,'missing_forced_core_refreshes':missing_refresh,
-            'forced_core_refreshes':int(refresh.sum()),'invalid_entries':invalid,
+            'forced_core_refreshes':int(refresh.sum()),
+            'core_refreshes_preregistered':len(calendar),
+            'core_refresh_missing_t':scheduled_missed,'invalid_entries':invalid,
             'intended_gross_peak':gross,'native_funding_events':int(d['event'].sum()),
             'training_only':True,'pnl_computed':False,'holdout_accessed':False,
             'synthetic_future_mutation_pass':True}
