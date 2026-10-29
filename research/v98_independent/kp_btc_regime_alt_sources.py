@@ -39,7 +39,7 @@ def bundle(opening,high,low,close,rate,event,quote):
         for k in (1,2,3):
             if expiry[k]>=0 and t>=expiry[k]:
                 current[k]=0.;updates[t,k]=True;expiry[k]=-1;expired.add(k)
-        if weekly:
+        if weekly and good:
             target=np.zeros(4,dtype=float)
             if good and bull:target[0]=BUDGET[0]
             current[0]=target;updates[t,0]=True
