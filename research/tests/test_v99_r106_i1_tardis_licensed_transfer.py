@@ -114,7 +114,7 @@ class LicensedTransferTests(unittest.TestCase):
         self.assertEqual(first["downloaded_days"], 1)
         self.assertFalse(first["vendor_gap_attestation_verified"])
         self.assertFalse(first["promotion_authorized"])
-        self.assertEqual((self.root / "2021-12-09.csv.gz").read_bytes(), fake_gzip())
+        self.assertEqual((self.root / "2021-12-09.csv.gz").read_bytes(), opener.body)
         self.assertFalse((self.root / "manifest.json").exists())
         self.assertEqual(len(list(self.root.glob("*.part"))), 0)
         again = self.call(opener)
@@ -131,7 +131,7 @@ class LicensedTransferTests(unittest.TestCase):
         self.assertEqual(len(opener.urls), 2)  # scope + one exact source day
         self.assertTrue(opener.urls[-1].endswith("/2022/06/15/OPTIONS.csv.gz"))
         self.assertEqual((self.root / "2022-06-15.csv.gz").read_bytes(),
-                         fake_gzip(day))
+                         opener.body)
         self.assertFalse((self.root / "2021-12-09.csv.gz").exists())
         self.assertFalse(result["economic_train_executed"])
         again = self.call(opener, start_date="2022-06-15")
@@ -146,7 +146,7 @@ class LicensedTransferTests(unittest.TestCase):
         result = self.call(opener, start_date="2022-01-23")
         self.assertEqual(result["downloaded_days"], 1)
         self.assertTrue(opener.urls[-1].endswith("/2022/01/23/OPTIONS.csv.gz"))
-        self.assertEqual((self.root/"2022-01-23.csv.gz").read_bytes(), fake_gzip(day))
+        self.assertEqual((self.root/"2022-01-23.csv.gz").read_bytes(), opener.body)
         self.assertFalse(result["full_661_days_transferred"])
         self.assertFalse(result["vendor_gap_attestation_verified"])
         self.assertFalse(result["economic_train_executed"])
