@@ -43,6 +43,8 @@ jobs:
           test -s research/V99_R106_I1_LICENSED_DAY_24H_TRANSFER_PREFLIGHT_PREREG_20261029.md
           git merge-base --is-ancestor 06853303579f6652d3ff793b4782153b9ef6d56c HEAD
           test -s research/V99_R106_I1_TARGET_DAY_TRANSFER_TO_SOURCE_GATE_PREREG_20261029.md
+          git merge-base --is-ancestor ec50342b94ef97a7349773c3b407ce9999d8056c HEAD
+          test -s research/V99_R106_I1_PAID_DAY_EXTERNAL_DIGEST_ATOMICITY_PREREG_20261029.md
       - name: Run synthetic 661-day full intake and independent original-byte oracle
         run: python -m unittest -v research.tests.test_v99_r106_i1_local_tape_import
       - name: Test opt-in licensed archive transfer OFFLINE with mock vendor (no key, no downloads)
