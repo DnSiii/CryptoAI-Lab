@@ -55,6 +55,12 @@ jobs:
           assert r['schema']=='V99_R106_DURABLE_PAIRED_SOURCE_CHAIN_V1'
           assert r['economic_trials']==0
           assert r['minimum_two_consecutive_atomic_hours_authenticated'] is False
+          assert len(r['native_crosssource_pairs']) + r['invalid_native_crosssource_pair_count'] == r['paired_hours']
+          assert len(r['invalid_native_crosssource_pairs']) == r['invalid_native_crosssource_pair_count']
+          if r['invalid_native_crosssource_pair_count']:
+              assert r['status'] == 'DATA_ONLY_HOLD_ORIGINAL_PAIR_CLOCK_SKEW'
+              assert all(x['reason'] == 'terms/market observation >25m apart'
+                         for x in r['invalid_native_crosssource_pairs'])
           assert r['longest_same_run_claimed_continuity_streak_hours'] <= r['paired_hours']
           print('Claimed same-run source streak (NOT authenticated):',
                 r['longest_same_run_claimed_continuity_streak_hours'])
@@ -63,7 +69,8 @@ jobs:
               assert r[f] is False
           print('VALIDATED_DATA_ONLY',r['status'],'paired=',r['paired_hours'],
                 'missing=',len(r['missing_paired_hours']),
-                'adjacent=',r['verified_adjacent_links'])
+                'adjacent=',r['verified_adjacent_links'],
+                'quarantined_original_pairs=',r['invalid_native_crosssource_pair_count'])
           PY
       - name: Archive DATA_ONLY evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
