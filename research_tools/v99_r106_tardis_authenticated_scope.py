@@ -25,6 +25,44 @@ TRAIN_START = datetime(2021, 12, 9, tzinfo=timezone.utc)
 TRAIN_END = datetime(2023, 10, 1, tzinfo=timezone.utc)
 
 
+def _scope_covers_window(raw, start, end):
+    """Verify an OPTIONS full-universe grant for exactly the requested UTC window.
+
+    This is a vendor scope *claim*, never a written license or archive receipt.
+    The full-TRAIN verifier remains separate and unchanged for its historical
+    multi-date probe. No partial symbol lists, naive dates, or implicit expiry.
+    """
+    if (not isinstance(start, datetime) or not isinstance(end, datetime)
+            or start.tzinfo is None or end.tzinfo is None or not start < end):
+        return False
+    try:
+        grants = json.loads(raw)
+        if not isinstance(grants, list):
+            return False
+        for grant in grants:
+            if not isinstance(grant, dict) or grant.get("exchange") != "deribit":
+                continue
+            plan = grant.get("dataPlan")
+            if not isinstance(plan, str) or plan.strip().lower() not in {
+                "options", "derivatives", "all-exchanges", "all_exchanges", "unlimited"
+            }:
+                continue
+            symbols = grant.get("symbols")
+            if (not isinstance(symbols, list)
+                    or not all(isinstance(s, str) for s in symbols)
+                    or (symbols and "OPTIONS" not in symbols)):
+                continue
+            lower = datetime.fromisoformat(grant["from"].replace("Z", "+00:00"))
+            upper = datetime.fromisoformat(grant["to"].replace("Z", "+00:00"))
+            if lower.tzinfo is None or upper.tzinfo is None:
+                continue
+            if lower <= start and upper >= end:
+                return True
+    except (ValueError, TypeError, KeyError, OverflowError, AttributeError):
+        return False
+    return False
+
+
 def _scope_covers_train(raw):
     """Check documented Tardis grant array, not a bare HTTP 200.
 
