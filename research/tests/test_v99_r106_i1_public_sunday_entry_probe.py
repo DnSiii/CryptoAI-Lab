@@ -44,6 +44,13 @@ def make_day(*, crossed_last=False, stale=False, omit_eth=False, missing_hour=No
                 us = start + hour*3_600_000_000 + 10_000_000
                 symbol = f"{asset}-03JUN22-{strike}-P"
                 writer.writerow(("deribit", symbol, us, us, ".01", ".02", "3", "4"))
+    # Full-day hourly capture is distinct from a fresh pre-Monday entry book.
+    # Four valid latest rows physically arrive at 23:59:58 UTC.
+    for asset in (("BTC",) if omit_eth else ("BTC", "ETH")):
+        for strike in (2000, 2100):
+            us = start + 86_398_000_000
+            writer.writerow(("deribit", f"{asset}-03JUN22-{strike}-P",
+                             us, us, ".01", ".02", "3", "4"))
     if crossed_last:
         us = start + 86_399_000_000
         writer.writerow(("deribit", "BTC-03JUN22-2000-P", us, us,
@@ -73,7 +80,7 @@ class SundayEntryTests(unittest.TestCase):
 
     def test_valid_original_shaped_book_is_fixture_not_certified(self):
         r = self.check(make_day())
-        self.assertEqual(r["source_rows"], 96)
+        self.assertEqual(r["source_rows"], 100)
         self.assertEqual(r["hourly_qualifying_put_coverage"], {"BTC": 24, "ETH": 24})
         self.assertEqual(r["original_books_by_asset"], {"BTC": 2, "ETH": 2})
         self.assertEqual(r["fixed_original_signal_by_asset"], {
