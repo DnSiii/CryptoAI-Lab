@@ -154,7 +154,33 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)
+    # The already-preregistered single paid Sunday must be independently
+    # evaluated BEFORE a full-history purchase is even considered. A valid
+    # archive transfer alone is not a viable two-strike options market.
+    target_day_gate = None
+    if len(dates) == 1 and dates[0] == date(2022, 1, 23):
+        from research.tools.v99_r106_i1_single_day_source_feasibility import inspect
+        checked = inspect(root / "2022-01-23.csv.gz",
+                          license_evidence=license_evidence)
+        if checked["status"] not in ("SOURCE_FEASIBLE_ONLY_NOT_ECONOMICS",
+                                      "SOURCE_VETO_NOT_LOSS") or not checked[
+                                          "independent_original_byte_replay_passed"]:
+            raise ValueError("TARGET_DAY_INDEPENDENT_SOURCE_GATE_FAILED")
+        target_day_gate = {
+            "status": checked["status"],
+            "source_day": checked["source_day"],
+            "original_gzip_sha256": checked["original_gzip_sha256"],
+            "source_hour_coverage": checked["source_hour_coverage"],
+            "fresh_synchronized_two_strike_pairs_by_asset":
+                checked["fresh_synchronized_two_strike_pairs_by_asset"],
+            "independent_original_byte_replay_passed": True,
+            "vendor_completeness_attested": False,
+            "historical_native_fees_margin_delivery_verified": False,
+            "certified_lifecycles": 0,
+            "promotion_authorized": False,
+        }
     return {"status": "LOCAL_SOURCE_BYTES_ONLY_NOT_VENDOR_COMPLETENESS_CERTIFIED",
+            "preselected_one_day_source_gate": target_day_gate,
             "planned_train_days": len(dates), "downloaded_days": downloaded,
             "preexisting_valid_days": existing, "full_661_days_transferred": max_days == DAYS,
             "vendor_gap_attestation_verified": False,
