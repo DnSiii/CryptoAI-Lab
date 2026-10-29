@@ -1,0 +1,18 @@
+# V98 MH — preregistered strategic BTC compounding with selective cross-asset sleeves (2026-10-29)
+
+**IMMUTABLE PRE-RESULT FREEZE.** Economically distinct from MG signed BTC bear/short beta-spread, MF pullback, ME breakout-asymmetry, MC return-reversal, MD carry, and other rejected candidates. This is a strategic long-duration compounding portfolio, not a high-frequency ranking/search or rescue of rejected signals. Training ONLY Dec-2022 warmup + 2023–24 Clean-4 BTC/ETH/BNB/SOL Binance USD-M 1h; 2025 separate validation inaccessible, 2026+ future holdout untouched, XRP quarantined, Phase083 ineligible. V14/V15/V99 inaccessible. Completed t signals -> next open t+1. All rules and gates fixed before source or PnL.
+
+**Seven integrated slots:**
+1. Growth Core: 0.60 NAV long BTC, maintained throughout training with target refresh every 672 hours (first t=744). This is strategic adoption beta, not an optimized directional timing rule; no BTC short. A 0.60 gross anchor prioritizes long-run wealth.
+2. Opportunity: every 168h, if SOL 336h log return > BTC 336h log return and SOL 72h log return >0, hold +0.12 NAV SOL for 168h, no same-clock reentry. Captures sustained network-leadership expansion rather than a pullback.
+3. Relative Value: every 336h, if BTC 336h log return > ETH 336h log return and BTC 168h return >0, long BTC +0.05 NAV and short ETH -0.05 NAV for 336h, no same-clock reentry. BTC-versus-ETH dominance spread, not beta, cross-sectional four-asset rank, funding or volume spread. Unconditional direction is *not* reversed after results.
+4. Stress/Recovery: every 168h, if >=2 of four assets have negative 168h returns and BTC 24h return >0, add +0.06 NAV BTC for 168h, no same-clock reentry. Conditional recovery participation, not downside short or hedge.
+5. Regime Router: use completed 336h SOL/BTC relative leadership, 168h market breadth and BTC 24h recovery only to gate optional sleeves. Strategic core is not routed out.
+6. Dynamic Allocator: core first; proportionally scale optional sleeves to total intended gross <=0.88 NAV. Ablated capital remains cash.
+7. Risk Governor: close-first causal atomic planner, fixed ex-ante funding reserve, no future funding mark/rate sizing; intermediate gross <=100%, post-funding gross <=93%, positive worst intrabar equity.
+
+**Source-only independent gate:** replay all three optional entry calendars independently, zero mismatch/invalid/silent changes, authenticated and synthetic future-mutation tests, max intended gross <=0.88. Minimum >=6 Opportunity, >=4 Relative Value, >=3 Stress entries in EACH 2023 and 2024; the low-frequency stress module has a lower pre-registered count. Fail => immutable source rejection before PnL, no rescue.
+
+**Economic 30-cell gate:** five books (full/core/minus each optional) × three costs (base 4bps fee+2bps slip, severe 10+10bps, supersevere 15+20bps) × two signed native funding settlement orderings, 17,543 actual training hours each. Require base CAGR >50%, severe CAGR >30%, severe 2023 AND 2024 annual returns positive, severe max DD <45%, base/severe turnover <=USD600k per initial USD10k, optional sleeve marginal net log growth >0.02 in BOTH base/severe and annual marginal >=-0.03. Report physical survival, funding, concentration, tails, positive days, hourly PF/payoff/win. Failure irrevocably rejects; no sign/window/gross/threshold retuning. Native signed funding uses SHA-pinned conservative official 1h worst-side mark envelope, not exact tick.
+
+Only if training passes: freeze code/receipt before independent 17,543-hour PnL oracle, cross-environment replay, severe corners, separate chronological 2025 validation, untouched future holdout, and after full internal freeze benchmark V14/V15/V99. No real trading authorization.
