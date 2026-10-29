@@ -46,7 +46,7 @@ def _valid_put(row: dict, day: date) -> str | None:
             float(row[k]) for k in ("bid_price", "ask_price", "bid_amount", "ask_amount"))
     except (ValueError, TypeError, OverflowError):
         return None
-    if (not day < expiry <= day + timedelta(days=45)
+    if (not day < expiry
             or not all(math.isfinite(x) and x > 0
                        for x in (strike, bid, ask, bid_size, ask_size))
             or bid >= ask):
