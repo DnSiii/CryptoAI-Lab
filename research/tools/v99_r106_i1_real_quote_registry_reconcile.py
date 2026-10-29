@@ -101,13 +101,17 @@ def run(path: Path, registry_dir: Path) -> dict:
             try:
                 arrival = int(row["local_timestamp"])
                 venue = int(row["timestamp"])
-                bid, ask, bs, a_s = (float(row[k]) for k in
-                    ("bid_price", "ask_price", "bid_amount", "ask_amount"))
             except (ValueError, TypeError) as exc:
-                raise ValueError("INVALID_ORIGINAL_ROW") from exc
+                raise ValueError("INVALID_ORIGINAL_CLOCK") from exc
             if not 0 <= venue <= arrival < CLOCK * 1000:
                 raise ValueError("INVALID_ORIGINAL_ARRIVAL_CLOCK")
-            valid = all(math.isfinite(v) and v > 0 for v in (bid, ask, bs, a_s)) and bid < ask
+            try:
+                bid, ask, bs, a_s = (float(row[k]) for k in
+                    ("bid_price", "ask_price", "bid_amount", "ask_amount"))
+                valid = all(math.isfinite(v) and v > 0 for v in
+                            (bid, ask, bs, a_s)) and bid < ask
+            except (ValueError, TypeError):
+                valid = False
             previous = symbols.get(row["symbol"])
             if previous is None:
                 symbols[row["symbol"]] = (arrival, valid)
