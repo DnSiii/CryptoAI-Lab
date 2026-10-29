@@ -149,6 +149,6 @@ if __name__=='__main__':
     if result['decision']=='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED':
         if len(LEDGER)!=HOURS-WARMUP-1:raise ValueError('MC_LEDGER_INCOMPLETE')
         with open(a.ledger_output,'w') as f:
-            for row in LEDGER:f.write(json.dumps(row,allow_nan=False,separators=(',',':'))+'\\n')
+            for row in LEDGER:f.write(json.dumps(row,allow_nan=False,separators=(',',':'))+'\n')
         print('MC_PROVISIONAL_LEDGER_EXPORTED',len(LEDGER),flush=True)
     raise SystemExit(0 if result['decision']=='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED' else 2)
