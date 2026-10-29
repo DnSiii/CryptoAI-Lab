@@ -106,7 +106,7 @@ def synthetic_tests():
            'equity_before':9999.3,'fee_cash':0.,'slippage_cash':0.,
            'funding_cash':0.,'equity_close':9999.3}]
     marklo=np.full_like(o,np.nan);markhi=np.full_like(o,np.nan)
-    marklo[1,0]=markhi[1,0]=100.
+    marklo[1,:]=markhi[1,:]=100.
     out=replay(d,rows,marklo,markhi,.0004,.0002,'new_after_fill',1,3)
     assert out['hours_replayed']==2 and abs(out['final_equity']-9999.3)<1e-8
     bad=[dict(x) for x in rows];bad[0]['fee_cash']=0.
@@ -126,7 +126,7 @@ def synthetic_tests():
     carried[0]['funding_cash']=0.;carried[0]['equity_close']=9999.4
     carried[1]['equity_before']=9999.4
     carried[1]['funding_cash']=-.1;carried[1]['equity_close']=9999.3
-    marklo[2,0]=markhi[2,0]=100.
+    marklo[2,:]=markhi[2,:]=100.
     out2=replay(d2,carried,marklo,markhi,.0004,.0002,'carried_before_fill',1,3)
     assert abs(out2['final_equity']-9999.3)<1e-8
     tampered=[dict(x) for x in carried];tampered[1]['funding_cash']=+.1
