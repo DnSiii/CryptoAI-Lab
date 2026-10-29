@@ -2,7 +2,7 @@
 
 **Decision: REJECT KV PERMANENTLY; NO POST-RESULT RESCUE.** Prospective preregistration commit `605fd4a56d31e4d27aeff0dc49ccb919a55dbaf8` preceded source/PnL. [Authenticated source gate 40820518275](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40820518275) passed 18,288 Phase243 pinned Clean-4 hours, native signed funding, synthetic and real-history future-mutation causality. Optional source entries 2023/2024: Opportunity 17/19, Relative Value 13/15, Stress/Recovery 34/30; no source minimum failed.
 
-[Original physical and independent audit workflow 40820599096](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40820599096): 30/30 physical cells survived across 5 independently financed books, three native fee tiers, two funding orders and two Ubuntu OS; 60/60 original receipts independently audited with **zero errors**, cross-OS reproduction confirmed. Five independent all-settled-hour 81-corner oracles were launched and remain pending at time of this first report; do not represent them as complete until observed.
+[Original physical and independent audit workflow 40820599096](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40820599096): 30/30 physical cells survived across 5 independently financed books, three native fee tiers, two funding orders and two Ubuntu OS; 60/60 original receipts independently audited with **zero errors**, cross-OS reproduction confirmed. **Five of five independent every-settled-hour 81-corner settlement oracles completed successfully** across all five original physical books. This establishes mechanical correctness only, not economic acceptance.
 
 ## USD10,000 2023-2024 training only, original physical receipts
 | Metric | Full base | Full severe | Full supersevere |
