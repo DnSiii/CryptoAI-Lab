@@ -57,13 +57,20 @@ jobs:
           assert not any(r[k] for k in ("economic_train_executed", "native_terms_authenticated",
                "roi_calculated", "validation_opened", "holdout_opened",
                "orders_enabled", "promotion_authorized", "original_complete_option_lifecycles_certified"))
-          if r["status"]!="REAL_ORIGINAL_SUNDAY_ENTRY_BOOK_REPLAY_PASS_SOURCE_ONLY":
+          allowed = {
+              "REAL_ORIGINAL_SUNDAY_ENTRY_BOOK_REPLAY_PASS_SOURCE_ONLY",
+              "REAL_ORIGINAL_SUNDAY_NO_FRESH_ENTRY_BOOK_VETO_SOURCE_ONLY",
+          }
+          if r["status"] not in allowed:
               raise AssertionError("REAL_SOURCE_UNAVAILABLE_OR_REPLAY_FAILED:"+r["status"])
           assert r["real_original_day_verified"] is True
           assert r["independent_original_byte_entry_replay"] is True
           assert r["hourly_qualifying_put_coverage"]=={"BTC":24,"ETH":24}
-          assert all(r["original_books_by_asset"][a]>0 for a in ("BTC","ETH"))
-          print("REAL ONE-MONDAY ORIGINAL BOOK REPLAY VERIFIED; 0 ECONOMIC LIFECYCLES; NO PROMOTION")
+          both=all(r["original_books_by_asset"][a]>0 for a in ("BTC","ETH"))
+          assert r["both_assets_have_fresh_fixed_tenor_books"] is both
+          assert (r["status"]=="REAL_ORIGINAL_SUNDAY_ENTRY_BOOK_REPLAY_PASS_SOURCE_ONLY")==both
+          print("REAL SOURCE REPLAY:",r["status"],r["original_books_by_asset"])
+          print("0 COMPLETE ECONOMIC LIFECYCLES / NO PROMOTION / NO ORDERS")
           PY
       - name: Upload only redacted aggregate status; never vendor gzip or original signal
         if: always()
