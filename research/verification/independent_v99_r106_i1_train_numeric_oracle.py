@@ -155,6 +155,7 @@ def verify(source, report):
     aligned = []
     exposure = []
     passes = []
+    nonfold_passes = []
     for scenario in scenarios:
         rows = source["scenarios"][scenario]
         got = report["scenarios"][scenario]
@@ -238,12 +239,16 @@ def verify(source, report):
         if got.get("gates") != gates or got.get("numeric_pass") is not all(gates.values()):
             raise AssertionError("INDEPENDENT_GATE_DECISION_MISMATCH")
         passes.append(all(gates.values()))
+        nonfold_passes.append(all(p for k, p in gates.items()
+                                  if k != "fold_positive"))
     if aligned[0] != aligned[1]:
         raise AssertionError("REFERENCE_SCENARIO_REGIME_BENCHMARK_MISMATCH")
     divergent = sum(a != b for a,b in zip(*exposure))
     if (report.get("days_per_scenario") != n or
             report.get("scenario_path_divergence_days") != divergent or
-            report.get("numeric_train_pass_both_scenarios") is not all(passes) or
+            report.get("daily_proxy_numeric_screen_pass_both_scenarios") is not all(passes) or
+            report.get("numeric_train_pass_both_scenarios") is not (
+                complete and all(exact_passes) and all(nonfold_passes)) or
             report.get("higher_cost_scenario_more_profitable_not_alpha_evidence") is not (
                 Decimal(report["scenarios"]["supersevere"]["total_roi"]) >
                 Decimal(report["scenarios"]["severe"]["total_roi"]))):
