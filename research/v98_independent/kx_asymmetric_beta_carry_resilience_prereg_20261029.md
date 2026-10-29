@@ -1,0 +1,20 @@
+# V98 Independent KX — strategic asymmetric beta, risk-normalized acceleration, carry discount and resilience rotation (2026-10-29)
+
+**Preregistered before KX source implementation, source receipts or PnL.** KW is permanently source-rejected (2024 Opportunity 5<8); this is NOT a KW threshold/window/weight rescue. KX has a distinct portfolio economic mechanism: a fixed diversified BTC/SOL/BNB strategic beta basket gated by broad-market trend, volatility-normalized opportunity selection, relative native funding discount, and a resilience rotation after broad declines. No reused rejected source module is eligible for promotion.
+
+## Independent training firewall
+Only Phase243 pinned Clean-4 BTC/ETH/BNB/SOL USD-M 1h 2022-12 warmup and 2023-2024 chronological training; signed native 8h funding and conservative vendor marks, next actual open after completed-close t, prior-only OHLC/liquidity. Never read 2025 or 2026+, XRP quarantine, contaminated Phase083, or V14/V15/V99 internals. V16/V99 Frozen, workflows, paper, holdout untouched.
+
+## Complete seven-slot portfolio
+1. **Growth Core, 0.64:** every 672h, if equal-weight market 336h completed log return >0, hold a fixed long strategic mix BTC 0.24 / SOL 0.24 / BNB 0.16 for 672h, irrespective of which coin recently led; if market 336h <=0 but BTC 336h >0, hold BTC 0.64, else cash. Unlike KW ranked top-two selection, this is a strategic cross-cycle market beta with sparse trend regime changes.
+2. **Opportunity, 0.12:** weekly when idle, compute each asset's positive completed 168h log return divided by its prior 168h hourly log-return volatility (zero volatility => ineligible). Buy the highest risk-normalized positive-return asset for 168h. This is volatility-normalized trend participation, not KW volume-confirmed 72h expansion.
+3. **Relative Value, 0.10:** every 168h while idle, among assets with positive 336h price trend, buy the one with minimum trailing 168h signed native funding sum IF that sum is negative; hold 168h. This is carry-receiving trend-qualified long exposure, not a paired short or a threshold relaxation of KW (different 168h position horizon, unconditional negative carry requirement).
+4. **Stress/Recovery, 0.08:** weekly while idle, if equal-weight market 72h return <0, buy the asset with the highest 72h return (the least damaged/resilient) for 168h. This is defensive relative resilience after a broad-market drawdown, not KW rebound-after-168h decline.
+5. **Regime Router:** TREND when market 336h positive, DEFENSE when market 72h negative, otherwise MIXED. All decisions use completed observations.
+6. **Dynamic Allocator:** four independent persistent unit rows; 0.64/0.12/0.10/0.08 budget (0.94 gross, 6% source reserve), >=5% physical reserve, no unfilled-exit collateral reuse, no opposing inventory, no hourly rebalancing, ablations retain cash.
+7. **Risk Governor:** prior-only 336h OHLC, 672h signed native funding and staged 24h exit quote envelope; physical next-open native fee/slippage/funding with both funding orders, independent every-settled-hour 81-corner audit.
+
+## Frozen gates
+Pre-PnL: exactly 18,288 pinned hours, vendor SHA, 9,144 native funding events, no source-invalid entry, no future leakage, no silent row changes, <=0.94 gross; each optional sleeve >=8 source entry events in EACH 2023 and 2024. Failure permanently rejects KX before economic evaluation.
+
+After source PASS only: 5 independent books x 3 native cost tiers x 2 funding orders x 2 Ubuntu OS = 30 physical cells and 60 original receipts; five independent all-hour settlement oracles, cross-OS reproducibility, complete historical and regime/tail/funding/turnover metrics. Full CAGR >50% base and >30% severe; both severe years positive; severe DD<45%; base and severe absolute turnover <=USD600k; Full-minus-ablation net log growth >0.02 combined for each sleeve in base and severe and >=-0.03 in each year. Rejected candidates stay rejected; no sign/window/threshold/gross/cost rescue. Only internally frozen passed training unlocks separate 2025 validation, untouched future holdout, then external benchmarks. No live trading.
