@@ -6,6 +6,7 @@ import argparse,datetime,hashlib,json,math
 import numpy as np
 from v98_clean4_training_reader import load,ASSETS,START
 from v98_mark_archive_crosscheck import download
+from v98_mark_archive_daily_recovery import download_daily
 MONTHS=tuple(f'{y}-{m:02d}' for y in (2022,2023,2024) for m in range(1,13) if y>2022 or m==12)
 
 def run(d,fetch=None):
@@ -18,13 +19,20 @@ def run(d,fetch=None):
             month=datetime.datetime.fromtimestamp(ms/1000,datetime.timezone.utc).strftime('%Y-%m')
             if month not in monthly:raise ValueError('V98_MARK_ARCHIVE_OUTSIDE_TRAINING')
             monthly[month].append((int(t),ms))
-        orig=[];proxy=[];outside=[];hashes={}
+        orig=[];proxy=[];outside=[];hashes={};daily_hashes={};recovered=0
         for month in MONTHS:
             print('V98_MARK_ARCHIVE_FETCH',symbol,month,flush=True)
             candles,sha=download(symbol,month,fetch);hashes[month]=sha
             print('V98_MARK_ARCHIVE_ROWS',symbol,month,len(candles),flush=True)
+            missing=[(t,ms) for t,ms in monthly[month] if ms not in candles]
+            for date in sorted(set(datetime.datetime.fromtimestamp(ms/1000,datetime.timezone.utc).strftime('%Y-%m-%d') for t,ms in missing)):
+                daily,dsha=download_daily(symbol,date,fetch)
+                for ms in set(candles).intersection(daily):
+                    if candles[ms]!=daily[ms]:raise ValueError('V98_MARK_MONTH_DAILY_CONFLICT_'+symbol+'_'+str(ms))
+                candles.update(daily);daily_hashes[date]=dsha
             for t,ms in monthly[month]:
                 if ms not in candles:raise ValueError('V98_MARK_ARCHIVE_MISSING_EVENT_'+symbol+'_'+str(ms))
+                if (t,ms) in missing:recovered+=1
                 o,h,l,c=candles[ms];m=float(d['mark'][t,j])
                 orig.append(m);proxy.append(o);outside.append(not l<=m<=h)
         if len(orig)!=2286:raise ValueError('V98_MARK_ARCHIVE_INCOMPLETE_'+symbol)
@@ -34,7 +42,8 @@ def run(d,fetch=None):
           'mark_kline_open_max_relative_gap':float(np.max(gap)),
           'conservative_mark_outside_same_hour_mark_kline_fraction':float(np.mean(outside)),
           'relative_gap_above_1pct_fraction':float(np.mean(gap>.01)),
-          'relative_gap_above_5pct_fraction':float(np.mean(gap>.05))}
+          'relative_gap_above_5pct_fraction':float(np.mean(gap>.05)),
+          'funding_slots_recovered_from_official_daily':recovered,'daily_archive_sha256':daily_hashes}
         sha_by_asset[symbol]=hashes;total+=len(orig)
     return {'decision':'PASS_FULL_CLEAN4_OFFICIAL_HOURLY_MARK_ARCHIVE_CROSSCHECK_NOT_EXACT_TICK_MARK',
        'training_only':True,'holdout_read':False,'native_funding_tick_mark_attested':False,
