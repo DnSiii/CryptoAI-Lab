@@ -1,0 +1,31 @@
+name: V98 Independent MB Read-Only 30-Cell Arithmetic Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-mb-audit.yml'
+      - 'research/v98_independent/mb_independent_receipt_arithmetic_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  mb-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download frozen MB original 30-cell receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-mb-30cell-40943769825
+          run-id: 40943769825
+          github-token: ${{ github.token }}
+          path: mb-receipt
+      - name: Independently reconcile all cells and rejection scope
+        run: python research/v98_independent/mb_independent_receipt_arithmetic_audit.py --receipt mb-receipt/mb_30cell_training_receipt.json
