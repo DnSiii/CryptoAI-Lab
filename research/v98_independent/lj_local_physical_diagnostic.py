@@ -16,7 +16,7 @@ def physical(data,intents,updates,path,tier,order):
     fee,slip=COSTS[tier]
     include=INCLUDE[path];qty=np.zeros((4,4));equity=INITIAL
     prev=c[WARMUP];equity_history=[];turnover=0.;fees=0.;slippage=0.;funding=0.
-    clipped=0;gross_breaches=0;min_intrabar_equity=INITIAL;trades=[]
+    clipped=0;gross_breaches=0;min_intrabar_equity=INITIAL
     annual_start={2023:INITIAL,2024:None};annual_end={}
     for t in range(WARMUP+1,HOURS):
         px=o[t];equity+=float(np.sum(qty*(px-prev)))
@@ -36,7 +36,6 @@ def physical(data,intents,updates,path,tier,order):
                 if notional:
                     cost=notional*(fee+slip);equity-=cost
                     turnover+=notional;fees+=notional*fee;slippage+=notional*slip
-                    trades.append(float(np.dot(old,px-prev))-cost)
                 qty[k]=0
             for k in include:
                 if not updates[source_t,k]:continue
@@ -85,7 +84,6 @@ def physical(data,intents,updates,path,tier,order):
     curve=np.array(equity_history)
     peak=np.maximum.accumulate(np.r_[INITIAL,curve]);dd=float(np.min(np.r_[INITIAL,curve]/peak-1))
     daily=curve[23::24];day_rets=np.diff(np.r_[INITIAL,daily])/np.r_[INITIAL,daily[:-1]]
-    wins=[x for x in trades if x>0];losses=[x for x in trades if x<0]
     years={str(y):float(annual_end[y]/annual_start[y]-1) for y in (2023,2024)}
     return {'passed':not gross_breaches and min_intrabar_equity>0,'path':path,'tier':tier,'order':order,
       'final_equity':float(equity),'cagr':float((equity/INITIAL)**.5-1),'net_log_growth':float(np.log(equity/INITIAL)),
@@ -93,8 +91,7 @@ def physical(data,intents,updates,path,tier,order):
       'funding_cash_usd':funding,'clipped_events':clipped,'gross_breaches':gross_breaches,
       'min_intrabar_equity':min_intrabar_equity,'positive_days':int(np.sum(day_rets>0)),
       'daily_count':len(day_rets),'cvar_1pct':float(np.mean(np.sort(day_rets)[:max(1,len(day_rets)//100)])),
-      'win_rate':float(len(wins)/max(1,len(trades))),'profit_factor':float(sum(wins)/max(1,-sum(losses))),
-      'payoff':float(np.mean(wins)/max(1e-12,-np.mean(losses))) if wins and losses else None}
+      'trade_statistics_not_independently_reconciled':True}
 
 def run(root,tiers,orders):
     gate=source_gate(root)
