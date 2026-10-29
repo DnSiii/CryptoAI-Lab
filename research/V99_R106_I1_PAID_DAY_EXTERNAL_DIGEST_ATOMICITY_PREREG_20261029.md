@@ -1,0 +1,7 @@
+# V99 I1 — preregistered independently supplied paid-day digest veto (2026-10-29 19:4x BRT)
+
+**Critical-path defect:** the paid-day local transfer computes a gzip digest internally but does not compare it to an independently supplied vendor SHA256 before atomically publishing the licensed source. A successful gzip/CSV/24h parse is NOT proof that the delivered bytes match the purchased source. The already-preregistered one-day independent feasibility tool supports this comparison but the transfer does not pass it through.
+
+**Ex-ante fixed scope:** optional lower-case 64-hex `expected_sha256` ONLY for the already fixed `2022-01-23`, `max_days=1` paid sample. Validate syntax and date BEFORE network or writes. For a new download, compare the scanned compressed-byte SHA256 to the external digest BEFORE creating the immutable destination link; a mismatch leaves no published paid day and removes only the temporary file. For an existing day, mismatch refuses reuse and never overwrites/deletes it. If absent, report no independent external digest verification; no false certificate. Pass the same expected digest to the existing independent one-day source oracle. Never obtain or invent a digest from the same local bytes as vendor proof.
+
+**Tests:** matching digest passes source-only, wrong digest blocks new publish and existing reuse, invalid format/wrong date fail before network. All tests synthetic; no vendor key or source, no economics, no ROI, no paper, no orders, no validation or holdout. Frozen and rejected engines unchanged.
