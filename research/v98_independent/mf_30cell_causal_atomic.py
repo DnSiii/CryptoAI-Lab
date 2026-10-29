@@ -139,7 +139,7 @@ def run(root,envelope_path):
             'funding_envelope_sha256':envelope_sha,'actual_future_funding_used_to_size':False,
             'independent_pnl_oracle':False,'training_only':True,'holdout_accessed':False,
             'eligible_for_promotion':False}
-if __namf__=='__main__':
+if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',required=True)
     p.add_argument('--envelope-csv',required=True);p.add_argument('--output',required=True)
     p.add_argument('--ledger-output',default='mf_provisional_base_full_hourly.jsonl')
