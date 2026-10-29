@@ -1,0 +1,47 @@
+{
+  "architecture": "LO",
+  "training_only": true,
+  "source_gate": "PASS_SOURCE_ONLY",
+  "local_diagnostic_only": true,
+  "original_30cell_run": false,
+  "independent_physical_oracle": false,
+  "holdout_read": false,
+  "benchmark_used": false,
+  "initial_usd": 10000,
+  "ten_cases": true,
+  "order": "carried_before_fill",
+  "base": {
+    "full_cagr": 0.44379,
+    "full_2023_return": 1.0421252963,
+    "full_2024_return": 0.0207669969,
+    "full_drawdown": -0.4369,
+    "turnover_usd": 1073061,
+    "funding_cash_usd": -1803.76,
+    "marginal_log_growth": {
+      "Opportunity": 0.0550921596,
+      "Relative_Value": -0.0119457984,
+      "Stress_Recovery": -0.0118279632
+    }
+  },
+  "severe": {
+    "full_cagr": 0.3751,
+    "full_2023_return": 0.9474390016,
+    "full_2024_return": -0.0290380249,
+    "full_drawdown": -0.447,
+    "turnover_usd": 1015233,
+    "funding_cash_usd": -1697.62,
+    "marginal_log_growth": {
+      "Opportunity": 0.0458988352,
+      "Relative_Value": -0.0242977447,
+      "Stress_Recovery": -0.0171233171
+    }
+  },
+  "failures": [
+    "BASE_CAGR_LT_50_PERCENT",
+    "BASE_SEVERE_TURNOVER_GT_600000",
+    "SEVERE_2024_NEGATIVE",
+    "RELATIVE_VALUE_NEGATIVE_MARGINAL_BOTH",
+    "STRESS_NEGATIVE_MARGINAL_BOTH"
+  ],
+  "decision": "REJECT_EARLY_LOCAL_TRAINING"
+}
