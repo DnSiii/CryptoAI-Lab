@@ -23,7 +23,7 @@ def run():
     if not np.any(baseline[1][WARMUP:cut]):errors.append("NO_REAL_HISTORICAL_UPDATES")
     out={"architecture":"KU","source_only":True,"system_pnl_computed":False,
          "historical_training_only":True,"validation_2025_read":False,
-         "future_holdout_read":False,"external_benchmarku_read":False,
+         "future_holdout_read":False,"external_benchmarks_read":False,
          "hours":HOURS,"future_mutation_cut":cut,
          "manifest_sha256":hashlib.sha256(json.dumps(manifest,sort_keys=True).encode()).hexdigest(),
          "verified_prefix_hours":cut,"errors":errors,
