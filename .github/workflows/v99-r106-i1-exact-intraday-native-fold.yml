@@ -7,6 +7,7 @@ on:
       - research/tools/v99_r106_i1_train_numeric_gate.py
       - research/verification/independent_v99_r106_i1_train_numeric_oracle.py
       - research/tests/test_v99_r106_i1_exact_fold_event_replay.py
+      - research/tests/test_v99_r106_i1_train_numeric_gate.py
       - .github/workflows/v99-r106-i1-exact-intraday-native-fold.yml
   workflow_dispatch:
 permissions:
@@ -29,6 +30,8 @@ jobs:
         run: |
           git merge-base --is-ancestor 015c4924ad728b5d0edcfe46c123e5405c03d6a7 HEAD
           test -s research/V99_R106_I1_INTRADAY_EVENT_FOLD_REPLAY_PREREG_20261029.md
+          git merge-base --is-ancestor 9b9dc34ab9e54fb5036b643cd8f4e2f9e90f8cc8 HEAD
+          test -s research/V99_R106_I1_EXACT_FOLD_CONTROLLED_NUMERIC_GATE_PREREG_20261029.md
       - name: Replay synthetic 661-day native accounting, exact folds and independent oracle
         run: |
           python -m unittest -v research.tests.test_v99_r106_i1_exact_fold_event_replay research.tests.test_v99_r106_i1_native_event_equity research.tests.test_v99_r106_i1_train_numeric_gate
