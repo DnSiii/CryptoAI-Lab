@@ -268,6 +268,12 @@ class LocalTapeImportTests(unittest.TestCase):
         self.assertTrue(lifecycle["daily"][0]["ETH"])
         self.assertEqual(independent["days"], 661)
         self.assertEqual(independent["certified_complete_option_lifecycles"], 0)
+        manifest["days"][0]["live_original_put_arrival_hours_by_asset"]["BTC"] = 23
+        (self.root / "manifest.json").write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_LIVE_OPTION_FEED_COVERAGE_MISMATCH"):
+            verify(self.root, lifecycle)
+        manifest["days"][0]["live_original_put_arrival_hours_by_asset"]["BTC"] = 24
+        (self.root / "manifest.json").write_text(json.dumps(manifest))
         write_hours(missing=12)
         with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
             require_hourly_original_coverage(scan_day(path, day))
