@@ -22,6 +22,7 @@ def run(d,fetch=None):
         for month in MONTHS:
             print('V98_MARK_ARCHIVE_FETCH',symbol,month,flush=True)
             candles,sha=download(symbol,month,fetch);hashes[month]=sha
+            print('V98_MARK_ARCHIVE_ROWS',symbol,month,len(candles),flush=True)
             for t,ms in monthly[month]:
                 if ms not in candles:raise ValueError('V98_MARK_ARCHIVE_MISSING_EVENT_'+symbol+'_'+str(ms))
                 o,h,l,c=candles[ms];m=float(d['mark'][t,j])
