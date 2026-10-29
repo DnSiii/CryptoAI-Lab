@@ -119,6 +119,24 @@ class TestDurableSourceChain(unittest.TestCase):
                 audit.verify_aligned_source_pairs(Path("/sample"),
                     fake("2026-10-15T20"), fake("2026-10-15T20"))
 
+    def test_multiple_original_pair_time_skews_fail_with_precise_buckets(self):
+        stamps = ("2026-10-15T20", "2026-10-15T21")
+        market, native = fake(*stamps), fake(*stamps)
+        for bucket in stamps:
+            market[bucket]["acquired_utc"] = bucket + ":02:00+00:00"
+            native[bucket]["acquired_utc"] = bucket + ":47:00+00:00"
+        with patch.object(audit.pair_gate, "audit", side_effect=[
+            ValueError("terms/market observation >25m apart"),
+            ValueError("terms/market observation >25m apart"),
+        ]) as mocked:
+            with self.assertRaisesRegex(ValueError,
+                                        "crosssource_gate_failed_original_receipts:2_bucket") as caught:
+                audit.verify_aligned_source_pairs(Path("/original"), market, native)
+        self.assertEqual(mocked.call_count, 2)
+        self.assertIn("2026-10-15T20:market=2026-10-15T20:02", str(caught.exception))
+        self.assertIn("2026-10-15T21:market=2026-10-15T21:02", str(caught.exception))
+        self.assertIn("terms/market observation >25m apart", str(caught.exception))
+
     def test_native_source_pair_requires_no_trading_claims(self):
         original={
             "status":"TWO_FIRST_PARTY_SOURCE_STREAMS_CONSISTENT_DATA_ONLY",
