@@ -27,7 +27,7 @@ def run(root,envelope,ledger,receipt):
     result['future_holdout_accessed']=False
     result['live_authorized']=False
     return result
-if __namf__=='__main__':
+if __name__=='__main__':
     p=argparse.ArgumentParser()
     for key in ('root','envelope-csv','ledger-jsonl','receipt','output'):
         p.add_argument('--'+key,required=True)
