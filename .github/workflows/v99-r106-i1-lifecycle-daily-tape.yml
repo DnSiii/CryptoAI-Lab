@@ -31,6 +31,8 @@ jobs:
           test -s research/V99_R106_I1_DAILY_SOURCE_EVENT_ARRIVAL_FRESHNESS_PREREG_20261026.md
           git merge-base --is-ancestor 420fd6db1fd712e0ad909a9c41481cd2abccff23 HEAD
           test -s research/V99_R106_I1_EXECUTABLE_TENOR_AND_STRIKE_SOURCE_ALIGNMENT_PREREG_20261027.md
+          git merge-base --is-ancestor d1a132ea7516c35f0b03a8767474976d29847a9c HEAD
+          test -s research/V99_R106_I1_LIVE_CHAIN_VS_FIXED_TENOR_SOURCE_COVERAGE_PREREG_20261029.md
       - name: Exercise 661-day streaming lifecycle contract with explicit SYNTHETIC data
         run: |
           python - <<'PY'
