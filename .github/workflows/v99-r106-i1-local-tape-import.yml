@@ -47,6 +47,18 @@ jobs:
         run: python -m unittest -v research.tests.test_v99_r106_i1_tardis_licensed_transfer
       - name: Verify fixed 2022-01-23 one-day source-only feasibility and independent replay (synthetic)
         run: python -m unittest -v research.tests.test_v99_r106_i1_single_day_source_feasibility
+      - name: Verify actual preselected licensed source day absent (no substitution)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from research.tools.v99_r106_i1_single_day_source_feasibility import inspect
+          target = Path('research_evidence/i1_original_licensed_661_day_options/2022-01-23.csv.gz')
+          result = inspect(target)
+          assert result['status'] == 'SOURCE_MISSING', result['status']
+          assert not result['promotion_authorized']
+          print('BLOCKED_LICENSED_2022-01-23_SOURCE_DAY_NOT_DELIVERED')
+          print('SOURCE_ONLY/HOLD; 0/180 original option lifecycles certified')
+          PY
       - name: Reproduce actual missing licensed archive without synthetic substitution
         run: |
           python - <<'PY'
