@@ -14,17 +14,24 @@ DAY = datetime(2021, 12, 9, tzinfo=timezone.utc)
 DAY_US = int(DAY.timestamp() * 1_000_000)
 
 
-def fake_gzip(day=DAY):
+def fake_gzip(day=DAY, *, missing_hour=None, missing_asset_hour=None):
+    # Original-shaped OFFLINE source only; 24 distinct UTC arrival hours
+    # for both assets, matching the downstream 661-day importer contract.
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
     writer.writerow(("exchange", "symbol", "timestamp", "local_timestamp",
                      "bid_price", "ask_price", "bid_amount", "ask_amount"))
     expiry = (day + timedelta(days=28)).strftime("%d%b%y").upper()
     day_us = int(day.timestamp() * 1_000_000)
-    for i, asset, strike in ((1, "BTC", 30000), (2, "ETH", 2000)):
-        writer.writerow(("deribit", f"{asset}-{expiry}-{strike}-P",
-                         day_us+i*1_000_000, day_us+i*1_000_000,
-                         "0.02", "0.025", "1", "1"))
+    for hour in range(24):
+        if hour == missing_hour:
+            continue
+        for i, asset, strike in ((1, "BTC", 30000), (2, "ETH", 2000)):
+            if missing_asset_hour == (asset, hour):
+                continue
+            at_us = day_us + hour * 3_600_000_000 + i * 1_000_000
+            writer.writerow(("deribit", f"{asset}-{expiry}-{strike}-P",
+                             at_us, at_us, "0.02", "0.025", "1", "1"))
     return gzip.compress(buffer.getvalue().encode())
 
 
@@ -162,6 +169,28 @@ class LicensedTransferTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.call(Opener(body=damaged))
         self.assertFalse((self.root / "2021-12-09.csv.gz").exists())
+
+    def test_partial_23_hour_vendor_day_is_rejected_before_atomic_publish(self):
+        partial = fake_gzip(missing_hour=13)
+        with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
+            self.call(Opener(body=partial))
+        self.assertFalse((self.root / "2021-12-09.csv.gz").exists())
+        self.assertEqual(list(self.root.glob("*.part")), [])
+
+    def test_one_asset_hour_missing_is_rejected(self):
+        partial = fake_gzip(missing_asset_hour=("ETH", 17))
+        with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
+            self.call(Opener(body=partial))
+        self.assertFalse((self.root / "2021-12-09.csv.gz").exists())
+
+    def test_existing_partial_day_never_skipped_or_overwritten(self):
+        self.root.mkdir()
+        destination = self.root / "2021-12-09.csv.gz"
+        original_partial = fake_gzip(missing_hour=7)
+        destination.write_bytes(original_partial)
+        with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
+            self.call(Opener())
+        self.assertEqual(destination.read_bytes(), original_partial)
 
     def test_existing_invalid_file_never_overwritten(self):
         self.root.mkdir()
