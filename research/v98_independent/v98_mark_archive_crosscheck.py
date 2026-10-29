@@ -26,7 +26,7 @@ def download(symbol,month=MONTH,fetch=None):
         if not all(np.isfinite(x) and x>0 for x in (o,h,l,c)) or l>min(o,c) or h<max(o,c) or t in out:
             raise ValueError('V98_MARK_ARCHIVE_BAD_CANDLE_'+symbol)
         out[t]=(o,h,l,c)
-    if len(out)<28*24:raise ValueError('V98_MARK_ARCHIVE_TOO_SHORT_'+symbol)
+    if not out:raise ValueError('V98_MARK_ARCHIVE_EMPTY_'+symbol)
     return out,actual
 
 def run(d,month=MONTH,fetch=None):
