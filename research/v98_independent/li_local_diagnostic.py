@@ -10,6 +10,7 @@ import argparse,json
 from pathlib import Path
 import ko_physical as simulator
 from li_sources import bundle,static_check
+from li_independent_source_gate import run as source_gate
 
 simulator.bundle=bundle
 simulator.static_check=static_check
@@ -21,8 +22,12 @@ NAMES={
     'LI_minus_stress':'KO_minus_stress'
 }
 def run(root,paths,fees,orders):
+    source_receipt=source_gate(root)
+    if source_receipt['decision']!='PASS_SOURCE_ONLY':
+        raise ValueError('LI_SOURCE_GATE_FAILED_NO_PNL')
     out=simulator.run(root,tuple(NAMES[p] for p in paths),tuple(fees),tuple(orders))
     out['architecture']='LI'
+    out['source_gate_receipt']=source_receipt
     out['local_diagnostic_only']=True
     out['original_github_30cell_run']=False
     out['independent_settlement_oracle_completed']=False
