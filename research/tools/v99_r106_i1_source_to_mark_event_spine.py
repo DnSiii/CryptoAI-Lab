@@ -17,10 +17,20 @@ from research.tools.v99_r106_i1_original_event_quote_identity import (
 )
 from research.tools.v99_r106_i1_source_driven_entry_book import _contract
 from research.tools.v99_r106_i1_train_numeric_gate import DAYS, _expected_clock
+from research.tools.v99_r106_d1_real_train_source_join import FOLD_EDGES
 from research.verification.independent_v99_r106_i1_source_entry_book_oracle import verify
 
 SCHEMA = "V99_I1_SOURCE_DRIVEN_661D_MARK_EVENT_SPINE_V1"
 FRESH_US = 300_000_000
+# Immutable four intraday TRAIN fold boundaries, NOT daily NAV approximations.
+EXACT_FOLD_EDGES = tuple(FOLD_EDGES[1:-1])
+
+
+def _held_mark_clocks(decision_ms, expiry_ms):
+    """Original source requests for daily NAV and active-position exact folds."""
+    daily = (_expected_clock(i) for i in range(DAYS))
+    return tuple(sorted({clock for clock in (*daily, *EXACT_FOLD_EDGES)
+                         if decision_ms <= clock < expiry_ms}))
 
 
 def _receipt(source, clock, symbol):
@@ -101,11 +111,9 @@ def compile_spine(root, entry_report, positions):
     # Expiry at 08:00 UTC: no mark at 23:59:59 on expiry day.
     requests = {}
     for p in plan:
-        for i in range(DAYS):
-            clock = _expected_clock(i)
-            if p["decision_ms"] <= clock < p["expiry_ms"]:
-                for symbol in (p["short_symbol"], p["long_symbol"]):
-                    requests[(clock, p["asset"], symbol)] = None
+        for clock in _held_mark_clocks(p["decision_ms"], p["expiry_ms"]):
+            for symbol in (p["short_symbol"], p["long_symbol"]):
+                requests[(clock, p["asset"], symbol)] = None
     originals = _last_original_quotes(files, requests)
     marks = {}
     for (clock, asset, symbol), _ in requests.items():
@@ -114,6 +122,7 @@ def compile_spine(root, entry_report, positions):
 
     days = []
     mark_count = 0
+    intraday_fold_mark_count = 0
     for i in range(DAYS):
         clock = _expected_clock(i)
         day_start = clock - 86_399_000
@@ -136,6 +145,19 @@ def compile_spine(root, entry_report, positions):
                     "long": marks[(clock, p["asset"], p["long_symbol"])],
                 })
                 mark_count += 1
+            # Every active held option must have its own literal pre-edge
+            # two-sided original quote at the four exact intraday TRAIN folds.
+            # Missing/stale quotes fail in _receipt above; never interpolate.
+            for edge in EXACT_FOLD_EDGES:
+                if (day_start <= edge <= clock
+                        and p["decision_ms"] <= edge < p["expiry_ms"]):
+                    events.append({
+                        "kind": "MARK_SOURCE_ONLY", "at_ms": edge,
+                        "asset": p["asset"], "position_id": p["position_id"],
+                        "short": marks[(edge, p["asset"], p["short_symbol"])],
+                        "long": marks[(edge, p["asset"], p["long_symbol"])],
+                    })
+                    intraday_fold_mark_count += 1
             if day_start <= p["expiry_ms"] <= clock:
                 events.append({
                     "kind": "SETTLEMENT_DUE_SOURCE_ONLY", "at_ms": p["expiry_ms"],
@@ -150,6 +172,8 @@ def compile_spine(root, entry_report, positions):
         "original_fixed_entry_asset_weeks_verified": 180,
         "unverified_position_plan_count": len(plan),
         "same_contract_daily_marks": mark_count,
+        "same_contract_exact_intraday_fold_marks": intraday_fold_mark_count,
+        "same_contract_all_marks": mark_count + intraday_fold_mark_count,
         "expiry_due_count": len(plan), "days": days,
         "original_underlying_index_authenticated": False,
         "original_native_lot_conversion_authenticated": False,
