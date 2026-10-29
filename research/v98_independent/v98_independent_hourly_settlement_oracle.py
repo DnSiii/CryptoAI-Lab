@@ -112,6 +112,17 @@ def synthetic_tests():
     try:replay(d,bad,o,o,.0004,.0002,'new_after_fill',1,3)
     except ValueError as e:assert 'POSITION_CONTINUITY' in str(e)
     else:raise AssertionError('V98_ORACLE_POSITION_TAMPER_UNDETECTED')
+    # Carried-before-fill signed event on a preexisting long position.
+    d2={k:v.copy() for k,v in d.items()}
+    d2['event'][2,0]=True;d2['rate'][2,0]=.0001
+    carried=[dict(x) for x in rows]
+    carried[1]['funding_cash']=-.1;carried[1]['equity_close']=9999.2
+    out2=replay(d2,carried,o,o,.0004,.0002,'carried_before_fill',1,3)
+    assert abs(out2['final_equity']-9999.2)<1e-8
+    tampered=[dict(x) for x in carried];tampered[1]['funding_cash']=+.1
+    try:replay(d2,tampered,o,o,.0004,.0002,'carried_before_fill',1,3)
+    except ValueError as e:assert 'FUNDING' in str(e)
+    else:raise AssertionError('V98_ORACLE_FUNDING_SIGN_TAMPER_UNDETECTED')
     return True
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root');p.add_argument('--envelope-csv')
