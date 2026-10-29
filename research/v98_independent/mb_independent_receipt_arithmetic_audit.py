@@ -58,7 +58,17 @@ def audit(path):
     if errors:raise ValueError('MB_AUDIT_RECONCILIATION_'+str(errors[:10]))
     if failed and d['decision']!='REJECT_EARLY_TRAINING':
         raise ValueError('MB_AUDIT_PHYSICAL_FAILURE_MISCLASSIFIED')
-    return {'decision':'PASS_READ_ONLY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE',
+    summary={}
+    for tier in ('base','severe','supersevere'):
+        full=next(x for x in cells if x['tier']==tier and x['order']=='carried_before_fill' and x['book']=='MB_full')
+        summary[tier]={'full_cagr_pct':round(full['cagr']*100,4) if full['passed'] else None,
+                       'full_turnover_usd':round(full['turnover'],2) if full['passed'] else None,
+                       'full_max_dd_pct':round(full['max_dd']*100,4) if full['passed'] else None,
+                       'full_annual_returns':full.get('year_returns'),
+                       'marginal_log_growth':d['marginals'].get(tier+'/carried_before_fill')}
+    return {'summary':summary,'original_decision':d['decision'],
+            'original_gate_failures':d['gate_failures'],
+            'decision':'PASS_READ_ONLY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE',
             'cells_verified':len(seen),'physical_failed_cells':len(failed),
             'failure_examples':failed[:6],'arithmetic_mismatches':0,
             'training_only':True,'holdout_accessed':False,
