@@ -37,8 +37,11 @@ def replay(d,rows,lo,hi,fee,slip,order,start=745,end=18288,initial_equity=10000.
         delta=after-qty
         turnover=float(np.sum(np.abs(delta)*px))
         fees=turnover*fee;slippage=turnover*slip
-        funding=worst_funding(qty.sum(axis=0),after.sum(axis=0),
+        # Non-event hours carry NaN mark envelopes by design; no funding is due.
+        # The original physical runner only invokes signed settlement on events.
+        funding=(worst_funding(qty.sum(axis=0),after.sum(axis=0),
                              d['rate'][t],d['event'][t],lo[t],hi[t],order)
+                 if np.any(d['event'][t]) else 0.)
         # Independently reconstruct a close-first path for every slot.
         mid=qty.copy()
         for k in range(4):
@@ -102,10 +105,12 @@ def synthetic_tests():
           {'t':2,'qty_before':q1.tolist(),'qty_after':q1.tolist(),
            'equity_before':9999.3,'fee_cash':0.,'slippage_cash':0.,
            'funding_cash':0.,'equity_close':9999.3}]
-    out=replay(d,rows,o,o,.0004,.0002,'new_after_fill',1,3)
+    marklo=np.full_like(o,np.nan);markhi=np.full_like(o,np.nan)
+    marklo[1,0]=markhi[1,0]=100.
+    out=replay(d,rows,marklo,markhi,.0004,.0002,'new_after_fill',1,3)
     assert out['hours_replayed']==2 and abs(out['final_equity']-9999.3)<1e-8
     bad=[dict(x) for x in rows];bad[0]['fee_cash']=0.
-    try:replay(d,bad,o,o,.0004,.0002,'new_after_fill',1,3)
+    try:replay(d,bad,marklo,markhi,.0004,.0002,'new_after_fill',1,3)
     except ValueError as e:assert 'FEE' in str(e)
     else:raise AssertionError('V98_ORACLE_FEE_TAMPER_UNDETECTED')
     bad=[dict(x) for x in rows];bad[1]['qty_before']=q0.tolist()
@@ -121,10 +126,10 @@ def synthetic_tests():
     carried[0]['funding_cash']=0.;carried[0]['equity_close']=9999.4
     carried[1]['equity_before']=9999.4
     carried[1]['funding_cash']=-.1;carried[1]['equity_close']=9999.3
-    out2=replay(d2,carried,o,o,.0004,.0002,'carried_before_fill',1,3)
+    out2=replay(d2,carried,marklo,markhi,.0004,.0002,'carried_before_fill',1,3)
     assert abs(out2['final_equity']-9999.3)<1e-8
     tampered=[dict(x) for x in carried];tampered[1]['funding_cash']=+.1
-    try:replay(d2,tampered,o,o,.0004,.0002,'carried_before_fill',1,3)
+    try:replay(d2,tampered,marklo,markhi,.0004,.0002,'carried_before_fill',1,3)
     except ValueError as e:assert 'FUNDING' in str(e)
     else:raise AssertionError('V98_ORACLE_FUNDING_SIGN_TAMPER_UNDETECTED')
     return True
