@@ -175,8 +175,18 @@ def summarize(market, native_terms):
 def verify_aligned_source_pairs(root, market, native):
     """UTC bucket co-location is insufficient without raw cross-source checks."""
     result = {}
+    failures = []
     for bucket in sorted(set(market) & set(native)):
-        witness = pair_gate.audit(root / MARKET / bucket, root / TERMS / bucket)
+        try:
+            witness = pair_gate.audit(root / MARKET / bucket, root / TERMS / bucket)
+        except ValueError as exc:
+            # Preserve the hard source veto while exposing which immutable
+            # original receipt pairs failed and their actual capture clocks.
+            # Do not rewrite, silently omit, or count invalid pairs as valid.
+            failures.append((bucket, str(exc),
+                             market[bucket].get("acquired_utc", "unknown"),
+                             native[bucket].get("acquired_utc", "unknown")))
+            continue
         if (witness.get("status") != "TWO_FIRST_PARTY_SOURCE_STREAMS_CONSISTENT_DATA_ONLY"
                 or witness.get("promotion_authorized") is not False
                 or witness.get("paper_publication_authorized") is not False
@@ -191,6 +201,13 @@ def verify_aligned_source_pairs(root, market, native):
             "exchange_signed": False, "funding_cashflows_proven": False,
             "native_fee_tier_proven": False,
         }
+    if failures:
+        # Every failing original bucket is a genuine unverified source pair.
+        # Aggregate bounded diagnostics; never issue a partial PASS report.
+        detail = ";".join(f"{bucket}:market={pm}:terms={pt}:{why}"
+                          for bucket, why, pm, pt in failures[:8])
+        raise ValueError(f"crosssource_gate_failed_original_receipts:"
+                         f"{len(failures)}_bucket(s):{detail}")
     return result
 
 
