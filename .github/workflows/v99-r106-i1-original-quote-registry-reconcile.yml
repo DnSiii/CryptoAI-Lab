@@ -1,0 +1,82 @@
+name: V99 I1 original 2022-05-01 quote vs first-party listing reconciliation (SOURCE ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_real_quote_registry_reconcile.py
+      - research/verification/independent_v99_r106_i1_real_quote_registry_oracle.py
+      - .github/workflows/v99-r106-i1-original-quote-registry-reconcile.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: v99-i1-real-quote-registry-reconcile-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  independent-source-reconciliation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 32
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Require pre-analysis preregistration
+        run: |
+          git merge-base --is-ancestor dd0fd70201e584ac893eccb9a580aa8113cddbc2 HEAD
+          test -s research/V99_R106_I1_REAL_QUOTE_VS_FIRSTPARTY_REGISTRY_RECONCILIATION_PREREG_20261028.md
+      - name: Restore previously archived first-party original BTC/ETH registry
+        run: |
+          mkdir -p research_evidence/i1_native_instruments
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-firstparty-native-instruments-40148052668 \
+            --dir research_evidence/i1_native_instruments
+          test -s research_evidence/i1_native_instruments/native_instrument_registry.json
+      - name: Download original public day and compare every quoted put symbol to raw Deribit registry
+        run: |
+          mkdir -p research_evidence/i1_reconcile_sample
+          python -m research.tools.v99_r106_i1_real_quote_registry_reconcile \
+            research_evidence/i1_reconcile_sample/2022-05-01.csv.gz \
+            research_evidence/i1_native_instruments \
+            original_quote_registry_reconciliation.json
+      - name: Independent raw-byte quote and first-party JSON oracle; adversarial mutation
+        run: |
+          python -m research.verification.independent_v99_r106_i1_real_quote_registry_oracle \
+            research_evidence/i1_reconcile_sample/2022-05-01.csv.gz \
+            research_evidence/i1_native_instruments \
+            original_quote_registry_reconciliation.json
+      - name: Enforce source-only result; never publish economic claims
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("original_quote_registry_reconciliation.json").read_text())
+          assert r["original_quote_rows"]==4253565
+          assert r["status"] in ("REGISTRY_COMPLETENESS_OR_CHRONOLOGY_FALSIFIED",
+                                 "SAMPLED_DAY_NO_REGISTRY_CONTRADICTION")
+          assert r["source_only"] is True
+          assert r["historical_option_lifecycles_certified"]==0
+          assert all(r[k] is False for k in ("economic_train_executed",
+                 "roi_calculated","validation_opened","holdout_opened",
+                 "promotion_authorized","orders_enabled"))
+          print("SOURCE_ONLY / NO ECONOMIC TRAIN / NO PROMOTION:",r["status"])
+          PY
+      - name: Delete original market bytes even on failure
+        if: always()
+        run: |
+          rm -f research_evidence/i1_reconcile_sample/2022-05-01.csv.gz
+          rm -rf research_evidence/i1_native_instruments
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-i1-original-quote-registry-summary-${{ github.run_id }}
+          path: original_quote_registry_reconciliation.json
+          if-no-files-found: warn
+          retention-days: 14
