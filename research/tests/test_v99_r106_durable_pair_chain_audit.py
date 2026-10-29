@@ -119,7 +119,7 @@ class TestDurableSourceChain(unittest.TestCase):
                 audit.verify_aligned_source_pairs(Path("/sample"),
                     fake("2026-10-15T20"), fake("2026-10-15T20"))
 
-    def test_multiple_original_pair_time_skews_fail_with_precise_buckets(self):
+    def test_multiple_original_pair_time_skews_quarantined_not_accepted(self):
         stamps = ("2026-10-15T20", "2026-10-15T21")
         market, native = fake(*stamps), fake(*stamps)
         for bucket in stamps:
@@ -129,13 +129,19 @@ class TestDurableSourceChain(unittest.TestCase):
             ValueError("terms/market observation >25m apart"),
             ValueError("terms/market observation >25m apart"),
         ]) as mocked:
-            with self.assertRaisesRegex(ValueError,
-                                        "crosssource_gate_failed_original_receipts:2_bucket") as caught:
-                audit.verify_aligned_source_pairs(Path("/original"), market, native)
+            verified, invalid = audit.verify_aligned_source_pairs(Path("/original"), market, native)
         self.assertEqual(mocked.call_count, 2)
-        self.assertIn("2026-10-15T20:market=2026-10-15T20:02", str(caught.exception))
-        self.assertIn("2026-10-15T21:market=2026-10-15T21:02", str(caught.exception))
-        self.assertIn("terms/market observation >25m apart", str(caught.exception))
+        self.assertEqual(verified, {})
+        self.assertEqual([x["bucket"] for x in invalid], list(stamps))
+        self.assertEqual(invalid[0]["market_acquired_utc"], stamps[0] + ":02:00+00:00")
+        self.assertEqual(invalid[1]["terms_acquired_utc"], stamps[1] + ":47:00+00:00")
+
+    def test_unexpected_crosssource_tampering_still_aborts(self):
+        stamp = "2026-10-15T20"
+        with patch.object(audit.pair_gate, "audit",
+                          side_effect=ValueError("original raw digest mismatch")):
+            with self.assertRaisesRegex(ValueError, "crosssource_gate_failed:2026-10-15T20"):
+                audit.verify_aligned_source_pairs(Path("/original"), fake(stamp), fake(stamp))
 
     def test_native_source_pair_requires_no_trading_claims(self):
         original={
