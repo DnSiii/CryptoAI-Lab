@@ -149,6 +149,50 @@ class LicensedTransferTests(unittest.TestCase):
         self.assertFalse(result["full_661_days_transferred"])
         self.assertFalse(result["vendor_gap_attestation_verified"])
         self.assertFalse(result["economic_train_executed"])
+        self.assertEqual(result["preselected_one_day_source_gate"]["status"],
+                         "SOURCE_VETO_NOT_LOSS")
+        self.assertEqual(result["preselected_one_day_source_gate"]["fresh_synchronized_two_strike_pairs_by_asset"],
+                         {"BTC": 0, "ETH": 0})
+        self.assertTrue(result["preselected_one_day_source_gate"]["independent_original_byte_replay_passed"])
+        self.assertFalse(result["preselected_one_day_source_gate"]["promotion_authorized"])
+
+    def test_paid_target_day_with_two_synchronized_strikes_is_source_only(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        raw = gzip.decompress(fake_gzip(day)).decode()
+        rows = list(csv.DictReader(io.StringIO(raw)))
+        stamp = int((day + timedelta(hours=23, minutes=59, seconds=58)).timestamp() * 1_000_000)
+        for asset, strikes in (("BTC", (30000, 28000)),
+                               ("ETH", (2000, 1800))):
+            for strike in strikes:
+                rows.append({
+                    "exchange": "deribit",
+                    "symbol": f"{asset}-25FEB22-{strike}-P",
+                    "timestamp": str(stamp), "local_timestamp": str(stamp),
+                    "bid_price": "0.05", "ask_price": "0.052",
+                    "bid_amount": "2", "ask_amount": "2",
+                })
+        rows.sort(key=lambda row: int(row["local_timestamp"]))
+        out = io.StringIO(newline="")
+        writer = csv.DictWriter(out, fieldnames=(
+            "exchange", "symbol", "timestamp", "local_timestamp",
+            "bid_price", "ask_price", "bid_amount", "ask_amount"))
+        writer.writeheader()
+        writer.writerows(rows)
+        source = gzip.compress(out.getvalue().encode())
+        opener = Opener(day=day, body=source, scope_kwargs={
+            "start": "2022-01-23T00:00:00Z",
+            "end": "2022-01-24T00:00:00Z"})
+        report = self.call(opener, start_date="2022-01-23")
+        gate = report["preselected_one_day_source_gate"]
+        self.assertEqual(gate["status"], "SOURCE_FEASIBLE_ONLY_NOT_ECONOMICS")
+        self.assertEqual(gate["fresh_synchronized_two_strike_pairs_by_asset"],
+                         {"BTC": 1, "ETH": 1})
+        self.assertTrue(gate["independent_original_byte_replay_passed"])
+        self.assertFalse(gate["vendor_completeness_attested"])
+        self.assertEqual(gate["certified_lifecycles"], 0)
+        self.assertFalse(report["promotion_authorized"])
+        self.assertFalse(report["economic_train_executed"])
+        self.assertEqual(len(opener.urls), 2)
 
     def test_day_only_entitlement_never_authorizes_adjacent_day_or_full_train(self):
         day = datetime(2022, 1, 23, tzinfo=timezone.utc)
