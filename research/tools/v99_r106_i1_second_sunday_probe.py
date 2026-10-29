@@ -105,7 +105,7 @@ def live(original_signals: Path) -> dict:
                             return report
                         target.write(chunk)
                 report["compressed_bytes"] = received
-                if (received < 10 or path.open("rb").read(2) != b"\\x1f\\x8b"
+                if (received < 10 or path.open("rb").read(2) != bytes((31, 139))
                         or length is not None and received != int(length)):
                     report["status"] = "ORIGINAL_TRUNCATED_OR_NOT_GZIP"
                     return report
