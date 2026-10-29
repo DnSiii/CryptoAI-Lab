@@ -7,8 +7,8 @@ def synthetic(*, oscillate=True):
     btc=[100.+.003*i for i in range(HOURS)]
     eth=[50.+.001*i for i in range(HOURS)]
     if oscillate:
-        btc_basis=[.01+.005*math.sin(i*math.pi/36) for i in range(HOURS)]
-        eth_basis=[.009+.004*math.sin(i*math.pi/43) for i in range(HOURS)]
+        btc_basis=[.01+.001*math.sin(i*math.pi/36)+(.015 if i%101==0 else 0) for i in range(HOURS)]
+        eth_basis=[.009+.001*math.sin(i*math.pi/43)+(.015 if i%113==0 else 0) for i in range(HOURS)]
     else:
         btc_basis=[.01]*HOURS
         eth_basis=[.01]*HOURS
