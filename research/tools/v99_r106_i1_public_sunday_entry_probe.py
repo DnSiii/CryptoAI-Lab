@@ -150,6 +150,24 @@ def probe_live(original_signal_path: Path) -> dict:
     except (ValueError, EOFError, UnicodeError) as exc:
         result["status"] = "REAL_SUNDAY_ORIGINAL_REPLAY_FAILED"
         result["error_class"] = type(exc).__name__
+        # Only fixed internal error identifiers; never vendor quotes or rows.
+        known = (
+            "MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES",
+            "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP",
+            "NONCAUSAL_OR_OUT_OF_ORDER_CLOCK",
+            "WRONG_ORIGINAL_EXCHANGE",
+            "CORRUPT_ORIGINAL_GZIP",
+            "MISSING_ORIGINAL_QUOTE_COLUMNS",
+            "ORIGINAL_BOOK_COLUMNS_MISSING",
+            "ORIGINAL_CAPTURE_ORDER_OR_CLOCK_INVALID",
+            "ORIGINAL_ENTRY_DAY_ROW_COUNT_MISMATCH",
+            "INDEPENDENT_ORIGINAL_SUNDAY_ENTRY_BOOK_DISAGREEMENT",
+            "ORIGINAL_SUNDAY_BYTE_HASH_DIVERGENCE",
+            "NO_CAUSAL_FIXED_TENOR_ENTRY_BOOK_FOR_BOTH_ASSETS",
+        )
+        result["error_code"] = next(
+            (code for code in known if str(exc).startswith(code)),
+            "OTHER_SOURCE_REPLAY_ERROR")
     return result
 
 
