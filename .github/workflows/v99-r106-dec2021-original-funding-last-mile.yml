@@ -1,0 +1,98 @@
+name: V99 decisive Dec 2021 first-party funding source (DATA ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_dec2021_firstparty_source_probe.py
+      - research/verification/independent_v99_r106_dec2021_source_oracle.py
+      - .github/workflows/v99-r106-dec2021-original-funding-last-mile.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  december-firstparty-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 20
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Require source preregistration ancestor
+        run: |
+          git merge-base --is-ancestor fd7ea63463c7001e01071187ed6c6ea1b083b867 HEAD
+          test -s research/V99_R106_DEC2021_FIRSTPARTY_FUNDING_LAST_MILE_PREREG_20261029.md
+      - name: Execute bounded original December listing and history source probe
+        run: |
+          python -m research.tools.v99_r106_dec2021_firstparty_source_probe dec2021_original_source.json
+      - name: Independently verify original response bytes and strict TRAIN scope
+        run: |
+          python -m research.verification.independent_v99_r106_dec2021_source_oracle dec2021_original_source.json
+      - name: Adversarial response, scope and promotion rejection
+        run: |
+          python - <<'PY'
+          import copy
+          import json
+          import tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_dec2021_source_oracle import verify
+          original=json.loads(Path("dec2021_original_source.json").read_text())
+          mutations=[]
+          altered=copy.deepcopy(original)
+          altered["promotion_authorized"]=True
+          mutations.append(altered)
+          altered=copy.deepcopy(original)
+          altered["listing_probes"][0]["params"]["begin"]="0"
+          mutations.append(altered)
+          altered=copy.deepcopy(original)
+          altered["bounded_history_probes"][0]["params"]["after"]="9999999999999"
+          mutations.append(altered)
+          altered=copy.deepcopy(original)
+          altered["status"]="OKX_SOURCE_ELIGIBLE_ONLY"
+          mutations.append(altered)
+          authenticated=next((i for i in original["listing_probes"]+original["bounded_history_probes"]
+                              if i["status"]=="FIRST_PARTY_RESPONSE"),None)
+          if authenticated:
+              altered=copy.deepcopy(original)
+              entry=next(i for i in altered["listing_probes"]+altered["bounded_history_probes"]
+                         if i["status"]=="FIRST_PARTY_RESPONSE")
+              entry["raw_sha256"]="0"*64
+              mutations.append(altered)
+          for index, candidate in enumerate(mutations):
+              with tempfile.TemporaryDirectory() as d:
+                  p=Path(d)/"mutated.json"
+                  p.write_text(json.dumps(candidate))
+                  try:
+                      verify(p)
+                  except (ValueError, KeyError, TypeError):
+                      pass
+                  else:
+                      raise AssertionError("ADVERSARIAL_FORGERY_ACCEPTED:"+str(index))
+          print("INDEPENDENT_ADVERSARIAL_NEGATIVE_CONTROLS:",len(mutations))
+          PY
+      - name: Explicitly deny economics, validation, holdout and promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("dec2021_original_source.json").read_text())
+          for key in ("archive_original_bytes_authenticated","historical_account_settled_funding_authenticated",
+                      "native_execution_fees_authenticated","original_five_fold_source_eligible",
+                      "economic_train_executed","roi_calculated","promotion_authorized",
+                      "validation_opened","holdout_opened","orders_enabled"):
+              assert x[key] is False,key
+          print("SOURCE ONLY / NO ECONOMICS / NO PROMOTION / NO ORDERS")
+          PY
+      - name: Preserve source-only original response receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-dec2021-original-source-${{ github.run_id }}
+          path: dec2021_original_source.json
+          retention-days: 30
+          if-no-files-found: warn
