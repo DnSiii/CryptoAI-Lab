@@ -64,6 +64,25 @@ def verify(source, report):
                        "2023-05-21T19:00:00", "2023-10-01T00:00:00")]
     regimes = {a + "_" + v for a in ("BULL", "BEAR", "SIDEWAYS")
                for v in ("LOW_VOL", "HIGH_VOL")}
+    # Independent chronology: daily end-of-day samples cannot resolve the
+    # four original intraday fold edges. Never certify exact 5-fold gates.
+    daily_clocks = {
+        int(datetime((start + timedelta(days=i)).year,
+                     (start + timedelta(days=i)).month,
+                     (start + timedelta(days=i)).day, 23, 59, 59,
+                     tzinfo=timezone.utc).timestamp() * 1000)
+        for i in range(n)
+    }
+    intraday = [t for t in folds[1:-1] if t not in daily_clocks]
+    if (len(intraday) != 4
+            or report.get("fold_attribution") != "DAILY_PROXY_NOT_EXACT"
+            or report.get("missing_intraday_fold_boundary_utc") !=
+               [datetime.fromtimestamp(t / 1000, timezone.utc).isoformat()
+                for t in intraday]
+            or report.get("exact_chronological_fold_gate_evaluable") is not False
+            or report.get("exact_chronological_fold_gate_pass") is not False
+            or report.get("formal_train_freeze_blocked_by_missing_intraday_nav") is not True):
+        raise AssertionError("INDEPENDENT_EXACT_FOLD_BOUNDARY_UNRESOLVED")
     aligned = []
     exposure = []
     passes = []
