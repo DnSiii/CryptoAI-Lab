@@ -259,6 +259,15 @@ class LocalTapeImportTests(unittest.TestCase):
         self.assertEqual(source["descriptive_28_45d_put_quote_rows_by_asset"],
                          {"BTC": 0, "ETH": 0})
         require_hourly_original_coverage(source)
+        manifest = run(self.root, fixture=True)
+        self.assertEqual(manifest["days"][0]["qualifying_original_put_quote_rows_by_asset"],
+                         {"BTC": 0, "ETH": 0})
+        lifecycle = audit(self.root)
+        independent = verify(self.root, lifecycle)
+        self.assertTrue(lifecycle["daily"][0]["BTC"])
+        self.assertTrue(lifecycle["daily"][0]["ETH"])
+        self.assertEqual(independent["days"], 661)
+        self.assertEqual(independent["certified_complete_option_lifecycles"], 0)
         write_hours(missing=12)
         with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
             require_hourly_original_coverage(scan_day(path, day))
