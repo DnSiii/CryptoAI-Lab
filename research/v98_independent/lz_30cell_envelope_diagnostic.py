@@ -90,7 +90,7 @@ def run(root,envelope_path,tiers=('base','severe','supersevere'),orders=('carrie
                         if f<=-1 or b<=-1 or math.log1p(f)-math.log1p(b)<-.03:
                             failures.append(f'{tier}/{order}:{sleeve}:{year}:annual_marginal')
     return {'architecture':'LZ','source_gate':g,'cells':cells,'marginals':marg,'training_only':True,
-            'decision':'REJECT_EARLZ_TRAINING_ECONOMIC' if failures else 'PASS_PROVISIONAL_TRAINING_NOT_INDEPENDENTLZ_VALIDATED',
+            'decision':'REJECT_EARLY_TRAINING_ECONOMIC' if failures else 'PASS_PROVISIONAL_TRAINING_NOT_INDEPENDENTLZ_VALIDATED',
             'gate_failures':failures,'signed_funding':'SHA_PINNED_OFFICIAL_OHLC_TWO_SIDED_WORST_ENVELOPE',
             'envelope_sha256':envelope_sha,'native_30cell_executed':len(cells)==30,
             'local_diagnostic_only':True,'eligible_for_promotion':False,'independent_settlement_oracle':False,
@@ -102,3 +102,4 @@ if __name__=='__main__':
     open(a.output,'w').write(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+'\n')
     print('LZ_ECONOMIC_GATE',result['decision'],result['gate_failures'],flush=True)
     print('LZ_MARGINALS',json.dumps(result['marginals'],indent=2))
+    raise SystemExit(0 if result['decision']=='PASS_PROVISIONAL_TRAINING_NOT_INDEPENDENTLY_VALIDATED' else 2)
