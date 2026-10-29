@@ -61,7 +61,21 @@ def audit(path):
     summary={}
     for tier in ('base','severe','supersevere'):
         full=next(x for x in cells if x['tier']==tier and x['order']=='carried_before_fill' and x['book']=='MB_full')
-        summary[tier]={'full_cagr_pct':round(full['cagr']*100,4) if full['passed'] else None,
+        group={x['book']:x for x in cells if x['tier']==tier and x['order']=='carried_before_fill'}
+        attribution={}
+        if all(x['passed'] for x in group.values()):
+            for name,book in SLEEVES.items():
+                ab=group[book]
+                attribution[name]={
+                    'marginal_turnover_usd':round(full['turnover']-ab['turnover'],2),
+                    'marginal_funding_usd':round(full['funding']-ab['funding'],2),
+                    'marginal_fees_slippage_usd':round(
+                        (full['fees']+full['slippage'])-(ab['fees']+ab['slippage']),2),
+                    'annual_marginal_log_growth':{
+                        year:round(math.log1p(full['year_returns'][year])-math.log1p(ab['year_returns'][year]),6)
+                        for year in ('2023','2024')}}
+        summary[tier]={'sleeve_attribution':attribution,
+                       'full_cagr_pct':round(full['cagr']*100,4) if full['passed'] else None,
                        'full_turnover_usd':round(full['turnover'],2) if full['passed'] else None,
                        'full_max_dd_pct':round(full['max_dd']*100,4) if full['passed'] else None,
                        'full_annual_returns':full.get('year_returns'),
