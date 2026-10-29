@@ -58,6 +58,39 @@ def audit(path):
     if errors:raise ValueError('MH_AUDIT_RECONCILIATION_'+str(errors[:10]))
     if failed and d['decision']!='REJECT_EARLY_TRAINING':
         raise ValueError('MH_AUDIT_PHYSICAL_FAILURE_MISCLASSIFIED')
+    independent_failures=[]
+    for tier in COSTS:
+        for order in ORDERS:
+            key=tier+'/'+order
+            group={z['book']:z for z in cells if z['tier']==tier and z['order']==order}
+            if not all(z['passed'] for z in group.values()):
+                independent_failures.append(key+':physical_invariant')
+                continue
+            full=group['MH_full']
+            if tier not in ('base','severe'):continue
+            if full['cagr']<=(.50 if tier=='base' else .30):
+                independent_failures.append(key+':cagr')
+            if full['turnover']>600000:
+                independent_failures.append(key+':turnover')
+            if tier=='severe':
+                if full['max_dd']<=-.45:independent_failures.append(key+':max_dd')
+                if any(x<=0 for x in full['year_returns'].values()):
+                    independent_failures.append(key+':annual_return')
+            for sleeve,ablation in SLEEVES.items():
+                ab=group[ablation]
+                marginal=full['log_growth']-ab['log_growth']
+                if marginal<=.02:
+                    independent_failures.append(key+':'+sleeve+':marginal')
+                for year in ('2023','2024'):
+                    annual=math.log1p(full['year_returns'][year])-math.log1p(ab['year_returns'][year])
+                    if annual<-.03:
+                        independent_failures.append(key+':'+sleeve+':'+year+':annual_marginal')
+    if sorted(independent_failures)!=sorted(d['gate_failures']):
+        raise ValueError('MH_AUDIT_INDEPENDENT_ECONOMIC_GATE_MISMATCH_'+str(
+            sorted(set(independent_failures)^set(d['gate_failures']))[:12]))
+    if d['decision']!=('REJECT_EARLY_TRAINING' if independent_failures else
+                      'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED'):
+        raise ValueError('MH_AUDIT_INDEPENDENT_DECISION_MISMATCH')
     summary={}
     for tier in ('base','severe','supersevere'):
         full=next(x for x in cells if x['tier']==tier and x['order']=='carried_before_fill' and x['book']=='MH_full')
@@ -84,7 +117,7 @@ def audit(path):
             'original_gate_failures':d['gate_failures'],
             'decision':'PASS_READ_ONLY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE',
             'cells_verified':len(seen),'physical_failed_cells':len(failed),
-            'failure_examples':failed[:6],'arithmetic_mismatches':0,
+            'failure_examples':failed[:6],'arithmetic_mismatches':0,'economic_gate_recomputed':True,
             'training_only':True,'holdout_accessed':False,
             'independent_all_hour_pnl_oracle':False}
 if __name__=='__main__':
