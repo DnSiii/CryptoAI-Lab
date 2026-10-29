@@ -56,7 +56,7 @@ def bundle(opening,high,low,close,rate,event,quote):
                 current[1]=0.;current[1,j]=BUDGET[1]
                 expiry[1]=t+120;updates[t,1]=True;entries[t,0]=True
         if weekly and good and expiry[2]<0 and 2 not in expired:
-            dif=np.diff(logc[t-167:t+1,2:],axis=0)
+            dif=np.diff(logc[t-168:t+1,2:],axis=0)
             vol=np.std(dif,axis=0,ddof=0)
             if np.min(vol)>1e-12 and np.max(vol)/np.min(vol)>1.6:
                 lowj=2+int(np.argmin(vol));highj=2+int(np.argmax(vol))
