@@ -230,5 +230,39 @@ class LocalTapeImportTests(unittest.TestCase):
             require_hourly_original_coverage(partial)
 
 
+    def test_live_any_tenor_feed_does_not_forge_fixed_tenor_availability(self):
+        # A real options feed can have no puts inside the strategy tenor.
+        # That is a market-universe zero, not a 24-hour transport gap.
+        day = FIRST
+        expiry = (day + timedelta(days=60)).strftime("%d%b%y").upper()
+        start = int(datetime(day.year, day.month, day.day,
+                             tzinfo=timezone.utc).timestamp() * 1_000_000)
+        path = self.root / (day.isoformat() + ".csv.gz")
+        def write_hours(missing=None):
+            buf = io.StringIO(newline="")
+            writer = csv.writer(buf)
+            writer.writerow(HEADERS)
+            for hour in range(24):
+                if hour == missing:
+                    continue
+                for i, asset in enumerate(("BTC", "ETH")):
+                    t = start + hour*3_600_000_000 + (i+1)*1_000_000
+                    writer.writerow(("deribit", f"{asset}-{expiry}-30000-P",
+                                     t, t, "0.02", "0.025", "1", "1"))
+            path.write_bytes(gzip.compress(buf.getvalue().encode()))
+        write_hours()
+        source = scan_day(path, day)
+        self.assertEqual(source["live_original_put_arrival_hours_by_asset"],
+                         {"BTC": 24, "ETH": 24})
+        self.assertEqual(source["qualifying_original_put_quote_rows_by_asset"],
+                         {"BTC": 0, "ETH": 0})
+        self.assertEqual(source["descriptive_28_45d_put_quote_rows_by_asset"],
+                         {"BTC": 0, "ETH": 0})
+        require_hourly_original_coverage(source)
+        write_hours(missing=12)
+        with self.assertRaisesRegex(ValueError, "ORIGINAL_DAY_BTC_ETH_HOURLY_CAPTURE_GAP"):
+            require_hourly_original_coverage(scan_day(path, day))
+
+
 if __name__ == "__main__":
     unittest.main()
