@@ -32,7 +32,15 @@ def verify(journal, report):
             or report.get("schema") != "V99_I1_ORIGINAL_SPINE_NATIVE_JOURNAL_PARITY_V1"
             or report.get("promotion_authorized") is not False):
         raise AssertionError("INDEPENDENT_SPINE_INPUT_NOT_QUARANTINED")
-    expected_clocks = tuple(_expected_clock(i) for i in range(DAYS))
+    # Independently pin the four immutable intraday TRAIN fold clocks.
+    # Do not import the production spine's clock helper or trust its report.
+    intraday_edges = tuple(int(datetime(y, m, d, h, tzinfo=timezone.utc)
+                               .timestamp() * 1000) for y, m, d, h in (
+        (2022, 4, 20, 4), (2022, 8, 30, 9),
+        (2023, 1, 9, 14), (2023, 5, 21, 19),
+    ))
+    expected_clocks = tuple(sorted({*(_expected_clock(i) for i in range(DAYS)),
+                                    *intraday_edges}))
     out = {}
     for scenario in ("severe", "supersevere"):
         opens = {}
