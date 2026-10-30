@@ -1,0 +1,67 @@
+name: V99 R106 Binance original 5-fold funding source gate (NO ECONOMICS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/V99_R106_BINANCE_ORIGINAL_FUNDING_FULL_TRAIN_SOURCE_PREREG_20261030.md'
+      - 'research/tools/v99_r106_binance_funding_original_train_source.py'
+      - 'research/verification/independent_v99_r106_binance_funding_original_train_oracle.py'
+      - '.github/workflows/v99-r106-binance-original-funding-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-native-published-funding-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify fixed source contract was preregistered before implementation
+        run: |
+          git merge-base --is-ancestor a3af22f035271f2df0b74f261959451d60a9376e HEAD
+          echo 'PRE_SOURCE_FIXED_44_ARCHIVE_SCOPE_CONFIRMED'
+      - name: Download publisher-checksummed ORIGINAL Binance BTC/ETH funding ZIPs (TRAIN ONLY)
+        run: |
+          python -m research.tools.v99_r106_binance_funding_original_train_source research_evidence/binance_funding
+      - name: Independently replay original ZIP and publisher checksum bytes, five folds
+        run: |
+          python -m research.verification.independent_v99_r106_binance_funding_original_train_oracle research_evidence/binance_funding
+      - name: Enforce no account funding, economics, validation, promotion or orders
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/binance_funding/binance_funding_source_only.json').read_text())
+          assert r['status'] in ('SOURCE_HOLD','BINANCE_PUBLISHED_FUNDING_TRAIN_COVERAGE_PASS')
+          assert r['source_is_not_account_settled_cash'] is True
+          assert r['source_is_not_okx'] is True
+          for key in ('economic_train_executed','native_account_fees_certified',
+                      'historical_fills_certified','roi_calculated','validation_opened',
+                      'final_holdout_opened','promotion_authorized',
+                      'paper_publication_authorized','orders_enabled'):
+              assert r[key] is False, key
+          print('SOURCE_ONLY; NO NATIVE ACCOUNT SETTLEMENT; NO ECONOMICS; NO PROMOTION')
+          PY
+      - name: Delete ALL raw exchange ZIP and checksum bytes before uploading artifact
+        if: always()
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          root=Path('research_evidence/binance_funding/raw_ephemeral')
+          if root.exists(): shutil.rmtree(root)
+          print('ORIGINAL_PUBLISHER_BYTES_REMOVED_FROM_ARTIFACT')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-binance-original-funding-source-${{ github.run_id }}
+          path: research_evidence/binance_funding/binance_funding_source_only.json
+          retention-days: 30
+          if-no-files-found: warn
