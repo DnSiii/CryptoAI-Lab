@@ -29,6 +29,18 @@ MONTHS = [f"{y}-{m:02d}" for y in (2021, 2022, 2023) for m in range(1, 13)
           if (y, m) >= (2021, 12) and (y, m) <= (2023, 9)]
 SCHEMA = "V99_R106_BINANCE_FUNDING_API_ARCHIVE_CLOCK_CORROBORATION_V1"
 
+def verify_window_attempts(detail: dict, symbol: str, errors: list[str], expected_windows: int) -> int:
+    """Independently reject an unsubstantiated early source-API stop."""
+    attempted = detail.get("api_windows_requested")
+    planned = detail.get("api_windows_planned")
+    if planned != expected_windows or not isinstance(attempted, int) or not 1 <= attempted <= planned:
+        raise ValueError("ORACLE_API_WINDOW_PLAN_OR_ATTEMPT")
+    symbol_errors = [e for e in errors if e.startswith(symbol + ":")]
+    terminal_451 = f"{symbol}:WINDOW_{attempted}:HTTP_451_ACCESS_RESTRICTED"
+    if attempted < planned and symbol_errors != [terminal_451]:
+        raise ValueError("ORACLE_UNJUSTIFIED_EARLY_STOP")
+    return attempted
+
 
 def replay(root: Path):
     root = Path(root)
@@ -98,14 +110,8 @@ def replay(root: Path):
                 previous = ts
                 api_rows.append((ts, rate))
         detail = report["assets"][symbol]
-        attempted = detail.get("api_windows_requested")
-        planned = detail.get("api_windows_planned")
-        if planned != expected_windows or not isinstance(attempted, int) or not 1 <= attempted <= planned:
-            raise ValueError("ORACLE_API_WINDOW_PLAN_OR_ATTEMPT")
-        symbol_errors = [e for e in report.get("errors", []) if e.startswith(symbol + ":")]
-        terminal_451 = f"{symbol}:WINDOW_{attempted}:HTTP_451_ACCESS_RESTRICTED"
-        if attempted < planned and symbol_errors != [terminal_451]:
-            raise ValueError("ORACLE_UNJUSTIFIED_EARLY_STOP")
+        attempted = verify_window_attempts(detail, symbol, report.get("errors", []),
+                                           expected_windows)
         if any(int(p.stem.rsplit("-", 1)[1]) > attempted
                for p in (root / "api_raw_ephemeral").glob(f"{symbol}-window-*.json")):
             raise ValueError("ORACLE_UNATTEMPTED_API_FILE")
