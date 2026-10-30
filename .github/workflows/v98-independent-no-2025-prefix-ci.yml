@@ -1,0 +1,55 @@
+name: V98 NO 2025 Frozen Prefix Code-Only Preflight (NO 2025 DATA)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-no-2025-prefix-ci.yml'
+      - 'research/v98_independent/v98_no_2025_*.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  no-prefix-code-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile NO sealed validator and independent oracles without 2025 data
+        working-directory: research/v98_independent
+        run: python -m py_compile v98_no_2025_validation_reader.py v98_no_2025_validation.py v98_no_2025_independent_fill_oracle.py v98_no_2025_independent_accounting.py v98_no_2025_independent_arithmetic.py
+      - name: Download 2022-24 SHA-authenticated training causal prefix ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: training-input
+      - name: Assert frozen NO 2022-24 prefix exactly equals 2025-code replay, no 2025 data
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np
+          import v98_no_2025_validation as val
+          import v98_no_2025_independent_fill_oracle as oracle
+          from v98_clean4_training_reader import load,HOURS
+          from no_sources import bundle
+          d=load('../../training-input')
+          frozen=bundle(*(d[k] for k in ('o','h','l','c','q','rate','event')))
+          val.TOTAL=HOURS
+          oracle.TOTAL=HOURS
+          a=val.extended_bundle(d)
+          b=oracle.source_replay(d)
+          for i in range(3):
+              if not np.array_equal(a[i],frozen[i]):
+                  raise ValueError('NO_VALIDATION_PREFIX_DRIFT_'+str(i))
+          if not np.array_equal(b[0],frozen[0]) or not np.array_equal(b[1],frozen[1]):
+              raise ValueError('NO_INDEPENDENT_FILL_PREFIX_DRIFT')
+          print('NO_2025_CODE_ONLY_FROZEN_PREFIX_AND_INDEPENDENT_SOURCE_PASS_NO_2025_DATA')
+          PY
