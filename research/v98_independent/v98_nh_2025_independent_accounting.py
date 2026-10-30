@@ -30,11 +30,11 @@ def run(training_root,validation_root,ledger_path,receipt_path):
     daily=closes[23::24];dr=np.diff(np.r_[10000.,daily])/np.r_[10000.,daily[:-1]]
     if len(dr)!=365 or int((dr>0).sum())!=cell['positive_days'] or cell['daily_count']!=365:
         raise ValueError('NH_2025_INDEPENDENT_UTC_DAILY_BOUNDARY')
-    out.update(decision='PASS_NH_2025_INDEPENDENT_ALL_HOUR_SETTLEMENT_NOT_FINAL_VALIDATION',
-        original_physical_decision=receipt['decision'],
-        daily_utc_count=365,positive_days=int((dr>0).sum()),
-        2025_validation_only=True,future_2026_holdout_accessed=False,
-        live_authorized=False,source_signals_independently_reconstructed=False)
+    out.update({'decision':'PASS_NH_2025_INDEPENDENT_ALL_HOUR_SETTLEMENT_NOT_FINAL_VALIDATION',
+        'original_physical_decision':receipt['decision'],
+        'daily_utc_count':365,'positive_days':int((dr>0).sum()),
+        '2025_validation_only':True,'future_2026_holdout_accessed':False,
+        'live_authorized':False,'source_signals_independently_reconstructed':False})
     return out
 if __name__=='__main__':
     p=argparse.ArgumentParser()
