@@ -42,7 +42,7 @@ def check(d):
         if down>.65 and r72[0]<-.07:target[3,0]=-.14
         elif down<.40 and r168[0]<-.10 and r24[0]>0:target[3,0]=.14
         risk_on=r168[0]>0 and sum(x>0 for x in r168)>=3
-        target[1:]*=np.array([1.,.8,.5] if risk_on else [.75,.8,1.])
+        target[1:]*=np.array([1.,.8,.5] if risk_on else [.75,.8,1.])[:,None]
         error=float(np.max(np.abs(raw[t]-target)))
         if error>1e-10 or not updates[t].all():
             raise ValueError('NV_INDEPENDENT_SOURCE_MISMATCH_'+str(t)+'_'+str(error))
