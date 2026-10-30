@@ -1,0 +1,30 @@
+name: V98 Independent Alternate Official Funding Mark Transports 2023 Source Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-alternate-mark-transport.yml'
+      - 'research/v98_independent/v98_exact_mark_alternate_official_probe.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mark-source-probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test additional candidate official hosts with only BTC 2023 sample
+        working-directory: research/v98_independent
+        run: python v98_exact_mark_alternate_official_probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-exact-mark-alternate-probe-${{ github.run_id }}
+          path: research/v98_independent/v98_exact_mark_alternate_probe_receipt.json
+          retention-days: 30
