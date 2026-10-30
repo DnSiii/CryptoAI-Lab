@@ -1,0 +1,7 @@
+# V98 exact native funding event timestamp-offset importer — CI-verified source repair (2026-10-30)
+
+**Source-only code repair PASS, not actual tick provenance.** Pre-change contract `v98_exact_funding_offset_contract_20261030.md` was committed before importer/test changes. Original V98-only GitHub workflow `41102401908` completed **success** on commit `a450542eb01a529ef790ec59b8a777ef58b875ad`.
+
+The original authenticated Clean-4 2022–24 artifact and pinned two-sided official mark envelope were loaded. All 9,144 **synthetic fixture** event rows passed the strict import contract. Independent tamper tests confirmed: **29ms** post-settlement timestamp accepted and receipt offset preserved; **60,001ms** rejected; native funding-rate mutation rejected; mark outside official envelope rejected. Existing SHA and event-count checks preserved.
+
+**Precisely unresolved:** this test does not provide 9,144 exchange-origin `markPrice` ticks. A verifiable official or equivalent 2,286-row-per-asset `symbol,fundingTime,fundingRate,markPrice` export with immutable SHA and transport/source provenance is still required for exact native funding certification. Official API HTTP 451 and third-party mirror timeout remain external. Signed native rates + official worst-side mark OHLC envelope remain the conservative stress fallback. No PnL, 2025+, XRP, Phase083, benchmarks, Frozen, holdout or paper touched.
