@@ -1,0 +1,5 @@
+# V98 NO — sealed 2025 code-only prefix and independent oracle preflight PASS (2026-10-30)
+
+GitHub Actions `41103973662` completed **success** using only SHA-authenticated 2022–24 Clean-4 training data. All five NO 2025 validation/independent oracle modules compiled. The prospective validator's entire 17,544h source-target/update/activity prefix was **bitwise equal** to the immutable NO training source; the separate source-to-fill oracle independently reconstructed identical prefix weights and updates. No 2025 data was downloaded or accessed; no 2023–24 PnL recomputed in this preflight.
+
+**Not 2025 validation.** The original NO 30-cell training runner and independent source/fill/hourly settlement/economic gates still must pass before the sealed 2025 workflow is permitted to access validation data. No Frozen, V99, future holdout, benchmark or paper/live access.
