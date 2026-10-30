@@ -10,7 +10,7 @@ def run(root,envelope,ledger,receipt):
     if r.get('architecture')!='NO' or r.get('decision') not in (
         'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED','REJECT_EARLY_TRAINING'):
         raise ValueError('NO_ORACLE_INVALID_RECEIPT')
-    if len(r['cells'])!=30 or r['source_gate']['decision']!='PASS_SOURCE_ONOY':
+    if len(r['cells'])!=30 or r['source_gate']['decision']!='PASS_SOURCE_ONLY':
         raise ValueError('NO_ORACLE_SOURCE_OR_CELL_COUNT')
     cell=next(x for x in r['cells'] if x['book']=='NO_full' and
               x['tier']=='base' and x['order']=='carried_before_fill')
