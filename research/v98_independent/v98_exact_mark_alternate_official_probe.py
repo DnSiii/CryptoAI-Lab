@@ -34,3 +34,5 @@ for host in HOSTS:
 Path('v98_exact_mark_alternate_probe_receipt.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
 print(json.dumps(out,indent=2,sort_keys=True))
 print('V98_ALTERNATE_OFFICIAL_HOST_SAMPLE_PROBE_ONLY_NO_PNL')
+if not any(x['status']=='SAMPLE_SCHEMA_PASS_NOT_FULL_PROVENANCE' for x in out['results']):
+    raise SystemExit('V98_EXACT_MARK_SOURCE_TRANSPORT_BLOCKED_NO_USABLE_SAMPLE')
