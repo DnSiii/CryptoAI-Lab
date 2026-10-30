@@ -1,0 +1,62 @@
+name: V99 R106 original Binance USD-M historical best-bid-ask sample (SOURCE ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/V99_R106_BINANCE_ORIGINAL_BOOKTICKER_EXECUTION_FEASIBILITY_PREREG_20261030.md'
+      - 'research/tools/v99_r106_binance_bookticker_native_quote_probe.py'
+      - 'research/verification/independent_v99_r106_binance_bookticker_native_quote_oracle.py'
+      - '.github/workflows/v99-r106-binance-native-bookticker-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  first-party-bid-ask-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 20
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify one-shot fixed-source preregistration is an ancestor
+        run: git merge-base --is-ancestor bf01504998efb32789ba4cf94a28abe70605b0c5 HEAD
+      - name: Compile both independent implementations
+        run: |
+          python -m py_compile research/tools/v99_r106_binance_bookticker_native_quote_probe.py
+          python -m py_compile research/verification/independent_v99_r106_binance_bookticker_native_quote_oracle.py
+      - name: Fetch actual original first-party 2022-01-23 BTC ETH bookTicker archives and publisher checksums
+        run: python -m research.tools.v99_r106_binance_bookticker_native_quote_probe research_evidence/binance_bookticker
+      - name: Independently reparse original bytes and every 23 strict as-of decision hours
+        run: python -m research.verification.independent_v99_r106_binance_bookticker_native_quote_oracle research_evidence/binance_bookticker
+      - name: Enforce SOURCE ONLY / no economic permission
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/binance_bookticker/binance_bookticker_source_only.json').read_text())
+          assert r['day']=='2022-01-23' and r['venue']=='BINANCE_USDM_FUTURES'
+          for k in ('economics_executed','historical_fills_certified','account_funding_settlement_certified','native_account_fee_tier_certified','validation_opened','final_holdout_opened','paper_changed','frozen_changed','orders_enabled','promotion'):
+              assert r[k] is False, k
+          print('BOOKTICKER_SOURCE_ONLY:',r['classification'],'NO_PROMOTION')
+          PY
+      - name: Remove original publisher ZIP and checksum before artifact upload
+        if: always()
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          p=Path('research_evidence/binance_bookticker/raw_ephemeral')
+          if p.exists(): shutil.rmtree(p)
+          print('RAW_FIRST_PARTY_QUOTE_BYTES_REMOVED')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-binance-native-bookticker-source-only-${{ github.run_id }}
+          path: research_evidence/binance_bookticker/binance_bookticker_source_only.json
+          retention-days: 30
+          if-no-files-found: warn
