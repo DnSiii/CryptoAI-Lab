@@ -1,0 +1,11 @@
+# V98 Independent — third-party funding markPrice mirror source probe closeout (2026-10-30)
+
+**SOURCE PROBE FAILED, NO EXACT NATIVE-TICK ATTESTATION.** Original pre-result preregistration commit `5588a60d2365c702543193b1483e66f6360d2f7b`, source-only implementation `89b12d4ea05903ace730a0cf918cf0f7636bb4be`, workflow `2add6fcf4befc66975bffe2955b1d52c2f9fd5ae`. Original CI https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41094035286.
+
+**Observed failure:** the documented untrusted third-party transparent mirror `https://api-dev.pipai.org/fapi/v1/fundingRate` timed out twice on the **very first BTCUSDT training request**, startTime `1669852800000` (2022-12-01T00:00:00Z). Original error `RuntimeError:MIRROR_UNAVAILABLE_BTCUSDT_1669852800000_TimeoutError:The read operation timed out`. **Zero mirror event records were authenticated**, no markPrice CSV produced, no funding/PnL source substituted. Fail-closed receipt uploaded even on workflow failure. This is a source availability failure, not a market/strategy rejection.
+
+**Precise missing evidence:** an exchange-authentic or independently verifiable equivalent of 2,286 timestamp-matched `symbol,fundingTime,fundingRate,markPrice` records for **each** BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, covering 2022-12..2024-12, with source provenance and checksum. Official `fapi.binance.com/fapi/v1/fundingRate` was previously blocked by HTTP 451 on GitHub runners; the tested third-party mirror timed out. A third-party proxy would still require independent origin validation even if it returned all records.
+
+**Usable fallback, explicitly not exact tick:** checksum-authenticated official 1h mark OHLC intervals for all 9,144 funding events plus SHA-authenticated signed native funding rates, settled with conservative worst-side mark bounds. This supports conservative training stress, **not** a claim of exact native markPrice. A trusted data provider/authorized non-geoblocked network export with complete timestamps and checksums, or an explicitly accepted conservative-envelope final gate, is needed to close the exact-tick dependency.
+
+No 2025+, XRP, Phase083, V14/V15/V99, Frozen, holdout or paper/live touched. Only V98 Independent source files/workflow created.
