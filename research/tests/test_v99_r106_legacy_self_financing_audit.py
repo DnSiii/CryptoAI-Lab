@@ -147,6 +147,40 @@ class SelfFinancingAudit(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "independent_oracle_invalid_nav_or_cost"):
             audit.verify_trace(negative, 0.)
 
+    def test_terminal_close_is_distinct_and_independently_conserved(self):
+        rows, opens = sample()
+        trace = audit.replay_targets(rows, opens, .0007)
+        result = audit.terminal_close(trace, .0007)
+        self.assertGreater(result["terminal_notional"], 0.)
+        self.assertGreater(result["terminal_close_fee"], 0.)
+        self.assertLess(result["terminal_liquidated_nav_NOT_STRATEGY_ROI"], trace[-1]["nav_next"])
+        self.assertTrue(audit.verify_terminal_close(trace, .0007, result))
+
+    def test_terminal_close_zero_exposure_and_adversarial_tamper(self):
+        rows, opens = sample()
+        for r in rows:
+            r["btc_weight"] = "0"
+            r["eth_weight"] = "0"
+        zero = audit.terminal_close(audit.replay_targets(rows, opens, .0007), .0007)
+        self.assertEqual(zero["terminal_close_fee"], 0.)
+        rows, opens = sample()
+        trace = audit.replay_targets(rows, opens, .0014)
+        original = audit.terminal_close(trace, .0014)
+        for field in ("terminal_close_fee", "terminal_liquidated_nav_NOT_STRATEGY_ROI"):
+            bad = copy.deepcopy(original)
+            bad[field] += .01
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, "self_financing_mismatch_terminal"):
+                    audit.verify_terminal_close(trace, .0014, bad)
+
+    def test_terminal_close_fails_missing_or_invalid_mark(self):
+        rows, opens = sample()
+        trace = audit.replay_targets(rows, opens, .0007)
+        trace[-1]["next_prices"] = (0., 40.)
+        with self.assertRaisesRegex(ValueError, "terminal_market_or_contract_invalid"):
+            audit.verify_terminal_close(trace, .0007, audit.terminal_close(
+                audit.replay_targets(rows, opens, .0007), .0007))
+
 
 if __name__ == "__main__":
     unittest.main()
