@@ -1,0 +1,10 @@
+# V98 NG — immutable pre-PnL source rejection (2026-10-30)
+
+**REJECT_SOURCE_ONLY. PERMANENT. NO PnL EXECUTED, NO THRESHOLD/ACTIVITY RESCUE.** NG was preregistered in commit `c773bb54488ea65df9db356cceefc4948db99466` before any NG source or PnL test. Original workflow [41075690848](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41075690848), source/runner SHA `71f2dd2630d3b35945e15f960e8ca9a9d59955bb`. Original artifact ID `12985604715`, digest `sha256:87e89d527068c720fbb834beb6440611210fcd70b8a5696121eeba5817da9fa6`.
+
+- Authenticated Clean-4 training 2023–24, 2022-12 warmup, 9,144 signed native funding events, 27/27 mandatory core refreshes; zero independent hourly weight mismatches, zero activity mismatches, zero silent updates, future mutation causality PASS. All source checks except one preregistered minimum passed.
+- Weekly source activations **2023 Opportunity 6 / RV 52 / Stress 9**; **2024 Opportunity 16 / RV 48 / Stress 11**. Preregistered minimum Opportunity **10 per year**. **2023 Opportunity 6 < 10**; therefore `NG_MINIMUM_2023_Opportunity` and `REJECT_SOURCE_ONLY`.
+- Original 30-cell physical/PnL step correctly SKIPPED after source gate. No CAGR, equity, PF, payoff, win rate, max drawdown or marginal contribution can be claimed for NG. Independent hourly/fill steps correctly did not attest any nonexistent ledger.
+- **No post-result relaxation** of compression ratio, return thresholds, weekly activity minimum, core exposure or risk/cost gates. NG cannot be promoted, validated on 2025, or used as a benchmark-selected rescue. Exact native event-tick `markPrice` still unavailable (HTTP 451); official signed rates and pinned conservative worst-side mark OHLC envelope remain the documented alternative.
+
+Only V98 Independent NG namespaced files and workflow were introduced; no 2025, 2026+, XRP, Phase083, V14/V15/V99, Frozen or paper state accessed/modified. No live orders. Next: a genuinely distinct complete growth thesis, preregistered before source/PnL, not NG retuning.
