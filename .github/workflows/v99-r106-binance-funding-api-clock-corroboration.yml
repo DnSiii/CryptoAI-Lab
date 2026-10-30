@@ -1,0 +1,69 @@
+name: V99 R106 Binance first-party API/archive funding clock corroboration (SOURCE ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/V99_R106_BINANCE_FUNDING_API_CLOCK_BINDING_PREREG_20261030.md'
+      - 'research/tools/v99_r106_binance_funding_api_clock_binding.py'
+      - 'research/verification/independent_v99_r106_binance_funding_api_clock_oracle.py'
+      - '.github/workflows/v99-r106-binance-funding-api-clock-corroboration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  first-party-funding-api-clock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 20
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Enforce source-only ex ante registration
+        run: |
+          git merge-base --is-ancestor 93d17221070ad46747b130afaef869af9312309d HEAD
+          echo 'PRE_API_SOURCE_CONTRACT_REGISTERED'
+      - name: Fetch original publisher checksummed ZIPs and original first-party historical funding API TRAIN ONLY
+        run: |
+          python -m research.tools.v99_r106_binance_funding_api_clock_binding research_evidence/binance_funding_api_clock
+      - name: Independently reconstruct original publisher and API archive binding from ephemeral bytes
+        run: |
+          python -m research.verification.independent_v99_r106_binance_funding_api_clock_oracle research_evidence/binance_funding_api_clock
+      - name: Enforce SOURCE_HOLD or corroboration without native account claims
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/binance_funding_api_clock/binance_funding_api_clock_source_only.json').read_text())
+          assert r['status'] in ('SOURCE_HOLD','PUBLIC_ARCHIVE_API_EVENT_CLOCK_CORROBORATED')
+          assert r['original_strict_exact_clock_gate_unchanged'] is True
+          assert r['original_strict_exact_clock_observed_per_asset'] == 821
+          for k in ('no_private_account_settlement','no_economics','no_promotion',
+                    'no_validation','no_holdout','no_paper','no_orders'):
+              assert r[k] is True, k
+          print('SOURCE_ONLY',r['status'],'NO_PRIVATE_SETTLEMENT NO_ECONOMICS NO_PROMOTION')
+          PY
+      - name: Remove raw original ZIP/checksum and first-party API JSON before publishing artifact
+        if: always()
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          root=Path('research_evidence/binance_funding_api_clock')
+          for name in ('raw_ephemeral','api_raw_ephemeral'):
+              p=root/name
+              if p.exists(): shutil.rmtree(p)
+          print('ORIGINAL_RAW_SOURCE_BYTES_QUARANTINED_AND_REMOVED')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: v99-binance-funding-api-clock-source-only-${{ github.run_id }}
+          path: |
+            research_evidence/binance_funding_api_clock/binance_funding_source_only.json
+            research_evidence/binance_funding_api_clock/binance_funding_api_clock_source_only.json
+          retention-days: 30
+          if-no-files-found: warn
