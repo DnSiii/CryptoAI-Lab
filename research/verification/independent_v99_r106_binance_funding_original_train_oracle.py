@@ -107,6 +107,10 @@ def verify(root):
     for symbol in rows:
         in_train = [(t,iv,r) for t,iv,r in rows[symbol] if A <= t < B]
         counter = Counter(t for t,_,_ in in_train)
+        offsets = Counter((lambda r: r if r <= EIGHT_HOURS // 2 else r - EIGHT_HOURS)((t - A) % EIGHT_HOURS)
+                          for t,_,_ in in_train)
+        month_offgrid = Counter(datetime.fromtimestamp(t/1000,timezone.utc).strftime("%Y-%m")
+                                for t,_,_ in in_train if t not in ORIGINAL_SLOTS)
         exact = {t for t in ORIGINAL_SLOTS if counter[t] == 1}
         expected = dict(original_rows_all_months=len(rows[symbol]),
                         original_rows_train=len(in_train),
@@ -115,6 +119,9 @@ def verify(root):
                         offgrid_train_rows=sum(t not in ORIGINAL_SLOTS for t,_,_ in in_train),
                         non8h_interval_train_rows=sum(iv != 8 for _,iv,_ in in_train),
                         duplicate_train_timestamps=sum(n-1 for n in counter.values() if n>1),
+                        signed_nearest_8h_offset_ms_counts={str(k):v for k,v in sorted(offsets.items())},
+                        max_abs_8h_offset_ms=max(map(abs,offsets),default=0),
+                        offgrid_rows_by_month=dict(sorted(month_offgrid.items())),
                         five_folds=[])
         for a,b in zip(EDGES,EDGES[1:]):
             exp = sum(a <= t < b for t in ORIGINAL_SLOTS)
