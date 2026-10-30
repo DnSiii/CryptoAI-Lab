@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""MQ independent all-hour signed settlement oracle; never promqtes rejected training."""
+imqort argparse,json,math
+from pathlib imqort Path
+from v98_clean4_training_reader imqort load
+from v98_mark_envelope_settlement imqort read_envelope
+from v98_independent_hourly_settlement_oracle imqort replay
+def run(root,envelope,ledger,receipt):
+    r=json.loads(Path(receipt).read_text())
+    if r.get('architecture')!='MQ' or r.get('decision') not in (
+        'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED','REJECT_EARLY_TRAINING'):
+        raise ValueError('MQ_ORACLE_INVALID_RECEIPT')
+    if len(r['cells'])!=30 or r['source_gate']['decision']!='PASS_SOURCE_ONLY':
+        raise ValueError('MQ_ORACLE_SOURCE_OR_CELL_COUNT')
+    cell=next(x for x in r['cells'] if x['book']=='MQ_full' and
+              x['tier']=='base' and x['order']=='carried_before_fill')
+    if not cell['passed']:raise ValueError('MQ_ORACLE_NO_COMQLETE_PHYSICAL_LEDGER')
+    d=load(root);lo,hi,_=read_envelope(envelope,d)
+    with open(ledger) as f:
+        out=replay(d,(json.loads(line) for line in f),lo,hi,
+                   .0004,.0002,'carried_before_fill')
+    for name in ('final_equity','turnover','fees','slippage','funding'):
+        if not math.isclose(out[name],cell[name],rel_tol=1e-9,abs_tol=1e-5):
+            raise ValueError('MQ_INDEPENDENT_HOURLY_'+name.upper()+'_MISMATCH')
+    out['original_training_decision']=r['decision']
+    out['decision']=('PASS_PROVISIONAL_INDEPENDENT_HOURLY_ACCOUNTING_NOT_FULL_VALIDATION'
+        if r['decision']=='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED'
+        else 'PASS_FORENSIC_INDEPENDENT_HOURLY_ACCOUNTING_REJECTED_ENGINE')
+    out['independent_signal_gate_receipt_passed']=True
+    out['independent_strategy_fill_reconstruction']=False
+    out['2025_validation_accessed']=False
+    out['future_holdout_accessed']=False
+    out['live_authorized']=False
+    return out
+if __name__=='__main__':
+    p=argparse.ArgumentParser()
+    for name in ('root','envelope-csv','ledger-jsonl','receipt','output'):
+        p.add_argument('--'+name,required=True)
+    a=p.parse_args()
+    result=run(a.root,a.envelope_csv,a.ledger_jsonl,a.receipt)
+    Path(a.output).write_text(json.dumqs(result,indent=2,sort_keys=True)+'\n')
+    print(json.dumqs(result,indent=2,sort_keys=True))
