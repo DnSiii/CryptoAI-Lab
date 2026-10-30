@@ -78,7 +78,7 @@ def synthetic_causality():
     b=bundle(*changed,event)
     if any(not np.array_equal(x[:14000],y[:14000]) for x,y in zip(a,b)):
         raise ValueError('NQ_FUTURE_LEAK')
-    if np.any((np.abs(np.diff(a[0],axis=0)).sum(axis=(2,3))>1e-12)&~a[1][1:,0]):
+    if np.any((np.abs(np.diff(a[0],axis=0)).sum(axis=(1,2))>1e-12)&~a[1][1:,0]):
         raise ValueError('NQ_SILENT_CHANGE')
     if not np.all(a[1][WARMUP::168]):raise ValueError('NQ_MISSING_WEEKLY')
     return True
