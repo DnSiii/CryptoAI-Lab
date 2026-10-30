@@ -191,8 +191,50 @@ def read_journal(path, fields, indices, b):
     return rows
 
 
+
+def terminal_close(trace, cost):
+    """Additional modeled exit, separate from immutable rejected-policy replay."""
+    if not trace:
+        raise ValueError("terminal_trace_missing")
+    check_cost(cost)
+    last = trace[-1]
+    notional = sum(abs(q) * p for q, p in zip(last["q_new"], last["next_prices"]))
+    fee = cost * notional
+    nav = last["nav_next"] - fee
+    if not all(math.isfinite(v) for v in (notional, fee, nav)) or notional < 0 or fee < 0 or nav <= 0:
+        raise ValueError("terminal_liquidation_invalid")
+    return {"terminal_notional": notional, "terminal_close_fee": fee,
+            "terminal_liquidated_nav_NOT_STRATEGY_ROI": nav}
+
+
+def verify_terminal_close(trace, cost, result):
+    """Independent exit arithmetic, no rebalance solver or summary trust."""
+    if not trace:
+        raise ValueError("terminal_trace_missing")
+    check_cost(cost)
+    last = trace[-1]
+    independently_counted_notional = 0.
+    for contract, price in zip(last["q_new"], last["next_prices"]):
+        if not math.isfinite(contract) or not math.isfinite(price) or price <= 0:
+            raise ValueError("terminal_market_or_contract_invalid")
+        independently_counted_notional += abs(contract * price)
+    independently_counted_fee = independently_counted_notional * cost
+    independently_liquidated_nav = last["nav_next"] - independently_counted_fee
+    if not math.isfinite(independently_liquidated_nav) or independently_liquidated_nav <= 0:
+        raise ValueError("terminal_independent_nav_invalid")
+    close(result["terminal_notional"], independently_counted_notional, "terminal_notional")
+    close(result["terminal_close_fee"], independently_counted_fee, "terminal_close_fee")
+    close(result["terminal_liquidated_nav_NOT_STRATEGY_ROI"],
+          independently_liquidated_nav, "terminal_liquidated_nav")
+    return True
+
+
 def forensic_summary(trace, legacy_report, cost):
+    exit_result = terminal_close(trace, cost)
+    verify_terminal_close(trace, cost, exit_result)
     return {
+        "modeled_terminal_close": exit_result,
+        "terminal_liquidation_independently_verified": True,
         "original_legacy_roi_archived_diagnostic": legacy_report["roi"],
         "conditional_self_financing_nav_change_NOT_STRATEGY_ROI": trace[-1]["nav_next"] - 1.,
         "legacy_weight_delta_turnover_sum": sum(r["legacy_turn"] for r in trace),
