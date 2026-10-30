@@ -8,6 +8,8 @@ on:
       - research/V99_R106_I1_ORIGINAL_DAY_HOURLY_COVERAGE_PREREG_20261028.md
       - research/V99_R106_I1_ORIGINAL_DAY_HOURLY_COVERAGE_CORRECTION_20261028.md
       - research/tests/test_v99_r106_i1_public_full_day_probe.py
+      # Verify this workflow's own repair in a real run, not only in source review.
+      - .github/workflows/v99-r106-i1-public-full-day-smoke.yml
   workflow_dispatch:
 permissions:
   contents: read
