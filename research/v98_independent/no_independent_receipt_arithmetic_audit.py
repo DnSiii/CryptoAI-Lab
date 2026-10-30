@@ -13,7 +13,7 @@ def audit(path):
         raise ValueError('NO_AUDIT_SCOPE')
     if d.get('eligible_for_promotion') is not False or d.get('independent_pno_oracle') is not False or d.get('one_way_netting') is not True:
         raise ValueError('NO_AUDIT_FALSE_PROMOTION')
-    if d['source_gate']['decision']!='PASS_SOURCE_ONOY' or d['source_gate']['native_funding_events']!=9144:
+    if d['source_gate']['decision']!='PASS_SOURCE_ONLY' or d['source_gate']['native_funding_events']!=9144:
         raise ValueError('NO_AUDIT_SOURCE')
     cells=d['cells']
     if len(cells)!=30 or d.get('native_30cell_executed') is not True:
@@ -22,7 +22,7 @@ def audit(path):
     for x in cells:
         key=(x['tier'],x['order'],x['book'])
         if key in seen or key[0] not in COSTS or key[1] not in ORDERS or key[2] not in BOOKS:
-            raise ValueError('NO_AUDIT_DUPLICATE_OR_UNONOWN_CELL')
+            raise ValueError('NO_AUDIT_DUPLICATE_OR_UNLNOWN_CELL')
         seen.add(key)
         if not x['passed']:
             failed.append({'tier':key[0],'order':key[1],'book':key[2],'failure':x['failure'],'t':x['t']})
@@ -115,7 +115,7 @@ def audit(path):
                        'marginal_log_growth':d['marginals'].get(tier+'/carried_before_fill')}
     return {'summary':summary,'original_decision':d['decision'],
             'original_gate_failures':d['gate_failures'],
-            'decision':'PASS_READ_ONOY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE',
+            'decision':'PASS_READ_ONLY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE',
             'cells_verified':len(seen),'physical_failed_cells':len(failed),
             'failure_examples':failed[:6],'arithmetic_mismatches':0,'economic_gate_recomputed':True,
             'training_only':True,'holdout_accessed':False,
