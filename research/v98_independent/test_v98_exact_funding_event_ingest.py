@@ -37,8 +37,29 @@ def run(root,envelope):
         exact,out=read_exact_funding_marks(mp,d,envelope)
         if out['events']!=9144 or not np.array_equal(exact[d['event']],d['mark'][d['event']]):
             raise ValueError('V98_EXACT_SYNTHETIC_FIXTURE_MISMATCH')
-        # Tamper with a native rate, but update digest: semantic gate must catch.
+        # Native exchange settlement offsets: 29ms is accepted, 60,001ms rejected.
+        # These are synthetic transport fixtures, not actual funding tick marks.
         symbol=ASSETS[0]
+        original_time=rows[symbol][0]['fundingTime']
+        rows[symbol][0]['fundingTime']=original_time+29
+        meta[symbol]['sha256']=dump(rootp/(symbol+'.json'),rows[symbol])
+        mp.write_text(json.dumps(manifest))
+        shifted,offset_receipt=read_exact_funding_marks(mp,d,envelope)
+        if (offset_receipt['per_symbol'][symbol]['max_timestamp_offset_ms']!=29 or
+            offset_receipt['per_symbol'][symbol]['nonzero_timestamp_offsets']!=1 or
+            not np.array_equal(shifted[d['event']],d['mark'][d['event']])):
+            raise ValueError('V98_EXACT_NATIVE_OFFSET_ACCEPTANCE_FAILED')
+        rows[symbol][0]['fundingTime']=original_time+60001
+        meta[symbol]['sha256']=dump(rootp/(symbol+'.json'),rows[symbol])
+        mp.write_text(json.dumps(manifest))
+        try:read_exact_funding_marks(mp,d,envelope)
+        except ValueError as e:
+            if 'OUT_OF_TRAINING_OR_OFF_CALENDAR' not in str(e):raise
+        else:raise AssertionError('V98_EXACT_OFFSET_OVER_60S_UNDETECTED')
+        rows[symbol][0]['fundingTime']=original_time
+        meta[symbol]['sha256']=dump(rootp/(symbol+'.json'),rows[symbol])
+        mp.write_text(json.dumps(manifest))
+        # Tamper with a native rate, but update digest: semantic gate must catch.
         rows[symbol][0]['fundingRate']=str(float(rows[symbol][0]['fundingRate'])+.001)
         meta[symbol]['sha256']=dump(rootp/(symbol+'.json'),rows[symbol])
         mp.write_text(json.dumps(manifest))
@@ -57,7 +78,9 @@ def run(root,envelope):
         else:raise AssertionError('V98_EXACT_MARK_TAMPER_UNDETECTED')
         return {'decision':'PASS_SYNTHETIC_IMPORT_CONTRACT_NOT_REAL_EXACT_FUNDING',
                 'synthetic_events':9144,'rate_tamper_detected':True,
-                'mark_tamper_detected':True,'official_tick_source_provenance_attested':False,
+                'mark_tamper_detected':True,'native_29ms_offset_accepted':True,
+                'native_over_60s_offset_rejected':True,
+                'official_tick_source_provenance_attested':False,
                 '2025_validation_accessed':False,'future_holdout_accessed':False,
                 'pnl_computed':False}
 if __name__=='__main__':
