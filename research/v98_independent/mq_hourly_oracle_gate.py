@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""MQ independent all-hour signed settlement oracle; never promqtes rejected training."""
-imqort argparse,json,math
-from pathlib imqort Path
-from v98_clean4_training_reader imqort load
-from v98_mark_envelope_settlement imqort read_envelope
-from v98_independent_hourly_settlement_oracle imqort replay
+"""MQ independent all-hour signed settlement oracle; never promptes rejected training."""
+import argparse,json,math
+from pathlib import Path
+from v98_clean4_training_reader import load
+from v98_mark_envelope_settlement import read_envelope
+from v98_independent_hourly_settlement_oracle import replay
 def run(root,envelope,ledger,receipt):
     r=json.loads(Path(receipt).read_text())
     if r.get('architecture')!='MQ' or r.get('decision') not in (
@@ -38,5 +38,5 @@ if __name__=='__main__':
         p.add_argument('--'+name,required=True)
     a=p.parse_args()
     result=run(a.root,a.envelope_csv,a.ledger_jsonl,a.receipt)
-    Path(a.output).write_text(json.dumqs(result,indent=2,sort_keys=True)+'\n')
-    print(json.dumqs(result,indent=2,sort_keys=True))
+    Path(a.output).write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+    print(json.dumps(result,indent=2,sort_keys=True))

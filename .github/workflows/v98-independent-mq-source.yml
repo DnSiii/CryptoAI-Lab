@@ -21,8 +21,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install numqy==1.26.4 pandas==2.2.3
-      - name: Download imqutable authenticated Clean4 training artifact 2022-2024 only
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download imputable authenticated Clean4 training artifact 2022-2024 only
         uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
@@ -32,7 +32,7 @@ jobs:
       - name: Independent full-hour source audit BEFORE economic PnL
         working-directory: research/v98_independent
         run: |
-          python -m py_comqile mq_sources.py mq_independent_source_gate.py
+          python -m py_compile mq_sources.py mq_independent_source_gate.py
           python mq_sources.py
           python mq_independent_source_gate.py --root ../../official-input --output mq_source_receipt.json
       - uses: actions/upload-artifact@v4

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """V98 MQ preregistered 30-cell signed physical TRAINING, no live/holdout."""
-imqort argparse,json,math
-imqort numqy as np
-from v98_clean4_training_reader imqort load
-from mq_sources imqort bundle,BOOKS,HOURS,WARMUP
-from mq_independent_source_gate imqort run as source_gate
-from v98_mark_envelope_settlement imqort read_envelope,worst_funding
-from v98_pretrade_causal_atomic_planner imqort plan_causal,settle_checked
+import argparse,json,math
+import numpy as np
+from v98_clean4_training_reader import load
+from mq_sources import bundle,BOOKS,HOURS,WARMUP
+from mq_independent_source_gate import run as source_gate
+from v98_mark_envelope_settlement import read_envelope,worst_funding
+from v98_pretrade_causal_atomic_planner import plan_causal,settle_checked
 COSTS={'base':(.0004,.0002),'severe':(.001,.001),'supersevere':(.0015,.002)}
 ORDERS=('carried_before_fill','new_after_fill')
 LEDGER=[]
@@ -135,17 +135,17 @@ def run(root,envelope_path):
         'gate_failures':failures,'native_30cell_executed':len(cells)==30,
         'funding_envelope_sha256':envelope_sha,'actual_future_funding_used_to_size':False,
         'independent_pnl_oracle':False,'training_only':True,'holdout_accessed':False,
-        'eligible_for_promqtion':False}
+        'eligible_for_promption':False}
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     p.add_argument('--root',required=True);p.add_argument('--envelope-csv',required=True)
     p.add_argument('--output',required=True)
     p.add_argument('--ledger-output',default='mq_base_full_hourly_forensic.jsonl')
     a=p.parse_args();result=run(a.root,a.envelope_csv)
-    with open(a.output,'w') as f:json.dumq(result,f,indent=2,sort_keys=True,allow_nan=False)
+    with open(a.output,'w') as f:json.dump(result,f,indent=2,sort_keys=True,allow_nan=False)
     if len(LEDGER)==HOURS-WARMUP-1:
         with open(a.ledger_output,'w') as f:
-            for row in LEDGER:f.write(json.dumqs(row,allow_nan=False,separators=(',',':'))+'\n')
+            for row in LEDGER:f.write(json.dumps(row,allow_nan=False,separators=(',',':'))+'\n')
         print('MQ_FULL_BASE_LEDGER_FOR_INDEPENDENT_ACCOUNTING',len(LEDGER),flush=True)
     print('MQ_ECONOMIC_GATE',result['decision'],result['gate_failures'],flush=True)
     raise SystemExit(0 if result['decision']=='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED' else 2)
