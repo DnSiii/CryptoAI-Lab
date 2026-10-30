@@ -94,5 +94,59 @@ class SelfFinancingAudit(unittest.TestCase):
             audit.replay_targets(rows, opens, .0007)
 
 
+    def test_zero_trade_does_not_bypass_invalid_model_cost(self):
+        rows, opens = sample()
+        for row in rows:
+            row["btc_weight"] = "0"
+            row["eth_weight"] = "0"
+        trace = audit.replay_targets(rows, opens, 0.)
+        self.assertTrue(audit.verify_trace(trace, 0.))
+        for bad_cost in (-.0007, .011, float("nan")):
+            with self.subTest(bad_cost=bad_cost):
+                with self.assertRaisesRegex(ValueError, "invalid_model_cost"):
+                    audit.verify_trace(trace, bad_cost)
+                with self.assertRaisesRegex(ValueError, "invalid_model_cost"):
+                    audit.replay_targets(rows, opens, bad_cost)
+
+    def test_missing_hour_rejected_before_original_replay(self):
+        rows, opens = sample()
+        rows[1]["time"] = "2022-01-03T02:00:00+00:00"
+        rows[2]["time"] = "2022-01-03T03:00:00+00:00"
+        with self.assertRaisesRegex(ValueError, "nonhourly_journal_grid"):
+            audit.replay_targets(rows, opens, .0007)
+
+    def test_independent_oracle_rejects_mutated_hourly_gap(self):
+        rows, opens = sample()
+        trace = audit.replay_targets(rows, opens, .0007)
+        trace[1]["time"] = "2022-01-03T02:00:00+00:00"
+        with self.assertRaisesRegex(ValueError, "nonhourly_journal_grid"):
+            audit.verify_trace(trace, .0007)
+
+    def test_non_utc_and_naive_timestamps_rejected(self):
+        rows, opens = sample()
+        for timestamp in ("2022-01-03T00:00:00+01:00", "2022-01-03T00:00:00"):
+            rows[0]["time"] = timestamp
+            with self.assertRaisesRegex(ValueError, "non_utc_journal_timestamp"):
+                audit.replay_targets(rows, opens, .0007)
+
+    def test_oracle_rejects_overgross_and_algebraic_negative_final_nav(self):
+        rows, opens = sample()
+        trace = audit.replay_targets(rows, opens, .0007)
+        bad = copy.deepcopy(trace)
+        bad[0]["weights"] = (1.4, 0.)
+        with self.assertRaisesRegex(ValueError, "independent_oracle_overgross_target"):
+            audit.verify_trace(bad, .0007)
+        # Internally consistent zero-cost short loses >100% at the next open.
+        negative = [{
+            "time": "2022-01-03T00:00:00+00:00",
+            "prices": (100., 100.), "next_prices": (500., 100.),
+            "weights": (-1.2, 0.), "q_old": (0., 0.),
+            "q_new": (-.012, 0.), "nav_pre": 1., "fee": 0.,
+            "nav_post_fee": 1., "nav_next": -3.8, "notional_turn": 1.2,
+        }]
+        with self.assertRaisesRegex(ValueError, "independent_oracle_invalid_nav_or_cost"):
+            audit.verify_trace(negative, 0.)
+
+
 if __name__ == "__main__":
     unittest.main()
