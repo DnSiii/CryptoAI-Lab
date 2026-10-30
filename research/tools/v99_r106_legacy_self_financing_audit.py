@@ -18,6 +18,12 @@ from research.tools import v99_r106_c2_engine as c2
 from research.tools import v99_r106_c2_oracle as c2oracle
 
 SCENARIOS = (("severe", 0.0007), ("supersevere", 0.0014))
+# Published 2026-10-16 rejected TRAIN economics; coarse tolerance is for
+# archived report rounding only. This is an integrity check, NOT an alpha gate.
+ARCHIVED_ROI = {
+    "C1": {"severe": -0.207856, "supersevere": -0.034081},
+    "C2": {"severe": -0.297475, "supersevere": -0.306009},
+}
 OUT = Path("research_evidence/v99_r106_legacy_self_financing_audit.json")
 
 
@@ -198,9 +204,12 @@ def run(out=OUT):
     with tempfile.TemporaryDirectory(prefix="v99_legacy_accounting_") as td:
         root = Path(td)
         c1_results, c2_results = {}, {}
+        legacy_c1, legacy_c2 = {}, {}
         for name, cost in SCENARIOS:
             p1 = root / ("c1_" + name + ".csv")
             r1 = c1acc.simulate(b, e, cost, p1)
+            legacy_c1[name] = r1
+            close(r1["roi"], ARCHIVED_ROI["C1"][name], "archived_c1_roi", 1e-5)
             original1 = c1oracle.verify(b, e, p1, cost)
             close(original1["independent_net_roi"], r1["roi"], "legacy_c1_oracle")
             rows1 = read_journal(p1, c1oracle.FIELDS, indices, b)
@@ -215,6 +224,8 @@ def run(out=OUT):
                 if len(targets2) != len(indices):
                     raise ValueError("c2_train_scope_mismatch")
             r2 = c2.simulate(b, e, targets2, cost, p2)
+            legacy_c2[name] = r2
+            close(r2["roi"], ARCHIVED_ROI["C2"][name], "archived_c2_roi", 1e-5)
             original2 = c2oracle.verify(b, e, p2, cost)
             close(original2["roi"], r2["roi"], "legacy_c2_oracle")
             rows2 = read_journal(p2, c2.JOURNAL_FIELDS, indices, b)
@@ -222,6 +233,11 @@ def run(out=OUT):
             trace2 = replay_targets(rows2, opens, cost)
             c2_results[name] = forensic_summary(trace2, r2, cost)
 
+        if all(c1gate.gates(legacy_c1["severe"], legacy_c1["supersevere"]).values()):
+            raise ValueError("archived_c1_rejection_not_reproduced")
+        if all(c2.gates(legacy_c2["severe"], legacy_c2["supersevere"], True).values()):
+            raise ValueError("archived_c2_rejection_not_reproduced")
+        result["historical_C1_C2_rejections_reconfirmed"] = True
         result["systems"]["C1_PERMANENTLY_REJECTED"] = c1_results
         result["systems"]["C2_PERMANENTLY_REJECTED"] = c2_results
     out.parent.mkdir(parents=True, exist_ok=True)
