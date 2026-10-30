@@ -1,0 +1,29 @@
+name: V98 Independent Future-Only Causal Mixed-Sleeve Projection Contract
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-next-projection-synthetic.yml'
+      - 'research/v98_independent/v98_next_pretrade_projection.py'
+      - 'research/v98_independent/v98_oneway_net_atomic_planner.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  future-only-projection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Test preregistered future-only causal projection (NO PnL)
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_next_pretrade_projection.py v98_oneway_net_atomic_planner.py
+          python v98_next_pretrade_projection.py
+          python v98_oneway_net_atomic_planner.py
