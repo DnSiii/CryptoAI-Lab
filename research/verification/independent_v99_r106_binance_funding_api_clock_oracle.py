@@ -98,7 +98,18 @@ def replay(root: Path):
                 previous = ts
                 api_rows.append((ts, rate))
         detail = report["assets"][symbol]
-        if detail.get("api_windows_requested") != expected_windows or detail.get("api_windows_saved") != saved:
+        attempted = detail.get("api_windows_requested")
+        planned = detail.get("api_windows_planned")
+        if planned != expected_windows or not isinstance(attempted, int) or not 1 <= attempted <= planned:
+            raise ValueError("ORACLE_API_WINDOW_PLAN_OR_ATTEMPT")
+        symbol_errors = [e for e in report.get("errors", []) if e.startswith(symbol + ":")]
+        terminal_451 = f"{symbol}:WINDOW_{attempted}:HTTP_451_ACCESS_RESTRICTED"
+        if attempted < planned and symbol_errors != [terminal_451]:
+            raise ValueError("ORACLE_UNJUSTIFIED_EARLY_STOP")
+        if any(int(p.stem.rsplit("-", 1)[1]) > attempted
+               for p in (root / "api_raw_ephemeral").glob(f"{symbol}-window-*.json")):
+            raise ValueError("ORACLE_UNATTEMPTED_API_FILE")
+        if detail.get("api_windows_saved") != saved:
             raise ValueError("ORACLE_API_WINDOW_COUNTS")
         if rows is None:
             continue
@@ -136,12 +147,18 @@ def replay(root: Path):
                              api_unique=sum(a <= t < b for t in api_unique),
                              rates_matched=sum(a <= t < b for t in matched))
                         for a, b in zip(EDGES, EDGES[1:])],
-            api_windows_requested=expected_windows, api_windows_saved=saved)
+            api_windows_requested=attempted, api_windows_planned=expected_windows,
+            api_windows_saved=saved)
         if detail != independently_computed:
             raise ValueError("ORACLE_API_ARCHIVE_DISAGREEMENT_" + symbol)
     actual_files = {p.name for p in (root / "api_raw_ephemeral").glob("*") if p.is_file()}
     if actual_files != expected_api_files:
         raise ValueError("ORACLE_UNDECLARED_API_FILE")
+    actual_blocker = ("HTTP_451_ACCESS_RESTRICTED"
+                      if any("HTTP_451_ACCESS_RESTRICTED" in e for e in report.get("errors", []))
+                      else None)
+    if report.get("source_blocker") != actual_blocker:
+        raise ValueError("ORACLE_SOURCE_BLOCKER_MISMATCH")
     complete = (not report.get("errors")
                 and all(report["assets"][s].get("archive_rows") == 1983
                         and report["assets"][s].get("api_rows") == 1983
