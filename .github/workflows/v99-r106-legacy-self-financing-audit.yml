@@ -6,6 +6,7 @@ on:
       - research/tools/v99_r106_legacy_self_financing_audit.py
       - research/tests/test_v99_r106_legacy_self_financing_audit.py
       - research/V99_R106_LEGACY_SELF_FINANCING_ACCOUNTING_AUDIT_PREREG_20261030.md
+      - research/V99_R106_TERMINAL_LIQUIDATION_CONSERVATION_PREREG_20261030.md
       - .github/workflows/v99-r106-legacy-self-financing-audit.yml
   workflow_dispatch:
 permissions:
@@ -56,6 +57,11 @@ jobs:
                   assert scenario['rows']==16055
                   assert scenario['independent_conservation_verified'] is True
                   assert scenario['promotable'] is False
+                  assert scenario['terminal_liquidation_independently_verified'] is True
+                  exit_data = scenario['modeled_terminal_close']
+                  assert exit_data['terminal_notional'] >= 0
+                  assert exit_data['terminal_close_fee'] >= 0
+                  assert exit_data['terminal_liquidated_nav_NOT_STRATEGY_ROI'] > 0
           print('READ_ONLY_REJECTED_LEGACY_ACCOUNTING_VERIFIED_NO_PROMOTION')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
