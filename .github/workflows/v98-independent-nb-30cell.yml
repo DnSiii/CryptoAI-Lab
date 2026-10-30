@@ -1,0 +1,91 @@
+name: V98 Independent NB Full Physical 30-Cell And All-Hour Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nb-30cell.yml'
+      - 'research/v98_independent/nb_30cell_physical.py'
+      - 'research/v98_independent/nb_independent_source_gate.py'
+      - 'research/v98_independent/nb_sources.py'
+      - 'research/v98_independent/nb_hourly_oracle_gate.py'
+      - 'research/v98_independent/nb_independent_fill_oracle.py'
+      - 'research/v98_independent/nb_independent_receipt_arithmetic_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  nb-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download authenticated Clean4 training 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download SHA-pinned 9144-event official worst-side mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Independent source-only gate must pass before PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile nb_sources.py nb_independent_source_gate.py nb_30cell_physical.py nb_hourly_oracle_gate.py nb_independent_fill_oracle.py nb_independent_receipt_arithmetic_audit.py
+          python nb_independent_source_gate.py --root ../../official-input --output nb_source_receipt.json
+      - name: Execute all 30 physical cost/funding/ablation cells with strict post-funding gross
+        working-directory: research/v98_independent
+        run: |
+          python nb_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output nb_30cell_receipt.json --ledger-output nb_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed settlement reconciliation when complete ledger exists
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nb_30cell_receipt.json && test -s nb_base_full_hourly_forensic.jsonl; then
+            python nb_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nb_base_full_hourly_forensic.jsonl --receipt nb_30cell_receipt.json --output nb_independent_hourly_receipt.json
+          else
+            echo "Source/physical failed: no complete ledger; no PnL attestation."
+          fi
+      - name: Independent strategy-to-fill replay (no physical runner imports)
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nb_30cell_receipt.json && test -s nb_base_full_hourly_forensic.jsonl; then
+            python nb_independent_fill_oracle.py --root ../../official-input --ledger-jsonl nb_base_full_hourly_forensic.jsonl --output nb_independent_fill_receipt.json
+          else
+            echo "No complete ledger: no independent fill attestation."
+          fi
+      - name: Independent 30-cell arithmetic and economic decision replay
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nb_30cell_receipt.json; then
+            python nb_independent_receipt_arithmetic_audit.py --receipt nb_30cell_receipt.json > nb_independent_arithmetic_receipt.json
+          else
+            echo "No physical receipt: no independent arithmetic attestation."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-nb-physical-${{ github.run_id }}
+          path: |
+            research/v98_independent/nb_source_receipt.json
+            research/v98_independent/nb_30cell_receipt.json
+            research/v98_independent/nb_independent_hourly_receipt.json
+            research/v98_independent/nb_independent_fill_receipt.json
+            research/v98_independent/nb_independent_arithmetic_receipt.json
+            research/v98_independent/nb_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
