@@ -40,9 +40,15 @@ def validate_rows(rows,symbol,d,lo,hi):
         if not math.isfinite(rate) or not math.isfinite(mark) or mark<=0:
             raise ValueError('V98_EXACT_NONFINITE_OR_NEGATIVE')
         offset=timestamp-FIRST_MS
-        if offset<0 or offset%INTERVAL_MS or offset//3600000>=HOURS:
+        if offset<0:
             raise ValueError('V98_EXACT_OUT_OF_TRAINING_OR_OFF_CALENDAR')
-        t=offset//3600000
+        slot=offset//INTERVAL_MS
+        lag_ms=offset-slot*INTERVAL_MS
+        t=slot*8
+        # Native archive calc_time can lag the settlement boundary by milliseconds.
+        # Preserve that evidence; never shift a row into a different 8h slot.
+        if lag_ms>60000 or t>=HOURS:
+            raise ValueError('V98_EXACT_OUT_OF_TRAINING_OR_OFF_CALENDAR')
         if t in seen or not bool(d['event'][t,j]):
             raise ValueError('V98_EXACT_DUPLICATE_OR_NOT_EVENT')
         if not math.isclose(rate,float(d['rate'][t,j]),rel_tol=0,abs_tol=1e-11):
@@ -82,9 +88,13 @@ def read_exact_funding_marks(manifest_path,d,envelope_path):
         raw=p.read_bytes()
         sha=_digest(raw)
         if sha!=meta['sha256']:raise ValueError('V98_EXACT_SHA_MISMATCH_'+symbol)
-        marks=validate_rows(json.loads(raw),symbol,d,lo,hi)
+        parsed=json.loads(raw)
+        marks=validate_rows(parsed,symbol,d,lo,hi)
+        offsets=[(int(row['fundingTime'])-FIRST_MS)%INTERVAL_MS for row in parsed]
         exact[d['event'][:,j],j]=marks[d['event'][:,j]]
         receipt[symbol]={'sha256':sha,'events':int(d['event'][:,j].sum()),
+                         'nonzero_timestamp_offsets':sum(x>0 for x in offsets),
+                         'max_timestamp_offset_ms':max(offsets),
                          'mark_min':float(np.min(marks[d['event'][:,j]])),
                          'mark_max':float(np.max(marks[d['event'][:,j]]))}
     if int(d['event'].sum())!=EXPECTED_TOTAL:
