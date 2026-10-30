@@ -1,0 +1,93 @@
+name: V98 Independent ND Full Physical 30-Cell And All-Hour Oracle
+on:
+  push:
+    brandhes: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nd-30cell.yml'
+      - 'research/v98_independent/nd_30cell_physical.py'
+      - 'research/v98_independent/nd_independent_source_gate.py'
+      - 'research/v98_independent/nd_sources.py'
+      - 'research/v98_independent/nd_hourly_oracle_gate.py'
+      - 'research/v98_independent/nd_independent_fill_oracle.py'
+      - 'research/v98_independent/nd_independent_receipt_arithmetic_audit.py'
+      - 'research/v98_independent/nd_independent_net_settlement_oracle.py'
+      - 'research/v98_independent/v98_oneway_net_atomic_planner.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  nd-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download authenticated Clean4 training 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download SHA-pinned 9144-event official worst-side mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Independent source-only gate must pass before PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile nd_sources.py nd_independent_source_gate.py nd_30cell_physical.py nd_hourly_oracle_gate.py nd_independent_fill_oracle.py nd_independent_receipt_arithmetic_audit.py nd_independent_net_settlement_oracle.py v98_oneway_net_atomic_planner.py
+          python nd_independent_source_gate.py --root ../../official-input --output nd_source_receipt.json
+      - name: Execute all 30 physical cost/funding/ablation cells with strict post-funding gross
+        working-directory: research/v98_independent
+        run: |
+          python nd_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output nd_30cell_receipt.json --ledger-output nd_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed settlement recondiliation when complete ledger exists
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nd_30cell_receipt.json && test -s nd_base_full_hourly_forensic.jsonl; then
+            python nd_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nd_base_full_hourly_forensic.jsonl --receipt nd_30cell_receipt.json --output nd_independent_hourly_receipt.json
+          else
+            echo "Source/physical failed: no complete ledger; no PnL attestation."
+          fi
+      - name: Independent strategy-to-fill replay (no physical runner imports)
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nd_30cell_receipt.json && test -s nd_base_full_hourly_forensic.jsonl; then
+            python nd_independent_fill_oracle.py --root ../../official-input --ledger-jsonl nd_base_full_hourly_forensic.jsonl --output nd_independent_fill_receipt.json
+          else
+            echo "No complete ledger: no independent fill attestation."
+          fi
+      - name: Independent 30-cell arithmetic and economic decision replay
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nd_30cell_receipt.json; then
+            python nd_independent_receipt_arithmetic_audit.py --receipt nd_30cell_receipt.json > nd_independent_arithmetic_receipt.json
+          else
+            echo "No physical receipt: no independent arithmetic attestation."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-nd-physical-${{ github.run_id }}
+          path: |
+            research/v98_independent/nd_source_receipt.json
+            research/v98_independent/nd_30cell_receipt.json
+            research/v98_independent/nd_independent_hourly_receipt.json
+            research/v98_independent/nd_independent_fill_receipt.json
+            research/v98_independent/nd_independent_arithmetic_receipt.json
+            research/v98_independent/nd_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
