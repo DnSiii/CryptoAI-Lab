@@ -1,0 +1,14 @@
+# V99 R106 S3 — original OKX spot/perpetual basis feasibility (ex-ante, 2026-10-30)
+
+**PRE-ECONOMIC SOURCE/OPPORTUNITY GATE ONLY — NO S3 TRADING MODEL, NO PNL, NO PROMOTION.** S1/S2/C1 and all rejected components stay rejected. This distinct proposed mechanism is *cash-and-carry spot long / perpetual short* on a positive BTC or ETH perpetual premium, potentially capturing convergence. It is not spot trend, cross-sectional BTC/ETH rotation, capitulation rebound, or laggard reversal. A premium observed in historical hourly opens is **not executable** and does not establish an edge.
+
+## Fixed original TRAIN feasibility design
+- First-party archived OKX BTC-USDT, BTC-USDT-SWAP, ETH-USDT, ETH-USDT-SWAP original hourly opens, 15,864 per leg from run 40019588739; independent page/receipt verification required.
+- Strict TRAIN [2021-12-09, 2023-10-01) only, same immutable five chronological folds. Never read validation [2023-10-01, 2024-01-18) or final holdout >=2024-01-18.
+- At UTC 00:00 t, with 720h warmup, read only original opens at t-1. Premium for each coin = swap_open[t-1]/spot_open[t-1]-1. One daily observation per coin; do not scan intraday highs, futures, or hindsight. Classify 3x2 BTC trailing trend (720h ±5%) and 72h realized volatility (4% daily) using t-1 only.
+- Model-only conservative 60bps per leg, per direction, two legs, entry and exit = 240bps of one spot notional, plus 50bps fixed buffer for basis non-convergence, resulting in **290bps minimum observed positive premium** to classify an *indicative* opportunity. This is an ex-ante eligibility definition for this architecture, not a universal arbitrage profitability bound. Do not optimize or change it after results.
+- Count independently per-coin eligible days and unique UTC daily decision times with either coin eligible, per five chronological folds and 3x2 regimes. Compute a canonical digest of each t and the two boolean eligibility flags. No positions, leverage, funding cash flows, liquidation, ROI or trade execution.
+- **Source/opportunity veto:** if fewer than 4/5 folds contain >=1 eligible daily observation, do not implement or run a S3 economic strategy on this source and threshold. If >=4/5 folds qualify, this is **not** an alpha pass: proceed only after a separately preregistered complete accounting model and first-party historical settled funding, actual account-specific fee-tier schedule, executable quotes/depth, collateral and liquidation rules, and independent replay. Historical hypothetical fills cannot be authenticated retroactively.
+- Even if all feasibility checks pass, status is **FEASIBILITY_ONLY_NO_PROMOTION**. No validation, holdout, Frozen, champion, paper/results, order interfaces or dashboards may be promoted or altered.
+
+This fixed preflight is intended to avoid wasting another full economic run on a no-op mechanism (as S2 did). It must never be used to tune a threshold or select the best historical strategy.
