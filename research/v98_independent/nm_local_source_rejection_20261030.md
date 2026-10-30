@@ -1,0 +1,9 @@
+# V98 NM — preregistered source-gate failure, local independent authenticated replay (2026-10-30)
+
+**REJECTED BEFORE PNL. NO RETUNE OR RESCUE.** The NM preregistration was committed at `2b5bd48ef2a0f8d09cb9ee9d7a7624f747c5bd35` before any historical data replay. A separate local read-only replay of the pinned SHA-authenticated Clean-4 2022-24 artifact (all four hourly OHLC CSV digests match the original official receipt; signed funding CSV SHA256 `f706812b7989666c3efd0b24045a5c31f4d9c79b46d61da7b5e6cde6c6e73f5e`) reproduced NM's weekly decision logic, without using any PnL.
+
+**Preregistered minimum: >=8 active weekly events for each optional sleeve in each year. Actual activity:** 2023 Opportunity **5**, Relative Value **23**, Stress/Recovery **1**; 2024 Opportunity **4**, Relative Value **24**, Stress/Recovery **4**. Four hard source-gate failures. The 53 core refreshes, <=0.84 source gross, and zero silent updates passed. These positives do not override the hard failures.
+
+**Decision:** NM permanently rejected as a complete seven-slot candidate at the source gate; do not compute or reinterpret its PnL, relax its activity threshold, change signs or windows, or reclassify this result as training approval. The original GitHub Actions workflow `41102221335` was queued at the time of this local diagnosis; the original independent CI oracle must still be harvested and recorded when available. Local replay is diagnostic evidence, not a substitute for CI attestation.
+
+No 2025+, XRP, Phase083, V14/V15/V99, Frozen, future holdout or paper accessed. No operation authorized. Exact funding-event markPrice remains externally missing; conservative official envelope is unaffected.
