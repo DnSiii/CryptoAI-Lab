@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 import tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from research.tools import v99_r106_c1_core as c1core
@@ -25,6 +26,28 @@ ARCHIVED_ROI = {
     "C2": {"severe": -0.297475, "supersevere": -0.306009},
 }
 OUT = Path("research_evidence/v99_r106_legacy_self_financing_audit.json")
+
+
+def check_cost(cost):
+    # Model input guard only: passing does not authenticate historical fee tiers.
+    if not math.isfinite(cost) or not 0 <= cost <= .01:
+        raise ValueError("invalid_model_cost")
+
+
+def check_hourly_utc(rows):
+    previous = None
+    for row in rows:
+        try:
+            stamp = datetime.fromisoformat(row["time"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("invalid_utc_journal_timestamp") from exc
+        if stamp.tzinfo is None or stamp.utcoffset() != timedelta(0):
+            raise ValueError("non_utc_journal_timestamp")
+        if previous is not None and stamp - previous != timedelta(hours=1):
+            raise ValueError("nonhourly_journal_grid")
+        previous = stamp
+
+
 
 
 def close(a, b, label, tol=1e-10):
@@ -64,6 +87,8 @@ def replay_targets(target_rows, opens, cost):
     """Rebalance at OPEN, mark carried signed contracts at NEXT OPEN."""
     if not target_rows or len(target_rows) != len(opens):
         raise ValueError("target_price_coverage")
+    check_cost(cost)
+    check_hourly_utc(target_rows)
     q_prev = (0., 0.)
     prev_prices = None
     nav_post_fee = 1.
@@ -104,6 +129,8 @@ def verify_trace(trace, cost):
     """Independent conservation oracle: never invokes the fee solver."""
     if not trace:
         raise ValueError("empty_trace")
+    check_cost(cost)
+    check_hourly_utc(trace)
     prev_q = (0., 0.)
     prev_prices = None
     prev_nav_post = 1.
@@ -112,8 +139,15 @@ def verify_trace(trace, cost):
         nxt = r["next_prices"]
         q = r["q_new"]
         w = r["weights"]
-        if any(not math.isfinite(x) for x in (*p, *nxt, *q, *w)):
+        if any(not math.isfinite(x) for x in (*p, *nxt, *q, *w,
+                                             r["nav_pre"], r["nav_post_fee"],
+                                             r["nav_next"], r["fee"], r["notional_turn"])):
             raise ValueError("nonfinite_trace")
+        if sum(abs(x) for x in w) > 1.3 + 1e-10:
+            raise ValueError("independent_oracle_overgross_target")
+        if (r["nav_pre"] <= 0 or r["nav_post_fee"] <= 0 or
+            r["nav_next"] <= 0 or r["fee"] < 0 or r["notional_turn"] < 0):
+            raise ValueError("independent_oracle_invalid_nav_or_cost")
         if any(x <= 0 for x in (*p, *nxt)):
             raise ValueError("invalid_price")
         for j in range(2):
@@ -131,6 +165,8 @@ def verify_trace(trace, cost):
         for j in range(2):
             close(q[j] * p[j], w[j] * post, "post_fee_target")
         next_nav = post + sum(q[j] * (nxt[j] - p[j]) for j in range(2))
+        if next_nav <= 0:
+            raise ValueError("independent_oracle_nonpositive_next_nav")
         close(r["nav_next"], next_nav, "next_open_nav")
         if k+1 < len(trace):
             if trace[k+1]["time"] <= r["time"]:
