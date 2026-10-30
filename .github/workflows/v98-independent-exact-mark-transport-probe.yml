@@ -1,0 +1,29 @@
+name: V98 Independent Historical Funding Mark Transport Probe (2023 Only, No PnL)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-exact-mark-transport-probe.yml'
+      - 'research/v98_independent/v98_exact_mark_transport_probe.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Probe three historical source transports without PnL or 2025+
+        working-directory: research/v98_independent
+        run: python v98_exact_mark_transport_probe.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-mark-transport-probe-${{ github.run_id }}
+          path: research/v98_independent/v98_mark_transport_probe_receipt.json
+          retention-days: 30
