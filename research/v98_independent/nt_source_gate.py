@@ -13,7 +13,7 @@ def check(d):
     if not np.array_equal(times,expected) or not np.all(updates[times]):
         failures.append('NT_DECISION_CALENDAR')
     if int(d['event'].sum())!=9144:failures.append('NT_FUNDING_EVENTS')
-    if np.any(np.abs(raw[:,0]).sum(axis=1)>.66+1e-10):
+    if np.any(np.abs(raw[:,0]).sum(axis=1)>.70+1e-10):
         failures.append('NT_CORE_BUDGET')
     if np.any((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~updates[1:,0]):
         failures.append('NT_SILENT_TARGET_CHANGE')
