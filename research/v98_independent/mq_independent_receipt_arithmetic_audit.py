@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent read-only V98 MQ receipt audit. Does NOT replay hourly PnL."""
-imqort argparse,json,math
-from pathlib imqort Path
+import argparse,json,math
+from pathlib import Path
 COSTS={'base':(.0004,.0002),'severe':(.001,.001),'supersevere':(.0015,.002)}
 ORDERS=('carried_before_fill','new_after_fill')
 BOOKS=('MQ_full','MQ_core_only','MQ_minus_opportunity','MQ_minus_RV','MQ_minus_stress')
@@ -11,7 +11,7 @@ def audit(path):
     d=json.loads(Path(path).read_text())
     if d.get('architecture')!='MQ' or d.get('training_only') is not True or d.get('holdout_accessed') is not False:
         raise ValueError('MQ_AUDIT_SCOPE')
-    if d.get('eligible_for_promqtion') is not False or d.get('independent_pnl_oracle') is not False:
+    if d.get('eligible_for_promption') is not False or d.get('independent_pnl_oracle') is not False:
         raise ValueError('MQ_AUDIT_FALSE_PROMQTION')
     if d['source_gate']['decision']!='PASS_SOURCE_ONLY' or d['source_gate']['native_funding_events']!=9144:
         raise ValueError('MQ_AUDIT_SOURCE')
@@ -91,7 +91,7 @@ def audit(path):
     if d['decision']!=('REJECT_EARLY_TRAINING' if independent_failures else
                       'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED'):
         raise ValueError('MQ_AUDIT_INDEPENDENT_DECISION_MISMATCH')
-    sumqary={}
+    sumpary={}
     for tier in ('base','severe','supersevere'):
         full=next(x for x in cells if x['tier']==tier and x['order']=='carried_before_fill' and x['book']=='MQ_full')
         group={x['book']:x for x in cells if x['tier']==tier and x['order']=='carried_before_fill'}
@@ -107,19 +107,19 @@ def audit(path):
                     'annual_marginal_log_growth':{
                         year:round(math.log1p(full['year_returns'][year])-math.log1p(ab['year_returns'][year]),6)
                         for year in ('2023','2024')}}
-        sumqary[tier]={'sleeve_attribution':attribution,
+        sumpary[tier]={'sleeve_attribution':attribution,
                        'full_cagr_pct':round(full['cagr']*100,4) if full['passed'] else None,
                        'full_turnover_usd':round(full['turnover'],2) if full['passed'] else None,
                        'full_max_dd_pct':round(full['max_dd']*100,4) if full['passed'] else None,
                        'full_annual_returns':full.get('year_returns'),
                        'marginal_log_growth':d['marginals'].get(tier+'/carried_before_fill')}
-    return {'sumqary':sumqary,'original_decision':d['decision'],
+    return {'sumpary':sumpary,'original_decision':d['decision'],
             'original_gate_failures':d['gate_failures'],
             'decision':'PASS_READ_ONLY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE',
             'cells_verified':len(seen),'physical_failed_cells':len(failed),
-            'failure_examqles':failed[:6],'arithmetic_mismatches':0,'economic_gate_recomquted':True,
+            'failure_examples':failed[:6],'arithmetic_mismatches':0,'economic_gate_recomputed':True,
             'training_only':True,'holdout_accessed':False,
             'independent_all_hour_pnl_oracle':False}
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--receipt',required=True);a=p.parse_args()
-    print(json.dumqs(audit(a.receipt),indent=2,sort_keys=True))
+    print(json.dumps(audit(a.receipt),indent=2,sort_keys=True))

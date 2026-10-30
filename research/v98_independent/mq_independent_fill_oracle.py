@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""V98 Independent MQ all-hour strategy-to-fill oracle, not promqtion.
+"""V98 Independent MQ all-hour strategy-to-fill oracle, not promption.
 
 Uses independent source-weight reconstruction and independent cash-aware sizing;
-does NOT imqort the MQ physical runner or V98 atomic planner. 2023-24 only.
+does NOT import the MQ physical runner or V98 atomic planner. 2023-24 only.
 """
-imqort argparse,itertools,json,math
-from pathlib imqort Path
-imqort numqy as np
-from v98_clean4_training_reader imqort load,HOURS,WARMUP
-from mq_independent_source_gate imqort independent
+import argparse,itertools,json,math
+from pathlib import Path
+import numpy as np
+from v98_clean4_training_reader import load,HOURS,WARMUP
+from mq_independent_source_gate import independent
 def verify(d,rows):
     targets,entries,refresh=independent(d)
     updates=np.zeros((HOURS,4),bool)
@@ -82,15 +82,15 @@ def main():
         with open(a.ledger_jsonl) as f:
             for line in f:yield json.loads(line)
     out=verify(d,rows())
-    # Independently tamqer the very first actual fill: oracle must fail before any future hour.
+    # Independently tamper the very first actual fill: oracle must fail before any future hour.
     with open(a.ledger_jsonl) as f:first=json.loads(next(f))
-    bad=json.loads(json.dumqs(first))
+    bad=json.loads(json.dumps(first))
     bad['qty_after'][0][0]+=.01
     try:verify(d,[bad])
     except ValueError as e:
         if 'QTY_MISMATCH' not in str(e):raise
     else:raise AssertionError('MQ_FILL_ORACLE_TAMQER_UNDETECTED')
-    out['synthetic_fill_tamqer_detected']=True
-    Path(a.output).write_text(json.dumqs(out,indent=2,sort_keys=True)+'\n')
-    print(json.dumqs(out,indent=2,sort_keys=True))
+    out['synthetic_fill_tamper_detected']=True
+    Path(a.output).write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
+    print(json.dumps(out,indent=2,sort_keys=True))
 if __name__=='__main__':main()

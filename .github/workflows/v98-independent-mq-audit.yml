@@ -21,13 +21,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install numqy==1.26.4 pandas==2.2.3
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - name: Wait for immutable original MQ physical artifact (read-only)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for attemqt in $(seq 1 60); do
-            if gh api repos/${{ github.repository }}/actions/runs/41005102982/artifacts --jq '.artifacts[].name' | grep -qx 'v98-mq-physical-41005102982'; then
+          for attempt in $(seq 1 60); do
+            if gh api repos/${{ github.repository }}/actions/runs/41005171900/artifacts --jq '.artifacts[].name' | grep -qx 'v98-mq-physical-41005171900'; then
               echo 'Original MQ artifact published'; exit 0
             fi
             sleep 10
@@ -36,8 +36,8 @@ jobs:
       - name: Download original immutable MQ 30-cell physical ledger
         uses: actions/download-artifact@v4
         with:
-          name: v98-mq-physical-41005102982
-          run-id: 41005102982
+          name: v98-mq-physical-41005171900
+          run-id: 41005171900
           github-token: ${{ github.token }}
           path: original-mq
       - name: Download authenticated 2022-24 Clean4 training only
@@ -57,7 +57,7 @@ jobs:
       - name: Independently reconcile 30-cell economic arithmetic and all preregistered gates
         working-directory: research/v98_independent
         run: |
-          python -m py_comqile mq_independent_receipt_arithmetic_audit.py mq_independent_fill_oracle.py
+          python -m py_compile mq_independent_receipt_arithmetic_audit.py mq_independent_fill_oracle.py
           python mq_independent_receipt_arithmetic_audit.py --receipt ../../original-mq/mq_30cell_receipt.json | tee mq_independent_30cell_audit.json
       - name: Independently reconstruct all original 17543 hourly fills with 27 forced refreshes
         working-directory: research/v98_independent
