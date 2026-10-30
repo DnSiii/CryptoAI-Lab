@@ -42,7 +42,7 @@ def check(d):
         elif r336[0]<-.06 and r48[0]>0:
             target[3,0]=.12
         risk_on=r672[0]>0 and sum(x>0 for x in r672)>=3
-        target[1:]*=np.array([1.,.8,.5] if risk_on else [.75,1.,1.])
+        target[1:]*=np.array([1.,.8,.5] if risk_on else [.75,1.,1.])[:,None]
         err=float(np.max(np.abs(raw[t]-target)))
         if err>1e-10 or not updates[t].all():
             raise ValueError('NU_INDEPENDENT_SOURCE_MISMATCH_'+str(t)+'_'+str(err))
