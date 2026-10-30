@@ -1,0 +1,7 @@
+# V98 NO — original run first-fault triage, pre-PnL infrastructure repair only (2026-10-30)
+
+Original GitHub Actions `41103198759` **did not execute any PnL**. Independent source gate **PASS**: 17,544h weights, 9,144 native events, 53 core refreshes, zero mismatches. The next step failed before the first physical cell because a mechanical namespacing copy changed the generic source-gate token `PASS_SOURCE_ONLY` to `PASS_SOURCE_ONOY` (and `PNL` to `PNO`). This is a text-substitution bug, not an economic failure or reason to change the frozen NO strategy.
+
+**Precommitted repair:** regenerate only the five NO runner/oracle infrastructure files from the previously audited NL generic templates using boundary-aware replacement of actual `NL` namespaced identifiers, preserving English `ONLY`, `PNL`, `UNKNOWN`, etc. Preserve exact NO strategy source `fa78f3390436b4d76020dc152e89aad45e404777`, source oracle `a3cd63c94f0e571100a949fbce520b2a9fee8ec9`, preregistered weights/signs/windows, funding/cost tiers, gates, and shared planner. Re-run the original GitHub workflow on the repaired infrastructure. This is **not** a post-PnL rescue: zero original physical cells were executed.
+
+No 2025+, future holdout, V14/V15/V99, Frozen or paper accessed.
