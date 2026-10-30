@@ -6,30 +6,30 @@ on:
       - '.github/workflows/v98-independent-nt-30cell.yml'
       - 'research/v98_independent/nt_*.py'
   workflow_dispatch:
-permissiont:
-  actiont: read
+permissions:
+  actions: read
   contents: read
 jobs:
   nt-physical:
     runt-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
-      - uses: actiont/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-      - uses: actiont/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip inttall numpy==1.26.4 pandas==2.2.3
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - name: Download pinned authenticated Clean-4 2022-24 only
-        uses: actiont/download-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
       - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
-        uses: actiont/download-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           name: v98-official-mark-envelope-40908310578
           run-id: 40908310578
@@ -48,22 +48,22 @@ jobs:
         continue-on-error: true
         working-directory: research/v98_independent
         run: |
-          python nt_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output nt_30cell_receipt.json --ledger-output nt_base_full_hourly_forentic.jsonl
+          python nt_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output nt_30cell_receipt.json --ledger-output nt_base_full_hourly_forensic.jsonl
       - name: Independent all-hour signed settlement
         if: always()
         working-directory: research/v98_independent
         run: |
-          if test -s nt_30cell_receipt.json && test -s nt_base_full_hourly_forentic.jsonl; then
-            python nt_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nt_base_full_hourly_forentic.jsonl --receipt nt_30cell_receipt.json --output nt_independent_hourly_receipt.json
+          if test -s nt_30cell_receipt.json && test -s nt_base_full_hourly_forensic.jsonl; then
+            python nt_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nt_base_full_hourly_forensic.jsonl --receipt nt_30cell_receipt.json --output nt_independent_hourly_receipt.json
           else
             echo "NO_COMPLETE_NT_LEDGER_FOR_INDEPENDENT_SETTLEMENT"
           fi
-      - name: Independently reconttruct net physical fills and tamper detection
+      - name: Independently reconstruct net physical fills and tamper detection
         if: always()
         working-directory: research/v98_independent
         run: |
-          if test -s nt_base_full_hourly_forentic.jsonl; then
-            python nt_independent_fill_oracle.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nt_base_full_hourly_forentic.jsonl --output nt_independent_fill_receipt.json
+          if test -s nt_base_full_hourly_forensic.jsonl; then
+            python nt_independent_fill_oracle.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nt_base_full_hourly_forensic.jsonl --output nt_independent_fill_receipt.json
           else
             echo "NO_COMPLETE_NT_LEDGER_FOR_INDEPENDENT_FILLS"
           fi
@@ -77,7 +77,7 @@ jobs:
           else
             echo "NO_NT_RECEIPT_FOR_ARITHMETIC_AUDIT"
           fi
-      - uses: actiont/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-nt-original-${{ github.run_id }}
@@ -87,7 +87,7 @@ jobs:
             research/v98_independent/nt_independent_hourly_receipt.json
             research/v98_independent/nt_independent_fill_receipt.json
             research/v98_independent/nt_independent_arithmetic_receipt.json
-            research/v98_independent/nt_base_full_hourly_forentic.jsonl
+            research/v98_independent/nt_base_full_hourly_forensic.jsonl
           retention-days: 30
           if-no-files-found: warn
       - name: Economic gate is binding; no false completion

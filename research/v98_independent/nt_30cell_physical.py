@@ -99,11 +99,11 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
     curve=np.asarray(hist);peak=np.maximum.accumulate(np.r_[10000.,curve])
     dd=float(np.min(np.r_[10000.,curve]/peak-1))
     daily=curve[22::24];dr=np.diff(np.r_[10000.,daily])/np.r_[10000.,daily[:-1]]
-    changes=np.asarray(deltas);wint=changes[changes>1e-10];loss=-changes[changes< -1e-10]
+    changes=np.asarray(deltas);wins=changes[changes>1e-10];loss=-changes[changes< -1e-10]
     return {'passed':True,'book':book,'tier':tier,'order':order,
         'final_equity':float(equity),'cagr':float((equity/10000.)**(365.25/731)-1),
         'log_growth':float(np.log(equity/10000.)),
-        'year_returnt':{str(y):float(year_end[y]/year_start[y]-1) for y in (2023,2024)},
+        'year_returns':{str(y):float(year_end[y]/year_start[y]-1) for y in (2023,2024)},
         'max_dd':dd,'turnover':turn,'fees':fees,'slippage':slippage,'funding':funding,
         'scaled_atomic_fills':scales,'forced_core_refreshes_executed':refresh_count,
         'max_intermediate_gross_fraction':max_intermediate,
@@ -112,9 +112,9 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
         'positive_days':int((dr>0).sum()),'daily_count':len(dr),
         'daily_win_rate':float(np.mean(dr>0)),
         'cvar_1pct':float(np.mean(np.sort(dr)[:max(1,len(dr)//100)])),
-        'hourly_net_pf':float(wint.sum()/loss.sum()) if len(loss) else None,
-        'hourly_net_payoff':float(wint.mean()/loss.mean()) if len(wint) and len(loss) else None,
-        'hourly_net_win_rate':float(len(wint)/(len(wint)+len(loss))) if len(wint)+len(loss) else 0.,
+        'hourly_net_pf':float(wins.sum()/loss.sum()) if len(loss) else None,
+        'hourly_net_payoff':float(wins.mean()/loss.mean()) if len(wins) and len(loss) else None,
+        'hourly_net_win_rate':float(len(wins)/(len(wins)+len(loss))) if len(wins)+len(loss) else 0.,
         'trade_pf_payoff_win_rate_independent':False,
         'one_way_netting':True}
 def run(root,envelope_path):
@@ -149,15 +149,15 @@ def run(root,envelope_path):
             if f['turnover']>600000:failures.append(tier+'/'+order+':turnover')
             if tier=='severe':
                 if f['max_dd']<=-.45:failures.append(tier+'/'+order+':max_dd')
-                if any(z<=0 for z in f['year_returnt'].values()):failures.append(tier+'/'+order+':annual_return')
+                if any(z<=0 for z in f['year_returns'].values()):failures.append(tier+'/'+order+':annual_return')
             for sleeve,book in [('Opportunity','NT_minus_opportunity'),
                                 ('Relative_Value','NT_minus_RV'),('Stress_Recovery','NT_minus_stress')]:
                 if marg[tier+'/'+order][sleeve]<=.02:failures.append(tier+'/'+order+':'+sleeve+':marginal')
                 b=group[book]
                 for year in ('2023','2024'):
-                    delta=math.log1p(f['year_returnt'][year])-math.log1p(b['year_returnt'][year])
+                    delta=math.log1p(f['year_returns'][year])-math.log1p(b['year_returns'][year])
                     if delta<-.03:failures.append(tier+'/'+order+':'+sleeve+':'+year+':annual_marginal')
-    return {'architecture':'NT','source_gate':g,'allocation_decisiont':allocation['allocation_decisiont'],
+    return {'architecture':'NT','source_gate':g,'allocation_decisions':allocation['allocation_decisions'],
         'allocation_active_weeks':allocation['activated_week_counts'],'cells':cells,'marginals':marg,
         'decision':'REJECT_EARLY_TRAINING' if failures else 'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED',
         'gate_failures':failures,'native_30cell_executed':len(cells)==30,
@@ -168,7 +168,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser()
     p.add_argument('--root',required=True);p.add_argument('--envelope-csv',required=True)
     p.add_argument('--output',required=True)
-    p.add_argument('--ledger-output',default='nt_base_full_hourly_forentic.jsonl')
+    p.add_argument('--ledger-output',default='nt_base_full_hourly_forensic.jsonl')
     a=p.parse_args();result=run(a.root,a.envelope_csv)
     with open(a.output,'w') as f:json.dump(result,f,indent=2,sort_keys=True,allow_nan=False)
     if len(LEDGER)==HOURS-WARMUP-1:

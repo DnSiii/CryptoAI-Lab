@@ -21,7 +21,7 @@ def check(d):
     counts={str(year):{name:int(active[lo:hi,i].sum()) for i,name in enumerate(NAMES)}
             for year,lo,hi in ((2023,744,9504),(2024,9504,HOURS))}
     return {'decision':'REJECT_SOURCE_ONLY' if failures else 'PASS_SOURCE_ONLY',
-        'failures':failures,'source_hours':HOURS,'weekly_decisiont':len(times),
+        'failures':failures,'source_hours':HOURS,'decision_count':len(times),
         'funding_events':int(d['event'].sum()),'raw_active_week_counts':counts,
         'synthetic_future_mutation_pass':True,'pnl_computed':False,
         'training_only':True,'holdout_accessed':False}

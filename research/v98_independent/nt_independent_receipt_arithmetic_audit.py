@@ -74,7 +74,7 @@ def audit(path):
                 independent_failures.append(key+':turnover')
             if tier=='severe':
                 if full['max_dd']<=-.45:independent_failures.append(key+':max_dd')
-                if any(x<=0 for x in full['year_returnt'].values()):
+                if any(x<=0 for x in full['year_returns'].values()):
                     independent_failures.append(key+':annual_return')
             for sleeve,ablation in SLEEVES.items():
                 ab=group[ablation]
@@ -82,7 +82,7 @@ def audit(path):
                 if marginal<=.02:
                     independent_failures.append(key+':'+sleeve+':marginal')
                 for year in ('2023','2024'):
-                    annual=math.log1p(full['year_returnt'][year])-math.log1p(ab['year_returnt'][year])
+                    annual=math.log1p(full['year_returns'][year])-math.log1p(ab['year_returns'][year])
                     if annual<-.03:
                         independent_failures.append(key+':'+sleeve+':'+year+':annual_marginal')
     if sorted(independent_failures)!=sorted(d['gate_failures']):
@@ -105,13 +105,13 @@ def audit(path):
                     'marginal_fees_slippage_usd':round(
                         (full['fees']+full['slippage'])-(ab['fees']+ab['slippage']),2),
                     'annual_marginal_log_growth':{
-                        year:round(math.log1p(full['year_returnt'][year])-math.log1p(ab['year_returnt'][year]),6)
+                        year:round(math.log1p(full['year_returns'][year])-math.log1p(ab['year_returns'][year]),6)
                         for year in ('2023','2024')}}
         summary[tier]={'sleeve_attribution':attribution,
                        'full_cagr_pct':round(full['cagr']*100,4) if full['passed'] else None,
                        'full_turnover_usd':round(full['turnover'],2) if full['passed'] else None,
                        'full_max_dd_pct':round(full['max_dd']*100,4) if full['passed'] else None,
-                       'full_annual_returnt':full.get('year_returnt'),
+                       'full_annual_returns':full.get('year_returns'),
                        'marginal_log_growth':d['marginals'].get(tier+'/carried_before_fill')}
     return {'summary':summary,'original_decision':d['decision'],
             'original_gate_failures':d['gate_failures'],

@@ -35,7 +35,7 @@ def verify(d,rows,lo,hi):
         need=bool(np.any(updates[t-1]) or guard)
         expected=before.copy()
         if need:
-            # Independent NT projection reconttruction (NT project import).
+            # Independent NT projection reconstruction (NT project import).
             raw=before*px/opening
             raw[updates[t-1]]=targets[t-1][updates[t-1]]
             if np.abs(targets[t-1]).sum()>.84+1e-10:

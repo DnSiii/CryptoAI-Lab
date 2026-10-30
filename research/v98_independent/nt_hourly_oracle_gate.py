@@ -27,7 +27,7 @@ def run(root,envelope,ledger,receipt):
         if r['decision']=='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED'
         else 'PASS_FORENTIC_INDEPENDENT_HOURLY_ACCOUNTING_REJECTED_ENGINE')
     out['independent_signal_gate_receipt_passed']=True
-    out['independent_strategy_fill_reconttruction']=False
+    out['independent_strategy_fill_reconstruction']=False
     out['2025_validation_accessed']=False
     out['future_holdout_accessed']=False
     out['live_authorized']=False
