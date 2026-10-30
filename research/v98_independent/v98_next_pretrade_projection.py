@@ -60,7 +60,7 @@ def synthetic_tests():
     assert b['effective_cap']==.84 # existing pretrade gross is below .82
     result=plan_virtual(q,a['weights'],px,10000.,.0004,.0002)
     assert result['post_virtual_gross']<=.84*10000.+1e-6
-    q2=q.copy();q2[1,1]=16.
+    q2=q.copy();q2[1,1]=22.
     e=project(q2,source,np.array([True,False,True,False]),px,10000.,True)
     assert e['effective_cap']==.82
     assert np.abs(e['weights']).sum()<=.82+1e-10
