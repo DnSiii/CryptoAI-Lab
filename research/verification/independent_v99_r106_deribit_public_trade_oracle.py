@@ -68,7 +68,7 @@ def replay(root):
             if not isinstance(trade, dict):
                 raise ValueError("ORACLE_NOT_TRADE")
             instrument = trade.get("instrument_name", "")
-            if not re.fullmatch(coin + r"-\\d{1,2}[A-Z]{3}\\d{2}-\\d+-(P|C)", instrument):
+            if not re.fullmatch(coin + r"-\d{1,2}[A-Z]{3}\d{2}-\d+-(P|C)", instrument):
                 raise ValueError("ORACLE_NOT_OPTION")
             ts = trade.get("timestamp")
             if type(ts) is not int or ts < left or ts >= right:
