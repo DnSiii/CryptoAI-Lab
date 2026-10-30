@@ -38,7 +38,16 @@ def query(url: str) -> tuple[bytes | None, str | None]:
                 if len(data) > 2_000_000:
                     raise ValueError("API_RESPONSE_OVERSIZE")
                 return data, None
-        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+        except HTTPError as exc:
+            # 451 is a durable restriction for this runner, not a transient data gap.
+            if exc.code == 451:
+                return None, "HTTP_451_ACCESS_RESTRICTED"
+            error = f"HTTP_{exc.code}:" + str(exc)[:100]
+            if attempt < 2 and exc.code not in (401, 403, 404):
+                time.sleep(1 + attempt)
+            elif exc.code in (401, 403, 404):
+                return None, error
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
             error = type(exc).__name__ + ":" + str(exc)[:100]
             if attempt < 2:
                 time.sleep(1 + attempt)
@@ -49,6 +58,7 @@ def api_records(symbol: str, raw_dir: Path):
     records = []
     errors = []
     windows = 0
+    planned = len(range(START, END, WINDOW))
     for start in range(START, END, WINDOW):
         end = min(start + WINDOW, END) - 1
         params = urlencode(dict(symbol=symbol, startTime=start, endTime=end, limit=1000))
@@ -56,6 +66,8 @@ def api_records(symbol: str, raw_dir: Path):
         windows += 1
         if payload is None:
             errors.append(f"{symbol}:WINDOW_{windows}:{err}")
+            if err == "HTTP_451_ACCESS_RESTRICTED":
+                break  # Stop futile requests; do not evade the source restriction.
             continue
         try:
             data = json.loads(payload)
@@ -77,7 +89,7 @@ def api_records(symbol: str, raw_dir: Path):
             records.extend(parsed)
         except (KeyError, ValueError, TypeError, OverflowError) as exc:
             errors.append(f"{symbol}:WINDOW_{windows}:{type(exc).__name__}:{str(exc)[:70]}")
-    return records, errors, windows
+    return records, errors, windows, planned
 
 
 def compare(symbol: str, root: Path, api_rows: list[tuple[int, float]]):
@@ -139,10 +151,11 @@ def run(root: Path):
     summary = {}
     errors = []
     for symbol in SYMBOLS:
-        rows, api_errors, windows = api_records(symbol, raw)
+        rows, api_errors, windows, planned = api_records(symbol, raw)
         errors.extend(api_errors)
         detail = compare(symbol, root, rows)
         detail["api_windows_requested"] = windows
+        detail["api_windows_planned"] = planned
         detail["api_windows_saved"] = len(list(raw.glob(f"{symbol}-window-*.json")))
         summary[symbol] = detail
         print("BINANCE_API_ARCHIVE", symbol, json.dumps(detail, sort_keys=True), flush=True)
@@ -165,6 +178,9 @@ def run(root: Path):
                   original_strict_exact_clock_gate_unchanged=True,
                   original_strict_exact_clock_observed_per_asset=821,
                   errors=errors, assets=summary,
+                  source_blocker=("HTTP_451_ACCESS_RESTRICTED"
+                                  if any("HTTP_451_ACCESS_RESTRICTED" in e for e in errors)
+                                  else None),
                   no_private_account_settlement=True,
                   no_economics=True, no_promotion=True,
                   no_validation=True, no_holdout=True,
