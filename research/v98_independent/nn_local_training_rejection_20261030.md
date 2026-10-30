@@ -1,0 +1,11 @@
+# V98 NN — local independent training diagnostic, provisional rejection (2026-10-30)
+
+**REJECTED ON ECONOMIC GATE; DO NOT RESCUE.** NN was preregistered at `822cc7fb4a7e293ef1a8d6aba80cb8e66ac97e61` before code and any NN PnL. A separate local diagnostic on the SHA-authenticated original Clean-4 2022-24 1h OHLC, native signed funding and official two-sided mark envelope produced the following **diagnostic-only** results. The original GitHub 30-cell workflow `41102807551` was queued when this note was written; the independent source/fill/hourly PnL oracles must still be harvested before describing the run as independently attested.
+
+**Source preflight:** 9,144 native funding events, 53/53 core refreshes, source virtual gross <=.84, zero silent updates; each of Opportunity/RV/Stress active 53 weeks in 2023 and 52 in 2024. Local source receipt SHA256 `2cafd6167d586c6cc230cd0d22e49f7c491920299f1039e48358ba785b19e5fb`.
+
+**Local 30-cell physical diagnostic:** 30/30 locally simulated cells satisfied the simplified physical constraints, but this is NOT the original GitHub executor or independent hourly reconciliation. Full 2023-24, USD10k start, carried-before-fill worst-side official mark envelope: base CAGR **-3.617%**, ending equity **USD9,289.27**, max DD **46.998%**, turnover **USD418,491**, funding **-USD737.44**. Severe CAGR **-6.917%**, max DD **48.162%**, turnover **USD403,936**. Supersevere CAGR **-10.333%**. Base marginal log growth Opportunity **+.039702**, RV **+.067351**, Stress/Recovery **-.090514**. 2023 +9.54%, 2024 -15.20%. Both funding orders were simulated. Local diagnostic JSON SHA256 `0ce6899b2638f6ae14534141514f1aa4693c00c469b573ac22fd881b1ae4ee0e`; original GitHub result may differ and takes precedence.
+
+**Decision:** independently of possible rounding/settlement differences, the huge shortfall from preregistered base >80%, severe >60%, severe DD <45%, positive severe years and Stress marginal >+.020 rules out NN. No weight/sign/threshold/cost rescue or promotion. Next candidate must be a genuinely distinct portfolio mechanism, not a cosmetic repair.
+
+No 2025+, XRP, Phase083, V14/V15/V99, Frozen, future holdout or paper accessed. No live authorization. Exact funding-event markPrice still externally missing; conservative envelope does not certify exact native tick.
