@@ -13,7 +13,7 @@ def audit(path):
         raise ValueError('NQ_AUDIT_SCOPE')
     if d.get('eligible_for_promotion') is not False or d.get('independent_pnq_oracle') is not False or d.get('one_way_netting') is not True:
         raise ValueError('NQ_AUDIT_FALSE_PROMOTION')
-    if d['source_gate']['decision']!='PASS_SOURCE_ONLY' or d['source_gate']['native_funding_events']!=9144:
+    if d['source_gate']['decision']!='PASS_SOURCE_ONLY' or d['source_gate']['funding_events']!=9144:
         raise ValueError('NQ_AUDIT_SOURCE')
     cells=d['cells']
     if len(cells)!=30 or d.get('native_30cell_executed') is not True:
