@@ -1,0 +1,74 @@
+name: V98 Independent NE Frozen Original Independent Accounting Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ne-frozen-audit.yml'
+      - 'research/v98_independent/ne_independent_net_settlement_oracle.py'
+      - 'research/v98_independent/ne_hourly_oracle_gate.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  ne-frozen-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download original NE immutable training receipt and ledger only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-ne-physical-41066805076
+          run-id: 41066805076
+          github-token: ${{ github.token }}
+          path: ne-original
+      - name: Download original SHA-authenticated Clean4 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download original SHA-pinned mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Independent net oracle synthetic and adversarial tamper contract
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile ne_independent_net_settlement_oracle.py ne_hourly_oracle_gate.py
+          python ne_independent_net_settlement_oracle.py
+          sha256sum ../../ne-original/ne_30cell_receipt.json ../../ne-original/ne_base_full_hourly_forensic.jsonl | tee ne_frozen_original_sha256.txt
+      - name: Replay all 17,543 original signed net settlements without rerunning NE PnL
+        working-directory: research/v98_independent
+        run: |
+          python ne_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl ../../ne-original/ne_base_full_hourly_forensic.jsonl --receipt ../../ne-original/ne_30cell_receipt.json --output ne_frozen_independent_hourly_receipt.json
+      - name: Independently replay original strategy-to-net-fill
+        working-directory: research/v98_independent
+        run: |
+          python ne_independent_fill_oracle.py --root ../../official-input --ledger-jsonl ../../ne-original/ne_base_full_hourly_forensic.jsonl --output ne_frozen_independent_fill_receipt.json
+      - name: Independently recompute original 30-cell economic rejection
+        working-directory: research/v98_independent
+        run: |
+          python ne_independent_receipt_arithmetic_audit.py --receipt ../../ne-original/ne_30cell_receipt.json | tee ne_frozen_independent_economic_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-ne-frozen-original-independent-audit-${{ github.run_id }}
+          path: |
+            research/v98_independent/ne_frozen_original_sha256.txt
+            research/v98_independent/ne_frozen_independent_hourly_receipt.json
+            research/v98_independent/ne_frozen_independent_fill_receipt.json
+            research/v98_independent/ne_frozen_independent_economic_audit.json
+          retention-days: 30
+          if-no-files-found: warn
