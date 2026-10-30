@@ -1,0 +1,110 @@
+name: V98 NR Distinct Seven-Slot Net Growth 30-Cell Physical + Independent Gates
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nr-30cell.yml'
+      - 'research/v98_independent/nr_*.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  nr-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned authenticated Clean-4 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Source-only and causal synthetic gates before PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile nr_sources.py nr_intents.py nr_source_gate.py nr_30cell_physical.py nr_hourly_oracle_gate.py nr_independent_fill_oracle.py nr_independent_receipt_arithmetic_audit.py
+          python nr_sources.py
+          python v98_future_net_growth_capital_competition.py
+          python nr_intents.py
+          python nr_source_gate.py --root ../../official-input --output nr_source_receipt.json
+      - name: Run original NR 30-cell signed physical training
+        id: physical
+        continue-on-error: true
+        working-directory: research/v98_independent
+        run: |
+          python nr_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output nr_30cell_receipt.json --ledger-output nr_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed settlement
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nr_30cell_receipt.json && test -s nr_base_full_hourly_forensic.jsonl; then
+            python nr_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nr_base_full_hourly_forensic.jsonl --receipt nr_30cell_receipt.json --output nr_independent_hourly_receipt.json
+          else
+            echo "NO_COMPLETE_NR_LEDGER_FOR_INDEPENDENT_SETTLEMENT"
+          fi
+      - name: Independently reconstruct net physical fills and tamper detection
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nr_base_full_hourly_forensic.jsonl; then
+            python nr_independent_fill_oracle.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nr_base_full_hourly_forensic.jsonl --output nr_independent_fill_receipt.json
+          else
+            echo "NO_COMPLETE_NR_LEDGER_FOR_INDEPENDENT_FILLS"
+          fi
+      - name: Independent 30-cell arithmetic and economic gate
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nr_30cell_receipt.json; then
+            python nr_independent_receipt_arithmetic_audit.py --receipt nr_30cell_receipt.json > nr_independent_arithmetic_receipt.json
+            cat nr_independent_arithmetic_receipt.json
+          else
+            echo "NO_NR_RECEIPT_FOR_ARITHMETIC_AUDIT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-nr-original-${{ github.run_id }}
+          path: |
+            research/v98_independent/nr_source_receipt.json
+            research/v98_independent/nr_30cell_receipt.json
+            research/v98_independent/nr_independent_hourly_receipt.json
+            research/v98_independent/nr_independent_fill_receipt.json
+            research/v98_independent/nr_independent_arithmetic_receipt.json
+            research/v98_independent/nr_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Economic gate is binding; no false completion
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('nr_30cell_receipt.json')
+          if not p.exists():raise SystemExit('NR_MISSING_PHYSICAL_RECEIPT')
+          r=json.loads(p.read_text())
+          print('NR_ORIGINAL_DECISION',r['decision'])
+          print('NR_GATE_FAILURES',r['gate_failures'])
+          if r['decision']!='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED':
+              raise SystemExit('NR_REJECTED_NO_PROMOTION')
+          if not Path('nr_independent_hourly_receipt.json').exists() or not Path('nr_independent_fill_receipt.json').exists() or not Path('nr_independent_arithmetic_receipt.json').exists():
+              raise SystemExit('NR_MISSING_INDEPENDENT_EVIDENCE')
+          print('NR_PROVISIONAL_TRAINING_ONLY_NOT_INDEPENDENT_VALIDATION')
+          PY
