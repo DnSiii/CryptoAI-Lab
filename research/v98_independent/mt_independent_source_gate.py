@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V98 MT independent all-hour source replay; no economic PnL."""
+"""V98 MT independent all-hour source replay; no economic PnL.\n\nRuns against the restored full repository tree, never a partial snapshot.\n"""
 import argparse,json
 import numpy as np
 from v98_clean4_training_reader import load
