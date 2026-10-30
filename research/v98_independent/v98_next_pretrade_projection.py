@@ -36,7 +36,7 @@ def project(q,source_w,updated,px,equity,funding_event=False,cap=.84,event_cap=.
         result[1:]*=room/optional
     if np.abs(result).sum()>active_cap+1e-10:
         raise ValueError('V98_PROJECT_GROSS')
-    if np.any((raw!=0)&(np.sign(result)!=np.sign(raw))):
+    if np.any(result*raw < -1e-12):
         raise ValueError('V98_PROJECT_SIGN_CHANGED')
     return {'weights':result,'raw_virtual_gross':raw_gross,
             'projected_virtual_gross':float(np.abs(result).sum()),
