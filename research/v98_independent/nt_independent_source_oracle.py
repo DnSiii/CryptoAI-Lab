@@ -56,7 +56,7 @@ def oracle(d):
         raise ValueError('NT_INDEPENDENT_SOURCE_DECISION_MISMATCH_'+str(mismatches[:5]))
     if int(d['event'].sum())!=9144 or np.any(updates[:WARMUP]) or int(updates[:,0].sum())!=105:
         raise ValueError('NT_INDEPENDENT_SOURCE_CALENDAR')
-    if np.any(np.abs(np.diff(actual,axis=0)).sum(axis=(1,2))>1e-12 & ~updates[1:,0]):
+    if np.any((np.abs(np.diff(actual,axis=0)).sum(axis=(1,2))>1e-12) & ~updates[1:,0]):
         raise ValueError('NT_INDEPENDENT_SOURCE_SILENT_TARGET_CHANGE')
     return {'decision':'PASS_INDEPENDENT_SOURCE_ONLY_NOT_PNL','independent_decisions':checked,
             'source_hours':HOURS,'funding_events':int(d['event'].sum()),
