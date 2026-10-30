@@ -23,6 +23,9 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile all 2025 validation and independent oracle scripts before data acquisition
+        working-directory: research/v98_independent
+        run: python -m py_compile v98_nh_2025_validation_reader.py v98_nh_2025_validation.py v98_nh_2025_independent_accounting.py v98_nh_2025_independent_fill_oracle.py v98_nh_2025_independent_arithmetic.py
       - name: Verify frozen 2023-24 NH code blobs, fail closed on any modification
         run: |
           test "$(git hash-object research/v98_independent/nh_sources.py)" = "25c1ef234778abffafcadd4d477cb74fc44f356d"
