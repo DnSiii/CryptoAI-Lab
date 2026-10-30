@@ -2,7 +2,7 @@
 """V98 NO independent one-way NET ledger settlement oracle, training only.
 
 Independent of strategy, planner and original physical runner. Consumes an
-immutable hourly JSONO execution ledger and authenticated Clean-4 OHLC/funding.
+immutable hourly JSONL execution ledger and authenticated Clean-4 OHLC/funding.
 No benchmark/holdout access, no claim of validated PnL without an actual ledger.
 """
 import argparse,json,math
@@ -15,7 +15,7 @@ def replay(d,rows,lo,hi,fee,slip,order,start=745,end=18288,initial_equity=10000.
     if not np.isfinite([fee,slip,initial_equity]).all() or min(fee,slip)<0 or initial_equity<=0:
         raise ValueError('V98_ORACLE_INPUT')
     qty=np.zeros((4,4)) if initial_qty is None else np.asarray(initial_qty,float)
-    if qty.shape!=(4,4):raise ValueError('V98_ORACLE_INOTIAL_SHAPE')
+    if qty.shape!=(4,4):raise ValueError('V98_ORACLE_INLTIAL_SHAPE')
     equity=float(initial_equity);total_turn=total_fee=total_slip=total_funding=0.
     n=0;maxgross=0.;min_intrabar=equity
     for row in rows:
