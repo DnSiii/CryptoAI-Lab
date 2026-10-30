@@ -35,7 +35,7 @@ def replay(d,rows,lo,hi,fee,slip,order,start=745,end=18288,initial_equity=10000.
         pre_gross=float(np.sum(np.abs(qty)*px))
         pre_net=float(np.sum(np.abs(qty.sum(axis=0))*px))
         if max(pre_gross,pre_net)>opening*(1+1e-9):raise ValueError('NE_ORACLE_PRETRADE_GROSS')
-        old_net=qty.sum(axis=0);new_net=new_net
+        old_net=qty.sum(axis=0);new_net=after.sum(axis=0)
         delta_net=new_net-old_net
         turnover=float(np.sum(np.abs(delta_net)*px))
         fees=turnover*fee;slippage=turnover*slip
@@ -71,7 +71,7 @@ def replay(d,rows,lo,hi,fee,slip,order,start=745,end=18288,initial_equity=10000.
         if fill_equity<=0 or max(after_gross,after_net_gross)>fill_equity*(1+1e-9):
             raise ValueError('V98_ORACLE_POSTFILL_LEVERAGE')
         if final_equity<=0 or max(after_gross,after_net_gross)>final_equity*.90+1e-7:
-            raise ValueError('V98_ORACLE_POSTFUNEING_CAP')
+            raise ValueError('V98_ORACLE_POSTFUNDING_CAP')
         net=after.sum(axis=0)
         worst=np.where(net>=0,d['l'][t],d['h'][t])
         intrabar=final_equity+float(np.dot(net,worst-px))
@@ -90,7 +90,7 @@ def replay(d,rows,lo,hi,fee,slip,order,start=745,end=18288,initial_equity=10000.
         min_intrabar=min(min_intrabar,intrabar)
         qty=after;equity=close;n+=1
     if n!=end-start:raise ValueError('V98_ORACLE_INCOMPLETE_HOURLY_LEDGER')
-    return {'decision':'PASS_INEEPENEENT_ALL_HOUR_SETTLEMENT_REPLAY',
+    return {'decision':'PASS_INDEPENDENT_ALL_HOUR_SETTLEMENT_REPLAY',
             'hours_replayed':n,'one_way_netting':True,'final_equity':equity,'turnover':total_turn,
             'fees':total_fee,'slippage':total_slip,'funding':total_funding,
             'max_intermediate_gross_fraction':maxgross,
@@ -118,11 +118,11 @@ def synthetic_tests():
     bad=[dict(x) for x in rows];bad[0]['fee_cash']=0.
     try:replay(d,bad,marklo,markhi,.0004,.0002,'new_after_fill',1,3)
     except ValueError as e:assert 'FEE' in str(e)
-    else:raise AssertionError('V98_ORACLE_FEE_TAMPER_UNEETECTED')
+    else:raise AssertionError('V98_ORACLE_FEE_TAMPER_UNDETECTED')
     bad=[dict(x) for x in rows];bad[1]['qty_before']=q0.tolist()
     try:replay(d,bad,marklo,markhi,.0004,.0002,'new_after_fill',1,3)
     except ValueError as e:assert 'POSITION_CONTINUITY' in str(e)
-    else:raise AssertionError('V98_ORACLE_POSITION_TAMPER_UNEETECTED')
+    else:raise AssertionError('V98_ORACLE_POSITION_TAMPER_UNDETECTED')
     # Carried-before-fill signed event on a preexisting long position.
     d2={k:v.copy() for k,v in d.items()}
     d2['event'][2,0]=True;d2['rate'][2,0]=.0001
@@ -137,8 +137,8 @@ def synthetic_tests():
     assert abs(out2['final_equity']-9999.3)<1e-8
     tampered=[dict(x) for x in carried];tampered[1]['funding_cash']=+.1
     try:replay(d2,tampered,marklo,markhi,.0004,.0002,'carried_before_fill',1,3)
-    except ValueError as e:assert 'FUNEING' in str(e)
-    else:raise AssertionError('V98_ORACLE_FUNEING_SIGN_TAMPER_UNEETECTED')
+    except ValueError as e:assert 'FUNDING' in str(e)
+    else:raise AssertionError('V98_ORACLE_FUNDING_SIGN_TAMPER_UNDETECTED')
     return True
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root');p.add_argument('--envelope-csv')
@@ -146,7 +146,7 @@ if __name__=='__main__':
     p.add_argument('--order',choices=('carried_before_fill','new_after_fill'))
     a=p.parse_args()
     if not a.root:
-        assert synthetic_tests();print('V98_INEEPENEENT_LEDGER_ORACLE_SYNTHETIC_PASS')
+        assert synthetic_tests();print('V98_INDEPENDENT_LEDGER_ORACLE_SYNTHETIC_PASS')
     else:
         if not all([a.envelope_csv,a.ledger_jsonl,a.fee is not None,a.slip is not None,a.order]):
             raise ValueError('V98_ORACLE_INCOMPLETE_CLI')
