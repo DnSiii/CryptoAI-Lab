@@ -102,6 +102,7 @@ def run(root):
                         raise ValueError("PUBLISHER_SHA256_MISMATCH")
                     parsed = parse_csv(archive, month)
                     (raw_root / filename).write_bytes(archive)
+                    (raw_root / (filename + ".CHECKSUM")).write_bytes(checksum)
                     item.update(status="PUBLISHER_CHECKSUM_AND_ROWS_VERIFIED", error=None,
                                 zip_sha256=digest, published_sha256=published,
                                 original_rows=len(parsed), first_ms=parsed[0][0],
