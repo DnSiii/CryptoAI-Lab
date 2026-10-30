@@ -116,7 +116,8 @@ def verify(root: Path) -> dict:
                       if complete else "SOURCE_HOLD")
     if report.get("classification") != expected_class:
         raise ValueError("ORACLE_FALSE_CLASSIFICATION")
-    print(json.dumps(dict(oracle="INDEPENDENT_NATIVE_QUOTE_REPLAY_PASS",
+    print(json.dumps(dict(oracle=("INDEPENDENT_NATIVE_QUOTE_REPLAY_PASS" if complete else
+                                     "INDEPENDENT_SOURCE_HOLD_NOT_FULLY_REPLAYED"),
                           classification=expected_class, economics=False,
                           promotion=False), sort_keys=True))
     return report
