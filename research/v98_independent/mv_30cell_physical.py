@@ -3,7 +3,7 @@
 import argparse,json,math
 import numpy as np
 from v98_clean4_training_reader import load
-from mv_sources import bundle,BOOKS,HOURS,WARMVP
+from mv_sources import bundle,BOOKS,HOURS,WARMUP
 from mv_independent_source_gate import run as source_gate
 from v98_mark_envelope_settlement import read_envelope,worst_funding
 from v98_pretrade_causal_atomic_planner import plan_causal,settle_checked
@@ -13,14 +13,14 @@ LEDGER=[]
 def physical(d,intents,updates,book,tier,order,lo,hi):
     o,h,l,c,rate,event=[d[k] for k in ('o','h','l','c','rate','event')]
     fee,slip=COSTS[tier];active=BOOKS[book]
-    qty=np.zeros((4,4));equity=10000.;prev=c[WARMVP]
+    qty=np.zeros((4,4));equity=10000.;prev=c[WARMUP]
     turn=fees=slippage=funding=0.;scales=0;intramin=10000.
     year_start={2023:10000.,2024:None};year_end={}
     hist=[];deltas=[];grosspeak=0.;concpeak=0.;max_intermediate=0.;refresh_count=0
     def fail(why,t):
         return {'passed':False,'failure':why,'t':t,'book':book,'tier':tier,'order':order,
                 'turnover_until_failure':turn,'training_only':True}
-    for t in range(WARMVP+1,HOURS):
+    for t in range(WARMUP+1,HOURS):
         before=equity;before_qty=qty.copy();px=o[t]
         equity+=float(np.sum(qty*(px-prev)))
         if equity<=0 or not math.isfinite(equity):return fail('INSOLVENT_OPEN',t)
@@ -47,7 +47,7 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
                                     funding_event=bool(event[t].any()),gross_cap=.90)
             except ValueError as e:return fail('ATOMIC_'+str(e),t)
             max_intermediate=max(max_intermediate,planned['max_intermediate_gross_fraction'])
-            if 0 in active and (t-1-WARMVP)%672==0 and updates[t-1,0]:
+            if 0 in active and (t-1-WARMUP)%672==0 and updates[t-1,0]:
                 refresh_count+=1
         # Execution feasibility: an open price without traded volume is not a fill.
         # Reject the frozen candidate; never skip or re-time an intended trade.
@@ -158,7 +158,7 @@ if __name__=='__main__':
     p.add_argument('--ledger-output',default='mv_base_full_hourly_forensic.jsonl')
     a=p.parse_args();result=run(a.root,a.envelope_csv)
     with open(a.output,'w') as f:json.dump(result,f,indent=2,sort_keys=True,allow_nan=False)
-    if len(LEDGER)==HOURS-WARMVP-1:
+    if len(LEDGER)==HOURS-WARMUP-1:
         with open(a.ledger_output,'w') as f:
             for row in LEDGER:f.write(json.dumps(row,allow_nan=False,separators=(',',':'))+'\n')
         print('MV_FULL_BASE_LEDGER_FOR_INDEPENDENT_ACCOUNTING',len(LEDGER),flush=True)
