@@ -18,9 +18,9 @@ def build(d,raw,updates,lo,hi,start=744,period=168,lookback=1344):
     if start<1 or period<1 or lookback<period or lookback%period:
         raise ValueError('NQ_SHADOW_WINDOW')
     names=tuple(BOOKS)
-    q=np.zeros((4,4,4))
-    nav=np.full(4,10000.,dtype=float)
-    equity=np.full((n,4),np.nan)
+    q=np.zeros((len(names),4,4))
+    nav=np.full(len(names),10000.,dtype=float)
+    equity=np.full((n,len(names)),np.nan)
     equity[start]=nav
     scores=np.full((n,3),np.nan)
     multipliers=np.array([.5,.5,.5])
