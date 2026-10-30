@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/v98-independent-future-net-growth-preflight.yml'
       - 'research/v98_independent/v98_future_net_growth_capital_competition.py'
+      - 'research/v98_independent/v98_future_net_growth_independent_oracle.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,5 +24,6 @@ jobs:
       - name: Run deterministic causal capital-competition synthetic invariants
         working-directory: research/v98_independent
         run: |
-          python -m py_compile v98_future_net_growth_capital_competition.py
+          python -m py_compile v98_future_net_growth_capital_competition.py v98_future_net_growth_independent_oracle.py
           python v98_future_net_growth_capital_competition.py
+          python v98_future_net_growth_independent_oracle.py
