@@ -84,6 +84,15 @@ def replay(p,fee):
             if turn>1e-10:trade_count+=1
             volume_total+=turn;cost_total+=paid
             decisions.append((t,decision))
+        # Independent terminal spot liquidation, preserving full fee accounting.
+        if t==N-1 and any(units.values()):
+            before={a:units[a]*px[a] for a in ASSETS}
+            turn=sum(before.values())
+            paid=fee*turn
+            cash+=turn-paid
+            units={a:0. for a in ASSETS}
+            trade_count+=1
+            volume_total+=turn;cost_total+=paid
         nav=cash+sum(units[a]*px[a] for a in ASSETS)
         if cash < -1e-8 or min(units.values()) < -1e-12 or nav<=0 or not math.isfinite(nav):
             raise ValueError("S1_ORACLE_ACCOUNT_NOT_SELF_FINANCING")
