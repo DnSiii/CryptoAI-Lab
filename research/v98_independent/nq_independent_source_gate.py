@@ -61,7 +61,7 @@ def check(d):
     if silent:failures.append('NQ_SILENT_WEIGHT_CHANGE')
     if not np.array_equal(updates[:,0],decisions):failures.append('NQ_MISSING_OR_EXTRA_WEEKLY')
     if int(d['event'].sum())!=9144:failures.append('NQ_FUNDING_COUNT')
-    if np.abs(raw).sum(axis=(2,3)).max()>.84+1e-10:failures.append('NQ_GROSS')
+    if np.abs(raw).sum(axis=(1,2)).max()>.84+1e-10:failures.append('NQ_GROSS')
     for year in ('2023','2024'):
         for i,name in enumerate(NAMES):
             if counts[year][name]<MINIMUM[i]:failures.append('NQ_MINIMUM_'+year+'_'+name)
