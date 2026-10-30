@@ -1,0 +1,61 @@
+name: V99 R106 S1 REJECTED read-only loss attribution (TRAIN ONLY)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/verification/v99_r106_s1_loss_attribution.py'
+      - '.github/workflows/v99-r106-s1-rejected-loss-attribution.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  forensic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Adversarial accounting selftest
+        run: python -m research.verification.v99_r106_s1_loss_attribution --selftest
+      - name: Retrieve immutable original OKX TRAIN receipts
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/s1_original_train
+      - name: Retrieve archived S1 rejected economic report (not recalibrated)
+        run: |
+          gh run download 40982638347 --repo "$GITHUB_REPOSITORY" \
+            --name v99-s1-one-shot-model-only-train-40982638347 \
+            --dir research_evidence/s1_archived_result
+      - name: Independent S1 original replay plus additive gross/cost failure attribution
+        run: |
+          python -m research.verification.v99_r106_s1_loss_attribution \
+            research_evidence/s1_original_train \
+            research_evidence/s1_archived_result/s1_train_model_only.json \
+            research_evidence/s1_failure_attribution/s1_failure_attribution.json
+      - name: Fail closed on promotion, validation, paper or holdout
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research_evidence/s1_failure_attribution/s1_failure_attribution.json').read_text())
+          assert x['model']=='PERMANENTLY_REJECTED_S1_NO_RETUNE'
+          assert x['frictionless_is_diagnostic_not_candidate'] is True
+          assert all(x[k] is False for k in ('native_fills_or_fees_certified','promotion_authorized','validation_opened','holdout_opened','paper_or_frozen_changed'))
+          print('S1 REJECTION INTACT / NO PROMOTION / NO SEALED ACCESS')
+          PY
+      - name: Archive read-only diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-s1-rejected-loss-attribution-${{ github.run_id }}
+          path: research_evidence/s1_failure_attribution/
+          retention-days: 90
+          if-no-files-found: warn
