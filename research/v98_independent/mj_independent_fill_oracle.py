@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V98 Independent MJ FORENSIC all-hour strategy-to-fill oracle, not promotion.
+"""V98 Independent MJ all-hour strategy-to-fill oracle, not promotion.
 
 Uses independent source-weight reconstruction and independent cash-aware sizing;
 does NOT import the MJ physical runner or V98 atomic planner. 2023-24 only.
@@ -64,7 +64,7 @@ def verify(d,rows):
         matched+=1;expected_t+=1
     if matched!=HOURS-WARMUP-1:raise ValueError('MJ_FILL_ORACLE_INCOMPLETE_LEDGER')
     if forced!=27:raise ValueError('MJ_FILL_ORACLE_FORCED_REFRESH_NOT_27')
-    return {'decision':'PASS_FORENSIC_INDEPENDENT_ALL_HOUR_STRATEGY_TO_FILL_REPLAY_REJECTED_MI',
+    return {'decision':'PASS_INDEPENDENT_ALL_HOUR_STRATEGY_TO_FILL_REPLAY_NOT_ECONOMIC_APPROVAL',
         'hours_replayed':matched,'independent_target_weights':True,
         'independent_execution_sizing':True,'quantity_mismatches':0,
         'max_absolute_qty_error':max_qty_error,'rebalance_events':rebalanced,
