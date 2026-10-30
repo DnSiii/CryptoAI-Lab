@@ -1,0 +1,75 @@
+name: V99 R106 S3 original OKX spot-perp basis feasibility (NO ECONOMICS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/tools/v99_r106_s3_basis_source_feasibility.py'
+      - 'research/verification/independent_v99_r106_s3_basis_feasibility.py'
+      - 'research/V99_R106_S3_BASIS_CARRY_SOURCE_FEASIBILITY_PREREG_20261030.md'
+      - '.github/workflows/v99-r106-s3-basis-source-feasibility.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-feasibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify source preflight preregistration preceded the implementation
+        run: |
+          python - <<'PY'
+          import subprocess
+          prereg='f7735d68c239c908a4e6cdc960d4e01de63f06a8'
+          subprocess.run(['git','merge-base','--is-ancestor',prereg,'HEAD'],check=True)
+          print('S3_SOURCE_FEASIBILITY_EX_ANTE_PREREG_ANCESTOR_CONFIRMED')
+          PY
+      - name: Download original first-party OKX four-leg TRAIN source only
+        run: |
+          gh run download 40019588739 --repo "$GITHUB_REPOSITORY" \
+            --name d1-train-four-leg-backfill-40019588739 \
+            --dir research_evidence/s3_original_train
+      - name: Run fixed source-only 290bps eligibility gate
+        run: |
+          python -m research.tools.v99_r106_s3_basis_source_feasibility \
+            research_evidence/s3_original_train research_evidence/s3_feasibility
+      - name: Independent original-byte and daily signal replay
+        run: |
+          python -m research.verification.independent_v99_r106_s3_basis_feasibility \
+            research_evidence/s3_original_train \
+            research_evidence/s3_feasibility/s3_basis_source_feasibility.json
+      - name: Fail closed no economics or promotion regardless of opportunity count
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('research_evidence/s3_feasibility/s3_basis_source_feasibility.json').read_text())
+          assert r['original_train_hours_per_leg']==15864
+          assert r['daily_observations']==631
+          assert r['status'] in ('FEASIBILITY_ONLY_NO_PROMOTION','OPPORTUNITY_VETO_NO_ECONOMIC_TRIAL')
+          assert r['first_party_original_receipts_verified'] is True
+          assert r['historical_opens_are_not_fills'] is True
+          assert all(r[x] is False for x in (
+            'economic_trial_run','native_funding_authenticated',
+            'native_fee_tier_authenticated','historical_fills_authenticated',
+            'validation_opened','final_holdout_opened','promotion_authorized',
+            'paper_publication_authorized','orders_enabled'))
+          print('S3 SOURCE-ONLY TRAIN VERIFIED / NO ECONOMICS / NO PROMOTION')
+          PY
+      - name: Archive source-only feasibility evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-s3-original-source-feasibility-${{ github.run_id }}
+          path: research_evidence/s3_feasibility/
+          retention-days: 90
+          if-no-files-found: warn
