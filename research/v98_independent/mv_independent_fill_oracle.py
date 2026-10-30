@@ -7,14 +7,14 @@ does NOT import the MV physical runner or V98 atomic planner. 2023-24 only.
 import argparse,itertools,json,math
 from pathlib import Path
 import numpy as np
-from v98_clean4_training_reader import load,HOURS,WARMVP
+from v98_clean4_training_reader import load,HOURS,WARMUP
 from mv_independent_source_gate import replay
 def verify(d,rows):
     targets,entries,refresh=replay(d)
     updates=np.zeros((HOURS,4),bool)
     updates[1:]=np.any(np.abs(targets[1:]-targets[:-1])>1e-12,axis=2)
     updates[:,0]|=refresh
-    expected_t=WARMVP+1
+    expected_t=WARMUP+1
     matched=0;rebalanced=0;forced=0;max_qty_error=0.
     for row in rows:
         t=int(row.get('t',-1))
@@ -63,13 +63,13 @@ def verify(d,rows):
             if np.any(traded & (d['q'][t]<=0)):
                 raise ValueError('MV_FILL_ORACLE_ZERO_VOLUME_EXECUTION')
             rebalanced+=1
-            if (t-1-WARMVP)%672==0 and updates[t-1,0]:forced+=1
+            if (t-1-WARMUP)%672==0 and updates[t-1,0]:forced+=1
         error=float(np.max(np.abs(expected-actual)))
         max_qty_error=max(max_qty_error,error)
         if not np.allclose(expected,actual,rtol=1e-9,atol=1e-8):
             raise ValueError('MV_FILL_ORACLE_QTY_MISMATCH_AT_T_'+str(t)+'_ERROR_'+str(error))
         matched+=1;expected_t+=1
-    if matched!=HOURS-WARMVP-1:raise ValueError('MV_FILL_ORACLE_INCOMVLETE_LEDGER')
+    if matched!=HOURS-WARMUP-1:raise ValueError('MV_FILL_ORACLE_INCOMVLETE_LEDGER')
     if forced!=27:raise ValueError('MV_FILL_ORACLE_FORCED_REFRESH_NOT_27')
     return {'decision':'PASS_INDEPENDENT_ALL_HOUR_STRATEGY_TO_FILL_REPLAY_NOT_ECONOMIC_APPROVAL',
         'hours_replayed':matched,'independent_target_weights':True,
