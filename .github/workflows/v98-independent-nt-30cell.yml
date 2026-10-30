@@ -38,11 +38,12 @@ jobs:
       - name: Source-only and causal synthetic gates before PnL
         working-directory: research/v98_independent
         run: |
-          python -m py_compile nt_sources.py nt_intents.py nt_source_gate.py nt_30cell_physical.py nt_hourly_oracle_gate.py nt_independent_fill_oracle.py nt_independent_receipt_arithmetic_audit.py
+          python -m py_compile nt_sources.py nt_intents.py nt_source_gate.py nt_30cell_physical.py nt_hourly_oracle_gate.py nt_independent_fill_oracle.py nt_independent_receipt_arithmetic_audit.py nt_independent_source_oracle.py
           python nt_sources.py
           python v98_future_net_growth_capital_competition.py
           python nt_intents.py
           python nt_source_gate.py --root ../../official-input --output nt_source_receipt.json
+          python nt_independent_source_oracle.py --root ../../official-input --output nt_independent_source_receipt.json
       - name: Run original NT 30-cell signed physical training
         id: physical
         continue-on-error: true
@@ -83,6 +84,7 @@ jobs:
           name: v98-nt-original-${{ github.run_id }}
           path: |
             research/v98_independent/nt_source_receipt.json
+            research/v98_independent/nt_independent_source_receipt.json
             research/v98_independent/nt_30cell_receipt.json
             research/v98_independent/nt_independent_hourly_receipt.json
             research/v98_independent/nt_independent_fill_receipt.json
@@ -104,7 +106,7 @@ jobs:
           print('NT_GATE_FAILURES',r['gate_failures'])
           if r['decision']!='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED':
               raise SystemExit('NT_REJECTED_NO_PROMOTION')
-          if not Path('nt_independent_hourly_receipt.json').exists() or not Path('nt_independent_fill_receipt.json').exists() or not Path('nt_independent_arithmetic_receipt.json').exists():
+          if not Path('nt_independent_source_receipt.json').exists() or not Path('nt_independent_hourly_receipt.json').exists() or not Path('nt_independent_fill_receipt.json').exists() or not Path('nt_independent_arithmetic_receipt.json').exists():
               raise SystemExit('NT_MISSING_INDEPENDENT_EVIDENCE')
           print('NT_PROVISIONAL_TRAINING_ONLY_NOT_INDEPENDENT_VALIDATION')
           PY
