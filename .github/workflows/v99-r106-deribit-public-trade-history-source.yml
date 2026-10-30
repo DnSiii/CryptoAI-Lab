@@ -1,0 +1,67 @@
+name: V99 R106 Deribit first-party 2022 historical trade provenance (NO QUOTES/ECONOMICS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'research/V99_R106_DERIBIT_HISTORY_PUBLIC_TRADE_SOURCE_PREREG_20261030.md'
+      - 'research/tools/v99_r106_deribit_public_trade_history_probe.py'
+      - 'research/verification/independent_v99_r106_deribit_public_trade_oracle.py'
+      - '.github/workflows/v99-r106-deribit-public-trade-history-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-history-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Prove preregistration preceded any first-party source request
+        run: |
+          git merge-base --is-ancestor 86c497b2ba984070e601f6ee8c3f97e303e4292d HEAD
+          echo 'PREREG_ANCESTOR_CONFIRMED'
+      - name: Query only four preselected historical first-party trade endpoints
+        run: |
+          python -m research.tools.v99_r106_deribit_public_trade_history_probe research_evidence/public_trade_source
+      - name: Independently reparse original bytes and verify SHA/timestamps/no-promotion
+        run: |
+          python -m research.verification.independent_v99_r106_deribit_public_trade_oracle research_evidence/public_trade_source
+      - name: Delete ephemeral original trade prints and enforce no economic claims
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import shutil
+          from pathlib import Path
+          root=Path('research_evidence/public_trade_source')
+          if (root/'raw_ephemeral').exists():
+              shutil.rmtree(root/'raw_ephemeral')
+          report=root/'trade_history_source_only.json'
+          if report.exists():
+              r=json.loads(report.read_text())
+              assert r['certified_option_lifecycles']==0
+              assert r['original_661_day_quote_archive_delivered'] is False
+              assert r['economic_trial_run'] is False
+              assert r['promotion_authorized'] is False
+              assert r['validation_opened'] is False
+              assert r['final_holdout_opened'] is False
+              assert r['orders_enabled'] is False
+              assert r['status'] in (
+                  'PUBLIC_TRADE_HISTORY_AVAILABLE_NOT_EXECUTABLE',
+                  'PUBLIC_TRADE_HISTORY_UNCONFIRMED')
+              print('ORIGINAL_TRADE_ROWS_REMOVED; ONLY METADATA; NO PROMOTION')
+          PY
+      - name: Archive only independently checked source metadata (never raw trades)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-deribit-public-trade-history-source-${{ github.run_id }}
+          path: research_evidence/public_trade_source/trade_history_source_only.json
+          retention-days: 30
+          if-no-files-found: warn
