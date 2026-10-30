@@ -53,7 +53,7 @@ def check(d):
     independent,ind_activity,decisions=replay(d)
     mismatch=int(np.count_nonzero(np.abs(raw-independent)>1e-9))
     amismatch=int(np.count_nonzero(activity!=ind_activity))
-    silent=int(np.count_nonzero((np.abs(np.diff(raw,axis=0)).sum(axis=(2,3))>1e-12)&~updates[1:,0]))
+    silent=int(np.count_nonzero((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~updates[1:,0]))
     counts={str(year):{name:int(activity[lo:hi,i].sum()) for i,name in enumerate(NAMES)}
             for year,lo,hi in ((2023,744,9504),(2024,9504,HOURS))}
     failures=[]
