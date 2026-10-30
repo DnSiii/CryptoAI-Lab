@@ -1,0 +1,9 @@
+# V98 MS — permanent source-only rejection (2026-10-30)
+
+**REJECT_SOURCE_ONLY; NO PNL, NO RETUNE, NO PROMOTION.** MS pre-source/pre-PnL preregistered in commit `3aeda203a4575619933c7c27aabcbf43c99166ec`, implementation `00ae15a61cd8656ed6ccddc64bdfc42ca02932c3`.
+
+[Original independent source run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41010817041) and [physical workflow stopped before PnL](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41010817102). 17,544-hour independent signal and allocation reconstruction: **0 weight mismatches, 0 entry mismatches**, 27/27 forced core refreshes, 9,144 native funding events, zero silent changes, future-mutation test passed. Entries 2023: Opportunity 8, RV 11, Stress/Recovery **1**; 2024: Opportunity 12, RV 11, Stress/Recovery 2. Predeclared minimum Stress/Recovery >=2 **in each year** failed in 2023. Physical 30-cell runner did not execute, so no MS CAGR/PnL/drawdown exists. The rejected ETH-volatility-shock hedge cannot be threshold/weight/sign/window rescued.
+
+The failure is source activation, not a transport error. Exact official funding-tick mark remains unavailable (HTTP 451) and the pinned OHLC worst-side envelope remains conservative non-exact. 2025 validation, 2026+ holdout, V14/V15/V99 external benchmarks, XRP, V16/V99 Frozen and paper were not accessed or modified. No live authorization.
+
+**Critical-path finding:** MR and MS both passed causal source reconstruction and native funding counts but failed their preregistered activation gates before PnL. Blind candidate proliferation on the same 2023–24 training period risks repeated selection and adds no verified wealth advantage. Next research should preregister an economically distinct portfolio mechanism only when a credible mechanism and full independent PnL validation path are ready, rather than retuning these rejects.
