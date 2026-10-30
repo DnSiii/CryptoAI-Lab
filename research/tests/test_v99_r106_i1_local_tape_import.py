@@ -9,6 +9,7 @@ import json
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -149,6 +150,23 @@ class LocalTapeImportTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:2021-12-09:ETH"):
                     run(self.root, fixture=True)
                 self.assertFalse((self.root / "manifest.json").exists())
+
+    def test_concurrent_manifest_writer_never_overwritten(self):
+        # Simulate a separate process publishing after the pre-scan check,
+        # but before our atomic link. os.replace() would clobber its bytes.
+        target = self.root / "manifest.json"
+        def concurrent_publish(_temporary, _target):
+            self.assertEqual(Path(_target), target)
+            target.write_bytes(b"COMPETING_WRITER_ORIGINAL_BYTES")
+            raise FileExistsError("atomic link refuses overwrite")
+        with mock.patch(
+            "research.tools.v99_r106_i1_local_tape_import.os.link",
+            side_effect=concurrent_publish,
+        ):
+            with self.assertRaisesRegex(ValueError, "REFUSE_OVERWRITE_EXISTING_MANIFEST"):
+                run(self.root, fixture=True)
+        self.assertEqual(target.read_bytes(), b"COMPETING_WRITER_ORIGINAL_BYTES")
+        self.assertEqual(list(self.root.glob(".manifest.*.tmp")), [])
 
     def test_existing_manifest_never_overwritten(self):
         (self.root / "manifest.json").write_text("protected", encoding="utf-8")
