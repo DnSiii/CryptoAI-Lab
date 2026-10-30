@@ -23,7 +23,7 @@ NO_PROMOTION = dict(historical_native_fills_authenticated=False,
     historical_native_fee_tier_authenticated=False, promotion_authorized=False,
     validation_opened=False, final_holdout_opened=False, orders_enabled=False,
     paper_publication_authorized=False)
-PREREG = "research/V99_R106_S2_SPOT_OVERREACTION_PREREG_20261029.md"
+PREREG = "research/V99_R106_S2_JOINT_CAPITULATION_PREREG_20261029.md"
 WARMUP = 720
 
 def source(price_root):
