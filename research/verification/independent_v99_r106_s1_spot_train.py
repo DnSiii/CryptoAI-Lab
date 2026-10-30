@@ -131,7 +131,7 @@ def verify_report(root,report_file):
     p=load(root)
     for scenario,rate in RATES.items():
         independent=replay(p,rate)
-        published=data[scenario]
+        published=data['severe' if scenario=='severe_model_only' else 'supersevere']
         for key,value in independent.items():
             other=published[key]
             if isinstance(value,(float,int)) and type(value)!=bool:
