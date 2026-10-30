@@ -12,11 +12,11 @@ def check(d):
     failures=[]
     if not np.array_equal(times,expected) or not np.all(updates[times]):
         failures.append('NU_DECISION_CALENDAR')
-    if int(d['event'].sum())!=9144:failures.append('NU_FUNDING_EVENUS')
+    if int(d['event'].sum())!=9144:failures.append('NU_FUNDING_EVENTS')
     if np.any(np.abs(raw[:,0]).sum(axis=1)>.80+1e-10):
         failures.append('NU_CORE_BUDGET')
     if np.any((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~updates[1:,0]):
-        failures.append('NU_SILENU_TARGET_CHANGE')
+        failures.append('NU_SILENT_TARGET_CHANGE')
     if not np.isfinite(raw).all():failures.append('NU_NONFINITE')
     counts={str(year):{name:int(active[lo:hi,i].sum()) for i,name in enumerate(NAMES)}
             for year,lo,hi in ((2023,744,9504),(2024,9504,HOURS))}

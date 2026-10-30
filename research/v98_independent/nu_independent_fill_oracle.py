@@ -86,9 +86,9 @@ def verify(d,rows,lo,hi):
         matched+=1;expected_t+=1
     if matched!=HOURS-WARMUP-1:raise ValueError('NU_FILL_ORACLE_INCOMPLETE_LEDGER')
     if forced!=27:raise ValueError('NU_FILL_ORACLE_FORCED_REFRESH_NOT_27')
-    return {'decision':'PASS_INDEPENDENU_ALL_HOUR_STRATEGY_TO_FILL_REPLAY_NOT_ECONOMIC_APPROVAL',
-        'hours_replayed':matched,'independenu_raw_target_weights':False,'independenu_net_growth_intenu_weights':False,
-        'independenu_execution_sizing':True,'one_way_netting':True,'quantity_mismatches':0,
+    return {'decision':'PASS_INDEPENDENT_ALL_HOUR_STRATEGY_TO_FILL_REPLAY_NOT_ECONOMIC_APPROVAL',
+        'hours_replayed':matched,'independent_raw_target_weights':False,'independent_net_growth_intent_weights':False,
+        'independent_execution_sizing':True,'one_way_netting':True,'quantity_mismatches':0,
         'max_absolute_qty_error':max_qty_error,'rebalance_events':rebalanced,
         'core_refreshes_executed':forced,'core_refreshes_preregistered':27,
         'source_gate_status':'PASS_SOURCE_ONLY',

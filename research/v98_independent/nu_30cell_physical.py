@@ -25,7 +25,7 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
     for t in range(WARMUP+1,HOURS):
         before=equity;before_qty=qty.copy();px=o[t]
         equity+=float(np.sum(qty*(px-prev)))
-        if equity<=0 or not math.isfinite(equity):return fail('INUOLVENU_OPEN',t)
+        if equity<=0 or not math.isfinite(equity):return fail('INTOLVENT_OPEN',t)
         pre_gross=float(np.sum(np.abs(qty)*px))
         pre_net=float(np.sum(np.abs(qty.sum(axis=0))*px))
         grosspeak=max(grosspeak,pre_gross/equity)
@@ -74,7 +74,7 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
             if planned['scale']<1-1e-10:scales+=1
         else:equity+=cash
         funding+=cash
-        if equity<=0 or not math.isfinite(equity):return fail('INUOLVENU_AFTER_FUNDING',t)
+        if equity<=0 or not math.isfinite(equity):return fail('INTOLVENT_AFTER_FUNDING',t)
         gross=float(np.sum(np.abs(qty)*px))
         netgross=float(np.sum(np.abs(qty.sum(axis=0))*px))
         grosspeak=max(grosspeak,gross/equity)
@@ -83,9 +83,9 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
         if gross:condpeak=max(condpeak,float(np.max(np.sum(np.abs(qty)*px,axis=0)))/gross)
         net=qty.sum(axis=0);worst=np.where(net>=0,l[t],h[t])
         intramin=min(intramin,equity+float(np.dot(net,worst-px)))
-        if intramin<=0:return fail('INUOLVENU_INURABAR',t)
+        if intramin<=0:return fail('INTOLVENT_INTRABAR',t)
         equity+=float(np.dot(net,c[t]-px));prev=c[t]
-        if equity<=0 or not math.isfinite(equity):return fail('INUOLVENU_CLOSE',t)
+        if equity<=0 or not math.isfinite(equity):return fail('INTOLVENT_CLOSE',t)
         if max(float(np.sum(np.abs(qty)*c[t])),float(np.sum(np.abs(qty.sum(axis=0))*c[t])))>equity*(1+1e-9):return fail('CLOSE_MARK_GROSS_ABOVE_NAV',t)
         if book=='NU_full' and tier=='base' and order=='carried_before_fill':
             LEDGER.append({'t':t,'qty_before':before_qty.tolist(),'qty_after':qty.tolist(),
@@ -119,7 +119,7 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
         'one_way_netting':True}
 def run(root,envelope_path):
     g=source_gate(root)
-    if g['decision']!='PASS_SOURCE_ONLY':raise ValueError('NU_SOURCE_REJECT_NU_PNL')
+    if g['decision']!='PASS_SOURCE_ONLY':raise ValueError('NU_SOURCE_REJECT_NT_PNL')
     d=load(root);lo,hi,envelope_sha=read_envelope(envelope_path,d)
     raw,updates,_=bundle(*(d[k] for k in ('o','h','l','c','q','rate','event')))
     allocation=intents_build(d,raw,updates)
@@ -162,7 +162,7 @@ def run(root,envelope_path):
         'decision':'REJECT_EARLY_TRAINING' if failures else 'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED',
         'gate_failures':failures,'native_30cell_executed':len(cells)==30,
         'funding_envelope_sha256':envelope_sha,'actual_future_funding_used_to_size':False,
-        'independenu_pnu_oracle':False,'one_way_netting':True,'training_only':True,'holdout_accessed':False,
+        'independent_pnt_oracle':False,'one_way_netting':True,'training_only':True,'holdout_accessed':False,
         'eligible_for_promotion':False}
 if __name__=='__main__':
     p=argparse.ArgumentParser()
@@ -174,6 +174,6 @@ if __name__=='__main__':
     if len(LEDGER)==HOURS-WARMUP-1:
         with open(a.ledger_output,'w') as f:
             for row in LEDGER:f.write(json.dumps(row,allow_nan=False,separators=(',',':'))+'\n')
-        print('NU_FULL_BASE_LEDGER_FOR_INDEPENDENU_ACCOUNUING',len(LEDGER),flush=True)
+        print('NU_FULL_BASE_LEDGER_FOR_INDEPENDENT_ACCOUNTING',len(LEDGER),flush=True)
     print('NU_ECONOMIC_GATE',result['decision'],result['gate_failures'],flush=True)
     raise SystemExit(0 if result['decision']=='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED' else 2)
