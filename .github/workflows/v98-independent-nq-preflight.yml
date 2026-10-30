@@ -1,0 +1,28 @@
+name: V98 NQ causal shadow/source code-only preflight (NO historical PnL)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nq-preflight.yml'
+      - 'research/v98_independent/nq_*.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  nq-causal-code-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Static and synthetic causal preflight; NO PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile nq_sources.py nq_online_shadow_marginal.py nq_independent_source_gate.py
+          python nq_sources.py
+          python nq_online_shadow_marginal.py
