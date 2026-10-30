@@ -41,7 +41,7 @@ jobs:
       - name: Independent source-only gate must pass before PnL
         working-directory: research/v98_independent
         run: |
-          python -m py_compile mt_sources.py mt_independent_source_gate.py mt_30cell_physical.py mt_hourly_oracle_gate.py
+          python -m py_compile mt_sources.py mt_independent_source_gate.py mt_30cell_physical.py mt_hourly_oracle_gate.py mt_independent_fill_oracle.py mt_independent_receipt_arithmetic_audit.py
           python mt_independent_source_gate.py --root ../../official-input --output mt_source_receipt.json
       - name: Execute all 30 physical cost/funding/ablation cells with strict post-funding gross
         working-directory: research/v98_independent
@@ -56,6 +56,24 @@ jobs:
           else
             echo "Source/physical failed: no complete ledger; no PnL attestation."
           fi
+      - name: Independent strategy-to-fill replay (no physical runner imports)
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s mt_30cell_receipt.json && test -s mt_base_full_hourly_forensic.jsonl; then
+            python mt_independent_fill_oracle.py --root ../../official-input --ledger-jsonl mt_base_full_hourly_forensic.jsonl --output mt_independent_fill_receipt.json
+          else
+            echo "No complete ledger: no independent fill attestation."
+          fi
+      - name: Independent 30-cell arithmetic and economic decision replay
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s mt_30cell_receipt.json; then
+            python mt_independent_receipt_arithmetic_audit.py --receipt mt_30cell_receipt.json > mt_independent_arithmetic_receipt.json
+          else
+            echo "No physical receipt: no independent arithmetic attestation."
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -64,6 +82,8 @@ jobs:
             research/v98_independent/mt_source_receipt.json
             research/v98_independent/mt_30cell_receipt.json
             research/v98_independent/mt_independent_hourly_receipt.json
+            research/v98_independent/mt_independent_fill_receipt.json
+            research/v98_independent/mt_independent_arithmetic_receipt.json
             research/v98_independent/mt_base_full_hourly_forensic.jsonl
           retention-days: 30
           if-no-files-found: warn

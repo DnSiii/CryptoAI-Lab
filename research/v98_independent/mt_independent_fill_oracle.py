@@ -55,6 +55,9 @@ def verify(d,rows):
                     else:high=mid
                 scale=low
             expected=desired*scale
+            traded=np.any(np.abs(expected-before)>1e-12,axis=0)
+            if np.any(traded & (d['q'][t]<=0)):
+                raise ValueError('MT_FILL_ORACLE_ZERO_VOLUME_EXECUTION')
             rebalanced+=1
             if (t-1-WARMUP)%672==0 and updates[t-1,0]:forced+=1
         error=float(np.max(np.abs(expected-actual)))

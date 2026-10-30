@@ -40,6 +40,12 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
             max_intermediate=max(max_intermediate,planned['max_intermediate_gross_fraction'])
             if 0 in active and (t-1-WARMUP)%672==0 and updates[t-1,0]:
                 refresh_count+=1
+        # Execution feasibility: an open price without traded volume is not a fill.
+        # Reject the frozen candidate; never skip or re-time an intended trade.
+        if planned is not None:
+            traded=np.any(np.abs(planned['quantity']-qty)>1e-12,axis=0)
+            if np.any(traded & (d['q'][t]<=0)):
+                return fail('ZERO_VOLUME_EXECUTION',t)
         newqty=planned['quantity'] if planned is not None else qty
         if event[t].any():
             cash=worst_funding(qty.sum(axis=0),newqty.sum(axis=0),rate[t],event[t],lo[t],hi[t],order)
