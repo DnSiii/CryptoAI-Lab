@@ -1,0 +1,32 @@
+name: V98 Independent MT Restore Queue Incident Cleanup
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-mt-restore-queue-cleanup.yml'
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: read
+jobs:
+  cancel-accidental-restore-queue:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Cancel only unintended runs from exact historical restoration SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BAD_PUSH_SHA: 7290aa77cd91220a50f711e3c9d5883b586ff435
+        run: |
+          set -euo pipefail
+          echo "Cancel queued/running runs created by the accidental full-tree restoration, not other SHAs."
+          gh api -X GET "repos/$REPO/actions/runs" -f head_sha="$BAD_PUSH_SHA" -f per_page=100 --paginate \
+            --jq '.workflow_runs[] | select(.head_sha == "7290aa77cd91220a50f711e3c9d5883b586ff435") | select(.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "pending") | select(.name != "V98 Independent MT Preregistered Source Gate") | .id' \
+          | sort -u | while read -r id; do
+              if [ -n "$id" ]; then
+                gh api -X POST "repos/$REPO/actions/runs/$id/cancel" >/dev/null 2>&1 || true
+                echo "Requested cancellation: $id"
+              fi
+            done
+          echo "Scoped cancellation requests complete. No V99 branch or other SHA targeted."
