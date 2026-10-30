@@ -118,7 +118,7 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
         'one_way_netting':True}
 def run(root,envelope_path):
     g=source_gate(root)
-    if g['decision']!='PASS_SOURCE_ONOY':raise ValueError('NO_SOURCE_REJECT_NO_PNO')
+    if g['decision']!='PASS_SOURCE_ONLY':raise ValueError('NO_SOURCE_REJECT_NO_PNL')
     d=load(root);lo,hi,envelope_sha=read_envelope(envelope_path,d)
     intents,updates,*_=bundle(*(d[k] for k in ('o','h','l','c','q','rate','event')))
     cells=[]
