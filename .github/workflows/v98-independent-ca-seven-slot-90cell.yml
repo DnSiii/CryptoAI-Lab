@@ -1,0 +1,116 @@
+name: V98 Independent CA Segregated Four Book Seven Slot 90-Cell Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ca-seven-slot-90cell.yml'
+      - 'research/v98_independent/ca_sources.py'
+      - 'research/v98_independent/ca_allocator.py'
+      - 'research/v98_independent/ca_ringfenced_governor.py'
+      - 'research/v98_independent/ca_90cell.py'
+      - 'research/v98_independent/ca_reconcile.py'
+      - 'research/v98_independent/ca_independent_receipt_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  train:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [CA_core_only, CA_full, CA_minus_opportunity, CA_minus_RV, CA_minus_stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile and test CA source causality, allocator and physical no-netting
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile ca_sources.py ca_allocator.py ca_ringfenced_governor.py ca_90cell.py ca_reconcile.py ca_independent_receipt_audit.py
+          python ca_sources.py
+          python ca_allocator.py
+          python ca_ringfenced_governor.py
+      - name: Retrieve pinned vendor-attested 2023-24 Clean4 ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage exact Dec2022-Dec2024 training bytes ONLY
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Execute CA native-funded ringfenced historical 18-cell path
+        working-directory: research/v98_independent
+        run: |
+          python ca_90cell.py --path ${{ matrix.path }} --output ca90_${{ matrix.path }}.json || echo 'CA_REJECTION_OR_FAILURE_RECORDED'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ca90-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/ca90_${{ matrix.path }}.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Verify every 18-cell path is present, do not hide failures
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('ca90_CA_*.json')
+          assert len(files)==1,files
+          a=json.load(open(files[0]))
+          assert len(a['cells'])==18
+          print('CA_PATH_SURVIVAL',a['path'],sum(c['passed'] for c in a['cells']),'/',len(a['cells']))
+          PY
+  reconcile:
+    if: always()
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ca90-ubuntu-*
+          path: receipts
+      - name: Independent cross-OS physical economic and ringfence gate
+        run: python research/v98_independent/ca_reconcile.py --root receipts --output ca90_official_economic_summary.json
+      - name: Independent original-receipt arithmetic audit
+        if: always()
+        run: python research/v98_independent/ca_independent_receipt_audit.py --root receipts --output ca90_independent_arithmetic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ca90-official-economic-summary
+          path: ca90_official_economic_summary.json
+          retention-days: 30
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ca90-independent-arithmetic
+          path: ca90_independent_arithmetic.json
+          retention-days: 30
+          if-no-files-found: warn

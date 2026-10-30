@@ -1,0 +1,21 @@
+# V98 Independent IW — preregistration: path-efficiency / range-expansion composed wealth engine (2026-10-27)
+
+**Immutable before source implementation, physical PnL and audit.** IW is a new complete seven-slot structural hypothesis based on *directional path efficiency and intrahour range expansion*. It does not reuse or tune the rejected IT/IV signals, weights, thresholds or performance; nor any V14/V15/V99 signals, parameters or performance. Previous rejected portfolios remain rejected. This is a single fixed hypothesis, not a parameter grid.
+
+## Source and firewall
+Exact pinned authenticated Clean-4 Binance USD-M native 1h BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT, signed native funding, actual OHLC, quote and mark. Dec-2022 warmup; **2023–2024 training only**. Do not read 2025/2026+, quarantined XRP, Phase083, other engine internals, Frozen or paper. At completed hour t=744,1080,... use only the preceding 672 completed hours including t; submit signal for actual next open t+1. Stable tie ordering BTC/ETH/BNB/SOL. Any zero quote in 672h disables optional sleeves and reallocates their financing to Core.
+
+Let x[s,i] = log(C[s,i]/C[s-1,i]) - native_signed_funding_rate[s,i]*funding_event[s,i]. Let signed path efficiency E168_i = sum(x last 168h) / (sum(abs(x last 168h))+1e-12), E672 analogously over 672h. Define range expansion R_i = (mean(log(H/L) last 168h))/(mean(log(H/L) last 672h)+1e-12), clipped to [0,4]. Scores are causal and dimensionless; funding is subtracted only for observed funding events. No fitting or post-result parameter change.
+
+1. **Growth Core:** static long BTC .45, ETH .20, BNB .15, SOL .20, conservative governor, independently funded baseline.
+2. **Opportunity:** long asset maximizing E168+0.5*E672-0.1*max(R-1,0). Hypothesis: efficient directional continuation with less intrabar range expansion is more sustainable.
+3. **Relative Value:** among ETH/BNB/SOL, long .5 strongest E672-0.25*R, short .5 weakest, stable extrema. Hypothesis: low-friction directional efficiency spread captures persistent cross-sectional trend rather than raw momentum or auction close location.
+4. **Stress/Recovery:** if both BTC E168<0 and median cross-asset E168<0, short asset maximizing R*max(-E168,0), else long asset maximizing E168*max(1,R). Hypothesis: efficient sell-pressure plus expanding range persists in stress, whereas efficient upside breakout compounds in recovery. Always financed on valid native quotes.
+5. **Regime Router:** STRESS when BTC E168<0 and median(E168)<0; RECOVERY when BTC E168>0 and median(E168)>0; NORMAL otherwise.
+6. **Dynamic Allocator:** Core/Opp/RV/Stress budgets STRESS [.60,.15,.10,.15], RECOVERY [.55,.20,.10,.15], NORMAL [.60,.17,.10,.13]. Inactive or ablated sleeves fund Core; gross STRESS .80, RECOVERY .96, NORMAL .92. No hidden leverage.
+7. **Risk Governor:** unchanged prior-only GL order-invariant buffered 81-corner conservative native physical settlement, staged exit viability, real next-open execution, base/severe/supersevere costs, both funding order conventions.
+
+## Locked independent gates
+Before PnL: authenticated source and geometry, finite causal signals, future mutation invariance, zero-quote quarantine, budget and gross conservation, >=8 financed epochs per sleeve in each 2023/2024. Then five independent USD10k physical books (Core, Full, minus each optional sleeve) x three cost severities x two funding orders = 30 configurations, Ubuntu 22.04/24.04 reproducibility, independent artifact-only reconciliation, and every-settled-hour signed native ledger oracle. Positive full annual net log growth in both years base/severe, two-year CAGR >50% base and >30% severe, severe max drawdown <45%, base/severe turnover <=USD600k. Each optional Full-minus-physical-ablation combined net log growth >+.02 and annual >=-.03 under base/severe and both funding orders. Report PF, payoff, win rate, positive days, CVaR, concentration, native funding, fees/slippage, turnover and reproducibility. Physical success is not economic acceptance.
+
+If IW fails any preregistered gate, reject and freeze without post-result rescue. If IW passes, freeze the complete system before separately preregistered 2025 chronological validation; preserve untouched future holdout until authorized protocol. Only after validation compare external engines; no paper/live authorization.

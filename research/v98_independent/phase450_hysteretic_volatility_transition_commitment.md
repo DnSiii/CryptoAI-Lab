@@ -1,0 +1,9 @@
+# V98 Independent Phase450 — immutable pre-result commitment
+
+2026-10-16 20:43 BRT cycle. Research branch `research/v98-independent-zero`; namespace `research/v98_independent/` only.
+
+**FULL EXACT PREREG SHA256:** `5ef3b38c30d64c044e529ecfaac61103944f27bc04ce83ed636adbb23066b37d` for UTF-8 file `phase450_hysteretic_volatility_transition_prereg.md` (5501 bytes, trailing LF). This commitment is published **before** Phase450 implementation, signal-geometry inspection or candidate PnL. Do not revise its content or digest.
+
+**Fixed seven-slot design:** frozen V98 Phase252 growth core, frozen V98 Phase305 opportunity plus new hysteretic bull participation; daily 168h/72h broad market log-trend and volatility-ratio router with 72h dwell; market-neutral 168h/48h residual RV rank agreement, spread thresholds 0.12/0.025, 72h episodes; stress/recovery WATCH from vol48 >=1.40*vol168 and M168<=0, 24h minimum WATCH, transition to 72h recovery at vol48<=0.90*vol168, M48>0 and breadth>=3; frozen baseline preserved; one optional scalar risk budget (1.45 gross, 0.70 per asset, 0.02 reserve). Only 2022-12 warmup through 2025-12 Clean-4. Pre-PnL gates >=4 bull transitions, >=2 RV episodes, >=2 recovery episodes, >=72 allocated hours and strict Phase439 warmup/t-1 causality. Any failure means permanent pre-PnL rejection. BASE/SEVERE/SUPERSEVERE 7/12/20bp shadow only; >15% BASE relative wealth, stressed positivity, 2/3 positive annual folds, daily PF, DD/tails and positive marginal contribution of all new sleeves under all tiers; no post-result rescue. BNB official funding unresolved; native validation and promotion blocked. No external engines, 2026+, holdout or XRP.
+
+The full immutable prereg content will be included with the executable and checked against the published digest. This file is commitment only, not performance evidence.

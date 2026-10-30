@@ -1,0 +1,16 @@
+# V98 Independent BG — frozen complete seven-slot economic rejection (2026-10-24)
+
+**Immutable decision: REJECT_BG_HISTORICAL_GROWTH_OR_MARGINAL.** BG's entire pre-result frozen complete engine passed the minimum **full-portfolio annual growth** gate but failed **all three mandatory positive marginal sleeve** gates. BG cannot be rescued by deleting/retuning its rejected components, changing the test, or promoting an ablation.
+
+Original full historical run: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40060288442 ; 90-cell economic summary artifact `bg90-official-economic-summary` ID `12546612892`. A workflow copy/paste defect erroneously called the BF independent auditor in the original reconcile job and marked the run failure **despite 90/90 training jobs succeeding**. This was not an economic failure of the ledger. Corrected by a separate **audit-only** workflow (no repeated backtest): https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40060485216 , artifact `bg90-independent-arithmetic-corrected` ID `12546294415`. The correct BG auditor passed **180/180 raw original receipts, 0 accounting errors**. Two-OS 90-cell reconciliation passed with no structural mismatches.
+
+**Authenticated 2023–2024 training, USD10k carried-before-fill, full BG:** base two-year CAGR **+75.9015%**, 2023 **+74.7902%**, 2024 **+77.0167%**, maximum drawdown **23.8989%**. Turnover **USD1,032,454.88**, fees **USD516.23**, slippage **USD516.23**, native funding **−USD1,584.67**; 105 physical fill hours and 22 forced risk ratchets. Severe two-year CAGR **+61.9610%**, 2023 **+62.1283%**, 2024 **+61.7942%**; max drawdown **27.2546%**. Supersevere two-year CAGR **−13.0874%**, 2024 **−26.2689%**. All four base/severe annual full growth cases PASS; this is training only, not validated forward CAGR.
+
+**USD10k full-minus-ablated annual marginal net log growth (2023, 2024), carried-before-fill:**
+- Opportunity base **[+0.26123775,−0.00919977]**, severe **[+0.24626195,−0.05088341]**.
+- Relative Value base **[+0.10335138,+0.02193165]**, severe **[+0.07577359,−0.01318217]**.
+- Stress/Recovery base **[−0.02594619,+0.02986995]**, severe **[−0.03042661,+0.29127272]**.
+
+**Interpretation:** BG's persistent diversified growth core and slow unit re-anchors materially reduced turnover relative to BF, while maintaining positive growth in both training years even under severe costs. However, the full **seven-slot portfolio** does not meet its preregistered economic contribution requirements. The historical CAGR is not a deployable champion. Independent audit checks wealth identities, cost identities, receipt completeness and two-OS equivalence; it does not independently reconstruct each funding transfer or intrabar price path.
+
+**Next critical path:** a genuinely new preregistered composed architecture with positive *incremental net wealth* from each opportunity/RV/stress sleeve across both chronological years and severe costs, without cherry-picking BG sleeves or adjusting BG after the result. Do not access 2025 until a complete new V98 candidate passes all training and separate validation gates. XRP quarantined, Phase083 ineligible, V16/V99 Frozen/research/workflows/reports/paper untouched. No qualified V98, no external superiority comparison, no live authorization.

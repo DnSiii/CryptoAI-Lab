@@ -1,0 +1,5 @@
+# V98 EO — pre-PnL first-fault physical executor correction (2026-10-25)
+
+The EO source and synthetic future-mutation gates passed in both 2023 and 2024 on run 40242425087, but all physical cells failed **at first settlement t=745 before any PnL**, due `KeyError: 'hiddeo_borrow'`. Immutable artifact-only first-fault triage run: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40242531036 .
+
+Root cause is an **infrastructure-only accidental text substitution** in copying the V98 generic ledger: the dictionary field `hidden_borrow` was misspelled `hiddeo_borrow`. Restore only the original settlement dictionary key. No strategy, source, cost, risk, budget, holdout, data or gate changes. Initial run 40242425087 is **ineligible** for any economic or promotion decision. Require fresh complete source + 30 physical cells + cross-OS independent audit at the corrected commit. The EO preregistration remains fixed at 9396a03f8eac027dcab4d353502f4288764b26cc. XRP, 2025+, external benchmarks, Frozen and paper remain untouched.

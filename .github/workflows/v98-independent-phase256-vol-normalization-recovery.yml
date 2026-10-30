@@ -1,0 +1,72 @@
+name: V98 Independent Phase256 Volatility Normalization Recovery
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase256-vol-normalization-recovery.yml'
+      - 'research/v98_independent/phase256_vol_normalization_recovery.py'
+      - 'research/v98_independent/test_phase256_vol_normalization_recovery.py'
+      - 'research/v98_independent/phase256_vol_normalization_recovery_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase256-vol-normalization-recovery
+  cancel-in-progress: false
+jobs:
+  training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Restore/save authenticated Clean-4 archive cache
+        uses: ./.github/actions/v98-independent-clean4-cache
+      - name: Phase256 causal/invariant tests
+        run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase256_vol_normalization_recovery.py
+      - name: Rebuild/revalidate Clean-4 source
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute frozen Phase256 twice
+        run: |
+          python research/v98_independent/phase256_vol_normalization_recovery.py --out /tmp/phase256_a.json
+          python research/v98_independent/phase256_vol_normalization_recovery.py --out /tmp/phase256_b.json
+          cmp /tmp/phase256_a.json /tmp/phase256_b.json
+          cp /tmp/phase256_a.json research/v98_independent/phase256_vol_normalization_recovery_results.json
+      - name: Enforce Phase256 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase256_vol_normalization_recovery_results.json'))
+          assert p['phase']==256 and p['training_only'] is True and p['validation'] is None
+          assert p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['parameters']['rv_hours']==24 and p['parameters']['normal_reference_hours']==720
+          assert p['parameters']['stress_multiple']==2.0 and p['parameters']['recent_stress_memory_hours']==72
+          assert p['parameters']['sleeve_per_asset']==0.0625 and p['parameters']['system_gross_cap']==1.5
+          assert p['diagnostics']['max_open_gross']<=1.500000001
+          assert p['gate']['decision'] in {'VOL_NORMALIZATION_RECOVERY_CANDIDATE','REJECT_VOL_NORMALIZATION_RECOVERY_NO_RESCUE'}
+          print('Phase256',p['gate']['decision'])
+          PY
+      - name: Commit Phase256 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase256_vol_normalization_recovery_results.json
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase256: record volatility-normalization recovery evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase256-vol-normalization-recovery-${{ github.run_id }}
+          retention-days: 30
+          path: research/v98_independent/phase256_vol_normalization_recovery_results.json

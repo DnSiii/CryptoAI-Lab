@@ -1,0 +1,46 @@
+{
+  "phase": "148",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "family": "Broad trade-weighted USD cross-asset risk-off",
+  "dependency": {
+    "phase147_required_decision": "PASS_DATA_ONLY",
+    "phase147_observations_sha256": "016c3aa564a757075c6f43b1a29bab0273d628c882ae4b245f0f130f4bf1fd4f"
+  },
+  "scientific_hypothesis": "A rising broad trade-weighted US dollar state may identify global liquidity/risk-off periods in which a broad crypto basket has negative next-period expectancy; a causal short-only basket may therefore have positive net expectancy without using crypto outcomes to define the state.",
+  "signal_contract": {
+    "source_series": "DTWEXBGS",
+    "accepted_observation_lookback": 20,
+    "state": "DTWEXBGS_t > DTWEXBGS_t_minus_20 => risk_off; otherwise flat",
+    "economic_use_lag_calendar_days": 1,
+    "portfolio": "equal-weight short BTCUSDT ETHUSDT BNBUSDT XRPUSDT SOLUSDT when risk_off; flat otherwise",
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "rebalance": "only when lagged risk_off state changes; constituent availability respected causally"
+  },
+  "evaluation": {
+    "training_only_years": [2023, 2024, 2025],
+    "chronological_folds": [2023, 2024, 2025],
+    "validation": null,
+    "final_holdout": null,
+    "metrics_required": ["total_return", "max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "negative_days", "worst_day", "best_day", "p01_day", "p05_day", "cvar05_day", "turnover_sum"],
+    "stress_required": ["base_realistic_costs_and_funding", "severe_costs", "supersevere_costs"],
+    "audits_required": ["regime_attribution", "year_concentration", "tail_concentration", "future_input_invariance", "deterministic_replay"]
+  },
+  "training_gate_frozen": {
+    "each_year_total_return_gt": 0.0,
+    "each_year_profit_factor_daily_gte": 1.02,
+    "full_training_profit_factor_daily_gte": 1.05,
+    "severe_total_return_gt": 0.0,
+    "supersevere_total_return_gt": 0.0,
+    "ruin": false
+  },
+  "anti_overfit": {
+    "parameter_search": false,
+    "rescue_allowed": false,
+    "phase147_values_may_not_be_used_to_change_contract": true,
+    "v16_used": false,
+    "v99_used": false,
+    "validation_or_holdout_selection": false,
+    "if_gate_fails": "REJECT_NO_RESCUE"
+  }
+}

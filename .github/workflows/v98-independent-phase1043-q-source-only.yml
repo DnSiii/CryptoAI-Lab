@@ -1,0 +1,43 @@
+name: V98 Independent Phase1043 Q Authenticated Five-Path Source-Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1043_q_source_auth_and_canonical.py'
+      - 'research/v98_independent/test_phase1043_q_canonical.py'
+      - '.github/workflows/v98-independent-phase1043-q-source-only.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Test Q signed source, margin and canonical contracts on synthetic inputs
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1040_q_signed_margin_oracle.py test_phase1042_q_signed_sevenslot_source.py test_phase1043_q_canonical.py
+      - name: Fresh official Clean-4 2022-2024 OHLC, mark and native funding; Q target hashes ONLY
+        working-directory: research/v98_independent
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1043_q_source_auth_and_canonical.py
+      - name: Preserve fail-closed Q source receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1043-q-source-only-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1043_q_source_only_receipt.json

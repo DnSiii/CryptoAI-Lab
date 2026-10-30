@@ -1,0 +1,71 @@
+name: V98 Independent Phase261 BTC NVT DATA ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase261-btc-nvt.yml'
+      - 'research/v98_independent/phase261_btc_nvt.py'
+      - 'research/v98_independent/test_phase261_btc_nvt.py'
+      - 'research/v98_independent/phase261_btc_nvt_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase261-btc-nvt
+  cancel-in-progress: false
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check pytest
+      - name: Phase261 invariants
+        run: python -m pytest -q research/v98_independent/test_phase261_btc_nvt.py
+      - name: Acquire BTC NVT twice
+        run: |
+          python research/v98_independent/phase261_btc_nvt.py --out-dir /tmp/p261a --manifest /tmp/p261a.json
+          python research/v98_independent/phase261_btc_nvt.py --out-dir /tmp/p261b --manifest /tmp/p261b.json
+          cmp /tmp/p261a/nvt_daily.csv /tmp/p261b/nvt_daily.csv
+          cmp /tmp/p261a.json /tmp/p261b.json
+          mkdir -p research/v98_independent/data/phase261_btc_nvt
+          cp /tmp/p261a/nvt_daily.csv research/v98_independent/data/phase261_btc_nvt/nvt_daily.csv
+          cp /tmp/p261a.json research/v98_independent/phase261_btc_nvt_manifest.json
+      - name: Enforce DATA_ONLY firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase261_btc_nvt_manifest.json'))
+          assert p['phase']==261 and p['kind']=='DATA_ONLY_ONCHAIN_VALUATION_ACTIVITY'
+          assert p['decision'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          assert p['alpha_executed'] is False and p['pnl_executed'] is False and p['crypto_price_join'] is False
+          assert p['direction_selected'] is False and p['parameter_search'] is False
+          assert p['validation_accessed'] is False and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          print('Phase261',p['decision'])
+          PY
+      - name: Commit Phase261 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase261_btc_nvt_manifest.json research/v98_independent/data/phase261_btc_nvt/nvt_daily.csv
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase261: record BTC NVT DATA_ONLY evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase261-btc-nvt-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            research/v98_independent/phase261_btc_nvt_manifest.json
+            research/v98_independent/data/phase261_btc_nvt/nvt_daily.csv

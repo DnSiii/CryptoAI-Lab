@@ -1,0 +1,11 @@
+# V98 Independent Phase1208 — AE cash-anchored 81-corner governor prereg (2026-10-23)
+
+AE slot 7, new order lifecycle; **not** a post-result adjustment to rejected AD's old-to-target interpolation. Preregister before code, tests or any historical AE PnL. Survival is a hard constraint on maximizing compounded wealth, not the optimized objective.
+
+**Open-time inputs**: carried signed contracts, actual opening prices, positive actual open NAV, next-open desired weights from completed t-1, strictly prior 336h minimum quote, strictly prior 1h quote, strictly prior 336h worst downside/upside and 720h adverse native funding bounds. No 2025, XRP, external benchmarks or same-bar high/low to set limits.
+
+**Hard envelope**: asset 0.30 of adverse corner equity, gross 0.95, absolute net 0.60, adverse equity floor 0.30 of opening NAV. 81 combinations of 4 assets at [down,unchanged,up]. Reserve worst-case current fill fees 0.002 and slippage 0.0035, plus worst-case future exit fees/slippage on candidate holdings and adverse 720h signed funding. Order notional <=0.002 * prior 1h quote; candidate entry <=0.001 * prior 336h min quote; future exit reserve >=2.5x against order capacity from min quote. No assumed stop fills or risk-free liquidation.
+
+**Two-stage cash-anchored projection**: first test whether **full flatten to zero** is executable as an actual order from carried inventory, including order capacity and fill cost. If even flatten is unexecutable, raise a hard error. Then scan candidate positions = k/100 * desired_weight * opening_NAV/opening_price, for k=100..0, and take the **highest feasible growth exposure**, with every candidate evaluated as a single actual order from carried inventory, including its full fees/slippage, 81-corner and future-exit reserve. Zero anchor is a mathematical feasibility point, not a free fill; if selected, actual executor must pay to flatten. Never interpolate between carried inventory and target as AD did. No leverage beyond stated signed contracts.
+
+**Tests**: feasible cash, maximal feasible exposure, order/entry/exit capacity, gross/net/concentration, 81 corners, adverse funding, hard failure when carried inventory cannot exit, strict no source PnL claims, deterministic outputs. Full seven-slot synthetic and historical gates remain separate.

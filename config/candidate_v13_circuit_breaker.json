@@ -1,0 +1,20 @@
+{
+  "name": "CryptoAI V13 PIT Carry-Core + Circuit Breaker",
+  "research_status": "historical finalist; forward paper trading required before capital",
+  "base_candidate_config": "candidate_v13_pit_carry_core.json",
+  "target_cap": 1.35,
+  "gross_guard_cap": 1.5,
+  "circuit_breaker": {
+    "drawdown_threshold": 0.15,
+    "exposure_multiplier": 0.5,
+    "cooldown_hours": 336,
+    "reference_reset_after_cooldown": true,
+    "decision_uses_previous_close_equity": true
+  },
+  "bootstrap": {
+    "ruin_definition": "equity <= 10% of start or drawdown <= -60%",
+    "maximum_acceptable_probability": 0.01,
+    "switch_cost": 0.001
+  },
+  "real_orders": false
+}

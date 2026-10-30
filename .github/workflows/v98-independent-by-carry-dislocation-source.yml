@@ -1,0 +1,116 @@
+name: V98 Independent BY Native Carry Dislocation Source Falsification
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-by-carry-dislocation-source.yml'
+      - 'research/v98_independent/by_native_carry_dislocation_source.py'
+      - 'research/v98_independent/by_native_carry_dislocation_independent_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Retrieve pinned original Clean4 training-only source
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage only original 2022-24 source bytes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Run preregistered source-only BY economic falsification
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile by_native_carry_dislocation_source.py
+          python by_native_carry_dislocation_source.py --output by_source_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: by-source-${{ matrix.os }}
+          path: research/v98_independent/by_source_receipt.json
+          retention-days: 30
+          if-no-files-found: error
+  independent:
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: by-source-ubuntu-*
+          path: receipts
+      - name: Retrieve pinned original Clean4 training-only source for independent audit
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage authenticated source for independent rederivation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Independently rebuild all signals, signed funding, friction and prior-only capacity
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile by_native_carry_dislocation_independent_audit.py
+          python by_native_carry_dislocation_independent_audit.py --root ../../receipts --output by_independent_summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: by-independent-economic-audit
+          path: research/v98_independent/by_independent_summary.json
+          retention-days: 30
+          if-no-files-found: warn

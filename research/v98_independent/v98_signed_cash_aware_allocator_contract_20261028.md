@@ -1,0 +1,9 @@
+# V98 Independent — prospective signed cash-aware collateral authorization contract (2026-10-28)
+
+This is **new infrastructure for future complete V98 candidates**, not a KO or KN parameter/physical rescue. KO and KN remain permanently rejected. The long-only future allocator remains unchanged.
+
+At a completed source-close event, authorize a single four-asset signed component row using settled NAV, completed-close prices, current physically carried signed units and all previously authorized component rows. Occupied gross per asset is `max(abs(physical_units), sum(abs(each_authorized_component_row)))` — **never** the net of opposing signed legs. New entries may consume at most `max(0, 0.95*settled_NAV - occupied_gross)`, with proportional scaling of only positive increments in absolute units. Existing row reductions are allowed but do not immediately release collateral. Opposite-sign carried physical or other component positions block the **entire new event**, preserving long/short pair balance; same-row sign reversal fails closed until a separate physical exit settles. Rows persist in exact units until a source event or a physical governor cut. No automatic hourly refilling, hidden borrowing or synthetic recycling of pending exits.
+
+Static acceptance: mixed long/short gross reservation, physical opposing position blocking, paired-entry integrity, no same-hour exit proceeds, actual gross authorization at 95% NAV, signed reversal rejection, and NaN/Inf failure. Physical settlement, all-hour 81-corner margin, prior-only funding/quote stress and actual gross/NAV<=1 remain separate gates. No assumption that this allocator proves a complete engine or positive PnL.
+
+No 2025/2026+, XRP, conflicting 1m, Phase083, V14/V15/V99 internals, Frozen, paper or live trading.

@@ -1,0 +1,25 @@
+# V98 Independent Phase1162 — AB seven-slot stateful execution-native growth architecture (preregistered)
+
+Date: 2026-10-23. This is a **new** architecture after AA source-integrity survival failure, not an AA rescue. AA's 1155–1161 parameters, signals, thresholds, and code remain unchanged. AA has no authenticated 15-hash freeze and no historical system PnL; its 90-cell synthetic inventory contract failed 24/90, and independent official source recompositions failed `AA1156_UNEXECUTABLE_PRIOR_EXIT`. Do not borrow AA, Z, Y, V14, V15, or V99 signals, parameters or performance.
+
+## Objective and chronology
+
+Maximize cost/funding-net long-run compounded log wealth and CAGR, without an arbitrary return ceiling. Risk and tail constraints are hard survival requirements, not the optimization objective. Clean-4 Binance USD-M BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, 1h, Dec-2022 warmup; 2023 and 2024 separate chronological training folds. Native signed funding and typed mark bounds. No XRP, 2025 validation until full internal pass, 2026+, contaminated Phase083 holdout or external engine inspection. Decisions from completed t only; earliest fill t+1.
+
+## Seven genuinely distinct AB slots (fixed before any economic PnL)
+
+1. **Growth Core:** causal 336h volatility-scaled directional persistence based on 24h, 96h and 336h signed return agreement, weighted by downside trend persistence; no AA robust regression slope, no Z Donchian, no Y 72/288 coherence. Allow long and short, no return target cap.
+2. **Opportunity Sleeve:** 24h realized volatility compression versus trailing 336h volatility baseline, followed by 12h directionally persistent range expansion; 24h event inventory, 120h lockout. No AA six-hour funding-reversal dislocation or Z volume breakout.
+3. **Relative-Value Sleeve:** independent 336h cointegration-like log-price spread against BTC with prior 96h error-correction slope, trade only pairs with positive in-sample mean-reversion coefficient estimated using data through t; cap-neutral signed units, not AA 240h market-factor residual extremes or Z funding carry. Reject pair if no stable slope.
+4. **Stress/Recovery Sleeve:** 48h cross-asset downside co-jump detection against a trailing 336h tail reference; protective short only during active stress and separate 72h recovery confirmation. No AA correlation-breakdown hedge, no Z crash/reclaim.
+5. **Regime Router:** three regimes from trailing 336h 24h/168h realized-vol ratio and cross-sectional return dispersion, 96h minimum dwell; no AA correlation/vol-of-vol router.
+6. **Dynamic Allocator:** stateful actual-NAV, signed inventory-unit, friction/funding-net expected-log-growth optimization. Precompute and freeze 15 source **alpha/intent** hashes, not impossible fixed-NAV position weights. At each completed hour, update actual carried units and equity, rebalance in executable 12h slices or on opportunity transitions. Never assume a free reduce-only fill or a filled order beyond observed participation. If safe inventory cannot be adjusted, carry it with explicit mark risk; do not silently teleport positions.
+7. **Risk Governor:** enforce asset <=45%, gross <=135%, absolute net <=75%, equity floor >=25%, 81 adverse OHLC corners, 336h historical shock bounds, 720h adverse funding, signed native mark funding, actual opening gaps, and per-asset maximum order notional <=0.5% of **prior-hour** quote volume. Stateful *planned unwind* is allowed only while carried inventory itself satisfies the adverse-corner survival envelope. Inventory entry notional <=0.25% of the trailing 336h minimum quote volume (pre-entry stress-liquidity constraint). If existing inventory breaches the survival envelope and executable reduction cannot restore it, fail closed. Never assume an instantaneous stop execution when actual quote capacity is insufficient.
+
+## Non-negotiable validation
+
+Preregister five paths: AB_core_only, AB_full, AB_minus_opportunity, AB_minus_relative_value, AB_minus_stress. Each at $10k/$1m/$10m, base/severe/supersevere fees .0007/.0012/.002, carried-before-fill/new-after-fill signed funding = 90 cells. Preserve source provenance, four independent recompositions, 15 alpha hashes and executable code freeze before any historical PnL. Then require 90/90 executable survival and positive fee/funding-net compounded growth in **both** 2023/2024 folds at base and severe costs, with robust positive marginal contribution from sleeves. Report CAGR, max drawdown, PF, payoff, win rate, positive days, CVaR 5%, concentration, regime splits and reproducibility, including failures. No grids, post-result sign/window/threshold/leverage/fee rescue, no holdout-driven selection.
+
+## Immediate next steps
+
+Implement independent AB alpha/intent source, stateful actual-equity allocator, real-unit executor and deterministic synthetic corner/liquidity tests. Run 90-cell synthetic integration before source freeze. If any preregistered gate fails, reject AB and design a genuinely distinct complete engine. The objective remains maximized long-run wealth, not minimum risk.

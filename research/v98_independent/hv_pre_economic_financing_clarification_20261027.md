@@ -1,0 +1,7 @@
+# HV pre-economic execution-semantics clarification — 2026-10-27
+
+This note is committed before any successful HV source-only gate or historical economic run. It does **not** change HV signals, windows, costs, risk, leverage, thresholds, gates or rejected prior hypotheses.
+
+The frozen HV preregistration's sleeve descriptions say that an ineligible Opportunity or Relative Value expert "holds USD cash"; its more specific Dynamic Allocator rule says that inactive optional sleeves finance Core, **except** Stress/Recovery's cash during STRESS. The latter is the controlling portfolio-financing rule, consistent with the actual preregistered economic mechanism. Ineligible Opportunity/RV produce zero units as **source signals**; the full portfolio does **not** attribute synthetic cash PnL to them. Their unspent allocation is physically reassigned to Growth Core before orders. A Stress/Recovery sleeve that is cash in STRESS remains actual USD cash in the full book and is **not** reassigned to Core. A non-STRESS Stress/Recovery sleeve rejected by the causal marginal-utility gate finances Core. Independent ablations always finance Core. Source-only activity counts risk-financed epochs for Opportunity/RV and counts funded stress-cash epochs for Stress/Recovery separately.
+
+This clarification is preregistration hygiene, not an outcome-driven rescue. No HV economic result has been observed at the time of this note. All previous rejections stay frozen. Holdout and benchmark firewalls unchanged.

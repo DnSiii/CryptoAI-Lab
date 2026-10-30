@@ -1,0 +1,22 @@
+name: V98 Independent Settlement Oracle Static Contract
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_independent_settlement_oracle.py'
+      - '.github/workflows/v98-independent-settlement-oracle-static.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Independent deterministic signed funding, physical NAV and tamper checks (not full history)
+        run: python research/v98_independent/v98_independent_settlement_oracle.py

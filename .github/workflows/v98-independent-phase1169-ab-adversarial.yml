@@ -1,0 +1,26 @@
+name: V98 Independent Phase1169 AB Adversarial Stateful Risk
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1169_ab_adversarial_oracle.py'
+      - '.github/workflows/v98-independent-phase1169-ab-adversarial.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ab-adversarial:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4
+      - name: Run 1000 deterministic adverse inventory/liquidity cases
+        run: python research/v98_independent/phase1169_ab_adversarial_oracle.py

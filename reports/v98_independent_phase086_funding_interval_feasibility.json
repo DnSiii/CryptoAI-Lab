@@ -1,0 +1,78 @@
+{
+  "engine": "V98 Independent",
+  "phase": "086",
+  "kind": "DATA_ONLY_FEASIBILITY",
+  "hypothesis_family": "exchange funding-interval state",
+  "preregistration": "reports/v98_independent_phase086_funding_interval_feasibility_prereg.md",
+  "training_window": [
+    "2023-01-01",
+    "2025-12-31"
+  ],
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT"
+  ],
+  "per_symbol": {
+    "BTCUSDT": {
+      "sha256": "575fe816ac0cd2195673e8a6a6c3fbc6bede0e899f187b1f988641bbfcf28063",
+      "finite_positive_obs": 3288,
+      "frequencies": {
+        "8.0": 3288
+      }
+    },
+    "ETHUSDT": {
+      "sha256": "7435410b7cab865ad06c5d1317812553cc512c49ad97606f6835de6e4c5f9f32",
+      "finite_positive_obs": 3288,
+      "frequencies": {
+        "8.0": 3288
+      }
+    },
+    "BNBUSDT": {
+      "sha256": "51776acce46aeecf4a2a487039e9d372190455533d9aa2869bb6ce899cce4a58",
+      "finite_positive_obs": 3288,
+      "frequencies": {
+        "8.0": 3288
+      }
+    },
+    "SOLUSDT": {
+      "sha256": "a0631cf6b6b97f72ee6ce07a273af9f74d35aff74b5304093e19b613edb572d9",
+      "finite_positive_obs": 3288,
+      "frequencies": {
+        "8.0": 3288
+      }
+    },
+    "XRPUSDT": {
+      "sha256": "7f25b695cba0493dd1c79e950c9f9d9ee33f9489953f14b29f876f87adfbcdc5",
+      "finite_positive_obs": 3288,
+      "frequencies": {
+        "8.0": 3288
+      }
+    }
+  },
+  "pooled": {
+    "finite_positive_obs": 16440,
+    "frequencies": {
+      "8.0": 16440
+    },
+    "distinct_values": 1,
+    "modal_interval_hours": 8.0,
+    "nonmodal_share": 0.0
+  },
+  "gate": {
+    "passed": false,
+    "decision": "FAIL_DATA_NO_ALPHA",
+    "failures": [
+      "pooled_distinct_values<2",
+      "pooled_nonmodal_share<1%"
+    ]
+  },
+  "alpha_executed": false,
+  "returns_inspected": false,
+  "phase083_selection_use": false,
+  "v99_used": false,
+  "v16_used": false,
+  "prereg_sha256": "2ddf96cfa71e58e627651800ecc9a0eaa531a0324bd4df2f35071672d34a458d"
+}

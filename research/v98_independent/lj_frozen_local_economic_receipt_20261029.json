@@ -1,0 +1,133 @@
+{
+  "architecture": "LJ",
+  "date": "2026-10-29",
+  "branch": "research/v98-independent-zero",
+  "training_only": true,
+  "original_30cell_run": false,
+  "independent_settlement_oracle": false,
+  "eligible_for_promotion": false,
+  "holdout_2025_read": false,
+  "source_ci_run_id": 40876944997,
+  "source_ci_artifact_id": 12898935696,
+  "diagnostic": "LOCAL_SIGNED_COLLATERAL_REJECTION_ONLY",
+  "initial_usd": 10000,
+  "tiers": [
+    "base",
+    "severe"
+  ],
+  "funding_order": "carried_before_fill",
+  "cells": [
+    [
+      "base",
+      "LJ_core_only",
+      18593.0921,
+      0.36356489,
+      507440.03,
+      0.62020502
+    ],
+    [
+      "base",
+      "LJ_full",
+      19341.9333,
+      0.39075279,
+      827743.31,
+      0.65969036
+    ],
+    [
+      "base",
+      "LJ_minus_opportunity",
+      18954.4695,
+      0.37675232,
+      645882.39,
+      0.63945467
+    ],
+    [
+      "base",
+      "LJ_minus_RV",
+      18793.5189,
+      0.37089456,
+      724120.34,
+      0.63092698
+    ],
+    [
+      "base",
+      "LJ_minus_stress",
+      19540.979,
+      0.39789052,
+      788885.17,
+      0.66992866
+    ],
+    [
+      "severe",
+      "LJ_core_only",
+      17679.3482,
+      0.3296371,
+      493654.05,
+      0.5698121
+    ],
+    [
+      "severe",
+      "LJ_full",
+      17851.5967,
+      0.33609867,
+      791876.4,
+      0.57950786
+    ],
+    [
+      "severe",
+      "LJ_minus_opportunity",
+      17789.3439,
+      0.33376699,
+      623692.44,
+      0.57601453
+    ],
+    [
+      "severe",
+      "LJ_minus_RV",
+      17487.6915,
+      0.32241036,
+      695974.83,
+      0.5589122
+    ],
+    [
+      "severe",
+      "LJ_minus_stress",
+      18123.3391,
+      0.34622952,
+      756746.63,
+      0.59461547
+    ]
+  ],
+  "cell_columns": [
+    "tier",
+    "path",
+    "final_equity_usd",
+    "two_year_cagr",
+    "turnover_usd",
+    "net_log_growth"
+  ],
+  "marginals": {
+    "base": {
+      "Opportunity": 0.020235690203654344,
+      "Relative_Value": 0.028763380802324767,
+      "Stress_Recovery": -0.010238300326712246
+    },
+    "severe": {
+      "Opportunity": 0.003493335351753335,
+      "Relative_Value": 0.020595660562698792,
+      "Stress_Recovery": -0.015107607067558204
+    }
+  },
+  "funding_order_alternate_full_nav_delta_usd": {
+    "base": 0,
+    "severe": 0
+  },
+  "trade_statistics_reconciled": false,
+  "decision": "REJECT_EARLY_ECONOMIC",
+  "failures": [
+    "BASE_CAGR_LT_50_PERCENT",
+    "BASE_AND_SEVERE_TURNOVER_GT_600000",
+    "OPPORTUNITY_SEVERE_MARGINAL_LT_0_02",
+    "STRESS_BOTH_MARGINAL_NEGATIVE"
+  ]
+}

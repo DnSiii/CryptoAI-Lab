@@ -1,0 +1,7 @@
+# V98 Independent Phase1237 — AH beta-neutral paired residual RV prereg (2026-10-23)
+
+Separate AH Relative-Value Sleeve, signed cash-settled futures, not AG long-only rotation and not an import of rejected AD/AE/AF signals. At completed close t, use exactly **168h** of hourly Clean-4 log returns to estimate each asset's covariance beta to BTCUSDT (BTC beta=1), using a fixed variance floor 1e-10 and finite beta clip [-3,+3] solely for numerical stability. Compute each asset's **48h** log residual versus beta-adjusted BTC 48h log move. Standardize by 168h hourly residual RMS x sqrt(48), floor 1e-4, and reverse the residual sign (short rich, long cheap).
+
+Project the raw four-asset signed vector onto the nullspace of two constraints: sum of dollar notionals =0 and sum of estimated BTC betas x notional =0. Use deterministic Moore-Penrose pseudoinverse, then normalize by absolute gross to one if nonzero. This is a *source weight*, not a leveraged executable trade. Actual AH signed cash/margin governor must separately approve any position, funding and exit capacity. At t close the source is only eligible for t+1 open.
+
+Tests before full integration: exact dollar and estimated beta neutrality, nonzero long/short activation on deterministic residual fixture, t-1 future perturbation invariance, degenerate zero-variance fail-closed, two-OS deterministic hash. No historical PnL, 2025+, XRP, Phase083 or external V14/V15/V99 access. No post-result sign/window/threshold/gross rescue.

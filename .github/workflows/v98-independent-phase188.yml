@@ -1,0 +1,66 @@
+name: V98 Independent Phase188 Idiosyncratic Momentum Validation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase188.yml'
+      - 'scripts/v98_independent_phase188_idiomom_validation.py'
+      - 'research/v98_independent_phase188_idiomom_validation_preregister.md'
+permissions:
+  contents: write
+jobs:
+  phase188:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Guard namespace and frozen validation contract
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          test -f research/v98_independent_phase188_idiomom_validation_preregister.md
+          python - <<'PY'
+          import json
+          c=json.load(open('config/v98_independent.json'))
+          assert c['validation_start'].startswith('2026-01-01')
+          assert c['validation_end'].startswith('2026-07-31')
+          assert c['final_holdout_start'].startswith('2026-08-01')
+          assert c['research_rules']['final_holdout_single_open_only'] is True
+          assert c['research_rules']['holdout_used_for_selection'] is False
+          assert c['research_rules']['v99_used_for_selection'] is False
+          PY
+      - name: Rebuild canonical V98 validation-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase082_validation_data.json
+      - name: Assert validation data cannot cross final holdout boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          files=sorted(Path('data/canonical').glob('*_1h.csv')); assert files
+          for p in files:
+              df=pd.read_csv(p); col='timestamp' if 'timestamp' in df.columns else df.columns[0]
+              t=pd.to_datetime(df[col],utc=True,errors='raise')
+              assert t.max()<pd.Timestamp('2026-08-01',tz='UTC'),(p,t.max())
+          print('Phase188 validation-only boundary OK',len(files))
+          PY
+      - name: Run frozen validation twice deterministically
+        run: |
+          python scripts/v98_independent_phase188_idiomom_validation.py
+          cp reports/v98_independent_phase188_idiomom_validation.json /tmp/a.json
+          python scripts/v98_independent_phase188_idiomom_validation.py
+          cmp /tmp/a.json reports/v98_independent_phase188_idiomom_validation.json
+          sha256sum /tmp/a.json reports/v98_independent_phase188_idiomom_validation.json
+      - name: Commit V98-only report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase188_idiomom_validation.json
+          git diff --cached --name-only | grep -Ev '^(reports/v98_independent_phase188_idiomom_validation.json)$' && exit 1 || true
+          git diff --cached --quiet || git commit -m 'V98 Phase188 harvest untouched idiosyncratic momentum validation'
+          git push origin HEAD:research/v98-independent-zero

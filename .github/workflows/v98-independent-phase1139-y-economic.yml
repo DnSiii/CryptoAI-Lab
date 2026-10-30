@@ -1,0 +1,89 @@
+name: V98 Independent Phase1139 Y Frozen 90-Cell Authenticated Training
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1139-y-economic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  y-frozen-training-path:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        path: [Y_core_only, Y_full, Y_minus_opportunity, Y_minus_relative_value, Y_minus_stress]
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Verify immutable Y complete pre-economic freeze and 37 synthetic tests
+        run: |
+          python -m unittest -q test_phase1135_y_funded_training_simulator.py test_phase1136_y_frozen_training_path.py test_phase1138_y_90cell_growth_audit.py test_phase1131_y_growth_metrics.py test_phase1132_y_closed_trade_accounting.py
+          python -c 'from phase1136_y_frozen_training_path import verify_freeze; assert verify_freeze()["decision"]=="FROZEN_Y_FULL_PRE_ECONOMIC"'
+      - name: Fresh authenticated Clean-4 Y frozen 18-cell chronological training
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1136_y_frozen_training_path.py --path ${{ matrix.path }}
+      - name: Preserve complete source, frozen manifest and training receipt on all outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-y-1139-${{ matrix.path }}
+          path: |
+            research/v98_independent/phase1137_y_full_pre_economic_freeze.json
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1130_y_authenticated_source_receipt.json
+            research/v98_independent/phase1136_y_${{ matrix.path }}_training_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  y-frozen-90cell-growth-audit:
+    needs: y-frozen-training-path
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned audit dependencies
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-y-1139-*
+          path: /tmp/v98-y-1139
+          merge-multiple: false
+      - name: Audit all 90 cells and growth/marginal contribution, no rescue
+        shell: bash
+        run: |
+          set -o pipefail
+          python research/v98_independent/phase1138_y_90cell_growth_audit.py \
+            /tmp/v98-y-1139/v98-y-1139-Y_core_only/phase1136_y_Y_core_only_training_receipt.json \
+            /tmp/v98-y-1139/v98-y-1139-Y_full/phase1136_y_Y_full_training_receipt.json \
+            /tmp/v98-y-1139/v98-y-1139-Y_minus_opportunity/phase1136_y_Y_minus_opportunity_training_receipt.json \
+            /tmp/v98-y-1139/v98-y-1139-Y_minus_relative_value/phase1136_y_Y_minus_relative_value_training_receipt.json \
+            /tmp/v98-y-1139/v98-y-1139-Y_minus_stress/phase1136_y_Y_minus_stress_training_receipt.json \
+            | tee /tmp/v98_y_1139_audit.json
+      - name: Preserve rejection or promotion audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-y-1139-90cell-growth-audit
+          path: /tmp/v98_y_1139_audit.json
+          retention-days: 30
+          if-no-files-found: warn

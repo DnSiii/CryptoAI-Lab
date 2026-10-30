@@ -1,0 +1,52 @@
+name: V98 Independent Phase224
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['research/v98_independent/phase224_eval.py','research/v98_independent/phase224_validate.py','research/v98_independent/phase224_prereg.md','.github/workflows/v98-independent-phase224.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase224:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and frozen-spec invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+              f=pd.read_csv(Path('research/v98_independent/data/phase206_funding')/f'{a}_funding.csv'); ft=pd.to_datetime(f['fundingTime_utc'],utc=True,errors='raise',format='mixed'); assert ft.is_monotonic_increasing and not ft.duplicated().any() and not (ft>=cut).any()
+          s=Path('research/v98_independent/phase224_eval.py').read_text()
+          assert 'SPECS=[(L,z,h) for L in (63,126) for z in (1.5,2.5) for h in (4,8)]' in s
+          assert 'COSTS={"base":.0007,"severe":.0014,"supersevere":.0028}' in s
+          assert 'closed_trade_asset_attributed_including_exit_turnover' in s and 'gross exposure invariant' in s
+          print('Phase224 firewall/funding/prereg invariants OK')
+          PY
+      - name: Deterministic runs
+        run: |
+          python research/v98_independent/phase224_eval.py --out /tmp/phase224_run1.json
+          python research/v98_independent/phase224_eval.py --out /tmp/phase224_run2.json
+          diff -u /tmp/phase224_run1.json /tmp/phase224_run2.json
+          cp /tmp/phase224_run2.json research/v98_independent/phase224_results.json
+      - name: Independent validation and gate
+        run: python research/v98_independent/phase224_validate.py /tmp/phase224_run1.json --repeat /tmp/phase224_run2.json | tee /tmp/phase224_validation.json
+      - name: Commit V98-only namespaced result
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add research/v98_independent/phase224_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase224 harvest realized funding dislocation convergence'
+          git pull --rebase origin research/v98-independent-zero
+          git push

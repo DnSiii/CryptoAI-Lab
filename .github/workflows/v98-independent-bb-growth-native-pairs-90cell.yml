@@ -1,0 +1,107 @@
+name: V98 Independent BB Trend Reentry Native Funding Pair Seven Slot 90-Cell Historical Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-bb-growth-native-pairs-90cell.yml'
+      - 'research/v98_independent/bb_growth_native_pairs_sources.py'
+      - 'research/v98_independent/bb_growth_native_pairs_allocator.py'
+      - 'research/v98_independent/bb_growth_native_pairs_90cell.py'
+      - 'research/v98_independent/bb_growth_native_pairs_reconcile.py'
+      - 'research/v98_independent/ba_ratio_reversion_governor.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  train:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [BB_core_only, BB_full, BB_minus_opportunity, BB_minus_RV, BB_minus_stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: BB causal trend reentry, native pair funding, risk governor, 81-corner settlement
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile bb_growth_native_pairs_sources.py bb_growth_native_pairs_allocator.py ba_ratio_reversion_governor.py bb_growth_native_pairs_90cell.py bb_growth_native_pairs_reconcile.py
+          python bb_growth_native_pairs_sources.py
+          python bb_growth_native_pairs_allocator.py
+          python ba_ratio_reversion_governor.py
+      - name: Retrieve PINNED vendor-attested 2023-24 Clean4 ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-${{ matrix.os }}
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage original Dec2022-Dec2024 training bytes ONLY
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Execute BB complete actual-open native-funded chronological path x18
+        working-directory: research/v98_independent
+        run: |
+          python bb_growth_native_pairs_90cell.py \
+            --path ${{ matrix.path }} \
+            --output bb90_${{ matrix.path }}.json || echo 'BB_REJECTION_OR_FAILURE_PRESERVED'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bb90-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/bb90_${{ matrix.path }}.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Verify all 18 path cells recorded, never hide failure
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('bb90_BB_*.json')
+          assert len(files)==1,files
+          a=json.load(open(files[0]))
+          assert len(a['cells'])==18
+          print('BB_PATH_SURVIVAL',a['path'],sum(c['passed'] for c in a['cells']),'/',len(a['cells']))
+          PY
+  reconcile:
+    if: always()
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bb90-ubuntu-*
+          path: receipts
+      - name: Independent two-OS 90-cell economic, marginal and causal gate
+        run: python research/v98_independent/bb_growth_native_pairs_reconcile.py --root receipts --output bb90_official_economic_summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bb90-official-economic-summary
+          path: bb90_official_economic_summary.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,164 @@
+name: V98 Independent CE Persistent Market Premium 90 Cell Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ce-seven-slot-90cell.yml'
+      - 'research/v98_independent/ce_sources.py'
+      - 'research/v98_independent/ce_90cell.py'
+      - 'research/v98_independent/ce_reconcile.py'
+      - 'research/v98_independent/ce_event_replay_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  train:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        path: [CE_core_only, CE_full, CE_minus_opportunity, CE_minus_RV, CE_minus_stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile and test original CE causal source
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile ce_sources.py ce_90cell.py ce_reconcile.py ce_event_replay_audit.py
+          python ce_sources.py
+      - name: Retrieve pinned 2022-2024 Clean4 ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage exact original pinned training bytes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Execute original CE 18-cell physical path with native signed funding
+        working-directory: research/v98_independent
+        shell: bash
+        run: |
+          set +e
+          python ce_90cell.py --path ${{ matrix.path }} --output ce90_${{ matrix.path }}.json
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+          test -s ce90_${{ matrix.path }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ce90-${{ matrix.os }}-${{ matrix.path }}
+          path: research/v98_independent/ce90_${{ matrix.path }}.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Report complete original 18-cell physical survival
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('ce90_CE_*.json')
+          assert len(files)==1,files
+          r=json.load(open(files[0]))
+          assert len(r['cells'])==18
+          print('CE_PATH',r['path'],'survived',sum(x['passed'] for x in r['cells']),'/',len(r['cells']))
+          for x in r['cells']:
+              if not x['passed']:print('CE_FAILURE',x['mode'],x['fee'],x['order'],x.get('reason'))
+          PY
+  reconcile:
+    if: always()
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ce90-ubuntu-*
+          path: receipts
+      - name: Independent artifact-only original CE economic and physical gate
+        shell: bash
+        run: |
+          python research/v98_independent/ce_reconcile.py --root receipts --output ce90_official_economic_summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ce90-official-economic-summary
+          path: ce90_official_economic_summary.json
+          retention-days: 30
+          if-no-files-found: warn
+  independent_replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Retrieve pinned Clean4 2022-2024 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage original pinned training data
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+          PY
+      - name: Independently reconstruct CE full native cashflow and 81 corners
+        working-directory: research/v98_independent
+        shell: bash
+        run: |
+          set +e
+          python ce_event_replay_audit.py --output ce_event_replay.json
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+          test -s ce_event_replay.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cd-independent-event-replay
+          path: research/v98_independent/ce_event_replay.json
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,11 @@
+# V98 Independent Phase1211 — AE complete seven-slot 180-cell causal-risk synthetic integration prereg (2026-10-23)
+
+AE now has independently tested seven-slot source/ledger components Phase1205–1210, all still **synthetic/source-only**. This phase tests their **actual composition**, not isolated module perfection, before any authenticated historical system PnL.
+
+Freeze integration topology: at completed close t, calculate AE Growth, Opportunity, RV, Router, actual-NAV Stress and causal net-cost Dynamic Allocator; submit its resulting signed desired weights only at **open t+1** to Phase1210 actual cash/inventory executor using Phase1209 strict prior-336/720 risk, quote and native funding. Every hour t post-fill must pass actual 81-corner realized OHLC audit. Never use current t high/low, mark or funding to select t's order. No free stop, no hidden leverage, no future holdout.
+
+**Five precommitted paths**: AE_core_only, AE_full, AE_minus_opportunity, AE_minus_relative_value, AE_minus_stress. All ablations independently rebuild their own allocator/stress/cash state; no shared mutation. **Three capital modes**: $10k, $1m, $10m. **Three actual fees**: base 0.0007, severe 0.0012, supersevere 0.002. **Two funding orderings**: carried_before_fill, new_after_fill. Exactly 90 cells per fixture.
+
+**Two independent 900-hour synthetic fixtures** starting 2022-12-01 UTC: benign causal drift with native 8h signed funding; crisis is the same fixture with a **precommitted** 45% all-asset close drop from hour 810 and an 80% rebound from hour 850, with OHLC reconstructed to include both intrabar extremes. Synthetic quote volume is high (1e12) to isolate architecture solvency; it is not evidence of actual market liquidity. Strict 720h warmup, 180 executed hours per cell. No 2025, XRP, V14/V15/V99, 2026+, or historical system PnL.
+
+**Pass gate**: all 180 cells executable, finite NAV and self-financing reconciliation, 90 benign + 90 crisis, stress hedge activation in crisis AE_full, no silent failures. If any fails, preserve first error, reject AE as preregistered; no post-result threshold, fee, sign, window, gross or shock rescue. If passes, freeze all AE sources and move to fresh four-OS authenticated Clean-4 vendor/source hash gates before official chronological 90-cell training. Passing synthetic tests is not economic success.

@@ -1,0 +1,49 @@
+name: V98 Independent LZ 30-Cell Signed Worst-Envelope Physical Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-lz-30cell.yml'
+      - 'research/v98_independent/lz_30cell_envelope_diagnostic.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  lz-30cell:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned original Clean4 2022-24 training only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download independent SHA-pinned 9144-event official mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Verify authenticated source gate then run 30 actual signed training cells
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile lz_sources.py lz_independent_source_gate.py lz_30cell_envelope_diagnostic.py v98_mark_envelope_settlement.py
+          python lz_30cell_envelope_diagnostic.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output lz_30cell_training_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-lz-30cell-${{ github.run_id }}
+          path: research/v98_independent/lz_30cell_training_receipt.json
+          retention-days: 30
+          if-no-files-found: warn

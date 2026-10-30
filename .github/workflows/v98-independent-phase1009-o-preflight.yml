@@ -1,0 +1,41 @@
+name: V98 Independent Phase1009 O Economic Gate Preflight
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1009-o-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1009-o-preflight-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  o-preflight:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: O source-only, LP-funded and 90-cell firewall regressions
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1006_o_sevenslot_source.py test_phase1007_o_funded_ledger_hourly.py test_phase1009_o_90cell_training.py
+      - name: Enforce frozen O source code and exact preregistered matrix
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          from phase1008_o_frozen_paths import verify_o_source, FROZEN_O
+          from phase1009_o_90cell_training import PATHS, FEE_TIERS, ORDERS, CAPITAL_MODES
+          assert verify_o_source()
+          assert tuple(FROZEN_O)==PATHS
+          assert len(PATHS)*len(FEE_TIERS)*len(ORDERS)*len(CAPITAL_MODES)==90
+          print('O preflight only; historical PnL not run.')
+          PY

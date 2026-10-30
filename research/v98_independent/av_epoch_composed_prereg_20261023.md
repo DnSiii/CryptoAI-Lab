@@ -1,0 +1,18 @@
+# V98 Independent AV — preregistered epoch-authorized composed portfolio (2026-10-23)
+
+**PRE-RESULT:** AV has no historical PnL yet. AU is permanently rejected; this is not an AU parameter rescue. AV uses distinct signal hypotheses, horizons, sleeves, router and allocator. Only authenticated V98 common data/ledger and conservative governor primitives may be reused.
+
+## North star
+Maximize net compounded wealth, with survival, causal execution, drawdown/tail and capacity as binding constraints, not the objective. No fixed upside target. No real-money permission.
+
+## Seven frozen slots
+1. **Growth Core:** every 1008 completed hours select the top two assets by 1344h net-of-expected-funding log momentum / 672h volatility, provided their 672h return is positive; allocate 60/40 if two qualify, 100% to one if only one. Expected funding = last 168 native funding events' mean times 126 events. Hold unit authorization until next epoch or risk trim.
+2. **Opportunity:** native funding squeeze: at a completed funding event, select the asset with funding rate < -0.0004 and positive 48h price log momentum, ranked by most negative funding; hold 48h, cooldown 336h.
+3. **Relative Value:** idiosyncratic 168h reversal: when cross-sectional 168h log-return spread exceeds 0.18, long weakest and short strongest ONLY if the weak asset has positive 72h log-return and strong has negative 72h log-return. Hold 72h, cooldown 336h; otherwise flat.
+4. **Stress/Recovery:** if BTC 168h log return < -0.15 and at least three assets have negative 168h return, short BTC for at most 96h, cooldown 336h. Never predict stress using future highs/lows.
+5. **Regime Router:** RISK_ON if BTC 1008h return positive and median 168h realized volatility <1.5x median 672h volatility; RISK_OFF if BTC 1008h return negative OR volatility ratio >2.0; else MIXED.
+6. **Dynamic Allocator:** fixed budgets [1.0,0.35,0.15,0.25], regime multipliers RISK_ON [1,1.2,0.7,0.4], RISK_OFF [0.5,0.5,1.2,1.4], MIXED [0.8,0.8,1,0.8]; 672h shadow native-funded net log wealth, multiplier clip(exp(1.5*logwealth),0.5,1.5). Update target only every 1008h or on opportunity/RV/stress state transitions; 12-decimal decision rounding. No daily revaluation into target units.
+7. **Epoch Risk Governor:** at FIRST eligible next open after each signal, freeze a risk-authorized unit ceiling using causal 24h adverse-exit, native funding reserve, fees, and actual-open prices. Physically slice toward that ceiling with prior-hour volume and rolling 24h exit capacity. If risk forces any reduction, monotone unit authorization ratchets downward until next independently triggered signal; never automatically buy back a trimmed unit merely because collateral recovers. Actual signed funding and 81-corner intrabar settlement remain mandatory. No invented instant exit or hidden borrow.
+
+## Evidence and immutable rejection criteria
+Pinned 18,288 hourly Clean-4 Dec2022–Dec2024, 9,144 native funding events; 2025 untouched, 2026+ prohibited, XRP quarantined. Five full/ablation paths x 3 capital scales (10k, 1m, 10m) x 3 fee tiers x 2 funding orderings = 90 cells; two OS. Require 90/90 mechanical survival, independent source/numeric reconciliation, positive annual net log wealth in both 2023 and 2024 under base AND severe, both funding orderings, and strictly positive annual marginal contribution for Opportunity, RV and Stress in both years/costs/orderings. Include supersevere, concentration, tails, DD, PF, payoff, win rate, positive UTC days, turnover and native funding in report. Fail => permanently reject AV without sign/window/threshold/cost/gross rescue. Do not open 2025 holdout or V14/V15/V99 benchmarks unless internally frozen full AV passes training and independent future validation.

@@ -1,0 +1,32 @@
+{
+  "engine": "V98 Independent",
+  "phase": "172",
+  "audit": "CAUSALITY_PRE_RUN",
+  "series": "T10Y2Y",
+  "phase171_hash_verified": "61a8716a12625cae8603095883ac2bc8daf2ac73dd4375f80b5a25f98eb5d275",
+  "observed_data_quality": {
+    "observations": 749,
+    "expected_weekdays": 783,
+    "coverage": 0.9565772669220945,
+    "missing_values": 33,
+    "duplicates": 0,
+    "malformed_dates": 0,
+    "weekend_dates": 0
+  },
+  "causal_contract": {
+    "raw_observation_timestamp_precision": "date_only",
+    "same_day_use_permitted": false,
+    "minimum_calendar_lag_days": 1,
+    "reason": "FRED evidence in Phase171 contains observation dates but no publication-time field; one-calendar-day lag is the conservative deterministic rule chosen before economic execution.",
+    "missing_value_handling": "no synthetic observations; compare actual consecutive valid observations only",
+    "weekend_behavior": "no synthetic weekend signal updates"
+  },
+  "anti_lookahead_checks": {
+    "signal_uses_future_curve_value": false,
+    "signal_uses_validation": false,
+    "signal_uses_final_holdout": false,
+    "signal_uses_v16": false,
+    "signal_uses_v99": false
+  },
+  "decision": "PASS_CAUSAL_CONTRACT_FOR_TRAINING_ONLY"
+}

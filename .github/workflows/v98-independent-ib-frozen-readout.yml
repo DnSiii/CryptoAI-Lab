@@ -1,0 +1,53 @@
+name: V98 Independent IB Frozen Artifact-Only Economic Readout
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ib-frozen-readout.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  readout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ia30-official-economic-summary
+          run-id: 40476018579
+          github-token: ${{ github.token }}
+          path: frozen-summary
+      - name: Verify immutable 30-cell economics, print all first-fault marginal evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,glob
+          paths=glob.glob('frozen-summary/**/*.json',recursive=True)
+          assert len(paths)==1,paths
+          x=json.load(open(paths[0]))
+          assert x['architecture']=='IB' and x['historical_training_only'] and not x['validation_2025_read']
+          assert x['decision']=='REJECT_IB_HISTORICAL_GROWTH_OR_MARGINAL'
+          assert x['cells_survived']==30 and x['cross_os_reproducible'] and x['errors']==[]
+          print('IB_FROZEN_DECISION',x['decision'],'cells',x['cells_survived'],'cross_os',x['cross_os_reproducible'])
+          for tier in ('full_10k_base','full_10k_severe'):
+              a=x[tier]
+              print('IB_FROZEN_FULL',tier,json.dumps({k:a[k] for k in
+                  ('two_year_cagr','max_drawdown','turnover','fees','slippage','funding',
+                   'hourly_net_profit_factor','hourly_net_payoff','hourly_net_win_rate',
+                   'positive_utc_days','total_utc_days','hourly_cvar_1pct',
+                   'max_single_asset_gross_concentration')},sort_keys=True))
+              print('IB_FROZEN_ANNUAL',tier,json.dumps({
+                  y:{k:a['annual'][y][k] for k in ('net_return','net_log_growth','max_drawdown')}
+                  for y in ('2023','2024')},sort_keys=True))
+          for module,scenarios in x['marginal_log_growth_10k'].items():
+              for key,years in scenarios.items():
+                  if '|supersevere|' in key:continue
+                  print('IB_FROZEN_MARGINAL',module,key,json.dumps(years,sort_keys=True),
+                        'total',sum(years.values()))
+          print('IB_FROZEN_GATES',json.dumps({
+              k:x[k] for k in ('growth_gates_10k','marginal_gates_10k',
+                               'severe_drawdown_gate_10k','turnover_gate_10k','hiib_growth_gate_10k')},sort_keys=True))
+          print('IB_READONLY_TRAINING_REJECTION_NO_HOLDOUT_NO_LIVE')
+          PY

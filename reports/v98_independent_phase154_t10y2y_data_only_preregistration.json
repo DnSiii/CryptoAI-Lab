@@ -1,0 +1,23 @@
+{
+  "engine": "V98 Independent",
+  "phase": "154",
+  "mode": "DATA_ONLY",
+  "status": "PREREGISTERED_BEFORE_DATA_INSPECTION",
+  "family": "US_TREASURY_TERM_STRUCTURE",
+  "series": "T10Y2Y",
+  "source": "FRED",
+  "frozen_window": ["2023-01-01", "2025-12-31"],
+  "expected_basis": "weekdays_Mon_Fri",
+  "minimum_global_coverage": 0.95,
+  "minimum_year_coverage": 0.95,
+  "value_domain": "finite_signed_spread_percentage_points",
+  "missing_policy": "no_imputation_no_carry_forward",
+  "reproducibility": "two independent acquisitions must produce identical normalized date-value SHA256 and integrity metadata",
+  "economic_firewall": "DATA_ONLY: no crypto returns, correlation, PnL, signal, positions, PF, drawdown, win rate, payoff or economic direction may be inspected",
+  "decision_rule": "PASS_DATA_ONLY iff all integrity and reproducibility gates pass; otherwise REJECT_DATA_QUALITY_NO_RESCUE",
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false,
+  "rescue_allowed": false
+}

@@ -1,0 +1,79 @@
+name: V98 Independent DO Frozen Native Capital Displacement Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-do-frozen-forensics.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  frozen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: do30-ubuntu-24.04-*
+          run-id: 40182782378
+          github-token: ${{ github.token }}
+          path: frozen
+      - name: Analyze frozen physical receipts only; never recompute PnL
+        shell: bash
+        run: |
+          python - <<'PY'
+          import glob,json,math
+          from pathlib import Path
+          files=glob.glob('frozen/*/*.json')
+          assert len(files)==5,(len(files),files)
+          data={json.load(open(p))['path']:json.load(open(p)) for p in files}
+          paths=['DO_core_only','DO_full','DO_minus_opportunity','DO_minus_RV','DO_minus_stress']
+          assert set(data)==set(paths)
+          assert len({v['source_manifest_sha256'] for v in data.values()})==1
+          rows=[];marginals=[]
+          for fee in ('base','severe','supersevere'):
+            for order in ('carried_before_fill','new_after_fill'):
+              def get(path):
+                a=[c for c in data[path]['cells'] if c['fee']==fee and c['order']==order]
+                assert len(a)==1 and a[0]['passed']
+                return a[0]
+              full=get('DO_full');core=get('DO_core_only')
+              rows.append({'fee':fee,'order':order,
+                'full_cagr':full['two_year_cagr'],'core_cagr':core['two_year_cagr'],
+                'full_2023':full['annual']['2023']['net_return'],
+                'full_2024':full['annual']['2024']['net_return'],
+                'core_2023':core['annual']['2023']['net_return'],
+                'core_2024':core['annual']['2024']['net_return'],
+                'full_funding':full['funding'],'core_funding':core['funding'],
+                'full_fees_slip':full['fees']+full['slippage'],
+                'core_fees_slip':core['fees']+core['slippage'],
+                'full_turnover':full['turnover'],'core_turnover':core['turnover'],
+                'full_pf':full['hourly_net_profit_factor'],
+                'full_payoff':full['hourly_net_payoff'],
+                'full_win_rate':full['hourly_net_win_rate'],
+                'full_positive_days':full['positive_utc_days'],
+                'full_cvar_1pct':full['hourly_cvar_1pct'],
+                'full_gross_peak':full['max_gross_to_nav'],
+                'full_concentration_peak':full['max_single_asset_gross_concentration']})
+              for module,path in [('Opportunity','DO_minus_opportunity'),
+                                  ('RelativeValue','DO_minus_RV'),
+                                  ('StressRecovery','DO_minus_stress')]:
+                other=get(path)
+                for yr in ('2023','2024'):
+                  marginals.append({'fee':fee,'order':order,'module':module,
+                    'year':yr,'marginal_log_growth':full['annual'][yr]['net_log_growth']-
+                    other['annual'][yr]['net_log_growth']})
+          out={'decision':'DO_REJECTED_FROZEN_ARTIFACT_ONLY',
+               'run':40182782378,'paths':paths,'source_hash_count':1,
+               'cases':len(rows)*len(paths),'rows':rows,'marginals':marginals,
+               'holdout_read':False,'new_backtest':False,'benchmarks_read':False}
+          Path('do_frozen_attribution.json').write_text(json.dumps(out,indent=2,sort_keys=True))
+          print('DO_FROZEN_FORENSICS',json.dumps(out,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: do-frozen-native-capital-attribution
+          path: do_frozen_attribution.json
+          retention-days: 30

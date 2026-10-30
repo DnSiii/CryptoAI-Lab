@@ -1,0 +1,57 @@
+name: V98 Independent Phase198 Intraday Residual Reversal Training
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase198.yml'
+      - 'scripts/v98_independent_phase198_intraday_residual_reversal.py'
+      - 'research/v98_independent_phase198_intraday_residual_reversal_preregister.md'
+permissions:
+  contents: write
+jobs:
+  phase198:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Guard branch and V98-only preregistration
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          python - <<'PY'
+          import json
+          c=json.load(open('config/v98_independent.json'));p=open('research/v98_independent_phase198_intraday_residual_reversal_preregister.md').read()
+          assert c['research_rules']['holdout_used_for_selection'] is False
+          assert c['research_rules']['v99_used_for_selection'] is False
+          assert 'Phase198' in p and 'Validation and final holdout remain unopened' in p
+          PY
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
+      - name: Assert price and funding stop before 2026
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          fs=sorted(Path('data/canonical').glob('*_1h.csv'))+sorted(Path('data/canonical').glob('*_funding.csv'));assert fs
+          for p in fs:
+            d=pd.read_csv(p);c='timestamp' if 'timestamp' in d.columns else d.columns[0];t=pd.to_datetime(d[c],utc=True,errors='raise');assert len(t)==0 or t.max()<pd.Timestamp('2026-01-01',tz='UTC'),(p,t.max())
+          print('training boundary OK',len(fs))
+          PY
+      - name: Run Phase198 twice and require byte identity
+        run: |
+          python scripts/v98_independent_phase198_intraday_residual_reversal.py
+          cp reports/v98_independent_phase198_intraday_residual_reversal.json /tmp/a.json
+          python scripts/v98_independent_phase198_intraday_residual_reversal.py
+          cmp /tmp/a.json reports/v98_independent_phase198_intraday_residual_reversal.json
+          sha256sum /tmp/a.json reports/v98_independent_phase198_intraday_residual_reversal.json
+      - name: Commit V98-only report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase198_intraday_residual_reversal.json
+          git diff --cached --name-only | grep -Ev '^(reports/v98_independent_phase198_intraday_residual_reversal.json)$' && exit 1 || true
+          git diff --cached --quiet || git commit -m 'V98 Phase198 harvest training-only intraday residual reversal'
+          git push origin HEAD:research/v98-independent-zero

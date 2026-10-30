@@ -1,0 +1,16 @@
+# V98 Independent — AM event-time breakout / paired-reversion preregistration (2026-10-23)
+
+**Registered before AM historical PnL.** AK and AL remain economically rejected, and no rejected module/ablation is rescued. AM is a distinct **signed event-driven breakout + two-pair mean-reversion + asymmetric crisis futures portfolio**, unlike AL cash-aware long-only cross-sectional rotation or AK slow funding-rank carry. Only generic, previously audited V98 source authentication, actual-open futures ledger, and conservative risk feasibility may be reused.
+
+**Data firewall:** Dec-2022 warmup; authenticated Clean-4 BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT hourly Binance USD-M 2023–2024 training; native mark bounds and funding. No 2025 validation, 2026+, XRP, Phase083, V14/V15/V99, Frozen or paper.
+
+**Seven frozen slots:**
+1. Growth Core: event-driven 480h Donchian channel breakout, signed directional inventory on each asset, held at least 168h and exited only on 240h opposing channel breach; equally gross-weight active positions. Unlike AL's daily ranked long-only winners.
+2. Opportunity Sleeve: volatility compression from prior 72h vs prior 504h realized-vol ratio <0.70, followed by completed-close 72h signed displacement exceeding 2.0 times prior 72h realized sigma × sqrt(72); hold 96h nonoverlapping, equally gross-weight.
+3. Relative-Value Sleeve: two independent, zero-dollar-cost **paired mean-reversion** baskets BTC/ETH and BNB/SOL. Rolling 504h log-ratio z-score; enter opposite ratio at |z|>1.75, exit at |z|<0.50, at most one position per pair, pair gross 0.5. No funding carry-rank and no AL residual-momentum long-only rotation.
+4. Stress/Recovery Sleeve: signed 72h median-basket crisis hedge short on <-10% median return, then one-off 96h long rebound on >+8% median return after crisis, no unlimited extension.
+5. Regime Router: completed-close median 336h trend, 72h stress and 168h breadth, four regimes BULL/BEAR/CHOP/STRESS.
+6. Dynamic Allocator: 168h decision epochs or regime changes; 504h completed-close virtual log-wealth expert evidence net of native funding and fixed 0.10% sleeve-turnover allowance; regime priors and exponential expert weighting; growth-oriented positive-edge scale, no discretionary post-result ceiling. Only risk governor limits survivability.
+7. Risk Governor: same frozen V98 actual-open quote-capacity, carried-gap, worst-corner collateral, native funding-reserve and realistic base/severe/supersevere fee/slippage mechanics as independent infrastructure, not prior alpha.
+
+**One preregistered matrix:** AM_core_only, AM_full, AM_minus_opportunity, AM_minus_RV, AM_minus_stress × USD10k/1m/10m × base/severe/supersevere × carried-before-fill/new-after-fill = 90 2023/24 historical training cells on Ubuntu 22.04 and 24.04. Require strict cross-OS reproducibility, causal t-1, no future data, 90/90 survival, BOTH chronological years positive net log growth under base and severe, positive robust marginal net log growth of each non-core sleeve, tolerable tails/drawdown and concentration. Rejected paths cannot become champions by cherry-picking. Only after independent training success may the untouched 2025 validation be considered; only after that may external benchmarks be opened. This is research, not live trading.

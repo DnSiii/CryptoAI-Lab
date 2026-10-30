@@ -1,0 +1,40 @@
+name: V98 Independent Phase1246 AI Two Stage Margin Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1246_ai_two_stage_margin.py'
+      - 'research/v98_independent/test_phase1246_ai_two_stage_margin.py'
+      - '.github/workflows/v98-independent-phase1246-ai-margin.yml'
+  workflow_dispatch:
+jobs:
+  ai-margin:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Verify two-stage invariant margin and actual signed variation
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1246_ai_two_stage_margin
+      - name: Raw deterministic governor digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib
+          from phase1246_ai_two_stage_margin import ai_governor
+          z=np.zeros(4)
+          r=ai_governor(10000.,z,np.full(4,100.),np.full(4,100.),
+              np.array([3.,-3.,0.,0.]),np.full(4,.45),np.full(4,.8),
+              np.full(4,.0005),np.full(4,1e9),np.full(4,1e9))
+          print('AI1246_SHA256',hashlib.sha256(
+              np.r_[r['units'],r['fraction']].astype('<f8').tobytes()).hexdigest())
+          print('AI1246_TWO_STAGE_FRACTION',r['fraction'])
+          PY

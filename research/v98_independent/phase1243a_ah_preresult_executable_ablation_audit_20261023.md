@@ -1,0 +1,9 @@
+# V98 Independent Phase1243a — PRE-RESULT synthetic ablation wiring audit (2026-10-23)
+
+During execution of the first AH 180-cell workflow [run 40014424578](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40014424578), **before reading any cell result or log**, static inspection identified a mandatory-gate omission: the current `mandatory_slots_excited` checked source-level Opportunity/RV/Stress activation plus portfolio rebalances, but not whether any of these three sleeves actually changed the *executable signed portfolio* after the governor. Source activation alone cannot demonstrate a complete composed engine.
+
+**Pre-result decision:** run 40014424578 is INELIGIBLE for AH structural promotion regardless of its eventual results. Preserve it unmodified as diagnostic evidence; do not use its outcome to change source signs, windows, fees, leverage, crisis fixture or thresholds.
+
+**Correction preregistered before inspecting results:** for the canonical crisis/AH_full/$10k/base/carried cell only, calculate each sleeve's signed contribution to the t-1 allocator intent, and at the next open compare the actual prior-only governor target to the target with that one sleeve removed, holding all other intents, allocator weights, carried cash/units, quote, risk and funding assumptions fixed. Count an *executable marginal activation hour* only when the actual units differ by >1e-9 from this counterfactual. Require >0 marginal executable hours separately for Opportunity, Relative Value and Stress. This is a strictly stronger structural requirement, not economic approval. Run all 180 original cells on both OS again after correction; only the corrected run can decide AH structural fate. If it fails, reject AH without rescue.
+
+No historical AH PnL, future holdout, 2026+, XRP, Phase083 or V14/V15/V99 accessed. V16/V99 untouched.

@@ -1,0 +1,51 @@
+name: V98 Independent Phase1198 AD Complete 90 Cell Synthetic Integration
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1198_ad_complete_synthetic.py'
+      - 'research/v98_independent/test_phase1198_ad_complete_synthetic.py'
+      - '.github/workflows/v98-independent-phase1198-ad-full-synthetic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-full-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Audit complete 90-cell synthetic paths and independent ablations
+        run: python -m unittest -q test_phase1198_ad_complete_synthetic.py
+      - name: Persist full synthetic receipt without historical PnL
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from phase1198_ad_complete_synthetic import run
+          r=run()
+          Path('phase1198_ad_complete_synthetic_receipt.json').write_text(
+              json.dumps(r,sort_keys=True,indent=2,allow_nan=False)+'\n')
+          print(r['decision'],sum(x['passed'] for x in r['cells']),len(r['cells']))
+          assert r['decision']=='PASS_AD_90_SYNTHETIC_CELLS_NOT_ECONOMIC'
+          PY
+      - name: Preserve complete AD synthetic receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ad-1198-${{ matrix.os }}
+          path: research/v98_independent/phase1198_ad_complete_synthetic_receipt.json
+          retention-days: 30
+          if-no-files-found: warn

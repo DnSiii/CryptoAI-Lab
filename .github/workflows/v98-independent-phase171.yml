@@ -1,0 +1,58 @@
+name: V98 Independent Phase171 T10Y2Y DATA_ONLY
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase171.yml'
+      - 'scripts/v98_independent_phase171_t10y2y_data_only.py'
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase171-t10y2y-data-only
+  cancel-in-progress: false
+jobs:
+  phase171:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run independent acquisition A
+        run: python scripts/v98_independent_phase171_t10y2y_data_only.py > /tmp/phase171_a.json
+      - name: Run independent acquisition B
+        run: python scripts/v98_independent_phase171_t10y2y_data_only.py > /tmp/phase171_b.json
+      - name: Reproducibility and invariant audit
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/phase171_a.json'));b=json.load(open('/tmp/phase171_b.json'))
+          assert a==b,'independent executions differ'
+          assert a['engine']=='V98 Independent' and a['phase']=='171' and a['kind']=='DATA_ONLY'
+          assert a['economic_firewall'] is True
+          assert a['window']==['2023-01-01','2025-12-31']
+          assert a['missing_policy']=='no interpolation/no imputation/no carry-forward/no backfill'
+          assert a['sha256'][0]==a['sha256'][1]
+          assert a['observations']<=a['expected_weekdays']
+          json.dump(a,open('reports/v98_independent_phase171_t10y2y_data_only.json','w'),indent=2,sort_keys=True)
+          open('reports/v98_independent_phase171_t10y2y_data_only.json','a').write('\n')
+          PY
+      - name: Persist V98 evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase171_t10y2y_data_only.json
+          git diff --cached --quiet || git commit -m 'v98: persist phase171 T10Y2Y DATA_ONLY evidence'
+          git push origin HEAD:research/v98-independent-zero
+      - name: Enforce preregistered DATA_ONLY gate
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('reports/v98_independent_phase171_t10y2y_data_only.json'))
+          assert r['status']=='PASS_DATA_ONLY',r
+          assert all(r['gates'].values()),r['gates']
+          PY

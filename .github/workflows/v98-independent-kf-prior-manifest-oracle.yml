@@ -1,0 +1,34 @@
+name: V98 Independent KF Pinned Native Source Terminal Rejection Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-kf-prior-manifest-oracle.yml'
+      - 'research/v98_independent/kf_prior_manifest_independent_rejection.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent_prior_source_oracle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-oi-clean4-2022-2024-v2-source-only
+          run-id: 40477513000
+          github-token: ${{ github.token }}
+          path: research/v98_independent/kf_prior_source
+      - name: Reproduce pinned prior source strict order and invalid-day rejection, NO PnL
+        run: |
+          python -m py_compile research/v98_independent/kf_prior_manifest_independent_rejection.py
+          python research/v98_independent/kf_prior_manifest_independent_rejection.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-kf-independent-prior-source-rejection
+          path: research/v98_independent/kf_prior_manifest_independent_rejection.json
+          retention-days: 30
+          if-no-files-found: warn

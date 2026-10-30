@@ -1,0 +1,44 @@
+{
+  "alpha_or_pnl_inspected": false,
+  "decision": "FAIL_DATA_NO_ALPHA",
+  "engine": "V98 Independent",
+  "family": "Chicago Fed NFCI financial conditions",
+  "final_holdout": null,
+  "gates": {
+    "finite_coverage_gte_95pct": false,
+    "http_200": false,
+    "required_columns": false,
+    "rows_gte_150": false,
+    "strictly_increasing": true,
+    "zero_duplicate_dates": true,
+    "zero_malformed_dates": true
+  },
+  "integrity": {
+    "date_manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "duplicate_dates": 0,
+    "finite_coverage": 0.0,
+    "finite_rows": 0,
+    "in_window_rows": 0,
+    "malformed_dates": 0
+  },
+  "mode": "DATA_ONLY",
+  "numeric_values_exposed": false,
+  "parameter_search": false,
+  "phase": "126",
+  "phase083_selection_use": false,
+  "prereg_sha256": "9eb6e0c24694bdb8a282b0e1d3a66f9149a87eab0f11b49d987f54f9400cb5ee",
+  "rescue_allowed": false,
+  "source": {
+    "error_type": "TimeoutError",
+    "http_status": null,
+    "payload_sha256": null,
+    "series": "NFCI"
+  },
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null,
+  "window": {
+    "end": "2025-12-31",
+    "start": "2023-01-01"
+  }
+}

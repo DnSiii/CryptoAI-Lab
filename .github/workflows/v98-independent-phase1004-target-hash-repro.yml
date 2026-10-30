@@ -1,0 +1,63 @@
+name: V98 Independent Phase1004 Frozen M Target Hash Reproducibility
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1004-target-hash-repro.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1004-hash-repro-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-repro:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned source-only numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fresh official 100 OHLC ZIP source authentication
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: Process A three deterministic M_full hashes
+        working-directory: research/v98_independent
+        run: python phase1004_target_hash_repro.py --tag a
+      - name: Process B three deterministic M_full hashes
+        working-directory: research/v98_independent
+        run: python phase1004_target_hash_repro.py --tag b
+      - name: Compare two independent Python processes fail-closed in receipt
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('phase1004_target_hash_repro_a.json').read_text())
+          b=json.loads(Path('phase1004_target_hash_repro_b.json').read_text())
+          result={'phase':1004,'source_only':True,'historical_pnl_computed':False,
+                  'all_six_identical':len(set(a['observed_m_full_sha256']+b['observed_m_full_sha256']))==1,
+                  'all_six_match_frozen':a['all_match_frozen'] and b['all_match_frozen'],
+                  'decision':'REPRODUCIBLE_FROZEN' if a['all_match_frozen'] and b['all_match_frozen'] and a['all_in_process_equal'] and b['all_in_process_equal'] else 'HASH_DRIFT_UNRESOLVED'}
+          Path('phase1004_target_hash_repro_summary.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(result,sort_keys=True))
+          PY
+      - name: Preserve full source-only reproducibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1004-m-target-hash-repro
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1004_target_hash_repro_a.json
+            research/v98_independent/phase1004_target_hash_repro_b.json
+            research/v98_independent/phase1004_target_hash_repro_summary.json

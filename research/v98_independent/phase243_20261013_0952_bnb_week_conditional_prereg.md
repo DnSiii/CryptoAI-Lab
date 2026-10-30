@@ -1,0 +1,3 @@
+# V98 Independent — weekly zero-ordering falsification preregistration
+
+Date 2026-10-13 09:52 BRT, before weekly analysis. On the same frozen 2023-2025 BNB training funding blob (6b46a2a911d85079f3ce4ec5bc8b1791febd397a), partition into ISO Monday UTC weeks, including boundary partial weeks. Preserve each week's exact zero count and native 8h event order. Primary: total within-week adjacent zero-zero pairs. Test exact right tail using independent uniform permutations within each week, with exact run-count combinatorics; report expected value and p. No weekly retuning, no holdout, no V99/V16, no strategy/PnL inference. A rejection implies temporal dependence beyond week prevalence, not missing data or profit. Source provenance and promotion remain blocked.

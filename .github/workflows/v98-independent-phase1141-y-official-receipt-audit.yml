@@ -1,0 +1,54 @@
+name: V98 Independent Phase1141 Y Official Read-Only Receipt Forensic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1141-y-official-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  y-independent-90cell-receipt-consistency:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Verify immutable Y economic freeze
+        run: |
+          cd research/v98_independent
+          python -c 'from phase1136_y_frozen_training_path import verify_freeze; assert verify_freeze()["decision"]=="FROZEN_Y_FULL_PRE_ECONOMIC"'
+      - name: Download original Phase1139 official immutable five-path receipts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 39986664898
+          github-token: ${{ github.token }}
+          pattern: v98-y-1139-Y_*
+          path: /tmp/v98-y-1139-original
+          merge-multiple: false
+      - name: Independently audit all 90 cells for NAV, folds, regime and risk consistency
+        shell: bash
+        run: |
+          set -o pipefail
+          python research/v98_independent/phase1140_y_receipt_consistency.py \
+            /tmp/v98-y-1139-original/v98-y-1139-Y_core_only/phase1136_y_Y_core_only_training_receipt.json \
+            /tmp/v98-y-1139-original/v98-y-1139-Y_full/phase1136_y_Y_full_training_receipt.json \
+            /tmp/v98-y-1139-original/v98-y-1139-Y_minus_opportunity/phase1136_y_Y_minus_opportunity_training_receipt.json \
+            /tmp/v98-y-1139-original/v98-y-1139-Y_minus_relative_value/phase1136_y_Y_minus_relative_value_training_receipt.json \
+            /tmp/v98-y-1139-original/v98-y-1139-Y_minus_stress/phase1136_y_Y_minus_stress_training_receipt.json \
+            | tee /tmp/v98_y_1141_consistency.json
+      - name: Preserve independent PASS, BLOCK or REJECT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-y-1141-independent-90cell-forensic
+          path: /tmp/v98_y_1141_consistency.json
+          retention-days: 30
+          if-no-files-found: warn

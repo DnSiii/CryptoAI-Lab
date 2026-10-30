@@ -1,0 +1,71 @@
+name: V98 Independent Phase260 BTC MVRV DATA ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase260-btc-mvrv.yml'
+      - 'research/v98_independent/phase260_btc_mvrv.py'
+      - 'research/v98_independent/test_phase260_btc_mvrv.py'
+      - 'research/v98_independent/phase260_btc_mvrv_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase260-btc-mvrv
+  cancel-in-progress: false
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check pytest
+      - name: Phase260 invariants
+        run: python -m pytest -q research/v98_independent/test_phase260_btc_mvrv.py
+      - name: Acquire BTC MVRV twice
+        run: |
+          python research/v98_independent/phase260_btc_mvrv.py --out-dir /tmp/p260a --manifest /tmp/p260a.json
+          python research/v98_independent/phase260_btc_mvrv.py --out-dir /tmp/p260b --manifest /tmp/p260b.json
+          cmp /tmp/p260a/mvrv_daily.csv /tmp/p260b/mvrv_daily.csv
+          cmp /tmp/p260a.json /tmp/p260b.json
+          mkdir -p research/v98_independent/data/phase260_btc_mvrv
+          cp /tmp/p260a/mvrv_daily.csv research/v98_independent/data/phase260_btc_mvrv/mvrv_daily.csv
+          cp /tmp/p260a.json research/v98_independent/phase260_btc_mvrv_manifest.json
+      - name: Enforce DATA_ONLY firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase260_btc_mvrv_manifest.json'))
+          assert p['phase']==260 and p['kind']=='DATA_ONLY_ONCHAIN_VALUATION'
+          assert p['decision'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          assert p['alpha_executed'] is False and p['pnl_executed'] is False
+          assert p['crypto_price_join'] is False and p['direction_selected'] is False and p['parameter_search'] is False
+          assert p['validation_accessed'] is False and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          print('Phase260',p['decision'])
+          PY
+      - name: Commit Phase260 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase260_btc_mvrv_manifest.json research/v98_independent/data/phase260_btc_mvrv/mvrv_daily.csv
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase260: record BTC MVRV DATA_ONLY evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase260-btc-mvrv-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            research/v98_independent/phase260_btc_mvrv_manifest.json
+            research/v98_independent/data/phase260_btc_mvrv/mvrv_daily.csv

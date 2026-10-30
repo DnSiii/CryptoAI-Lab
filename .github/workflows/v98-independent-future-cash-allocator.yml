@@ -1,0 +1,25 @@
+name: V98 Independent Future Cash Aware Allocator Static Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-future-cash-allocator.yml'
+      - 'research/v98_independent/v98_future_cash_aware_allocator.py'
+      - 'research/v98_independent/v98_future_cash_aware_allocator_contract_20261028.md'
+permissions:
+  contents: read
+jobs:
+  allocator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Prove no fictitious collateral or unapproved incremental gross
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_future_cash_aware_allocator.py
+          python v98_future_cash_aware_allocator.py

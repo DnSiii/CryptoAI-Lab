@@ -1,0 +1,224 @@
+{
+  "engine": "V98 Independent",
+  "phase": "099",
+  "hypothesis": "aggregate DEX volume 7d-vs-prior-7d directional regime",
+  "preregistration": "reports/v98_independent_phase099_dex_volume_regime_prereg.md",
+  "parameters": {
+    "window_days": 7,
+    "comparison": "non-overlapping prior 7d",
+    "gross": 0.75,
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT"
+    ],
+    "lag": "strict prior UTC day",
+    "rebalance": "daily 00:00 UTC",
+    "direction": "long if recent volume sum rises, short if falls"
+  },
+  "source": {
+    "url": "https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=false",
+    "raw_sha256": "e4ab69d69658d1868e3689149c7fa0c940d59094f18a4ee2e052b28acc191d8c"
+  },
+  "phase083_selection_use": false,
+  "future_holdout_required": true,
+  "training": {
+    "total_return": 0.8608163043981893,
+    "cagr": 0.22994043104806705,
+    "max_drawdown": -0.5316067614337998,
+    "worst_day": -0.14190890784499677,
+    "best_day": 0.12469117366442206,
+    "p01_day": -0.05218171496662741,
+    "p05_day": -0.031089765380568023,
+    "cvar05_day": -0.04638778237747636,
+    "profit_factor_daily": 1.1103973013237287,
+    "payoff_daily": 1.0803865634501144,
+    "win_rate_daily": 0.5068493150684932,
+    "positive_days": 555,
+    "negative_days": 540,
+    "days": 1095,
+    "turnover_sum": 190.21376759932576,
+    "avg_gross": 0.7214677535617109,
+    "max_gross": 0.8508522173390617,
+    "avg_net": 0.0022105074914587817,
+    "max_abs_net": 0.8508522173390617,
+    "ruin": false
+  },
+  "folds": {
+    "2023": {
+      "total_return": 0.0308685919721301,
+      "cagr": 0.030893638673556767,
+      "max_drawdown": -0.4354010386915602,
+      "worst_day": -0.14190890784499677,
+      "best_day": 0.07912857079729041,
+      "p01_day": -0.04758479373058605,
+      "p05_day": -0.029726895416531982,
+      "cvar05_day": -0.04308856560663482,
+      "profit_factor_daily": 1.041902414328354,
+      "payoff_daily": 1.1129412153052871,
+      "win_rate_daily": 0.4835164835164835,
+      "positive_days": 176,
+      "negative_days": 188,
+      "days": 364,
+      "turnover_sum": 62.26514596666767,
+      "avg_gross": 0.7274602380304728,
+      "max_gross": 0.8508522173390617,
+      "avg_net": -0.0023495978301398684,
+      "max_abs_net": 0.8508522173390617,
+      "ruin": false
+    },
+    "2024": {
+      "total_return": 1.8047619901297587,
+      "cagr": 1.799168774722562,
+      "max_drawdown": -0.2210598285922083,
+      "worst_day": -0.0754118781167672,
+      "best_day": 0.07280490015997665,
+      "p01_day": -0.044961118328491166,
+      "p05_day": -0.027590835658160784,
+      "cvar05_day": -0.0396688273045282,
+      "profit_factor_daily": 1.5089608928982294,
+      "payoff_daily": 1.2311919723149733,
+      "win_rate_daily": 0.5506849315068493,
+      "positive_days": 201,
+      "negative_days": 164,
+      "days": 365,
+      "turnover_sum": 67.58130678002307,
+      "avg_gross": 0.7230398491440396,
+      "max_gross": 0.7860590370840753,
+      "avg_net": 0.0420096636477605,
+      "max_abs_net": 0.7860590370840753,
+      "ruin": false
+    },
+    "2025": {
+      "total_return": -0.3535850300813401,
+      "cagr": -0.35381039066932307,
+      "max_drawdown": -0.5316067614337998,
+      "worst_day": -0.10894746013293288,
+      "best_day": 0.12469117366442206,
+      "p01_day": -0.06443182537178631,
+      "p05_day": -0.03525846206644421,
+      "cvar05_day": -0.05296478370401123,
+      "profit_factor_daily": 0.8943857304028123,
+      "payoff_daily": 0.9345828418815904,
+      "win_rate_daily": 0.489010989010989,
+      "positive_days": 178,
+      "negative_days": 186,
+      "days": 364,
+      "turnover_sum": 60.36731485263502,
+      "avg_gross": 0.7138988663994359,
+      "max_gross": 0.7887454159152213,
+      "avg_net": -0.033137582127234146,
+      "max_abs_net": 0.7887454159152213,
+      "ruin": false
+    }
+  },
+  "stress_training": {
+    "severe": {
+      "total_return": 0.5952883328332836,
+      "cagr": 0.16842330386867133,
+      "max_drawdown": -0.5444102021303499,
+      "worst_day": -0.14213249918934356,
+      "best_day": 0.1246424297385249,
+      "p01_day": -0.05225179238586705,
+      "p05_day": -0.031132096517403784,
+      "cvar05_day": -0.046543646170376866,
+      "profit_factor_daily": 1.0898807905084105,
+      "payoff_daily": 1.0760347550573055,
+      "win_rate_daily": 0.5031963470319635,
+      "positive_days": 551,
+      "negative_days": 544,
+      "days": 1095,
+      "turnover_sum": 190.21376759932576,
+      "avg_gross": 0.7214677535617109,
+      "max_gross": 0.8508522173390617,
+      "avg_net": 0.0022105074914587817,
+      "max_abs_net": 0.8508522173390617,
+      "ruin": false
+    },
+    "supersevere": {
+      "total_return": 0.24832443477713895,
+      "cagr": 0.07672067768315705,
+      "max_drawdown": -0.5638197757818415,
+      "worst_day": -0.14252619884154216,
+      "best_day": 0.12456959171848414,
+      "p01_day": -0.05236725637381298,
+      "p05_day": -0.03148291773344185,
+      "cvar05_day": -0.04681217410524201,
+      "profit_factor_daily": 1.0580612415938857,
+      "payoff_daily": 1.0716760002173367,
+      "win_rate_daily": 0.4968036529680365,
+      "positive_days": 544,
+      "negative_days": 551,
+      "days": 1095,
+      "turnover_sum": 190.21376759932576,
+      "avg_gross": 0.7214677535617109,
+      "max_gross": 0.8508522173390617,
+      "avg_net": 0.0022105074914587817,
+      "max_abs_net": 0.8508522173390617,
+      "ruin": false
+    }
+  },
+  "regimes_training": {
+    "bear": {
+      "hours": 2283,
+      "return_sum_approx": 0.06849933664365249,
+      "positive_hour_ratio": 0.48751642575558474
+    },
+    "bull": {
+      "hours": 12276,
+      "return_sum_approx": 0.9636410492607597,
+      "positive_hour_ratio": 0.5109970674486803
+    },
+    "sideways": {
+      "hours": 11745,
+      "return_sum_approx": -0.15023976538484374,
+      "positive_hour_ratio": 0.503448275862069
+    }
+  },
+  "concentration_training": {
+    "mean_top1_weight_share": 0.21368479646973465,
+    "p95_top1_weight_share": 0.24280620818721133,
+    "mean_active_assets": 5.0
+  },
+  "asset_contribution_proxy": {
+    "pre_cost_position_return_sum": {
+      "BTCUSDT": 0.12146314354212348,
+      "ETHUSDT": 0.07224083371094298,
+      "BNBUSDT": 0.23277056851546088,
+      "SOLUSDT": 0.29084216294935045,
+      "XRPUSDT": 0.2671483580796019
+    },
+    "absolute_contribution_share": {
+      "BTCUSDT": 0.12337984113265688,
+      "ETHUSDT": 0.07338079952998888,
+      "BNBUSDT": 0.23644370568950368,
+      "SOLUSDT": 0.29543167427512323,
+      "XRPUSDT": 0.2713639793727273
+    }
+  },
+  "tails_training": {
+    "bottom_5pct_sum": -2.5513280307611987,
+    "top_5pct_sum": 2.722870324870244,
+    "top10_absolute_day_share": 0.05517761774581859
+  },
+  "reproducibility": {
+    "targets_sha256": "5cfb2bdff9a5d6de5ade00a6d1af6fa4a1fc19d20d2d90357695de0167491818",
+    "prereg_sha256": "1f09d1e5dc027bfde598ce870ad20649be02f9e2083eef590a08eb7271289a9b"
+  },
+  "training_gate": {
+    "passed": false,
+    "decision": "REJECT_NO_RESCUE",
+    "failures": [
+      "max_drawdown<-35%",
+      "2025_return<=0"
+    ]
+  },
+  "validation": null,
+  "final_holdout": null,
+  "v99_used": false,
+  "v16_used": false,
+  "parameter_search": false,
+  "rescue_allowed": false
+}

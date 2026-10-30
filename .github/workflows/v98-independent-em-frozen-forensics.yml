@@ -1,0 +1,33 @@
+name: V98 Independent EM Frozen Artifact Only Capital Displacement Diagnosis
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-em-frozen-forensics.yml'
+      - 'research/v98_independent/em_frozen_forensics.py'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  immutable_receipt_diagnosis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Retrieve frozen EM economic receipts, not training data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: em30-ubuntu-24.04-EM_*
+          run-id: 40237426781
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Compute only frozen physically settled opportunity costs
+        run: python research/v98_independent/em_frozen_forensics.py --root receipts --output em_frozen_forensics.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: em-frozen-artifact-only-forensics
+          path: em_frozen_forensics.json
+          retention-days: 30

@@ -1,0 +1,7 @@
+# V98 Independent AN — immutable 2023/24 pre-economic freeze (2026-10-23)
+
+**AN preregistration preceded all AN code and historical PnL.** First official training workflow launch commit `68fcac2a4eb89bbf70d61377b861e52ce4b1dc49`, run https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40030708225. All matrix jobs check out that immutable commit. No 2025 validation or external benchmark access.
+
+**Pinned Git blobs:** `an_hard_budget_prereg_20261023.md` `c7c401dbf5703db4bb3a710414b9e260f73ab10a`; `an_hard_budget_sources.py` `59c730c48e3ab5ba884ac5bdf415b1b823bd1f24`; `an_hard_budget_allocator.py` `c416cbb60145b3d8d722d9c47948dd500663eb5d`; `an_90cell_training.py` `0c614999aed171dc9ca09d0084b7d2c80c97bc81`; `an_90cell_reconcile.py` `0b25e06ad22293a787c5ce0aa94c971b329da19b`; workflow `v98-independent-an-90cell-training.yml` `1c245500c2761a212b49b23617f841828ab2c475`. Shared source/ledger/governor dependencies remain identical to prior V98 independent infrastructure and are not imported as alpha.
+
+**Gates:** 90/90 authenticated chronological 2023/24 cells, two OS reproducibility, positive net log growth BOTH years at base and severe costs and both native funding orders, robust positive full-minus-ablation log growth for all three non-core sleeves, survival/tails/concentration. A running job is not a passed gate. No post-result strategy rescue. 2025 holdout, 2026+, XRP, contaminated Phase083, V14/V15/V99 and frozen/paper excluded.

@@ -1,0 +1,56 @@
+name: CryptoAI V99 R14 core satellite study
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/v99-r14-fast.yml"
+      - "scripts/run_v99_r14_core_satellite_study.py"
+      - "src/cryptoai_v13/v99_r5.py"
+      - "src/cryptoai_v13/v99_r4.py"
+      - "config/candidate_v99_asymmetric.json"
+
+permissions:
+  contents: read
+
+jobs:
+  r14:
+    name: R14 V16 core plus persistent alpha satellite
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Resolve UTC cache date
+        id: utc
+        shell: bash
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+      - name: Restore canonical market cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: data/canonical
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-paper-v15-market-v1-
+            ${{ runner.os }}-paper-v13-market-
+      - name: Install package
+        run: python -m pip install -e "."
+      - name: Synchronize latest closed public candles
+        run: python scripts/sync_paper_data_v13.py
+      - name: Run R14 core satellite study
+        run: python scripts/run_v99_r14_core_satellite_study.py
+      - name: Upload R14 evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: v99-r14-core-satellite-${{ github.run_id }}
+          retention-days: 30
+          path: reports/candidate_v99_r14_core_satellite_study.json

@@ -1,0 +1,16 @@
+# V98 Independent BJ — cooperative online marginal-evidence seven-slot portfolio (preregistered 2026-10-24)
+
+**New structural hypothesis before BJ historical outputs.** BH and BI are permanently rejected. BJ is NOT a rescue of their signals or a selection of ablations. Its distinctive mechanism is an **online causal net-contribution allocator** that evaluates every candidate sleeve's own historical shadow cashflow after severe friction before allowing a shared portfolio budget. It does not select from V14/V15/V99 or use any 2025 data.
+
+**Clean-4 only:** pinned BTC/ETH/BNB/SOL Binance USD-M 1h Dec2022 warmup, chronological 2023–2024 training, native 8h funding and conservative mark, t signal / t+1 actual open. No XRP, Phase083, 2025/2026+, external engines.
+
+Seven cooperating slots:
+1. Growth Core: at every 672 completed hours allocate across all four assets proportional to inverse 672h realized hourly volatility, without performance-based asset winner selection; freeze units between epochs.
+2. Opportunity: a separate sparse one-asset 168h positive-breadth momentum continuation long, only when >=3 assets have positive 168h returns and chosen asset's 72h return >0.04; 336h hold, 672h cooldown.
+3. Relative Value: a signed .5 long / -.5 short pair selected by trailing 168h native funding differential (high-funding short, low-funding long), only when spread >0.004 and relative 168h price return of long vs short >0; 336h hold, 672h cooldown.
+4. Stress/Recovery: subtract an equal-weight basket (-.25 each) when >=3 assets have negative 168h return and median 72h return <-0.05; 168h hold, 336h cooldown. Its value is measured in *net* shadow performance rather than assumed from a crisis label.
+5. Router: CRISIS under the systemic drawdown condition; BULL when >=3 assets positive 168h and median 336h positive; otherwise NEUTRAL.
+6. **Dynamic Allocator:** core budget at 672h epochs: BULL 1.0, NEUTRAL .75, CRISIS .25. Event sleeve max budgets BULL [.20,.12,.10], NEUTRAL [.12,.15,.20], CRISIS [.00,.08,.40] for Opportunity/RV/Stress. At each new event, compute the sleeve's **causal 672h trailing shadow log PnL** using only previous-bar sleeve weights, completed close returns, observed native funding and 0.5% severe one-way friction on shadow position changes. Admit only if trailing shadow net log return >0.02 and causal edge minus positive carry >0.02. No after-the-fact reallocation, hidden leverage, or continuous rebalance. Zero shadow history means no admission.
+7. Risk Governor: same V98-only frozen-unit, prior 25% exit-capacity, actual-open, 81-corner physical settlement, signed native funding and severe/supersevere costs.
+
+**Frozen test:** 5 full/ablated paths x 3 capitals x 3 costs x 2 funding orders = 90 scenarios on both Ubuntu 22.04/24.04. 90/90 physical survival, exact two-OS reconciliation, full annual positive 2023 and 2024 net log growth under base/severe USD10k for both funding orders, each sleeve strictly positive annual marginal full-minus-ablation net log growth in both years/costs/orders. Report supersevere, DD, PF, payoff, win rate, positive days, tails, concentration, funding and costs. Reject permanently if any gate fails. Training pass is not separate future validation, superiority or live authorization.

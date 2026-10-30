@@ -1,0 +1,27 @@
+name: V98 Independent Phase1040 Q Signed Margin Source-Only Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1040_q_signed_margin_oracle.py'
+      - 'research/v98_independent/test_phase1040_q_signed_margin_oracle.py'
+      - '.github/workflows/v98-independent-phase1040-q-signed-oracle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q-signed-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'scipy==1.14.1'
+      - name: Run Q signed source-only adversarial oracle (NO PNL, NO FUTURE)
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1040_q_signed_margin_oracle.py

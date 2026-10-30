@@ -1,0 +1,11 @@
+# V98 Independent — Phase243 XRP taker-side forensic audit (2026-10-11)
+
+Scope: immutable original monthly XRPUSDT 1h ZIP for November 2023; **data integrity only**. No 2026+ holdout, alpha, source replacement, V16 or V99 reads/writes. SHA256 of ZIP: `29b7a4a3b9360f7b3be131af6b1fd619f18e7344eea99b5c964e955e667027a7`. CSV member SHA256: `a47aaa1393fde0f0c0ed6f7764750de1c9a9c1fb1a1197a1b03d2896da0c9e67`.
+
+Exact Decimal arithmetic across 720 consecutive hourly candles finds **one** contradiction at 2023-11-14 11:00 UTC (zero-based row 323): OHLC low/high 0.6474/0.6556; total base 62,032,915.1 XRP; total quote 51,332,637.23413 USDT. Taker-buy base/quote 33,020,819 XRP / 21,496,999.26064 USDT (VWAP 0.6510135094, physically feasible). Implied taker-sell base/quote 29,012,096.1 XRP / 29,835,637.97349 USDT (VWAP **1.0283861556**, physically impossible at observed OHLC).
+
+Quote exceeds the total-base high-price bound by **10,663,858.09457 USDT**; taker-sell quote exceeds its independent high-price bound by **10,815,307.77033 USDT**. Conditional single-field explanations, holding all other fields fixed: total quote would need to be in **[40,279,430.27578, 40,517,329.46380] USDT**, or total base in **[78,529,723.77958, 79,106,141.78883] XRP**. These are *not repairs*, cannot identify the erroneous field, and must not be used to tune strategies.
+
+Latest inspected Phase243 training acquisition GitHub Actions run 38053620316 failed at the same source conflict; offline synthetic tests passed. Separate checksum-verified daily 1h and 1m originals remain absent. Source status: **BLOCKED_SOURCE_CONFLICT**. Phase240 rejected (72/72 negative assessments in prior evidence), Phase243 blocked, **no champion promoted**. Preserve frozen chronological folds, untouched holdout, funding and stress gates; obtain independent daily 1m/1h evidence before adjudication or new historical backtest.
+
+Preregistered next test (before seeing daily sources): compare the single 11:00 UTC hourly kline to both the independently published daily 1h row and exact 60-minute aggregation from daily 1m, requiring matching UTC intervals, checksum-verified bytes, consistent price bounds and quote/base/taker fields; classify source disagreement as inconclusive, not a repair.

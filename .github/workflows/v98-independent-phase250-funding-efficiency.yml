@@ -1,0 +1,75 @@
+name: V98 Independent Phase250 Funding Efficiency Allocator
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase250-funding-efficiency.yml'
+      - 'research/v98_independent/phase250_funding_efficiency_allocator.py'
+      - 'research/v98_independent/test_phase250_funding_efficiency_allocator.py'
+      - 'research/v98_independent/phase250_funding_efficiency_allocator_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase250-funding-efficiency
+  cancel-in-progress: false
+jobs:
+  training:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Phase250 causality and invariant tests
+        run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase250_funding_efficiency_allocator.py
+      - name: Rebuild authenticated Clean-4 training source
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute frozen Phase250 twice
+        run: |
+          python research/v98_independent/phase250_funding_efficiency_allocator.py --out /tmp/phase250_a.json
+          python research/v98_independent/phase250_funding_efficiency_allocator.py --out /tmp/phase250_b.json
+          cmp /tmp/phase250_a.json /tmp/phase250_b.json
+          cp /tmp/phase250_a.json research/v98_independent/phase250_funding_efficiency_allocator_results.json
+      - name: Enforce Phase250 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase250_funding_efficiency_allocator_results.json'))
+          assert p['phase']==250
+          assert p['training_only'] is True and p['validation'] is None
+          assert p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['parameters']['funding_window_hours']==168
+          assert p['parameters']['cheap_pair_weight']==0.3
+          assert p['parameters']['expensive_pair_weight']==0.2
+          assert p['parameters']['gross_target']==1.0
+          assert p['gate']['decision'] in {'FUNDING_EFFICIENCY_ALLOCATOR_CANDIDATE','REJECT_FUNDING_EFFICIENCY_ALLOCATOR_NO_RESCUE'}
+          assert p['diagnostics']['max_open_gross']<=1.000000001
+          print('Phase250',p['gate']['decision'])
+          PY
+      - name: Commit Phase250 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase250_funding_efficiency_allocator_results.json
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase250: record Funding Efficiency Allocator evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - name: Upload Phase250 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase250-funding-efficiency-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: research/v98_independent/phase250_funding_efficiency_allocator_results.json

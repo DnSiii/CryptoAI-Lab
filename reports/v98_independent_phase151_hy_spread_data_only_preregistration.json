@@ -1,0 +1,30 @@
+{
+  "engine": "V98 Independent",
+  "phase": "151",
+  "kind": "DATA_ONLY",
+  "status": "PREREGISTERED",
+  "family": "US high-yield option-adjusted spread",
+  "source": "FRED",
+  "series": "BAMLH0A0HYM2",
+  "window": {"start": "2023-01-01", "end": "2025-12-31"},
+  "scientific_rationale": "Corporate credit stress is an orthogonal macro risk family relative to VIX, broad USD, SP500 direction and WTI direction. Phase151 evaluates data integrity only; no crypto relationship may be inspected in this phase.",
+  "required_checks": [
+    "two independent acquisitions of the same FRED series",
+    "canonical date,value serialization and SHA-256 equality",
+    "strictly increasing unique dates",
+    "no malformed numeric accepted values",
+    "no accepted values outside frozen window",
+    "accepted values must be nonnegative",
+    "global expected-weekday coverage >= 0.95",
+    "each calendar-year expected-weekday coverage >= 0.95",
+    "no imputation and no carry-forward",
+    "economic firewall: no crypto returns, PnL, correlation, signal, PF or drawdown"
+  ],
+  "pass_label": "PASS_DATA_ONLY",
+  "failure_label": "REJECT_DATA_ONLY",
+  "validation": null,
+  "final_holdout": null,
+  "v16_used": false,
+  "v99_used": false,
+  "economic_hypothesis_allowed_before_pass": false
+}

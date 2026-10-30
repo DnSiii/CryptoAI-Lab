@@ -1,0 +1,84 @@
+{
+  "phase": 1137,
+  "decision": "FROZEN_Y_FULL_PRE_ECONOMIC",
+  "branch": "research/v98-independent-zero",
+  "source_lock_phase": 1133,
+  "source_gate": "PASS_Y_FOUR_INDEPENDENT_FRESH_SOURCE_RECOMPOSITIONS_NOT_FROZEN",
+  "source_run_id": 39982748574,
+  "synthetic_survival_run_id": 39983141471,
+  "synthetic_survival_cells": 15,
+  "synthetic_survival_passed": 15,
+  "economic_synthetic_ci_run_id": 39986495454,
+  "economic_synthetic_tests_per_runner": 37,
+  "economic_synthetic_runner_count": 2,
+  "canonical_sha256": {
+    "Y_core_only": "3e43fe4a716b69a81b0a2594cf95b662033d78293b0245e9523b9df617927113",
+    "Y_full": "0a599929532afbc93e81a5acd356abbde79d3ccbdfc3887af31992bc718191c8",
+    "Y_minus_opportunity": "9f4fa10922ab85503733e9c4361c60419eba3b6fd234d1acaf0e05ad28099fb2",
+    "Y_minus_relative_value": "af2763af19e6507fdeafd2ce52d8c5033fddfc6cdc1c3af691a7f5b900ad7735",
+    "Y_minus_stress": "3907624b8897ceafb92bb875d454da6e8729883d3e21024a6012d932ed96682c"
+  },
+  "typed_mark_csv_sha256": "f706812b7989666c3efd0b24045a5c31f4d9c79b46d61da7b5e6cde6c6e73f5e",
+  "typed_mark_shape": [
+    18288,
+    4,
+    2
+  ],
+  "native_funding_events": 9144,
+  "path_order": [
+    "Y_core_only",
+    "Y_full",
+    "Y_minus_opportunity",
+    "Y_minus_relative_value",
+    "Y_minus_stress"
+  ],
+  "code_blob_sha1": {
+    "phase1123_y_continuous_feedback.py": "b73ae543296a67b2d01194c8b67b58ec9f39b815",
+    "phase1124_y_pretrade_growth.py": "992042cf19bb13c872ac53dd1e8ae0ab81633101",
+    "phase1125_y_sevenslot_source.py": "1158aa82d5e8cb4fca55eaedbd58be0d09993873",
+    "phase1126_y_hourly_ledger.py": "c02f00748a5c8b3746f98d11708fa0538f5d489a",
+    "phase1127_y_synthetic_integration.py": "dc948253c836b9611df71389f7bd291f5b769327",
+    "phase1128_y_funding_reserve_audit.py": "07b6e235c88b472f58683ac15da7dc07c4796689",
+    "phase1130_y_authenticated_source.py": "9f37cea225bdc2f95d2adbd16950e4682d39d236",
+    "phase1131_y_growth_metrics.py": "a11ee08f8df527c4a4397756127f5d81703f3266",
+    "phase1132_y_closed_trade_accounting.py": "ce715eb35976fce41b7571a7dd8c712334633daf",
+    "phase1070_s_typed_native_mark.py": "ea68b7749a3cf0b785d967b1f6c7cc2d1bd06a8c",
+    "phase1135_y_funded_training_simulator.py": "7fdfcf8fe1c40944ab589f9ce2746064d5e9070e",
+    "phase1136_y_frozen_training_path.py": "a9ba39dd05b18aced67def38e7426491275671b8",
+    "phase1138_y_90cell_growth_audit.py": "77415dc9ff046819b2741482fe6d387647eba7c1"
+  },
+  "fee_tiers": {
+    "base": 0.0007,
+    "severe": 0.0012,
+    "supersevere": 0.002
+  },
+  "orders": [
+    "carried_before_fill",
+    "new_after_fill"
+  ],
+  "capital_modes": {
+    "immediate": 10000,
+    "capacity_1m": 1000000,
+    "capacity_10m": 10000000
+  },
+  "training_folds": [
+    2023,
+    2024
+  ],
+  "planned_cells": 90,
+  "slippage": 0.002,
+  "risk": {
+    "asset": 0.45,
+    "net": 0.75,
+    "gross": 1.35,
+    "equity_floor": 0.25,
+    "prior_quote_participation": 0.01
+  },
+  "historical_pnl_computed": false,
+  "validation_2025_read": false,
+  "holdout_accessed": false,
+  "external_benchmarks_used": false,
+  "promotion_eligible": false,
+  "benchmark_access_allowed": false,
+  "next_gate": "Execute Y five immutable paths x 18 authenticated 2023/2024 training cells; preserve failures without rescue. Audit all 90 and ablation marginal growth."
+}

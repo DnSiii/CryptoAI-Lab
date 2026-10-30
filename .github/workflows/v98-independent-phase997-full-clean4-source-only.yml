@@ -1,0 +1,41 @@
+name: V98 Independent Phase997 Full Clean4 Source-Only Policy
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase997-full-clean4-source-only.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase997-clean4-source-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  full-source-attestation:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Synthetic source-only fail-closed unit tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase996_btc_feb_gap_resolution.py test_phase997_clean4_source_policy.py
+      - name: Fresh official 100 funding 100 mark plus 28 exception daily ZIPs
+        working-directory: research/v98_independent
+        run: python phase997_clean4_source_policy.py
+      - name: Preserve source-only evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase997-100x100-source-only
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            research/v98_independent/phase997_clean4_source_policy_receipt.json
+            research/v98_independent/phase997_clean4_conservative_funding_bounds_source_only.csv

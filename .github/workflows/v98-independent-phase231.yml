@@ -1,0 +1,51 @@
+name: V98 Independent Phase231
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['research/v98_independent/phase231_eval.py','research/v98_independent/phase231_validate.py','research/v98_independent/phase231_preregister.md','research/v98_independent/phase231_preexecution_audit.md','.github/workflows/v98-independent-phase231.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase231:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and frozen invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+              f=pd.read_csv(Path('research/v98_independent/data/phase206_funding')/f'{a}_funding.csv'); ft=pd.to_datetime(f['fundingTime_utc'],utc=True,errors='raise',format='mixed'); assert ft.is_monotonic_increasing and not ft.duplicated().any() and not (ft>=cut).any()
+          e=Path('research/v98_independent/phase231_eval.py').read_text()
+          assert 'COSTS={"base":.0007,"severe":.0014,"supersevere":.0028}' in e
+          assert 'rv.iloc[i-1]' in e
+          print('Phase231 firewall/funding/causality invariants OK')
+          PY
+      - name: Deterministic runs
+        run: |
+          python research/v98_independent/phase231_eval.py --out /tmp/phase231_run1.json
+          python research/v98_independent/phase231_eval.py --out /tmp/phase231_run2.json
+          diff -u /tmp/phase231_run1.json /tmp/phase231_run2.json
+          cp /tmp/phase231_run2.json research/v98_independent/phase231_results.json
+      - name: Independent validation and gate
+        run: python research/v98_independent/phase231_validate.py /tmp/phase231_run1.json | tee /tmp/phase231_validation.json
+      - name: Commit V98-only result
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add research/v98_independent/phase231_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase231 harvest volatility dispersion relative value'
+          git pull --rebase origin research/v98-independent-zero
+          git push

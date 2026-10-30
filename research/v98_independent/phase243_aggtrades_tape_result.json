@@ -1,0 +1,216 @@
+{
+  "alpha_or_pnl_computed": false,
+  "comparisons": {
+    "daily_1h": {
+      "all_required_match": false,
+      "checks": {
+        "base": {
+          "abs_diff": "16832152.8",
+          "match": false,
+          "tolerance": "0.0620329151"
+        },
+        "close": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "high": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "low": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "open": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "quote": {
+          "abs_diff": "0.00000",
+          "match": true,
+          "tolerance": "0.05133263723413"
+        },
+        "taker_buy_base": {
+          "abs_diff": "0.0",
+          "match": true,
+          "tolerance": "0.033020819"
+        },
+        "taker_buy_quote": {
+          "abs_diff": "0.00000",
+          "match": true,
+          "tolerance": "0.02149699926064"
+        },
+        "trades": {
+          "definition_match": false,
+          "match": null
+        }
+      }
+    },
+    "daily_1m_aggregate": {
+      "all_required_match": false,
+      "checks": {
+        "base": {
+          "abs_diff": "2320395.7",
+          "match": false,
+          "tolerance": "0.0765446722"
+        },
+        "close": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "high": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "low": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "open": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "quote": {
+          "abs_diff": "1508670.41897",
+          "match": false,
+          "tolerance": "0.04982396681516"
+        },
+        "taker_buy_base": {
+          "abs_diff": "1142885.6",
+          "match": false,
+          "tolerance": "0.0318779334"
+        },
+        "taker_buy_quote": {
+          "abs_diff": "743156.80021",
+          "match": false,
+          "tolerance": "0.02075384246043"
+        },
+        "trades": {
+          "definition_match": false,
+          "match": null
+        }
+      }
+    },
+    "monthly_1h": {
+      "all_required_match": false,
+      "checks": {
+        "base": {
+          "abs_diff": "16832152.8",
+          "match": false,
+          "tolerance": "0.0620329151"
+        },
+        "close": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "high": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "low": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "open": {
+          "abs_diff": "0.0000",
+          "match": true,
+          "tolerance": "0"
+        },
+        "quote": {
+          "abs_diff": "0.00000",
+          "match": true,
+          "tolerance": "0.05133263723413"
+        },
+        "taker_buy_base": {
+          "abs_diff": "0.0",
+          "match": true,
+          "tolerance": "0.033020819"
+        },
+        "taker_buy_quote": {
+          "abs_diff": "0.00000",
+          "match": true,
+          "tolerance": "0.02149699926064"
+        },
+        "trades": {
+          "definition_match": false,
+          "match": null
+        }
+      }
+    }
+  },
+  "engine": "V98 Independent",
+  "holdout_accessed": false,
+  "hour_utc": "2023-11-14T11:00:00Z",
+  "interpretation": "Same-provider tape is diagnostic only; it cannot independently authenticate or repair the canonical training source.",
+  "mode": "DATA_ONLY_NO_ALPHA_NO_PNL",
+  "phase": 243,
+  "preregistration": "research/v98_independent/phase243_prereg_20261014_0847_aggtrades_tape.md",
+  "promotion_eligible": false,
+  "reference_identity": {
+    "daily_1m_aggregate_equals_daily_1h": false,
+    "monthly_1h_equals_daily_1h": true
+  },
+  "source_repair_performed": false,
+  "sources": {
+    "aggtrades": {
+      "archive_sha256": "e32f7266e54120d44bf7a2486e892a776bb915b0246f52ffc6fe9d9a7683061e",
+      "checksum_verified": true,
+      "member_sha256": "2bad41b5c8f8d32b8792107cb3913e34665859d621b2e570a4144f2d4fe4ef5e",
+      "source_authentication": "provider checksum only; not independent signature",
+      "url": "https://data.binance.vision/data/futures/um/daily/aggTrades/XRPUSDT/XRPUSDT-aggTrades-2023-11-14.zip"
+    },
+    "daily_1h": {
+      "archive_sha256": "5b379ac616446a65bf1137fe32ab1bc328fbd52fa155d3cd230c0e5d343d0e2f",
+      "checksum_verified": true,
+      "member_sha256": "d639bc878e65aff032a7cf39067660cf2aa38dce6de42a3696c767445966f4ed",
+      "source_authentication": "provider checksum only; not independent signature",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1h/XRPUSDT-1h-2023-11-14.zip"
+    },
+    "daily_1m": {
+      "archive_sha256": "ead12e1ae39a049a594eb9f2da5a347582a4a9fdd8ceffef030fdf42dff408b6",
+      "checksum_verified": true,
+      "member_sha256": "ec8332472d4836dd8f68b8713a8906b099a43d27c29275e78820192f82c221d6",
+      "source_authentication": "provider checksum only; not independent signature",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/1m/XRPUSDT-1m-2023-11-14.zip"
+    },
+    "monthly_1h": {
+      "archive_sha256": "29b7a4a3b9360f7b3be131af6b1fd619f18e7344eea99b5c964e955e667027a7",
+      "checksum_verified": true,
+      "member_sha256": "a47aaa1393fde0f0c0ed6f7764750de1c9a9c1fb1a1197a1b03d2896da0c9e67",
+      "source_authentication": "provider checksum only; not independent signature",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/1h/XRPUSDT-1h-2023-11.zip"
+    }
+  },
+  "status": "QUARANTINED_SOURCE_CONFLICT",
+  "supported_references": [],
+  "tape_summary": {
+    "agg_records": 13685,
+    "base": "78865067.9",
+    "close": "0.6508",
+    "first_agg_id": 387021300,
+    "first_trade_id": 1316102207,
+    "high": "0.6556",
+    "last_agg_id": 387034984,
+    "last_trade_id": 1316197523,
+    "low": "0.6474",
+    "open": "0.6552",
+    "quote": "51332637.23413",
+    "raw_trade_count": 95312,
+    "raw_trade_ids_contiguous": false,
+    "taker_buy_base": "33020819.0",
+    "taker_buy_quote": "21496999.26064"
+  },
+  "v16_used": false,
+  "v99_used": false
+}

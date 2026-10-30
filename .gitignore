@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Historical source archives and canonicalized market data are reproducible from the
+# checked-in scripts/manifests and are intentionally not committed.
+data/raw/
+data/canonical/
+
+# Large generated matrices are kept out of Git. Compact audit JSON is committed.
+reports/*.csv
+reports/*.log
+reports/partial/

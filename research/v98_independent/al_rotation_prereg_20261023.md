@@ -1,0 +1,20 @@
+# V98 Independent — AL composed rotation preregistration (2026-10-23)
+
+**Status:** architectural hypothesis registered before AL historical PnL. AK_full is irrevocably rejected. AL is a distinct **cross-sectional cash-aware rotation / volatility break-and-recovery portfolio**, not a parameter rescue of AK's weekly dual-trend + funding-rank short carry. Reuse of the previously tested actual-open futures ledger and conservative risk feasibility code is strictly accounting/survival infrastructure, not reuse of AK alpha, weights, priors, selection, or results.
+
+**Firewall:** Only original authenticated Clean-4 BTC/ETH/BNB/SOL 1h Dec-2022 warmup + Jan-2023 through Dec-2024 chronological training. Native funding and mark bounds from pinned AJ1259 vendor-attested source artifact. No 2025 holdout, 2026+, XRP, Phase083, or V14/V15/V99 data/signals. Do not change AK artifacts.
+
+**Seven architectural slots (parameters locked before PnL):**
+1. **Growth Core:** cash-aware cross-sectional rotation; long up to two strongest assets with strictly positive completed-close 14d and 42d excess-adjusted trend, scaled by 14d realized-vol inverse weights. Otherwise cash. This is rank-based selection, not AK dual-28/84d all-eligible allocation.
+2. **Opportunity Sleeve:** sparse 240h prior-high break confirmed by positive 72h acceleration and nonzero relative quote activity; 72h non-overlapping hold per asset, with inverse-vol weights.
+3. **Relative-Value Sleeve:** **long-only** residual momentum rotation: select at most one asset with positive 168h return minus contemporaneous median Clean-4 return, positive 336h own return; cash otherwise. No funding-rate carry rank, no short leg.
+4. **Stress/Recovery Sleeve:** cash during confirmed 72h basket selloff; only after a completed-close 72h positive recovery and improving 168h basket trend, deploy a temporary 96h long diversified rebound sleeve. Never a perpetual short hedge.
+5. **Regime Router:** completed-close 336h median trend, 72h drawdown and breadth classify BULL/BEAR/CHOP/STRESS, independent of future intrabar observations.
+6. **Dynamic Allocator:** predeclared regime sleeve priors; online causal virtual sleeve score from realized completed-close hourly returns minus native funding and turnover allowance, evaluated on prior 336h only. Rebalance only on 72h epochs or regime transitions. Economic growth, not variance minimization, sets desired scale; survival governor may reduce it. No parameter retuning after result.
+7. **Risk Governor:** reuse exact previously frozen conservative 81-corner actual-open, quote-capacity, carried-inventory gap, funding-reserve and severe-cost survival gate (AK infrastructure), with unmodified real futures settlement. Reusing verified mechanics does **not** revive rejected AK signals.
+
+**Hypothesis:** concentration in causal cross-sectional winners, sparse entry, cash on non-opportunity, and reduced signed funding drag improve **net compounded log wealth** and severe-cost resilience versus zero wealth growth, while distinct sleeves contribute positively to complete AL.
+
+**Frozen training matrix:** five paths AL_core_only / AL_full / AL_minus_opportunity / AL_minus_RV / AL_minus_stress; three starting capitals USD10k/1m/10m; base/severe/supersevere fees/slippage; both native funding event orderings = 90 cells. Two independent OS runners. Include 2023/2024 and combined CAGR/log growth, max drawdown, concentration, hourly PF/payoff/win rate, positive UTC days, turnover, funding, fee/slippage and severe/supersevere stress.
+
+**Decision gate:** mechanical 90/90, source/hash numerical reproducibility, positive net log growth in BOTH chronological years at base and severe costs, positive complete-portfolio marginal log growth for each active sleeve against preregistered ablation across both years and severe costs, reasonable tails and concentration. If any gate fails, REJECT AL without post-result sign/window/threshold/fee/leverage rescue. Do not access 2025 unless AL passes all internal training gates; benchmarks only after frozen independent 2025 validation. No claim of real-money performance.

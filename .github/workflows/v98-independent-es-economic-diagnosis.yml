@@ -1,0 +1,43 @@
+name: V98 Independent ES Frozen Capital Cost Diagnosis
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-es-economic-diagnosis.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  diagnosis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: es30-ubuntu-24.04-ES_*
+          run-id: 40256341448
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Attribute frozen full-minus-RV and full-minus-core net capital, funding and trading cost
+        run: |
+          python - <<'PY'
+          import json,glob
+          rows={}
+          for path in ('ES_full','ES_minus_RV','ES_core_only','ES_minus_opportunity','ES_minus_stress'):
+              files=glob.glob('receipts/es30-ubuntu-24.04-'+path+'/*.json')
+              assert len(files)==1,(path,files)
+              x=json.load(open(files[0]))
+              assert x['architecture']=='ES' and x['path']==path
+              assert x['validation_2025_read'] is False
+              rows[path]={(c['fee'],c['order']):c for c in x['cells']}
+          for fee in ('base','severe'):
+              for order in ('carried_before_fill','new_after_fill'):
+                  key=(fee,order);full=rows['ES_full'][key]
+                  for alt in ('ES_minus_RV','ES_core_only'):
+                      ref=rows[alt][key]
+                      d={name:round(full[name]-ref[name],4) for name in ('final_nav','turnover','fees','slippage','funding')}
+                      y={year:round(full['annual'][year]['net_log_growth']-ref['annual'][year]['net_log_growth'],7) for year in ('2023','2024')}
+                      print('ES_FROZEN_ATTRIBUTION',fee,order,'full_minus',alt,'economic',d,'annual_marginal_log',y)
+          PY

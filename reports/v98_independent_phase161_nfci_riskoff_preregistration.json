@@ -1,0 +1,12 @@
+{
+  "engine": "V98 Independent",
+  "phase": "161",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "hypothesis": "Above-zero NFCI denotes tighter-than-average U.S. financial conditions and predicts adverse crypto risk appetite; short the equal-weight crypto basket only after a conservative 7-day availability lag.",
+  "dependency": {"phase":"160","series":"NFCI","status":"PASS_DATA_ONLY","observations_sha256":"c9b82971ccaa8ea4fab6af611393434bd6f8e54872ba5594035254a98d1df3c4"},
+  "signal": {"rule":"NFCI_t > 0 => short; else flat","threshold":0.0,"economic_use_lag_days":7,"raw_macro_missing_policy":"no imputation/no carry-forward of missing source observations","state_persistence":"after the 7-day lag, the latest actually observed weekly state remains in force until the next lagged observed release","target_gross":0.30,"hard_gross_cap":0.35,"assets":["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","SOLUSDT"]},
+  "rationale":"Zero is the NFCI's economically natural boundary between tighter- and looser-than-average financial conditions, not a sample-fitted quantile. Seven calendar days is deliberately conservative for weekly macro availability and prevents same-observation-date use. No sign flip or rescue is permitted if the ex-ante direction fails.",
+  "evaluation":{"scope":"training folds only","chronological_folds":true,"validation":"CLOSED","final_holdout":"CLOSED","costs":["base","severe","supersevere"],"required":["total_return","max_drawdown","profit_factor_daily","payoff_daily","win_rate_daily","positive_days","regimes","concentration","tails","asset_contribution","deterministic_replay"]},
+  "gate":"Aggregate and every chronological fold must have return > 0 and daily PF > 1 under base costs; aggregate severe and supersevere must each have return > 0 and daily PF > 1; gross cap and invariants must pass.",
+  "anti_overfit":{"parameter_search":false,"threshold_search":false,"lookback_search":false,"sign_flip_allowed":false,"rescue_allowed":false,"v16_used":false,"v99_used":false}
+}

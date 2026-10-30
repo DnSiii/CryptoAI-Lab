@@ -1,0 +1,30 @@
+name: V98 Independent Phase1020 O Synthetic Wealth Conservation Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1020-o-ledger-oracle.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1020-ledger-oracle-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  independent-ledger-oracle:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Independent synthetic O ledger conservation and regressions
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1020_o_funded_ledger_accounting_oracle.py test_phase1007_o_funded_ledger_hourly.py

@@ -1,0 +1,58 @@
+name: V98 Independent JV Original Receipt Independent Economic Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-jv-original-audit.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  original_receipt_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download only original JV 2023-2024 native physical book artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: jv30-ubuntu-*
+          run-id: 40683699947
+          github-token: ${{ github.token }}
+          path: original-receipts
+      - name: Independently recalculate original 60 physical receipts without engine imports
+        run: |
+          python -m py_compile research/v98_independent/jv_original_artifact_independent_audit.py
+          python research/v98_independent/jv_original_artifact_independent_audit.py --root original-receipts --output jv_original_independent_economic_audit.json
+      - name: Retrieve economic summary for read-only gate diagnosis
+        uses: actions/download-artifact@v4
+        with:
+          name: jv30-official-economic-summary
+          run-id: 40683699947
+          github-token: ${{ github.token }}
+          path: jv-summary
+      - name: Print immutable training gate status and original full turnover
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('jv-summary/jv30_official_economic_summary.json').read_text())
+          for k in ('decision','high_growth_gate_10k','severe_drawdown_gate_10k','turnover_gate_10k','marginal_gates_10k','cells_survived','cross_os_reproducible'):
+              print('JV_GATE',k,x.get(k))
+          for key in ('full_10k_base','full_10k_severe'):
+              v=x.get(key) or {}
+              print('JV_FULL_RECEIPT',key,'cagr',v.get('two_year_cagr'),
+                    'turnover',v.get('turnover'),'drawdown',v.get('max_drawdown'),
+                    'funding',v.get('funding'),'fees',v.get('fees'),'slippage',v.get('slippage'))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jv-original-independent-economic-audit
+          path: jv_original_independent_economic_audit.json
+          retention-days: 30
+          if-no-files-found: warn

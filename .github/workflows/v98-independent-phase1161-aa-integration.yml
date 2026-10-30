@@ -1,0 +1,40 @@
+name: V98 Independent Phase1161 AA 90-Cell Synthetic Integration Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1161_aa_integrated_synthetic.py'
+      - '.github/workflows/v98-independent-phase1161-aa-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aa-90cell-synthetic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Execute 90 AA synthetic source to actual inventory paths
+        run: python research/v98_independent/phase1161_aa_integrated_synthetic.py
+      - name: Preserve all 90 synthetic execution receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-aa-1161-synthetic-inventory
+          path: research/v98_independent/phase1161_aa_integrated_synthetic_receipt.json
+          if-no-files-found: warn
+      - name: Strict 90-of-90 synthetic execution gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/v98_independent/phase1161_aa_integrated_synthetic_receipt.json')
+          r=json.loads(p.read_text())
+          assert r['historical_pnl_computed'] is False
+          assert r['cells']==90
+          assert r['full_path_cells']==90, 'AA_SYNTHETIC_INVENTORY_GATE_FAIL_CLOSED'
+          PY

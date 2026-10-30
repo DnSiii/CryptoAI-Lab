@@ -1,0 +1,46 @@
+name: V98 Independent HL Frozen Training Economic Readout
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-hl-frozen-readout.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  readout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hl30-official-economic-summary
+          run-id: 40415077051
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Read frozen HL official training receipts only (no source recomputation)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('receipts/**/*.json',recursive=True)
+          assert len(files)==1,files
+          x=json.load(open(files[0]))
+          assert x['architecture']=='HL'
+          assert x['validation_2025_read'] is False
+          assert x['external_benchmarks_used'] is False
+          print('HL_FROZEN_DECISION',x['decision'])
+          print('HL_FROZEN_PHYSICAL',x['cells_survived'],x['cross_os_reproducible'],x['errors'])
+          print('HL_FROZEN_MARGINAL_GATES',json.dumps(x['marginal_gates_10k'],sort_keys=True))
+          for sleeve,rows in x['marginal_log_growth_10k'].items():
+              for key,years in sorted(rows.items()):
+                  if '|base|' in key or '|severe|' in key:
+                      print('HL_FROZEN_MARGINAL',sleeve,key,years,'total',sum(years.values()))
+          for name in ('full_10k_base','full_10k_severe'):
+              p=x[name]
+              assert p and p['passed']
+              fields=('two_year_cagr','max_drawdown','max_gross_to_nav','turnover','fees','slippage','funding','hourly_net_profit_factor','hourly_net_payoff','hourly_net_win_rate','positive_utc_days','total_utc_days','hourly_cvar_1pct','max_single_asset_gross_concentration')
+              print('HL_FROZEN_FULL',name,json.dumps({k:p[k] for k in fields},sort_keys=True))
+          PY

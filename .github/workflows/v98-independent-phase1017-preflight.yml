@@ -1,0 +1,41 @@
+name: V98 Independent Phase1017 Canonical Economic Preflight
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1017-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1017-preflight-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Test canonical transport, LP governor, O source and economic firewall
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1015_canonical_transport.py test_phase1017_o_canonical_90cell_training.py test_phase1009_o_90cell_training.py
+      - name: Assert immutable O and adapter code bytes and five canonical pins
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          from phase1016_o_canonical_freeze import verify_canonical_source, FROZEN_CANONICAL_O
+          from phase1009_o_90cell_training import PATHS, FEE_TIERS, ORDERS, CAPITAL_MODES
+          assert verify_canonical_source()
+          assert tuple(FROZEN_CANONICAL_O)==PATHS
+          assert len(PATHS)*len(FEE_TIERS)*len(ORDERS)*len(CAPITAL_MODES)==90
+          print('O canonical preflight only; historical PnL not executed.')
+          PY

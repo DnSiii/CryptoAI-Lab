@@ -1,0 +1,53 @@
+name: V98 Independent Phase227
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['research/v98_independent/phase227_eval.py','research/v98_independent/phase227_validate.py','research/v98_independent/phase227_preregister.md','research/v98_independent/phase227_preexecution_audit.md','.github/workflows/v98-independent-phase227.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase227:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and frozen invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+              f=pd.read_csv(Path('research/v98_independent/data/phase206_funding')/f'{a}_funding.csv'); ft=pd.to_datetime(f['fundingTime_utc'],utc=True,errors='raise',format='mixed'); assert ft.is_monotonic_increasing and not ft.duplicated().any() and not (ft>=cut).any()
+          base=Path('research/v98_independent/phase226_eval.py').read_text(); e=Path('research/v98_independent/phase227_eval.py').read_text()
+          assert 'SPECS=[(w,q,h) for w in (24,72) for q in (.010,.020) for h in (4,8)]' in base
+          assert 'COSTS={"base":.0007,"severe":.0014,"supersevere":.0028}' in base
+          assert 'gross exposure invariant' in base and '.shift(1)' in base and 'rolling(720,min_periods=720)' in base
+          assert "resid[a].iloc[i]),-.5" in e and "resid[a].iloc[i]),.5" in e
+          print('Phase227 firewall/funding/prereg invariants OK')
+          PY
+      - name: Deterministic runs
+        run: |
+          python research/v98_independent/phase227_eval.py --out /tmp/phase227_run1.json
+          python research/v98_independent/phase227_eval.py --out /tmp/phase227_run2.json
+          diff -u /tmp/phase227_run1.json /tmp/phase227_run2.json
+          cp /tmp/phase227_run2.json research/v98_independent/phase227_results.json
+      - name: Independent validation and gate
+        run: python research/v98_independent/phase227_validate.py /tmp/phase227_run1.json | tee /tmp/phase227_validation.json
+      - name: Commit V98-only result
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add research/v98_independent/phase227_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase227 harvest residual reversal'
+          git pull --rebase origin research/v98-independent-zero
+          git push

@@ -1,0 +1,44 @@
+{
+  "engine": "V98 Independent",
+  "phase": "153",
+  "status": "PREREGISTERED_BEFORE_ECONOMIC_INSPECTION",
+  "dependency": {
+    "phase152_decision": "PASS_DATA_ONLY",
+    "series": "DFF",
+    "phase152_observations_sha256": "b410198bac876264dc3d05758096adff5683c55bca626e17744961918f839672"
+  },
+  "hypothesis": "A higher effective federal funds rate than 20 calendar observations earlier represents tightening financial conditions and predicts weaker next-day crypto basket returns.",
+  "signal": {
+    "rule": "DFF_t > DFF_t_minus_20 => equal-weight short BTCUSDT, ETHUSDT, BNBUSDT, XRPUSDT, SOLUSDT; else flat",
+    "lookback_accepted_observations": 20,
+    "economic_use_lag_days": 1,
+    "missing_macro_policy": "no imputation/no carry-forward",
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35
+  },
+  "evaluation": {
+    "scope": "training_only",
+    "chronological_folds": "use frozen V98 config folds",
+    "costs": ["base", "severe", "supersevere"],
+    "required_diagnostics": ["max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "regimes", "concentration", "tails", "turnover"]
+  },
+  "gates": {
+    "aggregate_return_gt_0": true,
+    "aggregate_profit_factor_gt_1": true,
+    "every_frozen_fold_return_gt_0": true,
+    "every_frozen_fold_profit_factor_gt_1": true,
+    "severe_return_and_pf_positive": true,
+    "supersevere_return_and_pf_positive": true,
+    "max_open_gross_lte_0_35": true
+  },
+  "anti_overfit": {
+    "parameter_search": false,
+    "rescue_allowed": false,
+    "sign_flip_allowed": false,
+    "asset_exclusion_allowed": false,
+    "validation_open": false,
+    "final_holdout_open": false,
+    "v16_used": false,
+    "v99_used": false
+  }
+}

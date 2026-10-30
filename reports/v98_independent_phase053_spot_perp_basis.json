@@ -1,0 +1,149 @@
+{
+  "engine": "V98 Independent",
+  "phase": "053",
+  "mechanism": "spot-perpetual basis convergence",
+  "preregistered": {
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "SOLUSDT"
+    ],
+    "training": "2023-01-01..2025-12-31",
+    "lookback_hours": 24,
+    "rebalance_hours": 8,
+    "gross": 0.75,
+    "signal": "negative lagged 24h mean log(perp/spot), cross-sectional demeaned",
+    "cost_per_side": {
+      "base": 0.0007,
+      "severe": 0.0012,
+      "supersevere": 0.002
+    }
+  },
+  "guardrails": {
+    "validation_accessed": false,
+    "final_holdout_accessed": false,
+    "v99_used": false,
+    "parameter_search": false,
+    "sign_search": false
+  },
+  "coverage": {
+    "spot_hours": {
+      "BTCUSDT": 26303,
+      "ETHUSDT": 26303,
+      "BNBUSDT": 26303,
+      "XRPUSDT": 26303,
+      "SOLUSDT": 26303
+    },
+    "perp_hours": {
+      "BTCUSDT": 26304,
+      "ETHUSDT": 26304,
+      "BNBUSDT": 26304,
+      "XRPUSDT": 26304,
+      "SOLUSDT": 26304
+    },
+    "funding_events": {
+      "BTCUSDT": 3288,
+      "ETHUSDT": 3288,
+      "BNBUSDT": 3288,
+      "XRPUSDT": 3288,
+      "SOLUSDT": 3288
+    }
+  },
+  "scenarios": {
+    "base": {
+      "return": -0.4264926644058339,
+      "max_drawdown": -0.5116593966714615,
+      "profit_factor_daily": 0.8687042709237877,
+      "payoff_daily": 1.121319111213341,
+      "win_rate_daily": 0.43613138686131386,
+      "positive_days": 478,
+      "days": 1096
+    },
+    "severe": {
+      "return": -0.6301559307485776,
+      "max_drawdown": -0.6831812614635695,
+      "profit_factor_daily": 0.770159976740519,
+      "payoff_daily": 1.0833019453053454,
+      "win_rate_daily": 0.41514598540145986,
+      "positive_days": 455,
+      "days": 1096
+    },
+    "supersevere": {
+      "return": -0.8167341154576453,
+      "max_drawdown": -0.8414929975715562,
+      "profit_factor_daily": 0.6379374046065849,
+      "payoff_daily": 1.0213059636694495,
+      "win_rate_daily": 0.3841240875912409,
+      "positive_days": 421,
+      "days": 1096
+    }
+  },
+  "folds": {
+    "2023": {
+      "return": 0.05510987625079955,
+      "max_drawdown": -0.24328081433872584,
+      "profit_factor_daily": 1.0581658473584261,
+      "payoff_daily": 1.2621496251624602,
+      "win_rate_daily": 0.4547945205479452,
+      "positive_days": 166,
+      "days": 365
+    },
+    "2024": {
+      "return": -0.11218339631805996,
+      "max_drawdown": -0.21027869753973727,
+      "profit_factor_daily": 0.925176480726813,
+      "payoff_daily": 1.152213653911307,
+      "win_rate_daily": 0.4453551912568306,
+      "positive_days": 163,
+      "days": 366
+    },
+    "2025": {
+      "return": -0.3877651795263357,
+      "max_drawdown": -0.39627137652603706,
+      "profit_factor_daily": 0.6351921718935731,
+      "payoff_daily": 0.9208154975101464,
+      "win_rate_daily": 0.40821917808219177,
+      "positive_days": 149,
+      "days": 365
+    }
+  },
+  "regimes": {
+    "bull": {
+      "return": -0.22736022409149415,
+      "max_drawdown": -0.34861510969432574,
+      "profit_factor_daily": 0.8072775204171286,
+      "payoff_daily": 0.900424926619105,
+      "win_rate_daily": 0.2154696132596685,
+      "positive_days": 234,
+      "days": 1086
+    },
+    "bear": {
+      "return": -0.1781124459507254,
+      "max_drawdown": -0.28390209502163466,
+      "profit_factor_daily": 0.8043329291187468,
+      "payoff_daily": 0.9835366387151514,
+      "win_rate_daily": 0.1790352504638219,
+      "positive_days": 193,
+      "days": 1078
+    },
+    "sideways": {
+      "return": -0.09687157548456737,
+      "max_drawdown": -0.36648644311576706,
+      "profit_factor_daily": 0.9727340756249762,
+      "payoff_daily": 1.106703439333805,
+      "win_rate_daily": 0.45711678832116787,
+      "positive_days": 501,
+      "days": 1096
+    }
+  },
+  "concentration": {
+    "mean_top1_weight_share": 0.3333333333333333,
+    "p95_top1_weight_share": 0.3333333333333333,
+    "mean_active_assets": 4.995437782762423,
+    "turnover_total": 877.0
+  },
+  "training_gate_pass": false,
+  "decision": "REJECT_NO_RESCUE"
+}

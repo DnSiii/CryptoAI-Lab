@@ -1,0 +1,57 @@
+name: V98 Independent Phase196 Idiosyncratic Volatility Reversion Training
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase196.yml'
+      - 'scripts/v98_independent_phase196_idiovol_reversion.py'
+      - 'research/v98_independent/phase196_prereg.md'
+permissions:
+  contents: write
+jobs:
+  phase196:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Guard branch and frozen V98 preregistration
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          python - <<'PY'
+          import json
+          c=json.load(open('config/v98_independent.json'));p=open('research/v98_independent/phase196_prereg.md').read()
+          assert c['research_rules']['holdout_used_for_selection'] is False
+          assert c['research_rules']['v99_used_for_selection'] is False
+          assert 'FROZEN BEFORE EXECUTION' in p and 'No validation or final-holdout observations may be read' in p
+          PY
+      - name: Rebuild canonical V98 training-only data
+        run: python scripts/v98_independent_phase050_rebuild_data.py --config v98_independent_phase050_data.json
+      - name: Assert price and funding stop before 2026
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          fs=sorted(Path('data/canonical').glob('*_1h.csv'))+sorted(Path('data/canonical').glob('*_funding.csv'));assert fs
+          for p in fs:
+            d=pd.read_csv(p);c='timestamp' if 'timestamp' in d.columns else d.columns[0];t=pd.to_datetime(d[c],utc=True,errors='raise');assert len(t)==0 or t.max()<pd.Timestamp('2026-01-01',tz='UTC'),(p,t.max())
+          print('training boundary OK',len(fs))
+          PY
+      - name: Run Phase196 twice and require byte identity
+        run: |
+          python scripts/v98_independent_phase196_idiovol_reversion.py
+          cp reports/v98_independent_phase196_idiovol_reversion.json /tmp/a.json
+          python scripts/v98_independent_phase196_idiovol_reversion.py
+          cmp /tmp/a.json reports/v98_independent_phase196_idiovol_reversion.json
+          sha256sum /tmp/a.json reports/v98_independent_phase196_idiovol_reversion.json
+      - name: Commit V98-only report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/v98_independent_phase196_idiovol_reversion.json
+          git diff --cached --name-only | grep -Ev '^(reports/v98_independent_phase196_idiovol_reversion.json)$' && exit 1 || true
+          git diff --cached --quiet || git commit -m 'V98 Phase196 harvest training-only idiovol reversion'
+          git push origin HEAD:research/v98-independent-zero

@@ -1,0 +1,47 @@
+name: V98 Independent JT Cross OS Downside Source Artifact Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-jt-cross-os-forensics.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  original_artifact_forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: jt-downside-5m-ubuntu-*
+          run-id: 40675938080
+          github-token: ${{ github.token }}
+          path: original-source
+      - name: Inspect exact first byte/row/manifest mismatch without changing source
+        run: |
+          python - <<'PY'
+          import json,hashlib,csv
+          from pathlib import Path
+          roots=[Path('original-source')/('jt-downside-5m-'+os) for os in ('ubuntu-22.04','ubuntu-24.04')]
+          rs=[json.loads((p/'jt_downside_resilience_source_receipt.json').read_text()) for p in roots]
+          raws=[(p/'jt_downside_resilience_hourly.csv').read_bytes() for p in roots]
+          print('JT_ORIGINAL_SOURCE_DIGESTS',[hashlib.sha256(x).hexdigest() for x in raws])
+          print('JT_ORIGINAL_REPORT_EQUAL',rs[0]==rs[1])
+          for key in rs[0]:
+              if rs[0][key]!=rs[1].get(key):
+                  print('JT_FIRST_MANIFEST_DIFF',key,str(rs[0][key])[:1000],str(rs[1].get(key))[:1000])
+                  break
+          lines=[x.decode().splitlines() for x in raws]
+          print('JT_LINE_COUNTS',list(map(len,lines)))
+          count=0
+          for i,(a,b) in enumerate(zip(*lines)):
+              if a!=b:
+                  print('JT_FIRST_DIFF_LINE',i,'OS22',a[:500],'OS24',b[:500])
+                  print('JT_FIRST_DIFF_FIELDS',list(zip(a.split(','),b.split(',')))[:9])
+                  count+=1
+                  if count>=5:break
+          print('JT_CROSS_OS_SOURCE_FORENSIC_DONE_NO_PNL')
+          PY

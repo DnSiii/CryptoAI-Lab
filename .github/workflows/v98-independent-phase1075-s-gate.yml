@@ -1,0 +1,32 @@
+name: V98 Independent Phase1075-1076 S Freeze and 90-Cell Auditor Synthetic
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1075-s-gate.yml'
+      - 'research/v98_independent/phase1075_s_training_path.py'
+      - 'research/v98_independent/phase1076_s_90cell_audit.py'
+      - 'research/v98_independent/test_phase1075_s_training_path.py'
+      - 'research/v98_independent/test_phase1076_s_90cell_audit.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  s-frozen-gate-synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical dependencies
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Freeze enforcement and 90-cell growth receipt synthetic checks
+        run: python -m unittest -v test_phase1075_s_training_path.py test_phase1076_s_90cell_audit.py

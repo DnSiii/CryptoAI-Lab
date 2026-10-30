@@ -1,0 +1,93 @@
+name: V98 Independent Phase1086 T Frozen 90-Cell Authenticated Training
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1086-t-economic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  t-frozen-training-path:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - T_core_only
+          - T_full
+          - T_minus_opportunity
+          - T_minus_relative_value
+          - T_minus_stress
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Assert immutable T frozen code and synthetic source-ledger-audit
+        run: |
+          python -m unittest -q test_phase1081_t_sevenslot_source.py test_phase1082_t_authenticated_source.py test_phase1083_t_event_driven_ledger.py test_phase1085_t_90cell_audit.py
+          python -c 'from phase1084_t_frozen_training_path import verify_freeze; assert verify_freeze()["decision"]=="FROZEN_T_PRE_ECONOMIC"'
+      - name: Fresh authenticated Clean-4 and T frozen 18-cell training path
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1084_t_frozen_training_path.py --path ${{ matrix.path }}
+      - name: Preserve T economic receipt on PASS, rejection or partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-t-1086-${{ matrix.path }}
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1082_t_authenticated_source_receipt.json
+            research/v98_independent/phase1084_t_${{ matrix.path }}_training_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  t-frozen-90-cell-growth-audit:
+    needs: t-frozen-training-path
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime for imported audit dependencies
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-t-1086-*
+          path: /tmp/t-econ
+          merge-multiple: false
+      - name: Audit 90 immutable survival and growth marginal cells
+        shell: bash
+        run: |
+          set -o pipefail
+          python research/v98_independent/phase1085_t_90cell_audit.py \
+            /tmp/t-econ/v98-t-1086-T_core_only/phase1084_t_T_core_only_training_receipt.json \
+            /tmp/t-econ/v98-t-1086-T_full/phase1084_t_T_full_training_receipt.json \
+            /tmp/t-econ/v98-t-1086-T_minus_opportunity/phase1084_t_T_minus_opportunity_training_receipt.json \
+            /tmp/t-econ/v98-t-1086-T_minus_relative_value/phase1084_t_T_minus_relative_value_training_receipt.json \
+            /tmp/t-econ/v98-t-1086-T_minus_stress/phase1084_t_T_minus_stress_training_receipt.json \
+            | tee /tmp/phase1086_t_90cell_audit.json
+      - name: Preserve audit result even on rejection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-t-1086-90cell-growth-audit
+          path: /tmp/phase1086_t_90cell_audit.json
+          retention-days: 30
+          if-no-files-found: warn

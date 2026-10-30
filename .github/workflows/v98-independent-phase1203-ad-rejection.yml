@@ -1,0 +1,103 @@
+name: V98 Independent Phase1203 AD 180-Cell Immutable Rejection Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1203_ad_180cell_rejection_audit_prereg_20261023.md'
+      - 'research/v98_independent/test_phase1202_ad_causal_risk_180cell.py'
+      - '.github/workflows/v98-independent-phase1203-ad-rejection.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-immutable-rejection:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Execute original Phase1202 tests exactly once and preserve all 180 receipts
+        run: |
+          python - <<'PY'
+          import json,unittest
+          from pathlib import Path
+          from test_phase1202_ad_causal_risk_180cell import CausalRiskRejectionAudit
+          suite=unittest.defaultTestLoader.loadTestsFromTestCase(CausalRiskRejectionAudit)
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          receipt=CausalRiskRejectionAudit.receipt
+          Path('phase1203_ad_immutable_rejection_receipt.json').write_text(
+              json.dumps(receipt,sort_keys=True,indent=2,allow_nan=False)+'\n')
+          cells=receipt['cells']
+          assert len(cells)==180
+          assert sum(c['passed'] for c in cells)==90
+          assert all(c['passed'] for c in cells if c['fixture']=='benign')
+          assert all(not c['passed'] for c in cells if c['fixture']=='crisis')
+          assert receipt['decision']=='REJECT_AD_CAUSAL_RISK_SYNTHETIC_NO_PNL'
+          assert not receipt['historical_system_pnl_computed']
+          assert not receipt['validation_2025_read']
+          assert not receipt['external_benchmarks_used']
+          assert result.wasSuccessful()
+          print('CONFIRMED_AD_STRUCTURAL_REJECTION_90_CRISIS_FAILURES')
+          PY
+      - name: Upload immutable 180-cell receipt even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ad-phase1203-${{ matrix.os }}
+          path: research/v98_independent/phase1203_ad_immutable_rejection_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  ad-independent-crossrunner:
+    needs: ad-immutable-rejection
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-ad-phase1203-*
+          path: /tmp/v98-ad-phase1203
+      - name: Confirm exact crisis failures and independent benign numeric agreement
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          base=Path('/tmp/v98-ad-phase1203')
+          paths=[base/('v98-ad-phase1203-'+os)/'phase1203_ad_immutable_rejection_receipt.json'
+                 for os in ('ubuntu-22.04','ubuntu-24.04')]
+          if not all(p.is_file() for p in paths):
+              raise SystemExit('AD1203_MISSING_INDEPENDENT_RECEIPT')
+          a,b=[json.loads(p.read_text()) for p in paths]
+          for r in (a,b):
+              assert r['decision']=='REJECT_AD_CAUSAL_RISK_SYNTHETIC_NO_PNL'
+              assert len(r['cells'])==180
+              assert sum(x['passed'] for x in r['cells'])==90
+              assert r['historical_system_pnl_computed'] is False
+          for x,y in zip(a['cells'],b['cells']):
+              for k in ('fixture','path','mode','fee','order','passed'):
+                  assert x[k]==y[k], 'AD1203_DISCRETE_DRIFT_'+k
+              if not x['passed']:
+                  assert x['reason']==y['reason'], 'AD1203_FAILURE_DRIFT'
+              else:
+                  for k in ('hours_executed','active_hours'):
+                      assert x[k]==y[k], 'AD1203_DISCRETE_DRIFT_'+k
+                  for k in ('synthetic_final_nav','synthetic_turnover','synthetic_fees',
+                            'synthetic_funding','nonzero_execution_fraction'):
+                      assert abs(x[k]-y[k])<=1e-8, 'AD1203_NUMERIC_DRIFT_'+k
+          target=next(c for c in a['cells'] if c['fixture']=='crisis' and c['path']=='AD_full'
+                and c['mode']=='immediate' and c['fee']=='base' and c['order']=='carried_before_fill')
+          assert 'AD1202_T877_AD1196_UNEXECUTABLE_CARRIED_INVENTORY' in target['reason']
+          print(json.dumps({'decision':'REJECT_AD_FULL_CROSSRUNNER_CONFIRMED',
+                            'benign_passes':90,'crisis_failures':90,
+                            'first_failure':target['reason']},sort_keys=True))
+          PY

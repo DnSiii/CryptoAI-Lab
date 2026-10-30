@@ -1,0 +1,37 @@
+name: V98 Independent Phase1156 AA Exit Reserve Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1156_aa_exit_reserve_governor.py'
+      - 'research/v98_independent/test_phase1156_aa_exit_reserve_governor.py'
+      - '.github/workflows/v98-independent-phase1156-aa-exit-reserve.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aa-exit-reserve-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4
+      - name: Run independent AA exit-reserve and 81-corner tests
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1156_aa_exit_reserve_governor.py' -v
+      - name: Assert no economic evaluation or 2025 access
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('research/v98_independent/phase1156_aa_exit_reserve_governor.py').read_text()
+          assert 'def allocate(' in s and 'def gate(' in s
+          assert '2025' not in s or 'future data' in s
+          assert 'V99' not in s and 'V16' not in s
+          print('AA_SOURCE_ONLY_NO_PNL')
+          PY

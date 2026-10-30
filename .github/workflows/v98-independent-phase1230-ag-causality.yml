@@ -1,0 +1,26 @@
+name: V98 Independent Phase1230 AG Causal Integration Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/test_phase1230_ag_causal_integration.py'
+      - '.github/workflows/v98-independent-phase1230-ag-causality.yml'
+  workflow_dispatch:
+jobs:
+  ag-causality:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Test t-1 source, risk, native events and no same-bar selection
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1230_ag_causal_integration

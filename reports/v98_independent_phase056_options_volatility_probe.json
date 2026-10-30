@@ -1,0 +1,358 @@
+{
+  "engine": "V98 Independent",
+  "phase": "056",
+  "purpose": "options implied-volatility/source feasibility only; ZERO ALPHA/ZERO RETURNS",
+  "mechanism_family": "options-implied-volatility / volatility-risk-premium",
+  "training_probe_only": true,
+  "training_years": [
+    2023,
+    2024,
+    2025
+  ],
+  "validation_accessed": false,
+  "final_holdout_accessed": false,
+  "v99_used": false,
+  "alpha_computed": false,
+  "returns_computed": false,
+  "parameter_search": false,
+  "dates": [
+    "2023-07-10",
+    "2023-10-10",
+    "2024-01-10",
+    "2024-07-10",
+    "2025-01-10",
+    "2025-07-10"
+  ],
+  "series": {
+    "btc_eoh": [
+      "EOHSummary",
+      "BTCUSDT"
+    ],
+    "eth_eoh": [
+      "EOHSummary",
+      "ETHUSDT"
+    ],
+    "btc_bvol": [
+      "BVOLIndex",
+      "BTCBVOLUSDT"
+    ]
+  },
+  "ok": 10,
+  "total": 18,
+  "by_series_ok": {
+    "btc_eoh": 2,
+    "eth_eoh": 2,
+    "btc_bvol": 6
+  },
+  "by_training_year_ok": {
+    "2023": {
+      "btc_eoh": 2,
+      "eth_eoh": 2,
+      "btc_bvol": 2
+    },
+    "2024": {
+      "btc_eoh": 0,
+      "eth_eoh": 0,
+      "btc_bvol": 2
+    },
+    "2025": {
+      "btc_eoh": 0,
+      "eth_eoh": 0,
+      "btc_bvol": 2
+    }
+  },
+  "checks": {
+    "btc_eoh": {
+      "2023-07-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/BTCUSDT/BTCUSDT-EOHSummary-2023-07-10.zip",
+        "http_status": 200,
+        "rows": 6000,
+        "columns": 26,
+        "header": [
+          "date",
+          "hour",
+          "symbol",
+          "underlying",
+          "type",
+          "strike",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume_contracts",
+          "volume_usdt",
+          "best_bid_price",
+          "best_ask_price",
+          "best_bid_qty",
+          "best_ask_qty",
+          "best_buy_iv",
+          "best_sell_iv",
+          "mark_price",
+          "mark_iv",
+          "delta",
+          "gamma",
+          "vega",
+          "theta",
+          "openinterest_contracts",
+          "openinterest_usdt"
+        ],
+        "member": "BTCUSDT-EOHSummary-2023-07-10.csv",
+        "bytes": 419780
+      },
+      "2023-10-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/BTCUSDT/BTCUSDT-EOHSummary-2023-10-10.zip",
+        "http_status": 200,
+        "rows": 6224,
+        "columns": 26,
+        "header": [
+          "date",
+          "hour",
+          "symbol",
+          "underlying",
+          "type",
+          "strike",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume_contracts",
+          "volume_usdt",
+          "best_bid_price",
+          "best_ask_price",
+          "best_bid_qty",
+          "best_ask_qty",
+          "best_buy_iv",
+          "best_sell_iv",
+          "mark_price",
+          "mark_iv",
+          "delta",
+          "gamma",
+          "vega",
+          "theta",
+          "openinterest_contracts",
+          "openinterest_usdt"
+        ],
+        "member": "BTCUSDT-EOHSummary-2023-10-10.csv",
+        "bytes": 457303
+      },
+      "2024-01-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/BTCUSDT/BTCUSDT-EOHSummary-2024-01-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      },
+      "2024-07-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/BTCUSDT/BTCUSDT-EOHSummary-2024-07-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      },
+      "2025-01-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/BTCUSDT/BTCUSDT-EOHSummary-2025-01-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      },
+      "2025-07-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/BTCUSDT/BTCUSDT-EOHSummary-2025-07-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      }
+    },
+    "eth_eoh": {
+      "2023-07-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/ETHUSDT/ETHUSDT-EOHSummary-2023-07-10.zip",
+        "http_status": 200,
+        "rows": 7784,
+        "columns": 26,
+        "header": [
+          "date",
+          "hour",
+          "symbol",
+          "underlying",
+          "type",
+          "strike",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume_contracts",
+          "volume_usdt",
+          "best_bid_price",
+          "best_ask_price",
+          "best_bid_qty",
+          "best_ask_qty",
+          "best_buy_iv",
+          "best_sell_iv",
+          "mark_price",
+          "mark_iv",
+          "delta",
+          "gamma",
+          "vega",
+          "theta",
+          "openinterest_contracts",
+          "openinterest_usdt"
+        ],
+        "member": "ETHUSDT-EOHSummary-2023-07-10.csv",
+        "bytes": 553283
+      },
+      "2023-10-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/ETHUSDT/ETHUSDT-EOHSummary-2023-10-10.zip",
+        "http_status": 200,
+        "rows": 7832,
+        "columns": 26,
+        "header": [
+          "date",
+          "hour",
+          "symbol",
+          "underlying",
+          "type",
+          "strike",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume_contracts",
+          "volume_usdt",
+          "best_bid_price",
+          "best_ask_price",
+          "best_bid_qty",
+          "best_ask_qty",
+          "best_buy_iv",
+          "best_sell_iv",
+          "mark_price",
+          "mark_iv",
+          "delta",
+          "gamma",
+          "vega",
+          "theta",
+          "openinterest_contracts",
+          "openinterest_usdt"
+        ],
+        "member": "ETHUSDT-EOHSummary-2023-10-10.csv",
+        "bytes": 569727
+      },
+      "2024-01-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/ETHUSDT/ETHUSDT-EOHSummary-2024-01-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      },
+      "2024-07-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/ETHUSDT/ETHUSDT-EOHSummary-2024-07-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      },
+      "2025-01-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/ETHUSDT/ETHUSDT-EOHSummary-2025-01-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      },
+      "2025-07-10": {
+        "ok": false,
+        "url": "https://data.binance.vision/data/option/daily/EOHSummary/ETHUSDT/ETHUSDT-EOHSummary-2025-07-10.zip",
+        "error": "HTTPError:HTTP Error 404: Not Found"
+      }
+    },
+    "btc_bvol": {
+      "2023-07-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/BVOLIndex/BTCBVOLUSDT/BTCBVOLUSDT-BVOLIndex-2023-07-10.zip",
+        "http_status": 200,
+        "rows": 86400,
+        "columns": 5,
+        "header": [
+          "calc_time",
+          "symbol",
+          "base_asset",
+          "quote_asset",
+          "index_value"
+        ],
+        "member": "BTCBVOLUSDT-BVOLIndex-2023-07-10.csv",
+        "bytes": 419611
+      },
+      "2023-10-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/BVOLIndex/BTCBVOLUSDT/BTCBVOLUSDT-BVOLIndex-2023-10-10.zip",
+        "http_status": 200,
+        "rows": 86400,
+        "columns": 5,
+        "header": [
+          "calc_time",
+          "symbol",
+          "base_asset",
+          "quote_asset",
+          "index_value"
+        ],
+        "member": "BTCBVOLUSDT-BVOLIndex-2023-10-10.csv",
+        "bytes": 409007
+      },
+      "2024-01-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/BVOLIndex/BTCBVOLUSDT/BTCBVOLUSDT-BVOLIndex-2024-01-10.zip",
+        "http_status": 200,
+        "rows": 86079,
+        "columns": 5,
+        "header": [
+          "calc_time",
+          "symbol",
+          "base_asset",
+          "quote_asset",
+          "index_value"
+        ],
+        "member": "BTCBVOLUSDT-BVOLIndex-2024-01-10.csv",
+        "bytes": 482053
+      },
+      "2024-07-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/BVOLIndex/BTCBVOLUSDT/BTCBVOLUSDT-BVOLIndex-2024-07-10.zip",
+        "http_status": 200,
+        "rows": 86387,
+        "columns": 5,
+        "header": [
+          "calc_time",
+          "symbol",
+          "base_asset",
+          "quote_asset",
+          "index_value"
+        ],
+        "member": "BTCBVOLUSDT-BVOLIndex-2024-07-10.csv",
+        "bytes": 436401
+      },
+      "2025-01-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/BVOLIndex/BTCBVOLUSDT/BTCBVOLUSDT-BVOLIndex-2025-01-10.zip",
+        "http_status": 200,
+        "rows": 86205,
+        "columns": 5,
+        "header": [
+          "calc_time",
+          "symbol",
+          "base_asset",
+          "quote_asset",
+          "index_value"
+        ],
+        "member": "BTCBVOLUSDT-BVOLIndex-2025-01-10.csv",
+        "bytes": 442844
+      },
+      "2025-07-10": {
+        "ok": true,
+        "url": "https://data.binance.vision/data/option/daily/BVOLIndex/BTCBVOLUSDT/BTCBVOLUSDT-BVOLIndex-2025-07-10.zip",
+        "http_status": 200,
+        "rows": 86025,
+        "columns": 5,
+        "header": [
+          "calc_time",
+          "symbol",
+          "base_asset",
+          "quote_asset",
+          "index_value"
+        ],
+        "member": "BTCBVOLUSDT-BVOLIndex-2025-07-10.csv",
+        "bytes": 461826
+      }
+    }
+  },
+  "feasibility_pass": false,
+  "decision_rule": "Feasibility only. No alpha may be specified from values in this report. A later Phase057 mechanism requires separate preregistration before any PnL."
+}

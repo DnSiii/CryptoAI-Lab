@@ -1,0 +1,27 @@
+name: V98 Independent Phase1035 P Independent 16-Corner Adversarial Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1035-p-independent-oracle.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  p-independent-oracle:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Compare 8000 adversarial P governor states to independent sixteen-corner oracle
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1035_p_governor_independent_oracle.py

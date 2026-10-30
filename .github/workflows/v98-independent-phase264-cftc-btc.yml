@@ -1,0 +1,72 @@
+name: V98 Independent Phase264 CFTC BTC Positioning DATA ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase264-cftc-btc.yml'
+      - 'research/v98_independent/phase264_cftc_btc_positioning.py'
+      - 'research/v98_independent/test_phase264_cftc_btc_positioning.py'
+      - 'research/v98_independent/phase264_cftc_btc_positioning_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase264-cftc-btc
+  cancel-in-progress: false
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check pytest
+      - name: Phase264 invariants
+        run: python -m pytest -q research/v98_independent/test_phase264_cftc_btc_positioning.py
+      - name: Acquire CFTC archives twice
+        run: |
+          python research/v98_independent/phase264_cftc_btc_positioning.py --out-dir /tmp/p264a --manifest /tmp/p264a.json
+          python research/v98_independent/phase264_cftc_btc_positioning.py --out-dir /tmp/p264b --manifest /tmp/p264b.json
+          cmp /tmp/p264a/cftc_btc_weekly.csv /tmp/p264b/cftc_btc_weekly.csv
+          cmp /tmp/p264a.json /tmp/p264b.json
+          mkdir -p research/v98_independent/data/phase264_cftc_btc_positioning
+          cp /tmp/p264a/cftc_btc_weekly.csv research/v98_independent/data/phase264_cftc_btc_positioning/cftc_btc_weekly.csv
+          cp /tmp/p264a.json research/v98_independent/phase264_cftc_btc_positioning_manifest.json
+      - name: Enforce DATA_ONLY firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase264_cftc_btc_positioning_manifest.json'))
+          assert p['phase']==264 and p['kind']=='DATA_ONLY_CFTC_BTC_POSITIONING'
+          assert p['decision'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          assert p['alpha_executed'] is False and p['pnl_executed'] is False and p['crypto_price_join'] is False
+          assert p['direction_selected'] is False and p['parameter_search'] is False
+          assert p['validation_accessed'] is False and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['contract_code']=='133741'
+          print('Phase264',p['decision'])
+          PY
+      - name: Commit Phase264 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase264_cftc_btc_positioning_manifest.json research/v98_independent/data/phase264_cftc_btc_positioning/cftc_btc_weekly.csv
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase264: record CFTC BTC positioning DATA_ONLY evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase264-cftc-btc-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            research/v98_independent/phase264_cftc_btc_positioning_manifest.json
+            research/v98_independent/data/phase264_cftc_btc_positioning/cftc_btc_weekly.csv

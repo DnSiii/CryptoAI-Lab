@@ -1,0 +1,74 @@
+name: V98 Independent Phase262 Developer Activity DATA ONLY
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase262-developer-activity.yml'
+      - 'research/v98_independent/phase262_developer_activity.py'
+      - 'research/v98_independent/test_phase262_developer_activity.py'
+      - 'research/v98_independent/phase262_developer_activity_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase262-developer-activity
+  cancel-in-progress: false
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check pytest
+      - name: Phase262 invariants
+        run: python -m pytest -q research/v98_independent/test_phase262_developer_activity.py
+      - name: Acquire developer activity twice
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python research/v98_independent/phase262_developer_activity.py --out-dir /tmp/p262a --manifest /tmp/p262a.json
+          python research/v98_independent/phase262_developer_activity.py --out-dir /tmp/p262b --manifest /tmp/p262b.json
+          cmp /tmp/p262a/monthly_commits.csv /tmp/p262b/monthly_commits.csv
+          cmp /tmp/p262a.json /tmp/p262b.json
+          mkdir -p research/v98_independent/data/phase262_developer_activity
+          cp /tmp/p262a/monthly_commits.csv research/v98_independent/data/phase262_developer_activity/monthly_commits.csv
+          cp /tmp/p262a.json research/v98_independent/phase262_developer_activity_manifest.json
+      - name: Enforce DATA_ONLY firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase262_developer_activity_manifest.json'))
+          assert p['phase']==262 and p['kind']=='DATA_ONLY_DEVELOPER_ACTIVITY'
+          assert p['decision'] in {'PASS_DATA_ONLY','FAIL_DATA_NO_ALPHA'}
+          assert p['normalized_rows']==144
+          assert p['alpha_executed'] is False and p['pnl_executed'] is False and p['crypto_price_join'] is False
+          assert p['direction_selected'] is False and p['parameter_search'] is False
+          assert p['validation_accessed'] is False and p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          print('Phase262',p['decision'])
+          PY
+      - name: Commit Phase262 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase262_developer_activity_manifest.json research/v98_independent/data/phase262_developer_activity/monthly_commits.csv
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase262: record developer activity DATA_ONLY evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase262-developer-activity-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            research/v98_independent/phase262_developer_activity_manifest.json
+            research/v98_independent/data/phase262_developer_activity/monthly_commits.csv

@@ -1,0 +1,28 @@
+name: V98 Independent Phase1206 AE Actual NAV Stress Recovery
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1206_ae_stress_recovery.py'
+      - 'research/v98_independent/test_phase1206_ae_stress_recovery.py'
+      - '.github/workflows/v98-independent-phase1206-ae-stress.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ae-stress:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4
+      - name: Validate nine sequential stress/recovery invariants
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1206_ae_stress_recovery.py' -v

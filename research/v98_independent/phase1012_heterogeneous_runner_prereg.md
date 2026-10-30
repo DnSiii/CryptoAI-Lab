@@ -1,0 +1,7 @@
+# V98 Independent Phase1012 — heterogeneous runner CPU fingerprint of O and M targets
+
+Preregistered after Phase1010 compared two AMD EPYC 9V74 runners with identical float64 O arrays (max difference 0, all five 12g SHA pins matched), while Phase1008 independent target-pin job had failed with the same source/code. M Phase1004 likewise showed stable within-run but nonmatching original frozen M pin. The contradiction remains unresolved; no O historical economics may proceed on a selectively successful runner.
+
+Source-only protocol: one job freshly authenticates the same 100 official Clean-4 OHLC ZIPs and uploads the four SHA256-pinned 2022-12 to 2024-12 canonical CSVs. Two independent OS runner families (ubuntu-22.04, ubuntu-24.04) consume *exactly those same pinned bytes*, validate source/code pins, compute the unchanged O five-path and M_full target hashes, report 12g and 8g display hashes, CPU model, Python/numpy/pandas and O source Git blob. A third job compares all hash dictionaries. No historical PnL, source substitutions, target edits, 2025+, holdout, XRP or external benchmarks.
+
+A match across both families is further evidence but does not erase Phase1008 failure; a mismatch proves host-sensitive reproducibility and mandates a fixed canonical numeric representation plus a new independently verified freeze gate before any economics. No parameter/gross/sign/window changes or after-the-fact repinning.

@@ -1,0 +1,7 @@
+# V98 Independent KX — authenticated source freeze before historical PnL (2026-10-29)
+
+**Frozen KX source; no post-result alpha changes authorized.** Prospective architecture preregistered at commit `c84f22b1728a982fb3d4315dbf2ad01ff26a94cc`, implemented at `ed300e77303aadafe46732e9427e668af948e056`. Source-only and independent authenticated future-mutation [workflow 40825927748](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40825927748) completed SUCCESS before the physical economic workflow was launched.
+
+Original 18,288-hour pinned Clean-4 2022-12 warmup + 2023-2024 only, native signed 8h funding. Manifest SHA256 `3270021b228825dbce3e56e80f3020f6cf6a1154574b472a062447a64daaf515`. Source counts 2023/2024: Opportunity 24/22, Relative Value 12/9, Stress/Recovery 21/16; all >=8 each year. Source validity, gross, row updates and synthetic mutation PASS; independent authenticated historical future mutation PASS with zero errors and first 14,000 hours invariant. No PnL, 2025 validation, future holdout, benchmark internals or paper were accessed in the source gate.
+
+The complete KX 30-cell native physical/independent original-receipt run was launched as [workflow 40825982020](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40825982020) using the frozen source. **Passing the source gate is not passing economic, independent settlement, chronological validation or external superiority gates.** Economic decision must use the preregistered full portfolio and all ablations; green mechanical workflow alone is never a promoted engine.

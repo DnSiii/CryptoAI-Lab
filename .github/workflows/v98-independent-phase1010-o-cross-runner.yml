@@ -1,0 +1,84 @@
+name: V98 Independent Phase1010 Cross-Runner O Hash Forensic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase1010-o-cross-runner.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase1010-o-cross-runner-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-capture:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [a, b]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install identical numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Fresh authenticated 100 official Clean-4 OHLC archives
+        working-directory: research/v98_independent
+        run: python phase803_training_ohlc_official_replay.py
+      - name: Source-only O five-target float64 capture on independent runner
+        working-directory: research/v98_independent
+        run: python phase1010_cross_runner_numeric_forensic.py --tag ${{ matrix.tag }}
+      - name: Preserve independent runner source and numeric evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1010-o-target-${{ matrix.tag }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            research/v98_independent/phase1010_o_targets_${{ matrix.tag }}.npz
+            research/v98_independent/phase1010_o_${{ matrix.tag }}.json
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+  compare-independent-runners:
+    needs: source-capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Source-only classifier synthetic regression tests
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1010_cross_runner_numeric_forensic.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1010-o-target-a
+          path: research/v98_independent/phase1010_compare/a
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-phase1010-o-target-b
+          path: research/v98_independent/phase1010_compare/b
+      - name: Classify exact float64 cross-run O drift (no economic clearance)
+        working-directory: research/v98_independent
+        run: python phase1010_cross_runner_numeric_forensic.py --compare phase1010_compare
+      - name: Preserve forensic comparison even if mismatched
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1010-o-cross-runner-comparison
+          retention-days: 30
+          if-no-files-found: warn
+          path: research/v98_independent/phase1010_compare/phase1010_cross_runner_comparison.json

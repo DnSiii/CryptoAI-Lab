@@ -1,0 +1,20 @@
+# V98 Independent LN — preregistered trend + countertrend + residual reversion + crash hedge (2026-10-29)
+
+**FROZEN BEFORE LN IMPLEMENTATION OR LN COUNTS/PNL.** A genuinely distinct complete seven-slot portfolio hypothesis, not a rescue of rejected LM/LJ/LI. Its economic mechanisms are different: episodic dip purchase, short-horizon cross-sectional reversion and downside hedge, rather than LM's acceleration/continuation or 168h shock/recovery. Any failure is terminal, no post-result parameter or gross rescue.
+
+## Strict training firewall
+Authenticated Clean-4 pinned artifact 12549265452; BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT Binance USD-M hourly, Dec 2022 warmup, 2023/2024 training only, exact official OHLC SHA256 and signed native funding plus conservative mark bounds SHA256 f706812b7989666c3efd0b24045a5c31f4d9c79b46d61da7b5e6cde6c6e73f5e. No 2025 validation or 2026+; XRP and Phase083 quarantined. No V14/V15/V99 internals or Frozen/paper edits.
+
+## Seven frozen slots
+1. Growth Core: completed close t every 336h; require both 720h and 336h close-to-close positive; rank eligible assets by 168h log return. Allocate 0.58 long top, 0.12 long second, one eligible only 0.58. Hold until next 336h decision; no hourly auto-refill.
+2. Opportunity: at t every 72h, if median four-asset 336h log return >0.02, buy the highest 336h momentum eligible asset whose 24h log return is < -0.015 and 72h log return > -0.04; 0.10 long for exactly 72h, no same-hour expiry/reentry. Hypothesis: bull-regime dip mean reversion, not momentum acceleration.
+3. Relative Value: at t every 168h, if median 168h return >0 and 24h cross-sectional return spread >0.045, long weakest 24h asset 0.04 and short strongest 24h asset -0.04 for 168h; require weakest 24h < -0.005 and strongest 24h >0.005. Hypothesis: short-term residual convergence in risk-on breadth, not medium-term price continuation.
+4. Stress/Recovery: at t every 72h, if median 168h return <0 and median 72h return < -0.015, short BTC -0.06 for exactly 72h; otherwise if median 336h < -0.04 and median 24h >0.02, long strongest 24h asset 0.06 for 72h. No same-hour expiry/reentry. Hypothesis: fast crash hedge/rebound.
+5. Regime Router: STRESS for negative median 168h/72h; RECOVERY for negative median 336h with positive 24h rebound; RISK_ON for median 336h >0.02; RANGE otherwise. Opportunity only RISK_ON, RV only positive 168h breadth, Stress only STRESS/RECOVERY.
+6. Dynamic Allocator: separate signed frozen rows, no netting or hidden leverage; maximum intended gross 0.70+0.10+0.08+0.06=0.94, with unused capital cash. Full book is selection unit; each sleeve must add positive *net marginal* log growth to complete shared-collateral book.
+7. Risk Governor: t close decisions and t+1 actual open fills; prior-only 24h quote cooldown plus all feature endpoint quote validity, mandatory expiry exits, 0.95 gross/NAV ceiling, native signed funding and conservative mark, realistic fee/slippage, 81 intrabar OHLC corners, tail/drawdown/concentration and insolvency checks.
+
+## Locked source and economic gates
+Authenticated 18,288 hours per asset, 9,144 native funding events, zero independent entry mismatch, causal synthetic/authenticated future-prefix mutation, zero invalid quote entries/silent row changes, gross <=0.94, >=8 entries per optional sleeve in each 2023 and 2024. Source failure rejects without PnL.
+
+Economic: five books (core/full/three minus sleeve) x base/severe/supersevere x two funding-boundary orders = 30 physical cases, independent settlement oracle and cross-OS 60 receipts. USD10k initial, base CAGR >50%, severe CAGR >30%, both severe years positive, severe max drawdown <45%, base/severe turnover <=USD600k, each optional sleeve full-minus-ablation net log growth >0.02 in base AND severe, annual marginal >=-0.03. PF/payoff/win/positive days, CVaR, funding/fees/slippage, concentration and tails required. Local diagnostic may reject, never promote. Freeze full internal pass before 2025 validation or any benchmark. No live orders.

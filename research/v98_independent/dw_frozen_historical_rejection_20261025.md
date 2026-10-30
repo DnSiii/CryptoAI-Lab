@@ -1,0 +1,15 @@
+# V98 Independent DW — immutable native training rejection (2026-10-25)
+
+Pre-result architecture and native 30-cell runner frozen at commit `32bd65ba0d3feb7fdfc75c0f974ced4f888a14e7`. Authenticated [DW economic execution 40199461005](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40199461005) used only pinned Clean-4 2022-2024; no 2025, XRP, V14/V15/V99, paper or live orders.
+
+Source viability PASS: 2023 active Core/Opportunity/RV/Stress = 48/27/37/5; 2024 = 53/27/50/4. Physical 30/30 survived across 2 Ubuntu environments; independent artifact-only audit cross_os=True, errors=[]. Full DW USD10k base carried-before-fill 2-year CAGR **+60.8935%**, 2023 return **+64.3365%**, 2024 **+57.6252%**, max DD **27.7578%**, native funding **-USD2042.68**. Severe 2-year CAGR **+59.4501%**, 2023 **+62.7193%**, 2024 **+56.3463%**, max DD **27.6321%**, funding **-USD2001.67**. These are backtested 2023-24 training results, NOT forward/holdout returns.
+
+Full growth and severe drawdown gates pass; Relative Value marginal gate passes, but **Opportunity and Stress/Recovery fail** preregistered positive annual marginal net-log-growth gates. Official decision **REJECT_DW_HISTORICAL_GROWTH_OR_MARGINAL**. DW cannot be rescued by removing/reweighting failed modules after observing outcomes; no isolated core or RV promoted. No complete V98 approved. Independent frozen-artifact forensics to quantify core displacement and annual signed contributions without reopening market data or modifying strategy. 2025 holdout remains sealed; V16/V99 Frozen and paper untouched.
+
+## Independent immutable-artifact economics (no model/data reopening)
+
+[Forensic run 40199652386](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40199652386) reconciled the original audited 30-cell DW summary and frozen core-only receipts. Core-only base CAGR **+59.5494%** versus full **+60.8935%**; severe core **+58.2654%** versus full **+59.4501%**. Core-only 2024 base return **+57.8050%**, slightly above full **+57.6252%**. Full base execution costs USD47.65 versus core-only USD39.14; severe USD234.70 versus USD193.59. Native funding and costs are included, not ignored.
+
+Leave-one-out signed annual *net log growth* (full minus no sleeve), base carried-before-fill: Opportunity 2023 **+0.011123**, 2024 **-0.003632**; Relative Value 2023 **+0.004684**, 2024 **+0.003336**; Stress/Recovery 2023 **+0.001669**, 2024 **-0.000786**. The signs persist across both funding orderings and base/severe/supersevere. Thus full DW growth is high, and RV genuinely contributes, but the complete preregistered seven-slot candidate **fails two annual marginal survival-of-alpha gates**. No after-the-fact sleeve removal, sign flip, weight change, or standalone-core promotion.
+
+**Next architectural critical path:** invent a new precommitted causal mechanism for opportunity and stress that has independently plausible positive *incremental* net growth in both rising years, without retuning DW or using 2025. Only a new complete, internally preregistered seven-slot candidate may enter the next authenticated 30-cell training gate.

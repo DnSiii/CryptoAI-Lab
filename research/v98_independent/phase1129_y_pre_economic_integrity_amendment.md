@@ -1,0 +1,9 @@
+# V98 Independent Phase1129 — Y pre-economic formal-invariant amendment
+
+2026-10-23. The **pre-registered Y complete synthetic gate passed 15/15** in GitHub Actions run 39981427427, with nonzero exposure in all paths. This is synthetic structural survival only, NOT historical CAGR or economic approval. Before ANY authenticated historical PnL, two independent **source-correctness** defects were found without looking at outcomes:
+
+1. **Basket-stop reserve omission**: Phase1123's 81-state equity subtracts six signed-funding reserves, but its basket exit cash omitted the same reserve. Formal synthetic counterexample: prior equity 10,000, source reports basket exit 9,896.4036 while 7,399 reserve leaves 2,497.4036 below 2,500 hard floor. The funding bound in this witness is deliberately extreme; it proves a mathematical contract defect, not its historical frequency.
+2. **Signed beta-neutrality**: Phase1125's RV pair weights use absolute beta magnitudes. They are beta-neutral when both betas have the same sign; if signs differ, opposite-position weights can produce a nonzero net beta. The preregistered RV contract is covariance-neutral, so an opposite-sign pair must be skipped rather than relabeled neutral.
+3. **Receipt event semantics**: a zero-notional trade should not count as an execution event. Correct this accounting label only, without changing any cash/position/PnL.
+
+**Amendment scope:** fix only those invariants in V98 namespaced Y files; do NOT change sleeve signs, signal windows, allocation weights, costs, stress corners, risk caps, quote capacity, seeds or chronology. Rerun full 15-cell synthetic gate at the new code SHA; if any cell fails, record failure and reject Y without cosmetic rescue. Continue authenticated Clean-4 2023/2024 training only after formal proof and fresh reproducibility. No 2025/2026+ or external benchmarks before the proper freeze.

@@ -1,0 +1,27 @@
+name: V98 Independent Phase1195 AD Multiplicative Allocator Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1195_ad_multiplicative_allocator.py'
+      - 'research/v98_independent/test_phase1195_ad_multiplicative_allocator.py'
+      - '.github/workflows/v98-independent-phase1195-ad-allocator.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-allocator-synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Test causal net-wealth sleeve mixture (synthetic only)
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1195_ad_multiplicative_allocator.py' -v

@@ -1,0 +1,69 @@
+name: V98 Independent Phase254 Shadow Equity Governor
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase254-shadow-governor.yml'
+      - 'research/v98_independent/phase254_shadow_equity_governor.py'
+      - 'research/v98_independent/test_phase254_shadow_equity_governor.py'
+      - 'research/v98_independent/phase254_shadow_equity_governor_prereg.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: v98-independent-phase254-shadow-governor
+  cancel-in-progress: false
+jobs:
+  training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Phase254 causal/invariant tests
+        run: PYTHONPATH=src python -m pytest -q research/v98_independent/test_phase254_shadow_equity_governor.py
+      - name: Rebuild authenticated Clean-4 source
+        run: python research/v98_independent/phase243_clean4_source_pipeline.py --attempts 3
+      - name: Execute frozen Phase254 twice
+        run: |
+          python research/v98_independent/phase254_shadow_equity_governor.py --out /tmp/phase254_a.json
+          python research/v98_independent/phase254_shadow_equity_governor.py --out /tmp/phase254_b.json
+          cmp /tmp/phase254_a.json /tmp/phase254_b.json
+          cp /tmp/phase254_a.json research/v98_independent/phase254_shadow_equity_governor_results.json
+      - name: Enforce Phase254 firewall
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/v98_independent/phase254_shadow_equity_governor_results.json'))
+          assert p['phase']==254 and p['training_only'] is True and p['validation'] is None
+          assert p['holdout_accessed'] is False
+          assert p['v14_used'] is False and p['v15_used'] is False and p['v99_used'] is False
+          assert p['parameters']['peak_hours']==2160 and p['parameters']['block_drawdown']==-0.2
+          assert p['parameters']['core_floor_gross']==1.0 and p['parameters']['system_gross_cap']==1.25
+          assert p['diagnostics']['max_open_gross']<=1.250000001
+          assert p['gate']['decision'] in {'SHADOW_EQUITY_RISK_GOVERNOR_CANDIDATE','REJECT_SHADOW_EQUITY_GOVERNOR_NO_RESCUE'}
+          print('Phase254',p['gate']['decision'])
+          PY
+      - name: Commit Phase254 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/v98_independent/phase254_shadow_equity_governor_results.json
+          if git diff --cached --quiet; then
+            echo no-result-change
+          else
+            git commit -m "v98 phase254: record shadow-equity Risk Governor evidence"
+            git pull --rebase --autostash origin research/v98-independent-zero
+            git push origin HEAD:research/v98-independent-zero
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase254-shadow-governor-${{ github.run_id }}
+          retention-days: 30
+          path: research/v98_independent/phase254_shadow_equity_governor_results.json

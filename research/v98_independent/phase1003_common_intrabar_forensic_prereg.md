@@ -1,0 +1,7 @@
+# V98 Independent Phase1003 — preregistered source-only common intrabar breach forensic
+
+Registered after frozen N's **unconditional rejection** in Phase1001. The rejected 90-cell matrix is not retuned or rescued. All 90 cases failed at the same pre-2025 index 2683 (2023-03-22 19:00 UTC) with zero opening-repair events; root cause is unclassified. This phase is forensic only, not an architectural optimization or PnL run.
+
+Freshly authenticate 100 Clean-4 OHLC training ZIPs through unchanged Phase803, verify pinned bars and all five frozen N target hashes, then inspect only the preregistered index 2683 and the t-1 information boundary. Record official OHLC open/high/low/close, each asset's actual t intrabar upside/downside shock, t-1 causal 336-hour 99%-tail stress envelope, frozen target weights for five paths at t-1, and independent static post-open risk at unchanged target weights across low/high/mixed corners. Classify whether source geometry, underestimated stress envelope, or execution-state drift is *consistent* with the observed common breach; do not infer causality without replay state. The actual current-bar high/low may only be used ex post to diagnose, never to size trades.
+
+No 2025+, holdout, XRP, benchmarks, economic returns, source substitutions, threshold/gross/sign/window changes or frozen code edits. Result may motivate a **genuinely distinct**, separately preregistered complete seven-slot architecture but cannot resurrect frozen N_full.

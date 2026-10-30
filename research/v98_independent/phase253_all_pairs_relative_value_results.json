@@ -1,0 +1,424 @@
+{
+  "architecture": [
+    "growth_core_structural_beta",
+    "carry_subsidized_opportunity_sleeve",
+    "all_pairs_relative_value_mean_reversion"
+  ],
+  "baseline_targets_sha256": "f18fe648a9994de28a8e8f13eb85d7031d818baf629fe90d561d7cb5a31ea8a4",
+  "cost_funding_tiers": {
+    "base": [
+      0.0007,
+      1.0,
+      1.0
+    ],
+    "severe": [
+      0.0012,
+      1.25,
+      0.75
+    ],
+    "supersevere": [
+      0.002,
+      1.75,
+      0.5
+    ]
+  },
+  "diagnostics": {
+    "absolute_asset_contribution_share": {
+      "BNBUSDT": 0.5469096547642143,
+      "BTCUSDT": 0.21048262771918216,
+      "ETHUSDT": 0.17091011316957253,
+      "SOLUSDT": 0.07169760434703104
+    },
+    "active_hour_ratio": 1.0,
+    "asset_net_pnl_proxy": {
+      "BNBUSDT": 1.5967104906216882,
+      "BTCUSDT": 0.6145070156381304,
+      "ETHUSDT": 0.49897449839105046,
+      "SOLUSDT": 0.20932217234801387
+    },
+    "avg_target_gross": 1.0627185979318734,
+    "max_asset_contribution_share": 0.5469096547642143,
+    "max_close_gross": 1.2671502618932253,
+    "max_open_gross": 1.2500000000000004,
+    "regimes": {
+      "bear": {
+        "hours": 6089,
+        "positive_hour_ratio": 0.5137132534077845,
+        "return_on_classified_hours": 1.9471772892199386
+      },
+      "bull": {
+        "hours": 8450,
+        "positive_hour_ratio": 0.5216568047337278,
+        "return_on_classified_hours": 1.6109473549274265
+      },
+      "sideways": {
+        "hours": 11765,
+        "positive_hour_ratio": 0.5119422014449638,
+        "return_on_classified_hours": -0.49063645123702593
+      }
+    },
+    "top10_absolute_daily_return_share": 0.05778687354056114
+  },
+  "engine": "V98 Independent",
+  "gate": {
+    "decision": "REJECT_RELATIVE_VALUE_NO_RESCUE",
+    "failures": [
+      "base_marginal_return<3pct_relative",
+      "base_cagr_not_above_phase252",
+      "base_pf_below_phase252",
+      "dd_worse_by_more_than_3pp",
+      "marginal_positive_in_fewer_than_2_folds",
+      "fold_underperformance>5pp",
+      "severe_not_above_phase252",
+      "supersevere_not_above_phase252"
+    ],
+    "passed": false
+  },
+  "holdout_accessed": false,
+  "integrated": {
+    "base": {
+      "best_day": 0.19884276658983224,
+      "cagr": 0.5775860548385285,
+      "cvar05_day": -0.06986628410858695,
+      "days": 1095,
+      "fees_paid": 0.23157426388408958,
+      "funding_net_cost": 0.5960897383393815,
+      "max_drawdown": -0.5700285575029568,
+      "negative_days": 522,
+      "p01_day": -0.07811958191795478,
+      "p05_day": -0.04885206476230329,
+      "p50_day": 0.0011887521652071964,
+      "p95_day": 0.05061689844265819,
+      "p99_day": 0.08582478341398904,
+      "payoff_daily": 1.0665597556462596,
+      "positive_days": 573,
+      "profit_factor_daily": 1.1707638697036529,
+      "return": 2.927282192097079,
+      "ruin": false,
+      "turnover_l1": 97.50414346860833,
+      "win_rate_daily": 0.5232876712328767,
+      "worst_day": -0.15848159900949244
+    },
+    "severe": {
+      "best_day": 0.1987661663639111,
+      "cagr": 0.5099237704131792,
+      "cvar05_day": -0.07000489942388823,
+      "days": 1095,
+      "fees_paid": 0.3648205127460382,
+      "funding_net_cost": 0.8021129511020414,
+      "max_drawdown": -0.5751101411866357,
+      "negative_days": 523,
+      "p01_day": -0.07848645756330774,
+      "p05_day": -0.04890500986334991,
+      "p50_day": 0.001140724958430095,
+      "p95_day": 0.05040336166017703,
+      "p99_day": 0.08548575779065529,
+      "payoff_daily": 1.0589075346083474,
+      "positive_days": 572,
+      "profit_factor_daily": 1.1581168447341774,
+      "return": 2.443238771369609,
+      "ruin": false,
+      "turnover_l1": 97.50414346860833,
+      "win_rate_daily": 0.5223744292237443,
+      "worst_day": -0.1587778381435323
+    },
+    "supersevere": {
+      "best_day": 0.19864600019337608,
+      "cagr": 0.40354669216102845,
+      "cvar05_day": -0.07023487700124735,
+      "days": 1095,
+      "fees_paid": 0.5304763363610303,
+      "funding_net_cost": 1.0991733973204012,
+      "max_drawdown": -0.5833601068996037,
+      "negative_days": 528,
+      "p01_day": -0.07905694394869485,
+      "p05_day": -0.048994802414392115,
+      "p50_day": 0.000948186637215187,
+      "p95_day": 0.049994598501156666,
+      "p99_day": 0.08486098146225138,
+      "payoff_daily": 1.0590939887139275,
+      "positive_days": 567,
+      "profit_factor_daily": 1.1373225219712062,
+      "return": 1.765442106347594,
+      "ruin": false,
+      "turnover_l1": 97.50414346860833,
+      "win_rate_daily": 0.5178082191780822,
+      "worst_day": -0.15923737101679936
+    }
+  },
+  "integrated_folds": {
+    "2023": {
+      "best_day": 0.11052461270095071,
+      "cagr": 1.471572741645638,
+      "cvar05_day": -0.05594505568636667,
+      "days": 364,
+      "fees_paid": 0.04171962407907899,
+      "funding_net_cost": 0.04378236655347069,
+      "max_drawdown": -0.33157247489167807,
+      "negative_days": 167,
+      "p01_day": -0.06517396017267003,
+      "p05_day": -0.03886216539404243,
+      "p50_day": 0.0016396757016124974,
+      "p95_day": 0.045208619136508775,
+      "p99_day": 0.07904656258876475,
+      "payoff_daily": 1.141446060407833,
+      "positive_days": 197,
+      "profit_factor_daily": 1.3464962509002578,
+      "return": 1.4697875209324724,
+      "ruin": false,
+      "turnover_l1": 34.17363591029242,
+      "win_rate_daily": 0.5412087912087912,
+      "worst_day": -0.07745708237039228
+    },
+    "2024": {
+      "best_day": 0.14113244854256557,
+      "cagr": 1.0544244641753848,
+      "cvar05_day": -0.06780741652110485,
+      "days": 365,
+      "fees_paid": 0.09479892130060544,
+      "funding_net_cost": 0.44595240315416057,
+      "max_drawdown": -0.38943179775194114,
+      "negative_days": 175,
+      "p01_day": -0.08035118475147934,
+      "p05_day": -0.050099727819240304,
+      "p50_day": 0.0011650002054959252,
+      "p95_day": 0.05709850061862981,
+      "p99_day": 0.08772070133542575,
+      "payoff_daily": 1.1311431354075656,
+      "positive_days": 190,
+      "profit_factor_daily": 1.2280982612996427,
+      "return": 1.0572950517359052,
+      "ruin": false,
+      "turnover_l1": 33.27660648875778,
+      "win_rate_daily": 0.5205479452054794,
+      "worst_day": -0.09640356761822633
+    },
+    "2025": {
+      "best_day": 0.19884276658983224,
+      "cagr": -0.24012622523342464,
+      "cvar05_day": -0.08147869098143797,
+      "days": 364,
+      "fees_paid": 0.09505571850440518,
+      "funding_net_cost": 0.10635496863175037,
+      "max_drawdown": -0.5507146212849348,
+      "negative_days": 180,
+      "p01_day": -0.10213234946402588,
+      "p05_day": -0.052780749549046234,
+      "p50_day": 0.0004783862088346691,
+      "p95_day": 0.04799572237721822,
+      "p99_day": 0.11058711430241118,
+      "payoff_daily": 0.9655650105199254,
+      "positive_days": 184,
+      "profit_factor_daily": 0.9870220107537014,
+      "return": -0.23995958078963686,
+      "ruin": false,
+      "turnover_l1": 30.053901069558137,
+      "win_rate_daily": 0.5054945054945055,
+      "worst_day": -0.15848159900949244
+    }
+  },
+  "integrated_targets_sha256": "c3132c6b0aecf63729dbc04d727f0bd362a50576196591ca552bfee8a9f74c9f",
+  "marginal_return_by_fold": {
+    "2023": -1.3419486770010254,
+    "2024": 0.22273272042419512,
+    "2025": -0.15637586214961385
+  },
+  "parameters": {
+    "assets": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT"
+    ],
+    "construction": "all six log-price-ratio state machines; aggregate net-zero overlay normalized to 0.50 gross",
+    "decision_hour_utc": 23,
+    "entry_z": 2.0,
+    "exit_z": 0.5,
+    "pairs": [
+      [
+        "BTCUSDT",
+        "ETHUSDT"
+      ],
+      [
+        "BTCUSDT",
+        "BNBUSDT"
+      ],
+      [
+        "BTCUSDT",
+        "SOLUSDT"
+      ],
+      [
+        "ETHUSDT",
+        "BNBUSDT"
+      ],
+      [
+        "ETHUSDT",
+        "SOLUSDT"
+      ],
+      [
+        "BNBUSDT",
+        "SOLUSDT"
+      ]
+    ],
+    "reference_hours": 720,
+    "rv_gross": 0.5,
+    "system_gross_cap": 1.25
+  },
+  "phase": 253,
+  "phase252_baseline": {
+    "base": {
+      "best_day": 0.16977775475599177,
+      "cagr": 0.8665767618880731,
+      "cvar05_day": -0.06695464429714612,
+      "days": 1095,
+      "fees_paid": 0.04254194906781112,
+      "funding_net_cost": 0.793064250558194,
+      "max_drawdown": -0.5264408127130289,
+      "negative_days": 531,
+      "p01_day": -0.07332356054869012,
+      "p05_day": -0.047076537601179476,
+      "p50_day": 0.0009023818470765832,
+      "p95_day": 0.05042216675110734,
+      "p99_day": 0.096965097815853,
+      "payoff_daily": 1.145681006595689,
+      "positive_days": 564,
+      "profit_factor_daily": 1.2168815211298845,
+      "return": 5.505672021361592,
+      "ruin": false,
+      "turnover_l1": 15.651129581024296,
+      "win_rate_daily": 0.5150684931506849,
+      "worst_day": -0.1554247553752608
+    },
+    "severe": {
+      "best_day": 0.16955682181022635,
+      "cagr": 0.8104899956644445,
+      "cvar05_day": -0.06703935203897221,
+      "days": 1095,
+      "fees_paid": 0.06870074977090238,
+      "funding_net_cost": 1.1079010244905731,
+      "max_drawdown": -0.528826059270806,
+      "negative_days": 531,
+      "p01_day": -0.07341314930735615,
+      "p05_day": -0.047196276998951375,
+      "p50_day": 0.0008105775138562699,
+      "p95_day": 0.050274201949044243,
+      "p99_day": 0.09691692429083541,
+      "payoff_daily": 1.137161100195216,
+      "positive_days": 564,
+      "profit_factor_daily": 1.2078321290209075,
+      "return": 4.936567787959862,
+      "ruin": false,
+      "turnover_l1": 15.651129581024296,
+      "win_rate_daily": 0.5150684931506849,
+      "worst_day": -0.15546520136634578
+    },
+    "supersevere": {
+      "best_day": 0.1691150235749288,
+      "cagr": 0.7197708511549898,
+      "cvar05_day": -0.06718336135385022,
+      "days": 1095,
+      "fees_paid": 0.10388122287930242,
+      "funding_net_cost": 1.5816280438601675,
+      "max_drawdown": -0.5336904871725738,
+      "negative_days": 533,
+      "p01_day": -0.07359230934506052,
+      "p05_day": -0.04730827747108887,
+      "p50_day": 0.0006240707727109829,
+      "p95_day": 0.05000976379595979,
+      "p99_day": 0.09682066943019818,
+      "payoff_daily": 1.1311835255401341,
+      "positive_days": 562,
+      "profit_factor_daily": 1.192730096348134,
+      "return": 4.087987786546987,
+      "ruin": false,
+      "turnover_l1": 15.651129581024296,
+      "win_rate_daily": 0.5132420091324201,
+      "worst_day": -0.1555161569331598
+    }
+  },
+  "phase252_folds": {
+    "2023": {
+      "best_day": 0.16977775475599177,
+      "cagr": 2.815814526506453,
+      "cvar05_day": -0.05634403815574561,
+      "days": 364,
+      "fees_paid": 0.008115739023942307,
+      "funding_net_cost": 0.079412164417986,
+      "max_drawdown": -0.3097786584842197,
+      "negative_days": 172,
+      "p01_day": -0.06864783658251225,
+      "p05_day": -0.039526782510257374,
+      "p50_day": 0.0016896393358943884,
+      "p95_day": 0.05344624806461854,
+      "p99_day": 0.09279810534174603,
+      "payoff_daily": 1.3189396532871636,
+      "positive_days": 192,
+      "profit_factor_daily": 1.4723047292507871,
+      "return": 2.811736197933498,
+      "ruin": false,
+      "turnover_l1": 6.903112388053083,
+      "win_rate_daily": 0.5274725274725275,
+      "worst_day": -0.0739223150919085
+    },
+    "2024": {
+      "best_day": 0.12914414434245614,
+      "cagr": 0.8324088886182792,
+      "cvar05_day": -0.06505822228921292,
+      "days": 365,
+      "fees_paid": 0.014281366237647997,
+      "funding_net_cost": 0.5503883289863005,
+      "max_drawdown": -0.38359509217563625,
+      "negative_days": 181,
+      "p01_day": -0.0716192771064025,
+      "p05_day": -0.04790965053566223,
+      "p50_day": 0.0010675872119774166,
+      "p95_day": 0.05341249217526887,
+      "p99_day": 0.08159487976841426,
+      "payoff_daily": 1.1747652495852339,
+      "positive_days": 184,
+      "profit_factor_daily": 1.1942364968159283,
+      "return": 0.8345623313117101,
+      "ruin": false,
+      "turnover_l1": 4.203408673694658,
+      "win_rate_daily": 0.5041095890410959,
+      "worst_day": -0.10408592862389632
+    },
+    "2025": {
+      "best_day": 0.1504643788297495,
+      "cagr": -0.0836476418535177,
+      "cvar05_day": -0.07645797272376757,
+      "days": 364,
+      "fees_paid": 0.020144843806220815,
+      "funding_net_cost": 0.16326375715390748,
+      "max_drawdown": -0.5264408127130289,
+      "negative_days": 178,
+      "p01_day": -0.09828510753409647,
+      "p05_day": -0.05069362414397599,
+      "p50_day": 0.00028475453065579526,
+      "p95_day": 0.04547935566363943,
+      "p99_day": 0.1055646868598495,
+      "payoff_daily": 0.9829038849065674,
+      "positive_days": 186,
+      "profit_factor_daily": 1.027079340407986,
+      "return": -0.08358371864002301,
+      "ruin": false,
+      "turnover_l1": 4.544608519276554,
+      "win_rate_daily": 0.510989010989011,
+      "worst_day": -0.1554247553752608
+    }
+  },
+  "rv_activity": {
+    "active_hour_ratio": 0.8613518856447688,
+    "max_abs_overlay_net": 2.7755575615628914e-17,
+    "max_active_pair_count": 6,
+    "max_overlay_gross": 0.5,
+    "mean_active_pair_count": 2.8349300486618003
+  },
+  "rv_targets_sha256": "dd6aa2641f72338135772e3ab49ea213747c4470f8341a18bc74a06cb3d3a5f7",
+  "source_manifest_sha256": "c8255dd01ec466191dccb8c276ebfb0bdad2e092b613ed5e63c49b55a4d428e9",
+  "training_only": true,
+  "v14_used": false,
+  "v15_used": false,
+  "v99_used": false,
+  "validation": null
+}

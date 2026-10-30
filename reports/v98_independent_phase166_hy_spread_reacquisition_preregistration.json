@@ -1,0 +1,34 @@
+{
+  "engine": "V98 Independent",
+  "phase": "166",
+  "mode": "DATA_ONLY",
+  "purpose": "scientifically independent reacquisition of ICE BofA US High Yield spread after Phase151 data-quality rejection; no economic/PnL use",
+  "series": "BAMLH0A0HYM2",
+  "frozen_window": {"start": "2023-01-01", "end": "2025-12-31"},
+  "source_policy": {
+    "official_family": "FRED/ALFRED",
+    "dual_acquisition_required": true,
+    "normalized_sha256_must_match": true,
+    "no_imputation": true,
+    "no_carry_forward": true,
+    "no_backfill_from_phase151": true
+  },
+  "integrity_gates": {
+    "unique_dates": true,
+    "strictly_increasing": true,
+    "finite_nonnegative_values": true,
+    "inside_frozen_window": true,
+    "global_weekday_coverage_min": 0.95,
+    "per_year_weekday_coverage_min": 0.90
+  },
+  "economic_firewall": {
+    "crypto_returns_forbidden": true,
+    "pnl_forbidden": true,
+    "validation_forbidden": true,
+    "final_holdout_forbidden": true,
+    "v16_forbidden": true,
+    "v99_forbidden": true
+  },
+  "decision_rule": "PASS_DATA_ONLY only if all integrity and reproducibility gates pass; otherwise REJECT_DATA_QUALITY_NO_RESCUE",
+  "anti_overfit": "No economic hypothesis, threshold, sign, lag or portfolio rule may be selected from this data-only phase."
+}

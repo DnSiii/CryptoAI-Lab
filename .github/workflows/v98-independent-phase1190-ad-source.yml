@@ -1,0 +1,88 @@
+name: V98 Independent Phase1190 AD Authenticated Core Router Crossrunner
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1190_ad_authenticated_core_source.py'
+      - 'research/v98_independent/phase1189_ad_online_core_router.py'
+      - 'research/v98_independent/test_phase1190_ad_native_parser.py'
+      - '.github/workflows/v98-independent-phase1190-ad-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        repeat: [a, b]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3 scipy==1.14.1
+      - name: Test causal source and native provenance (synthetic)
+        run: |
+          python -m unittest -q test_phase1189_ad_online_core_router.py
+          python -m unittest -q test_phase1190_ad_native_parser.py
+      - name: Fresh official Clean-4 and signed native mark/funding AD source-only attestation
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1190_ad_authenticated_core_source.py
+      - name: Preserve receipts even if source fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-ad-1190-${{ matrix.os }}-${{ matrix.repeat }}
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1190_ad_authenticated_core_source_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  ad-crossrunner:
+    needs: ad-source
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-ad-1190-*
+          path: /tmp/v98-ad-1190
+          merge-multiple: false
+      - name: Strict four independent OS source and observer hash equality
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/v98-ad-1190')
+          paths=[root/('v98-ad-1190-'+os+'-'+repeat)/'phase1190_ad_authenticated_core_source_receipt.json'
+                 for os in ('ubuntu-22.04','ubuntu-24.04') for repeat in ('a','b')]
+          if not all(p.is_file() for p in paths):
+              raise SystemExit('AD1190_CROSSRUNNER_MISSING_RECEIPT')
+          receipts=[json.loads(p.read_text()) for p in paths]
+          for r in receipts:
+              assert r['decision']=='PASS_AD_AUTHENTICATED_CORE_ROUTER_SOURCE_ONLY_NOT_FROZEN'
+              assert r['source_only'] is True and r['historical_system_pnl_computed'] is False
+              assert r['validation_2025_read'] is False and r['external_benchmarks_used'] is False
+              assert r['official_hours']==18288 and r['native_funding_events']==9144
+              assert len(r['observer_sha256'])==64 and len(r['native_bounds_sha256'])==64
+          for key in ('observer_sha256','native_bounds_sha256','diagnostics',
+                      'official_hours','native_funding_events'):
+              assert all(r[key]==receipts[0][key] for r in receipts),'AD1190_DRIFT_'+key
+          print(json.dumps({'decision':'PASS_AD_FOUR_FRESH_SOURCE_OBSERVER_RECOMPOSITIONS_NOT_FROZEN',
+              'observer_sha256':receipts[0]['observer_sha256'],
+              'native_bounds_sha256':receipts[0]['native_bounds_sha256']},sort_keys=True))
+          PY

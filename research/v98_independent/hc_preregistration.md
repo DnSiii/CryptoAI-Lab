@@ -1,0 +1,18 @@
+# V98 Independent HC — funding-dislocation momentum and breadth-led recovery (2026-10-26)
+
+**PRE-REGISTERED BEFORE HC SOURCE IMPLEMENTATION, VIABILITY, OR ECONOMIC RUN.** HB and all earlier complete-engine candidates remain rejected. This is a new complete seven-slot causal portfolio hypothesis, not a post-result adjustment to HB.
+
+## Immutable scope and independence
+Use only authenticated Binance USD-M Clean-4 BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT 1h with native signed funding, Dec-2022 warmup and chronological 2023–2024 training. Never read 2025 holdout, 2026+, XRP, old Phase083, V14/V15/V99 or Frozen/paper. Completed t close drives the next real t+1 open. USD10k separately financed books, base/severe/supersevere fees/slippage and both funding orders; GL unchanged 81-corner buffered prior-only physical governor, no shorts, borrowing or inflated quote-volume capacity.
+
+## Frozen architecture (96h epochs)
+1. **Growth Core:** choose two assets with strongest 336h funding-net return divided by 168h downside semivol floor .002, long-only 65/35.
+2. **Opportunity Sleeve:** choose strongest 96h funding-net return among assets with (a) positive 96h return above cross-asset median, (b) signed 96h funding burden below cross-asset median, and (c) latest 96h mean quote volume exceeding previous 96h mean. This is *funding-dislocation momentum*, not HB's max-median dispersion threshold or HA's breakout. If none, inactive.
+3. **Relative Value:** select the asset with lowest 336h signed funding burden divided by 168h realized volatility floor .002, long-only.
+4. **Stress/Recovery:** if median cross-asset 336h funding-net return is negative AND at least two assets have positive latest 24h net return, invest 50/50 in the two highest positive 24h net-return assets; otherwise inactive. This tests *breadth-led recovery*, not HB's volatility contraction, HA's drawdown rebound, or GZ's cash option.
+5. **Regime Router:** STRESS when median 336h net return <0; TREND when at least 3 assets have positive 168h net returns; TRANSITION otherwise. Desired gross TREND 2.0, TRANSITION 1.6, STRESS 1.8, always subject to the unchanged physical governor.
+6. **Dynamic Allocator:** prior budgets Core .50, Opportunity .20, RV .15, Stress .15, multiply by exp(2 times previous selected expert's 96h funding-net return) clipped [.80,1.20], remove inactive experts from financing denominator, 75% previous / 25% fresh smoothing, independently replay each ablation from USD10k.
+7. **Risk Governor:** unchanged GL conservative buffered 81-corner risk authorization with native signed funding, costs and physical liquidation.
+
+## Precommitted falsification gates
+Before PnL, finite/geometry and future mutation checks, >=8 active epochs in **each** 2023 and 2024 for each slot. Fail -> reject HC before economic results, do not rescue threshold/weight/sign/window. If viable, run five independently financed paths (Core-only, Full, minus Opportunity, minus RV, minus Stress), 2 Ubuntu OS, 3 cost levels, 2 funding orders = 30 independently reproducible physical cells, plus independent all-settled-hour oracle. Annual full-book net log growth >0 in 2023 and 2024 base/severe; base CAGR >50%, severe CAGR >30%; severe DD <45%, base/severe turnover <=USD600k. Opportunity/RV/Stress each must have marginal combined net log growth >+.02 for both base/severe and funding orders, and marginal annual >=-.03. Record PF, payoff, win rate, positive days, tails, concentration, capacity and full native costs. Any failure freezes rejection. Complete passing candidate must be frozen before separate untouched future validation; external benchmark only after that. No real orders.

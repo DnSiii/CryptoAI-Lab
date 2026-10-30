@@ -1,0 +1,88 @@
+name: V98 Independent Phase1077 S Frozen 90-Cell Authenticated Training
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1077-s-economic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  s-frozen-training-path:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - S_core_only
+          - S_full
+          - S_minus_opportunity
+          - S_minus_relative_value
+          - S_minus_recovery
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: Assert immutable S frozen source and signed execution
+        run: |
+          python -m unittest -q test_phase1073_s_signed_execution.py test_phase1074_s_funded_ledger.py test_phase1075_s_training_path.py test_phase1076_s_90cell_audit.py
+          python -c 'from phase1075_s_training_path import verify_freeze; assert verify_freeze()["decision"]=="FROZEN_S_PRE_ECONOMIC"'
+      - name: Fresh official Clean-4, signed mark and frozen S 18-cell training path
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1075_s_training_path.py --path ${{ matrix.path }}
+      - name: Preserve S economic receipt even on rejection or partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-s-1077-${{ matrix.path }}
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1071_s_authenticated_source_receipt.json
+            research/v98_independent/phase1075_s_${{ matrix.path }}_training_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+  s-frozen-90-cell-growth-audit:
+    needs: s-frozen-training-path
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-s-1077-*
+          path: /tmp/s-econ
+          merge-multiple: false
+      - name: Audit all 90 immutable survival and growth-marginal cells
+        shell: bash
+        run: |
+          set -o pipefail
+          python research/v98_independent/phase1076_s_90cell_audit.py \
+            /tmp/s-econ/v98-s-1077-S_core_only/phase1075_s_S_core_only_training_receipt.json \
+            /tmp/s-econ/v98-s-1077-S_full/phase1075_s_S_full_training_receipt.json \
+            /tmp/s-econ/v98-s-1077-S_minus_opportunity/phase1075_s_S_minus_opportunity_training_receipt.json \
+            /tmp/s-econ/v98-s-1077-S_minus_relative_value/phase1075_s_S_minus_relative_value_training_receipt.json \
+            /tmp/s-econ/v98-s-1077-S_minus_recovery/phase1075_s_S_minus_recovery_training_receipt.json \
+            | tee /tmp/phase1077_s_90cell_audit.json
+      - name: Preserve 90-cell audit result even on rejection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-s-1077-90cell-growth-audit
+          path: /tmp/phase1077_s_90cell_audit.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,47 @@
+name: V98 Independent Phase1060 R Authenticated Source-Only
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1060-r-source.yml'
+      - 'research/v98_independent/phase1059_r_sevenslot_source.py'
+      - 'research/v98_independent/phase1060_r_source_auth.py'
+      - 'research/v98_independent/test_phase1059_r_sevenslot_source.py'
+      - 'research/v98_independent/test_phase1060_r_source_contract.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r-authenticated-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1'
+      - name: R source-only synthetic causality and serialization regression
+        run: python -m unittest -q test_phase1059_r_sevenslot_source.py test_phase1060_r_source_contract.py
+      - name: Fresh authenticated Clean-4 source and deterministic R five-target hashes
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python phase1060_r_source_auth.py
+      - name: Preserve source-only receipt even on rejection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase1060-r-source-only-receipt
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase1000_four_asset_source_policy_receipt.json
+            research/v98_independent/phase1060_r_source_auth_receipt.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,52 @@
+{
+  "name": "CryptoAI V16 Experimental · Balanced Relaxed",
+  "version": "v16-experimental-balanced-relaxed-2026-09-01",
+  "mode": "PAPER_ONLY",
+  "real_orders": false,
+  "strict_research_gate": "REJECTED",
+  "paper_authorization": "USER_AUTHORIZED_EXPERIMENTAL_FORWARD_TEST",
+  "frozen_core_config": "candidate_v13_circuit_breaker.json",
+  "frozen_attack_config": "candidate_v14_max_capture.json",
+  "allocator": {
+    "windows_days": [45, 90, 180],
+    "core_weight_when_leading": 0.7,
+    "core_weight_when_lagging": 0.1,
+    "rebalance_hours": 24
+  },
+  "convex_overlay": {
+    "short_hours": 72,
+    "long_hours": 720,
+    "drawdown_hours": 720,
+    "drawdown_threshold": 0.12,
+    "winner_multiplier": 1.3,
+    "loser_multiplier": 0.5,
+    "drawdown_multiplier": 0.3,
+    "rebalance_hours": 24,
+    "maximum_gross": 1.85
+  },
+  "profit_lock": {
+    "short_hours": 168,
+    "long_hours": 1080,
+    "short_gain": 0.15,
+    "long_gain": 0.35,
+    "profit_pullback": 0.0275,
+    "shock_loss": 0.0525,
+    "lock_multiplier": 0.35,
+    "shock_multiplier": 0.15,
+    "rebalance_hours": 3,
+    "maximum_gross": 1.85
+  },
+  "circuit_breaker": {
+    "drawdown_threshold": 0.058,
+    "exposure_multiplier": 0.1,
+    "cooldown_hours": 72,
+    "gross_drift_guard_cap": 2.0
+  },
+  "paper": {
+    "initial_capital_brl": 10000,
+    "independent_forward_boundary": true,
+    "historical_results_count_as_paper_profit": false,
+    "preserve_existing_tracks": ["v13", "v14", "v15"]
+  },
+  "disclosure": "Experimental forward paper only. This frozen revision did not pass the strict V16 drawdown gate; it has no exchange credentials or real-order methods. Further research must be promoted as a new revision and cannot rewrite this paper history."
+}

@@ -1,0 +1,92 @@
+name: V98 Independent Phase959 N Authenticated 90-Cell Training
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - .github/workflows/v98-independent-phase959-n-official-90cell.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v98-independent-phase959-n-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  n-frozen-official-training:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout immutable triggering V98 revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install pinned V98 training runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numeric and test dependencies
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'pytest==8.3.5'
+      - name: Verify exact ten-source N deployment manifest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          pinned = {
+            'phase876_k_funded_ledger.py':'1bef3273eb1961697fbcf77912af3ef0a0027f83ddd8e94aa58d26ed2238f21c',
+            'phase877_k_official_economic_dispatch.py':'1441959bb9ae5e4c14ca0baa95562995199882dbe808c0d6caf8be4586323453',
+            'phase900_m_persistent_growth_source.py':'f77d9f745f8bcaafe2988b9b574cd98d245afa49e270c185db79442f9769bd64',
+            'phase903_m_frozen_paths.py':'36040ebc7d1244c5ff0c477c21dc569024e349abb91398ab46d704468bbfa5e9',
+            'phase915_n_open_repair.py':'9275cb642863d4dc0a79ac15ee0e31058ad5ea7caac1173278046c4b5c6bdcbd',
+            'phase920_n_composed_source.py':'b5a63f06522a0ca37e65d936170559832ed7dbb7c43064e7075f845a3ac281c7',
+            'phase923_n_funded_ledger.py':'a47672bed98d770c384747d5dca8f2211aee24e71099e9f3f75425d9c6a1750c',
+            'phase924_n_official_90cell_dispatch.py':'0c114cd25c327e368a655a63feaadb2ea93244611e74a367f364349330da754b',
+            'phase939_n_funded_ledger_hourly.py':'dfcf3c913f810721e3f983c05385bf3183f7c1dad14d0ad1adc65365cf1b28ad',
+            'phase940_n_official_90cell_hourly_dispatch.py':'255905082938044068ba347b96f37c5fdd85fb0a910c558737fa1988bb5f4042',
+          }
+          for path, expected in pinned.items():
+              actual=hashlib.sha256(Path(path).read_bytes()).hexdigest()
+              if actual!=expected:
+                  raise PermissionError('Frozen V98 source drift: '+path)
+          from phase924_n_official_90cell_dispatch import FROZEN_N
+          from phase920_n_composed_source import N_PATHS
+          assert len(FROZEN_N)==5 and tuple(FROZEN_N)==N_PATHS
+          print('PASS: ten exact V98 source hashes and five N path identities')
+          PY
+      - name: Test source-only causal risk and hourly accounting primitives
+        working-directory: research/v98_independent
+        run: |
+          python -m pytest -q test_phase935_hourly_drawdown_integrity.py
+          python - <<'PY'
+          import numpy as np
+          from phase915_n_open_repair import repair_open
+          from phase920_n_composed_source import maximal_retention,corners_safe
+          cash, units, sold, ok=repair_open(1.,np.zeros(4),np.ones(4),np.ones(4)*100.,.0007)
+          assert ok and cash==1. and np.all(units==0) and np.all(sold==0)
+          w=np.array([[.7,.5,.3,.2]])
+          shock=np.ones((1,4))*.05
+          k=maximal_retention(w,shock,shock)
+          assert 0<=k[0]<=1 and corners_safe(w*k[:,None],shock,shock)
+          print('PASS: causal opening repair and frozen 16-corner governor')
+          PY
+      - name: Fresh official 300 ZIP and SHA256 source gate then 90 frozen funded cells
+        working-directory: research/v98_independent
+        run: python phase940_n_official_90cell_hourly_dispatch.py
+      - name: Upload training evidence even on rejection or source failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase959-n-source-and-90cell
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase797_official_mark_archive_receipt.json
+            research/v98_independent/phase797_conservative_training_funding_bounds.csv
+            research/v98_independent/phase940_n_official_90cell_hourly_result.json

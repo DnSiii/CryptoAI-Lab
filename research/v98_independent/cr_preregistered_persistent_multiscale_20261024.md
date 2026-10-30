@@ -1,0 +1,20 @@
+# V98 Independent CR — preregistered persistent multi-scale diversification and defensive trend (2026-10-24)
+
+## New economic thesis
+CR abandons sparse event-only entries that made CP/CQ source-inactive. It tests a **continuous composed portfolio**: trend-gated inverse-volatility diversified Growth, sign-symmetric alt trend Opportunity, cross-sectional 4-asset momentum spread RV, and independent directional BTC defensive trend for Stress/Recovery. These are distinct economic sleeves, not post-result threshold changes, cosmetic rescues, or copies of rejected engine signals/parameters. Only shared generic V98 physical authorization, native settlement and independent artifact reconciliation are reused.
+
+## Seven frozen slots
+1. **Growth Core:** every 336h, compute trailing 672h realized hourly volatility for BTC/ETH/BNB/SOL and trailing 336h log return. Eligible assets have 336h log return >0; distribute **100%** of module notional across all eligible assets in proportion to inverse realized volatility; if none, hold cash. No single-winner trend ranking or constant basket.
+2. **Opportunity Sleeve:** every 168h, among BNB/SOL, rank trailing 72h log return divided by 72h realized hourly volatility. If strongest score >0, long strongest alt 100%; otherwise short weakest alt 100%. No breakout, volume or rare threshold; sign-symmetric directional alt opportunity.
+3. **Relative-Value Sleeve:** every 168h, rank all four assets by trailing 168h log return; long strongest 50%, short weakest 50%. Always dollar-neutral, no beta/funding/ratio conditioning, no persistent preselected short asset. Cross-sectional momentum spread rather than CP residual or CQ alt/BTC conditional leadership.
+4. **Stress/Recovery Sleeve:** every 168h, long BTC 100% if trailing BTC 336h log return >=0, else short BTC 100%. Continuous directional defensive trend, independently activated from Growth; short during prolonged stress, long during recovery. No synthetic options/convexity claims.
+5. **Regime Router:** RISK_ON if BTC 168h return >0 and >=3 assets positive 168h; RISK_OFF if BTC 168h <0 and <=1 asset positive; else MIXED.
+6. **Dynamic Allocator:** precommitted [Growth,Opportunity,RV,Stress] budgets RISK_ON [1.90,.45,.25,.15], MIXED [1.40,.35,.35,.30], RISK_OFF [.55,.25,.50,.65]. Shared collateral, persistent module units, no hidden leverage; real physical risk governor can reduce/deny positions.
+7. **Risk Governor:** unchanged generic CG buffered physical authorization: 60% stressed NAV reserve, 40% floor, 18% maintenance, 0.25% participation, staged exits, 81 OHLC stress corners, native signed 8h funding and mark bounds.
+
+## Locked test and promotion rules
+Only pinned Clean-4 Binance USD-M 1h BTC/ETH/BNB/SOL Dec-2022 warmup through Dec-2024. No 2025 holdout, 2026+, XRP, Phase083 or external V14/V15/V99 architectures, signals or performance. Completed close t -> earliest actual open t+1. Source-only causal perturbation, pinned native source hashes, activity minimum >=4 Growth/Opportunity/Stress and >=8 RV in **each** 2023/2024; report distinct signal transitions, not inflated trades.
+
+If source passes, 20 native USD10k physical training cells: core-only/full/minus each satellite x base/severe x both funding orders, reproduced Ubuntu 22.04/24.04 with independent artifact-only accounting. Require 20/20 survival, full annual net log growth positive both years all cases, full CAGR >50% base and >30% severe, severe DD <45%, **each** satellite full-minus-ablated annual log growth >0 in 2023 and 2024 for both costs/orders. Any fail => freeze rejection; never tune a rejected architecture.
+
+Only after passing: USD1m/USD10m, supersevere costs, independent event-level 81-corner replay, tail/concentration/regime audit, internal freeze, separate untouched 2025 validation, then external benchmark. No paper/live authorization. Writes restricted to `research/v98_independent/cr_*` and `.github/workflows/v98-independent-cr-*` on `research/v98-independent-zero`; V16/V99 Frozen and V99 paper/workflows/reports untouched.

@@ -1,0 +1,7 @@
+# V98 Independent Phase1020 — O hourly funded ledger conservation oracle (synthetic, no historical PnL)
+
+Registered while Phase1018 canonical O 90-cell economics is running. This is a **diagnostic accounting test**, not a change to the immutable O seven-slot architecture, canonical target hashes, LP solver, economic parameters or acceptance criteria. Do not modify/relabel a rejected historical O candidate based on test outcomes.
+
+Test a deterministic flat-price 4-asset 96-hour synthetic universe (all 2023, no external sources, no holdout, no benchmark) with valid OHLC, native-format settlement events and fixed t-1 targets. Independent invariant: initial capital = terminal marked equity + cumulative execution fees + net funding debits when all opens and closes equal and no price appreciation exists. Verify for each preregistered fee tier and funding ordering. A positive funding settlement at the first opening must charge **new_after_fill** but not **carried_before_fill**; both reconcile. Under extremely low previous-hour quote-volume, capacity_1m may only execute 5% of t-1 volume, while immediate is unconstrained by volume; both must conserve wealth and remain below hard gross/asset limits. Any violated invariant is a ledger correctness issue requiring quarantine and root-cause classification; never alter the historical frozen O economics or target selection to hide it.
+
+Only V98 namespaced files on research/v98-independent-zero; no 2025+, no V14/V15/V16/V99 access, no paper state changes.

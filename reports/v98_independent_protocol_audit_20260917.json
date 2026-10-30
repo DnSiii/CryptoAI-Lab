@@ -1,0 +1,23 @@
+{
+  "engine": "V98 Independent",
+  "audit_date": "2026-09-17",
+  "finding": "The interval 2026-01-01 through 2026-07-31 was opened by multiple prior candidates after their training gates. It can no longer honestly serve as an untouched final holdout for the research program.",
+  "corrective_action": {
+    "legacy_interval_role": "validation_only",
+    "validation_start": "2026-01-01T00:00:00Z",
+    "validation_end": "2026-07-31T23:00:00Z",
+    "new_final_holdout_start": "2026-08-01T00:00:00Z",
+    "new_final_holdout_end": "2026-09-15T23:00:00Z",
+    "final_holdout_status": "reserved_untouched",
+    "single_open_rule": true
+  },
+  "enforcement": [
+    "config/v98_independent.json explicitly reserves the new final holdout",
+    "tests/test_v98_independent.py fails if ordinary V98 phase research scripts reference final_holdout_start or final_holdout_end",
+    "recent Phase009-Phase012 target builders are now checked for future invariance on synthetic data",
+    "the new final holdout must only be opened after a candidate is frozen following training and validation gates"
+  ],
+  "selection_implication": "No Phase009-Phase012 result was selected using the new final holdout. Phase009, Phase010, Phase011 and Phase012 all failed training and therefore did not require validation or final-holdout access.",
+  "v99_used": false,
+  "v99_modified": false
+}

@@ -1,0 +1,9 @@
+# V98 Independent Phase243 — orthogonal XRP capture execution (2026-10-13 18:50 BRT)
+
+DATA_ONLY, NO_ALPHA, no holdout, no promotion. Branch `research/v98-independent-zero` only; all changes under V98 Independent namespaced paths. This operationalizes the frozen 2026-10-10 XRP monthly/daily/minute preregistration, not a new fitted strategy.
+
+Predeclared execution: independent GitHub Actions job captures only XRPUSDT USD-M perpetual publisher ZIPs and their .CHECKSUM files: 2023-11 monthly 1h, 2023-11-14 daily 1h, 2023-11-14 daily 1m. Never fetch other dates or any 2026+ data. Verify sidecar SHA256, exact expected archive member, size, and namespace containment. Preserve all successfully fetched originals even if a later source fails. Keep failed acquisition distinct from source consistency; same-provider agreement is not external authentication. Upload immutable raw ZIP/sidecar and JSON capture manifest as V98-only Actions artifact even on failed source acquisition. No historical trading backtest.
+
+After capture, reconcile all 24 hourly bars against 60-minute aggregation of 1m candles, including exact OHLC, volume, quote volume, trade counts, taker buy base/quote and seller residual feasibility. Use fixed numeric serialization tolerances from 2026-10-10 preregistration. Do not silently repair known XRP 2023-11-14 11:00 UTC contradiction. If missing, contradictory, or merely same-provider consistent, retain Phase243 BLOCKED_SOURCE, Phase240 REJECTED and champion NONE. Preserve 2023/2024/2025 chronological folds, untouched 2026+ holdout, 7/14/28bp costs, funding, regimes, tails/concentration, MDD, PF, payoff, win rate, positive days and reproducibility for future eligible experiments.
+
+Fail closed: never start V98 alpha evaluation or V99/V16 workflow from this job. Capture workflow should not modify paper state or branch outside V98 namespaced files.

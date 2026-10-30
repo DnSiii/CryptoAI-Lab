@@ -1,0 +1,18 @@
+# V98 Independent ET — preregistered asynchronous compounding portfolio (2026-10-25)
+
+Immutable before ET economic results. ET tests whether **asynchronous slow-core capital compounding plus three nonidentical cash-funded satellites** can increase annual net log wealth in both 2023 and 2024 without large churn. This is a genuinely new architectural hypothesis, not a parameter repair or post-result rescue of rejected ES/ER. Common physical settlement and prior-only governor are unchanged infrastructure.
+
+## Data firewall
+Authenticated Binance USD-M Clean-4 BTCUSDT ETHUSDT BNBUSDT SOLUSDT, hourly OHLC, native event funding and quote turnover, December 2022 744h warmup, 2023–2024 training only. No 2025 access before training freeze, no 2026+, XRP, old Phase083, V14/V15/V99, Frozen or paper. Completed close t, actual next open t+1, no future-signal revision.
+
+## Complete seven-slot architecture
+1. Growth Core: on a **168h clock**, select positive 336h and 168h funding-net-trend assets, risk-normalized by realized 168h vol; 15% BTC defensive anchor and 85% scored winners, 100% BTC fallback. Budget 1.95 in TREND (>=3 positive 336h trends), 1.70 in MIXED, 1.45 in STRESS (<=1).
+2. Opportunity Sleeve: on a **72h clock**, buy the ETH/BNB/SOL asset with strongest positive 48h native-net return / 168h realized vol, requiring positive 168h native-net trend, positive 24h native-net return and latest 24h quote volume above the previous 168h median of trailing completed 24h quote volume; otherwise flat. Budget 0.24.
+3. Relative-Value Sleeve: on a **120h clock**, long the asset with **lowest positive funding debit over 168h** among assets with positive 336h native-net trend and positive 72h native-net trend. Funding debit may be negative; choose minimum, tie break by BTC ETH BNB SOL order. This is a funding-cost cross-sectional quality long, not a BTC-relative winner, pair short, or momentum winner. Budget 0.22.
+4. Stress/Recovery Sleeve: on a **48h clock**, after negative equal-market 96h native-net trend, require positive 24h equal-market native-net return and >=2 assets with positive 24h return; buy strongest positive 24h native-net asset. Otherwise flat. Budget 0.18.
+5. Regime Router: completed 336h native-net breadth; >=3 TREND, <=1 STRESS, else MIXED.
+6. Dynamic Allocator: asynchronous independent observation clocks; unchanged between-epoch target units; core plus satellites maximum requested gross 2.59, strictly under 2.80. No online reward feedback, no hidden borrowing.
+7. Risk Governor: unchanged CG 60% stressed NAV reserve, 81-corner prior-only stressed staged exit, actual-open settlement, native funding, USD10k cash, base/severe/supersevere costs and both funding orderings.
+
+## Locked economic gates
+Source-only future-mutation invariance and >=4 active epochs per module in EACH year before PnL. Five paths (core, full, minus each satellite) x 3 cost tiers x 2 funding orderings = 30 physical training cells, two OS reproductions, independent artifact-only reconciliation, independent all-hour ledger if economically eligible. 30/30 survival; positive full annual 2023 and 2024 net log growth base/severe both funding orders; strictly positive full-minus-each-satellite annual net log growth in 2023 and 2024 base/severe both orders; base CAGR >50%, severe >30%, severe max DD <45%, base/severe turnover <= USD600k. PF, payoff, win rate, positive days, tails, concentration, costs and funding reported. Failed hypothesis remains rejected without tuning rescue. Pass only means training candidate to freeze before untouched separate 2025 validation; no real trading authorization.

@@ -1,0 +1,11 @@
+# V98 Independent Phase448 — pre-result immutable commitment
+
+Phase448 preregistration document `research/v98_independent/phase448_rank_compounding_reentry_prereg.md` was written locally before Phase448 implementation or target/PnL inspection. Its exact SHA256 is `5fa86ae05ccf4c17f204315ee3889be4b639bb9d0ba7b3d4156898acb5ebdb62`.
+
+Scope: branch `research/v98-independent-zero`, namespace `research/v98_independent/`, Clean-4 2022-12 through 2025-12 only. Never read V14/V15/V99, 2026+, XRP, contaminated Phase083, validation or holdout. Native BNB funding remains unverified; any Phase448 returns are unfunded negative-screen only.
+
+Preregistered architecture: (1) NEW weekly persistent-leadership Growth Core: when >=3/4 assets 1008h positive and >=2/4 assets 168h positive, rank by 1008h return and allocate 0.58/0.28/0.16/0.08, otherwise 0.22 each. First warmup decision retains frozen Phase252 .25 each. (2) frozen Phase305 Opportunity (31 events). (3) weekly relative-value +0.10 strongest / -0.10 weakest only on agreeing 1008h and 168h extreme ranks and 1008h gap >0.20. (4) BTC 720h drawdown >=15%, BTC72h >0.05, median market72h >0 triggers 48h +0.10 BTC and +0.10 strongest72h recovery. (5) recovery disables RV; core/opportunity always on. (6) optional sleeves jointly scale only to spare gross 1.45 less 0.02 buffer and per-asset 0.70 cap; never rescale core/opportunity. (7) hard governor and causal close(t) -> open(t+1).
+
+Pre-PnL gates: source SHA, frozen comparator SHA `158240cddf2aed3678e5b64dc2536090c186a60e9d0032713fc058acd1bb80cf`, 31 events, >=150 weekly decisions, >=10 leader weeks, >=10 defensive weeks, >=2 RV activations, >=2 recovery episodes, no target breaches, warmup firewall, future-perturbation prefix invariance. Fail closed before candidate PnL.
+
+Performance gates if eligible: zero-funding OHLC shadow at 7/12/20bp costs, 2023/2024/2025 folds, >15% BASE relative wealth, positive SEVERE/SUPERSEVERE, >=2 positive folds, no annual return deficit >10pp, improved daily PF, maxDD deterioration <=5pp, worst day >-20%, top10 absolute daily share <=45%, no ruin/gross breach, both optional sleeves positive matched marginal wealth at all three cost tiers. Reject without rescue if any gate fails. No champion until independently authenticated BNB funding and untouched validation. V16/V99 untouched.

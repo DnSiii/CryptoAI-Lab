@@ -1,0 +1,28 @@
+name: V98 Independent Phase1216 AF Long Only Relative Value
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1216_af_long_only_rv.py'
+      - 'research/v98_independent/test_phase1216_af_long_only_rv.py'
+      - '.github/workflows/v98-independent-phase1216-af-rv.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  af-rv:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Validate funded long-only relative value and t-1 quote invariance
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1216_af_long_only_rv.py' -v

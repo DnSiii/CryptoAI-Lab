@@ -1,0 +1,13 @@
+# V98 Independent EQ — frozen 2023/24 training rejection (2026-10-25)
+
+**Pre-result preregistration:** commit `fec112f29c4f8e08d5c5c1149536ff89c027d0e1`. Official source and complete 30-cell native gate: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40247207409 . Independent immutable receipt-only attribution: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40247432485 . Independent native all-hour oracle: https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40247273188 .
+
+EQ tested a **genuinely distinct long-only three-sleeve growth portfolio** with a 120h synchronized inventory clock and funding-quality growth RV. Not a post-result rescue of EP or EO. Source-only causality and annual activity passed: Opportunity 35/28, Relative Value 35/38, Stress/Recovery 12/13 active epochs in 2023/24 (minimum four each). 30/30 USD10k physical training cells survived across five books, three native cost tiers, both funding orders, Ubuntu22/24 reproducibility and independent artifact reconciliation with zero errors.
+
+Official carried-before-fill EQ full training: base CAGR **+83.5064%**, 2023 net **+129.6097%**, 2024 net **+46.7821%**, max DD **30.4970%**, signed funding **-USD2042.35**. Severe CAGR **+76.3835%**, 2023 net **+121.1055%**, 2024 net **+40.8165%**, max DD **31.1714%**, signed funding **-USD1913.97**. These are 2023/24 in-sample historical receipts only.
+
+**Preregistered annual marginal economic gates FAILED:** Opportunity=false, Relative Value=false, Stress/Recovery=false. Base carried-before-fill marginal log growth (2023 / 2024): Opportunity **+0.009069 / -0.002863**; RV **-0.007805 / -0.002958**; Stress **+0.019844 / -0.000587**. Severe carried-before-fill: Opportunity **+0.009902 / -0.001905**; RV **-0.005538 / -0.000721**; Stress **+0.020216 / -0.000285**. Funding settlement ordering materially changes some RV attribution, another reason not to cherry-pick.
+
+**Capital-cost finding:** full minus core-only terminal NAV **+USD640.61 base / +USD785.73 severe**, while total full turnover was **USD23,165.32 lower base / USD17,982.14 lower severe** than core-only. Lower turnover and positive total full-minus-core wealth **still do not satisfy annual independent sleeve contribution**. The failure is economic consistency by year and funding ordering, not a simple infrastructure or excessive-turnover problem. No selective promotion or post-result sign/window/weight/threshold/gross adjustment. EQ is **PERMANENTLY REJECTED**.
+
+No 2025 holdout, XRP, 2026+, contaminated Phase083, V14/V15/V99, Frozen, paper or live orders touched. All data and reported returns are training-only, not expected future PnL.

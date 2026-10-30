@@ -1,0 +1,35 @@
+name: V98 Independent IF Artifact-Only Funding Order Economic Uniqueness Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-if-order-uniqueness.yml'
+      - 'research/v98_independent/v98_if_funding_order_redundancy_audit.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch original frozen IF 22.04 artifacts only, no data or PnL replay
+        uses: actions/download-artifact@v4
+        with:
+          pattern: if30-ubuntu-22.04-*
+          run-id: 40483375577
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: receipts
+      - name: Count economically unique funding-order scenarios from immutable receipts
+        run: |
+          python research/v98_independent/v98_if_funding_order_redundancy_audit.py --root receipts --output if_order_uniqueness_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-if-order-uniqueness-artifact-only
+          path: if_order_uniqueness_receipt.json
+          retention-days: 30
+          if-no-files-found: warn

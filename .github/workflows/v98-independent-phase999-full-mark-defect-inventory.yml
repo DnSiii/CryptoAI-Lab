@@ -1,0 +1,39 @@
+name: V98 Independent Phase999 100-Month Mark Defect Inventory
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - .github/workflows/v98-independent-phase999-full-mark-defect-inventory.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-phase999-mark-inventory-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source-only gap/duplicate/geometry regression
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase999_full_mark_defect_inventory.py
+      - name: Inspect all 100 vendor-checksummed mark ZIPs without repairs
+        working-directory: research/v98_independent
+        run: python phase999_full_mark_defect_inventory.py
+      - name: Upload complete source-only defect inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-phase999-mark-inventory
+          retention-days: 30
+          if-no-files-found: warn
+          path: research/v98_independent/phase999_full_mark_defect_inventory_result.json

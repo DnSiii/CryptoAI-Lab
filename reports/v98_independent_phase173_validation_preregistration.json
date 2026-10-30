@@ -1,0 +1,44 @@
+{
+  "engine": "V98 Independent",
+  "phase": "173",
+  "kind": "VALIDATION_PREREGISTRATION",
+  "candidate": "phase172_t10y2y_steepening_long",
+  "training_evidence_required": {
+    "decision": "PASS_TRAINING",
+    "phase172_blob_sha": "03a3baef73ab940e6a503a604cb17287e095f337",
+    "phase171_data_sha256": "61a8716a12625cae8603095883ac2bc8daf2ac73dd4375f80b5a25f98eb5d275"
+  },
+  "frozen_contract": {
+    "direction": "delta(T10Y2Y)>0 => long; else flat",
+    "threshold": 0.0,
+    "lookback_valid_observations": 1,
+    "economic_use_lag_days": 1,
+    "assets": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT"],
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "weights": "equal among available preregistered basket assets"
+  },
+  "validation_window": ["2026-01-01T00:00:00Z", "2026-07-31T23:00:00Z"],
+  "final_holdout": "UNTOUCHED_2026-08-01_TO_2026-09-15",
+  "required_metrics": ["total_return", "cagr", "max_drawdown", "profit_factor_daily", "payoff_daily", "win_rate_daily", "positive_days", "negative_days", "turnover_sum", "p01_day", "p05_day", "cvar05_day", "best_day", "worst_day"],
+  "required_audits": ["base_costs", "severe_costs", "supersevere_costs", "regime_analysis", "asset_contribution_concentration", "top_bottom_tail_concentration", "reproducibility", "causality_no_lookahead", "gross_cap", "ruin_false"],
+  "validation_gate": {
+    "validation_return_gt_0": true,
+    "validation_profit_factor_gt_1": true,
+    "severe_return_gt_0": true,
+    "supersevere_return_gt_0": true,
+    "ruin_false": true,
+    "hard_gross_cap_lte_0_35": true
+  },
+  "anti_overfit": {
+    "parameter_search": false,
+    "threshold_search": false,
+    "lookback_search": false,
+    "rescue_allowed": false,
+    "training_retune_after_validation": false,
+    "v16_used": false,
+    "v99_used": false,
+    "final_holdout_used": false
+  },
+  "status": "PREREGISTERED_NOT_RUN"
+}

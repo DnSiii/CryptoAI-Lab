@@ -1,0 +1,9 @@
+# V98 Independent Phase1198 — AD complete seven-slot synthetic integration gate preregistration (2026-10-23)
+
+Before any **official AD historical system PnL**, integrate Phase1189 Growth Core/Regime Router, Phase1191 native funding-event Opportunity, Phase1192 covariance-neutral Relative Value, Phase1193 actual-NAV stateful Stress/Recovery, Phase1195 multiplicative Dynamic Allocator and Phase1196 81-corner Governor through Phase1197 self-financing actual-open executor. The **complete composed engine** must survive synthetic accounting and chronology first.
+
+Five paths: AD_core_only, AD_full, AD_minus_opportunity, AD_minus_relative_value, AD_minus_stress. Three capital modes: $10k, $1m, $10m. Three fee schedules: base 0.0007, severe 0.0012, supersevere 0.002. Two funding timings: carried-before-fill and new-after-fill. Exactly **90 independent synthetic cells**. Disabled sleeve is replaced with zero target (cash), not redistributed; this cash ablation is preregistered and held fixed for subsequent official marginal comparisons.
+
+Synthetic 2022-12 onward (never 2025), deterministic Clean-4 1h bars, 8h native signed funding with conservative mark bounds, causal 336/720h warmup, no future OHLC for sizing, t+1 actual-open fills, signed cash and units, 81 actual intrabar corners, no free exits, exact NAV identity. Each cell must preserve all synthetic failures rather than hiding them. Synthetic results are **not historical CAGR or economic validation**.
+
+After synthetic pass: authenticate **full AD source** on four fresh runners with all five path/capital canonical source representations, freeze code and source hashes, then official 90-cell 2023/2024 chronological training and strict CAGR/marginal growth gates. 2025 remains untouched; no V14/V15/V99 benchmarking before internal validation.

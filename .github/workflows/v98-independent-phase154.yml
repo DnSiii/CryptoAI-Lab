@@ -1,0 +1,53 @@
+name: V98 Independent Phase154
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: [".github/workflows/v98-independent-phase154.yml", "scripts/v98_independent_phase154_*.py"]
+permissions: {contents: write}
+concurrency: {group: v98-independent-phase154, cancel-in-progress: true}
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero, fetch-depth: 0}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: "3.12"}
+      - name: Double independent acquisition
+        run: |
+          set +e
+          python scripts/v98_independent_phase154_t10y2y_data_only.py > /tmp/p154a.json; rc1=$?
+          python scripts/v98_independent_phase154_t10y2y_data_only.py > /tmp/p154b.json; rc2=$?
+          set -e
+          test "$rc1" = "$rc2"
+          cmp /tmp/p154a.json /tmp/p154b.json
+          cp /tmp/p154a.json reports/v98_independent_phase154_t10y2y_data_only.json
+          test "$rc1" = 0 -o "$rc1" = 2
+      - name: Enforce DATA_ONLY firewall and invariants
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase154_t10y2y_data_only.json'))
+          assert p['phase']=='154' and p['mode']=='DATA_ONLY' and p['series']=='T10Y2Y'
+          assert p['decision'] in ('PASS_DATA_ONLY','REJECT_DATA_QUALITY_NO_RESCUE')
+          assert p['reproducibility']['identical_hash'] and p['reproducibility']['identical_integrity_metadata']
+          assert p['counts']['duplicates']==0 and p['counts']['outside_window']==0 and p['counts']['weekend_rows']==0
+          if p['decision']=='PASS_DATA_ONLY': assert all(p['gates'].values())
+          else: assert not all(p['gates'].values())
+          forbidden=('return','correlation','pnl','profit','drawdown','sharpe','payoff','win_rate','position','signal')
+          def walk(x):
+            if isinstance(x,dict):
+              for k,v in x.items(): assert not any(t in str(k).lower() for t in forbidden), k; walk(v)
+            elif isinstance(x,list):
+              for v in x: walk(v)
+          walk(p)
+          print('decision',p['decision'],'counts',p['counts'],'coverage',p['coverage'],'gates',p['gates'])
+          PY
+      - name: Commit Phase154 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reports/v98_independent_phase154_t10y2y_data_only.json
+          if git diff --cached --quiet; then echo no-evidence-change; else git commit -m "v98: record phase154 T10Y2Y data-only evidence"; git pull --rebase --autostash origin research/v98-independent-zero; git push origin HEAD:research/v98-independent-zero; fi

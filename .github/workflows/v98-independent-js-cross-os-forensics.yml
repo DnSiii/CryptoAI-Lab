@@ -1,0 +1,47 @@
+name: V98 Independent JS Cross OS Original Source Artifact Difference Forensics
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/js_cross_os_forensic_trigger_20261028.md'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  original_artifact_forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: js-cross-asset-5m-ubuntu-*
+          run-id: 40669340031
+          github-token: ${{ github.token }}
+          path: original-source
+      - name: Inspect exact first byte/row/manifest mismatch without changing source
+        run: |
+          python - <<'PY'
+          import json,hashlib,csv
+          from pathlib import Path
+          roots=[Path('original-source')/('js-cross-asset-5m-'+os) for os in ('ubuntu-22.04','ubuntu-24.04')]
+          rs=[json.loads((p/'js_cross_asset_5m_propagation_source_receipt.json').read_text()) for p in roots]
+          raws=[(p/'js_cross_asset_5m_propagation_hourly.csv').read_bytes() for p in roots]
+          print('JS_ORIGINAL_SOURCE_DIGESTS',[hashlib.sha256(x).hexdigest() for x in raws])
+          print('JS_ORIGINAL_REPORT_EQUAL',rs[0]==rs[1])
+          for key in rs[0]:
+              if rs[0][key]!=rs[1].get(key):
+                  print('JS_FIRST_MANIFEST_DIFF',key,str(rs[0][key])[:1000],str(rs[1].get(key))[:1000])
+                  break
+          lines=[x.decode().splitlines() for x in raws]
+          print('JS_LINE_COUNTS',list(map(len,lines)))
+          count=0
+          for i,(a,b) in enumerate(zip(*lines)):
+              if a!=b:
+                  print('JS_FIRST_DIFF_LINE',i,'OS22',a[:500],'OS24',b[:500])
+                  print('JS_FIRST_DIFF_FIELDS',list(zip(a.split(','),b.split(',')))[:9])
+                  count+=1
+                  if count>=5:break
+          print('JS_CROSS_OS_SOURCE_FORENSIC_DONE_NO_PNL')
+          PY

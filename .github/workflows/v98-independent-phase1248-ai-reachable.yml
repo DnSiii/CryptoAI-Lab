@@ -1,0 +1,41 @@
+name: V98 Independent Phase1248 AI Reachable Governor Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1248_ai_reachable_governor.py'
+      - 'research/v98_independent/test_phase1248_ai_reachable_governor.py'
+      - '.github/workflows/v98-independent-phase1248-ai-reachable.yml'
+  workflow_dispatch:
+jobs:
+  ai-reachable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Verify independent forward-reachable carry safety
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1248_ai_reachable_governor
+      - name: Raw governor digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import numpy as np,hashlib
+          from phase1248_ai_reachable_governor import ai_reachable_governor
+          r=ai_reachable_governor(10000.,np.zeros(4),
+              np.full(4,100.),np.full(4,100.),
+              np.array([3.,-3.,0.,0.]),np.full(4,.45),
+              np.full(4,.8),np.full(4,.0005),
+              np.full(4,1e9),np.full(4,1e9))
+          print('AI1248_SHA256',hashlib.sha256(
+              np.r_[r['units'],r['fraction']].astype('<f8').tobytes()).hexdigest())
+          print('AI1248_FRACTION',r['fraction'])
+          PY

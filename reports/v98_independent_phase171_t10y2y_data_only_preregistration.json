@@ -1,0 +1,20 @@
+{
+  "engine":"V98 Independent",
+  "phase":"171",
+  "kind":"DATA_ONLY_PREREGISTRATION",
+  "family":"US Treasury yield-curve slope",
+  "series":"T10Y2Y",
+  "source":"Federal Reserve Bank of St. Louis FRED",
+  "window":["2023-01-01","2025-12-31"],
+  "native_frequency":"daily business-day observations as published; holidays may be missing",
+  "acquisition":"two independent official FRED CSV acquisitions; canonical parsed observations must have identical SHA-256",
+  "quality_gates":{"global_weekday_coverage_ge":0.90,"annual_weekday_coverage_ge":0.85,"duplicates_zero":true,"malformed_dates_zero":true,"out_of_window_zero":true,"finite_values":true,"weekend_dates_zero":true},
+  "missing_policy":"no interpolation/no imputation/no carry-forward/no backfill",
+  "economic_firewall":true,
+  "forbidden_before_pass":["crypto join","PnL","return correlation","direction choice","threshold search","lookback search","validation","final holdout","V16","V99"],
+  "decision_if_fail":"REJECT_DATA_QUALITY_NO_RESCUE",
+  "validation":null,
+  "final_holdout":null,
+  "v16_used":false,
+  "v99_used":false
+}

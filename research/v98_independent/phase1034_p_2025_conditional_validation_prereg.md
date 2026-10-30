@@ -1,0 +1,13 @@
+# V98 Independent Phase1034 — conditional untouched 2025 P validation preregistration
+
+**Written before any Phase1033 P training economic result.** This protocol is INELIGIBLE unless the frozen Phase1029/1033 90-cell P training gate passes all 2023 and 2024 survival, growth and ablation criteria. No 2025 data are to be opened, downloaded, indexed, inspected or used for selection before training PASS. Old Phase083 holdout remains permanently contaminated and ineligible; 2026+ forbidden. V14/V15/V99 remain external benchmarks and cannot be inspected before an internally frozen and separately validated P.
+
+If and only if training PASS:
+1. Keep the exact frozen P seven-slot source algorithm, canonical quantization, state-aware governor, native-funding ledger, capital modes, fee tiers, 16-corner ex-post rejection and frozen economic code unchanged. Do not tune parameters, windows, signs, thresholds, gross, participation, funding assumptions or costs to validation data.
+2. Authenticate 2025-01-01 00:00 through 2025-12-31 23:00 UTC Binance USD-M 1h OHLCV and native funding/mark independently with official archive checksums and strict Clean-4 source-integrity controls. Use immutable 2024 history strictly as causal warmup; do not re-fit anything.
+3. Because the training source-only function deliberately rejects non-training calendars, a separate **validation-only** wrapper may extend its calendar to the fixed 2025 end without changing frozen source bytes. It must prove that recomputing the overlapping complete 2022-2024 targets produces the exact five frozen Phase1031 canonical SHA256 hashes. Any overlap mismatch blocks validation before PnL.
+4. Run the same preregistered 90 cells (5 P paths × 3 costs × 2 funding orderings × 3 capital modes), now on all 8,760 hourly 2025 bars. Require every cell to survive the complete chronological year, P_full positive base and severe net log wealth, and strictly positive marginal log wealth versus all four ablations for both funding orders and all capital modes. Supersevere must survive and be reported even if net return is negative.
+5. Report CAGR, wealth multiple, hourly and daily MDD, daily PF, payoff, win rate, positive days, 5% CVaR, concentration, turnover, funding, fees, repair events and regime slices. Reject missing data, source drift, capital infeasibility, noncausal execution, 16-corner failure or metric omissions.
+6. Only after 2025 validation PASS freeze P as an internally validated candidate, then and only then open V14/V15/V99 as **external comparisons**, without using their internals to tune P. Failure means REJECT P; no holdout-driven rescue.
+
+**Current status: CONDITIONAL PREREGISTRATION ONLY.** 2025 not read; no P validation PnL or external benchmark comparison.

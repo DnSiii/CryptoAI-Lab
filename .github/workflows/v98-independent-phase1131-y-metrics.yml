@@ -1,0 +1,30 @@
+name: V98 Independent Phase1131 Y Growth Metrics Synthetic
+on:
+  push:
+    branches:
+      - research/v98-independent-zero
+    paths:
+      - '.github/workflows/v98-independent-phase1131-y-metrics.yml'
+      - 'research/v98_independent/phase1131_y_growth_metrics.py'
+      - 'research/v98_independent/test_phase1131_y_growth_metrics.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  y-growth-metrics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: research/v98_independent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Verify causal folds, true realized trade metrics and no future
+        run: python -m unittest -v test_phase1131_y_growth_metrics.py

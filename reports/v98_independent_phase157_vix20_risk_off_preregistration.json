@@ -1,0 +1,49 @@
+{
+  "engine": "V98 Independent",
+  "phase": "157",
+  "status": "PREREGISTERED",
+  "preregistered_after": "Phase156 PASS_DATA_ONLY",
+  "dependency": {
+    "phase156_status": "PASS_DATA_ONLY",
+    "series": "VIXCLS",
+    "phase156_observations_sha256": "9f16b215a1a4371174cbcd34b9a9485efdda3cbf65534eddbc60d32759e62aaa"
+  },
+  "hypothesis": "A conventionally elevated VIX (>=20) represents cross-asset risk aversion and should favor a short crypto basket on the next economic day.",
+  "signal_contract": {
+    "rule": "VIXCLS_t >= 20 => short equal-weight crypto basket; otherwise flat",
+    "threshold": 20.0,
+    "economic_use_lag_days": 1,
+    "missing_macro_policy": "no imputation/no carry-forward",
+    "target_gross": 0.30,
+    "hard_gross_cap": 0.35,
+    "assets": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","SOLUSDT"]
+  },
+  "evaluation": {
+    "training_only": true,
+    "chronological_folds": ["2023","2024","2025"],
+    "costs": ["base","severe","supersevere"],
+    "required_diagnostics": ["max_drawdown","profit_factor_daily","payoff_daily","win_rate_daily","positive_days","regimes","concentration","tails","asset_contribution","reproducibility"]
+  },
+  "gate": {
+    "aggregate_return_gt_0": true,
+    "aggregate_pf_gt_1": true,
+    "each_fold_return_gt_0": true,
+    "each_fold_pf_gt_1": true,
+    "severe_return_gt_0": true,
+    "severe_pf_gt_1": true,
+    "supersevere_return_gt_0": true,
+    "supersevere_pf_gt_1": true
+  },
+  "anti_overfit": {
+    "parameter_search": false,
+    "threshold_search": false,
+    "lookback_search": false,
+    "sign_flip_allowed": false,
+    "rescue_allowed": false,
+    "asset_exclusion_after_results": false,
+    "v16_used": false,
+    "v99_used": false,
+    "validation_opened": false,
+    "final_holdout_opened": false
+  }
+}

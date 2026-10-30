@@ -1,0 +1,7 @@
+# V98 Independent Phase1115A — X atomic basket contingency (pre-economic addendum)
+
+2026-10-23. This execution detail is registered before any X historical PnL or authenticated target hashes. The X architecture remains Phase1115 and W remains rejected.
+
+A short hedge may stop while surviving longs exceed net limits. X therefore **preplaces a whole-basket contingency**: if ANY asset hits its protective stop, cancel all risk-increasing orders and flatten every carried asset as one precommitted reduce-only basket. Conservatively fill each long sale at the worse of opening and observed bar low, and each short cover at the worse of opening and observed bar high, including adverse slippage, fees and 1% prior quote-volume capacity. This is deliberately more pessimistic than assuming stop-price fills; no after-the-fact selection of which leg to flatten. Stop-first wins over partial limit if both touched. If a mandatory exit lacks liquidity or equity/caps fail, reject. No stop means the preplaced one-third partial limit may execute and signed funding applies to surviving inventory. An unrelated unexposed asset shock cannot fail the book. All decisions are determined at t-1; future OHLC is used ONLY for conservative execution settlement, never to select an order.
+
+The goal remains highest feasible long-run compounded growth, not minimizing risk. This is a distinct contingent execution architecture and cannot be retroactively grafted onto rejected W. Synthetic validation is NOT economic evidence.

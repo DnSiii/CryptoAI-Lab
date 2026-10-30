@@ -1,0 +1,69 @@
+name: V98 Independent MQ Full Physical 30-Cell And All-Hour Oracle
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-mq-30cell.yml'
+      - 'research/v98_independent/mq_30cell_physical.py'
+      - 'research/v98_independent/mq_independent_source_gate.py'
+      - 'research/v98_independent/mq_sources.py'
+      - 'research/v98_independent/mq_hourly_oracle_gate.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  mq-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download imputable SHA-authenticated 2022-24 Clean4 training ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download SHA-pinned 9144-event worst-side official mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Source-only gate must pass before any PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile mq_sources.py mq_independent_source_gate.py mq_30cell_physical.py mq_hourly_oracle_gate.py
+          python mq_independent_source_gate.py --root ../../official-input --output mq_source_receipt.json
+      - name: Run all 30 physical cells with preregistered economics and causal forced refresh
+        working-directory: research/v98_independent
+        run: |
+          python mq_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output mq_30cell_receipt.json --ledger-output mq_base_full_hourly_forensic.jsonl
+      - name: Independently reconcile 17543 original hourly settlements when ledger exists
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s mq_30cell_receipt.json && test -s mq_base_full_hourly_forensic.jsonl; then
+            python mq_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl mq_base_full_hourly_forensic.jsonl --receipt mq_30cell_receipt.json --output mq_independent_hourly_receipt.json
+          else
+            echo "No complete physical ledger: independent oracle cannot attest PnL."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-mq-physical-${{ github.run_id }}
+          path: |
+            research/v98_independent/mq_source_receipt.json
+            research/v98_independent/mq_30cell_receipt.json
+            research/v98_independent/mq_independent_hourly_receipt.json
+            research/v98_independent/mq_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn

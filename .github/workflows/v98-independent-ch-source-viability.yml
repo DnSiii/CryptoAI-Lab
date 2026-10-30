@@ -1,0 +1,60 @@
+name: V98 Independent CH Preregistered Source Viability
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-ch-source-viability.yml'
+      - 'research/v98_independent/ch_sources.py'
+      - 'research/v98_independent/ch_source_viability.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Pinned 2022-2024 Clean4 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage exact authenticated training source
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json','phase1000_four_asset_source_policy_receipt.json','phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          for name in names:
+              found=list(root.rglob(name));assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(found[0],dest)
+          PY
+      - name: CH causal static check and frozen activity gate
+        working-directory: research/v98_independent
+        shell: bash
+        run: |
+          python ch_sources.py
+          set +e
+          python ch_source_viability.py
+          rc=$?
+          set -e
+          test -s ch_source_viability.json
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ch-preregistered-source-viability
+          path: research/v98_independent/ch_source_viability.json
+          retention-days: 30
+          if-no-files-found: error

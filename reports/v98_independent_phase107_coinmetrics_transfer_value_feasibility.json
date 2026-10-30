@@ -1,0 +1,44 @@
+{
+  "alpha_or_pnl_computed": false,
+  "assets": [
+    {
+      "asset": "btc",
+      "body_preview": "{\"error\":{\"type\":\"forbidden\",\"message\":\"Requested metric 'TxTfrValAdjUSD' with frequency '1d' for asset 'btc' is not available with supplied credentials.\"}}",
+      "error": "HTTP 403",
+      "http_status": 403,
+      "passed": false,
+      "raw_sha256": "94fc7c7b5adc459e66dbb8e7408c181b3dabee1940dbd69944e622c18020b7dc",
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=TxTfrValAdjUSD&frequency=1d&start_time=2023-01-01&end_time=2025-12-31&page_size=10000"
+    },
+    {
+      "asset": "eth",
+      "body_preview": "{\"error\":{\"type\":\"forbidden\",\"message\":\"Requested metric 'TxTfrValAdjUSD' with frequency '1d' for asset 'eth' is not available with supplied credentials.\"}}",
+      "error": "HTTP 403",
+      "http_status": 403,
+      "passed": false,
+      "raw_sha256": "714ecc34859cb13dd6bc855a12dc4ef00c83280814204b3d61fef91fcf1f6f9c",
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=eth&metrics=TxTfrValAdjUSD&frequency=1d&start_time=2023-01-01&end_time=2025-12-31&page_size=10000"
+    }
+  ],
+  "engine": "V98 Independent",
+  "expected_days_per_asset": 1096,
+  "final_holdout": null,
+  "frequency": "1d",
+  "future_holdout_required": true,
+  "gate": "FAIL_DATA_NO_ALPHA",
+  "generated_at": "2026-09-22T19:31:09.881927+00:00",
+  "metric": "TxTfrValAdjUSD",
+  "mode": "DATA_ONLY_NO_ALPHA_NO_PNL",
+  "parameter_search": false,
+  "phase": "107",
+  "phase083_selection_use": false,
+  "rescue_allowed": false,
+  "source": "Coin Metrics Community API",
+  "v16_used": false,
+  "v99_used": false,
+  "validation": null,
+  "window": [
+    "2023-01-01",
+    "2025-12-31"
+  ]
+}

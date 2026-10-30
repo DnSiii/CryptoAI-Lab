@@ -1,0 +1,62 @@
+name: V98 Independent Clean4 Pinned Source Archive 2022-2024 Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-clean4-source-archive.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  archive-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download original pinned Clean4 training source, never holdout
+        uses: actions/download-artifact@v4
+        with:
+          name: aj1259-official-source-ubuntu-24.04
+          run-id: 40018746960
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Verify original bytes, exact 2022-2024 calendar and 9144 native events
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil,sys,hashlib,json
+          root=Path('official-input')
+          target=Path('research/v98_independent')
+          names=['phase803_official_training_ohlc_receipt.json',
+                 'phase1000_four_asset_source_policy_receipt.json',
+                 'phase1000_four_asset_conservative_bounds_source_only.csv']
+          names += [a+'_1h.csv' for a in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT')]
+          archive=Path('v98_clean4_source_archive')
+          archive.mkdir(exist_ok=True)
+          for name in names:
+              found=list(root.rglob(name))
+              assert len(found)==1,(name,found)
+              dest=(target/'phase243_clean4_canonical'/name
+                    if name.endswith('_1h.csv') else target/name)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(found[0],dest)
+              shutil.copy2(found[0],archive/name)
+          sys.path.insert(0,str(target.resolve()))
+          from phase1260_aj_authenticated_source_digest import load_official
+          frames,manifest=load_official(target)
+          assert frames[0].shape==(18288,4)
+          assert int(frames[6].sum())==9144
+          print('V98_SOURCE_ONLY_PINNED_PASS',json.dumps(manifest,sort_keys=True))
+          print('V98_SOURCE_ARCHIVE_FILES',[(x.name,hashlib.sha256(x.read_bytes()).hexdigest()) for x in sorted(archive.iterdir())])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          path: v98_clean4_source_archive/
+          retention-days: 90
+          if-no-files-found: error

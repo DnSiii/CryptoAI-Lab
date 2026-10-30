@@ -1,0 +1,7 @@
+# V98 Independent EI — immutable pre-PnL source rejection (2026-10-25)
+
+Preregistration frozen at commit `16147832d65fdfb45fb7943a6493c3db4d340b6e`, before any EI source results. The implemented event-driven seven-slot architecture ran the official authenticated pinned Clean-4 source gate at https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40227418890 (source job `121271649858`).
+
+**Result: REJECT EI SOURCE INACTIVE.** Causal synthetic future mutation and Python compile/static checks passed. Native Clean-4 December-2022 warmup and 2023/2024 training-only data loaded. Annual active event epochs for Core/Opportunity/RelativeValue/StressRecovery: 2023 = **92/78/0/47**, 2024 = **91/76/0/45**; preregistered minima = 4/8/12/8. The 48h candle close-location cross-sectional RelativeValue rule did not activate once. This is an identifiability/source hypothesis failure, not a trading PnL failure.
+
+**No PnL computed for EI.** The workflow's physical/economic/audit jobs were skipped. No fabricated returns, no after-result relaxation of CLV threshold, no sign/window/gross rescue, no promotion of other EI modules. EI is permanently rejected. The separate new candidate must use a genuinely different complete seven-slot economic hypothesis, not salvage EI. No 2025/2026+, quarantined XRP, contaminated Phase083, external V14/V15/V99 benchmarks, Frozen or paper state accessed or changed.

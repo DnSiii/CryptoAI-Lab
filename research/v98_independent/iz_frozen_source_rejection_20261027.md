@@ -1,0 +1,11 @@
+# V98 Independent IZ — frozen pre-economic source-only rejection (2026-10-27)
+
+**Decision: REJECT_IZ_SOURCE_ONLY_ZERO_OPPORTUNITY_FINANCING.** Preregistered causal online-shadow seven-slot portfolio has failed its immutable source-only financed-epoch gate. No IZ historical system PnL was run; no return, CAGR, drawdown or economic acceptance is claimed.
+
+- Preregistration before code/PnL: commit `51203f9556cd7c0723ac2b88c69b1c75d0c79144`; source implementation `180d2b14fb2da64c1130e634b479d62b76f97f28`; source gate run [40597433672](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40597433672), native pinned Clean-4 source artifact run `40064588623`.
+- CI confirmed source download/staging, Python compilation, synthetic future-mutation causal invariance, signed budget conservation and zero-quote quarantine **PASS**. The authenticated source-only financed-epoch counts from the actual run: **2023** Core 27, Opportunity 0, Relative Value 9, Stress/Recovery 10; **2024** Core 26, Opportunity 0, Relative Value 12, Stress/Recovery 9. The immutable gate requires >=8 financed epochs for *every* optional sleeve in *each* year. Opportunity failed 0/8 in both years.
+- Root cause at the allocator boundary: Opportunity was never allocated positive capital under the prospective shadow marginal wealth eligibility criterion, irrespective of its standalone signal activity. This is an economic-architecture feasibility failure; changing edge threshold, weights, source, signs or event definition **after** the result would be forbidden cosmetic rescue.
+- Physical 30-cell code, independent artifact auditor and native settlement oracle were prepared **but intentionally not executed**, since source gate failed. No 2025, future holdout, Phase083, XRP, V14/V15/V99 internals, Frozen, paper or live trading accessed.
+- **IZ permanently rejected/frozen**. Do not reuse the IZ online shadow gate with altered eligibility or turn an IZ ablation into a candidate. Next genuinely distinct portfolio-level design must solve the structural conflict between allocating optional capital and beating the core on net compounded wealth, with its own preregistration before code and PnL.
+
+No real orders authorized. CI failure is an intentional scientific rejection, not infrastructure breakage.

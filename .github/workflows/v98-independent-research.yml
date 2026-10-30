@@ -1,0 +1,62 @@
+name: V98 Independent Research
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - ".github/workflows/v98-independent-research.yml"
+      - "state/v98_independent_state.json"
+      - "research/v98_independent/V98_NORTH_STAR.md"
+      - "research/v98_independent/phase243_engine_architecture_prereg.md"
+permissions:
+  contents: read
+concurrency:
+  group: v98-independent-research-governance
+  cancel-in-progress: true
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --disable-pip-version-check numpy pandas pytest
+      - name: Enforce V98 North Star state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.load(open('state/v98_independent_state.json'))
+          n=Path('research/v98_independent/V98_NORTH_STAR.md').read_text()
+          assert s['engine']=='V98 Independent'
+          assert s['branch']=='research/v98-independent-zero'
+          assert s['champion'] is None
+          assert s['holdout_locked'] is True
+          assert s['phase083_selection_use'] is False
+          assert 'strongest engine' in s['objective']
+          assert 'no artificial return ceiling' in s['objective']
+          assert 'strongest trading engine' in n
+          assert 'maxim' in n.lower() and 'compounded' in n.lower()
+          assert 'external benchmarks only' in n
+          print('V98 North Star governance PASS')
+          PY
+      - name: Enforce current Clean-4 quarantine contract
+        run: |
+          python - <<'PY'
+          import json
+          s=json.load(open('state/v98_independent_state.json'))
+          d=s.get('data_foundation',{})
+          if d:
+              assert d['status']=='PASS_CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA'
+              assert d['universe']==['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT']
+              assert 'QUARANTINED_SOURCE_CONFLICT' in d['xrp']
+          print('V98 data-foundation governance PASS')
+          PY
+      - name: V98 architecture/inventory regression tests
+        run: |
+          PYTHONPATH=src:research/v98_independent python -m pytest -q             research/v98_independent/test_phase243_inventory_isolation.py             research/v98_independent/test_phase244_growth_core.py             research/v98_independent/test_phase245_market_state_core.py

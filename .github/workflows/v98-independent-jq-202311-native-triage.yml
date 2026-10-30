@@ -1,0 +1,53 @@
+name: V98 Independent JQ November Native 1m 5m 1h Source Conflict Triage
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-jq-202311-native-triage.yml'
+      - 'research/v98_independent/jq_202311_1m_5m_1h_conflict_triage_prereg_20261028.md'
+      - 'research/v98_independent/jq_202311_native_timeframe_conflict_triage.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned Clean4 2022-2024 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Stage canonical SHA-pinned 1h inputs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');dest=Path('research/v98_independent/phase243_clean4_canonical')
+          dest.mkdir(parents=True,exist_ok=True)
+          for asset in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT'):
+              name=asset+'_1h.csv'
+              matches=list(root.rglob(name));assert len(matches)==1
+              shutil.copy2(matches[0],dest/name)
+          PY
+      - name: Independently authenticate November native 1m and 5m and triangulate to pinned 1h
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile jq_native_5m_path_source.py jq_202311_native_timeframe_conflict_triage.py
+          python jq_202311_native_timeframe_conflict_triage.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jq-202311-native-timeframe-triage
+          path: research/v98_independent/jq_202311_native_timeframe_conflict_triage.json
+          retention-days: 30
+          if-no-files-found: warn

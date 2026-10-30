@@ -1,0 +1,68 @@
+name: V98 Independent MN Read-Only 30-Cell And 17543-Hour Audits
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-mn-audit.yml'
+      - 'research/v98_independent/mn_independent_receipt_arithmetic_audit.py'
+      - 'research/v98_independent/mn_independent_fill_oracle.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  mn-readonly:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download original immutable rejected MN 30-cell physical ledger
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-mn-physical-40994872137
+          run-id: 40994872137
+          github-token: ${{ github.token }}
+          path: original-mn
+      - name: Download authenticated 2022-24 Clean4 training only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download pinned conservative mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Independently reconcile 30-cell economic arithmetic and all preregistered gates
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile mn_independent_receipt_arithmetic_audit.py mn_independent_fill_oracle.py
+          python mn_independent_receipt_arithmetic_audit.py --receipt ../../original-mn/mn_30cell_receipt.json | tee mn_independent_30cell_audit.json
+      - name: Independently reconstruct all original 17543 hourly fills with 27 forced refreshes
+        working-directory: research/v98_independent
+        run: |
+          python mn_independent_fill_oracle.py --root ../../official-input --ledger-jsonl ../../original-mn/mn_base_full_hourly_forensic.jsonl --output mn_independent_fill_receipt.json
+      - name: Independently replay all original hourly settlement with native signed funding
+        working-directory: research/v98_independent
+        run: |
+          python mn_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl ../../original-mn/mn_base_full_hourly_forensic.jsonl --receipt ../../original-mn/mn_30cell_receipt.json --output mn_independent_settlement_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-mn-readonly-audit-${{ github.run_id }}
+          path: |
+            research/v98_independent/mn_independent_30cell_audit.json
+            research/v98_independent/mn_independent_fill_receipt.json
+            research/v98_independent/mn_independent_settlement_receipt.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,26 @@
+name: V98 Independent Phase1261 AJ Economic Static Preflight
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1261-aj-economic-preflight.yml'
+  workflow_dispatch:
+jobs:
+  preflight:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Syntax and exact 90-cell training-only chronology/metrics preflight
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile phase1260_aj_authenticated_source_digest.py phase1261_aj_chronological_90cell.py
+          python -m unittest -v test_phase1261_aj_economic_static

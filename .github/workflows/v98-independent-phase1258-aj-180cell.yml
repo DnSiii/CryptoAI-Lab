@@ -1,0 +1,132 @@
+name: V98 Independent Phase1258 AJ Complete 180 Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-phase1258-aj-180cell.yml'
+  workflow_dispatch:
+jobs:
+  aj-full:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Execute all 180 preregistered AJ synthetic cells
+        working-directory: research/v98_independent
+        run: |
+          python phase1258_aj_complete_180cell.py --output aj1258_receipt.json || echo 'STRUCTURAL_REJECTION: preserve all raw receipts'
+      - name: Hash frozen benign and crisis AJ source arrays
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          import numpy as np
+          from phase1258_aj_complete_180cell import fixture
+          from phase1255_aj_signed_sources import source_bundle
+          digest=lambda x:hashlib.sha256(np.asarray(x,dtype='<f8').tobytes()).hexdigest()
+          out={}
+          for crisis in (False,True):
+              f=fixture(crisis)
+              s=source_bundle(f[3],f[1],f[2],f[5],f[6])
+              out['crisis' if crisis else 'benign']={
+                  'sources':[digest(x) for x in s[:4]],
+                  'router':hashlib.sha256('|'.join(s[4]['state']).encode()).hexdigest()}
+          with open('aj1258_source_digests.json','w') as h:json.dump(out,h,sort_keys=True)
+          print('AJ1258_SOURCE_HASHES',json.dumps(out,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1258-${{ matrix.os }}
+          path: research/v98_independent/aj1258_receipt.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aj1258-source-${{ matrix.os }}
+          path: research/v98_independent/aj1258_source_digests.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Enforce 180 cell survival and all marginal sleeves
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('aj1258_receipt.json'))
+          c=a['cells'];p=sum(x['passed'] for x in c)
+          print('AJ1258_DECISION',a['decision'])
+          print('AJ1258_PASS',p,'AJ1258_FAIL',len(c)-p)
+          print('AJ1258_EXCITED',a['mandatory_slots_excited'])
+          assert len(c)==180 and p==180 and a['mandatory_slots_excited']
+          PY
+  reconcile:
+    if: always()
+    needs: aj-full
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aj1258-source-*
+          path: source-receipts
+      - name: Enforce exact two-OS AJ benign and crisis source SHA256
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=sorted(glob.glob('source-receipts/*/*.json'))
+          assert len(files)==2,files
+          a,b=[json.load(open(p)) for p in files]
+          assert a==b,(a,b)
+          print('AJ1258_EXACT_SOURCE_PASS',json.dumps(a,sort_keys=True))
+          PY
+      - uses: actions/download-artifact@v4
+        if: always()
+        with:
+          pattern: aj1258-ubuntu-*
+          path: receipts
+      - name: Strict two-OS monetary and categorical reconciliation
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,glob,math,hashlib
+          files=sorted(glob.glob('receipts/*/*.json'))
+          assert len(files)==2,files
+          a,b=[json.load(open(p)) for p in files]
+          money={'synthetic_final_nav','synthetic_min_nav','turnover','fees','slippage','funding'}
+          ratios={'synthetic_max_dd'}
+          def check(x,y,path=''):
+              assert type(x)==type(y),(path,type(x),type(y))
+              if isinstance(x,dict):
+                  assert set(x)==set(y),(path,set(x)^set(y))
+                  for k in x:check(x[k],y[k],path+'.'+k)
+              elif isinstance(x,list):
+                  assert len(x)==len(y),(path,len(x),len(y))
+                  for i,(u,v) in enumerate(zip(x,y)):check(u,v,path+'.'+str(i))
+              elif isinstance(x,float):
+                  key=path.split('.')[-1]
+                  tol=(1e-10 if key in ratios else
+                       max(1e-5,1e-12*max(abs(x),abs(y))) if key in money
+                       else 1e-12)
+                  assert math.isfinite(x) and math.isfinite(y) and abs(x-y)<=tol,(path,x,y,tol)
+              else:assert x==y,(path,x,y)
+          check(a,b)
+          def canonical(x,key=''):
+              if isinstance(x,dict):return {k:canonical(v,k) for k,v in sorted(x.items())}
+              if isinstance(x,list):return [canonical(v,key) for v in x]
+              if isinstance(x,float):return round(x,10 if key in ratios else 5 if key in money else 12)
+              return x
+          for p,r in zip(files,(a,b)):
+              h=hashlib.sha256(json.dumps(canonical(r),sort_keys=True,separators=(',',':')).encode()).hexdigest()
+              print('AJ1258_CANONICAL_SHA256',p,h)
+          print('AJ1258_CROSSRUNNER_RECONCILED',len(a['cells']),'cells')
+          print('AJ1258_STRUCTURAL_DECISION',a['decision'])
+          PY

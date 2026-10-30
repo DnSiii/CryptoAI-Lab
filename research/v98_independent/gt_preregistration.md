@@ -1,0 +1,24 @@
+# V98 Independent GT — contingent collateral reserve and recovery re-entry (2026-10-26)
+
+**PREREGISTERED BEFORE GT IMPLEMENTATION AND ANY GT PNL.** GS is permanently rejected (Stress/Recovery marginal log growth -0.059544 base). GT is a genuinely different economic mechanism: *state-contingent uninvested collateral with explicit re-entry*, rather than GS's continuously invested four-expert portfolio, GR's dormant fixed tranches or GQ's short positions. Rejected results are not retuned.
+
+## Immutable firewall and economic objective
+Official authenticated Binance USD-M Clean-4 BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT 1h, Dec-2022 warmup and Jan-2023–Dec-2024 chronological training ONLY. Native signed event funding; no XRP, 2025 holdout, 2026+, Phase083, V14/V15/V99 signals/parameters/benchmarks, Frozen or paper. USD10k starting cash; 744h warmup; 168h completed-close decisions, next real open execution; no shorts, no hidden borrowing. Same unchanged GL conservative 81-corner order-invariant buffered physical governor with 60% stressed reserve, two native funding orders and base/severe/supersevere costs.
+
+## Frozen complete seven-slot composition
+1. Growth Core: 672h signed-funding-net log momentum / 168h realized volatility (floor .002), one long.
+2. Opportunity: 48h native-net acceleration over preceding 48h, multiplied by clipped [0.5,2] quote-volume ratio; one long.
+3. Relative Value: minimum 168h signed funding burden / 168h realized volatility; one long.
+4. **Contingent Stress/Recovery Collateral:** stateful stress capital reserve (zero asset exposure), activated if median native-net 48h return < -0.025 OR <=1 of 4 assets has positive 336h net return. While stress is active, the fourth capital sleeve remains in cash, not short; upon a later completed decision where median 24h native-net return > 0 and >=2 assets have positive 48h native-net return, re-enter by selecting the maximum 24h net recovery / 168h volatility. At all other times, the fourth sleeve follows the Growth Core selection. If stress condition and recovery condition coincide, stress takes priority. The state is initialized normal and may change only at completed 168h decisions; no future price or settlement leakage.
+5. Regime Router: STRESS when reserve state is active, TREND when >=3 assets have positive 336h native-net returns, TRANSITION otherwise. Gross request 1.20 / 2.25 / 1.80 respectively (governor may clip).
+6. Dynamic Allocator: deterministic four sleeves with fixed *capital fractions* (0.55 Growth, 0.15 Opportunity, 0.15 RV, 0.15 Stress/Recovery). This is **not** GS online-wealth reweighting; stress sleeve becomes real uninvested collateral when active. The other three are long-only one-hot. At each decision use 65% previous plus 35% fresh desired *asset-dollar exposure*, except initial decision fresh. An ablation deletes the sleeve's initial capital fraction and independently renormalizes the other three, then reruns the full physical ledger. All gross requests are computed from actual settled NAV; no hidden leverage or transfer from cash to a rejected module.
+7. Risk Governor: unchanged GL order-invariant conservative physical authorization, prior-only liquidity, native funding and costs, independent oracle.
+
+## Pre-result gates and decision policy
+- Static finite/shape/future mutation invariance; nonnegative asset exposure, sum(asset weights)<=1; reserve must activate >=4 epochs in **each** 2023 and 2024. Growth/Opportunity/RV must be active >=4 epochs per year. Fail source gate before PnL if reserve is dormant.
+- 5 books (core-only, full, minus Opportunity, minus RV, minus Stress/Recovery) x 2 Linux OS x 3 costs x 2 funding orders = 30 USD10k cells; all survive, reproduce across OS and independent every-settled-hour ledger/funding checks.
+- Full net log growth positive in each 2023 and 2024 under base and severe both funding orders; CAGR >50% base, >30% severe; severe maximum DD <45%; turnover <=USD600k under base/severe.
+- Each complementary sleeve must contribute >0.02 combined two-year **marginal net log growth** versus separately financed ablation in base/severe both orders, with each annual marginal >=-0.03. A reserve is not accepted merely for reducing DD if it destroys wealth.
+- Record fees, slippage, native funding, max DD, PF, payoff, win rate, positive days, tails, concentration, turnover, physical request/authorization. No grid, sign flip, threshold change, leverage relaxation, or post-result rescue. Reject on any failure; only an internally frozen pass permits separately authorized 2025 validation and then external benchmark comparisons.
+
+No real orders, live paper changes, or trading authorization.

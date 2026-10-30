@@ -1,0 +1,76 @@
+name: V98 Independent Phase218
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: ['scripts/v98_independent_phase218_realized_vol_term_structure.py','research/v98_independent/phase218_prereg.md','.github/workflows/v98-independent-phase218.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  phase218:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only prices
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Firewall and namespace invariants
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          cut=pd.Timestamp('2026-01-01',tz='UTC')
+          for a in ('BTCUSDT','ETHUSDT','BNBUSDT','XRPUSDT','SOLUSDT'):
+              d=pd.read_csv(Path('data/canonical')/f'{a}_1h.csv'); c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0]); t=pd.to_datetime(d[c],utc=True,errors='raise'); assert t.is_monotonic_increasing and not t.duplicated().any() and not (t>=cut).any()
+              if a!='BTCUSDT':
+                  f=pd.read_csv(Path('research/v98_independent/data/phase206_funding')/f'{a}_funding.csv'); ft=pd.to_datetime(f.fundingTime_utc,utc=True,errors='raise',format='mixed'); assert ft.is_monotonic_increasing and not ft.duplicated().any() and not (ft>=cut).any()
+          print('Phase218 firewall OK')
+          PY
+      - name: Static causality invariant
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('scripts/v98_independent_phase218_realized_vol_term_structure.py').read_text()
+          assert 'pct_change(fill_method=None)' in s and '.shift(1)' in s
+          assert 'SPECS=[(V,R,h) for V in (1.25,1.75) for R in (.005,.01) for h in (3,6)]' in s
+          assert 'rolling(6,min_periods=6)' in s and 'rolling(72,min_periods=72)' in s
+          print('Phase218 prereg/causality static invariants OK')
+          PY
+      - name: Deterministic run 1
+        run: |
+          python scripts/v98_independent_phase218_realized_vol_term_structure.py
+          sha256sum reports/v98_independent_phase218_results.json | tee /tmp/h1
+      - name: Deterministic run 2
+        run: |
+          python scripts/v98_independent_phase218_realized_vol_term_structure.py
+          sha256sum reports/v98_independent_phase218_results.json | tee /tmp/h2
+          diff -u /tmp/h1 /tmp/h2
+      - name: Mechanical gate and stress invariant
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('reports/v98_independent_phase218_results.json')); assert len(p['specs'])==8
+          passing=[]
+          for k,v in p['specs'].items():
+              assert set(v)=={'2023','2024','2025'}
+              for y in v:
+                  assert set(v[y])=={'base','severe','supersevere'}
+                  assert v[y]['supersevere']['return'] <= v[y]['severe']['return'] + 1e-12 <= v[y]['base']['return'] + 1e-12
+                  for stress in ('base','severe','supersevere'):
+                      m=v[y][stress]; assert all(x in m for x in ('return','max_drawdown','profit_factor','payoff','win_rate','positive_days','trades','tail_p01','tail_p05','tail_p50','tail_p95','tail_p99','max_asset_concentration','funding_contribution','regimes'))
+              if all(v[y]['base']['return']>0 and v[y]['base']['profit_factor']>1 for y in ('2023','2024','2025')): passing.append(k)
+          print('training-fold coherent specs:',passing)
+          PY
+      - name: Commit V98-only report
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase218_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase218 harvest realized-vol term structure'
+          git pull --rebase origin research/v98-independent-zero
+          git push

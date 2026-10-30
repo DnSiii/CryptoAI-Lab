@@ -1,0 +1,5 @@
+# V98 Independent DX — permanent source-only rejection (2026-10-25)
+
+DX was precommitted and pushed at commit `7ac7699fb6e38ce616ae15edb4ceedaf6ac5bdbb` before any authenticated source activity or PnL. [Official DX source execution 40203731420](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40203731420) downloaded the exact pinned Clean-4 2022–2024 source artifact, passed Python compilation and causal synthetic prefix checks, and returned `REJECT_DX_SOURCE_INACTIVE` before any economic cell.
+
+Activity in 2023 (Core,Opportunity,RV,Stress) = **48/5/28/8**; in 2024 = **53/2/24/8**. The immutable minimum was **4/4/8/4** in each year. The 2024 Opportunity breakout signal was active only twice and therefore failed. This is a strategy-source viability failure, NOT an external dependency or infrastructure failure. No PnL/CAGR, model validation, future holdout, V14/V15/V99 benchmark, paper or live trading was performed. DX is permanently rejected: no threshold, window, sign, weight or module adjustments after these results. Its files and code remain unchanged. Any next candidate must be independently preregistered and economically distinct.

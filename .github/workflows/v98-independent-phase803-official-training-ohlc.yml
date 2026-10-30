@@ -1,0 +1,45 @@
+name: V98 Independent Phase803 Official Training OHLC Replay
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase803_training_ohlc_official_replay.py'
+      - 'research/v98_independent/test_phase803_training_ohlc_official_replay.py'
+      - '.github/workflows/v98-independent-phase803-official-training-ohlc.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v98-independent-phase803-source-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  v98-training-ohlc-source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install source-only runtime
+        run: python -m pip install numpy==2.3.5 pandas==2.2.3
+      - name: Fresh official 100 ZIP/CHECKSUM training-only OHLC replay
+        run: python research/v98_independent/phase803_training_ohlc_official_replay.py
+      - name: Preserve V98-only pinned training sources and receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-phase803-training-ohlc-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            research/v98_independent/phase803_official_training_ohlc_receipt.json
+            research/v98_independent/phase243_clean4_canonical/*_1h.csv

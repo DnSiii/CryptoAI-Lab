@@ -1,0 +1,33 @@
+{
+  "engine": "V98 Independent",
+  "phase": "172",
+  "kind": "INDEPENDENT_TRAINING_PROMOTION_AUDIT",
+  "decision": "PASS_TO_PREREGISTERED_VALIDATION",
+  "evidence": {
+    "training_return": 0.4853842362701859,
+    "training_profit_factor_daily": 1.295883326879157,
+    "training_max_drawdown": -0.11138712521771466,
+    "fold_returns": {"2023": 0.30901400386777933, "2024": 0.09679256056907248, "2025": 0.03325652521538003},
+    "fold_profit_factors": {"2023": 1.770096426451252, "2024": 1.1843546851897555, "2025": 1.06090559470274},
+    "severe_return": 0.38653813914896307,
+    "supersevere_return": 0.23989873482136614,
+    "supersevere_profit_factor_daily": 1.1567004604063564,
+    "max_open_gross": 0.34673540346262144,
+    "max_close_gross": 0.3467388049003771,
+    "ruin": false,
+    "top10_positive_day_share": 0.17340224138020136,
+    "bottom10_negative_day_share": 0.1846683244774262,
+    "asset_contribution_largest": {"asset": "SOLUSDT", "share": 0.33299338152433416},
+    "regime_return_sum_approx": {"bear": 0.07883979887342574, "bull": 0.26391718373880857, "sideways": 0.07435304091554318}
+  },
+  "audit_findings": [
+    "All preregistered chronological training fold return and PF gates pass.",
+    "Base, severe and supersevere aggregate returns are positive; supersevere PF remains above 1.",
+    "No ruin occurred and both open/close gross stayed below the frozen 0.35 cap.",
+    "All three regime buckets contributed positively; tails are not dominated by the top/bottom 10 days.",
+    "Largest asset contribution share is below 35%, reducing single-asset concentration concern.",
+    "2025 is materially weaker than 2023/2024, so validation must be treated as a genuine decay test, not a formality.",
+    "No validation or final-holdout result was used in this audit."
+  ],
+  "anti_overfit": {"rescue": false, "retune": false, "v16_used": false, "v99_used": false, "validation_used": false, "final_holdout_used": false}
+}

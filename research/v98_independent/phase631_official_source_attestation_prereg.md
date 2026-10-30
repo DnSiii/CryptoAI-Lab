@@ -1,0 +1,5 @@
+# V98 Independent Phase631 — official source provenance preregistration
+
+Frozen before any vendor API result, no optimization or economic selection. Branch research/v98-independent-zero only. Scope BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, Binance USD-M 8-hour funding, 2022-12-01 inclusive through 2026-01-01 exclusive. XRP quarantined; Phase083 and 2026+ holdout forbidden. V14/V15/V99 never accessed.
+
+Required proof: 148 official monthly funding ZIPs and their CHECKSUM sidecars, all pinned byte hashes from native Phase206 manifest; 13,524 unique events matching the branch-native CSV by exact timestamp, 8-hour interval and decimal rate; Binance USD-M historical fundingRate API with positive finite markPrice and exact event/rate parity; 1,852 BNB zero rates preserved. On any discrepancy, missing source, API error or vendor access failure, fail closed without PnL, data substitution, reweighting or parameter rescue. A successful source-only audit does not promote any trading candidate; Phase252 remains partial champion pending separate funded chronological validation.

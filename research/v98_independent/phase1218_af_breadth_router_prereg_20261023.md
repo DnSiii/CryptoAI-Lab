@@ -1,0 +1,7 @@
+# V98 Independent Phase1218 — AF funding/liquidity breadth hysteresis router prereg (2026-10-23)
+
+AF slot 5, independent causal three-state router. No AD Bayesian return likelihood, AE channel occupancy, imported rejected parameters or future PnL. Clean-4 validated hourly source, native signed funding/event, strict no 2025/2026/XRP.
+
+At completed close t>=336, compute equally weighted market log return, **72h** population standard deviation of completed market log returns ending t, **24h** price breadth fraction of assets with close[t]>close[t-24], **168h** sum of absolute native funding rates over all four assets ending t, and strictly prior 336h quote minimum per asset. If market log return <= -5% in one completed hour, missing prior liquidity or volatility >2.5%/hour or 168h funding stress >0.015 or breadth<=0.25, trigger **immediate risk-off** for the next open. If vol <1.2%/hour, breadth>=0.75 and funding stress <0.008, mark an on-qualifying hour; otherwise transition.
+
+Risk-on requires **six consecutive** completed on-qualifying hours after risk-off; otherwise remain transition/off as a causal state machine. An off trigger always overrides on and resets the streak. Output one-hot [off,transition,on], only executable at t+1 open. This router changes growth deployment but cannot substitute for actual risk governor or collateral. Tests must establish no future leakage, funding sign handling, strict prior quote, 6h hysteresis and crash response, no PnL claims.

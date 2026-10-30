@@ -1,0 +1,27 @@
+name: V98 Independent Phase1166 AB Actual-Unit Executor Synthetic
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1166_ab_stateful_executor.py'
+      - 'research/v98_independent/test_phase1166_ab_stateful_executor.py'
+      - '.github/workflows/v98-independent-phase1166-ab-executor.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ab-unit-executor:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned runtime
+        run: python -m pip install numpy==1.26.4
+      - name: Test stateful AB native funding and actual unit executor
+        run: python -m unittest discover -s research/v98_independent -p 'test_phase1166_ab_stateful_executor.py' -v

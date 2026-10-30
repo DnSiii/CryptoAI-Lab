@@ -1,0 +1,5 @@
+# V98 Independent AG Phase1227 — source test-design correction (2026-10-23)
+
+The first independent dual-OS source run [40010868896](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40010868896) failed 1/6 tests on both Ubuntu runners. The failing assertion incorrectly demanded that a *particular* deterministic synthetic price/volume fixture always contain a **coincident** price breakout and quote-volume impulse. The implemented source correctly returned zero opportunity activity because that conjunction was absent.
+
+The correction is limited to the **unit-test expectation**, plus an explicit price-and-volume positive control and volume-only negative control. **No AG source rule, sign, lookback, threshold, execution risk, synthetic 180-cell fixture, capital or cost was changed.** Original failed logs remain preserved. This does not count as a passed preregistered complete-system structural or economic gate; a later complete AG 180-cell result still controls rejection/promotion. No historical PnL or future data was accessed.

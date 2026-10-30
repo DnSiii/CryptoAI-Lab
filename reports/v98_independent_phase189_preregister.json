@@ -1,0 +1,32 @@
+{
+  "project": "V98 Independent",
+  "phase": 189,
+  "status": "PREREGISTERED_TRAINING_ONLY",
+  "hypothesis_family": "cross_sectional_dispersion_mean_reversion",
+  "scientific_rationale": "Test whether unusually wide causal cross-sectional return dispersion among the fixed V98 universe mean-reverts over a short horizon. This is directionally and mechanistically distinct from Phase187/188 idiosyncratic momentum: it trades relative overextension/reversal rather than persistence.",
+  "data_policy": {
+    "selection_window_end_exclusive": "2026-01-01T00:00:00Z",
+    "validation_forbidden_for_selection": true,
+    "final_holdout_start": "2026-08-01T00:00:00Z",
+    "final_holdout_forbidden": true,
+    "v99_forbidden": true
+  },
+  "signal": {
+    "causal_only": true,
+    "return_lookbacks_hours": [6, 12],
+    "dispersion_windows_hours": [60, 120],
+    "dispersion_trigger_quantiles": [0.80, 0.90],
+    "construction": "At t use only observations <=t. Compute each asset trailing return, cross-sectional median and absolute deviation. When trailing cross-sectional dispersion exceeds its trailing causal quantile, rank relative return deviations; short relative winners and long relative losers with dollar-neutral weights. Otherwise flat.",
+    "grid_size": 8,
+    "no_grid_expansion_after_results": true
+  },
+  "evaluation": {
+    "chronological_training_folds": ["2023", "2024", "2025"],
+    "cost_regimes": ["base", "severe", "supersevere"],
+    "required_metrics": ["return", "profit_factor", "max_drawdown", "payoff", "win_rate", "positive_days", "regimes", "asset_concentration", "tail_concentration"],
+    "reproducibility": "two deterministic byte-identical runs",
+    "anti_overfit": "Prefer fold consistency and stress survival over peak aggregate return. Reject family if performance is concentrated in one year/asset/tail or fails realistic stress costs. No validation rescue."
+  },
+  "promotion_rule": "Only a frozen training winner that survives chronological-fold consistency, concentration/tail checks and all cost regimes may be preregistered for one untouched validation attempt. Validation failure => REJECT_VALIDATION_NO_RESCUE.",
+  "independence_note": "This preregistration is structural and was not parameterized from Phase188 validation outcomes."
+}

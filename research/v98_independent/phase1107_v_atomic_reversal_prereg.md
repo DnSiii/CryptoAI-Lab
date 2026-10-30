@@ -1,0 +1,7 @@
+# V98 Independent Phase1107 — V atomic reversal-aware joint allocator clarification (pre-economic)
+
+2026-10-23, before V freeze and any V historical PnL. Synthetic end-to-end forensics found that a naive flat-then-enter reversal can leave the remaining legs with excessive **net exposure** when a hedge leg is deferred: the original four-asset robust target assumes the reversing leg is already present, but it is intentionally flat for one hour. This is a **causal implementation error**, not an observed historical return failure.
+
+At close t-1, identify carried-to-desired sign reversals. The reversing legs are committed to **flat at next open**, not to their opposite target. Before preplacing any order, run the existing V 32-iteration maximum-feasible **joint** 16-corner governor on the *remaining nonreversing desired legs with reversing legs set to zero*. Preserve reversing legs' original signs only in the order instruction so the linked execution knows to flatten and defer their opposite entry; they contribute zero exposure to that hour's risk budget. The next completed close may authorize the deferred entry. No t OHLC or funding can alter these instructions.
+
+This preserves the pre-registered seven-slot alpha, asset/net/gross caps, fee tiers, risk objective and growth-maximizing joint scale. It is NOT a post-PnL threshold/sign/gross rescue. Any future gap beyond past-only shock bounds or insufficient mandatory flat capacity still fails closed. An independent synthetic end-to-end test must pass before V can be frozen.

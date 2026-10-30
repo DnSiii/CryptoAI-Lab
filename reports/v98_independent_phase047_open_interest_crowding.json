@@ -1,0 +1,359 @@
+{
+  "engine": "V98 Independent",
+  "phase": {
+    "id": "phase_047_open_interest_crowding",
+    "liquidity_top_n": 10,
+    "liquidity_lookback_hours": 720,
+    "minimum_history_hours": 2160,
+    "beta_lookback_hours": 720,
+    "min_beta_obs": 360,
+    "oi_change_hours": 24,
+    "rebalance_hours": 24,
+    "gross_target": 0.75,
+    "gross_cap": 0.75
+  },
+  "hypothesis": "Contracts with stronger strictly lagged 24h aggregate open-interest growth are more crowded and subsequently underperform weaker-growth peers after dollar/BTC-beta neutralization.",
+  "preregistration": "reports/v98_independent_phase047_open_interest_crowding_preregistration.md",
+  "oi_acquisition_training": {
+    "requested_days": 1826,
+    "requested_files": 18260,
+    "failed_files": 3006,
+    "failure_examples": [
+      [
+        "ETHUSDT",
+        "2021-01-01",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-02",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-04",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-03",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-06",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-05",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-07",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-08",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-09",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-11",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-10",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-12",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-13",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-15",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-14",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-16",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-18",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-19",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-20",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-23",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-22",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-21",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-24",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-25",
+        "HTTPError:HTTP Error 404: Not Found"
+      ],
+      [
+        "ETHUSDT",
+        "2021-01-26",
+        "HTTPError:HTTP Error 404: Not Found"
+      ]
+    ],
+    "hourly_coverage": {
+      "BTCUSDT": 0.9992926250456371,
+      "ETHUSDT": 0.8166529755385177,
+      "BNBUSDT": 0.8166529755385177,
+      "XRPUSDT": 0.8166529755385177,
+      "ADAUSDT": 0.8166529755385177,
+      "LINKUSDT": 0.8166529755385177,
+      "LTCUSDT": 0.8166529755385177,
+      "DOGEUSDT": 0.8166529755385177,
+      "SOLUSDT": 0.8166529755385177,
+      "AVAXUSDT": 0.8166529755385177
+    },
+    "min_symbol_coverage": 0.8166529755385177
+  },
+  "selection_policy": "single frozen negative 24h lagged OI-growth signal; no sign/window/cadence/gross/threshold/regime/symbol-subset search",
+  "training": {
+    "total_return": -0.6534275233862656,
+    "cagr": -0.19100821431645165,
+    "max_drawdown": -0.6658905306597003,
+    "worst_day": -0.061950109049304536,
+    "best_day": 0.05103312270492433,
+    "p01_day": -0.021033795617214718,
+    "p05_day": -0.011541050435565725,
+    "cvar05_day": -0.01842372039638145,
+    "profit_factor_daily": 0.777253488676661,
+    "payoff_daily": 0.9361586463616672,
+    "win_rate_daily": 0.3698630136986301,
+    "positive_days": 675,
+    "negative_days": 813,
+    "days": 1825,
+    "turnover_sum": 1538.447143052273,
+    "avg_gross": 0.6023433123921181,
+    "max_gross": 0.8402341434147722,
+    "avg_net": 2.4299902947036305e-06,
+    "max_abs_net": 0.16330759054095145,
+    "ruin": false
+  },
+  "folds": {
+    "2023": {
+      "total_return": -0.1812707212696547,
+      "cagr": -0.18140157407367563,
+      "max_drawdown": -0.19805717812763857,
+      "worst_day": -0.04589845990451635,
+      "best_day": 0.026558967663965927,
+      "p01_day": -0.022475443856071493,
+      "p05_day": -0.010949692624679097,
+      "cvar05_day": -0.018285699986794652,
+      "profit_factor_daily": 0.8152914788517299,
+      "payoff_daily": 0.9100928136019311,
+      "win_rate_daily": 0.4725274725274725,
+      "positive_days": 172,
+      "negative_days": 192,
+      "days": 364,
+      "turnover_sum": 379.49375747453286,
+      "avg_gross": 0.7425385262694926,
+      "max_gross": 0.8088544668341782,
+      "avg_net": 7.26364436866911e-05,
+      "max_abs_net": 0.04691635359192695,
+      "ruin": false
+    },
+    "2024": {
+      "total_return": -0.029684884194568162,
+      "cagr": -0.029628287114017215,
+      "max_drawdown": -0.3000794242307169,
+      "worst_day": -0.02969315736904954,
+      "best_day": 0.030505210680006556,
+      "p01_day": -0.021784674657210918,
+      "p05_day": -0.01286403142518242,
+      "cvar05_day": -0.018431269030487342,
+      "profit_factor_daily": 0.9824538258796262,
+      "payoff_daily": 1.1461961301928973,
+      "win_rate_daily": 0.4602739726027397,
+      "positive_days": 168,
+      "negative_days": 196,
+      "days": 365,
+      "turnover_sum": 378.1441983439794,
+      "avg_gross": 0.7368688152788372,
+      "max_gross": 0.8106392842447572,
+      "avg_net": 0.0004499893891893774,
+      "max_abs_net": 0.040867382704340295,
+      "ruin": false
+    },
+    "2025": {
+      "total_return": -0.37277712169259913,
+      "cagr": -0.3730108937831442,
+      "max_drawdown": -0.3983274953968966,
+      "worst_day": -0.04712549582773995,
+      "best_day": 0.02114476565419321,
+      "p01_day": -0.01873512553331397,
+      "p05_day": -0.011823135128974614,
+      "cvar05_day": -0.01734922383253852,
+      "profit_factor_daily": 0.5872292465927944,
+      "payoff_daily": 0.774244930221073,
+      "win_rate_daily": 0.43131868131868134,
+      "positive_days": 157,
+      "negative_days": 207,
+      "days": 364,
+      "turnover_sum": 380.07248565243646,
+      "avg_gross": 0.7397014726696929,
+      "max_gross": 0.8402341434147722,
+      "avg_net": -0.00022242028979075815,
+      "max_abs_net": 0.040023174984718884,
+      "ruin": false
+    }
+  },
+  "stress_training": {
+    "severe": {
+      "total_return": -0.8539790006058627,
+      "cagr": -0.31945574968469137,
+      "max_drawdown": -0.858679375003492,
+      "worst_day": -0.06805751590491183,
+      "best_day": 0.04930771429089931,
+      "p01_day": -0.021666960411730014,
+      "p05_day": -0.012263423758266877,
+      "cvar05_day": -0.019080098214991882,
+      "profit_factor_daily": 0.6273437978238255,
+      "payoff_daily": 0.861472105145636,
+      "win_rate_daily": 0.34356164383561644,
+      "positive_days": 627,
+      "negative_days": 861,
+      "days": 1825,
+      "turnover_sum": 1538.447143052273,
+      "avg_gross": 0.6023433123921181,
+      "max_gross": 0.8402341434147722,
+      "avg_net": 2.4299902947036305e-06,
+      "max_abs_net": 0.16330759054095145,
+      "ruin": false
+    },
+    "supersevere": {
+      "total_return": -0.963179876099655,
+      "cagr": -0.4833799700250706,
+      "max_drawdown": -0.964142180510802,
+      "worst_day": -0.07992520310806273,
+      "best_day": 0.04614542956869916,
+      "p01_day": -0.022673118236446646,
+      "p05_day": -0.013218397147424076,
+      "cvar05_day": -0.020154314743281023,
+      "profit_factor_daily": 0.4476852376896565,
+      "payoff_daily": 0.8433140523921436,
+      "win_rate_daily": 0.2827397260273973,
+      "positive_days": 516,
+      "negative_days": 972,
+      "days": 1825,
+      "turnover_sum": 1538.447143052273,
+      "avg_gross": 0.6023433123921181,
+      "max_gross": 0.8402341434147722,
+      "avg_net": 2.4299902947036305e-06,
+      "max_abs_net": 0.16330759054095145,
+      "ruin": false
+    }
+  },
+  "concentration_training": {
+    "mean_top1_weight_share": 0.23079966120665027,
+    "p95_top1_weight_share": 0.3219543512140809,
+    "mean_active_assets": 7.093921139101862
+  },
+  "beta_neutrality_training": {
+    "mean_abs_portfolio_beta": 0.01693473344789698,
+    "p95_abs_portfolio_beta": 0.05369319079746182,
+    "max_abs_portfolio_beta": 0.36639460560005127
+  },
+  "regimes_training": {
+    "bear": {
+      "hours": 7007,
+      "return_sum_approx": -0.137382168656896,
+      "positive_hour_ratio": 0.46253746253746253
+    },
+    "bear_highvol": {
+      "hours": 2881,
+      "return_sum_approx": -0.06594768836754095,
+      "positive_hour_ratio": 0.2374175633460604
+    },
+    "bull": {
+      "hours": 15991,
+      "return_sum_approx": 0.049364842502363504,
+      "positive_hour_ratio": 0.38183978487899445
+    },
+    "bull_highvol": {
+      "hours": 1996,
+      "return_sum_approx": 0.0,
+      "positive_hour_ratio": 0.0
+    },
+    "sideways": {
+      "hours": 15803,
+      "return_sum_approx": -0.859253910261846,
+      "positive_hour_ratio": 0.47895969119787385
+    },
+    "sideways_highvol": {
+      "hours": 146,
+      "return_sum_approx": 0.0020747552642331746,
+      "positive_hour_ratio": 0.02054794520547945
+    }
+  },
+  "training_gate": {
+    "passed": false,
+    "failures": [
+      "training_pf_below_1.15",
+      "training_drawdown_below_-45pct",
+      "fold_2023_nonpositive_return",
+      "fold_2023_pf_below_1.05",
+      "fold_2024_nonpositive_return",
+      "fold_2024_pf_below_1.05",
+      "fold_2025_nonpositive_return",
+      "fold_2025_pf_below_1.05",
+      "severe_pf_below_1.10",
+      "supersevere_pf_below_1.03",
+      "supersevere_drawdown_below_-55pct"
+    ]
+  },
+  "validation": null,
+  "final_holdout": null
+}

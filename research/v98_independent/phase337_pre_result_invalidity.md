@@ -1,0 +1,2 @@
+# V98 Phase337 — VOID BEFORE RESULT
+The pre-result preregistration published at commit 6ce0b95c085c40b0a7b3e250723708de230c9320 contains an unfair reduced-cap comparator and cannot establish positive marginal contribution to the unchanged provisional complete engine. No Phase337 result was run. Phase337 is void before result; no promotion or rescue. Future tests require a new independently preregistered matched-gross hypothesis.

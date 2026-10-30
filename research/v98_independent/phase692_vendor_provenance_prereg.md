@@ -1,0 +1,7 @@
+# V98 Independent Phase692 — vendor provenance execution preregistration (2026-10-19)
+
+Branch research/v98-independent-zero only. Scope restricted to BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT native Binance USD-M funding 2022-12-01..2025-12-31; no XRP, 2026+, Phase083 holdout, V14/V15/V99, or strategy PnL. Phase252 remains partial structural champion; E remains unpromoted.
+
+Precommitted acceptance: re-download all 148 official monthly Binance fundingRate ZIPs and CHECKSUM sidecars, verify byte hashes against frozen Phase206 manifest and CHECKSUM signatures, compare every timestamp/8h interval/exact Decimal rate to the SHA-pinned V98 native CSV, and independently compare all 13,524 events to official historical fundingRate API with strictly positive finite mark prices and monotonic pagination. Preserve 1,852 BNB exact zeros. Any missing archive, checksum, event, API mark, timeout or mismatch rejects the entire attestation. No substitution, synthetic fallback, partial pass or historical PnL.
+
+Only if official provenance passes may a later separately frozen V98 seven-slot candidate run preregistered training-first economic validation (2023-24 before 2025), under base/severe/supersevere fees and both execution-order conventions. This Phase692 job is DATA ONLY. GitHub workflow and artifacts must be V98-namespaced and must never touch any other engine, workflow, report, branch or paper state.

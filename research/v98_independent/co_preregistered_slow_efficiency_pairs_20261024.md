@@ -1,0 +1,20 @@
+# V98 Independent CO — preregistered slow trend efficiency / volume surprise / ETH-BTC relative-value / volatility recovery (2026-10-24)
+
+## Distinct economic thesis
+CN's high-frequency volume breakout and long-only cross-sectional momentum failed severely under native costs and was frozen. CO tests a **different low-turnover mechanism**: slow realized path efficiency for Growth, weekly volume-surprise trend continuation for Opportunity, **paired ETH/BTC log-ratio mean reversion** for Relative Value, and **volatility expansion followed by market recovery** for Stress. It is not a parameter retune, rescue or recombination of rejected CN, CM, CK or earlier engines. Generic existing V98 physical governor/settlement is reusable infrastructure only.
+
+## Seven precommitted modules
+1. **Growth Core:** at 336h cadence, for each asset compute trailing 1008h log return divided by sum of absolute hourly log returns over that window (signed trend efficiency). Eligible only if 1008h return >0 and efficiency >0.02. Long highest efficiency eligible at 65%, second at 35%; one eligible gets 100%, else cash.
+2. **Opportunity:** at 168h cadence, for BNB/SOL require positive trailing 336h log return, positive 168h log return, and mean quote-volume over last 168h >1.15 times mean quote-volume over preceding 672h. Long candidate with largest 168h log return; otherwise cash.
+3. **Relative Value:** at 168h cadence, calculate 1008h rolling z-score of ETH/BTC log-price ratio using completed closes. If z-score >+1.0, long BTC 50%, short ETH 50%; if <-1.0, long ETH 50%, short BTC 50%; otherwise cash. Paired spread mean reversion, not persistent SOL shorts, funding carry, or long-only relative momentum. No lookahead.
+4. **Stress/Recovery:** at 168h cadence, if mean 4-asset realized hourly volatility over last 168h is >1.25 times that over prior 1008h, and mean 4-asset 72h log return is positive, long BTC 50% + ETH 50%; otherwise cash.
+5. **Regime Router:** RISK_ON if BTC 336h return >0 and >=2 assets positive 336h; RISK_OFF if BTC 336h return <0 and <=1 asset positive; otherwise MIXED.
+6. **Dynamic Allocator:** [Core,Opp,RV,Stress] RISK_ON [1.85,.35,.30,.25], MIXED [1.40,.35,.40,.35], RISK_OFF [.70,.20,.50,.45]. Units persist between module update epochs, shared NAV/collateral and no hidden leverage.
+7. **Risk Governor:** unchanged preexisting CG buffered physical authorization with 60% stressed NAV reserve, 40% floor, 18% maintenance, 0.25% participation, staged exits, 81 OHLC corners, native signed funding and mark bounds.
+
+## Locked source/economic gates
+Pinned Clean-4 Binance USD-M 1h BTC/ETH/BNB/SOL Dec-2022 warmup through Dec-2024 training only; native 8h funding/mark bounds and quote volume. Completed close t, earliest open t+1 execution. Source gate: pinned integrity, causal future perturbation, effective 2023 and 2024 epochs >=4 for Growth/Opportunity/Stress and >=8 for RV. Failure => source-only rejection.
+
+If source passes, 20-cell USD10k native physical 5 paths x base/severe x two funding orders, reproduced Ubuntu 22.04/24.04. Pass requires 20/20 physical survival, reproducibility, annual full net log growth positive in both years under both cost/order cases, CAGR >50% base and >30% severe, severe DD <45%, and **strictly positive marginal full-minus-ablated annual log growth** for all three sleeves in both years/costs/orders. No post-result tuning. If fail, freeze rejected. Only after passing: USD1m/10m, supersevere, independent ledger/81-corner audit, full tails/concentration/regime metrics, internal freeze, separate untouched 2025 future validation, then V14/V15/V99 external benchmark. No paper/live authorization.
+
+**Isolation:** V16/V99 Frozen, V99 branch/workflows/reports/paper untouched; no benchmark architectures/signals/parameters read. 2025 holdout sealed; 2026+ forbidden; XRP quarantined; Phase083 invalid. Writes only `research/v98_independent/co_*` and `.github/workflows/v98-independent-co-*` on `research/v98-independent-zero`.

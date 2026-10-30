@@ -1,0 +1,55 @@
+name: V98 Independent Phase201
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase201_volume_shock_continuation.py'
+      - 'reports/v98_independent_phase201_preregister.md'
+      - '.github/workflows/v98-independent-phase201.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  phase201:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: research/v98-independent-zero}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e .
+      - name: Rebuild training-only data
+        run: |
+          python scripts/download_futures_archive.py --config v98_independent_phase050_data.json
+          python scripts/build_canonical.py --config v98_independent_phase050_data.json
+      - name: Temporal firewall
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          files=sorted(Path('data/canonical').glob('*_1h.csv'))
+          assert files, 'no canonical 1h files'
+          for p in files:
+              d=pd.read_csv(p)
+              c='open_time' if 'open_time' in d.columns else ('timestamp' if 'timestamp' in d.columns else d.columns[0])
+              t=pd.to_datetime(d[c],utc=True,errors='coerce')
+              assert not (t>=pd.Timestamp('2026-01-01',tz='UTC')).any(), f'holdout leak {p}'
+          print('training-only firewall OK',len(files))
+          PY
+      - name: Deterministic run 1
+        run: |
+          python scripts/v98_independent_phase201_volume_shock_continuation.py >/tmp/p201a.txt
+          sha256sum reports/v98_independent_phase201_results.json | tee /tmp/hash1
+      - name: Deterministic run 2
+        run: |
+          python scripts/v98_independent_phase201_volume_shock_continuation.py >/tmp/p201b.txt
+          sha256sum reports/v98_independent_phase201_results.json | tee /tmp/hash2
+          diff -u /tmp/hash1 /tmp/hash2
+      - name: Commit V98-only report
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/v98_independent_phase201_results.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'V98 Phase201 harvest volume-shock continuation'
+          git push

@@ -1,0 +1,300 @@
+# GitHub-hosted runners poll Binance's official checksummed daily archives.
+# The compact ledgers power the private didactic dashboard.
+# The original V13 keeps its own history. A second shared boundary compares the
+# core, opportunity tracks, V14, V15, experimental V16, and V99 independently.
+name: CryptoAI multi-engine paper refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v13-paper.yml"
+      - "config/**"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: cryptoai-v13-hourly-paper
+  cancel-in-progress: false
+
+jobs:
+  paper:
+    name: Public-data paper cycle
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+    steps:
+      - name: Check out the frozen candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Resolve the UTC cache date
+        id: utc
+        shell: bash
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the latest canonical market cache
+        id: market-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: data/canonical
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-paper-v15-market-v1-
+            ${{ runner.os }}-paper-v13-market-
+
+      - name: Install the frozen package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Restore the durable paper boundary and state
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin paper-results >/dev/null 2>&1; then
+            git fetch --no-tags origin paper-results
+            for path in \
+              state/paper_v13_state.json \
+              reports/paper_v13_snapshot.json \
+              state/paper_opportunity_v1_state.json \
+              state/paper_v14_state.json \
+              state/paper_v15_state.json \
+              state/paper_v15_universe.json \
+              state/paper_v16_state.json \
+              state/paper_v99_state.json; do
+              if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
+                mkdir -p "$(dirname "$path")"
+                git show "FETCH_HEAD:$path" > "$path"
+              fi
+            done
+          fi
+
+      - name: Run causal and no-real-order tests
+        run: python -m pytest
+
+      - name: Bootstrap or increment public Binance data
+        run: python scripts/sync_paper_data_v13.py
+
+      - name: Discover and synchronize the expanded V15 universe
+        run: python scripts/sync_paper_data_v15.py
+
+      - name: Run one paper-only cycle
+        run: python scripts/paper_once_v13.py
+
+      - name: Run the separate opportunity comparison cycle
+        run: python scripts/paper_once_opportunity_v1.py
+
+      - name: Run the maximum-capture V14 paper cycle
+        run: python scripts/paper_once_v14.py
+
+      - name: Run the V14-derived adaptive V15 paper cycle
+        run: python scripts/paper_once_v15.py
+
+      - name: Run the frozen experimental V16 paper cycle
+        run: python scripts/paper_once_v16.py
+
+      - name: Run the asymmetric experimental V99 paper cycle
+        run: python scripts/paper_once_v99.py
+
+      - name: Verify paper safety and freshness
+        run: |
+          python scripts/verify_paper_cycle_v13.py
+          python scripts/verify_opportunity_cycle_v1.py
+          python scripts/verify_v14_cycle.py
+          python scripts/verify_v15_cycle.py
+          python scripts/verify_v16_cycle.py
+          python scripts/verify_v99_cycle.py
+
+      - name: Write paper publication heartbeat
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          report_dir = Path("reports")
+          ledgers = {
+              "v13": report_dir / "paper_v13_ledger.json",
+              "v14": report_dir / "paper_v14_ledger.json",
+              "v15": report_dir / "paper_v15_ledger.json",
+              "v16": report_dir / "paper_v16_ledger.json",
+              "v99": report_dir / "paper_v99_ledger.json",
+          }
+          latest = {
+              name: json.loads(path.read_text(encoding="utf-8"))["latest_data_timestamp"]
+              for name, path in ledgers.items()
+          }
+          (report_dir / "paper_runtime_status.json").write_text(
+              json.dumps(
+                  {
+                      "schema_version": 1,
+                      "status": "completed",
+                      "heartbeat_at_utc": datetime.now(timezone.utc).isoformat(),
+                      "workflow_run_id": os.environ.get("GITHUB_RUN_ID"),
+                      "workflow_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+                      "latest_official_timestamps": latest,
+                      "note": "Operational heartbeat only. It does not alter any candidate, position, or calculation.",
+                  },
+                  ensure_ascii=False,
+                  indent=2,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Save today's canonical market cache
+        if: steps.market-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: data/canonical
+          key: ${{ runner.os }}-paper-v15-market-v1-${{ steps.utc.outputs.date }}
+
+      - name: Upload a compact audit artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: paper-v13-opportunities-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            state/paper_v13_state.json
+            reports/paper_v13_snapshot.json
+            reports/paper_v13_ledger.json
+            reports/paper_data_sync_v13.json
+            state/paper_opportunity_v1_state.json
+            reports/paper_core_comparison_v1_snapshot.json
+            reports/paper_opportunity_v1_snapshot.json
+            reports/paper_combined_v1_snapshot.json
+            reports/paper_core_comparison_v1_ledger.json
+            reports/paper_opportunity_v1_ledger.json
+            reports/paper_combined_v1_ledger.json
+            reports/paper_comparison_v1.json
+            state/paper_v14_state.json
+            reports/paper_v14_snapshot.json
+            reports/paper_v14_ledger.json
+            state/paper_v15_universe.json
+            state/paper_v15_state.json
+            reports/paper_data_sync_v15.json
+            reports/paper_v15_snapshot.json
+            reports/paper_v15_ledger.json
+            state/paper_v16_state.json
+            reports/paper_v16_snapshot.json
+            reports/paper_v16_ledger.json
+            state/paper_v99_state.json
+            reports/paper_v99_snapshot.json
+            reports/paper_v99_ledger.json
+            reports/paper_runtime_status.json
+
+      - name: Publish durable paper results
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          results_dir="$RUNNER_TEMP/paper-results"
+          if git ls-remote --exit-code --heads origin paper-results >/dev/null 2>&1; then
+            git fetch --no-tags origin paper-results
+            git worktree add --detach "$results_dir" FETCH_HEAD
+            git -C "$results_dir" switch -C paper-results
+          else
+            git worktree add -b paper-results "$results_dir" HEAD
+          fi
+          mkdir -p "$results_dir/state" "$results_dir/reports"
+          cp state/paper_v13_state.json "$results_dir/state/paper_v13_state.json"
+          cp reports/paper_v13_snapshot.json "$results_dir/reports/paper_v13_snapshot.json"
+          cp reports/paper_v13_ledger.json "$results_dir/reports/paper_v13_ledger.json"
+          cp reports/paper_data_sync_v13.json "$results_dir/reports/paper_data_sync_v13.json"
+          cp state/paper_opportunity_v1_state.json "$results_dir/state/paper_opportunity_v1_state.json"
+          cp reports/paper_core_comparison_v1_snapshot.json "$results_dir/reports/paper_core_comparison_v1_snapshot.json"
+          cp reports/paper_opportunity_v1_snapshot.json "$results_dir/reports/paper_opportunity_v1_snapshot.json"
+          cp reports/paper_combined_v1_snapshot.json "$results_dir/reports/paper_combined_v1_snapshot.json"
+          cp reports/paper_core_comparison_v1_ledger.json "$results_dir/reports/paper_core_comparison_v1_ledger.json"
+          cp reports/paper_opportunity_v1_ledger.json "$results_dir/reports/paper_opportunity_v1_ledger.json"
+          cp reports/paper_combined_v1_ledger.json "$results_dir/reports/paper_combined_v1_ledger.json"
+          cp reports/paper_comparison_v1.json "$results_dir/reports/paper_comparison_v1.json"
+          cp state/paper_v14_state.json "$results_dir/state/paper_v14_state.json"
+          cp reports/paper_v14_snapshot.json "$results_dir/reports/paper_v14_snapshot.json"
+          cp reports/paper_v14_ledger.json "$results_dir/reports/paper_v14_ledger.json"
+          cp state/paper_v15_universe.json "$results_dir/state/paper_v15_universe.json"
+          cp state/paper_v15_state.json "$results_dir/state/paper_v15_state.json"
+          cp reports/paper_data_sync_v15.json "$results_dir/reports/paper_data_sync_v15.json"
+          cp reports/paper_v15_snapshot.json "$results_dir/reports/paper_v15_snapshot.json"
+          cp reports/paper_v15_ledger.json "$results_dir/reports/paper_v15_ledger.json"
+          cp state/paper_v16_state.json "$results_dir/state/paper_v16_state.json"
+          cp reports/paper_v16_snapshot.json "$results_dir/reports/paper_v16_snapshot.json"
+          cp reports/paper_v16_ledger.json "$results_dir/reports/paper_v16_ledger.json"
+          cp state/paper_v99_state.json "$results_dir/state/paper_v99_state.json"
+          cp reports/paper_v99_snapshot.json "$results_dir/reports/paper_v99_snapshot.json"
+          cp reports/paper_v99_ledger.json "$results_dir/reports/paper_v99_ledger.json"
+          cp reports/paper_runtime_status.json "$results_dir/reports/paper_runtime_status.json"
+          git -C "$results_dir" add \
+            state/paper_v13_state.json \
+            reports/paper_v13_snapshot.json \
+            reports/paper_v13_ledger.json \
+            reports/paper_data_sync_v13.json \
+            state/paper_opportunity_v1_state.json \
+            reports/paper_core_comparison_v1_snapshot.json \
+            reports/paper_opportunity_v1_snapshot.json \
+            reports/paper_combined_v1_snapshot.json \
+            reports/paper_core_comparison_v1_ledger.json \
+            reports/paper_opportunity_v1_ledger.json \
+            reports/paper_combined_v1_ledger.json \
+            reports/paper_comparison_v1.json \
+            state/paper_v14_state.json \
+            reports/paper_v14_snapshot.json \
+            reports/paper_v14_ledger.json \
+            state/paper_v15_universe.json \
+            state/paper_v15_state.json \
+            reports/paper_data_sync_v15.json \
+            reports/paper_v15_snapshot.json \
+            reports/paper_v15_ledger.json \
+            state/paper_v16_state.json \
+            reports/paper_v16_snapshot.json \
+            reports/paper_v16_ledger.json \
+            state/paper_v99_state.json \
+            reports/paper_v99_snapshot.json \
+            reports/paper_v99_ledger.json \
+            reports/paper_runtime_status.json
+          if ! git -C "$results_dir" diff --cached --quiet; then
+            git -C "$results_dir" commit -m "Update CryptoAI paper snapshot ${{ steps.utc.outputs.date }}"
+            git -C "$results_dir" push origin HEAD:paper-results
+          fi
+
+      - name: Queue the next paper refresh
+        if: always()
+        # GitHub's cron scheduler is best-effort. Each paper cycle queues its
+        # successor, including a deliberately delayed retry after a failure.
+        # This only restarts the same workflow; it does not change any
+        # candidate or paper calculation.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS_RESULT: ${{ job.status }}
+        shell: bash
+        run: |
+          if [ "$PREVIOUS_RESULT" != "success" ]; then
+            # Prevent an infrastructure or test failure from creating a tight
+            # retry loop while still recovering much faster than an hourly cron.
+            sleep 300
+          fi
+          active_count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow v13-paper.yml --limit 30 --json status --jq '[.[] | select(.status != "completed")] | length')"
+          if [ "$active_count" -gt 1 ]; then
+            echo "A newer paper refresh is already queued; it will continue the chain."
+            exit 0
+          fi
+          gh workflow run v13-paper.yml --repo "$GITHUB_REPOSITORY" --ref main

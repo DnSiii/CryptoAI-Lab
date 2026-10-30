@@ -1,0 +1,15 @@
+# V98 Independent spot/perpetual source — FROZEN SOURCE-INTEGRITY REJECTION (2026-10-26)
+
+**FINAL: FAIL_SPOT_SOURCE_INTEGRITY. No canonical source accepted, no spot/perp alpha, no historical system PnL, no trading.** Source-only protocol preregistered in commit 642e76d3ade8134656b44ece28953fb62f4db378 before acquisition. The strict contract required all 100 official Binance spot monthly Clean-4 1h archives, their matching official .CHECKSUM SHA256 sidecars and **complete** UTC hourly grids, without missing-hour fills, alternate provider or post-result source shopping.
+
+## Evidence
+[Official source acquisition run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40428852678) authenticated 100/100 exact ZIPs against the 100/100 publisher SHA256 sidecars but correctly rejected the canonical reconstruction on a 743-vs-744 hour monthly archive. This run produced no accepted canonical source or economic PnL.
+
+A separate read-only [100-archive forensic inventory](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40429202294) again verified **100/100 publisher checksums** and found **four defective archives**, all for March 2023: BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT. Each has 743 instead of 744 hourly rows and is missing **2023-03-24 13:00:00 UTC** (one shared hourly timestamp, four asset-hours). All other 96 archives had complete hourly grids. Total observed **73,148** instead of **73,152** required asset-hours. No duplicate or unexpected timestamps in the four defective archives.
+
+Provider SHA256 for the four March-2023 ZIPs: BTC `7f2afb8e0179a57ac31eab5205660298ba5eb77039ac2e21aef9b715ff3d06ce`; ETH `90d268be1e0d39f7411f88ca3c0f21fe110fee7ff3c1dd054555e1fea6e22d8d`; BNB `55bba490654b69c26cc1989f17902737535682f70491132f66246fbea3b7017a`; SOL `7345fc8807e3e73e11595b5b371bf96d414048f77d1498964fa5c5f8fe3f02e7`. Independent [Dec-2022 forensic control](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40429087077) verified 744/744 rows for all four assets, ruling out a December warmup gap.
+
+## Decision, missing evidence and alternatives
+This is a **publisher-authenticated coverage defect**, not a checksum failure. The missing evidence is an official, provider-checksum-verifiable March-2023 1h spot bar for all four assets at the exact UTC timestamp. Because the source contract forbids gap fill, alternate provider, daily fallback or source repair, **this exact spot-source path remains rejected**; no synthetic bar may be inserted and no strategy may use it as an authenticated complete source. A new, separately preregistered gap-aware policy with causal missingness masks or a distinct official data family would require new provenance gates before any economic test, and must not retroactively relabel this failed source as passed. The immediate practical alternative is to continue on the already authenticated Binance USD-M Clean-4 futures OHLC/native funding source; this spot defect is NOT a global V98 blocker.
+
+No 2025 holdout, 2026+, XRP, Phase083, external benchmarks, V16 Frozen, V99 Frozen/research/workflows/reports/paper or live orders touched. No complete V98 approved.

@@ -1,0 +1,99 @@
+name: V98 Independent JT Contemporaneous 5m Downside Resilience Source Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-jt-downside-5m-source.yml'
+      - 'research/v98_independent/jt_downside_resilience_seven_slot_prereg_20261028.md'
+      - 'research/v98_independent/jt_downside_resilience_source.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Test native 5m parser and JT source syntax
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile jq_native_5m_path_source.py jt_downside_resilience_source.py
+          python -m unittest -v test_jq_native_5m_path_source.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-native-5m-masked-ubuntu-24.04
+          run-id: 40668217706
+          github-token: ${{ github.token }}
+          path: masked-input
+      - name: Stage immutable pinned 1h and verified 5m source mask
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('official-input');mask=Path('masked-input')
+          dest=Path('research/v98_independent')
+          canonical=dest/'phase243_clean4_canonical'
+          canonical.mkdir(parents=True,exist_ok=True)
+          for asset in ('BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT'):
+              name=asset+'_1h.csv';found=list(root.rglob(name));assert len(found)==1
+              shutil.copy2(found[0],canonical/name)
+          for name in ('native_5m_masked_verified_hourly_features.csv','native_5m_masked_source_receipt.json'):
+              found=list(mask.rglob(name));assert len(found)==1
+              shutil.copy2(found[0],dest/name)
+          PY
+      - name: Independently authenticate all native 5m and compute completed-hour cross-asset propagation
+        working-directory: research/v98_independent
+        run: python jt_downside_resilience_source.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jt-downside-5m-${{ matrix.os }}
+          path: |
+            research/v98_independent/jt_downside_resilience_source_receipt.json
+            research/v98_independent/jt_downside_resilience_hourly.csv
+          retention-days: 30
+          if-no-files-found: warn
+  independent:
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: jt-downside-5m-ubuntu-*
+          path: receipts
+      - name: Verify exact cross-OS source-only byte reproducibility
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          a=[]
+          for os in ('ubuntu-22.04','ubuntu-24.04'):
+              root=Path('receipts')/('jt-downside-5m-'+os)
+              r=json.loads((root/'jt_downside_resilience_source_receipt.json').read_text())
+              raw=(root/'jt_downside_resilience_hourly.csv').read_bytes()
+              assert r['decision']=='PASS_JT_DOWNSIDE_SOURCE_ONLY_NOT_ECONOMIC'
+              assert r['vendor_archives_authenticated']==100
+              assert r['full_alt_asset_hours']==54864
+              assert r['valid_alt_asset_hours']==50472
+              assert hashlib.sha256(raw).hexdigest()==r['source_feature_sha256']
+              a.append((r,raw))
+          assert a[0]==a[1],'JT_CROSS_OS_SOURCE_MISMATCH'
+          print('JT_DUAL_OS_CROSS_ASSET_SOURCE_ONLY_PASS',a[0][0]['source_feature_sha256'])
+          PY

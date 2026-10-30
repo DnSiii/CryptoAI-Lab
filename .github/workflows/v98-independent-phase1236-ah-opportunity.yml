@@ -1,0 +1,40 @@
+name: V98 Independent Phase1236 AH Signed Volatility Opportunity
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase1236_ah_volatility_opportunity.py'
+      - 'research/v98_independent/test_phase1236_ah_volatility_opportunity.py'
+      - '.github/workflows/v98-independent-phase1236-ah-opportunity.yml'
+  workflow_dispatch:
+jobs:
+  ah-opportunity:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numpy
+        run: python -m pip install numpy==1.26.4
+      - name: Verify signed opportunity activation, TTL and causality
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1236_ah_volatility_opportunity
+      - name: Deterministic signed opportunity digest
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import hashlib,numpy as np
+          from test_phase1236_ah_volatility_opportunity import TestAHOpportunity
+          from phase1236_ah_volatility_opportunity import ah_opportunity_source
+          a=ah_opportunity_source(*TestAHOpportunity.fixture())
+          print('AH1236_SHA256',hashlib.sha256(
+            np.round(a,8).astype('<f8').tobytes()).hexdigest())
+          print('AH1236_LONG_SHORT',int(np.count_nonzero(a>0)),
+                int(np.count_nonzero(a<0)))
+          PY

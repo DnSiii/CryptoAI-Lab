@@ -1,0 +1,14 @@
+# V98 Independent Phase1022 — immutable canonical O authenticated economic REJECTION
+
+## Official evidence
+GitHub Actions run **39926452742** (Phase1018, commit `757a010b218008496a84e844255c1d06694574fa`), source receipts archived as artifact **12488669534** (ZIP SHA256 `0e8d02008a40b2e60a07fca46cf2c33c5c2a179f783ff1af767814c95ffa4ca2`). Pre-economic canonical O source blob and five Phase1016 target SHA256 pins passed. Fresh Phase803 official 100-OHLC ZIP training source passed; fresh Phase1000 100 monthly mark + 112 Feb daily + 100 native funding ZIPs and 9,144 funding events passed. Bounds CSV SHA256 `f706812b7989666c3efd0b24045a5c31f4d9c79b46d61da7b5e6cde6c6e73f5e`. No XRP, 2025+, Phase083 holdout, V14/V15/V99 benchmarks or frozen V16/V99 writes.
+
+## Measured preregistered O outcome
+Exactly **90/90 ledger invocations**, **0/90 cells survived**, **90/90 failed**, all with `INTRABAR_SURVIVAL_BREACH` under the unchanged hourly fee/funding/LP ledger. Of these, **84 cells** breached at bar index **4849 = 2023-06-21 01:00 UTC** (18 each O_core_only, O_full, O_minus_opportunity, O_minus_recovery, and 12 O_minus_relative_value). The other **6 cells**, all O_minus_relative_value in capacity_10m mode across 3 costs and both funding orderings, breached earlier at index **4320 = 2023-05-30 00:00 UTC**. O_full itself failed all 18 combinations at index 4849. None completed both chronological 2023/2024 folds. The preregistered training gate `incomplete_or_failed_survival` failed. No valid complete-fold CAGR, profit factor, payoff, positive days, tail or marginal superiority conclusion exists.
+
+**Decision: REJECT_O_CANONICAL_TRAINING_NO_RESCUE.** O_full is not the V98 champion, cannot be promoted, rescued via cost/window/sign/gross changes, or validated on 2025. The Phase1019 conditional 2025 protocol remains unexecuted and ineligible for O. Do not relabel a synthetic source or ledger success as economic success.
+
+## Independent accounting evidence and next architecture
+Phase1020 synthetic funded ledger conservation oracle: GitHub Actions run **39926699623**, **11/11 tests passed**, including four newly preregistered accounting/funding/participation tests. Phase1021 full 16-corner intrabar oracle: run **39926925427**, **3,000 seeded long-only cash/leverage states**, zero mismatches vs production six-corner shortcut. These tests support execution correctness but do not rescue O economics.
+
+Next: a **genuinely distinct complete seven-slot P architecture** must be separately preregistered before its source-only targets or historical returns, with high long-run compounded growth as objective and causality/cost/tail constraints. Do not tune to the specific O breach timestamps or use 2025+ data. Keep O immutable as rejected evidence. Only V98 namespaced files on branch research/v98-independent-zero.

@@ -1,0 +1,14 @@
+# V98 Independent HO — FROZEN TRAINING ECONOMIC REJECTION (2026-10-26)
+
+**FINAL: REJECT_HO_HISTORICAL_GROWTH_OR_MARGINAL. NOT a champion, not validated, no live trading.** HO was preregistered in commit d990ef4612a8d48c863adad92c5df963d29aa147 before its code or results; the implementation commit 82781bba645db08ba094ce985930169b4dbdd021 used the fixed 336h price/flow absorption and capitulation-resilience architecture. No post-result sign, window, threshold, gross, cost or gate adjustments. HN and all previous rejected architectures remain permanently rejected. [Official HO run](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40422884023) completed successfully **mechanically**, but independent economic gate returned REJECT.
+
+## Source and independent physical validation
+Exact pinned Binance Clean-4 native USD-M 1h Dec-2022 warmup, 2023–2024 TRAINING only; 100 publisher-checksum plus prior manifest verified monthly archives, 73,152 asset-hours, taker CSV SHA256 a8ee661e4b5db6e12ea20b4ee1070c24e5b8cb095a316af4dc3a89869421eaf7; native funding/mark from official pinned source. Source gate passed 27/26 funded epochs in each of the four slots (2023/2024). 30/30 physical cells passed on Ubuntu 22.04/24.04, cross-OS artifacts reproduced exactly, audit errors zero. Independent ledger replay passed for all five physical books: 526,290 settled-hour checks and 65,760 funding-event checks. Source/physical pass is not economic acceptance.
+
+## Full portfolio historical training economics (USD10k, NOT forward PnL)
+- Base 2y CAGR +91.847933%; 2023 net return +120.202903%, 2024 +67.293303%; max DD 24.273349%; turnover USD487,962.39; native funding -USD2,362.48; fees USD243.98, slippage USD243.98; PF 1.0505, hourly win rate 51.6247%, positive UTC days 377/731.
+- Severe 2y CAGR +83.802741%; 2023 net return +109.610765%, 2024 +61.306646%; max DD 25.501876%; turnover USD453,012.34; native funding -USD2,211.23; fees USD906.02, slippage USD1,359.04; PF 1.0472, hourly win rate 51.5506%, positive days 377/731.
+- Annual net growth, CAGR, severe DD and turnover gates PASS. However independent full-minus-ablation log-growth: **Opportunity -0.025903 base / -0.030700 severe FAIL**; Relative Value +0.066404 base / +0.060707 severe PASS; **Stress/Recovery +0.022236 base PASS but +0.015636 severe FAIL** (precommitted minimum +0.02). Same across both funding orders. Therefore REJECT_HO; do not optimize after observing these failures.
+
+## Continuity
+No 2025 holdout, 2026+ market data, XRP, contaminated Phase083, V14/V15/V99 benchmark, V16 Frozen, V99 Frozen/research/workflows/reports/paper or live touched. Do not combine rejected HN/HO components as an unregistered rescue or call either validated. Next work should address a genuinely distinct economic mechanism, not further variants of cross-asset taker share/absorption. No complete V98 passed.

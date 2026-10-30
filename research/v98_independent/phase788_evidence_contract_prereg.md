@@ -1,0 +1,9 @@
+# V98 Independent — Phase788 preregistered 60-cell economic evidence contract
+
+Branch: `research/v98-independent-zero`. Scope: V98-only. H remains frozen at `10b641edd067ec0de3039281d087ad802ee49de09d928d959ab6b1c0300b7889`.
+
+This amendment is a fail-closed **report-integrity gate**, not an alpha modification, new strategy, return threshold, backtest, or post-result rescue. Apply only after the authenticated 30 immediate and 60 capacity-adjusted training ledgers. Before any PASS unlock, demand all 60 exact path/cost/funding-order/AUM cells and independent funded-intrabar parity; each cell must report positive wealth, compounded CAGR/log-wealth identity, 17,544 training hours, 731 training days, drawdown, profit factor, payoff, win rate, positive days, worst day, daily 1% tail, top-five positive-day log-growth concentration, fees, funding, turnover and pending-order duration. Reject incomplete, nonfinite, physically impossible or inconsistent evidence; do not use it to select a candidate. This is a completeness constraint, not a new drawdown-minimization objective.
+
+Local isolated implementation: `phase788_capacity_metric_contract.py`; production fail-closed integration in `phase783_h_official_training_orchestrator.py`; adversarial tests in `test_phase788_capacity_metric_contract.py`. All remain pending synchronization until their byte-exact deployment can be verified. No historical PnL, no validation-2025 access, no external benchmarks, no promotion.
+
+Source-only verification on pinned pre-2025 Clean-4 prefixes: 73,152 asset-hours, zero quote/base-volume physical bound violations, four zero-volume asset-hours; H target digest unchanged. Current blocking dependencies: native funding CSVs absent from local execution package and V98 production modules missing from remote branch.

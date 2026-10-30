@@ -1,0 +1,26 @@
+name: V98 Independent Phase1231 AG Joint LP Properties
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/test_phase1231_ag_joint_lp_properties.py'
+      - '.github/workflows/v98-independent-phase1231-ag-properties.yml'
+  workflow_dispatch:
+jobs:
+  ag-properties:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical solver
+        run: python -m pip install numpy==1.26.4 scipy==1.13.1
+      - name: Audit 250 carried portfolios and fail-closed exit
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1231_ag_joint_lp_properties

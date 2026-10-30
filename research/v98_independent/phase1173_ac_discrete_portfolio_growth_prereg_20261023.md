@@ -1,0 +1,29 @@
+# V98 Independent Phase1173 — AC discrete portfolio-first growth engine (preregistered 2026-10-23)
+
+**New architecture, not an AB repair.** AB failed the preregistered four-runner 15-hash gate (Phase1172). AB, AA, Z, Y and all earlier rejected variants stay rejected and unchanged. The AC seven-slot economic hypothesis is independent and is locked **before AC authenticated source hashes or historical AC system PnL**. Do not import prior rejected engine signals, parameters, code, results or architecture.
+
+## North star and source
+Maximize **net compounded log wealth / CAGR** subject to executable survival constraints; no artificial return ceiling. Authenticated Binance USD-M Clean-4 1h BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT; Dec-2022 warmup, 2023 and 2024 separate chronological training folds; 2025 separate untouched validation **only after full AC training acceptance/freeze**. Native signed funding and mark bounds. No XRP, 2026+, contaminated Phase083 holdout, or external V14/V15/V99 information. Complete-bar t decision, earliest t+1 open execution.
+
+## Seven AC slots — new joint hypothesis
+1. **Growth Core:** rank-based long-horizon **168h and 720h** absolute + cross-sectional persistence: score assets using completed 720h sign, 168h relative ranking, and trailing 168h downside-risk ordering; discrete integer conviction from -2 to +2. Unlike AB, no 24/96/336 sign agreement, downside-normalized regression, or cointegration.
+2. **Opportunity Sleeve:** **quote-volume shock and close-location impulse**: prior 48h median quote-volume ratio plus completed-bar close-location asymmetry, with 12h event inventory and 96h per-asset lockout. No volatility compression breakout.
+3. **Relative-Value Sleeve:** **cross-sectional 72h risk-adjusted reversal** among Clean-4: dollar-neutral long weakest/short strongest if dispersion exceeds its own causal 336h rolling reference. No beta regression, funding carry or cointegration. Zero when ineligible.
+4. **Stress/Recovery Sleeve:** **asymmetric portfolio hedge** on joint 12h downside breadth plus 168h realized downside tail; hedge long-risk assets, and unwind only after a separate 48h positive recovery breadth. No AB 48h tail co-jump rule.
+5. **Regime Router:** finite-state three-regime **BTC 720h volume percentile and market median 168h return**, minimum 72h dwell. No AB 24/168 volatility ratio or dispersion router.
+6. **Dynamic Allocator:** portfolio-first **discrete executable inventory-unit marginal log-growth** selection using actual cash/NAV, prior-hour causal covariance and bounded finite candidate trades. Account for fees, slippage, signed funding and minimum exit liquidity before entry. No continuous 16-step gradient and no fixed-NAV phantom weights. Grow only when expected marginal log wealth after costs improves and all constraints survive; do not optimize drawdown itself.
+7. **Risk Governor:** 81 signed OHLC adverse corners plus opening-gap, adverse native mark funding, 720h funding shock, tail concentration and self-financing order capacity. Hard limits asset <=40%, gross <=120%, |net| <=60%, adverse equity floor >=30%; each order <=0.4% of prior quote volume, each new asset inventory <=0.2% of trailing 336h minimum quote volume. If a gap demands an unexecutable reduction, fail closed; never teleport inventory or assume guaranteed stops.
+
+## Precommitted deterministic representation and audit
+- Each completed-hour **slot intent is an integer score** in [-2,2]; path composition uses exact integer arithmetic for all regime/sleeve score routing, with a signed canonical integer-intent byte stream (fixed ordered asset columns, UTC hour index, path, capital mode, integer scores). No OS-sensitive decimal rounding of continuous float weights to create canonical source hashes.
+- Floating source indicators may be used to form *ordinal* signals, but **any OS disagreement in integer intents or signed source hashes fails closed**. Never fix hashes or precision after observing historical PnL. Inspect any mismatch only as provenance evidence.
+- Frozen five paths: AC_core_only, AC_full, AC_minus_opportunity, AC_minus_relative_value, AC_minus_stress; three capital modes: $10k, $1m, $10m. Funding timing: carried-before-fill and new-after-fill. Fees: base 0.0007, severe 0.0012, supersevere 0.002. Exactly 90 independent cells.
+
+## Gates (no rescue)
+1. Source-only unit and adversarial tests: exact chronology, t-1 causality, seven-slot separation, deterministic integer serialization, no 2025/2026, signed funding, no free exit.
+2. Four independent fresh authenticated source recompositions (Ubuntu 22.04/24.04, a/b) with **15/15 matching source hashes** and native mark/funding checksum equality; no historical AC PnL beforehand.
+3. Full AC economic code and 90-cell synthetic inventory/liquidity/stress gate, 90/90 passing **before historical PnL**.
+4. Freeze code/hashes. Then execute 90 official training economic cells; require 90/90 executable survival and positive **net** compounded growth in **each** 2023/2024 fold under base and severe costs, positive sleeve marginal contribution on complete frozen AC, and consistent regime/tail behavior. Publish all CAGR, MDD, PF, payoff, win rate, positive days, CVaR5, funding, concentration and rejection reasons.
+5. Only after internal chronological acceptance, use untouched 2025 validation and only then compare to external benchmarks. No massive grid, post-result sign/window/threshold/precision/leverage/gross/fee rescue.
+
+**Next implementation order:** deterministic seven-slot integer-intent source -> strict synthetic causal tests -> authenticated four-runner source-only gate -> discrete stateful allocator/executor -> synthetic 90-cell integration -> frozen historical evaluation. If a gate fails, reject AC and design a genuinely distinct architecture.

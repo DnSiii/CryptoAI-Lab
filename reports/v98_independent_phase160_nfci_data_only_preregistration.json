@@ -1,0 +1,32 @@
+{
+  "engine": "V98 Independent",
+  "phase": "160",
+  "kind": "DATA_ONLY_PREREGISTRATION",
+  "series": "NFCI",
+  "family": "Chicago Fed National Financial Conditions Index",
+  "window": ["2023-01-01", "2025-12-31"],
+  "scientific_rationale": "Orthogonal follow-up after Phase159 rejection: inspect a distinct, independently maintained broad financial-conditions series without using Phase159 economics to tune direction, threshold, lag, or exposure.",
+  "economic_firewall": true,
+  "crypto_pnl_access": false,
+  "validation_access": false,
+  "final_holdout_access": false,
+  "v16_access": false,
+  "v99_access": false,
+  "gates": {
+    "double_acquisition_hash_equal": true,
+    "global_weekly_coverage_min": 0.95,
+    "annual_weekly_coverage_min": 0.90,
+    "duplicates": 0,
+    "malformed_dates": 0,
+    "out_of_window_rows": 0,
+    "nonfinite_values": 0
+  },
+  "missing_policy": "no imputation/no carry-forward",
+  "decision_rule": "PASS_DATA_ONLY only if every preregistered integrity gate passes; otherwise REJECT_DATA_QUALITY_NO_RESCUE",
+  "anti_overfit": {
+    "parameter_search": false,
+    "threshold_search": false,
+    "direction_search": false,
+    "economic_rescue": false
+  }
+}

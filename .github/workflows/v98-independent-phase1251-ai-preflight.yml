@@ -1,0 +1,25 @@
+name: V98 Independent Phase1251 AI Static Causal Preflight
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/test_phase1251_ai_static_preflight.py'
+      - '.github/workflows/v98-independent-phase1251-ai-preflight.yml'
+  workflow_dispatch:
+jobs:
+  ai-preflight:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Pre-result seven-slot causal and source activation audit
+        working-directory: research/v98_independent
+        run: python -m unittest -v test_phase1251_ai_static_preflight

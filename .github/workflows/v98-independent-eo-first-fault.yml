@@ -1,0 +1,35 @@
+name: V98 Independent EO Physical Failure First Fault Triage
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-eo-first-fault.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  triage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: eo30-ubuntu-24.04-EO_full
+          run-id: 40242425087
+          github-token: ${{ github.token }}
+          path: receipts
+      - name: Inspect all six first physical failure reasons, no PnL or source replay
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          files=list(Path('receipts').rglob('*.json'))
+          assert len(files)==1,files
+          data=json.loads(files[0].read_text())
+          assert data['path']=='EO_full'
+          for c in data['cells']:
+              print('EO_FIRST_FAULT',c['mode'],c['fee'],c['order'],
+                    'passed',c['passed'],'reason',c.get('reason'))
+          PY

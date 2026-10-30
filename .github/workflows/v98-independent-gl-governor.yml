@@ -1,0 +1,25 @@
+name: V98 Independent GL Conservative Order Invariant Governor
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-gl-governor.yml'
+      - 'research/v98_independent/gl_order_invariant_governor.py'
+      - 'research/v98_independent/gl_order_invariant_governor_prereg.md'
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Verify GL conservative identical authorization and native funding-order settlement
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile gl_order_invariant_governor.py
+          python gl_order_invariant_governor.py

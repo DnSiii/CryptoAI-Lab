@@ -1,0 +1,50 @@
+name: V98 Independent Phase179 Breakeven Inflation DATA_ONLY
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'scripts/v98_independent_phase179_breakeven_inflation_data_only.py'
+      - '.github/workflows/v98-independent-phase179.yml'
+      - 'reports/v98_independent_phase179_preregister_breakeven_inflation_data_only.md'
+jobs:
+  data-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - name: Branch and namespace guards
+        shell: bash
+        run: |
+          test "$(git branch --show-current)" = "research/v98-independent-zero"
+          test -f scripts/v98_independent_phase179_breakeven_inflation_data_only.py
+          python - <<'PY'
+          import ast,pathlib
+          p=pathlib.Path('scripts/v98_independent_phase179_breakeven_inflation_data_only.py'); t=ast.parse(p.read_text()); forbidden=[]
+          for n in ast.walk(t):
+              if isinstance(n,(ast.Call,ast.Import,ast.ImportFrom)):
+                  s=ast.unparse(n).lower()
+                  if any(x in s for x in ('v99','v16','final_holdout','final-holdout')): forbidden.append(s)
+          assert not forbidden,forbidden
+          PY
+      - name: Execute twice independently
+        shell: bash
+        run: |
+          python scripts/v98_independent_phase179_breakeven_inflation_data_only.py > /tmp/phase179_a.json
+          python scripts/v98_independent_phase179_breakeven_inflation_data_only.py > /tmp/phase179_b.json
+          cmp /tmp/phase179_a.json /tmp/phase179_b.json
+          cat /tmp/phase179_a.json
+      - name: Invariant audit
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/phase179_a.json'))
+          assert x['phase']==179 and x['status']=='PASS_DATA_ONLY'
+          assert x['series']=='T10YIE' and x['reacquisition_identical'] is True and x['same_day_use_forbidden'] is True
+          assert x['crypto_pnl_inspected'] is False and x['validation_inspected'] is False and x['final_holdout_inspected'] is False
+          assert x['v16_used'] is False and x['v99_used'] is False
+          assert set(x['annual_valid'])=={'2023','2024','2025'} and min(x['annual_valid'].values())>=240
+          assert x['max_calendar_gap_days']<=7
+          PY
