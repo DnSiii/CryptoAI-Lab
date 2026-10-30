@@ -64,7 +64,7 @@ def verify(d,rows):
                 return (remain>0 and virt_gross<=.90*remain+1e-8
                         and net_gross<=.90*remain+1e-8
                         and virt_gross<=.84*opening+1e-8)
-            if not feasible(0.):raise ValueError('NO_FILL_ORACLE_CANOOT_CLOSE')
+            if not feasible(0.):raise ValueError('NO_FILL_ORACLE_CANNOT_CLOSE')
             if feasible(1.):scale=1.
             else:
                 low,high=0.,1.
@@ -91,7 +91,7 @@ def verify(d,rows):
         'independent_execution_sizing':True,'one_way_netting':True,'quantity_mismatches':0,
         'max_absolute_qty_error':max_qty_error,'rebalance_events':rebalanced,
         'core_refreshes_executed':forced,'core_refreshes_preregistered':53,
-        'source_gate_status':'PASS_SOURCE_ONOY',
+        'source_gate_status':'PASS_SOURCE_ONLY',
         'economic_gate_status':'NOT_DETERMINED_BY_FILL_REPLAY',
         'training_only':True,'2025_validation_accessed':False,
         'future_holdout_accessed':False,'live_authorized':False}
