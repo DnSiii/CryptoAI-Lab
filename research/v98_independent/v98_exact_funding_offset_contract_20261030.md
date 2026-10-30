@@ -1,0 +1,7 @@
+# V98 exact native funding event import — causal timestamp offset contract (2026-10-30, pre-change)
+
+Source-only repair; no candidate signals, PnL, holdout, Frozen or paper modification. Official archived funding records have been independently observed with `calc_time` offsets of 0..29 milliseconds from 8h settlement slots (640 per asset). The existing strict exact-mark importer rejects any nonzero offset via `offset % INTERVAL_MS`, making it unable to ingest otherwise valid provenance-checked records if timestamps retain the native exchange offset.
+
+**Precommitted fix:** Map a row to its 8h settlement slot by floor division from the authenticated 2022-12 start, accepting only an offset in **[0, 60,000] milliseconds** after the boundary, never before, never crossing into 2025, never duplicates. Reject >60s, negative timestamps, non-event hours, wrong native funding rate, mark outside independently pinned official mark-OHLC envelope, missing/extra events or unverified SHA. Preserve raw timestamps and expose offset statistics in receipts. The 60s ceiling is the previously documented official source tolerance; it is not inferred from PnL.
+
+**Independent tests:** retain rate and mark tamper detection; add a synthetic 29ms accepted timestamp fixture and a 60,001ms rejected fixture, with all 9,144 original synthetic rows still reconciled. Synthetic marks are not evidence of exact native markPrice. No exact mark data exists yet; conservative mark envelope remains the only training funding-mark settlement path until provenance arrives.
