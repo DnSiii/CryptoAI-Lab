@@ -1,0 +1,136 @@
+name: V98 NO Frozen Candidate Sealed 2025 30-Cell Independent Validation
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-no-2025-validation.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  no-2025-sealed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Lock frozen NO candidate and shared execution code BEFORE any 2025 source access
+        run: |
+          test "$(git hash-object research/v98_independent/no_sources.py)" = "fa78f3390436b4d76020dc152e89aad45e404777"
+          test "$(git hash-object research/v98_independent/no_independent_source_gate.py)" = "a3cd63c94f0e571100a949fbce520b2a9fee8ec9"
+          test "$(git hash-object research/v98_independent/no_30cell_physical.py)" = "9fb3f832bbe9b3ea0b65c7634b1354c50408cecb"
+          test "$(git hash-object research/v98_independent/no_independent_fill_oracle.py)" = "d92becf96019dbf395a5424df26a9ff6344934f9"
+          test "$(git hash-object research/v98_independent/no_independent_net_settlement_oracle.py)" = "50f21ab5759ff2114dfda4d532cabd4e9992f46f"
+          test "$(git hash-object research/v98_independent/no_hourly_oracle_gate.py)" = "35430d6c06f5e5780785a9c73e41c790037a8f4c"
+          test "$(git hash-object research/v98_independent/no_independent_receipt_arithmetic_audit.py)" = "fcd632ccf26881da386fa9ff77d4c2f8b25da0f6"
+          test "$(git hash-object research/v98_independent/v98_oneway_net_atomic_planner.py)" = "913c3db3bcd408d39385eefea5ac14e1a101507f"
+          test "$(git hash-object research/v98_independent/v98_next_pretrade_projection.py)" = "6fce5b8c7fa16b0cf51d3743cc135e415570b83c"
+          echo NO_2025_FROZEN_CODE_LOCK_PASS
+      - name: Compile prospective 2025 physical and independent oracles (no 2025 data)
+        working-directory: research/v98_independent
+        run: python -m py_compile v98_no_2025_validation_reader.py v98_no_2025_validation.py v98_no_2025_independent_fill_oracle.py v98_no_2025_independent_accounting.py v98_no_2025_independent_arithmetic.py
+      - name: Download original immutable NO training source and causal warmup ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: training-input
+      - name: Download original frozen NO training and independent oracle receipts ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-no-physical-41104108891
+          run-id: 41104108891
+          github-token: ${{ github.token }}
+          path: training-gate
+      - name: Fail closed unless original 30-cell + independent all-hour gates pass
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          p=Path('training-gate')
+          expected={
+            'no_source_receipt.json':'47ba1549ba040965a59bbc64fe6e6f8a17d165343db7ae2b1b3a62b848228432',
+            'no_30cell_receipt.json':'06eea41587d1eb6032ca29f44c7aa5fff261110479732deb0f6300906c614154',
+            'no_independent_hourly_receipt.json':'37a71d491fa3cea671a6fecd063b33c1a9809fd1878ac4a9d6beba376784ba5a',
+            'no_independent_fill_receipt.json':'94b9b088140fb071bb55dafe9d5a84ae02cd68d7337c96565c2760c06e68cac4',
+            'no_independent_arithmetic_receipt.json':'d2721ac9c003d6323e18d8411826b292a553fdec6c65b5b61a20e95184bc1983'}
+          d={}
+          for name,sha in expected.items():
+              raw=(p/name).read_bytes()
+              if hashlib.sha256(raw).hexdigest()!=sha:
+                  raise ValueError('NO_FROZEN_TRAINING_RECEIPT_SHA_'+name)
+              d[name]=json.loads(raw)
+          src=d['no_source_receipt.json']
+          phy=d['no_30cell_receipt.json']
+          hour=d['no_independent_hourly_receipt.json']
+          fill=d['no_independent_fill_receipt.json']
+          ar=d['no_independent_arithmetic_receipt.json']
+          if src['decision']!='PASS_SOURCE_ONLY' or src['failures']:
+              raise ValueError('NO_SOURCE_NOT_PASS')
+          if phy['decision']!='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED' or phy['gate_failures'] or len(phy['cells'])!=30 or not all(x['passed'] for x in phy['cells']):
+              raise ValueError('NO_PHYSICAL_NOT_PASS')
+          if not hour['decision'].startswith('PASS_PROVISIONAL_INDEPENDENT_HOURLY') or hour['hours_replayed']!=17543:
+              raise ValueError('NO_INDEPENDENT_SETTLEMENT_NOT_PASS')
+          if not fill['decision'].startswith('PASS_INDEPENDENT_ALL_HOUR') or fill['hours_replayed']!=17543 or fill['quantity_mismatches']!=0:
+              raise ValueError('NO_INDEPENDENT_FILL_NOT_PASS')
+          if ar['decision']!='PASS_READ_ONLY_ARITHMETIC_NOT_INDEPENDENT_HOURLY_ORACLE' or ar['cells_verified']!=30 or ar['arithmetic_mismatches']!=0 or ar['original_gate_failures']:
+              raise ValueError('NO_INDEPENDENT_ECONOMIC_NOT_PASS')
+          print('NO_FROZEN_TRAINING_AND_INDEPENDENT_17543H_GATE_PASS_BEFORE_2025_ACCESS')
+          PY
+      - name: Download separately authenticated official 2025 source ONLY after all training gates pass
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: validation-input
+      - name: Run frozen NO sealed 2025 30-cell physical validation, fresh USD10000 account
+        working-directory: research/v98_independent
+        run: |
+          python v98_no_2025_validation.py --training-root ../../training-input --validation-root ../../validation-input --output v98_no_2025_30cell_receipt.json --ledger-output v98_no_2025_base_full_hourly_forensic.jsonl
+      - name: Independent 8760-hour signed net settlement and 365 UTC daily audit
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s v98_no_2025_30cell_receipt.json && test -s v98_no_2025_base_full_hourly_forensic.jsonl; then
+            python v98_no_2025_independent_accounting.py --training-root ../../training-input --validation-root ../../validation-input --ledger-jsonl v98_no_2025_base_full_hourly_forensic.jsonl --receipt v98_no_2025_30cell_receipt.json --output v98_no_2025_independent_accounting_receipt.json
+          else
+            echo "No complete original 2025 ledger; independent settlement not attested."
+          fi
+      - name: Independent 8760-hour frozen strategy-to-net-fill oracle and tamper detection
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s v98_no_2025_base_full_hourly_forensic.jsonl; then
+            python v98_no_2025_independent_fill_oracle.py --training-root ../../training-input --validation-root ../../validation-input --ledger-jsonl v98_no_2025_base_full_hourly_forensic.jsonl --output v98_no_2025_independent_fill_receipt.json
+          else
+            echo "No complete original 2025 ledger; source-to-fill not attested."
+          fi
+      - name: Independent 30-cell 2025 arithmetic and economic gate
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s v98_no_2025_30cell_receipt.json; then
+            python v98_no_2025_independent_arithmetic.py --receipt v98_no_2025_30cell_receipt.json --output v98_no_2025_independent_arithmetic_receipt.json
+          else
+            echo "No original 2025 receipt; independent economic gate not attested."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-no-2025-sealed-validation-${{ github.run_id }}
+          path: |
+            research/v98_independent/v98_no_2025_30cell_receipt.json
+            research/v98_independent/v98_no_2025_base_full_hourly_forensic.jsonl
+            research/v98_independent/v98_no_2025_independent_accounting_receipt.json
+            research/v98_independent/v98_no_2025_independent_fill_receipt.json
+            research/v98_independent/v98_no_2025_independent_arithmetic_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
