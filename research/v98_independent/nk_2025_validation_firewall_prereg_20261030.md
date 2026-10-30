@@ -1,0 +1,11 @@
+# V98 NK — sealed independent 2025 validation firewall (preregistered before NK training result, 2026-10-30)
+
+**PROSPECTIVE, CONDITIONAL; NO 2025 DATA ACCESSED.** NK strategy and economic gates are frozen by original source prereg `36a9abe1be1483b479037e13bb257509d6af1171`. No NK 2025 source, signal, return, PnL, or rejected NH validation result may be used to tune NK.
+
+**Unseal prerequisite:** original 2023–24 NK 30-cell physical history passes all immutable source, execution and economic gates; independently reconstructed source weights, signed all-hour settlement, net fills and 30-cell arithmetic pass; SHA pin exact original NK strategy/executor/oracle and 30-cell receipt. Otherwise NK rejected and **2025 remains sealed**.
+
+**Prospective validation data:** checksum-authenticated official Binance USD-M 2025 Clean-4 BTC/ETH/BNB/SOL hourly OHLC, quote volume, signed 8h funding and worst-side mark envelope, with 2024 solely as causal feature warmup. Fresh USD10k account on first 2025 open, deterministic prior-close signal and t+1 open execution, all 30 cells 3 tiers x 2 funding orders x 5 books, independent all-hour oracle. No 2026+, XRP, Phase083, external benchmarks, paper or live.
+
+**2025 pass gates:** 30/30 physical cells survive; full net log growth **positive in BOTH base and severe and BOTH funding orders**; severe max DD <45%; base/severe one-way turnover <=USD350k; each Opportunity/RV/Stress marginal net log growth **positive** in base and severe under both funding orders; no hidden leverage, missing source, invalid fill, sign/cost/funding mismatch, future leakage, or failed independent oracle. Report supersevere, 1% UTC daily CVaR, positive days, PF/payoff/win rate, concentration, native signed funding and both mark-bound orders. Any failure permanently rejects NK, without adjustment.
+
+**After pass:** freeze internally, then independent future holdout subject to its own eligibility/firewall, and only then compare frozen V98 to V14/V15/V99 as read-only external benchmarks. No claim of exact tick-level funding mark until authoritative event-level `fundingTime,fundingRate,markPrice` provenance is obtained. Conservative mark envelope is an explicitly disclosed alternative, not exact tick.
