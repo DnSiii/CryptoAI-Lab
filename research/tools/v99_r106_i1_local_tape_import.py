@@ -201,9 +201,13 @@ def run(root: Path, *, fixture: bool, license_evidence: Path | None = None) -> d
             stream.write("\n")
             stream.flush()
             os.fsync(stream.fileno())
-        if target.exists() or target.is_symlink():
-            raise ValueError("REFUSE_OVERWRITE_EXISTING_MANIFEST")
-        os.replace(temporary, target)
+        # Atomic publish: os.replace() could overwrite a concurrent writer
+        # after the earlier existence check. Same-directory hard-linking fails
+        # with EEXIST instead, preserving the competing manifest byte-for-byte.
+        try:
+            os.link(temporary, target)
+        except FileExistsError as exc:
+            raise ValueError("REFUSE_OVERWRITE_EXISTING_MANIFEST") from exc
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
