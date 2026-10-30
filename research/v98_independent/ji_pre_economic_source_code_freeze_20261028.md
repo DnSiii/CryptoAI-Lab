@@ -1,7 +1,0 @@
-# V98 Independent JI — pre-economic source and code freeze (2026-10-28)
-
-**Freeze point:** JI preregistration commit `a28157ac861094232477f358d58ab67747d06c81`, source implementation commit `0a1b06b9cfa551523b2bbb8aa97662f98b2ebb8f`, final 30-cell workflow commit `55568143a81505f4b08817029dcafbd3d419c456`. No JI sign, window, budget, gross, risk, confidence, inertia, cost or gate may be changed after source and before economic evidence. JH/JG/JF rejected sources are not imported; V98 generic ledger/governor infrastructure is reused only for execution.
-
-**Official source-only gate:** run `40640553144` source job `122657435100` passed. Causal future-mutation, zero-quote quarantine, L1 conservation, pinned Clean-4 source load and 2023/2024 physical target-perturbation viability passed. Counts (2023/2024): Opportunity 18/9, Relative Value 25/17, Stress/Recovery 52/45. Threshold is >=8 each year, so Opportunity 2024 is **barely above gate**; do not reinterpret or lower it. The source-only result is NOT economic evidence.
-
-**Immutable decision rule:** proceed with original 30 independently financed USD10k physical cases, two Ubuntu systems, five separate native settlement oracles, independent original-receipt economic recomputation. Reject JI if any preregistered growth, turnover, drawdown, annual-positive, marginal-contribution, reproducibility or source gate fails. No 2025 data, external benchmark details, Frozen, paper or real orders before training freeze and independent validation. This record does not authorize operation or imply a positive PnL.

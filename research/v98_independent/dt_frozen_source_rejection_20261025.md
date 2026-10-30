@@ -1,7 +1,0 @@
-# V98 Independent DT — frozen source-only rejection (2026-10-25)
-
-**Decision: REJECT_DT_SOURCE_INACTIVE. No economic PnL run or claimed.** Preregistered commit `765d9138980619d070e280432708abe10c0f4237`, corrected data staging typo (not strategy) commit `283ef5874821f90f5e7492515b9cf436ecc1d994`; official authenticated [source-only run 40195173596](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40195173596). Initial run 40195127676 failed due mistaken `boundt_source_only.csv` staging filename; corrected before authenticated source evaluation.
-
-Source static causality passed and native pinned Clean-4 loaded. Active source epochs (2023/2024): Growth Core 35/43 (minimum 4), Opportunity **0/0** (minimum 4), Relative Value 45/47 (minimum 8), Stress/Recovery **2/6** (minimum 4). Opportunity failed both years and Stress failed 2023. Therefore DT economic jobs were correctly skipped and no historical return, CAGR, drawdown, or module marginal contribution may be attributed to DT. Its source-only JSON has a **metadata labeling defect** (`architecture:"DS"` copied from template), but the DT file paths, source rules, decision `REJECT_DT_SOURCE_INACTIVE` and run SHA unambiguously identify DT. Do not cosmetically repair or reuse rejected DT to seek approval.
-
-The causal online shadow-contribution thesis remains unvalidated economically. Do not lower activity thresholds, adjust post-result breakouts, or rescue DT. Holdout 2025, XRP quarantine, Frozen V16/V99 and paper untouched; no real orders.

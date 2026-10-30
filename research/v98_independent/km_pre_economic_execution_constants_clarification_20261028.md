@@ -1,7 +1,0 @@
-# KM pre-economic execution constant clarification — 2026-10-28
-
-This note corrects **documentation only**, before any KM physical PnL receipts or economic results were read. It does not change the frozen KM signals, source gate, allocation, costs, risk governor, code, or acceptance thresholds.
-
-The KM preregistration says "25% participation" and "60% stressed NAV constraint" in shorthand. The **actual unchanged V98 execution code**, `v98_staged_exit_viability_governor_v2.py` and `v98_persistent_inventory_governor.py`, has `PARTICIPATION=0.0025` (**0.25% of prior-hour quote volume**, NOT 25%), `STRESSED_QUOTE_FRACTION=0.50`, `EXIT_FRICTION_MULTIPLIER=2.2`, `FUNDING_RESERVE_HOURS=24`, `FLOOR=0.40` (minimum 40% of stressed cash-open), `MAINTENANCE=0.18` of stressed gross, and 24h adverse continuation of 1%/h. Fee+slippage tiers remain base (0.0005,0.0005), severe (0.002,0.003), supersevere (0.005,0.010). The actual physical constraints, not the erroneous prose percentages, govern all KM executions. No assumptions were loosened.
-
-Source-only KM gate passed at GitHub Actions run 40790410430 with 2023/2024 event-intent counts Opp 46/44, RV 51/46, Stress 49/65; this is **not** PnL or proof of physical financing. The complete physical 30-cell workflow was launched separately at run 40790579426, with no economic results read when this clarification was authored. No 2025/holdout/benchmark/Frozen/paper accessed.

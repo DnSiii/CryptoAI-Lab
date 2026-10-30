@@ -1,7 +1,0 @@
-# V98 Independent JK — pre-economic code/source freeze (2026-10-28)
-
-**Immutable architecture:** preregistration commit `2e7090d92cf6a995ccab56fae904a7b7b26be03f` before source/PnL; source commit `d49fa507c3b5f1daf0aface7296db2c34ae60756`; complete physical workflow commit `ec7d0b621435f348e6b442a8dad64364372cd251`. Fixed source, sign, lookback, 168h clock, online shadow friction .0015, 4-epoch gate, weights, inertia .50, governor, costs and all economic gates. No post-result rescue.
-
-**Source-only evidence:** [JK official run 40640886058](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40640886058) source job `122658489597` PASS: future mutation causality, native Clean-4 provenance, quote quarantine, L1 conservation and Full-vs-physical-ablation target perturbation counts 2023 Opportunity 15 / RV 28 / Stress 31; 2024 Opportunity 33 / RV 26 / Stress 21 (>=8 required). No 2025 read. Source pass is NOT economic proof.
-
-**Next gate:** complete 30 independently funded native physical cases across two Ubuntu versions, two funding orders and three cost tiers, five every-hour independent settlement oracles and original-receipt independent economic audit. Freeze or permanently reject by the preregistered economic gates, without parameter adjustments. If and only if training passes, seal 2023-24 and conduct separately preregistered untouched 2025 validation. Holdout, V16/V99 Frozen, V99 paper and external benchmarks remain inaccessible for selection.

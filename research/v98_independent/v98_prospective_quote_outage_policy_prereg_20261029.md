@@ -1,9 +1,0 @@
-# V98 Independent — prospective causal quote-outage source policy (2026-10-29)
-
-**PRE-REGISTERED FOR FUTURE, NOT FOR REJECTED LC OR ANY EARLIER ENGINE.** The authenticated pinned Clean-4 training artifact contains one simultaneous zero-quote-volume, flat-OHLC hour for BTC/ETH/BNB/SOL at 2024-10-28 20:00 UTC. Existing 672-hour all-asset strictly-positive quote lookback imposes 672 hours of suppressed source decisions. This is a *source validity* issue, not evidence for changing any rejected architecture or improving its PnL.
-
-**New general-purpose safety policy for new candidates only:** no new entry if any asset has nonpositive quote in the most recent 24 completed hours; no entry if the current quote or any *feature endpoint* quote (lags fixed by the candidate's preregistered signals) is nonpositive; no entry if any quote in any *continuous feature window* used by the candidate (e.g. 168-hour downside semivol) is nonpositive. A source may use a longer cooling period, but never a shorter one without a new independent preregistration. This policy never licenses an entry on a zero-quote bar or a stale feature endpoint. Existing held inventory and risk-driven exits must remain physically governed; the source gate cannot cancel exits.
-
-**Precommitted tests before adoption:** synthetic isolated zero-quote shock (all four assets and one-asset cases), zero/negative/nonfinite quote rejection, strict past/current-only causality under mutation after decision t, lag endpoint rejection, continuous-window rejection, and exact UTC outage location on pinned Clean-4. No system PnL or threshold selection to set the 24-hour operational cooldown. All 2025/2026+ and external benchmark internals remain untouched.
-
-**Scope:** reusable infrastructure under `research/v98_independent/` only. Do not modify old source, Frozen, holdout or paper. This prospective policy is not a validation result, candidate promotion, or permission to trade.

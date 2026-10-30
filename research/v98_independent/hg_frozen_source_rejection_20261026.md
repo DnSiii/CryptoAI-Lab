@@ -1,9 +1,0 @@
-# V98 Independent HG — FROZEN SOURCE-ONLY REJECTION (2026-10-26)
-
-**FINAL: REJECT_HG_SOURCE_INACTIVE. NO SYSTEM PNL OR CAGR CLAIM.** [HG preregistration](hg_preregistration.md) commit `30405f7e06ab79ea32f9aced6ffdd80b3683bd31` preceded implementation `bb69d708ce10df19d6320fa7b8b94f8d862d5172`, authenticated source-only viability and any PnL. [Official HG source gate](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40390539920) on SHA `dce68774e82872032e4c07ab041cac8ec7907a85` verified syntax, source geometry and t-1 future-mutation invariance, then **rejected** on preregistered annual Stress/Recovery activity.
-
-2023 active 96h epochs: Growth Core 92, Opportunity 27, Relative Value 92, **Stress/Recovery 5**. 2024: Growth Core 91, Opportunity 30, Relative Value 91, **Stress/Recovery 10**. Immutable minimum 8 per year; 2023 fails. The economic 30-cell matrix and independent oracle were correctly skipped; zero HG historical PnL has been measured. A copied static test's success *print label* mentions beta residual but the committed HG source implements orthogonal opportunity and volatility-expansion crisis dispersion; do not interpret the label as a beta signal.
-
-HG remains frozen rejected: no post-result volatility threshold, sign, period, funding, gross, or weight rescue. HF remains frozen economic rejected, HE source-only rejected, HD/HC and all earlier rejections untouched. Clean-4 Dec-2022 warmup and 2023–2024 source only, native funding. Holdout 2025 unopened, 2026+, XRP, Phase083, external benchmarks V14/V15/V99 excluded; V16/V99 Frozen, V99 research and paper untouched. No real trading.
-
-Next critical-path direction: a new, genuinely distinct complete-engine hypothesis with enough precommitted source activity and positive net marginal contribution at the physical ~0.7567x all-long stressed collateral ceiling; no false 'validated champion' claim.

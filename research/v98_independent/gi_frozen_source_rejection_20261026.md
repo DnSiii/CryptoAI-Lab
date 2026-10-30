@@ -1,5 +1,0 @@
-# V98 Independent GI — frozen pre-PnL rejection (2026-10-26)
-
-Preregistered at `045149b1f9fc36ed1c73ed075cc6935c785e3bb3`, implemented at `bc65bd93627a7885569a2d313c07594e22692548`. [Official GI source-only workflow](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40292636283) completed with **REJECT_GI_SOURCE_INACTIVE**, so **no economic PnL was run or inspected**. Synthetic causal future-mutation/weight conservation static checks passed; pinned Clean-4 source was successfully staged.
-
-Locked pre-PnL activity gate requires >=4 active epochs for each sleeve in 2023 and 2024. Opportunity: 23/23; native funding RV: 52/51; Stress/Recovery: **2/1**, FAIL. Growth Core: 53/52. The preregistered median 24h/168h range expansion condition was not active enough. **FINAL: REJECT_GI_SOURCE_INACTIVE**. Do not lower threshold, change lookback, rescue this candidate, unlock 2025, compare benchmarks or claim any GI returns. GH remains rejected. Frozen and paper untouched. Next candidate, if any, must be independently preregistered and architecturally distinct.
