@@ -1,0 +1,17 @@
+# V99 R106 — 2026-10-30 16:xx BRT — original archive manifest atomicity preregistration; vendor coverage correction
+
+**SOURCE INTEGRITY ONLY / NO ECONOMIC TRIAL / NO PROMOTION.** This fixes a real data-intake race while the licensed original option tapes remain unavailable; it does not create a strategy, claim native fills, open sealed validation or alter rejected models.
+
+## Identified bug and fixed acceptance criteria before implementation
+
+`research.tools.v99_r106_i1_local_tape_import.run` currently checks whether `manifest.json` exists and then uses `os.replace(temp, manifest)`. Another process can create `manifest.json` between the check and replace; `os.replace` silently overwrites that file, contradicting the promised never-overwrite invariant. Replace the publication step with an atomic same-directory hard-link of the fully flushed temporary manifest to the previously nonexistent destination. POSIX `link` fails with EEXIST even under a race. On EEXIST, fail closed with the existing `REFUSE_OVERWRITE_EXISTING_MANIFEST` error, leave the competing file untouched, and remove the temporary file. Keep the existing complete 661-day scan, SHA256, license, fixture separation, no-order and no-promotion logic unchanged. Add a synthetic race-injection regression that simulates another writer creating a manifest immediately before publication and asserts that original bytes are preserved and no temporary file remains. Run the existing fixture CI, not a fictional historical economic test.
+
+## Important official Amberdata source correction
+
+Amberdata's currently published Deribit market-data page explicitly advertises **options data from 2018-08-13** and lists historical options order-book events, order-book snapshots, and bid/ask datasets. In a separate section it also describes historical **trade** data from **2021-05-21**. Their 2022-01-25 product announcement is a public launch date, **not evidence that 2022-01-23 Deribit options quotes are unavailable**. These marketing-level dates are inconsistent in scope/granularity; none proves that **BTC and ETH option BBO, sizes, source/arrival timestamps and full daily lifecycle for every TRAIN day** are actually licensed and available. Primary sources: https://www.amberdata.io/deribit-market-data and https://blog.amberdata.io/amberdata-announces-crypto-options-market-support .
+
+## External evidence needed to unblock economic I1
+
+Before any vendor payment or historical I1 promotion, require a written, dated, licensed entitlement and **one authorized non-sample 2022-01-23 UTC full-day BTC+ETH options quote/order-book export** with exact contract symbols, bid/ask prices and quantities, venue event and capture/arrival timestamps, raw-byte SHA256, a vendor gap/completeness statement, and dated instrument lot/contract multiplier, historical fee-tier, coin collateral, margin, settlement/delivery terms. Check the specific order-book dataset's earliest date separately from trades, and then the entire [2021-12-09, 2023-10-01) TRAIN coverage. A source's marketing date alone is not an execution certificate.
+
+**Frozen V16/V99, paper, champion, dashboard, sealed validation and final holdout untouched; no orders, no new ROI, no promotion.**
