@@ -1,0 +1,27 @@
+name: V98 Future Net-Growth Capital Competition Synthetic Gate (NO PnL)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-future-net-growth-preflight.yml'
+      - 'research/v98_independent/v98_future_net_growth_capital_competition.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  future-growth-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Run deterministic causal capital-competition synthetic invariants
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_future_net_growth_capital_competition.py
+          python v98_future_net_growth_capital_competition.py
