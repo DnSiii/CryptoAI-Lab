@@ -105,6 +105,11 @@ def simulate(prices, scenario, emit_trace=False):
             turnover+=volume; fees+=paid
             if volume>1e-10: trades+=1
             decisions.append((t,f["target"]))
+        # Preregistered terminal liquidation: same modeled fee as every rebalance.
+        if t == HOURS-1 and any(units.values()):
+            cash,units,volume,paid=rebalance(cash,units,px,None,fee)
+            turnover+=volume; fees+=paid
+            if volume>1e-10: trades+=1
         nav=cash+sum(units[a]*px[a] for a in ASSETS)
         if not math.isfinite(nav) or nav<=0:
             raise ValueError("S1_NONPOSITIVE_NAV")
