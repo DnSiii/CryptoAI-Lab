@@ -3,7 +3,7 @@
 import argparse,json
 import numpy as np
 from v98_clean4_training_reader import load
-from nk_sources import bundle,synthetic_causality,HOURS,WARMUP,NAMES,MINKMUM
+from nk_sources import bundle,synthetic_causality,HOURS,WARMUP,NAMES,MINIMUM
 
 def replay(d):
     close=d['c'];q=d['q'];weights=np.zeros((HOURS,4,4))
@@ -72,13 +72,13 @@ def check(d):
     if np.max(np.abs(original[0]).sum(axis=(1,2)))>.84+1e-10:failures.append('NK_VIRTUAL_GROSS')
     for year in ('2023','2024'):
         for i,name in enumerate(NAMES):
-            if counts[year][name]<MINKMUM[i]:failures.append('NK_MINKMUM_'+year+'_'+name)
+            if counts[year][name]<MINIMUM[i]:failures.append('NK_MINIMUM_'+year+'_'+name)
     return {'decision':'REJECT_SOURCE_ONLY' if failures else 'PASS_SOURCE_ONLY',
         'failures':failures,'independent_hourly_weight_mismatches':mismatch,
         'independent_active_week_mismatches':activity_mismatch,'silent_weight_updates':silent,
         'forced_core_refreshes':int(forced.sum()),'preregistered_core_refreshes':len(schedule),
         'missed_core_refresh_hours':missing,'native_funding_events':int(d['event'].sum()),
-        'active_distinct_week_counts':counts,'minimums':dict(zip(NAMES,MINKMUM)),
+        'active_distinct_week_counts':counts,'minimums':dict(zip(NAMES,MINIMUM)),
         'synthetic_future_mutation_pass':True,'training_only':True,'pnl_computed':False,
         'holdout_accessed':False}
 def run(root):return check(load(root))
