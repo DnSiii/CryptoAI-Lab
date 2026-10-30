@@ -1,0 +1,39 @@
+name: V98 Independent Read-Only NW NX Allocator Oracle 53 Decisions No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nw-nx-allocator-oracle.yml'
+      - 'research/v98_independent/v98_nw_nx_allocator_independent_oracle.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  allocator-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Recompute all NW and NX allocator decisions without importing allocation algorithm
+        run: |
+          python -m py_compile research/v98_independent/v98_nw_nx_allocator_independent_oracle.py
+          python research/v98_independent/v98_nw_nx_allocator_independent_oracle.py --root official-input --output v98_nw_nx_allocator_independent_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-nw-nx-independent-allocator-${{ github.run_id }}
+          path: v98_nw_nx_allocator_independent_receipt.json
+          retention-days: 30
