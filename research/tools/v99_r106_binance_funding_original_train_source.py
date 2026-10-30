@@ -1,6 +1,7 @@
 """One-shot Binance original publisher-checksummed funding TRAIN source; NEVER economics."""
 from __future__ import annotations
 import csv
+from collections import Counter
 import hashlib
 import io
 import json
@@ -121,6 +122,10 @@ def run(root):
         counts = {ts: stamps.count(ts) for ts in set(stamps)}
         exact = {ts for ts in stamps if ts in SLOTS and counts[ts] == 1}
         non8 = sum(interval != 8 for ts, interval, _ in events[symbol] if START <= ts < END)
+        offsets = Counter((lambda r: r if r <= STEP // 2 else r - STEP)((ts - START) % STEP)
+                          for ts in stamps)
+        by_month = Counter(datetime.fromtimestamp(ts/1000, timezone.utc).strftime("%Y-%m")
+                           for ts in stamps if ts not in SLOTS)
         fold_counts = []
         for a, b in zip(fold_edges, fold_edges[1:]):
             expected = sum(a <= t < b for t in SLOTS)
@@ -132,6 +137,9 @@ def run(root):
                              offgrid_train_rows=sum(ts not in SLOTS for ts in stamps),
                              non8h_interval_train_rows=non8,
                              duplicate_train_timestamps=sum(c-1 for c in counts.values() if c>1),
+                             signed_nearest_8h_offset_ms_counts={str(k): v for k,v in sorted(offsets.items())},
+                             max_abs_8h_offset_ms=max(map(abs,offsets), default=0),
+                             offgrid_rows_by_month=dict(sorted(by_month.items())),
                              five_folds=fold_counts)
     complete = (len(files) == 44 and all(f["publisher_checksum_verified"] for f in files)
                 and all(folds[s]["exact_train_slots"] == 1983
