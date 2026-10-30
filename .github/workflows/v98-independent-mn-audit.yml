@@ -25,8 +25,8 @@ jobs:
       - name: Download original imnutable rejected MN 30-cell physical ledger
         uses: actions/download-artifact@v4
         with:
-          name: v98-mn-physical-40988615384
-          run-id: 40988615384
+          name: v98-mn-physical-40994872137
+          run-id: 40994872137
           github-token: ${{ github.token }}
           path: original-mn
       - name: Download authenticated 2022-24 Clean4 training only
@@ -56,6 +56,9 @@ jobs:
         working-directory: research/v98_independent
         run: |
           python mn_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl ../../original-mn/mn_base_full_hourly_forensic.jsonl --receipt ../../original-mn/mn_30cell_receipt.json --output mn_independent_settlement_receipt.json
+      - name: Independently reconstruct all 17543 original strategy-to-fill quantities
+        run: |
+          python research/v98_independent/mn_independent_fill_oracle.py --root /tmp/mn_native --ledger-jsonl mn_receipts/mn_base_full_hourly_forensic.jsonl --output mn_receipts/mn_fill_oracle.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
