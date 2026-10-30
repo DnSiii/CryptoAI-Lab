@@ -90,9 +90,9 @@ def synthetic_causality():
     event=np.zeros_like(c,dtype=bool);event[::8]=True
     a=bundle(o,h,l,c,q,rate,event)
     changed=[z.copy() for z in (o,h,l,c,q,rate)]
-    for z in changed[:4]:z[14000:]*1.7
-    changed[4][14000:]*3
-    changed[5][14000:]*-1
+    for z in changed[:4]:z[14000:]*=1.7
+    changed[4][14000:]*=3
+    changed[5][14000:]*=-1
     b=bundle(*changed,event)
     if any(not np.array_equal(x[:14000],y[:14000]) for x,y in zip(a,b)):
         raise ValueError('MK_FUTURE_LEAK')
