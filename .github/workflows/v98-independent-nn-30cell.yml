@@ -1,0 +1,90 @@
+name: V98 Independent NN Seven-Slot 30-Cell Physical + Independent Oracles
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nn-30cell.yml'
+      - 'research/v98_independent/nn_*.py'
+      - 'research/v98_independent/v98_next_pretrade_projection.py'
+      - 'research/v98_independent/v98_oneway_net_atomic_planner.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  nn-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download SHA-authenticated Clean4 2022-24 training only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download SHA-pinned native worst-side mark envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Independent source preflight before PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile nn_sources.py nn_independent_source_gate.py nn_30cell_physical.py nn_independent_fill_oracle.py nn_independent_net_settlement_oracle.py nn_hourly_oracle_gate.py nn_independent_receipt_arithmetic_audit.py v98_next_pretrade_projection.py
+          python nn_sources.py
+          python v98_next_pretrade_projection.py
+          python nn_independent_source_gate.py --root ../../official-input --output nn_source_receipt.json
+      - name: Run preregistered 30 physical cells and signed event settlement
+        working-directory: research/v98_independent
+        run: |
+          python nn_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output nn_30cell_receipt.json --ledger-output nn_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed net settlement reconciliation
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nn_30cell_receipt.json && test -s nn_base_full_hourly_forensic.jsonl; then
+            python nn_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl nn_base_full_hourly_forensic.jsonl --receipt nn_30cell_receipt.json --output nn_independent_hourly_receipt.json
+          else
+            echo "No complete full-book ledger: no independent all-hour PnL attestation."
+          fi
+      - name: Independent strategy-to-net-fill causal oracle
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nn_30cell_receipt.json && test -s nn_base_full_hourly_forensic.jsonl; then
+            python nn_independent_fill_oracle.py --root ../../official-input --ledger-jsonl nn_base_full_hourly_forensic.jsonl --output nn_independent_fill_receipt.json
+          else
+            echo "No complete full-book ledger: no independent strategy-to-fill attestation."
+          fi
+      - name: Independent economic and 30-cell arithmetic replay
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s nn_30cell_receipt.json; then
+            python nn_independent_receipt_arithmetic_audit.py --receipt nn_30cell_receipt.json > nn_independent_arithmetic_receipt.json
+          else
+            echo "No 30-cell receipt: no economic attestation."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-nn-physical-${{ github.run_id }}
+          path: |
+            research/v98_independent/nn_source_receipt.json
+            research/v98_independent/nn_30cell_receipt.json
+            research/v98_independent/nn_independent_hourly_receipt.json
+            research/v98_independent/nn_independent_fill_receipt.json
+            research/v98_independent/nn_independent_arithmetic_receipt.json
+            research/v98_independent/nn_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
