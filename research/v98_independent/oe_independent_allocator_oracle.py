@@ -22,7 +22,7 @@ def audit(d,oi):
         if total>0:
             inverse=[]
             for k in (1,2,3):
-                vol=max(.01,float(np.dot(np.abs(raw[t,k]),sigma)/desired[k])) if desired[k]>0 else 1.
+                vol=max(.01,float(np.dot(np.abs(raw[t,k]),sigma)/desired[k-1])) if desired[k-1]>0 else 1.
                 inverse.append(desired[k-1]/vol)
             inverse=np.asarray(inverse)
             for k in (1,2,3):
