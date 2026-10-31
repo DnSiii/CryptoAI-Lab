@@ -21,7 +21,7 @@ def check(d,oi,oi_receipt):
     if np.any((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~np.any(updates[1:],axis=1)):
         failures.append("OK_SILENT_CHANGE")
     if not np.isfinite(raw).all():failures.append("OK_NONFINITE")
-    if np.any(np.abs(raw[times[~eligible[times]],1]).sum(axis=(1,2))>1e-12):
+    if np.any(np.abs(raw[times[~eligible[times]],1]).sum(axis=1)>1e-12):
         failures.append("OK_OI_QUARANTINE_LEAK")
     if int(eligible[times].sum())!=95:failures.append("OK_OI_MASK_NOT_FROZEN_95")
     counts={str(year):{name:int(active[times[(times>=lo)&(times<hi)],i].sum()) for i,name in enumerate(NAMES)}
