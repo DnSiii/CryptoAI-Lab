@@ -1,0 +1,113 @@
+name: V98 OC Cross-Sectional Efficiency and Beta-Hedged Convexity Complete Seven-Slot 30-Cell Physical + Independent Gates
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-oc-30cell.yml'
+      - 'research/v98_independent/oc_*.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  oc-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned authenticated Clean-4 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Source-only and causal synthetic gates before PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile oc_sources.py oc_intents.py oc_source_gate.py oc_30cell_physical.py oc_hourly_oracle_gate.py oc_independent_fill_oracle.py oc_independent_receipt_arithmetic_audit.py oc_independent_source_oracle.py oc_independent_allocator_oracle.py
+          python oc_sources.py
+          python oc_intents.py
+          python oc_source_gate.py --root ../../official-input --output oc_source_receipt.json
+          python oc_independent_source_oracle.py --root ../../official-input --output oc_independent_source_receipt.json
+          python oc_independent_allocator_oracle.py --root ../../official-input --output oc_independent_allocator_receipt.json
+      - name: Run preregistered OC two-clock 30-cell signed physical training
+        id: physical
+        continue-on-error: true
+        working-directory: research/v98_independent
+        run: |
+          python oc_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output oc_30cell_receipt.json --ledger-output oc_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed settlement
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s oc_30cell_receipt.json && test -s oc_base_full_hourly_forensic.jsonl; then
+            python oc_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl oc_base_full_hourly_forensic.jsonl --receipt oc_30cell_receipt.json --output oc_independent_hourly_receipt.json
+          else
+            echo "NO_COMPLETE_OC_LEDGER_FOR_INDEPENDENT_SETTLEMENT"
+          fi
+      - name: Independently reconstruct net physical fills and tamper detection
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s oc_base_full_hourly_forensic.jsonl; then
+            python oc_independent_fill_oracle.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl oc_base_full_hourly_forensic.jsonl --output oc_independent_fill_receipt.json
+          else
+            echo "NO_COMPLETE_OC_LEDGER_FOR_INDEPENDENT_FILLS"
+          fi
+      - name: Independent 30-cell arithmetic and economic gate
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s oc_30cell_receipt.json; then
+            python oc_independent_receipt_arithmetic_audit.py --receipt oc_30cell_receipt.json > oc_independent_arithmetic_receipt.json
+            cat oc_independent_arithmetic_receipt.json
+          else
+            echo "NO_OC_RECEIPT_FOR_ARITHMETIC_AUDIT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-oc-original-${{ github.run_id }}
+          path: |
+            research/v98_independent/oc_source_receipt.json
+            research/v98_independent/oc_independent_source_receipt.json
+            research/v98_independent/oc_independent_allocator_receipt.json
+            research/v98_independent/oc_30cell_receipt.json
+            research/v98_independent/oc_independent_hourly_receipt.json
+            research/v98_independent/oc_independent_fill_receipt.json
+            research/v98_independent/oc_independent_arithmetic_receipt.json
+            research/v98_independent/oc_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Economic gate is binding; no false completion
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('oc_30cell_receipt.json')
+          if not p.exists():raise SystemExit('OC_MISSING_PHYSICAL_RECEIPT')
+          r=json.loads(p.read_text())
+          print('OC_ORIGINAL_DECISION',r['decision'])
+          print('OC_GATE_FAILURES',r['gate_failures'])
+          if r['decision']!='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED':
+              raise SystemExit('OC_REJECTED_NO_PROMOTION')
+          if not Path('oc_independent_source_receipt.json').exists() or not Path('oc_independent_allocator_receipt.json').exists() or not Path('oc_independent_hourly_receipt.json').exists() or not Path('oc_independent_fill_receipt.json').exists() or not Path('oc_independent_arithmetic_receipt.json').exists():
+              raise SystemExit('OC_MISSING_INDEPENDENT_EVIDENCE')
+          print('OC_PROVISIONAL_TRAINING_ONLY_NOT_INDEPENDENT_VALIDATION')
+          PY
