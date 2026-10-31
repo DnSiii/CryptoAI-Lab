@@ -12,6 +12,14 @@ from pathlib import Path
 UTC = timezone.utc
 STOP = datetime(2023, 10, 1, tzinfo=UTC)
 
+def independent_stream_digest(path):
+    """Hash original compressed bytes without loading a multi-GiB source."""
+    h = hashlib.sha256()
+    with Path(path).open("rb") as fp:
+        for chunk in iter(lambda: fp.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
 def audit(root, export_path):
     root = Path(root)
     export = json.loads(Path(export_path).read_text(encoding="utf-8"))
@@ -24,7 +32,7 @@ def audit(root, export_path):
     assert len(manifest["days"]) == (90 if fixed else 91)
     assert export["fixture"] == manifest["fixture"]
     from research.verification.independent_v99_r106_i1_full_archive_intake import (
-        original_native_lookup, independently_check_historical_ticks)
+        original_native_lookup, independently_check_historical_ticks, independent_atomic)
     native = None if manifest["fixture"] else original_native_lookup(root)
     native_sources = (None if native is None else json.loads(
         (root / "native_instrument_registry.json").read_text())["sources"])
@@ -43,7 +51,7 @@ def audit(root, export_path):
         assert decision + timedelta(days=(28 if fixed else 21)) < STOP
         path = root / item["file"]
         assert path.name == item["file"] and path.is_file() and not path.is_symlink()
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
+        assert independent_stream_digest(path) == item["sha256"]
         cutoff = int(decision.timestamp()*1_000_000)-300_000_000
         upper = int(decision.timestamp()*1_000_000)
         lower = upper - 86_400_000_000
@@ -132,13 +140,13 @@ def audit(root, export_path):
     for q in expected:
         timed[(q["decision_utc"],q["asset"],q["expiry_utc"])].append(q)
     synchronized_asset_weeks = set()
-    for (day,asset,_),quotes in timed.items():
-        for i,first in enumerate(quotes):
-            for second in quotes[i+1:]:
-                if (first["strike_usd"] != second["strike_usd"]
-                    and max(abs(first["arrival_us"]-second["arrival_us"]),
-                            abs(first["exchange_us"]-second["exchange_us"])) <= 1_000_000):
-                    synchronized_asset_weeks.add((day,asset))
+    for (day, asset, _), quotes in timed.items():
+        # Independent event-first bucket algorithm, not the primary matcher.
+        if independent_atomic([
+            (q["strike_usd"], q["arrival_us"], q["exchange_us"])
+            for q in quotes
+        ]):
+            synchronized_asset_weeks.add((day, asset))
     assert len(synchronized_asset_weeks) == export["synchronized_source_pairs"], (
         "INDEPENDENT_ENTRY_SYNC_PAIR_MISMATCH")
     assert export["required_pairs"] == (180 if fixed else 182)
