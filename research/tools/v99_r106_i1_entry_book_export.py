@@ -15,7 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from research.tools.v99_r106_i1_full_archive_intake import (
-    END, REQUIRED, eligible, evaluate, file_digest, instrument, safe_path, native_contracts, historical_price_grid_ok,
+    END, REQUIRED, eligible, evaluate, file_digest, instrument, safe_path, native_contracts, historical_price_grid_ok, synchronized_strikes,
 )
 
 def export_books(root):
@@ -115,13 +115,14 @@ def export_books(root):
     for quote in books:
         key = (quote["decision_utc"], quote["asset"], quote["expiry_utc"])
         grouped_times.setdefault(key, []).append(quote)
+    # Use the already independently fuzzed exact two-clock bucket matcher.
+    # Quadratic all-pairs scans are not viable for dense original 661-day tapes.
     synchronized = {
-        (d,a) for (d,a,_), quotes in grouped_times.items()
-        if any(
-            left["strike_usd"] != right["strike_usd"]
-            and abs(left["arrival_us"]-right["arrival_us"]) <= 1_000_000
-            and abs(left["exchange_us"]-right["exchange_us"]) <= 1_000_000
-            for i,left in enumerate(quotes) for right in quotes[i+1:])
+        (d, a) for (d, a, _), quotes in grouped_times.items()
+        if synchronized_strikes([
+            (q["strike_usd"], q["arrival_us"], q["exchange_us"])
+            for q in quotes
+        ])
     }
     if len(synchronized) != gate["synchronized_two_strike_asset_weeks"]:
         raise ValueError("SOURCE_TO_ENGINE_SYNCHRONIZED_PAIR_RECONCILIATION_FAILED")
