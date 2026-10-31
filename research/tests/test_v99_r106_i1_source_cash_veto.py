@@ -23,7 +23,12 @@ def sample():
              "asset_week_decisions": 180, "source_sundays_scanned": 90,
              "original_underlying_index_authenticated": False,
              "original_native_lot_units_authenticated": False,
-             "economic_train_executed": False, "promotion_authorized": False,
+             "historical_fee_margin_delivery_authenticated": False,
+             "original_execution_or_fills_certified": False,
+             "economic_train_executed": False, "freeze_authorized": False,
+             "promotion_authorized": False, "validation_opened": False,
+             "holdout_opened": False, "orders_enabled": False,
+             "paper_publication_authorized": False,
              "rows": rows}
     journal = {"fixture": False,
                "scenario_decisions": {"severe": copy.deepcopy(decisions),
@@ -41,6 +46,50 @@ class SourceCashVetoTest(unittest.TestCase):
             self.assertEqual(report["scenarios"][scenario]["positive_cash_unverified"], 2)
             self.assertEqual(report["scenarios"][scenario]["negative_signal_cash"], 177)
         self.assertFalse(report["promotion_authorized"])
+
+    def test_each_forged_book_certification_fails_primary_and_oracle(self):
+        unsafe = (
+            "original_underlying_index_authenticated", "original_native_lot_units_authenticated",
+            "historical_fee_margin_delivery_authenticated", "original_execution_or_fills_certified",
+            "economic_train_executed", "freeze_authorized", "promotion_authorized",
+            "validation_opened", "holdout_opened", "orders_enabled",
+            "paper_publication_authorized",
+        )
+        for key in unsafe:
+            with self.subTest(key=key):
+                books, journal = sample()
+                valid = assess(books, journal)
+                books[key] = True
+                with self.assertRaisesRegex(ValueError, "UNTRUSTED_SOURCE_BOOK_ATTESTATION"):
+                    assess(books, journal)
+                with self.assertRaisesRegex(AssertionError, "ORACLE_SOURCE_VETO_UNSAFE_INPUT_CERTIFICATION"):
+                    verify(books, journal, valid)
+
+    def test_missing_or_nonboolean_book_attestation_fails(self):
+        for value in (None, 1, "false"):
+            with self.subTest(value=value):
+                books, journal = sample()
+                books["orders_enabled"] = value
+                with self.assertRaisesRegex(ValueError, "UNTRUSTED_SOURCE_BOOK_ATTESTATION"):
+                    assess(books, journal)
+
+    def test_each_forged_journal_permission_fails_primary_and_oracle(self):
+        unsafe = (
+            "promotion_authorized", "freeze_authorized", "validation_opened",
+            "holdout_opened", "orders_enabled", "paper_publication_authorized",
+            "original_options_economic_train_certified",
+            "original_historical_economic_train_executed",
+            "independent_original_trade_replay_verified",
+        )
+        for key in unsafe:
+            with self.subTest(key=key):
+                books, journal = sample()
+                valid = assess(books, journal)
+                journal[key] = True
+                with self.assertRaisesRegex(ValueError, "SOURCE_VETO_CERTIFICATION_FORBIDDEN"):
+                    assess(books, journal)
+                with self.assertRaisesRegex(AssertionError, "ORACLE_SOURCE_VETO_UNSAFE_INPUT_CERTIFICATION"):
+                    verify(books, journal, valid)
 
     def test_open_without_observed_book_fails(self):
         books, journal = sample()
