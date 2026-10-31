@@ -29,3 +29,6 @@ Base annual modeled returns: 2023 +33.8580%, 2024 -15.2677%, 2025 -9.2683%. Seve
 3. Separate untouched prospective chronological validation and later final holdout must follow any *new* internally viable candidate; exposed 2025 and contaminated Phase083 are ineligible. External benchmarks remain sealed until that point.
 
 **Next architectural research:** reject BTC-led propagation as formulated; investigate a genuinely distinct economic mechanism, without tuning OV on observed losses. No operation real or paper authorization.
+
+## Independent post-freeze gate re-derivation
+[GitHub Actions 41240861232](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41240861232) **PASS_INDEPENDENT_OV_FROZEN_REJECTION_AUDIT_NOT_ENGINE**. A separate read-only auditor, importing neither the primary strategy nor the physical runner, verified all 30 unique physical cells, recomputed all **32** binding economic failures, independently reconciled recorded marginal log growth (maximum discrepancy 1.26e-16), and checked 157 signal decisions / 26,303 hourly cash receipts. This certifies rejection arithmetic only; it is **not** an approved engine, exact funding source, or future validation.
