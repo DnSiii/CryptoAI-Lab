@@ -4,7 +4,7 @@ import argparse,json,math
 from pathlib import Path
 COSTS={'base':(.0004,.0002),'severe':(.001,.001),'supersevere':(.0015,.002)}
 ORDERS=('carried_before_fill','new_after_fill')
-BOOLS=('OL_full','OL_core_only','OL_minus_opportunity','OL_minus_RV','OL_minus_stress')
+BOOKS=('OL_full','OL_core_only','OL_minus_opportunity','OL_minus_RV','OL_minus_stress')
 SLEEVES={'Opportunity':'OL_minus_opportunity','Relative_Value':'OL_minus_RV',
          'Stress_Recovery':'OL_minus_stress'}
 def audit(path):
@@ -21,7 +21,7 @@ def audit(path):
     seen=set();errors=[];failed=[]
     for x in cells:
         key=(x['tier'],x['order'],x['book'])
-        if key in seen or key[0] not in COSTS or key[1] not in ORDERS or key[2] not in BOOLS:
+        if key in seen or key[0] not in COSTS or key[1] not in ORDERS or key[2] not in BOOKS:
             raise ValueError('OL_AUDIT_DUPLICATE_OR_UNLNOWN_CELL')
         seen.add(key)
         if not x['passed']:
