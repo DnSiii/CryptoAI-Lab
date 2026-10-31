@@ -1,0 +1,59 @@
+name: V99 I1 minimal original source procurement request (NO ECONOMICS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/tools/v99_r106_i1_targeted_quote_scope.py
+      - research/verification/independent_v99_r106_i1_targeted_quote_scope.py
+      - .github/workflows/v99-r106-i1-targeted-source-procurement.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  immutable-original-entry-windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Generate original BTC/ETH 90-Monday source window request
+        run: python -m research.tools.v99_r106_i1_targeted_quote_scope out/i1_vendor_original_entry_windows.json
+      - name: Independently verify calendar, two clocks, no sealed days, and reject forgery
+        run: |
+          python -m research.verification.independent_v99_r106_i1_targeted_quote_scope out/i1_vendor_original_entry_windows.json
+          python - <<'PY'
+          import copy, hashlib, json, tempfile
+          from pathlib import Path
+          from research.verification.independent_v99_r106_i1_targeted_quote_scope import audit
+          source=json.loads(Path('out/i1_vendor_original_entry_windows.json').read_text())
+          with tempfile.TemporaryDirectory() as tmp:
+              path=Path(tmp)/'forged.json'
+              for name in ('shift_window','forge_asset_with_rehash','unlock_promotion'):
+                  obj=copy.deepcopy(source)
+                  if name=='shift_window':
+                      obj['windows'][0]['window_start_inclusive_utc']='2021-12-12T00:00:00+00:00'
+                  elif name=='forge_asset_with_rehash':
+                      obj['windows'][0]['asset']='ETH'
+                      raw=json.dumps(obj['windows'],sort_keys=True,separators=(',',':')).encode()
+                      obj['windows_sha256']=hashlib.sha256(raw).hexdigest()
+                  else:
+                      obj['promotion_authorized']=True
+                  path.write_text(json.dumps(obj))
+                  try:
+                      audit(path)
+                  except AssertionError:
+                      print(name, 'REJECTED')
+                  else:
+                      raise AssertionError('FORGERY_ACCEPTED: '+name)
+          print('SOURCE REQUEST ONLY; NO ORIGINAL QUOTES DOWNLOADED; NO ROI, PROMOTION OR ORDERS')
+          PY
+      - name: Archive vendor-ready request (no market bytes)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-i1-fixed-90m-original-entry-window-request
+          path: out/i1_vendor_original_entry_windows.json
+          retention-days: 7
