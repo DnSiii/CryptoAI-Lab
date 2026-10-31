@@ -46,17 +46,21 @@ def audit(path):
         fold = next(i for i in range(1, 6)
                     if EDGES[i-1] <= monday < EDGES[i])
         for asset in ("BTC", "ETH"):
+            expiry_min = monday + timedelta(days=28)
+            expiry_max = min(monday + timedelta(days=35), END - timedelta(microseconds=1))
             expected.append((asset, monday.isoformat(), fold,
                 (monday - timedelta(minutes=5)).isoformat(),
-                monday.isoformat()))
+                monday.isoformat(), expiry_min.isoformat(), expiry_max.isoformat()))
         monday += timedelta(days=7)
     assert len(expected) == 180
-    for row, (asset, decision, fold, lower, upper) in zip(rows, expected):
+    for row, (asset, decision, fold, lower, upper, expiry_min, expiry_max) in zip(rows, expected):
         assert row["asset"] == asset
         assert row["decision_utc"] == decision
         assert row["fold"] == fold
         assert row["venue"] == "deribit"
-        assert row["instrument_scope"] == "ALL_LISTED_OPTIONS_ALL_STRIKES_EXPIRIES"
+        assert row["instrument_scope"] == "ALL_ASOF_LISTED_PUTS_28_TO_35D_BEFORE_TRAIN_STOP"
+        assert row["expiry_min_inclusive_utc"] == expiry_min
+        assert row["expiry_max_inclusive_utc"] == expiry_max
         assert row["window_start_inclusive_utc"] == lower
         assert row["window_end_exclusive_utc"] == upper
         assert set(row["required_fields"]) == FIELDS
