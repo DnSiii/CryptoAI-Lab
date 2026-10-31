@@ -44,7 +44,7 @@ def bundle(o,h,l,c,q,rate,event,oi):
                 j=min(picks,key=lambda k:(-(r72[k]+r24[k]),k))
                 held[1,j]=.14
         # Funding at completed t only; no future funding rates in decision.
-        carry=rate[t-167:t+1:8].sum(axis=0)
+        carry=rate[t-160:t+1:8].sum(axis=0)
         lo_idx=int(np.argmin(carry));hi_idx=int(np.argmax(carry))
         if lo_idx!=hi_idx and carry[hi_idx]-carry[lo_idx]>=.001 and r168[lo_idx]>-.12 and r168[hi_idx]>-.12:
             held[2,lo_idx]=.04;held[2,hi_idx]=-.04
