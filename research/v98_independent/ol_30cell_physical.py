@@ -3,7 +3,7 @@
 import argparse,json,math
 import numpy as np
 from v98_clean4_training_reader import load
-from ol_sources import bundle,load_oi,BOOLS,HOURS,WARMUP
+from ol_sources import bundle,load_oi,BOOKS,HOURS,WARMUP
 from ol_source_gate import run as source_gate
 from ol_intents import build as intents_build
 from v98_mark_envelope_settlement import read_envelope,worst_funding
@@ -14,7 +14,7 @@ ORDERS=('carried_before_fill','new_after_fill')
 LEDGER=[]
 def physical(d,intents,updates,book,tier,order,lo,hi):
     o,h,l,c,rate,event=[d[k] for k in ('o','h','l','c','rate','event')]
-    fee,slip=COSTS[tier];active=BOOLS[book]
+    fee,slip=COSTS[tier];active=BOOKS[book]
     qty=np.zeros((4,4));equity=10000.;prev=c[WARMUP]
     turn=fees=slippage=funding=0.;scales=0;intramin=10000.
     year_start={2023:10000.,2024:None};year_end={}
@@ -127,7 +127,7 @@ def run(root,oi_root,envelope_path):
     cells=[]
     for tier in COSTS:
         for order in ORDERS:
-            for book in BOOLS:
+            for book in BOOKS:
                 x=physical(d,intents,updates,book,tier,order,lo,hi)
                 cells.append(x)
                 print('OL_CELL',tier,order,book,'PASS',x['passed'],
