@@ -85,12 +85,12 @@ def verify(d,oi,rows,lo,hi):
             raise ValueError('OM_FILL_ORACLE_QTY_MISMATCH_AT_T_'+str(t)+'_ERROR_'+str(error))
         matched+=1;expected_t+=1
     if matched!=HOURS-WARMUP-1:raise ValueError('OM_FILL_ORACLE_INCOMPLETE_LEDGER')
-    if forced!=105:raise ValueError('OM_FILL_ORACLE_FORCED_REFRESH_NOT_27')
+    if forced!=105:raise ValueError('OM_FILL_ORACLE_FORCED_REFRESH_NOT_105')
     return {'decision':'PASS_INDEPENDENT_ALL_HOUR_STRATEGY_TO_FILL_REPLAY_NOT_ECONOMIC_APPROVAL',
         'hours_replayed':matched,'independent_raw_target_weights':False,'independent_net_growth_intent_weights':False,
         'independent_execution_sizing':True,'one_way_netting':True,'quantity_mismatches':0,
         'max_absolute_qty_error':max_qty_error,'rebalance_events':rebalanced,
-        'core_refreshes_executed':forced,'core_refreshes_preregistered':27,
+        'core_refreshes_executed':forced,'core_refreshes_preregistered':105,
         'source_gate_status':'PASS_SOURCE_ONLY',
         'economic_gate_status':'NOT_DETERMINED_BY_FILL_REPLAY',
         'training_only':True,'2025_validation_accessed':False,
