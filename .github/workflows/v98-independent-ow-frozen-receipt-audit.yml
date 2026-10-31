@@ -1,0 +1,24 @@
+name: V98 Independent OW Frozen Receipt Economic Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/ow_frozen_receipt_independent_gate.py'
+      - 'research/v98_independent/ow_full_training_frozen_result_20261031.json'
+      - '.github/workflows/v98-independent-ow-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ow-frozen-independent-rejection:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - name: Recompute frozen OW economic failures and costs independently
+        working-directory: research/v98_independent
+        run: python ow_frozen_receipt_independent_gate.py
