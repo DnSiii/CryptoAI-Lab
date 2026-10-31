@@ -10,7 +10,7 @@ from of_intents import build
 def audit(d,oi):
     raw,updates,_,eligible=bundle(*(d[k] for k in ("o","h","l","c","q","rate","event")),oi)
     got=build(d,raw,updates)["weights"];p=np.log(d["c"])
-    expected=np.zeros((4,4));count=0;maxerr=0.
+    expected=np.zeros((4,4));count=0;maxerr=0.;first_expected=None
     for t in range(WARMUP,HOURS,168):
         if updates[t,0]:expected[0]=raw[t,0]
         core=float(np.abs(expected[0]).sum())
@@ -26,6 +26,7 @@ def audit(d,oi):
                 used=min(gross,remaining)
                 expected[k]=raw[t,k]*(used/gross)
                 remaining-=used
+        if first_expected is None:first_expected=expected.copy()
         err=float(np.max(np.abs(expected-got[t])))
         maxerr=max(maxerr,err)
         if err>1e-10:raise ValueError("OF_ALLOC_ORACLE_MISMATCH_"+str(t))
@@ -35,7 +36,7 @@ def audit(d,oi):
         count+=1
     if count!=105:raise ValueError("OF_ALLOC_COUNT")
     altered=got[WARMUP].copy();altered[0,0]+=.01
-    if np.max(np.abs(altered-expected))<=0:raise ValueError("OF_TAMPER_NOT_DETECTED")
+    if np.max(np.abs(altered-first_expected))<.009:raise ValueError("OF_TAMPER_NOT_DETECTED")
     return {"decision":"PASS_OF_INDEPENDENT_ALLOCATOR_NOT_PNL",
             "decisions_reconstructed":count,"max_weight_error":maxerr,
             "tamper_detected":True,"training_only":True,"holdout_accessed":False}
