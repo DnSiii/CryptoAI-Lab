@@ -3,14 +3,14 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-oc-30cell.yml'
+      - '.github/workflows/v98-independent-od-oi-seven-slot-30cell.yml'
       - 'research/v98_independent/od_*.py'
   workflow_dispatch:
 permissions:
   actions: read
   contents: read
 jobs:
-  oc-physical:
+  od-physical:
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
@@ -28,7 +28,14 @@ jobs:
           run-id: 40064588623
           github-token: ${{ github.token }}
           path: official-input
-      - name: Download pinned independently audited native OI v2 (2022-24 only)\n        uses: actions/download-artifact@v4\n        with:\n          name: v98-independent-oi-clean4-2022-2024-v2-source-only\n          run-id: 40477513000\n          github-token: ${{ github.token }}\n          path: frozen-oi\n      - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
+      - name: Download pinned independently audited native OI v2 (2022-24 only)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-oi-clean4-2022-2024-v2-source-only
+          run-id: 40477513000
+          github-token: ${{ github.token }}
+          path: frozen-oi
+      - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
         uses: actions/download-artifact@v4
         with:
           name: v98-official-mark-envelope-40908310578
