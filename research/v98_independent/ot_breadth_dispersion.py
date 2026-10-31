@@ -243,6 +243,11 @@ def run(d):
     gate=source_gate(d)
     decision=signals(d)
     targets=target_books(decision)
+    from ot_independent_oracle import independent_decisions,independent_fills
+    decision_oracle=independent_decisions(d,decision,targets)
+    if decision_oracle['signal_and_allocation_mismatches']:
+        raise ValueError('OT_INDEPENDENT_SOURCE_ALLOCATOR_MISMATCH')
+    print('OT_INDEPENDENT_DECISION_ORACLE',json.dumps(decision_oracle,sort_keys=True),flush=True)
     cells=[];ledger=None
     for tier in COSTS:
         for order in ORDERS:
@@ -255,6 +260,9 @@ def run(d):
                       "CAGR",round(100*row.get("cagr",-1),3),
                       "FAIL",row.get("failure",""),flush=True)
     audit=independent_accounting(d,ledger) if ledger and len(ledger)==HOURS-WARMUP-1 else None
+    fill_oracle=independent_fills(d,ledger) if audit is not None else None
+    if fill_oracle is not None:
+        print('OT_INDEPENDENT_FILL_ORACLE',json.dumps(fill_oracle,sort_keys=True),flush=True)
     failures=[];marginals={}
     for tier in COSTS:
         for order in ORDERS:
@@ -278,14 +286,17 @@ def run(d):
                 for y in ("2023","2024","2025"):
                     diff=math.log1p(full["year_returns"][y])-math.log1p(group[b]["year_returns"][y])
                     if diff<-.03:failures.append(tier+"/"+order+":"+s+":"+y+":annual_marginal")
-    if audit is None or audit["cash_identity_mismatches"]:
-        failures.append("independent_accounting")
+    if audit is None or audit['cash_identity_mismatches']:
+        failures.append('independent_accounting')
+    if fill_oracle is None or fill_oracle['independent_fee_slippage_funding_mismatches']:
+        failures.append('independent_fills')
     out={"architecture":"OT","preregistration":"ot_breadth_dispersion_prereg_20261031.md",
          "source":gate,"weekly_decisions":len(decision),"cells":cells,"marginals":marginals,
-         "audit":audit,"gate_failures":failures,
+         "audit":audit,"independent_decision_oracle":decision_oracle,
+         "independent_fill_oracle":fill_oracle,"gate_failures":failures,
          "decision":"REJECT_OT_TRAINING" if failures else "PASS_PROVISIONAL_OT_TRAINING_NOT_VALIDATED",
          "training_only":True,"year_2025_exposed":True,"exact_event_mark_attested":False,
-         "independent_source_and_fill_oracles_pending":True,
+         "independent_source_and_fill_oracles_pending":False,
          "holdout_accessed":False,"benchmarks_accessed":False,"paper_or_live_authorized":False}
     print("OT_RESULT_JSON",json.dumps(out,separators=(",",":"),allow_nan=False),flush=True)
     return out
