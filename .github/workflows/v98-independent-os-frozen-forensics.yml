@@ -1,0 +1,85 @@
+name: V98 OS Frozen Original Receipt Forensics (Read-Only)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-os-frozen-forensics.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  frozen-original:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Verify frozen original prereg and rejection
+        run: |
+          test -f research/v98_independent/os_beta_residual_compression_prereg_20261031.md
+          test -f research/v98_independent/os_beta_residual_compression_frozen_rejection_20261031.md
+      - name: Download ONLY immutable OS original evidence; no rerun or data access
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-os-original-41221544236
+          run-id: 41221544236
+          github-token: ${{ github.token }}
+          path: frozen-os
+      - name: Independently summarize frozen original monthly regimes and tails
+        run: |
+          python - <<'PY'
+          import json,datetime,math,pathlib,collections,hashlib
+          root=pathlib.Path('frozen-os')
+          receipts=list(root.rglob('os_30cell_receipt.json'))
+          ledgers=list(root.rglob('os_base_full_hourly_forensic.jsonl'))
+          if len(receipts)!=1 or len(ledgers)!=1:raise SystemExit('OS_FROZEN_ARTIFACT_MISSING')
+          r=json.loads(receipts[0].read_text())
+          assert r['architecture']=='OS' and r['decision']=='REJECT_EARLY_TRAINING'
+          assert len(r['cells'])==30 and len(r['gate_failures'])==18
+          full=[c for c in r['cells'] if c['book']=='OS_full' and c['order']=='carried_before_fill']
+          if len(full)!=3 or any(not x['passed'] for x in full):raise SystemExit('OS_FROZEN_CELLS')
+          monthly=collections.OrderedDict()
+          prev=10000.;days=collections.OrderedDict();rows=0;last_equity=prev
+          for line in ledgers[0].open():
+              row=json.loads(line);t=int(row['t']);rows+=1
+              date=datetime.datetime(2022,12,1,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=t)
+              key=date.strftime('%Y-%m')
+              monthly.setdefault(key,[prev,prev])[1]=float(row['equity_close'])
+              day=date.strftime('%Y-%m-%d')
+              days.setdefault(day,[prev,prev])[1]=float(row['equity_close'])
+              prev=last_equity=float(row['equity_close'])
+          if rows!=17543:raise SystemExit('OS_FROZEN_HOURLY_COVERAGE')
+          month_returns={k:round(v[1]/v[0]-1,8) for k,v in monthly.items()}
+          daily_log=[math.log(v[1]/v[0]) for v in days.values()]
+          top10=sum(sorted(daily_log,reverse=True)[:10])
+          total=math.log(last_equity/10000.)
+          result={'decision':'FROZEN_OS_REJECTED_READ_ONLY','original_run':41221544236,
+                  'original_receipt_sha256':hashlib.sha256(receipts[0].read_bytes()).hexdigest(),
+                  'original_ledger_sha256':hashlib.sha256(ledgers[0].read_bytes()).hexdigest(),
+                  'hours':rows,'cells':len(r['cells']),'gate_failures':len(r['gate_failures']),
+                  'source_gate':r['source_gate'],'full_system':{
+                     x['tier']:{k:x[k] for k in ('cagr','max_dd','turnover','year_returns',
+                        'positive_days','daily_count','cvar_1pct','hourly_net_pf',
+                        'hourly_net_payoff','hourly_net_win_rate','max_single_asset_gross_concentration')}
+                     for x in full},
+                  'marginals':r['marginals'],
+                  'monthly_returns':month_returns,
+                  'positive_months':sum(x>0 for x in month_returns.values()),
+                  'months':len(month_returns),
+                  'top10_daily_log_gain':top10,'total_log_gain':total,
+                  'top10_log_gain_fraction':top10/total if abs(total)>1e-12 else None,
+                  'economic_gate_overridden':False,'pnl_reexecuted':False,
+                  '2025_accessed':False,'future_holdout_accessed':False,
+                  'benchmark_accessed':False,'paper_or_live_authorized':False}
+          pathlib.Path('os_frozen_readonly_forensic.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print('OS_FROZEN_READONLY_FORENSICS',json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-os-frozen-readonly-${{ github.run_id }}
+          path: os_frozen_readonly_forensic.json
+          retention-days: 30
+          if-no-files-found: warn
