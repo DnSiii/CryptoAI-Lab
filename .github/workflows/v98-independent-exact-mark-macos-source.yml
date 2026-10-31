@@ -1,0 +1,79 @@
+name: V98 Independent Exact Event Marks Alternate Hosted Runner Source
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-exact-mark-macos-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  macos-official-exact-funding-source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old-envelope
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-2025-crossyear-source-41226345264
+          run-id: 41226345264
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/corrected
+      - name: Fetch ONLY 2022-2025 official Binance USD-M funding event marks (alternate macOS hosted egress)
+        working-directory: research/v98_independent
+        env:
+          CAPTURE_ROOT: ${{ runner.temp }}/v98-exact-full
+        run: python v98_exact_funding_full_history_capture.py --output-dir "$CAPTURE_ROOT" --timeout 20
+      - name: Independent 13524-event raw HTTP page and checksum audit (not exchange-origin attestation)
+        working-directory: research/v98_independent
+        env:
+          CAPTURE_ROOT: ${{ runner.temp }}/v98-exact-full
+        run: python v98_exact_funding_full_history_capture_audit.py --capture-dir "$CAPTURE_ROOT"
+      - name: Reconcile exact marks against pinned native funding and official hourly mark envelope
+        working-directory: research/v98_independent
+        env:
+          CAPTURE_ROOT: ${{ runner.temp }}/v98-exact-full
+          OLD_ROOT: ${{ runner.temp }}/old
+          OLD_ENVELOPE: ${{ runner.temp }}/old-envelope/v98_official_mark_envelope_training.csv
+          NEW_ROOT: ${{ runner.temp }}/new
+          CORRECTED_ROOT: ${{ runner.temp }}/corrected
+        run: |
+          python v98_exact_funding_full_history_ingest.py \
+            --old-root "$OLD_ROOT" --old-envelope "$OLD_ENVELOPE" \
+            --new-root "$NEW_ROOT" --corrected-root "$CORRECTED_ROOT" \
+            --manifest "$CAPTURE_ROOT/v98_exact_funding_full_history_manifest.json" \
+            --receipt "$CAPTURE_ROOT/v98_exact_funding_full_history_ingest_receipt.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-exact-full-history-macos-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/v98-exact-full
+          retention-days: 30
+          if-no-files-found: warn
