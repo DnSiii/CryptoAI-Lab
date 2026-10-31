@@ -1,0 +1,17 @@
+# V98 NZ — frozen original training rejection (2026-10-30)
+
+**PERMANENT REJECT — NO RESCUE, NO LIVE.** Preregistered before any NZ market PnL at commit `651f30665ff35e496fef2b9b0fcc5872ec00d202`. New seven-slot source and shadow allocator integration at `c9482c8bcc90f0219fd91d767833604aafe8292d`. Original signed physical [run 41156815435](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41156815435) uses only pinned Clean-4 Binance USD-M 2022-12 warmup and 2023–2024 training. The workflow intentionally exits **failure** on binding economic rejection, not because the physical simulation failed.
+
+**30/30 physically valid cells; original carried-before-fill full-engine results (USD10,000 initial NAV):**
+- Base CAGR **+62.7303%**, max drawdown **-30.0480%**, 2023 **+157.7831%**, 2024 **+2.7950%**, turnover **USD613,569.88**.
+- Severe CAGR **+59.6040%**, max drawdown **-30.0578%**, 2023 **+153.5967%**, 2024 **+0.5129%**, turnover **USD600,938.27**.
+- Supersevere CAGR **+56.312%** (rounded from original physical log).
+- Economic gate: **REJECT_EARLY_TRAINING**, **16 failures** across two funding settlement orders: base/severe CAGR below >80%/>60%, turnover above USD600k, negative Relative-Value marginal and zero Stress marginal. No threshold, sign, gross, forecast, fee, or window altered after observing this result.
+
+**Module marginal full-engine log-growth, base:** Opportunity **+0.033650**, Relative Value **-0.013371**, Stress/Recovery **0.000000**. Severe: Opportunity **+0.033109**, Relative Value **-0.014771**, Stress **0.000000**. Thus causal shadow economics improved Opportunity contribution but did not solve RV or Stress and does not meet seven-slot requirements. Independent 53-decision shadow/allocator replay [run 41156892615](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41156892615): 53 decisions, 49 with complete four-window shadow history, **10** decisions with optional exposure, **zero action mismatches**. These counts are decision counts, never hourly-held counts.
+
+**Independent technical gates on original run:** 53/53 independently reconstructed raw source targets; 9,144 native signed funding events with conservative official hourly worst-side mark envelope; 17,543-hour independent signed accounting; independent strategy-to-fill replay and tamper detection; 30/30 independent arithmetic/economic cells. Physical pass and arithmetic pass do **not** override binding economic rejection. The second/third NZ runs were triggered by non-strategy gate/oracle additions; they cannot rescue or redefine the original result.
+
+**Exact native funding source blocker:** still need four authenticated historical Binance USD-M `fundingRate` files, 2,286 rows each, columns `symbol,fundingTime,fundingRate,markPrice`, UTC sorted, SHA256 and original transport attestation. Existing native rates are verified; exact event marks remain unavailable (HTTP451, empty HTTP202, HTTP400, timeout). Conservative hourly OHLC envelope is a bound, **not exact markPrice**. Authorized official API export or independently licensed exchange-authenticated historical records are alternatives. This prevents exact native funding final gate but does not explain the economic rejection.
+
+**Validation firewall:** 2025 already exposed to prior candidate NO and is ineligible as an independent selection window; 2026+ holdout not accessed. No V14/V15/V99 internal tuning, no Frozen, V99 research, V99 paper or live state modification. No V98 complete candidate approved. Next architecture must be economically distinct; do not modify NZ.
