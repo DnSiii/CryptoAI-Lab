@@ -1,0 +1,12 @@
+# V99 R106 I1 — source-only CASH classification: certification-flag fail-closed hardening (preregistered 2026-10-30)
+
+## Pre-implementation defect and scope
+`research/tools/v99_r106_i1_source_cash_veto.py` previously rejected only `journal.promotion_authorized is True`, while a caller could set `journal.holdout_opened`, `orders_enabled`, `paper_publication_authorized` or `original_options_economic_train_certified` to true and still obtain a source-only CASH classification. A similarly forged original book report could contain positive certification fields not explicitly checked by the source-only classifier. The integrated orchestrator has a separate guard; this change closes the lower-level API bypass, rather than claiming any new market evidence.
+
+## Fixed intended change before code/tests
+1. Require explicit `False` for every existing book source certification/permission flag (`original_underlying_index_authenticated`, `original_native_lot_units_authenticated`, `historical_fee_margin_delivery_authenticated`, `original_execution_or_fills_certified`, `economic_train_executed`, `freeze_authorized`, `promotion_authorized`, `validation_opened`, `holdout_opened`, `orders_enabled`, `paper_publication_authorized`). Reject missing or non-boolean values.
+2. Require journal `fixture is False` and reject any explicitly positive unsafe permission/certification flag (`promotion_authorized`, `freeze_authorized`, `validation_opened`, `holdout_opened`, `orders_enabled`, `paper_publication_authorized`, `original_options_economic_train_certified`, `original_historical_economic_train_executed`, `independent_original_trade_replay_verified`). Journal flags not in the original schema may be absent, but if present must be literal `False`.
+3. Independently enforce the same prohibition in the separate source CASH oracle; add adversarial synthetic tests for each forged permission, missing book flags and no-regression classification. Execute actual GitHub Actions existing original-to-provisional CI and inspect whether nonfixture original signal attempt still correctly blocks before NAV on missing 661-day licensed quotes.
+
+## Hard limits
+No signal, cost, fee, strike, risk, trading rule, TRAIN fold, benchmark, original quote, NAV, return or historical source modification. No validation or final holdout access, no promotion, no paper/Frozen/champion writes, no orders. Software hardening cannot solve 658/661 missing original option quote days or certify any of 180 I1 lifecycles. CI success is software/source-veto integrity only, not trading success.
