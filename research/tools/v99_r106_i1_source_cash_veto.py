@@ -8,23 +8,36 @@ SCHEMA = "V99_I1_SOURCE_CASH_VETO_PROVENANCE_V1"
 BOOK_SCHEMA = "V99_I1_SOURCE_DRIVEN_90W_ORIGINAL_ENTRY_BOOK_V1"
 SCENARIOS = ("severe", "supersevere")
 SIGNAL = "POSITIVE_EX_ANTE_PREMIUM"
+BOOK_FALSE_FLAGS = (
+    "original_underlying_index_authenticated", "original_native_lot_units_authenticated",
+    "historical_fee_margin_delivery_authenticated", "original_execution_or_fills_certified",
+    "economic_train_executed", "freeze_authorized", "promotion_authorized",
+    "validation_opened", "holdout_opened", "orders_enabled",
+    "paper_publication_authorized",
+)
+JOURNAL_FALSE_IF_PRESENT = (
+    "promotion_authorized", "freeze_authorized", "validation_opened",
+    "holdout_opened", "orders_enabled", "paper_publication_authorized",
+    "original_options_economic_train_certified",
+    "original_historical_economic_train_executed",
+    "independent_original_trade_replay_verified",
+)
 
 
 def assess(book_report, journal):
     if (not isinstance(book_report, dict) or book_report.get("schema") != BOOK_SCHEMA
             or book_report.get("asset_week_decisions") != 180
             or book_report.get("source_sundays_scanned") != 90
-            or book_report.get("original_underlying_index_authenticated") is not False
-            or book_report.get("original_native_lot_units_authenticated") is not False
-            or book_report.get("economic_train_executed") is not False
-            or book_report.get("promotion_authorized") is not False):
+            or any(book_report.get(k) is not False for k in BOOK_FALSE_FLAGS)):
         raise ValueError("UNTRUSTED_SOURCE_BOOK_ATTESTATION")
     rows = book_report.get("rows")
     ledgers = journal.get("scenario_decisions") if isinstance(journal, dict) else None
     if (not isinstance(rows, list) or len(rows) != 180
             or not isinstance(ledgers, dict) or set(ledgers) != set(SCENARIOS)):
         raise ValueError("SOURCE_VETO_180_GRID_REQUIRED")
-    if journal.get("fixture") is not False or journal.get("promotion_authorized") is True:
+    if (journal.get("fixture") is not False or
+            any(k in journal and journal[k] is not False
+                for k in JOURNAL_FALSE_IF_PRESENT)):
         raise ValueError("SOURCE_VETO_CERTIFICATION_FORBIDDEN")
     results = {}
     for scenario in SCENARIOS:
