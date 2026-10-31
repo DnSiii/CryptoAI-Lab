@@ -71,7 +71,7 @@ def download(target):
             if declared is not None and total != int(declared):
                 raise ValueError("ORIGINAL_CHAIN_TRUNCATED")
             with target.open("rb") as f:
-                if f.read(2) != b"\\x1f\\x8b":
+                if f.read(2) != bytes.fromhex("1f8b"):
                     raise ValueError("ORIGINAL_CHAIN_NOT_GZIP")
         return {"status": "ORIGINAL_PUBLIC_CHAIN_TRANSFER_COMPLETE",
                 "compressed_bytes": total, "sha256": digest(target)}
@@ -155,7 +155,7 @@ def main(argv):
         print(json.dumps(download(argv[2]), sort_keys=True))
     elif len(argv) == 4 and argv[1] == "scan":
         result = scan(argv[2])
-        Path(argv[3]).write_text(json.dumps(result, indent=2, sort_keys=True) + "\\n")
+        Path(argv[3]).write_text(json.dumps(result, indent=2, sort_keys=True) + chr(10))
         print(json.dumps({"status": result["status"], "original_rows": result["original_rows"],
                           "assets": result["assets"], "promotion_authorized": False}, sort_keys=True))
     else:
