@@ -186,6 +186,23 @@ class SignedEventSourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "SIGNED_ORACLE_NOT_BOUND"):
                 verify_signed_event_attestation(self.root, self.digest)
 
+    def test_oracle_is_parsed_from_exact_verified_byte_snapshot(self):
+        # Mutating the file after its read must not substitute a second JSON
+        # for the bytes verified against the independently signed SHA256.
+        oracle_path = self.root / self.descriptors["independent_event_oracle_replay"]["file"]
+        real_read = Path.read_bytes
+        def read_then_mutate(path):
+            original = real_read(path)
+            if path == oracle_path:
+                oracle_path.write_bytes(b"FORGED_AFTER_HASH")
+            return original
+        with patch.dict(os.environ, self.env):
+            with patch.object(Path, "read_bytes", read_then_mutate):
+                result = verify_signed_event_attestation(self.root, self.digest)
+        self.assertTrue(result["event_bound"])
+        self.assertEqual(oracle_path.read_bytes(), b"FORGED_AFTER_HASH")
+        self.assertFalse(result["promotion_authorized"])
+
     def test_signed_duplicate_json_key_and_intermediate_symlink_rejected(self):
         with patch.dict(os.environ, self.env):
             oracle_name = self.descriptors["independent_event_oracle_replay"]["file"]

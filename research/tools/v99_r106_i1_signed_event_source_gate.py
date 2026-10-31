@@ -101,13 +101,10 @@ def _strict_json_bytes(raw):
         raise ValueError("INVALID_SIGNED_ORACLE_JSON") from exc
 
 
-def _verify_oracle_event_binding(root, descriptors, expected_event_sha256):
-    # The signed package binds hashes, but without this semantic check the
-    # 'independent oracle' class could be any unrelated arbitrary byte string.
-    oracle_path = _regular(root, descriptors["independent_event_oracle_replay"]["file"])
-    if oracle_path.stat().st_size > 1_000_000:
-        raise ValueError("INVALID_SIGNED_ORACLE_JSON")
-    oracle = _strict_json_bytes(oracle_path.read_bytes())
+def _verify_oracle_event_binding(oracle_bytes, descriptors, expected_event_sha256):
+    # Parse EXACTLY the byte snapshot whose hash was checked against the
+    # independent signature. Reopening a mutable file here is a TOCTOU bypass.
+    oracle = _strict_json_bytes(oracle_bytes)
     expected_keys = {
         "schema", "fixture", "event_sha256", "replay_status",
         "historical_economic_train_certified", "promotion_authorized",
@@ -183,6 +180,7 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256):
             set(document["evidence"]) != REQUIRED):
         raise ValueError("SIGNED_ATTESTATION_NOT_BOUND_TO_EVENT")
     seen = set()
+    oracle_bytes = None
     for kind, item in document["evidence"].items():
         if (not isinstance(item, dict) or set(item) != {"file", "sha256"} or
                 not isinstance(item["sha256"], str) or
@@ -191,9 +189,17 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256):
         if item["file"] in seen:
             raise ValueError("REUSED_SIGNED_EVIDENCE_FILE")
         seen.add(item["file"])
-        if _file_digest(_regular(root, item["file"])) != item["sha256"].lower():
+        path = _regular(root, item["file"])
+        if kind == "independent_event_oracle_replay":
+            if path.stat().st_size > 1_000_000:
+                raise ValueError("INVALID_SIGNED_ORACLE_JSON")
+            oracle_bytes = path.read_bytes()
+            actual_sha256 = hashlib.sha256(oracle_bytes).hexdigest()
+        else:
+            actual_sha256 = _file_digest(path)
+        if actual_sha256 != item["sha256"].lower():
             raise ValueError("SIGNED_ORIGINAL_EVIDENCE_SHA256_MISMATCH")
-    _verify_oracle_event_binding(root, document["evidence"], expected_event_sha256)
+    _verify_oracle_event_binding(oracle_bytes, document["evidence"], expected_event_sha256)
     # This only authenticates the independently signed evidence package.
     # Native execution, historical venue completeness and profitability remain
     # separate, mandatory, NEVER automatically certified by this function.
