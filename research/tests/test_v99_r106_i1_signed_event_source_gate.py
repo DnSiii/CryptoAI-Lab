@@ -59,7 +59,30 @@ class SignedEventSourceTests(unittest.TestCase):
             self.descriptors[kind] = {
                 "file": name, "sha256": hashlib.sha256(f.read_bytes()).hexdigest(),
             }
+        self.write_oracle()
         self.sign()
+
+    def write_oracle(self, **overrides):
+        source_hashes = {
+            kind: item["sha256"] for kind, item in self.descriptors.items()
+            if kind != "independent_event_oracle_replay"
+        }
+        oracle = {
+            "schema": "V99_I1_ORIGINAL_EVENT_INDEPENDENT_ORACLE_V1",
+            "fixture": False, "event_sha256": self.digest,
+            "replay_status": "PASS",
+            "historical_economic_train_certified": False,
+            "promotion_authorized": False,
+            "bound_source_sha256": source_hashes,
+        }
+        oracle.update(overrides)
+        raw = json.dumps(oracle, sort_keys=True, separators=(",", ":")).encode()
+        self.write_oracle_raw(raw)
+
+    def write_oracle_raw(self, raw):
+        descriptor = self.descriptors["independent_event_oracle_replay"]
+        (self.root / descriptor["file"]).write_bytes(raw)
+        descriptor["sha256"] = hashlib.sha256(raw).hexdigest()
 
     def sign(self, *, digest=None, evidence=None):
         doc = {"schema": SCHEMA, "event_sha256": digest or self.digest,
@@ -131,6 +154,58 @@ class SignedEventSourceTests(unittest.TestCase):
         with patch.dict(os.environ, {**self.env,
                                      "V99_I1_TRUSTED_AUDITOR_PUBKEY_SHA256": "0"*64}):
             with self.assertRaisesRegex(ValueError, "UNTRUSTED_INDEPENDENT_AUDITOR_KEY"):
+                verify_signed_event_attestation(self.root, self.digest)
+
+    def test_signed_unrelated_event_oracle_is_rejected(self):
+        self.write_oracle(event_sha256="0"*64)
+        self.sign()
+        with patch.dict(os.environ, self.env):
+            with self.assertRaisesRegex(ValueError, "SIGNED_ORACLE_NOT_BOUND"):
+                verify_signed_event_attestation(self.root, self.digest)
+
+    def test_signed_oracle_wrong_original_source_hash_is_rejected(self):
+        hashes = {
+            kind: item["sha256"] for kind, item in self.descriptors.items()
+            if kind != "independent_event_oracle_replay"
+        }
+        hashes["historical_account_fee_schedule"] = "f"*64
+        self.write_oracle(bound_source_sha256=hashes)
+        self.sign()
+        with patch.dict(os.environ, self.env):
+            with self.assertRaisesRegex(ValueError, "SIGNED_ORACLE_NOT_BOUND"):
+                verify_signed_event_attestation(self.root, self.digest)
+
+    def test_signed_arbitrary_oracle_bytes_and_fixture_claim_rejected(self):
+        with patch.dict(os.environ, self.env):
+            self.write_oracle_raw(b"SYNTHETIC_TEST_ONLY:no_event_replay")
+            self.sign()
+            with self.assertRaisesRegex(ValueError, "INVALID_SIGNED_ORACLE_JSON"):
+                verify_signed_event_attestation(self.root, self.digest)
+            self.write_oracle(fixture=True)
+            self.sign()
+            with self.assertRaisesRegex(ValueError, "SIGNED_ORACLE_NOT_BOUND"):
+                verify_signed_event_attestation(self.root, self.digest)
+
+    def test_signed_duplicate_json_key_and_intermediate_symlink_rejected(self):
+        with patch.dict(os.environ, self.env):
+            oracle_name = self.descriptors["independent_event_oracle_replay"]["file"]
+            raw = (self.root / oracle_name).read_bytes()
+            self.write_oracle_raw(raw.replace(
+                b'{"bound_source_sha256":',
+                b'{"fixture":false,"bound_source_sha256":', 1))
+            self.sign()
+            with self.assertRaisesRegex(ValueError, "INVALID_SIGNED_ORACLE_JSON"):
+                verify_signed_event_attestation(self.root, self.digest)
+            self.write_oracle()
+            # A parent symlink is rejected even when the target stays under root.
+            (self.root / "real_dir").mkdir()
+            (self.root / "real_dir" / "copy.bin").write_bytes(
+                (self.root / "source_0.bin").read_bytes())
+            (self.root / "alias").symlink_to("real_dir", target_is_directory=True)
+            key = sorted(REQUIRED)[0]
+            self.descriptors[key]["file"] = "alias/copy.bin"
+            self.sign()
+            with self.assertRaisesRegex(ValueError, "MISSING_OR_UNSAFE_SIGNED_EVIDENCE_FILE"):
                 verify_signed_event_attestation(self.root, self.digest)
 
 

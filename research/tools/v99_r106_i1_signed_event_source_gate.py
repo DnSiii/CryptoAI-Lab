@@ -71,10 +71,62 @@ def _regular(root, relative):
     if (not isinstance(relative, str) or not relative or
             Path(relative).is_absolute() or ".." in Path(relative).parts):
         raise ValueError("UNSAFE_SIGNED_EVIDENCE_PATH")
-    path = root / relative
-    if path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(root.resolve()):
+    # A symlink in ANY intermediate component is unsafe even when it
+    # resolves back inside the evidence root.
+    path = root
+    for component in Path(relative).parts:
+        path = path / component
+        if path.is_symlink():
+            raise ValueError("MISSING_OR_UNSAFE_SIGNED_EVIDENCE_FILE")
+    if not path.is_file() or not path.resolve().is_relative_to(root.resolve()):
         raise ValueError("MISSING_OR_UNSAFE_SIGNED_EVIDENCE_FILE")
     return path
+
+
+ORACLE_SCHEMA = "V99_I1_ORIGINAL_EVENT_INDEPENDENT_ORACLE_V1"
+ORACLE_SOURCE_CLASSES = REQUIRED - {"independent_event_oracle_replay"}
+
+
+def _strict_json_bytes(raw):
+    def unique_pairs(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("DUPLICATE_SIGNED_ORACLE_JSON_KEY")
+            result[key] = value
+        return result
+    try:
+        return json.loads(raw, object_pairs_hook=unique_pairs)
+    except (ValueError, UnicodeError) as exc:
+        raise ValueError("INVALID_SIGNED_ORACLE_JSON") from exc
+
+
+def _verify_oracle_event_binding(root, descriptors, expected_event_sha256):
+    # The signed package binds hashes, but without this semantic check the
+    # 'independent oracle' class could be any unrelated arbitrary byte string.
+    oracle_path = _regular(root, descriptors["independent_event_oracle_replay"]["file"])
+    if oracle_path.stat().st_size > 1_000_000:
+        raise ValueError("INVALID_SIGNED_ORACLE_JSON")
+    oracle = _strict_json_bytes(oracle_path.read_bytes())
+    expected_keys = {
+        "schema", "fixture", "event_sha256", "replay_status",
+        "historical_economic_train_certified", "promotion_authorized",
+        "bound_source_sha256",
+    }
+    expected_sources = {
+        kind: descriptors[kind]["sha256"].lower()
+        for kind in ORACLE_SOURCE_CLASSES
+    }
+    if (not isinstance(oracle, dict) or set(oracle) != expected_keys
+            or oracle["schema"] != ORACLE_SCHEMA
+            or oracle["fixture"] is not False
+            or oracle["event_sha256"] != expected_event_sha256
+            or oracle["replay_status"] != "PASS"
+            or oracle["historical_economic_train_certified"] is not False
+            or oracle["promotion_authorized"] is not False
+            or not isinstance(oracle["bound_source_sha256"], dict)
+            or oracle["bound_source_sha256"] != expected_sources):
+        raise ValueError("SIGNED_ORACLE_NOT_BOUND_TO_ORIGINAL_EVENT_AND_SOURCES")
 
 
 def verify_signed_event_attestation(evidence_root, expected_event_sha256):
@@ -120,8 +172,8 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256):
     if proc.returncode != 0:
         raise ValueError("INDEPENDENT_AUDITOR_SIGNATURE_INVALID")
     try:
-        document = json.loads(payload_bytes)
-    except (ValueError, UnicodeError) as exc:
+        document = _strict_json_bytes(payload_bytes)
+    except ValueError as exc:
         raise ValueError("INVALID_SIGNED_ATTESTATION_JSON") from exc
     if (not isinstance(document, dict) or set(document) !=
             {"schema", "event_sha256", "evidence"} or
@@ -141,6 +193,7 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256):
         seen.add(item["file"])
         if _file_digest(_regular(root, item["file"])) != item["sha256"].lower():
             raise ValueError("SIGNED_ORIGINAL_EVIDENCE_SHA256_MISMATCH")
+    _verify_oracle_event_binding(root, document["evidence"], expected_event_sha256)
     # This only authenticates the independently signed evidence package.
     # Native execution, historical venue completeness and profitability remain
     # separate, mandatory, NEVER automatically certified by this function.
