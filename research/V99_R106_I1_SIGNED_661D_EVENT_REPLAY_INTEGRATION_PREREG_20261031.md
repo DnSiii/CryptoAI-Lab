@@ -1,0 +1,12 @@
+# V99 I1 — signed original-event replay integration preregistration (2026-10-31)
+
+**Purpose:** close the internal gap between the signed nonfixture OPEN/MARK/SETTLE source-cost adapter and the existing 661-day native-coin journal. This is NOT a new strategy, a native-fee certification, a trade/fill certificate, a source purchase, or a profitable TRAIN.
+
+Before code, fixed acceptance rules:
+1. Preserve the current `replay(document)` fixture/provisional semantics, historical results, 5-fold boundaries, 3x2 regimes and immutable 90-week decisions. Introduce an **opt-in, separate** `replay_signed(document)` path, permitted only for `fixture=False`, requiring every OPEN, MARK and SETTLE_BATCH event to supply an independent signed evidence directory. Empty-event journals must not vacuously pass.
+2. In signed mode, the original full inventory and ex-ante selector remain unchanged. Every event MUST execute through the existing `costed_open`, `costed_mark` or `costed_settle_batch` with `fixture=False` and a cryptographically bound event attestation. No boolean provenance flags or fallback to unsigned wallet calls.
+3. Keep both severe and supersevere paths, 661 daily NAVs, exact intraday fold snapshots, original common-market-path invariants and 180-decision controls. The event attestation binds wallet state, quantities, fees, indices, margin and cost scenario at the moment of execution. Reject missing/swapped attestations and reject `fixture=True`.
+4. All outputs remain **PROVISIONAL**, `original_source_receipts_independently_authenticated=False`, `original_options_economic_train_certified=False`, `promotion_authorized=False`, no paper, orders, validation or holdout. A signature on event bytes alone cannot prove archive completeness, real fills, native fee-tier validity or independent full-TRAIN economics.
+5. Focused adversarial synthetic tests and GitHub CI must exercise both a missing-attestation failure and a signed nonfixture replay success without any promotion. Never count synthetic tests as economic evidence. Touch only this preregistration, journal adapter, focused tests and its CI workflow.
+
+**External blocking inputs remain:** licensed complete original 2021-12-09..2023-09-30 BTC/ETH Deribit option BBO/size event history (658/661 days missing), original account-specific dated fee/margin/liquidation/settlement terms and a genuinely independent trusted auditor key/signature. Without them the real 661-day economic TRAIN remains SOURCE HOLD / NO PROMOTION.
