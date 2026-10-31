@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/v98-independent-exact-funding-capture-contract.yml'
       - 'research/v98_independent/v98_exact_funding_official_capture.py'
+      - 'research/v98_independent/v98_exact_funding_capture_independent_audit.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,6 +26,8 @@ jobs:
           python -m py_compile v98_exact_funding_official_capture.py
           python v98_exact_funding_official_capture.py --self-test
           python v98_exact_funding_official_capture.py --dry-run
+          python -m py_compile v98_exact_funding_capture_independent_audit.py
+          python v98_exact_funding_capture_independent_audit.py --self-test
       - name: Never claim exact official capture from synthetic CI
         run: |
           echo 'V98 official markPrice capture requires an authorized network and independently auditable transport provenance.'
