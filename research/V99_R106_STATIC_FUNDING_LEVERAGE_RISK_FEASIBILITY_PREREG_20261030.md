@@ -1,0 +1,15 @@
+# V99 R106 — fixed leverage/risk feasibility of ORIGINAL static funding budget (preregistration 2026-10-30 21:5x BRT)
+
+**One-shot NON-STRATEGY feasibility check; no candidate, no ROI, no validation/holdout, no promotion.** This is a mathematical stress interpretation of the previously preregistered and independently replayed Binance original 44-ZIP funding budget. It must NOT become a posthoc D1/D2 retune or new leveraged carry engine.
+
+## Ex-ante fixed source and formulas
+Use only the already frozen original first-party Binance 2021-12-09..2023-10-01 BTCUSDT/ETHUSDT 50/50 SHORT-PERP published signed funding-rate sums, all 5 chronological folds, and already fixed illustrative four-side fees of 0.0028 severe / 0.0056 supersevere **per fold**. The existing independent 44-ZIP source oracle must reexecute the original bytes in CI before this feasibility computation. No price data, no model parameters, no threshold search, no validation/holdout.
+
+For scenario c, define B_c = sum_{fold=1..5}(0.5 * signed_BTC_rate_sum + 0.5 * signed_ETH_rate_sum - fixed_cost_c). B_c is a *linear constant-notional nominal funding budget*, **NOT a return, NAV, or exchange-certified cash**. For an **illustrative +100 percentage points of initial equity** nominal budget target (not a V99 promotion gate), define the minimum constant gross-notional-to-initial-equity multiple L_c = 1/B_c only if B_c>0. Also compute 35% equity-budget erosion residual adverse basis/hedge error shock S35_c = 0.35/L_c and 100% erosion shock S100_c = 1/L_c. These shocks are pure first-order accounting sensitivities, NOT historical VaR, actual liquidation thresholds, hedge PnL, or executable margin estimates.
+
+Independently report the five signed funding budgets, their scenario cost-adjusted signs, and the weakest fold at that L_c. A negative fold or a very high L is evidence **against** pursuing funding-only high-growth without proven collateral, native funding cash settlement, basis, fees and fills; it is not a proof that all funding strategies fail. Use exact Python decimal arithmetic on original oracle/primary report values where possible; independent implementation must recompute from the oracle's separate original-ZIP-derived fold budgets and reject >1e-10 disagreement.
+
+## Precommitted outcome and safety
+No numerical profitability pass/fail gate is invented after results. **Always SOURCE_ONLY / NO PROMOTION** even if any illustrative target is arithmetically reached. This test never opens validation [2023-10-01,2024-01-18), final holdout >=2024-01-18, paper, Frozen, legacy champion or order code. Native fee tier, fills, collateral, margin and actual settled funding are still missing. If the source ZIP re-execution fails, the check fails closed. No new strategy is authorized by this document.
+
+The I1 option engine independently remains blocked on 658/661 historical executable BTC+ETH option quote days, authorized licensed original bid/ask/size/arrival, fee/margin/settlement terms, and 0/180 certified lifecycles. Do not use reported trade prints as executable quotes.
