@@ -1,0 +1,18 @@
+# V98 NZ — preregistration of complete seven-slot portfolio, 2026-10-30 22:43 BRT
+
+**Independent new candidate, not rescue.** NY and all prior rejected models stay rejected. NZ is a fresh composed-engine hypothesis whose defining change is *module-specific, past-completed shadow-return capital competition*, not a generic market-direction optimizer. No 2025, 2026+, V14/V15/V99 signal/parameter/benchmark read before candidate freeze.
+
+**Data:** pinned authenticated Clean-4 BTC/ETH/BNB/SOL Binance USD-M 1h, 2022-12 warmup, 2023–2024 training only. XRP excluded. 53 decisions at t=744+336k, trade at next hour open t+1. Native 8h funding rates, official signed hourly mark envelope as conservative bound, NOT exact event marks. No backtest may claim exact funding until event marks are authenticated.
+
+**Seven frozen slots:**
+1. Growth Core: rank 336h log returns among assets also positive on 84h. Long best +0.58, second +0.18, if both available; if no eligible and >=3 assets negative on 336h, short BTC -0.55; otherwise cash. No volatility targeting or selection by prior candidate performance.
+2. Opportunity: last-48h quote-volume mean / prior-288h quote-volume mean >1.35; 48h return >+0.025 and 24h return >+0.005; long highest (48h return × volume ratio) +0.16.
+3. Relative Value: 336h log-return dispersion across ETH/BNB/SOL exceeds 0.12; short strongest + long weakest with equal signed 0.11 absolute exposure, i.e. a mean-reverting cross-sectional spread; otherwise cash.
+4. Stress/Recovery: >=3 of 4 assets have negative 168h return and 24h BTC return < -0.03: short BTC -0.14; if >=3 negative 168h but BTC 24h > +0.015 and BTC 168h <-0.04: long BTC +0.14; else cash.
+5. Regime Router: risk-on iff BTC 336h positive and >=2 assets positive 168h; multiply optional sleeves by [1,0.65,0.55] in risk-on and [0.70,1,1] in risk-off.
+6. Dynamic Allocator: **exact preregistered** `v98_causal_shadow_sleeve_allocator`: 4 non-overlapping completed 336h shadow windows from each module's own decision-time raw signal; price-only per-gross log return; 21 past native funding rates; 81 fixed action tuples (0,0.5,1)^4, virtual gross <=0.84, forecast 14d, 50% diagonal covariance shrink, funding 42 events, fee+slippage 0.0006 for decision; when insufficient completed shadow windows only core/cash may be selected. Causal raw history never uses future prices. No rescue parameter changes permitted.
+7. Risk Governor: unchanged causal t-1 all-hour projection, atomic one-way netting, no hidden leverage, gross<=0.84 target, <=0.90 physical, intrabar solvency, funding both settlement orders.
+
+**Binding before any PnL:** source authentication, 53 decision timestamps, no future mutation, 9,144 native event rates, 30 cells (full/core-only/three leave-one-sleeve-out × base/severe/supersevere × carried-before-fill/new-after-fill). Require base CAGR >80%, severe >60%, severe max drawdown <45%, each severe year positive, turnover <=USD600,000 per USD10k initial equity, each optional marginal full-engine log growth >0.02 and no 2023/2024 marginal year < -0.03. All physical invariants must pass. If any fails: permanent reject, no sign/threshold/window/gross rescue. Independent source, 17,543-hour signed settlement, independent fills/tamper, 30-cell arithmetic required. Training pass is provisional, NOT 2025 validation or live authorization.
+
+**Critical limitation:** 2025 has been exposed to previous NO candidate and cannot be called independent for model selection. 2026+ is untouched and forbidden during training. An uncontaminated future validation window and authenticated exact 9,144 markPrice event records remain necessary for final full validation.
