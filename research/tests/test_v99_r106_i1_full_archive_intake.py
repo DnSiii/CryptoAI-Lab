@@ -444,5 +444,63 @@ class FullArchiveIntakeTests(unittest.TestCase):
                 export_books(root)
 
 
+
+class OriginalSyncScalingTests(unittest.TestCase):
+    """Compare both independent algorithms with a brute-force truth oracle."""
+
+    @staticmethod
+    def brute(quotes):
+        return any(
+            left[0] != right[0]
+            and abs(left[1] - right[1]) <= 1_000_000
+            and abs(left[2] - right[2]) <= 1_000_000
+            for i, left in enumerate(quotes)
+            for right in quotes[i+1:]
+        )
+
+    def test_two_clock_bucket_boundaries_and_duplicate_strikes(self):
+        from research.tools.v99_r106_i1_full_archive_intake import synchronized_strikes
+        from research.verification.independent_v99_r106_i1_full_archive_intake import independent_atomic
+        cases = [
+            [(100, 999_999, 999_999), (110, 1_999_999, 1_999_999)],
+            [(100, 999_999, 999_999), (110, 2_000_000, 1_000_000)],
+            [(100, 0, 0), (100, 1, 1), (110, 2, 2)],
+            [(100, 0, 0), (110, 999_999, 1_000_001)],
+            [(100, 0, 0), (110, 1_000_001, 999_999)],
+            [(100, 0, 0), (100, 100, 100), (110, 1_000_000, 1_000_000)],
+            [(100, 0, 0), (100, 900_000, 900_000), (110, 1_900_000, 1_900_000)],
+        ]
+        for quotes in cases:
+            expected = self.brute(quotes)
+            self.assertEqual(synchronized_strikes(quotes), expected, quotes)
+            self.assertEqual(independent_atomic(quotes), expected, quotes)
+
+    def test_independent_randomized_bruteforce_parity(self):
+        import random
+        from research.tools.v99_r106_i1_full_archive_intake import synchronized_strikes
+        from research.verification.independent_v99_r106_i1_full_archive_intake import independent_atomic
+        rng = random.Random(99106)
+        for _ in range(400):
+            quotes = [
+                (rng.randrange(6), rng.randrange(0, 9_000_000),
+                 rng.randrange(0, 9_000_000))
+                for _ in range(rng.randrange(2, 32))
+            ]
+            expected = self.brute(quotes)
+            self.assertEqual(synchronized_strikes(quotes), expected)
+            self.assertEqual(independent_atomic(quotes), expected)
+
+    def test_large_sparse_original_strike_universe(self):
+        from research.tools.v99_r106_i1_full_archive_intake import synchronized_strikes
+        from research.verification.independent_v99_r106_i1_full_archive_intake import independent_atomic
+        quotes = [(i, 2_000_003 * i, 2_000_003 * i) for i in range(8000)]
+        self.assertFalse(synchronized_strikes(quotes))
+        self.assertFalse(independent_atomic(quotes))
+        quotes.append((9001, 2_000_003 * 5000 + 1_000_000,
+                       2_000_003 * 5000 + 1_000_000))
+        self.assertTrue(synchronized_strikes(quotes))
+        self.assertTrue(independent_atomic(quotes))
+
+
 if __name__=="__main__":
     unittest.main()
