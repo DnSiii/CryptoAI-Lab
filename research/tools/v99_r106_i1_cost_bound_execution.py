@@ -60,6 +60,8 @@ def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
         return
     if any((original_fee_verified, native_contract_verified,
             margin_rules_verified, original_quote_verified)):
+        if attestation is None:
+            raise ValueError("HISTORICAL_SOURCE_RECEIPTS_REQUIRE_INDEPENDENT_ATTESTATION")
         raise ValueError("UNTRUSTED_SOURCE_GATE_FLAGS")
     if attestation is None or wallet is None or event_data is None:
         raise ValueError("HISTORICAL_SOURCE_RECEIPTS_REQUIRE_INDEPENDENT_ATTESTATION")
