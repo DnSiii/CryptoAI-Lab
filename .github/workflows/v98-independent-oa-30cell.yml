@@ -1,0 +1,111 @@
+name: V98 OA Weekly State-Transition Complete Seven-Slot 30-Cell Physical + Independent Gates
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-oa-30cell.yml'
+      - 'research/v98_independent/oa_*.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  oa-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned authenticated Clean-4 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Source-only and causal synthetic gates before PnL
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile oa_sources.py oa_intents.py oa_source_gate.py oa_30cell_physical.py oa_hourly_oracle_gate.py oa_independent_fill_oracle.py oa_independent_receipt_arithmetic_audit.py oa_independent_source_oracle.py
+          python oa_sources.py
+          python oa_intents.py
+          python oa_source_gate.py --root ../../official-input --output oa_source_receipt.json
+          python oa_independent_source_oracle.py --root ../../official-input --output oa_independent_source_receipt.json
+      - name: Run preregistered OA 30-cell signed physical training
+        id: physical
+        continue-on-error: true
+        working-directory: research/v98_independent
+        run: |
+          python oa_30cell_physical.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output oa_30cell_receipt.json --ledger-output oa_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed settlement
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s oa_30cell_receipt.json && test -s oa_base_full_hourly_forensic.jsonl; then
+            python oa_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl oa_base_full_hourly_forensic.jsonl --receipt oa_30cell_receipt.json --output oa_independent_hourly_receipt.json
+          else
+            echo "NO_COMPLETE_OA_LEDGER_FOR_INDEPENDENT_SETTLEMENT"
+          fi
+      - name: Independently reconstruct net physical fills and tamper detection
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s oa_base_full_hourly_forensic.jsonl; then
+            python oa_independent_fill_oracle.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl oa_base_full_hourly_forensic.jsonl --output oa_independent_fill_receipt.json
+          else
+            echo "NO_COMPLETE_OA_LEDGER_FOR_INDEPENDENT_FILLS"
+          fi
+      - name: Independent 30-cell arithmetic and economic gate
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s oa_30cell_receipt.json; then
+            python oa_independent_receipt_arithmetic_audit.py --receipt oa_30cell_receipt.json > oa_independent_arithmetic_receipt.json
+            cat oa_independent_arithmetic_receipt.json
+          else
+            echo "NO_OA_RECEIPT_FOR_ARITHMETIC_AUDIT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-oa-original-${{ github.run_id }}
+          path: |
+            research/v98_independent/oa_source_receipt.json
+            research/v98_independent/oa_independent_source_receipt.json
+            research/v98_independent/oa_30cell_receipt.json
+            research/v98_independent/oa_independent_hourly_receipt.json
+            research/v98_independent/oa_independent_fill_receipt.json
+            research/v98_independent/oa_independent_arithmetic_receipt.json
+            research/v98_independent/oa_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Economic gate is binding; no false completion
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('oa_30cell_receipt.json')
+          if not p.exists():raise SystemExit('OA_MISSING_PHYSICAL_RECEIPT')
+          r=json.loads(p.read_text())
+          print('OA_ORIGINAL_DECISION',r['decision'])
+          print('OA_GATE_FAILURES',r['gate_failures'])
+          if r['decision']!='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED':
+              raise SystemExit('OA_REJECTED_NO_PROMOTION')
+          if not Path('oa_independent_source_receipt.json').exists() or not Path('oa_independent_hourly_receipt.json').exists() or not Path('oa_independent_fill_receipt.json').exists() or not Path('oa_independent_arithmetic_receipt.json').exists():
+              raise SystemExit('OA_MISSING_INDEPENDENT_EVIDENCE')
+          print('OA_PROVISIONAL_TRAINING_ONLY_NOT_INDEPENDENT_VALIDATION')
+          PY
