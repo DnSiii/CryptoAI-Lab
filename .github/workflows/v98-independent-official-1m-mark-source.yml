@@ -1,0 +1,92 @@
+name: V98 Independent Official One-Minute Mark Envelope Source Audit (Not Tick or PnL)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-official-1m-mark-source.yml'
+      - 'research/v98_independent/v98_official_1m_mark_envelope.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  sample-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Offline fail-closed tests and BTC January 2023 source proof
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_official_1m_mark_envelope.py
+          python v98_official_1m_mark_envelope.py --self-test
+          python v98_official_1m_mark_envelope.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --symbol BTCUSDT --mode sample --output v98_1m_btc_sample_receipt.json --bounds-csv v98_1m_btc_sample_bounds.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-1m-btc-source-sample-${{ github.run_id }}
+          path: |
+            research/v98_independent/v98_1m_btc_sample_receipt.json
+            research/v98_independent/v98_1m_btc_sample_bounds.csv
+          retention-days: 30
+          if-no-files-found: warn
+  full-clean4-source:
+    needs: sample-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        symbol: [BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Full historical source audit for one Clean-4 asset (no PnL)
+        working-directory: research/v98_independent
+        run: |
+          python v98_official_1m_mark_envelope.py --self-test
+          python v98_official_1m_mark_envelope.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --symbol ${{ matrix.symbol }} --mode full --output v98_1m_${{ matrix.symbol }}_full_receipt.json --bounds-csv v98_1m_${{ matrix.symbol }}_full_bounds.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-1m-${{ matrix.symbol }}-full-source-${{ github.run_id }}
+          path: |
+            research/v98_independent/v98_1m_${{ matrix.symbol }}_full_receipt.json
+            research/v98_independent/v98_1m_${{ matrix.symbol }}_full_bounds.csv
+          retention-days: 30
+          if-no-files-found: warn
