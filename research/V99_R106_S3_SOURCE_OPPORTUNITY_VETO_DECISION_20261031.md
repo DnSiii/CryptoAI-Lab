@@ -1,0 +1,19 @@
+# V99 R106 S3 — independent original-source opportunity veto (2026-10-31)
+
+**Decision: OPPORTUNITY_VETO_NO_ECONOMIC_TRIAL. S3 is not a viable candidate under its preregistered rules. NO RETUNE, NO PROMOTION.** This records an already-executed original-source preflight, not a new strategy, economic backtest, native fill certification, or ROI.
+
+## Recovered original-source result and independent replay
+
+- Ex-ante source-only preregistration: `research/V99_R106_S3_BASIS_CARRY_SOURCE_FEASIBILITY_PREREG_20261030.md`, commit `f7735d68c239c908a4e6cdc960d4e01de63f06a8`, independently checked as ancestor by the actual CI.
+- Original first-party OKX TRAIN four-leg archive: [Actions 40019588739](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40019588739), 15,864 hourly opens per BTC/ETH spot and perpetual leg, TRAIN [2021-12-09,2023-10-01). These opens are **not** executable bid/ask quotes or historical fills.
+- Actual [Actions 40999189733](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40999189733), job `123879345877`, SUCCESS on 2026-10-30 00:46 BRT: downloaded and independently verified original source, ran the fixed preregistered 290-bps positive-premium opportunity screen, and separately reparsed original bytes and recomputed 631 daily decisions, folds, regime counts and trace SHA. Independent oracle reported `INDEPENDENT_ORIGINAL_TRAIN_FEASIBILITY_REPLAY_PASS`. Artifact `12952711848` contains the source-only report.
+- **Observed 631/631 daily decision times** after the fixed 720h warmup; **0 eligible unique days**, **BTC 0, ETH 0**, five-fold counts **[0,0,0,0,0]**. Largest indicative t-1 spot/perp premium: BTC **0.0004930103117481988** (0.0493010%); ETH **0.0014510448161904055** (0.1451045%). The ex-ante minimum was **0.029 (2.90%)**, about **20 times** the largest observed ETH indicative premium. These are raw price-ratio maxima, not realizable net spreads.
+- S3's hard prerequisite was >=4/5 folds with any qualifying observation. **Actual 0/5**. Therefore there is no permissible S3 economic experiment, regardless of potential native fees or funding; no position, NAV, ROI or execution was computed.
+
+## Avoid duplicate or misleading work
+
+Earlier, separately preregistered F1 already found **0 eligible daily dates** at *less restrictive* 0.48% severe and 0.96% supersevere basis hurdles on the same original four-leg source ([Actions 40041899186](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/40041899186)). S3's stricter 2.90% hurdle, subset daily decision calendar and identical source class cannot rescue this positive-basis mechanism. Do **not** relabel S3 as a new complete engine, relax its threshold, scan alternative intraday clocks after seeing results, or reopen F1/D1/D2. S3 is a **source/opportunity veto**, not a claim that all carry mechanisms or all intraday opportunities are impossible.
+
+This evidence also explains why another price-only serial trial is not justified without an independently identified, economically distinct mechanism with original first-party coverage, dated native costs, funding where relevant, executable depth/slippage assumptions and a full independently replayed portfolio. The options I1 path remains externally blocked by an authorized 2021-12-09..2023-09-30 BTC+ETH original full-universe historical options BBO/size/venue+arrival clock archive (658/661 days absent), written license and gap attestation, dated contract/fee/margin/delivery terms and independent size-aware execution simulation. A legally usable **one-day** original archive sample plus entitlement/digest is the procurement preflight; an independently licensed equivalent provider is acceptable. **0/180 I1 lifecycles economically certified**.
+
+All sealed validation [2023-10-01,2024-01-18), final holdout >=2024-01-18, V16/V99 Frozen, paper/results, legacy champion and live-order interfaces remain out of scope. **NO ECONOMIC PROMOTION / NO ORDERS / NO CERTIFIED PNL.**
