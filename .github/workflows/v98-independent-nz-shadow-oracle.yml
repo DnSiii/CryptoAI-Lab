@@ -1,0 +1,37 @@
+name: V98 NZ Independent 53-Decision Shadow and Allocation Oracle (No PnL)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-nz-shadow-oracle.yml'
+      - 'research/v98_independent/nz_independent_allocator_replay.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  independent-nz-shadow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Independent raw source and 53-decision allocator replay
+        working-directory: research/v98_independent
+        run: |
+          python nz_independent_allocator_replay.py --root ../../official-input --output nz_independent_allocator_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-nz-independent-shadow-${{ github.run_id }}
+          path: research/v98_independent/nz_independent_allocator_receipt.json
+          retention-days: 30
