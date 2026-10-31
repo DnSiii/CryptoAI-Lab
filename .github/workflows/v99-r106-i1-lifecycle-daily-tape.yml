@@ -5,6 +5,7 @@ on:
     paths:
       - research/tools/v99_r106_i1_lifecycle_daily_tape.py
       - research/verification/independent_v99_r106_i1_lifecycle_daily_oracle.py
+      - research/tests/test_v99_r106_i1_causal_pair_scaling.py
       - .github/workflows/v99-r106-i1-lifecycle-daily-tape.yml
   workflow_dispatch:
 permissions:
@@ -33,6 +34,8 @@ jobs:
           test -s research/V99_R106_I1_EXECUTABLE_TENOR_AND_STRIKE_SOURCE_ALIGNMENT_PREREG_20261027.md
           git merge-base --is-ancestor d1a132ea7516c35f0b03a8767474976d29847a9c HEAD
           test -s research/V99_R106_I1_LIVE_CHAIN_VS_FIXED_TENOR_SOURCE_COVERAGE_PREREG_20261029.md
+      - name: Verify causal two-clock sweep against quadratic reference and 6000 strikes (synthetic)
+        run: python -m unittest -v research.tests.test_v99_r106_i1_causal_pair_scaling
       - name: Exercise 661-day streaming lifecycle contract with explicit SYNTHETIC data
         run: |
           python - <<'PY'
