@@ -1,0 +1,24 @@
+name: V98 Independent OX Frozen Economic Receipt Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/ox_receipt_independent_gate.py'
+      - 'research/v98_independent/ox_full_training_frozen_result_20261031.json'
+      - '.github/workflows/v98-independent-ox-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ox-frozen-independent-audit:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - name: Recompute OX frozen economics and gates independently
+        working-directory: research/v98_independent
+        run: python ox_receipt_independent_gate.py ox_full_training_frozen_result_20261031.json
