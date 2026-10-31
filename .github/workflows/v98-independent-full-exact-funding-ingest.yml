@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/v98_independent/v98_exact_funding_full_history_ingest.py'
       - 'research/v98_independent/v98_exact_funding_full_history_capture.py'
+      - 'research/v98_independent/v98_exact_funding_full_history_capture_audit.py'
       - '.github/workflows/v98-independent-full-exact-funding-ingest.yml'
   workflow_dispatch:
 permissions:
@@ -29,3 +30,4 @@ jobs:
           python v98_exact_funding_full_history_ingest.py --self-test
           python v98_exact_funding_full_history_capture.py --self-test
           python v98_exact_funding_full_history_capture.py --dry-run
+          python v98_exact_funding_full_history_capture_audit.py --self-test
