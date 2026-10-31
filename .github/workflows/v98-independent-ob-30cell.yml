@@ -3,14 +3,14 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-nz-30cell.yml'
+      - '.github/workflows/v98-independent-ob-30cell.yml'
       - 'research/v98_independent/ob_*.py'
   workflow_dispatch:
 permissions:
   actions: read
   contents: read
 jobs:
-  nz-physical:
+  ob-physical:
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
