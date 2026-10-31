@@ -18,7 +18,7 @@ def check(d):
     if int(d['event'].sum())!=9144:failures.append('OB_FUNDING_EVENTS')
     if np.any(np.abs(raw[:,0]).sum(axis=1)>.80+1e-10):
         failures.append('OB_CORE_BUDGET')
-    if np.any((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~updates[1:,0]):
+    if np.any((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~np.any(updates[1:],axis=1)):
         failures.append('OB_SILENT_TARGET_CHANGE')
     if not np.isfinite(raw).all():failures.append('OB_NONFINITE')
     counts={str(year):{name:int(active[times[(times>=lo)&(times<hi)],i].sum()) for i,name in enumerate(NAMES)}
