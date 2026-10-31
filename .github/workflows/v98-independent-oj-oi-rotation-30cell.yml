@@ -3,14 +3,14 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-oh-oi-rotation-30cell.yml'
+      - '.github/workflows/v98-independent-oj-oi-rotation-30cell.yml'
       - 'research/v98_independent/oj_*.py'
   workflow_dispatch:
 permissions:
   actions: read
   contents: read
 jobs:
-  oh-physical:
+  oj-physical:
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
