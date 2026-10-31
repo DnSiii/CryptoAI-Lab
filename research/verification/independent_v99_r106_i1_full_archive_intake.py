@@ -111,6 +111,29 @@ def independently_check_historical_ticks(native_record, when, prices):
         return False
 
 
+
+def independent_atomic(ticks):
+    """Independent raw-byte replay: exact two-clock pair in neighboring cells.
+
+    Event-clock coordinate is deliberately the primary key, unlike the
+    production arrival-first grouping. Check exact timestamps and strikes
+    after bucket lookup to avoid boundary false positives.
+    """
+    by_event_arrival = defaultdict(list)
+    for strike, arrival, event in ticks:
+        event_cell, arrival_cell = event // 1_000_000, arrival // 1_000_000
+        for event_neighbor in range(event_cell-1, event_cell+2):
+            for arrival_neighbor in range(arrival_cell-1, arrival_cell+2):
+                for prior in by_event_arrival.get((event_neighbor, arrival_neighbor), ()):
+                    if (prior[0] != strike
+                            and abs(prior[1] - arrival) <= 1_000_000
+                            and abs(prior[2] - event) <= 1_000_000):
+                        return True
+        by_event_arrival[(event_cell, arrival_cell)].append(
+            (strike, arrival, event))
+    return False
+
+
 def audit(root, output):
     root=Path(root)
     report=json.loads(Path(output).read_text())
@@ -218,9 +241,7 @@ def audit(root, output):
             computed[str(f)][asset]+=int(ok)
             # Separate independent replay of the predeclared <=1s
             # two-leg arrival AND exchange-event simultaneity requirement.
-            atomic=any(a==asset and any(
-                x[0]!=y[0] and max(abs(x[1]-y[1]),abs(x[2]-y[2]))<=1_000_000
-                for n,x in enumerate(q) for y in q[n+1:])
+            atomic=any(a==asset and independent_atomic(q)
                 for (a,_),q in timed.items())
             assert expected["synchronized_"+asset] == atomic, (
                 "INDEPENDENT_SYNCHRONIZED_WEEK_MISMATCH")
