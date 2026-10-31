@@ -135,7 +135,8 @@ def physical(d,targets,book,tier,order,record=False):
     for t in range(WARMUP+1,HOURS):
         before=nav
         px=d["o"][t]; close=d["c"][t]; previous=d["c"][t-1]
-        nav+=float(np.sum(qty*(px-previous)))
+        gap_cash=float(np.sum(qty*(px-previous)))
+        nav+=gap_cash
         if not math.isfinite(nav) or nav<=0:return reject("INSOLVENT_OPEN",t)
         pre_gross=float(np.sum(np.abs(qty)*px))
         pre_net=float(np.sum(np.abs(qty.sum(axis=0))*px))
@@ -189,7 +190,7 @@ def physical(d,targets,book,tier,order,record=False):
         if record:
             ledger.append((t,before,nav,cash,float(plan["fees"] if plan else 0.),
                            float(plan["slippage"] if plan else 0.),
-                           qty.copy(),float(np.sum(qty*(px-previous)))))
+                           qty.copy(),gap_cash))
         equity_path.append(nav);hour_changes.append(nav-before)
         if t in YEAREND:
             y=YEAREND[t];annual[y]=nav/annual_start[y]-1
