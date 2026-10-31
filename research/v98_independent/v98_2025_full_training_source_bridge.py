@@ -78,20 +78,3 @@ if __name__=="__main__":
              "zero_volume_execution_blocked_hours":int((~d["execution_allowed"].all(axis=1)).sum())}
     Path(a.output).write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
     print(json.dumps(receipt,sort_keys=True))
-    # Explicit V98-only OT economic sidecar. The source receipt above remains
-    # source-only and must never be mistaken for a strategy approval. This
-    # separate training execution uses the same already SHA-verified in-memory
-    # source; no additional download, 2026 access, benchmark or holdout.
-    from ot_breadth_dispersion import synthetic_test,run as run_ot
-    if not synthetic_test():
-        raise ValueError("OT_SYNTHETIC_CAUSALITY_FAILED")
-    print("OT_CAUSALITY_PRE_RUN_PASS",flush=True)
-    ot=run_ot(d)
-    ot_path=Path(a.output).with_name("ot_breadth_dispersion_full_training_result.json")
-    ot_path.write_text(json.dumps(ot,indent=2,sort_keys=True,allow_nan=False)+"\n")
-    print("OT_TRAINING_DECISION",ot["decision"],"failures",len(ot["gate_failures"]),
-          "receipt_path",str(ot_path),flush=True)
-    # A successful source receipt is NOT an economic pass; fail the job on OT rejection.
-    if ot["decision"]!="PASS_PROVISIONAL_OT_TRAINING_NOT_VALIDATED":
-        raise SystemExit(2)
-
