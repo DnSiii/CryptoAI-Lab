@@ -67,6 +67,9 @@ def scan_day(path: Path, day: date) -> dict:
             return None
         return parts[0], expiry, strike
 
+    # Bind the validated decompressed rows to the exact compressed source bytes.
+    # A single digest taken only after parsing could attest to a swapped file.
+    original_sha = sha256(path)
     try:
         with gzip.open(path, "rt", newline="", encoding="utf-8") as stream:
             reader = csv.DictReader(stream)
@@ -119,13 +122,16 @@ def scan_day(path: Path, day: date) -> dict:
         if n == 0:
             raise ValueError("MISSING_QUALIFYING_ORIGINAL_PUT_QUOTES:"
                              + day.isoformat() + ":" + asset)
+    final_sha = sha256(path)
+    if final_sha != original_sha:
+        raise ValueError("ORIGINAL_DAY_CHANGED_DURING_SCAN:" + day.isoformat())
     return {"date": day.isoformat(), "file": path.name,
             "descriptive_28_45d_put_quote_rows_by_asset": entry_tenor_28_45_rows,
             "qualifying_original_put_arrival_hours_by_asset": {
                 asset: mask.bit_count() for asset, mask in qualifying_hour_masks.items()},
             "qualifying_original_put_arrival_hour_masks_by_asset": {
                 asset: format(mask, "024b") for asset, mask in qualifying_hour_masks.items()},
-            "sha256": sha256(path), "rows": count,
+            "sha256": final_sha, "rows": count,
             "qualifying_original_put_quote_rows_by_asset": qualifying_puts,
             "live_original_put_quote_rows_by_asset": live_puts,
             "live_original_put_arrival_hours_by_asset": {
