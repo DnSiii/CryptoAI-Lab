@@ -139,6 +139,30 @@ def historical_price_grid_ok(meta, decision, bid, ask):
         return False
 
 
+
+def synchronized_strikes(quotes):
+    """Exact <=1s two-clock, distinct-strike test using microsecond buckets.
+
+    Latest-per-symbol rows usually give one quote per strike. Bucket indexing
+    avoids scanning every strike pair on dense historical option chains.
+    All neighboring cells are checked against *exact* microseconds; adjacent
+    buckets alone never imply a synchronized pair. Duplicates remain correct.
+    """
+    cells = defaultdict(list)
+    window = 1_000_000
+    for strike, arrival, event in quotes:
+        a, e = arrival // window, event // window
+        for ai in (a-1, a, a+1):
+            for ei in (e-1, e, e+1):
+                for other_strike, other_arrival, other_event in cells.get((ai, ei), ()):
+                    if (other_strike != strike
+                            and abs(other_arrival-arrival) <= window
+                            and abs(other_event-event) <= window):
+                        return True
+        cells[(a, e)].append((strike, arrival, event))
+    return False
+
+
 def evaluate(root):
     root = Path(root)
     manifest = json.loads((root/"manifest.json").read_text(encoding="utf-8"))
@@ -249,12 +273,7 @@ def evaluate(root):
             good[asset] = any(a == asset and len(s) >= 2
                               for (a,_),s in strikes.items())
             synchronized[asset] = any(
-                a == asset and any(
-                    left[0] != right[0]
-                    and abs(left[1]-right[1]) <= 1_000_000
-                    and abs(left[2]-right[2]) <= 1_000_000
-                    for i,left in enumerate(rows)
-                    for right in rows[i+1:])
+                a == asset and synchronized_strikes(rows)
                 for (a,_),rows in timed.items())
             folds[str(fold)][asset] += int(good[asset])
             synchronized_folds[str(fold)][asset] += int(synchronized[asset])
