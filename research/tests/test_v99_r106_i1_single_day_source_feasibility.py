@@ -4,13 +4,16 @@ from __future__ import annotations
 import csv
 import gzip
 import hashlib
+import random
 import tempfile
 import unittest
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
-from research.tools.v99_r106_i1_single_day_source_feasibility import inspect
+from research.tools.v99_r106_i1_single_day_source_feasibility import inspect, _pair_counts
+from research.verification.independent_v99_r106_i1_single_day_source import _synchronized_pairs
 
 DAY = datetime(2022, 1, 23, tzinfo=timezone.utc)
 FIELDS = ("exchange", "symbol", "timestamp", "local_timestamp",
@@ -62,6 +65,65 @@ class OneDaySourceFeasibilityTests(unittest.TestCase):
             writer.writeheader()
             writer.writerows(rows)
         return hashlib.sha256(self.path.read_bytes()).hexdigest()
+
+    def test_indexed_counters_match_bruteforce_on_boundary_and_duplicate_strikes(self):
+        rng = random.Random(20261031)
+        books = {"BTC": [], "ETH": []}
+        for asset in ("BTC", "ETH"):
+            for expiry in (1000, 2000, 3000):
+                rows = []
+                for i in range(170):
+                    # Decimal-identical strikes may have distinct string forms.
+                    k = rng.randrange(60)
+                    strike = str(k) if i % 2 else str(k) + ".0"
+                    rows.append({
+                        "expiry_ms": expiry, "strike_usd": strike,
+                        "arrival_us": rng.randrange(0, 3_000_001),
+                        "venue_us": rng.randrange(0, 3_000_001),
+                    })
+                # Exact inclusive 1-second boundaries in both clock axes.
+                rows.extend([
+                    {"expiry_ms": expiry, "strike_usd": "900",
+                     "arrival_us": 5_000_000, "venue_us": 5_000_000},
+                    {"expiry_ms": expiry, "strike_usd": "901",
+                     "arrival_us": 6_000_000, "venue_us": 6_000_000},
+                    {"expiry_ms": expiry, "strike_usd": "902",
+                     "arrival_us": 6_000_001, "venue_us": 6_000_001},
+                ])
+                rng.shuffle(rows)
+                books[asset].extend(rows)
+        expected = {}
+        for asset in ("BTC", "ETH"):
+            total = 0
+            for expiry in (1000, 2000, 3000):
+                rows = [r for r in books[asset] if r["expiry_ms"] == expiry]
+                brute = sum(
+                    Decimal(a["strike_usd"]) != Decimal(b["strike_usd"])
+                    and abs(a["arrival_us"] - b["arrival_us"]) <= 1_000_000
+                    and abs(a["venue_us"] - b["venue_us"]) <= 1_000_000
+                    for i, a in enumerate(rows) for b in rows[i+1:]
+                )
+                independent = _synchronized_pairs([
+                    (Decimal(r["strike_usd"]), r["venue_us"], r["arrival_us"])
+                    for r in rows
+                ])
+                self.assertEqual(independent, brute)
+                total += brute
+            expected[asset] = total
+        self.assertEqual(_pair_counts(books), expected)
+
+    def test_6000_dense_original_strikes_count_without_quadratic_enumeration(self):
+        n = 6000
+        rows = [{"expiry_ms": 1000, "strike_usd": str(i),
+                 "arrival_us": 10_000_000, "venue_us": 10_000_000}
+                for i in range(n)]
+        expected = n * (n - 1) // 2
+        self.assertEqual(_pair_counts({"BTC": rows, "ETH": []}),
+                         {"BTC": expected, "ETH": 0})
+        self.assertEqual(_synchronized_pairs([
+            (Decimal(r["strike_usd"]), r["venue_us"], r["arrival_us"])
+            for r in rows
+        ]), expected)
 
     def test_fixed_day_two_assets_independent_source_only(self):
         digest = self.write(source())
