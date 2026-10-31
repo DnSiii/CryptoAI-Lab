@@ -1,0 +1,41 @@
+name: V98 Independent OI Causal Window Coverage Source-Only Mask Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-oi-causal-window-mask.yml'
+      - 'research/v98_independent/v98_oi_causal_window_mask_gate.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  oi-causal-mask:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Download SHA-attested native OI v2 source, 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-oi-clean4-2022-2024-v2-source-only
+          run-id: 40477513000
+          github-token: ${{ github.token }}
+          path: frozen-oi
+      - name: Independently audit original OI provenance and construct causal availability windows
+        run: |
+          python -m py_compile research/v98_independent/v98_oi_causal_window_mask_gate.py
+          python research/v98_independent/v98_oi_causal_window_mask_gate.py --root frozen-oi --output v98_oi_causal_window_mask_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-oi-causal-window-mask-${{ github.run_id }}
+          path: v98_oi_causal_window_mask_receipt.json
+          retention-days: 30
+          if-no-files-found: error
