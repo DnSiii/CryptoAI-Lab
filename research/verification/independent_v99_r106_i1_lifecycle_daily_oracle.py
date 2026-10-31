@@ -10,6 +10,8 @@ import hashlib
 import json
 import math
 import sys
+from bisect import bisect_left, bisect_right, insort
+from collections import defaultdict, deque
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -18,6 +20,35 @@ START = date(2021, 12, 9)
 STOP = date(2023, 10, 1)
 FIELDS = ("exchange", "symbol", "timestamp", "local_timestamp",
           "bid_price", "ask_price", "bid_amount", "ask_amount")
+
+
+
+def _has_causal_pair_independent(records) -> bool:
+    """Independent venue-ordered sweep; unlike primary, index arrival clocks.
+
+    This is an existence test only. Never certifies fills, lifecycle, or PnL.
+    """
+    active = deque()
+    arrivals = []
+    own_arrivals = defaultdict(list)
+    for arrival, venue, strike in sorted(records, key=lambda r: (r[1], r[0], r[2])):
+        while active and venue - active[0][1] > 1_000_000:
+            old_arrival, old_venue, old_strike = active.popleft()
+            arrivals.pop(bisect_left(arrivals, old_arrival))
+            own = own_arrivals[old_strike]
+            own.pop(bisect_left(own, old_arrival))
+            if not own:
+                del own_arrivals[old_strike]
+        lower, upper = arrival - 1_000_000, arrival + 1_000_000
+        all_count = bisect_right(arrivals, upper) - bisect_left(arrivals, lower)
+        own = own_arrivals.get(strike, ())
+        own_count = bisect_right(own, upper) - bisect_left(own, lower)
+        if all_count > own_count:
+            return True
+        insort(arrivals, arrival)
+        insort(own_arrivals[strike], arrival)
+        active.append((arrival, venue, strike))
+    return False
 
 
 def _independent_days(root: Path):
@@ -168,21 +199,14 @@ def _independent_days(root: Path):
 
     causal = set()
     for (m, asset, expiry), symbols in exact_symbols.items():
-        for i, a in enumerate(symbols):
-            qa = entry_quotes.get((m, asset, expiry, a))
-            if qa is None:
-                continue
-            for b in symbols[i + 1:]:
-                qb = entry_quotes.get((m, asset, expiry, b))
-                if (qb is not None and numeric_strike(a) is not None
-                        and numeric_strike(b) is not None
-                        and numeric_strike(a) != numeric_strike(b)
-                        and abs(qa[0] - qb[0]) <= 1_000_000
-                        and abs(qa[1] - qb[1]) <= 1_000_000):
-                    causal.add((m, asset))
-                    break
-            if (m, asset) in causal:
-                break
+        observations = []
+        for symbol in symbols:
+            q = entry_quotes.get((m, asset, expiry, symbol))
+            strike = numeric_strike(symbol)
+            if q is not None and strike is not None:
+                observations.append((q[1], q[0], strike))
+        if _has_causal_pair_independent(observations):
+            causal.add((m, asset))
     pairs = {(m, asset) for (m, asset, expiry), symbols in exact_symbols.items()
              if len({numeric_strike(s) for s in symbols
                      if numeric_strike(s) is not None}) >= 2}
