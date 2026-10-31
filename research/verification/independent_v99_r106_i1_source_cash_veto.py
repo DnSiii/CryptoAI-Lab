@@ -10,6 +10,26 @@ def verify(books, journal, report):
             "original_options_economic_train_certified", "promotion_authorized",
             "validation_opened", "holdout_opened", "orders_enabled")):
         raise AssertionError("ORACLE_SOURCE_VETO_FORGED_CERTIFICATION")
+    # Independent negative control: source-only attestations cannot smuggle
+    # economic certification, sealed-data access or order permissions.
+    book_unsafe = (
+        "original_underlying_index_authenticated", "original_native_lot_units_authenticated",
+        "historical_fee_margin_delivery_authenticated", "original_execution_or_fills_certified",
+        "economic_train_executed", "freeze_authorized", "promotion_authorized",
+        "validation_opened", "holdout_opened", "orders_enabled",
+        "paper_publication_authorized",
+    )
+    journal_unsafe = (
+        "promotion_authorized", "freeze_authorized", "validation_opened",
+        "holdout_opened", "orders_enabled", "paper_publication_authorized",
+        "original_options_economic_train_certified",
+        "original_historical_economic_train_executed",
+        "independent_original_trade_replay_verified",
+    )
+    if (any(books.get(k) is not False for k in book_unsafe)
+            or journal.get("fixture") is not False
+            or any(k in journal and journal[k] is not False for k in journal_unsafe)):
+        raise AssertionError("ORACLE_SOURCE_VETO_UNSAFE_INPUT_CERTIFICATION")
     raw = books.get("rows", [])
     if len(raw) != 180:
         raise AssertionError("ORACLE_SOURCE_VETO_MISSING_GRID")
