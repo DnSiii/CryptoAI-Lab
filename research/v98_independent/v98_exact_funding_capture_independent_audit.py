@@ -131,7 +131,7 @@ def self_test()->dict:
                 raw=json.dumps(chunk,separators=(",",":")).encode()
                 name=f"{symbol}_page_{j//1000+1:03d}.json"
                 (root/name).write_bytes(raw)
-                url=(ENDPOINT+f"?symbol={symbol}&startTime={chunk[0]['fundingTime']}"
+                url=(ENDPOINT+f"?symbol={symbol}&startTime={FIRST if j==0 else rows[j-1]['fundingTime']+1}"
                      +f"&endTime={LAST+60000}&limit=1000")
                 pages.append({"page":j//1000+1,"request_url":url,
                               "request_utc":"2026-10-31T00:00:00Z",
