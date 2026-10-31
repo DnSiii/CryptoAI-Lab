@@ -11,6 +11,8 @@ import hashlib
 import json
 import math
 import sys
+from bisect import bisect_left, bisect_right, insort
+from collections import deque, defaultdict
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -61,6 +63,37 @@ def _economic_strike(symbol: str) -> Decimal | None:
     except (InvalidOperation, ValueError, TypeError, IndexError):
         return None
     return strike if strike.is_finite() and strike > 0 else None
+
+
+
+def _has_causal_pair(records) -> bool:
+    """Exact <=1s two-clock distinct-numeric-strike existence, arrival sweep.
+
+    records: (arrival_us, venue_us, Decimal strike), from original eligible
+    last-receipt Sunday books and independently proven held contracts only.
+    No price, execution or market provenance inferred.
+    """
+    window = deque()
+    venues = []
+    by_strike = defaultdict(list)
+    for arrival, venue, strike in sorted(records):
+        while window and arrival - window[0][0] > 1_000_000:
+            old_arrival, old_venue, old_strike = window.popleft()
+            venues.pop(bisect_left(venues, old_venue))
+            own = by_strike[old_strike]
+            own.pop(bisect_left(own, old_venue))
+            if not own:
+                del by_strike[old_strike]
+        lo, hi = venue - 1_000_000, venue + 1_000_000
+        total = bisect_right(venues, hi) - bisect_left(venues, lo)
+        same = by_strike.get(strike, ())
+        same_count = bisect_right(same, hi) - bisect_left(same, lo)
+        if total > same_count:
+            return True
+        insort(venues, venue)
+        insort(by_strike[strike], venue)
+        window.append((arrival, venue, strike))
+    return False
 
 
 def audit(root: Path) -> dict:
@@ -210,21 +243,14 @@ def audit(root: Path) -> dict:
             full_contract_symbols.setdefault(key, []).append(symbol)
     causal_pairs = set()
     for (entry, asset, expiry), symbols in full_contract_symbols.items():
-        for i, a in enumerate(symbols):
-            qa = latest_entry_quote.get((entry, asset, expiry, a))
-            if qa is None:
-                continue
-            for b in symbols[i + 1:]:
-                qb = latest_entry_quote.get((entry, asset, expiry, b))
-                if (qb is not None and _economic_strike(a) is not None
-                        and _economic_strike(b) is not None
-                        and _economic_strike(a) != _economic_strike(b)
-                        and abs(qa[0] - qb[0]) <= 1_000_000
-                        and abs(qa[1] - qb[1]) <= 1_000_000):
-                    causal_pairs.add((entry, asset))
-                    break
-            if (entry, asset) in causal_pairs:
-                break
+        records = []
+        for symbol in symbols:
+            q = latest_entry_quote.get((entry, asset, expiry, symbol))
+            strike = _economic_strike(symbol)
+            if q is not None and strike is not None:
+                records.append((q[1], q[0], strike))
+        if _has_causal_pair(records):
+            causal_pairs.add((entry, asset))
     continuous_pairs = {
         (entry, asset) for (entry, asset, expiry), symbols in full_contract_symbols.items()
         if len({_economic_strike(s) for s in symbols
