@@ -60,6 +60,9 @@ def load(old_root,old_envelope,new_root,corrected_root):
         or not np.all(np.isfinite(full["mark_lower"][full["event"]]))
         or not np.all(np.isfinite(full["mark_upper"][full["event"]]))):
         raise ValueError("V98_BRIDGE_FULL_CHRONOLOGY_OR_EVENTS")
+    # A source hour with zero traded quote volume cannot support a physical fill.
+    # 2024-10-28 20:00 UTC has zero volume for all four Clean-4 assets.
+    full["execution_allowed"]=full["q"]>0
     full.update(training_only=True,year_2025_exposed=True,exact_funding_tick_mark=False,holdout_accessed=False)
     return full
 if __name__=="__main__":
@@ -70,6 +73,8 @@ if __name__=="__main__":
              "hours":len(d["time"]),"funding_events":int(d["event"].sum()),
              "assets":list(ASSETS),"2025_exposed_training_only":True,
              "exact_funding_tick_mark_attested":False,"pnl_computed":False,
-             "2026_accessed":False,"holdout_accessed":False}
+             "2026_accessed":False,"holdout_accessed":False,
+             "zero_volume_execution_blocked_cells":int((~d["execution_allowed"]).sum()),
+             "zero_volume_execution_blocked_hours":int((~d["execution_allowed"].all(axis=1)).sum())}
     Path(a.output).write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
     print(json.dumps(receipt,sort_keys=True))
