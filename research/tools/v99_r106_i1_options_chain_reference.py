@@ -56,7 +56,7 @@ def download(target):
                 raise ValueError("ORIGINAL_CHAIN_HTTP_NOT_200")
             declared = response.headers.get("Content-Length")
             if declared is not None and int(declared) > MAX_BYTES:
-                raise ValueError("ORIGINAL_CHAIN_SOURCE_OVERSIZE")
+                raise ValueError(f"ORIGINAL_CHAIN_SOURCE_OVERSIZE_DECLARED_BYTES_{declared}_CAP_{MAX_BYTES}")
             with target.open("xb") as out:
                 while True:
                     if time.monotonic() - start > 600:
