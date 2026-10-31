@@ -1,0 +1,75 @@
+name: V98 Independent 9144-Event One-Minute Funding Bound Reconciliation (No PnL)
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-official-1m-mark-oracle.yml'
+      - 'research/v98_independent/v98_official_1m_mark_independent_oracle.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  independent-source-oracle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v98-independent-1m-*-full-source-41161714363
+          run-id: 41161714363
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: full-artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-1m-btc-source-sample-41161714363
+          run-id: 41161714363
+          github-token: ${{ github.token }}
+          path: sample-artifact
+      - name: Verify sample and full BTC event rows match independently
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          def read(p):
+              with Path(p).open() as f:return list(csv.DictReader(f))
+          sample=read('sample-artifact/v98_1m_btc_sample_bounds.csv')
+          full=read('full-artifacts/v98_1m_BTCUSDT_full_bounds.csv')
+          jan=[x for x in full if 1672531200000<=int(x['funding_time_ms'])<1675209600000]
+          assert len(sample)==len(jan)==93 and sample==jan,'V98_1M_SAMPLE_FULL_MISMATCH'
+          print('V98_1M_SAMPLE_FULL_93_EVENT_BYTEFIELD_MATCH')
+          PY
+      - name: Independently reconcile 9144 native funding events and signed bound arithmetic
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_official_1m_mark_independent_oracle.py
+          python v98_official_1m_mark_independent_oracle.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --artifacts ../../full-artifacts --output v98_1m_independent_clean4_receipt.json --combined-csv v98_1m_clean4_full_bounds.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-1m-full-reconciled-${{ github.run_id }}
+          path: |
+            research/v98_independent/v98_1m_independent_clean4_receipt.json
+            research/v98_independent/v98_1m_clean4_full_bounds.csv
+          retention-days: 30
+          if-no-files-found: warn
