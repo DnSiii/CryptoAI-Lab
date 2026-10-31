@@ -49,7 +49,7 @@ def synthetic_tests():
     trial=np.zeros((4,4));trial[0,0]=.54;trial[0,1]=.18
     trial[1,2]=.18;trial[2,3]=.10;trial[2,0]=-.10;trial[3,0]=-.16
     out,diag=allocate(trial,.01)
-    assert np.abs(out[1:]).sum()<=.12+1e-12 and diag["gross"]<=.84
+    assert np.abs(out[1:]).sum()<=.12+1e-12 and diag["gross"]<=.84+1e-12
     out2,_=allocate(trial,.07)
     assert np.abs(out2[1:]).sum()<=.06+1e-12
     return True
