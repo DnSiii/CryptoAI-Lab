@@ -1,4 +1,4 @@
-name: V99 I1 original Deribit options-chain same-row reference (SOURCE ONLY)
+name: V99 I1 options-chain offline controls; manual source only (HOLD)
 on:
   push:
     branches: [research/v99-r106-native-all-regime-engine]
@@ -28,17 +28,26 @@ jobs:
           test -s research/V99_R106_I1_ORIGINAL_CHAIN_REFERENCE_SOURCE_PREREG_20261030.md
       - name: Independent adversarial offline tests (NOT market evidence)
         run: python -m unittest -v research.tests.test_v99_r106_i1_options_chain_reference
-      - name: Download EXACT fixed original 2022-06-01 Tardis options_chain sample
+      - name: Explicit push CI source HOLD (not original data evidence)
+        if: github.event_name == 'push'
+        run: |
+          echo 'OFFLINE CONTROLS ONLY: 1,517,089,304 declared compressed bytes exceed fixed 536,870,912 cap.'
+          echo 'No source download, original-row verification, economics, validation, or promotion in push CI.'
+      - name: Download EXACT fixed original 2022-06-01 Tardis options_chain sample (MANUAL ONLY)
+        if: github.event_name == 'workflow_dispatch'
         run: |
           mkdir -p research_evidence/i1_chain
           python -m research.tools.v99_r106_i1_options_chain_reference download research_evidence/i1_chain/original.csv.gz
       - name: Scan original full-day source and native underlying reference labels
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m research.tools.v99_r106_i1_options_chain_reference scan research_evidence/i1_chain/original.csv.gz research_evidence/i1_chain/source_only.json
       - name: Independently reparse entire original gzip and veto forged certification
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m research.verification.independent_v99_r106_i1_options_chain_reference research_evidence/i1_chain/original.csv.gz research_evidence/i1_chain/source_only.json
       - name: Assert NO economics, no index/lot/fee certification, no promotion
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python - <<'PY'
           import json
@@ -57,10 +66,10 @@ jobs:
           print('SOURCE ONLY; SAME-ROW INDEX IS NOT SPOT/SETTLEMENT; NO PROMOTION')
           PY
       - name: Delete original vendor bytes before artifact upload
-        if: always()
+        if: github.event_name == 'workflow_dispatch' && always()
         run: rm -f research_evidence/i1_chain/original.csv.gz
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
+        if: github.event_name == 'workflow_dispatch' && always()
         with:
           name: v99-i1-original-chain-reference-${{ github.run_id }}
           path: research_evidence/i1_chain/source_only.json
