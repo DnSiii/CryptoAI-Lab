@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import subprocess
+import tempfile
 from dataclasses import asdict, is_dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -90,21 +91,36 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256):
     if not key or not pin or len(pin) != 64:
         raise ValueError("MISSING_INDEPENDENT_AUDITOR_TRUST_ANCHOR")
     key_path = Path(key)
-    if not key_path.is_file() or key_path.is_symlink() or _file_digest(key_path) != pin.lower():
+    if not key_path.is_file() or key_path.is_symlink():
         raise ValueError("UNTRUSTED_INDEPENDENT_AUDITOR_KEY")
-    payload = _regular(root, "attestation.json")
-    signature = _regular(root, "attestation.sig")
+    # Snapshot all signed bytes once: a mutable file cannot be replaced between
+    # verifying its signature and parsing the JSON used for event authorization.
+    key_bytes = key_path.read_bytes()
+    if hashlib.sha256(key_bytes).hexdigest() != pin.lower():
+        raise ValueError("UNTRUSTED_INDEPENDENT_AUDITOR_KEY")
+    payload_bytes = _regular(root, "attestation.json").read_bytes()
+    signature_bytes = _regular(root, "attestation.sig").read_bytes()
+    if not (0 < len(payload_bytes) <= 1_000_000 and len(signature_bytes) == 64
+            and 0 < len(key_bytes) <= 8192):
+        raise ValueError("INVALID_INDEPENDENT_SIGNATURE_BYTES")
     try:
-        proc = subprocess.run(
-            ["openssl", "pkeyutl", "-verify", "-pubin", "-inkey", str(key_path),
-             "-rawin", "-in", str(payload), "-sigfile", str(signature)],
-            capture_output=True, timeout=20, check=False)
+        with tempfile.TemporaryDirectory(prefix="v99-i1-signed-") as temporary:
+            trusted = Path(temporary)
+            (trusted / "auditor.pem").write_bytes(key_bytes)
+            (trusted / "payload.json").write_bytes(payload_bytes)
+            (trusted / "signature.bin").write_bytes(signature_bytes)
+            proc = subprocess.run(
+                ["openssl", "pkeyutl", "-verify", "-pubin",
+                 "-inkey", str(trusted / "auditor.pem"), "-rawin",
+                 "-in", str(trusted / "payload.json"),
+                 "-sigfile", str(trusted / "signature.bin")],
+                capture_output=True, timeout=20, check=False)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise ValueError("INDEPENDENT_AUDITOR_SIGNATURE_UNVERIFIABLE") from exc
     if proc.returncode != 0:
         raise ValueError("INDEPENDENT_AUDITOR_SIGNATURE_INVALID")
     try:
-        document = json.loads(payload.read_bytes())
+        document = json.loads(payload_bytes)
     except (ValueError, UnicodeError) as exc:
         raise ValueError("INVALID_SIGNED_ATTESTATION_JSON") from exc
     if (not isinstance(document, dict) or set(document) !=
