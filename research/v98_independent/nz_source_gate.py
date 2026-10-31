@@ -18,7 +18,7 @@ def check(d):
     if np.any((np.abs(np.diff(raw,axis=0)).sum(axis=(1,2))>1e-12)&~updates[1:,0]):
         failures.append('NZ_SILENT_TARGET_CHANGE')
     if not np.isfinite(raw).all():failures.append('NZ_NONFINITE')
-    counts={str(year):{name:int(active[np.arange(lo,hi,336),i].sum()) for i,name in enumerate(NAMES)}
+    counts={str(year):{name:int(active[times[(times>=lo)&(times<hi)],i].sum()) for i,name in enumerate(NAMES)}
             for year,lo,hi in ((2023,744,9504),(2024,9504,HOURS))}
     return {'decision':'REJECT_SOURCE_ONLY' if failures else 'PASS_SOURCE_ONLY',
         'failures':failures,'source_hours':HOURS,'decision_count':len(times),

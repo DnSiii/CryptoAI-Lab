@@ -3,14 +3,14 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-ny-30cell.yml'
+      - '.github/workflows/v98-independent-nz-30cell.yml'
       - 'research/v98_independent/nz_*.py'
   workflow_dispatch:
 permissions:
   actions: read
   contents: read
 jobs:
-  ny-physical:
+  nz-physical:
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
@@ -43,7 +43,6 @@ jobs:
           python v98_causal_shadow_sleeve_allocator.py
           python v98_causal_shadow_sleeve_independent_oracle.py
           python nz_intents.py
-                    python nz_intents.py
           python nz_source_gate.py --root ../../official-input --output nz_source_receipt.json
           python nz_independent_source_oracle.py --root ../../official-input --output nz_independent_source_receipt.json
       - name: Run original NZ 30-cell signed physical training
