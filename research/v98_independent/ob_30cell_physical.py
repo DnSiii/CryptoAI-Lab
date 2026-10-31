@@ -158,7 +158,7 @@ def run(root,envelope_path):
                     delta=math.log1p(f['year_returns'][year])-math.log1p(b['year_returns'][year])
                     if delta<-.03:failures.append(tier+'/'+order+':'+sleeve+':'+year+':annual_marginal')
     return {'architecture':'OB','source_gate':g,'allocation_decisions':allocation['allocation_decisions'],
-        'allocation_active_weeks':allocation['activated_week_counts'],'cells':cells,'marginals':marg,
+        'allocation_active_periods':allocation['activated_period_counts'],'cells':cells,'marginals':marg,
         'decision':'REJECT_EARLY_TRAINING' if failures else 'PASS_PROVISIONAL_TRAINING_NOT_VALIDATED',
         'gate_failures':failures,'native_30cell_executed':len(cells)==30,
         'funding_envelope_sha256':envelope_sha,'actual_future_funding_used_to_size':False,
