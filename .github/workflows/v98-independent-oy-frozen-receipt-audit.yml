@@ -1,0 +1,27 @@
+name: V98 Independent OY Frozen Economic Receipt Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/oy_full_training_frozen_result_20261031.json'
+      - 'research/v98_independent/oy_receipt_independent_gate.py'
+      - '.github/workflows/v98-independent-oy-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  oy-frozen-audit:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Reconcile frozen OY 30 physical cells and binding economic gates independently
+        working-directory: research/v98_independent
+        run: python oy_receipt_independent_gate.py oy_full_training_frozen_result_20261031.json
