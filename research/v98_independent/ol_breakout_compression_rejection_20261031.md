@@ -1,0 +1,17 @@
+# V98 Independent OL — permanent original economic rejection (2026-10-31)
+
+**OL IS REJECTED PERMANENTLY. No post-result threshold/window/sign/gross/weight rescue.** Hypothesis and immutable economic gates preregistered before any OL PnL in commit `115ccfc070785cce91d18d0a9f92783e414912ec`. New seven-slot architecture implemented in commits `e34aa619eb461443732fa321679becf10f28634b` and `ffb062e4388044f45414e1b9734420f7bd9fb133`. Initial run [41194569716](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41194569716) failed **before PnL** due to mechanical cloned identifier `BOOLS` instead of `BOOKS`; corrected without changing OL signal or gate parameters in commits `1d112673974e3dfdefbcb297513092fb61b70d55` and `d36a52fbd740fe1a4630f8e57897c1838a67085d`. First fully executed original economics and independent audits: [41194631713](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41194631713). GitHub Actions FAILURE is intentional binding economic rejection.
+
+**Evidence:** pinned authenticated Clean-4 2022-12 through 2024-12 (18,288 hourly bars), 9,144 native 8h funding rates, conservative hourly official mark envelope (not exact event mark), native OI 72,264 verified hourly-asset observations, 888 quarantined, 95/105 complete 168h four-asset windows. 105 weekly source/allocator decisions and 27 core refreshes independently reconstructed with zero weight error; no OI mask leak. All **30/30 physical cells** completed, no physical invariant failures. Independent 17,543-hour settlement reconciled to base full book, 105 physical rebalance events, zero quantity mismatches, tamper checks and 30-cell arithmetic passed. 2025/2026+ and contaminated holdout not read.
+
+**Frozen original full-system training results (both funding orders agree):**
+
+| Cost tier | CAGR | Max DD | Turnover USD | 2023 | 2024 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Base | +4.0581% | -2.8851% | 116,462.45 | +5.7109% | +2.4368% |
+| Severe | +3.2586% | -3.2350% | 115,585.86 | +4.8410% | +1.7046% |
+| Supersevere | +2.4085% | -3.6086% | 114,656.10 | +3.9165% | +0.9257% |
+
+**Twelve binding economic failures:** base and severe in both funding orders fail CAGR (>80% base, >60% severe), Opportunity marginal log-growth >0.02, and Stress/Recovery marginal log-growth >0.02. Base marginal log-growth Opportunity 0.000000, Relative Value +0.070471, Stress +0.008743; severe 0.000000, +0.059587, +0.004200; supersevere 0.000000, +0.047918, -0.000671. **Opportunity activated zero times in both years**; core-only CAGR was 0.0000% because no 672h breakout/short conditions triggered at core refresh times. This is economic hypothesis failure, not a software fix candidate. No post-result loosening allowed. Relative Value's positive *within-OL* marginal is not independent validation or permission to reuse rejected OL.
+
+**Next:** seek a genuinely distinct full-portfolio wealth compounding mechanism with meaningful core participation and three positive net optional contributions, preregistered independently before PnL; do not revive OL. Exact funding-event markPrice remains unproven: four official authenticated Binance USD-M exports with 2,286 events each (9,144 total), SHA256 and raw transport chain of custody needed; pinned hourly mark bounds are not exact marks. Even with those files, no V98 has passed internal economic gates; 2025 has already been exposed and cannot be a fresh validation holdout. V14/V15/V99 benchmarks remain sealed. No live/paper authorization; V16/V99 Frozen, V99 research and paper untouched.
