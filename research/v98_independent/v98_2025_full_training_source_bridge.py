@@ -91,4 +91,7 @@ if __name__=="__main__":
     ot_path.write_text(json.dumps(ot,indent=2,sort_keys=True,allow_nan=False)+"\n")
     print("OT_TRAINING_DECISION",ot["decision"],"failures",len(ot["gate_failures"]),
           "receipt_path",str(ot_path),flush=True)
+    # A successful source receipt is NOT an economic pass; fail the job on OT rejection.
+    if ot["decision"]!="PASS_PROVISIONAL_OT_TRAINING_NOT_VALIDATED":
+        raise SystemExit(2)
 
