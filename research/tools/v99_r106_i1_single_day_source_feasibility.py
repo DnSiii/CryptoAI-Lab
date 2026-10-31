@@ -10,7 +10,9 @@ import argparse
 import hashlib
 import json
 import re
-from collections import defaultdict
+from bisect import bisect_left, bisect_right, insort
+from collections import defaultdict, deque
+from decimal import Decimal
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -26,6 +28,12 @@ SCHEMA = "V99_I1_PREREGISTERED_ONE_DAY_SOURCE_FEASIBILITY_V1"
 
 
 def _pair_counts(books):
+    """Exact synchronized two-strike counts in O(n log n) for unique strikes.
+
+    Sweep ORIGINAL arrival time; Fenwick-index venue clocks in the live 1s
+    window. Duplicate numeric strikes are subtracted, never paired. This
+    changes no source/expiry/freshness eligibility or economic assumptions.
+    """
     counts = {}
     for asset in ("BTC", "ETH"):
         grouped = defaultdict(list)
@@ -33,12 +41,46 @@ def _pair_counts(books):
             grouped[row["expiry_ms"]].append(row)
         pairs = 0
         for rows in grouped.values():
-            for i, left in enumerate(rows):
-                for right in rows[i + 1:]:
-                    if (left["strike_usd"] != right["strike_usd"]
-                            and abs(left["arrival_us"] - right["arrival_us"]) <= 1_000_000
-                            and abs(left["venue_us"] - right["venue_us"]) <= 1_000_000):
-                        pairs += 1
+            ordered = sorted(rows, key=lambda r: (r["arrival_us"], r["venue_us"]))
+            venues = sorted({r["venue_us"] for r in ordered})
+            tree = [0] * (len(venues) + 1)
+
+            def update(venue, delta):
+                i = bisect_left(venues, venue) + 1
+                while i < len(tree):
+                    tree[i] += delta
+                    i += i & -i
+
+            def prefix(i):
+                result = 0
+                while i:
+                    result += tree[i]
+                    i -= i & -i
+                return result
+
+            def count_venues(low, high):
+                return prefix(bisect_right(venues, high)) - prefix(
+                    bisect_left(venues, low))
+
+            active = deque()
+            same_strike = defaultdict(list)
+            for row in ordered:
+                arrival, venue = row["arrival_us"], row["venue_us"]
+                strike = Decimal(str(row["strike_usd"]))
+                while active and arrival - active[0][0] > 1_000_000:
+                    old_arrival, old_venue, old_strike = active.popleft()
+                    update(old_venue, -1)
+                    values = same_strike[old_strike]
+                    values.pop(bisect_left(values, old_venue))
+                    if not values:
+                        del same_strike[old_strike]
+                low, high = venue - 1_000_000, venue + 1_000_000
+                equal = same_strike.get(strike, ())
+                pairs += count_venues(low, high) - (
+                    bisect_right(equal, high) - bisect_left(equal, low))
+                update(venue, 1)
+                insort(same_strike[strike], venue)
+                active.append((arrival, venue, strike))
         counts[asset] = pairs
     return counts
 
