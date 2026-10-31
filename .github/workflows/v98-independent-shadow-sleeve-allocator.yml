@@ -1,0 +1,28 @@
+name: V98 Independent Future-Only Shadow Sleeve Allocator Causal Gate No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-shadow-sleeve-allocator.yml'
+      - 'research/v98_independent/v98_causal_shadow_sleeve_allocator.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v98-shadow-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Causal 500 seeded adversarial tests and future-mutation
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_causal_shadow_sleeve_allocator.py
+          python v98_causal_shadow_sleeve_allocator.py
+          echo "V98_SHADOW_ALLOCATOR_SOURCE_ONLY_NO_PNL_NO_HOLDOUT"
