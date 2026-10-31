@@ -1,0 +1,44 @@
+name: V98 Independent 2025 Crossyear Funding Boundary Source-Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_2025_crossyear_funding_boundary.py'
+      - 'research/v98_independent/v98_2025_crossyear_boundary_oracle.py'
+      - '.github/workflows/v98-independent-2025-crossyear-boundary.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  official-boundary-source:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download immutable SHA-pinned 2025 SOURCE artifact (previously exposed, NOT validation)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/v98_2025_original
+      - name: Verify 2025 source and fetch 2024-12 official mark archive for four boundary events
+        run: python research/v98_independent/v98_2025_crossyear_funding_boundary.py --source-dir "${{ runner.temp }}/v98_2025_original" --output-dir "${{ runner.temp }}/v98_2025_corrected"
+      - name: Independent oracle verifies all 4,380 funding rows and 4 official prior bars
+        run: python research/v98_independent/v98_2025_crossyear_boundary_oracle.py --source-dir "${{ runner.temp }}/v98_2025_original" --corrected-dir "${{ runner.temp }}/v98_2025_corrected"
+      - name: Preserve only V98 independent source evidence; no strategy or PnL
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-2025-crossyear-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/v98_2025_corrected/
+          retention-days: 30
+          if-no-files-found: warn
