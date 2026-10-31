@@ -8,7 +8,7 @@ from ok_source_gate import run as source_gate
 from ok_intents import build as intents_build
 from v98_mark_envelope_settlement import read_envelope,worst_funding
 from v98_oneway_net_atomic_planner import plan_virtual,settle_virtual
-from v98_next_pretrade_prokection import prokect
+from v98_next_pretrade_projection import project
 COSTS={'base':(.0004,.0002),'severe':(.001,.001),'supersevere':(.0015,.002)}
 ORDERS=('carried_before_fill','new_after_fill')
 LEDGER=[]
@@ -38,7 +38,7 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
         need=bool(any(updates[t-1,k] for k in active) or guard)
         planned=None
         if need:
-            # Pre-registered OK causal joint prokection: updated vs carried
+            # Pre-registered OK causal joint projection: updated vs carried
             # sleeve weights, then source-independent atomic net execution.
             source_w=intents[t-1].copy()
             enabled=np.zeros(4,bool)
@@ -48,9 +48,9 @@ def physical(d,intents,updates,book,tier,order,lo,hi):
                 updated[k]=updates[t-1,k]
             source_w[~enabled]=0.
             try:
-                prokection=prokect(qty,source_w,updated,px,equity,
+                projection=project(qty,source_w,updated,px,equity,
                                    funding_event=bool(event[t].any()))
-                planned=plan_virtual(qty,prokection['weights'],px,equity,fee,slip,
+                planned=plan_virtual(qty,projection['weights'],px,equity,fee,slip,
                                     funding_event=bool(event[t].any()))
             except ValueError as e:return fail('ATOMIC_'+str(e),t)
             max_intermediate=max(max_intermediate,planned['max_intermediate_net_gross_fraction'])
