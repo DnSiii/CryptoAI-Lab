@@ -39,6 +39,27 @@ def audit(path):
     assert obj["asset_windows"] == 180
     assert obj["unique_window_minutes"] == 450
     assert obj["asset_window_minutes"] == 900
+    assert obj["entry_windows_not_sufficient_for_lifecycle_economics"] is True
+    assert "not actual positions" in obj["lifecycle_source_note"]
+    assert "cannot certify" in obj["lifecycle_source_note"]
+    possible = set()
+    current = FIRST
+    while current + timedelta(days=28) < END:
+        day = (current - timedelta(days=1)).date()
+        stop = min((current + timedelta(days=35)).date(),
+                   (END - timedelta(days=1)).date())
+        while day <= stop:
+            possible.add(day.isoformat())
+            day += timedelta(days=1)
+        current += timedelta(days=7)
+    dates = sorted(possible)
+    assert len(dates) == 658 and dates[0] == "2021-12-12"
+    assert dates[-1] == "2023-09-30"
+    assert obj["potential_max_tenor_daily_mark_days"] == len(dates)
+    assert obj["potential_max_tenor_daily_mark_utc_dates"] == dates
+    assert obj["potential_max_tenor_daily_mark_dates_sha256"] == hashlib.sha256(
+        json.dumps(dates, separators=(",", ":")).encode()
+    ).hexdigest()
     assert len(rows) == 180
     expected = []
     monday = FIRST
