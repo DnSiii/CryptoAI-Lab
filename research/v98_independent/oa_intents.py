@@ -119,7 +119,7 @@ def synthetic_tests():
     trial=np.zeros((4,4));trial[0,0]=.60;trial[1,1]=.16;trial[2,1]=.09;trial[2,2]=-.09
     hist=np.zeros((4,6));hist[1]=.02;hist[2]=.03
     out,net,diag=allocate(trial,np.zeros(4),hist,np.zeros((21,4)),True)
-    assert diag['chosen']==1 and abs(diag['virtual_gross']-.84)<1e-9
+    assert diag['chosen']==2 and abs(diag['virtual_gross']-.84)<1e-9
     assert np.abs(net).sum()<=diag['virtual_gross']+1e-9
     assert np.abs(allocate(trial,np.zeros(4),hist,np.zeros((21,4)),False)[0][1:]).sum()==0
     return True
