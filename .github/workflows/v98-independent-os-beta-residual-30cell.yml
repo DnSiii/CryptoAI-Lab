@@ -1,0 +1,120 @@
+name: V98 OS Beta Residual Compression Seven-Slot 30-Cell Physical and Independent Gates
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-os-beta-residual-30cell.yml'
+      - 'research/v98_independent/os_*.py'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  os-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Download pinned authenticated Clean-4 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: official-input
+      - name: Download pinned independently audited native OI v2 2022-24 only
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-oi-clean4-2022-2024-v2-source-only
+          run-id: 40477513000
+          github-token: ${{ github.token }}
+          path: frozen-oi
+      - name: Download pinned official worst-side hourly mark envelope (not exact event mark)
+        uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: envelope-input
+      - name: Pre-PnL causal source and independent signal/allocator gates
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile os_*.py
+          python os_sources.py
+          python os_intents.py
+          python os_source_gate.py --root ../../official-input --oi-root ../../frozen-oi --output os_source_receipt.json
+          python os_independent_source_oracle.py --root ../../official-input --oi-root ../../frozen-oi --output os_independent_source_receipt.json
+          python os_independent_allocator_oracle.py --root ../../official-input --oi-root ../../frozen-oi --output os_independent_allocator_receipt.json
+      - name: Run preregistered OS 30-cell signed physical training
+        id: physical
+        continue-on-error: true
+        working-directory: research/v98_independent
+        run: |
+          python os_30cell_physical.py --root ../../official-input --oi-root ../../frozen-oi --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --output os_30cell_receipt.json --ledger-output os_base_full_hourly_forensic.jsonl
+      - name: Independent all-hour signed settlement
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s os_30cell_receipt.json && test -s os_base_full_hourly_forensic.jsonl; then
+            python os_hourly_oracle_gate.py --root ../../official-input --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl os_base_full_hourly_forensic.jsonl --receipt os_30cell_receipt.json --output os_independent_hourly_receipt.json
+          else
+            echo "NO_COMPLETE_OS_LEDGER_FOR_INDEPENDENT_SETTLEMENT"
+          fi
+      - name: Independently reconstruct net physical fills
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s os_base_full_hourly_forensic.jsonl; then
+            python os_independent_fill_oracle.py --root ../../official-input --oi-root ../../frozen-oi --envelope-csv ../../envelope-input/v98_official_mark_envelope_training.csv --ledger-jsonl os_base_full_hourly_forensic.jsonl --output os_independent_fill_receipt.json
+          else
+            echo "NO_COMPLETE_OS_LEDGER_FOR_INDEPENDENT_FILLS"
+          fi
+      - name: Independent 30-cell arithmetic and economic gate
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          if test -s os_30cell_receipt.json; then
+            python os_independent_receipt_arithmetic_audit.py --receipt os_30cell_receipt.json > os_independent_arithmetic_receipt.json
+            cat os_independent_arithmetic_receipt.json
+          else
+            echo "NO_OS_RECEIPT_FOR_ARITHMETIC_AUDIT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-os-original-${{ github.run_id }}
+          path: |
+            research/v98_independent/os_source_receipt.json
+            research/v98_independent/os_independent_source_receipt.json
+            research/v98_independent/os_independent_allocator_receipt.json
+            research/v98_independent/os_30cell_receipt.json
+            research/v98_independent/os_independent_hourly_receipt.json
+            research/v98_independent/os_independent_fill_receipt.json
+            research/v98_independent/os_independent_arithmetic_receipt.json
+            research/v98_independent/os_base_full_hourly_forensic.jsonl
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Economic gate binding, never false promotion
+        if: always()
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('os_30cell_receipt.json')
+          if not p.exists():raise SystemExit('OS_MISSING_PHYSICAL_RECEIPT')
+          r=json.loads(p.read_text())
+          print('OS_ORIGINAL_DECISION',r['decision'])
+          print('OS_GATE_FAILURES',r['gate_failures'])
+          if r['decision']!='PASS_PROVISIONAL_TRAINING_NOT_VALIDATED':
+              raise SystemExit('OS_REJECTED_NO_PROMOTION')
+          if any(not Path(x).exists() for x in ('os_independent_source_receipt.json','os_independent_allocator_receipt.json','os_independent_hourly_receipt.json','os_independent_fill_receipt.json','os_independent_arithmetic_receipt.json')):
+              raise SystemExit('OS_MISSING_INDEPENDENT_EVIDENCE')
+          print('OS_PROVISIONAL_TRAINING_ONLY_NOT_INDEPENDENT_VALIDATION')
+          PY
