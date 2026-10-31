@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from research.tools.v99_r106_i1_tardis_licensed_transfer import transfer
 
@@ -194,6 +195,54 @@ class LicensedTransferTests(unittest.TestCase):
         self.assertFalse(report["promotion_authorized"])
         self.assertFalse(report["economic_train_executed"])
         self.assertEqual(len(opener.urls), 2)
+
+    def test_target_day_independent_oracle_failure_never_publishes_new_original(self):
+        # A valid vendor gzip + SHA + 24h coverage must not be published if
+        # the independent target-day source replay fails afterward.
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        opener = Opener(day=day, scope_kwargs={
+            "start": "2022-01-23T00:00:00Z",
+            "end": "2022-01-24T00:00:00Z"})
+        target = self.root / "2022-01-23.csv.gz"
+        with patch(
+            "research.tools.v99_r106_i1_single_day_source_feasibility.inspect",
+            side_effect=ValueError("INDEPENDENT_ORIGINAL_DAY_REPLAY_DISAGREEMENT")
+        ) as oracle:
+            with self.assertRaisesRegex(
+                ValueError, "INDEPENDENT_ORIGINAL_DAY_REPLAY_DISAGREEMENT"
+            ):
+                self.call(opener, start_date="2022-01-23")
+        self.assertEqual(oracle.call_count, 1)
+        staged = Path(oracle.call_args.args[0])
+        self.assertEqual(staged.name, "2022-01-23.csv.gz")
+        self.assertNotEqual(staged.parent, self.root)
+        self.assertFalse(target.exists())
+        self.assertFalse(staged.exists())
+        self.assertEqual(list(self.root.glob("*.part")), [])
+        self.assertEqual(list(self.root.glob(".target-day-gate-*")), [])
+        self.assertEqual(len(opener.urls), 2)
+
+    def test_existing_target_day_is_preserved_on_independent_oracle_failure(self):
+        day = datetime(2022, 1, 23, tzinfo=timezone.utc)
+        body = fake_gzip(day)
+        self.root.mkdir()
+        target = self.root / "2022-01-23.csv.gz"
+        target.write_bytes(body)
+        opener = Opener(day=day, scope_kwargs={
+            "start": "2022-01-23T00:00:00Z",
+            "end": "2022-01-24T00:00:00Z"})
+        with patch(
+            "research.tools.v99_r106_i1_single_day_source_feasibility.inspect",
+            side_effect=ValueError("INDEPENDENT_ORIGINAL_DAY_REPLAY_DISAGREEMENT")
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "INDEPENDENT_ORIGINAL_DAY_REPLAY_DISAGREEMENT"
+            ):
+                self.call(opener, start_date="2022-01-23")
+        self.assertEqual(target.read_bytes(), body)
+        self.assertEqual(list(self.root.glob("*.part")), [])
+        self.assertEqual(list(self.root.glob(".target-day-gate-*")), [])
+        self.assertEqual(len(opener.urls), 1)  # scope only, never re-download
 
     def test_external_vendor_digest_match_is_source_only_not_legal_certification(self):
         day = datetime(2022, 1, 23, tzinfo=timezone.utc)
