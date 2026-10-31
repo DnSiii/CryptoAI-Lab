@@ -7,7 +7,8 @@ from __future__ import annotations
 import csv
 import gzip
 import hashlib
-from collections import defaultdict
+from bisect import bisect_left, bisect_right, insort
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -45,6 +46,55 @@ def _book(row):
     if not all(x.is_finite() and x > 0 for x in (bid, ask, bs, ass)) or bid >= ask:
         return None
     return bid, ask, bs, ass
+
+
+
+def _synchronized_pairs(group):
+    """Independent venue-first sweep, unlike the primary arrival-first sweep.
+
+    Input tuples: (numeric_strike, venue_us, arrival_us). Both 1-second
+    tolerances are inclusive. Numeric-identical strikes never form a pair.
+    """
+    ordered = sorted(group, key=lambda row: (row[1], row[2]))
+    arrivals = sorted({row[2] for row in ordered})
+    tree = [0] * (len(arrivals) + 1)
+
+    def update(arrival, delta):
+        i = bisect_left(arrivals, arrival) + 1
+        while i < len(tree):
+            tree[i] += delta
+            i += i & -i
+
+    def prefix(i):
+        total = 0
+        while i:
+            total += tree[i]
+            i -= i & -i
+        return total
+
+    def count_arrivals(low, high):
+        return prefix(bisect_right(arrivals, high)) - prefix(
+            bisect_left(arrivals, low))
+
+    active = deque()
+    same_strike = defaultdict(list)
+    pairs = 0
+    for strike, venue, arrival in ordered:
+        while active and venue - active[0][0] > 1_000_000:
+            old_venue, old_arrival, old_strike = active.popleft()
+            update(old_arrival, -1)
+            values = same_strike[old_strike]
+            values.pop(bisect_left(values, old_arrival))
+            if not values:
+                del same_strike[old_strike]
+        low, high = arrival - 1_000_000, arrival + 1_000_000
+        equal = same_strike.get(strike, ())
+        pairs += count_arrivals(low, high) - (
+            bisect_right(equal, high) - bisect_left(equal, low))
+        update(arrival, 1)
+        insort(same_strike[strike], arrival)
+        active.append((venue, arrival, strike))
+    return pairs
 
 
 def replay(path):
@@ -98,10 +148,6 @@ def replay(path):
         eligible[(asset, expiry)].append((strike, venue, arrived))
     pairs = {"BTC": 0, "ETH": 0}
     for (asset, _expiry), group in eligible.items():
-        for i, left in enumerate(group):
-            for right in group[i + 1:]:
-                if (left[0] != right[0] and abs(left[1] - right[1]) <= 1_000_000
-                        and abs(left[2] - right[2]) <= 1_000_000):
-                    pairs[asset] += 1
+        pairs[asset] += _synchronized_pairs(group)
     return {"sha256": digest.hexdigest(), "rows": rows,
             "coverage_hours_by_asset": coverage, "pairs_by_asset": pairs}
