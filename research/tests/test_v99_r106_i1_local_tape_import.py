@@ -92,6 +92,34 @@ class LocalTapeImportTests(unittest.TestCase):
             run(self.root, fixture=True)
         self.assertFalse((self.root / "manifest.json").exists())
 
+    def test_original_bytes_changed_during_scan_rejected_atomically(self):
+        # Simulate a concurrent producer changing the source AFTER the first
+        # hash and AFTER the gzip rows were validated, but BEFORE publication.
+        # Without a pre/post digest comparison the manifest would bind the
+        # original validated rows to different compressed bytes.
+        from research.tools.v99_r106_i1_local_tape_import import sha256 as actual_sha256
+        day_file = self.root / (FIRST.isoformat() + ".csv.gz")
+        calls = 0
+
+        def concurrent_source_mutation(path):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                self.assertEqual(Path(path), day_file)
+                day_file.write_bytes(day_file.read_bytes() + b"CONCURRENT_REPLACEMENT")
+            return actual_sha256(path)
+
+        with mock.patch(
+            "research.tools.v99_r106_i1_local_tape_import.sha256",
+            side_effect=concurrent_source_mutation,
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "ORIGINAL_DAY_CHANGED_DURING_SCAN:2021-12-09"
+            ):
+                run(self.root, fixture=True)
+        self.assertEqual(calls, 2)
+        self.assertFalse((self.root / "manifest.json").exists())
+
     def test_last_arrival_out_of_order_rejected(self):
         write_day(self.root, FIRST, reverse=True)
         with self.assertRaisesRegex(ValueError, "NONCAUSAL_OR_OUT_OF_ORDER_CLOCK"):
