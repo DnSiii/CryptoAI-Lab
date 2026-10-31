@@ -105,6 +105,7 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
     if root.is_symlink():
         raise ValueError("UNSAFE_LOCAL_LICENSED_TAPE_DIRECTORY")
     downloaded = existing = 0
+    target_day_checked = None
     for day in dates:
         filename = day.isoformat() + ".csv.gz"
         destination = root / filename
@@ -155,6 +156,22 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
                 stream.flush()
                 os.fsync(stream.fileno())
             _validate_gzip(Path(temporary), day, expected_sha256)
+            # The fixed paid target must pass its independent source oracle
+            # BEFORE the canonical original is published. The oracle requires
+            # an exact basename; a private same-filesystem staging hard link
+            # preserves it without copying gigabytes or exposing partial data.
+            if len(dates) == 1 and day == date(2022, 1, 23):
+                from research.tools.v99_r106_i1_single_day_source_feasibility import inspect
+                with tempfile.TemporaryDirectory(prefix=".target-day-gate-", dir=root) as stage:
+                    staged = Path(stage) / filename
+                    os.link(temporary, staged)
+                    target_day_checked = inspect(
+                        staged, license_evidence=license_evidence,
+                        expected_sha256=expected_sha256)
+                    if (target_day_checked["status"] not in
+                            ("SOURCE_FEASIBLE_ONLY_NOT_ECONOMICS", "SOURCE_VETO_NOT_LOSS")
+                            or not target_day_checked["independent_original_byte_replay_passed"]):
+                        raise ValueError("TARGET_DAY_INDEPENDENT_SOURCE_GATE_FAILED")
             # No overwrite, including an unexpected concurrent writer.
             if destination.exists() or destination.is_symlink():
                 raise ValueError("CONCURRENT_OR_CONFLICTING_LICENSED_DAY")
@@ -169,9 +186,11 @@ def transfer(root, *, execute=False, max_days=1, start_date=None, key=None,
     target_day_gate = None
     if len(dates) == 1 and dates[0] == date(2022, 1, 23):
         from research.tools.v99_r106_i1_single_day_source_feasibility import inspect
-        checked = inspect(root / "2022-01-23.csv.gz",
-                          license_evidence=license_evidence,
-                          expected_sha256=expected_sha256)
+        checked = target_day_checked
+        if checked is None:  # Existing user-provided day: validate, never delete it.
+            checked = inspect(root / "2022-01-23.csv.gz",
+                              license_evidence=license_evidence,
+                              expected_sha256=expected_sha256)
         if checked["status"] not in ("SOURCE_FEASIBLE_ONLY_NOT_ECONOMICS",
                                       "SOURCE_VETO_NOT_LOSS") or not checked[
                                           "independent_original_byte_replay_passed"]:
