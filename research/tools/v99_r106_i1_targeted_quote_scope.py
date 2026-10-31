@@ -58,6 +58,21 @@ def request():
                 "required_source": "ORIGINAL_TWO_CLOCK_BBO_SIZE_AND_BOOK_CARRY_IN",
             })
     assert len(rows) == 180
+    # Entry-only 450 minutes cannot certify 28-35d held-position risk.
+    # Potential maximum-tenor UTC mark days; NOT actual traded days or a
+    # vendor price quote. Bound to the sealed TRAIN calendar only.
+    potential_days = set()
+    for monday in eligible:
+        day = (monday - timedelta(days=1)).date()
+        last = min((monday + timedelta(days=35)).date(),
+                   (STOP - timedelta(days=1)).date())
+        while day <= last:
+            potential_days.add(day.isoformat())
+            day += timedelta(days=1)
+    potential_days = sorted(potential_days)
+    assert len(potential_days) == 658
+    assert potential_days[0] == "2021-12-12"
+    assert potential_days[-1] == "2023-09-30"
     payload = {
         "schema": "V99_I1_TARGETED_SOURCE_REQUEST_V1",
         "status": "PROCUREMENT_ONLY_NO_ECONOMICS_NO_PROMOTION",
@@ -67,6 +82,18 @@ def request():
         "asset_windows": len(rows),
         "unique_window_minutes": 450,
         "asset_window_minutes": 900,
+        "entry_windows_not_sufficient_for_lifecycle_economics": True,
+        "potential_max_tenor_daily_mark_days": len(potential_days),
+        "potential_max_tenor_daily_mark_utc_dates": potential_days,
+        "potential_max_tenor_daily_mark_dates_sha256": hashlib.sha256(
+            json.dumps(potential_days, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "lifecycle_source_note": (
+            "Conservative 28-35d maximum-tenor possible daily-mark calendar "
+            "envelope only; not actual positions, not a minimum vendor bill, "
+            "not licensed data. All 450 entry minutes alone cannot certify "
+            "daily risk, expiry settlement, margin or NAV."
+        ),
         "source_note": (
             "Require vendor-attested complete as-of listed eligible put state at each "
             "window start (or earlier original updates sufficient to rebuild "
