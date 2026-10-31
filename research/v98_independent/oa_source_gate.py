@@ -7,7 +7,7 @@ from oa_sources import bundle,synthetic_causality,NAMES
 def check(d):
     synthetic_causality()
     raw,updates,active=bundle(*(d[k] for k in ('o','h','l','c','q','rate','event')))
-    times=np.flatnooaero(updates[:,0])
+    times=np.flatnonzero(updates[:,0])
     expected=np.arange(WARMUP,HOURS,168)
     failures=[]
     if not np.array_equal(times,expected) or not np.all(updates[times]):
