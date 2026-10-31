@@ -6,6 +6,9 @@ Preregistered before code: research/V99_R106_I1_SCENARIO_COST_BINDING_PREREG_202
 from __future__ import annotations
 
 from decimal import Decimal
+from research.tools.v99_r106_i1_signed_event_source_gate import (
+    event_digest, verify_signed_event_attestation,
+)
 from research.tools.v99_r106_i1_native_coin_account_replay import (
     D, Wallet, Quote, open_vertical, mark_to_exit, account_nav, settle_batch,
 )
@@ -41,7 +44,8 @@ def verify_charges(scenario, native_lots, fee_coin, slip_coin):
 
 
 def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
-                 margin_rules_verified, original_quote_verified):
+                 margin_rules_verified, original_quote_verified,
+                 attestation=None, event_type=None, wallet=None, event_data=None):
     # The booleans are only upstream interface claims, not independent proof.
     # A real execution runner must separately authenticate the actual receipts.
     if type(fixture) is not bool or any(type(x) is not bool for x in (
@@ -50,13 +54,17 @@ def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
     )):
         raise ValueError("UNTRUSTED_SOURCE_GATE_FLAGS")
     if fixture:
-        if any((original_fee_verified, native_contract_verified,
+        if attestation is not None or any((original_fee_verified, native_contract_verified,
                 margin_rules_verified, original_quote_verified)):
             raise ValueError("FIXTURE_CANNOT_CLAIM_AUTHENTICATED_PROVENANCE")
         return
-    # Deliberately fail closed: no original historical fee/margin/quote archive
-    # currently exists. Never accept caller-supplied booleans as certification.
-    raise ValueError("HISTORICAL_SOURCE_RECEIPTS_REQUIRE_INDEPENDENT_ATTESTATION")
+    if any((original_fee_verified, native_contract_verified,
+            margin_rules_verified, original_quote_verified)):
+        raise ValueError("UNTRUSTED_SOURCE_GATE_FLAGS")
+    if attestation is None or wallet is None or event_data is None:
+        raise ValueError("HISTORICAL_SOURCE_RECEIPTS_REQUIRE_INDEPENDENT_ATTESTATION")
+    digest = event_digest(event_type, wallet, **event_data)
+    return verify_signed_event_attestation(attestation, digest)
 
 
 def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
@@ -64,11 +72,17 @@ def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                 initial_margin_coin, maintenance_margin_coin, *,
                 fixture=False, original_fee_verified=False,
                 native_contract_verified=False, margin_rules_verified=False,
-                original_quote_verified=False):
+                original_quote_verified=False, attestation=None):
     _source_gate(fixture=fixture, original_fee_verified=original_fee_verified,
                  native_contract_verified=native_contract_verified,
                  margin_rules_verified=margin_rules_verified,
-                 original_quote_verified=original_quote_verified)
+                 original_quote_verified=original_quote_verified,
+                 attestation=attestation, event_type="OPEN", wallet=w,
+                 event_data=dict(name=name, short=short, long=long, at_ms=at_ms,
+                                 native_lots=native_lots, entry_fees_coin=entry_fees_coin,
+                                 entry_slippage_coin=entry_slippage_coin,
+                                 initial_margin_coin=initial_margin_coin,
+                                 maintenance_margin_coin=maintenance_margin_coin))
     verify_charges(w.scenario, native_lots, entry_fees_coin, entry_slippage_coin)
     proposed = open_vertical(w, name, short, long, at_ms, native_lots,
                             entry_fees_coin, entry_slippage_coin,
@@ -92,11 +106,15 @@ def costed_mark(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                 exit_fees_coin, exit_slippage_coin, *,
                 fixture=False, original_fee_verified=False,
                 native_contract_verified=False, margin_rules_verified=False,
-                original_quote_verified=False):
+                original_quote_verified=False, attestation=None):
     _source_gate(fixture=fixture, original_fee_verified=original_fee_verified,
                  native_contract_verified=native_contract_verified,
                  margin_rules_verified=margin_rules_verified,
-                 original_quote_verified=original_quote_verified)
+                 original_quote_verified=original_quote_verified,
+                 attestation=attestation, event_type="MARK", wallet=w,
+                 event_data=dict(name=name, short=short, long=long, at_ms=at_ms,
+                                 exit_fees_coin=exit_fees_coin,
+                                 exit_slippage_coin=exit_slippage_coin))
     p = next((p for p in w.positions if p.name == name), None)
     if p is None:
         raise ValueError("UNKNOWN_POSITION")
@@ -115,7 +133,7 @@ def costed_settle_batch(w: Wallet, names, at_ms: int,
                         original_delivery_index_usd, delivery_fees_coin: dict, *,
                         fixture=False, original_fee_verified=False,
                         native_contract_verified=False, margin_rules_verified=False,
-                        original_quote_verified=False):
+                        original_quote_verified=False, attestation=None):
     """Scenario-fee-bound atomic expiry settlement; NOT certified venue economics.
 
     Contractual expiry has no bid/ask exit fill, so enforce only the existing
@@ -125,7 +143,11 @@ def costed_settle_batch(w: Wallet, names, at_ms: int,
     _source_gate(fixture=fixture, original_fee_verified=original_fee_verified,
                  native_contract_verified=native_contract_verified,
                  margin_rules_verified=margin_rules_verified,
-                 original_quote_verified=original_quote_verified)
+                 original_quote_verified=original_quote_verified,
+                 attestation=attestation, event_type="SETTLE_BATCH", wallet=w,
+                 event_data=dict(names=names, at_ms=at_ms,
+                                 original_delivery_index_usd=original_delivery_index_usd,
+                                 delivery_fees_coin=delivery_fees_coin))
     w.check()
     if not isinstance(names, (tuple, list)) or not names or not isinstance(delivery_fees_coin, dict):
         raise ValueError("INVALID_SCENARIO_SETTLEMENT_COHORT")
