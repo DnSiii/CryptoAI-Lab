@@ -1,0 +1,9 @@
+# V99 I1 — procurement source-scope correction (preregistered 2026-10-31 08:45 BRT)
+
+**SOURCE ONLY; no prices, returns, tuning, validation, holdout, promotion or orders.**
+
+Problem: the existing 90-Monday request contains 450 unique minutes (900 asset-minutes) of **entry-only** original quote windows. A vendor or dashboard could incorrectly treat this as enough to validate the integrated 661-day options portfolio. It is not. The fixed 28–35-day expiries can require daily marks, margin and liquidation checks across almost the whole TRAIN, in addition to authenticated entry books.
+
+Before changing implementation or looking at new market data, fix the following deterministic rule. For each of the 90 fixed eligible Monday decisions, include every UTC calendar day from the preceding Sunday through the earlier of (Monday + 35 days) and 2023-09-30. Union these possible holding-day ranges. This is a **conservative maximum-tenor potential daily-mark envelope**, NOT proof that all days were actually traded, NOT a minimum priced dataset, and NOT evidence of original data. The envelope must not extend to validation 2023-10-01 or later. Export the sorted days, count, SHA256 and explicit entry-only warning; independently recompute them from fixed dates, reject forged counts, altered dates, changed hash or any attempt to authorize promotion. Expected deterministic check: 658 possible daily-mark days, 2021-12-12 through 2023-09-30, versus 661 TRAIN calendar days; 450 minutes remain an entry-only procurement subset.
+
+Keep original windows, 5 folds, expiry constraints, timestamps, source attestations and all hard NO flags unchanged. Run GitHub CI on this correction. A green calendar audit is **not** an economic test; missing licensed historical quotes, dated fee tiers, native settlement/margin and independently verified complete economic TRAIN still block delivery. Never modify Frozen, paper, champion, dashboard performance or sealed data.
