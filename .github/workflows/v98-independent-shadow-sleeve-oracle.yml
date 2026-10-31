@@ -1,0 +1,28 @@
+name: V98 Independent Shadow Sleeve Allocator Pure Math Oracle No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-shadow-sleeve-oracle.yml'
+      - 'research/v98_independent/v98_causal_shadow_sleeve_independent_oracle.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-math:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Independent 200 action utility and net quantity reconciliations
+        working-directory: research/v98_independent
+        run: |
+          python -m py_compile v98_causal_shadow_sleeve_independent_oracle.py
+          python v98_causal_shadow_sleeve_independent_oracle.py
+          echo "V98_INDEPENDENT_SHADOW_ORACLE_SOURCE_ONLY_NO_MARKET_PNL"
