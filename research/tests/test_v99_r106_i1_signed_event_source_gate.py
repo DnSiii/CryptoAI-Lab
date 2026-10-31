@@ -111,7 +111,7 @@ class SignedEventSourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "SIGNED_ATTESTATION_NOT_BOUND_TO_EVENT"):
                 verify_signed_event_attestation(
                     self.root, event_digest("OPEN", other, **self.inputs))
-            (self.root / "attestation.sig").write_bytes(b"\\x00" * 64)
+            (self.root / "attestation.sig").write_bytes(bytes(64))
             with self.assertRaisesRegex(ValueError, "INDEPENDENT_AUDITOR_SIGNATURE_INVALID"):
                 verify_signed_event_attestation(self.root, self.digest)
 
