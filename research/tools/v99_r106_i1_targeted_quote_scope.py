@@ -41,13 +41,17 @@ def request():
         fold = next(i for i in range(1, 6)
                     if FOLD_EDGES[i - 1] <= monday < FOLD_EDGES[i])
         assert START <= window_start < monday < STOP
+        expiry_min = monday + timedelta(days=28)
+        expiry_max = min(monday + timedelta(days=35), STOP - timedelta(microseconds=1))
         for asset in ("BTC", "ETH"):
             rows.append({
                 "asset": asset,
                 "decision_utc": monday.isoformat(),
                 "fold": fold,
                 "venue": "deribit",
-                "instrument_scope": "ALL_LISTED_OPTIONS_ALL_STRIKES_EXPIRIES",
+                "instrument_scope": "ALL_ASOF_LISTED_PUTS_28_TO_35D_BEFORE_TRAIN_STOP",
+                "expiry_min_inclusive_utc": expiry_min.isoformat(),
+                "expiry_max_inclusive_utc": expiry_max.isoformat(),
                 "window_start_inclusive_utc": window_start.isoformat(),
                 "window_end_exclusive_utc": monday.isoformat(),
                 "required_fields": list(FIELDS),
@@ -64,7 +68,7 @@ def request():
         "unique_window_minutes": 450,
         "asset_window_minutes": 900,
         "source_note": (
-            "Require vendor-attested complete all-instrument state at each "
+            "Require vendor-attested complete as-of listed eligible put state at each "
             "window start (or earlier original updates sufficient to rebuild "
             "it), plus every venue and collector-timestamped change through "
             "the decision. Last-5-minute deltas alone are insufficient."
