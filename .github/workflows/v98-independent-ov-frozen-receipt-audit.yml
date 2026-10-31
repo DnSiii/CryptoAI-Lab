@@ -1,0 +1,24 @@
+name: V98 Independent OV Frozen Receipt Economic Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/ov_frozen_receipt_independent_gate.py'
+      - 'research/v98_independent/ov_full_training_frozen_result_20261031.json'
+      - '.github/workflows/v98-independent-ov-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ov-frozen-independent-rejection:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - name: Recompute frozen economic failures without importing primary strategy
+        working-directory: research/v98_independent
+        run: python ov_frozen_receipt_independent_gate.py
