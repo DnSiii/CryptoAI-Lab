@@ -14,11 +14,11 @@ def allocate(raw,sigma):
     budget=min(.36,max(0.,CAP-core))
     total=min(float(gross.sum()),budget)
     if total>0:
-        vols=np.array([max(.01,float(np.dot(np.abs(raw[k]),sigma)/gross[k]))
-                       if gross[k]>0 else 1. for k in (1,2,3)])
+        vols=np.array([max(.01,float(np.dot(np.abs(raw[k]),sigma)/gross[k-1]))
+                       if gross[k-1]>0 else 1. for k in (1,2,3)])
         strengths=np.divide(gross,vols)
         for k in (1,2,3):
-            if gross[k]>0:held[k]=raw[k]*(total*strengths[k-1]/strengths.sum()/gross[k])
+            if gross[k-1]>0:held[k]=raw[k]*(total*strengths[k-1]/strengths.sum()/gross[k-1])
     if np.abs(held).sum()>CAP+1e-10 or np.abs(held.sum(axis=0)).sum()>np.abs(held).sum()+1e-10:
         raise ValueError("OE_HIDDEN_GROSS")
     return held,{"core_gross":core,"optional_gross":float(np.abs(held[1:]).sum()),"budget":budget}
