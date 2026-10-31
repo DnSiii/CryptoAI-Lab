@@ -19,7 +19,7 @@ EVENT_STEP=8*STEP
 HOURS=8760
 EVENTS=1095
 ROOT=Path(__file__).resolve().parent
-OUT=ROOT/'v98_v98_2025_training_official_source'
+OUT=ROOT/'v98_2025_training_official_source'
 
 def sha(raw):return hashlib.sha256(raw).hexdigest()
 def download(url):
@@ -28,7 +28,7 @@ def download(url):
     err=None
     for attempt in range(3):
         try:
-            req=urllib.request.Request(url,headers={'User-Agent':'V98-NH-2025-Sealed-Official-Source/1.0'})
+            req=urllib.request.Request(url,headers={'User-Agent':'V98-2025-Training-Source-Only/1.0'})
             with urllib.request.urlopen(req,timeout=60) as resp:
                 if resp.status!=200 or resp.geturl()!=url:raise ValueError('V98_2025_TRAINING_VENDOR_REDIRECT')
                 raw=resp.read(15000001)
@@ -153,7 +153,7 @@ def run():
         receipt['funding_events_verified']=EVENTS*4
     except Exception as exc:
         receipt['reason']=type(exc).__name__+': '+str(exc)[:400]
-    (OUT/'v98_2025_training_official_source_receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+    (OUT/'v98_2025_training_source_receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
     print(json.dumps({'decision':receipt['decision'],'reason':receipt.get('reason'),
         'assets_completed':len(receipt['assets'])},sort_keys=True),flush=True)
     return receipt
