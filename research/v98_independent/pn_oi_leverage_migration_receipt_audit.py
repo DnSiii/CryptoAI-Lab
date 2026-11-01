@@ -12,7 +12,7 @@ OI_PINS=['68ecdb3827b1540f94fb50ee053adf4af356a27260fd930853fadf0d942c7c6e','890
 
 def audit(r):
     assert r["architecture"]=="PN"
-    assert r["preregistration"]=="pn_volatility_release_prereg_20261101.md"
+    assert r["preregistration"]=="pn_oi_leverage_migration_prereg_20261101.md"
     assert r["oi_source_sha256"]==OI_PINS
     assert r["oi_verified_asset_hours"]==106920
     assert r["oi_eligible_decisions"]==143 and r["oi_blocked_decisions"]==14
