@@ -62,8 +62,8 @@ def parse_schedule(document):
                 or row["account_tier"] != document["account_tier"]
                 or type(row["effective_from_ms"]) is not int
                 or type(row["effective_to_ms"]) is not int
-                or not TRAIN_START_MS <= row["effective_from_ms"]
-                    < row["effective_to_ms"] <= TRAIN_END_MS):
+                or not 0 < row["effective_from_ms"]
+                    < row["effective_to_ms"] <= 4102444800000):
             raise ValueError("INVALID_DATED_NATIVE_FEE_INTERVAL")
         for key in ("entry_per_lot_coin", "delivery_per_lot_coin",
                     "cap_fraction", "native_lot_quantity"):
@@ -80,7 +80,8 @@ def parse_schedule(document):
 
 
 def _terms(intervals, asset, at_ms):
-    if asset not in intervals or type(at_ms) is not int:
+    if (asset not in intervals or type(at_ms) is not int
+            or not TRAIN_START_MS <= at_ms < TRAIN_END_MS):
         raise ValueError("INVALID_NATIVE_FEE_CLOCK_OR_ASSET")
     candidates = [row for row in intervals[asset]
                   if row["effective_from_ms"] <= at_ms < row["effective_to_ms"]]
