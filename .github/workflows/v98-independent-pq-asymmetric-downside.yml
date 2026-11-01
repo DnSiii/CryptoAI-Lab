@@ -1,0 +1,118 @@
+name: V98 Independent PQ Asymmetric Downside Semivariance Seven-Slot Full Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-po-lagged-impulse.yml'
+      - 'research/v98_independent/pq_asymmetric_downside_*.py'
+      - 'research/v98_independent/pq_asymmetric_downside_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  pq-full-physical:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical dependencies
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile and causal synthetic before any PnL
+        run: |
+          python -m py_compile research/v98_independent/pq_asymmetric_downside_composed.py research/v98_independent/pq_asymmetric_downside_oracle.py research/v98_independent/pq_asymmetric_downside_receipt_audit.py
+          python research/v98_independent/pq_asymmetric_downside_composed.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old-envelope
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-2025-crossyear-source-41226345264
+          run-id: 41226345264
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/corrected
+      - name: Execute PQ 30-cell exposed training with independent decisions, cash and fill oracles
+        working-directory: research/v98_independent
+        env:
+          OLD_ROOT: ${{ runner.temp }}/old
+          OLD_ENVELOPE: ${{ runner.temp }}/old-envelope/v98_official_mark_envelope_training.csv
+          NEW_ROOT: ${{ runner.temp }}/new
+          CORRECTED_ROOT: ${{ runner.temp }}/corrected
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from v98_2025_full_training_source_bridge import load as load_price
+          from pq_asymmetric_downside_composed import run
+          d=load_price(os.environ["OLD_ROOT"],os.environ["OLD_ENVELOPE"],
+                       os.environ["NEW_ROOT"],os.environ["CORRECTED_ROOT"])
+          out=run(d)
+          Path("pq_full_training_result.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True,allow_nan=False)+"\n")
+          print("PQ_BINDING_TRAINING_DECISION",out["decision"],
+                "FAILURES",len(out["gate_failures"]),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-pq-full-training-receipt
+          path: research/v98_independent/pq_full_training_result.json
+          retention-days: 30
+          if-no-files-found: warn
+  pq-independent-audit:
+    needs: pq-full-physical
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-pq-full-training-receipt
+          path: pq-receipt
+      - name: Independently replay economics and four receipt tamper cases
+        run: |
+          python research/v98_independent/pq_asymmetric_downside_receipt_audit.py pq-receipt/pq_full_training_result.json | tee pq_independent_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-pq-independent-receipt-audit
+          path: pq_independent_audit.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Enforce PQ economic gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("pq-receipt/pq_full_training_result.json").read_text())
+          if r["decision"]!="PASS_PROVISIONAL_PQ_TRAINING_NOT_VALIDATED":
+              raise SystemExit("PQ_PREREGISTERED_ECONOMIC_REJECTION_NOT_APPROVED")
+          PY
