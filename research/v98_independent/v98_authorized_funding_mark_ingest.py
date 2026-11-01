@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 from decimal import Decimal, InvalidOperation
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
@@ -59,29 +60,43 @@ def validate(pages_path,expected_path,output_path):
             page=json.loads(line)
             url=page["url"]
             parsed=urlparse(url)
-            if parsed.scheme!="https" or parsed.hostname!=OFFICIAL_HOST or parsed.path!="/fapi/v1/fundingRate":
+            if (parsed.scheme!="https" or parsed.netloc!=OFFICIAL_HOST or
+                parsed.path!="/fapi/v1/fundingRate" or parsed.fragment):
                 raise ValueError("NON_OFFICIAL_ENDPOINT")
             params=parse_qs(parsed.query)
             if set(params)!={"symbol","startTime","endTime","limit"} or any(len(v)!=1 for v in params.values()):
                 raise ValueError("REQUEST_QUERY_SCHEMA")
             a=params["symbol"][0]
-            if a not in ASSETS or int(params["limit"][0])>1000:
+            if a not in ASSETS or not 1<=int(params["limit"][0])<=1000:
                 raise ValueError("REQUEST_SYMBOL_OR_LIMIT")
             lo=int(params["startTime"][0]); hi=int(params["endTime"][0])
             if lo<START or hi>=END or lo>hi: raise ValueError("REQUEST_OUT_OF_TRAINING")
             if page["status"]!=200: raise ValueError("NON_200_HTTP")
             headers=page["response_headers"]
-            if not isinstance(headers,dict) or not any(k.lower()=="date" for k in headers):
-                raise ValueError("MISSING_HTTP_DATE")
+            if not isinstance(headers,dict) or sum(k.lower()=="date" for k in headers)!=1:
+                raise ValueError("MISSING_OR_DUPLICATE_HTTP_DATE")
             at=dt.datetime.fromisoformat(page["retrieved_at_utc"].replace("Z","+00:00"))
             if at.tzinfo is None or at.utcoffset()!=dt.timedelta(0):
                 raise ValueError("RETRIEVAL_NOT_UTC")
+            date_value=next(v for k,v in headers.items() if k.lower()=="date")
+            try:
+                server_at=parsedate_to_datetime(date_value)
+            except (ValueError,TypeError,IndexError):
+                raise ValueError("MALFORMED_HTTP_DATE")
+            if server_at.tzinfo is None or abs((server_at-at).total_seconds())>300:
+                raise ValueError("HTTP_DATE_RETRIEVAL_MISMATCH")
             retrieved.append(at.isoformat())
             body=page["response_body"]
             if not isinstance(body,str) or digest(body.encode("utf-8"))!=page["response_body_sha256"]:
                 raise ValueError("RAW_BODY_SHA256")
-            data=json.loads(body)
-            if not isinstance(data,list) or not data or len(data)>1000:
+            def no_duplicate_fields(pairs):
+                obj={}
+                for k,v in pairs:
+                    if k in obj:raise ValueError("DUPLICATE_RAW_JSON_FIELD")
+                    obj[k]=v
+                return obj
+            data=json.loads(body,object_pairs_hook=no_duplicate_fields)
+            if not isinstance(data,list) or not data or len(data)>int(params["limit"][0]):
                 raise ValueError("EMPTY_OR_OVERSIZED_PAGE")
             times=[]
             for row in data:
@@ -169,6 +184,21 @@ def self_test():
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="INVALID_EXACT_MARK"
         else:raise AssertionError("INVALID_MARK_ACCEPTED")
+        # Reject malformed HTTP metadata even when body hashes are valid.
+        lines[0]["response_body"]=json.dumps([{"symbol":ASSETS[0],"fundingTime":START+q*SLOT,"fundingRate":"0.0001","markPrice":"100"} for q in range(3)])
+        lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
+        lines[0]["response_headers"]={"Date":"not-an-http-date"}
+        pages.write_text("\\n".join(json.dumps(x) for x in lines)+"\\n")
+        try:validate(pages,expected,Path(td)/"bad.json")
+        except ValueError as e:assert str(e)=="MALFORMED_HTTP_DATE"
+        else:raise AssertionError("MALFORMED_DATE_ACCEPTED")
+        lines[0]["response_headers"]={"Date":"Sun, 01 Nov 2026 12:00:00 GMT"}
+        lines[0]["url"]=lines[0]["url"].replace("limit=1000","limit=0")
+        pages.write_text("\\n".join(json.dumps(x) for x in lines)+"\\n")
+        try:validate(pages,expected,Path(td)/"bad.json")
+        except ValueError as e:assert str(e)=="REQUEST_SYMBOL_OR_LIMIT"
+        else:raise AssertionError("INVALID_LIMIT_ACCEPTED")
+        lines[0]["url"]=lines[0]["url"].replace("limit=0","limit=1000")
         lines[0]["response_body_sha256"]="0"*64
         pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
