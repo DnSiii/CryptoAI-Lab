@@ -15,9 +15,9 @@ def _d(value):
     return number
 
 
-def independently_recompute(schedule, *, event_type, asset, at_ms, native_lots,
-                            premiums_coin=None, strikes_usd=None,
-                            delivery_index_usd=None):
+def independently_recompute_legs(schedule, *, event_type, asset, at_ms, native_lots,
+                                 premiums_coin=None, strikes_usd=None,
+                                 delivery_index_usd=None):
     eligible = [row for row in schedule["rows"]
                 if row["asset"] == asset and
                 row["effective_from_ms"] <= at_ms < row["effective_to_ms"]]
@@ -39,12 +39,21 @@ def independently_recompute(schedule, *, event_type, asset, at_ms, native_lots,
     if len(values) != 2:
         raise AssertionError("ORACLE_NOT_TWO_LEGS")
     cap = _d(row["cap_fraction"])
-    return sum((quantity * min(rate, cap * p) for p in values), Decimal(0))
+    return tuple(quantity * min(rate, cap * p) for p in values)
+
+
+def independently_recompute(schedule, **inputs):
+    return sum(independently_recompute_legs(schedule, **inputs), Decimal(0))
 
 
 def verify(schedule, production_result, **inputs):
-    expected = independently_recompute(schedule, **inputs)
-    if (_d(production_result["native_fee_minimum_coin"]) != expected
+    legs = independently_recompute_legs(schedule, **inputs)
+    expected = sum(legs, Decimal(0))
+    reported_legs = production_result.get("leg_native_fee_coin")
+    if (not isinstance(reported_legs, (tuple, list))
+            or len(reported_legs) != 2
+            or tuple(_d(x) for x in reported_legs) != legs
+            or _d(production_result["native_fee_minimum_coin"]) != expected
             or production_result["historical_native_fee_certified"] is not False
             or production_result["original_options_economic_train_certified"] is not False
             or production_result["promotion_authorized"] is not False):

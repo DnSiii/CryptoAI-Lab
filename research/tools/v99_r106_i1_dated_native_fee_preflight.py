@@ -160,10 +160,20 @@ def signed_fee_preflight(evidence_root, expected_event_sha256,
     if hashlib.sha256(raw).hexdigest() != descriptor["sha256"].lower():
         raise ValueError("HISTORICAL_FEE_SCHEDULE_CHANGED_AFTER_SIGNATURE")
     schedule = _strict_json_bytes(raw)
-    expected = calculate_minimum_fee(
-        schedule, event_type=event_type, asset=asset, at_ms=at_ms,
+    fee_inputs = dict(
+        event_type=event_type, asset=asset, at_ms=at_ms,
         native_lots=native_lots, premiums_coin=premiums_coin,
         strikes_usd=strikes_usd, delivery_index_usd=delivery_index_usd)
+    expected = calculate_minimum_fee(schedule, **fee_inputs)
+    # The independent implementation must reexecute the actual signed
+    # nonfixture event, not merely pass standalone synthetic unit tests.
+    from research.verification.independent_v99_r106_i1_dated_native_fee_oracle import (
+        verify as independently_verify_fee,
+    )
+    try:
+        independently_verify_fee(schedule, expected, **fee_inputs)
+    except (AssertionError, KeyError, TypeError, ValueError) as exc:
+        raise ValueError("SIGNED_NATIVE_FEE_INDEPENDENT_ORACLE_MISMATCH") from exc
     actual_fee = _decimal(fee_coin)
     actual_slip = _decimal(slippage_coin)
     stress_fee, stress_slip = charge_floor(scenario, native_lots)

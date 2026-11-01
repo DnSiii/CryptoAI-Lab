@@ -190,6 +190,52 @@ class DatedNativeFeePreflightTests(unittest.TestCase):
                         root, "a"*64, "b"*64, slippage_coin="0",
                         **dict(kwargs, fee_coin="0.00001"))
 
+    def test_signed_wallet_path_vetoes_primary_total_and_leg_tampering(self):
+        # Synthetic attestation stub: independent math MUST run inside the
+        # actual signed wallet fee path before a debit can be accepted.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = json.dumps(schedule(), sort_keys=True).encode()
+            (root / "fee.json").write_bytes(raw)
+            payload = json.dumps({"evidence": {
+                "historical_account_fee_schedule": {
+                    "file": "fee.json", "sha256": hashlib.sha256(raw).hexdigest()
+                }
+            }}).encode()
+            (root / "attestation.json").write_bytes(payload)
+            verified = {"independent_signature_verified": True,
+                        "verified_attestation_sha256":
+                            hashlib.sha256(payload).hexdigest()}
+            inputs = dict(event_type="OPEN", asset="BTC", at_ms=FIRST+1000,
+                          native_lots="1", premiums_coin=["0.02", "0.01"])
+            correct = calculate_minimum_fee(schedule(), **inputs)
+            understated = dict(correct, native_fee_minimum_coin="0")
+            wrong_legs = dict(correct, leg_native_fee_coin=[
+                "0", correct["native_fee_minimum_coin"]
+            ])
+            with patch(
+                "research.tools.v99_r106_i1_dated_native_fee_preflight.verify_signed_event_attestation",
+                return_value=verified,
+            ):
+                for forged in (understated, wrong_legs):
+                    with self.subTest(forged=forged):
+                        with patch(
+                            "research.tools.v99_r106_i1_dated_native_fee_preflight.calculate_minimum_fee",
+                            return_value=forged,
+                        ):
+                            with self.assertRaisesRegex(
+                                ValueError, "SIGNED_NATIVE_FEE_INDEPENDENT_ORACLE_MISMATCH"
+                            ):
+                                signed_fee_preflight(
+                                    root, "a"*64, "b"*64, scenario="severe",
+                                    fee_coin="0.01", slippage_coin="0.01",
+                                    **inputs)
+                good = signed_fee_preflight(
+                    root, "a"*64, "b"*64, scenario="severe",
+                    fee_coin="0.01", slippage_coin="0.01", **inputs)
+                self.assertFalse(good["historical_native_fee_certified"])
+                self.assertFalse(good["promotion_authorized"])
+
     def test_untrusted_promotion_never_in_report(self):
         result = calculate_minimum_fee(schedule(), event_type="OPEN",
                                        asset="BTC", at_ms=FIRST+1000,
