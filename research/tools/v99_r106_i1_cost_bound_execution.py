@@ -69,7 +69,8 @@ def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
     digest = event_digest(event_type, wallet, **event_data)
     return verify_signed_event_attestation(
         attestation, digest,
-        expected_archive_manifest_sha256=expected_archive_manifest_sha256)
+        **({"expected_archive_manifest_sha256": expected_archive_manifest_sha256}
+           if expected_archive_manifest_sha256 is not None else {}))
 
 
 def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
