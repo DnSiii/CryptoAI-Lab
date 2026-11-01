@@ -1,0 +1,12 @@
+# V98 Independent — 2025 native OI source extension, pre-result registration (2026-11-01)
+
+**Source acquisition only; not a strategy, validation, holdout, trading or PnL claim.** The 2025 period has already been exposed by earlier V98 research and may only be used as exploratory/training history. No 2026+ observations, quarantined XRP, V14/V15/V99 signals, external benchmarks, Frozen or paper.
+
+## Economic reason and source novelty
+The 2022-24 native open-interest (OI) vendor archives are a distinct positioning/leverage data family, independently SHA-verified with strict missing-day masks (37/3,048 asset-days quarantined). The existing 2025 Clean-4 OHLCV/funding source does **not** establish 2025 native OI coverage. Do not repeat a rejected OHLCV sleeve. Before any new seven-slot architecture, establish whether genuine exchange-positioning information has sufficient 2025 coverage. Previously rejected OI-based strategies remain rejected; no performance selection or parameter rescue.
+
+## Two-step source-only test, preregistered before download
+1. Probe exactly 2025-01-15 and 2025-07-15 for BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT (eight ZIPs plus vendor CHECKSUM files) from official Binance Vision USD-M daily metrics path, using the preexisting SHA-checking `v98_oi_full_history_source_v2_20261027.read_day`. Require each daily ZIP to contain exactly 288 distinct same-UTC-day 5-minute observations on the full 00:00–23:55 grid, positive finite OI, and completed-hour 24-row sampling. Fail closed on any mismatch, no filling or synthetic data.
+2. **Only if all eight probes pass**, acquire 2025-01-01 through 2025-12-31 inclusive for all four assets (1,460 daily ZIP/CHECKSUM pairs), preserving each vendor SHA, quarantine reason, vendor-row-order flag, and exactly 24 observed hourly records per complete day. Do not invent missing days. The report and canonical hourly CSV must be independently audited by a separate artifact-only implementation against expected 2025 day/asset inventory, SHA references, timestamp/causal grid, missing-day exclusion and uniqueness. Preserve 2022-24 source unchanged.
+
+If the probe fails, record exact source restriction/HTTP/status and **do not** run full acquisition. If the full source has gaps, report exact coverage and a causal availability mask before any economic hypothesis. No strategy tuning, candidate promotion, PnL, 2026+ or future holdout access in these source tasks. Exact funding event markPrice/transport attestation remains a separate blocker. Source-only completion is not V98 completion.
