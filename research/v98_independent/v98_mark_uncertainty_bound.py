@@ -109,12 +109,12 @@ def main():
     out=Path(a.output_dir);out.mkdir(parents=True,exist_ok=True)
     target=out/"v98_mark_uncertainty_events.csv"
     with target.open("w",newline="") as f:
-        writer=csv.writer(f,lineterminator="\\n")
+        writer=csv.writer(f,lineterminator="\n")
         writer.writerow(FIELDS)
         for row in rows:
             writer.writerow([row[0],row[1]]+[format(x,".17g") for x in row[2:]])
     result["canonical_csv_sha256"]=hashlib.sha256(target.read_bytes()).hexdigest()
     (out/"v98_mark_uncertainty_receipt.json").write_text(
-        json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\\n")
+        json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
     print(json.dumps(result,sort_keys=True,allow_nan=False))
 if __name__=="__main__":main()
