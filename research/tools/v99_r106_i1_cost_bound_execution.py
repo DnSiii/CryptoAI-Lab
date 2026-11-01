@@ -73,6 +73,32 @@ def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
            if expected_archive_manifest_sha256 is not None else {}))
 
 
+
+def _signed_dated_fee_bound(attestation, archive_sha256, event_type, wallet,
+                            event_data, *, asset, at_ms, native_lots,
+                            fee_coin, slippage_coin, premiums_coin=None,
+                            strikes_usd=None, delivery_index_usd=None):
+    """Bind the actual wallet debit to the exact independently signed event.
+
+    The verifier authenticates an auditor's signed bytes, NOT original market
+    completeness, exchange account tier, execution, ROI or trade permission.
+    Import lazily to avoid a cycle with the modeled scenario floor module.
+    """
+    if not isinstance(archive_sha256, str) or len(archive_sha256) != 64:
+        raise ValueError("SIGNED_NATIVE_FEE_REQUIRES_ORIGINAL_ARCHIVE_SHA256")
+    from research.tools.v99_r106_i1_dated_native_fee_preflight import (
+        signed_fee_preflight,
+    )
+    return signed_fee_preflight(
+        attestation, event_digest(event_type, wallet, **event_data),
+        archive_sha256, event_type=event_type, asset=asset, at_ms=at_ms,
+        native_lots=native_lots, scenario=wallet.scenario,
+        fee_coin=fee_coin, slippage_coin=slippage_coin,
+        premiums_coin=premiums_coin, strikes_usd=strikes_usd,
+        delivery_index_usd=delivery_index_usd)
+
+
+
 def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                 native_lots, entry_fees_coin, entry_slippage_coin,
                 initial_margin_coin, maintenance_margin_coin, *,
@@ -92,6 +118,17 @@ def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                                  initial_margin_coin=initial_margin_coin,
                                  maintenance_margin_coin=maintenance_margin_coin))
     verify_charges(w.scenario, native_lots, entry_fees_coin, entry_slippage_coin)
+    if not fixture:
+        _signed_dated_fee_bound(
+            attestation, expected_archive_manifest_sha256, "OPEN", w,
+            dict(name=name, short=short, long=long, at_ms=at_ms,
+                 native_lots=native_lots, entry_fees_coin=entry_fees_coin,
+                 entry_slippage_coin=entry_slippage_coin,
+                 initial_margin_coin=initial_margin_coin,
+                 maintenance_margin_coin=maintenance_margin_coin),
+            asset=w.asset, at_ms=at_ms, native_lots=native_lots,
+            fee_coin=entry_fees_coin, slippage_coin=entry_slippage_coin,
+            premiums_coin=[short.bid_coin, long.ask_coin])
     proposed = open_vertical(w, name, short, long, at_ms, native_lots,
                             entry_fees_coin, entry_slippage_coin,
                             initial_margin_coin, maintenance_margin_coin)
@@ -173,5 +210,20 @@ def costed_settle_batch(w: Wallet, names, at_ms: int,
         fee = D(delivery_fees_coin[name])
         if fee < 2 * D(p.qty) * fee_rate:
             raise ValueError("SCENARIO_DELIVERY_FEE_UNDERPAYMENT")
+    if not fixture:
+        # One signed batch digest; independent native fee check for EACH
+        # due position. Never net fees across unrelated option positions.
+        event_data = dict(
+            names=names, at_ms=at_ms,
+            original_delivery_index_usd=original_delivery_index_usd,
+            delivery_fees_coin=delivery_fees_coin)
+        for name, position in sorted(due.items()):
+            _signed_dated_fee_bound(
+                attestation, expected_archive_manifest_sha256,
+                "SETTLE_BATCH", w, event_data,
+                asset=w.asset, at_ms=at_ms, native_lots=position.qty,
+                fee_coin=delivery_fees_coin[name], slippage_coin="0",
+                strikes_usd=[position.high, position.low],
+                delivery_index_usd=original_delivery_index_usd)
     return settle_batch(w, names, at_ms, original_delivery_index_usd,
                         delivery_fees_coin)
