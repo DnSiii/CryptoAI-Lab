@@ -34,7 +34,14 @@ def audit(folder):
             assert t==clocks[a] and t<LAST
             clocks[a]+=dt.timedelta(hours=1)
             key=(a,t.strftime("%Y-%m"))
-            assert key in manifest and row["source_zip_sha256"]==manifest[key]["zip_sha256"]
+            assert key in manifest
+            repairs=manifest[key].get("repair_days",[])
+            assert len(repairs)<=1
+            if repairs and t.date().isoformat()==repairs[0]["date"]:
+                expected_sha=repairs[0]["zip_sha256"]
+            else:
+                expected_sha=manifest[key]["zip_sha256"]
+            assert row["source_zip_sha256"]==expected_sha
             vals=[float(row[k]) for k in ("premium_open","premium_high","premium_low","premium_close")]
             assert all(math.isfinite(v) and abs(v)<1 for v in vals)
             o,h,l,cl=vals
@@ -42,9 +49,13 @@ def audit(folder):
             counts[key]+=1
     assert all(t==LAST for t in clocks.values())
     assert len(counts)==148
+    repairs=[x for v in manifest.values() for x in v.get("repair_days",[])]
+    assert len(repairs)==4 and all(x["rows"]==24 for x in repairs)
+    assert len({(x["date"],x["url"]) for x in repairs})==4
     assert all(counts[k]==v["rows"] for k,v in manifest.items())
     result={"decision":"PASS_INDEPENDENT_PREMIUM_FULL_SOURCE_INTEGRITY_NOT_PNL",
             "months_verified":len(counts),"asset_hours_verified":sum(counts.values()),
+            "vendor_sha_verified_daily_repair_days":len(repairs),
             "csv_sha256":j["hourly_csv_sha256"],"no_2026":True,
             "no_holdout":True,"no_pnl":True,"exact_event_mark_attested":False}
     return result
