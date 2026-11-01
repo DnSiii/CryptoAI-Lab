@@ -1,14 +1,15 @@
-name: V98 Independent PB Frpben Economic Receipt Audit
+name: V98 Independent PB Frozen Economic Receipt Audit
 on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - 'research/v98_independent/pb_full_training_frpben_result_20261031.json'
+      - 'research/v98_independent/pb_full_training_frozen_result_20261031.json'
+      - 'research/v98_independent/pb_receipt_independent_gate.py'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  pb-frpben-audit:
+  pb-frozen-audit:
     if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -20,6 +21,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Reconcile frpben PB 30 physical cells and binding economic gates independently
+      - name: Reconcile frozen PB 30 physical cells and binding economic gates independently
         working-directory: research/v98_independent
-        run: python pb_receipt_independent_gate.py pb_full_training_frpben_result_20261031.json
+        run: python pb_receipt_independent_gate.py pb_full_training_frozen_result_20261031.json
