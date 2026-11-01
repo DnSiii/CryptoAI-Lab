@@ -46,7 +46,10 @@ def _unpromoted(result):
 
 
 def run(signal_path, original_quotes_root, journal_path):
-    # Snapshot once: source oracle and signed wallet must consume identical\n    # journal bytes even if the caller mutates its original file mid-run.\n    journal_bytes = Path(journal_path).read_bytes()\n    document = json.loads(journal_bytes)
+    # Snapshot once: source oracle and signed wallet must consume identical
+    # journal bytes even if the caller mutates its original file mid-run.
+    journal_bytes = Path(journal_path).read_bytes()
+    document = json.loads(journal_bytes)
     if (not isinstance(document, dict)
             or document.get("schema") != JOURNAL_SCHEMA
             or document.get("fixture") is not False
@@ -59,7 +62,10 @@ def run(signal_path, original_quotes_root, journal_path):
     # Must verify 661 ORIGINAL days, 180 decisions, complete held-option
     # source spine, independent market and numeric oracles BEFORE signed NAV.
     # Missing original archive aborts here. No fixture fallback.
-    with tempfile.TemporaryDirectory(prefix="v99-i1-original-signed-") as temporary:\n        snapshot = Path(temporary) / "immutable_journal.json"\n        snapshot.write_bytes(journal_bytes)\n        original = source_bound_run(signal_path, original_quotes_root, snapshot)
+    with tempfile.TemporaryDirectory(prefix="v99-i1-original-signed-") as temporary:
+        snapshot = Path(temporary) / "immutable_journal.json"
+        snapshot.write_bytes(journal_bytes)
+        original = source_bound_run(signal_path, original_quotes_root, snapshot)
     _unpromoted(original)
     source_numeric = original.get("numeric_descriptive_only")
     if (original.get("original_signal_intents_checked") != 180
