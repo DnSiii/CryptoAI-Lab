@@ -138,7 +138,7 @@ def signed_fee_preflight(evidence_root, expected_event_sha256,
                          expected_archive_manifest_sha256, *, event_type,
                          asset, at_ms, native_lots, scenario, fee_coin,
                          slippage_coin, premiums_coin=None, strikes_usd=None,
-                         delivery_index_usd=None):
+                         delivery_index_usd=None, immediate_close_premiums_coin=None):
     """Signature and exact schedule-byte binding precede native fee comparison."""
     if (not _hex(expected_event_sha256)
             or not _hex(expected_archive_manifest_sha256)
@@ -176,6 +176,24 @@ def signed_fee_preflight(evidence_root, expected_event_sha256,
         independently_verify_fee(schedule, expected, **fee_inputs)
     except (AssertionError, KeyError, TypeError, ValueError) as exc:
         raise ValueError("SIGNED_NATIVE_FEE_INDEPENDENT_ORACLE_MISMATCH") from exc
+    close_reserve = {}
+    if immediate_close_premiums_coin is not None:
+        if event_type != "OPEN":
+            raise ValueError("IMMEDIATE_CLOSE_RESERVE_ONLY_FOR_SIGNED_OPEN")
+        # The signed OPEN event already binds BOTH executable book sides.
+        # This is a hypothetical immediate close liability, NOT a fill.
+        close_inputs = dict(
+            event_type="MARK", asset=asset, at_ms=at_ms,
+            native_lots=native_lots, premiums_coin=immediate_close_premiums_coin)
+        close = calculate_minimum_fee(schedule, **close_inputs)
+        try:
+            independently_verify_fee(schedule, close, **close_inputs)
+        except (AssertionError, KeyError, TypeError, ValueError) as exc:
+            raise ValueError("SIGNED_IMMEDIATE_CLOSE_FEE_ORACLE_MISMATCH") from exc
+        close_reserve = {
+            "immediate_close_fee_minimum_coin": close["native_fee_minimum_coin"],
+            "immediate_close_fee_is_hypothetical": True,
+        }
     actual_fee = _decimal(fee_coin)
     actual_slip = _decimal(slippage_coin)
     stress_fee, stress_slip = charge_floor(scenario, native_lots)
@@ -188,7 +206,8 @@ def signed_fee_preflight(evidence_root, expected_event_sha256,
     if (actual_fee < max(_decimal(expected["native_fee_minimum_coin"]), stress_fee)
             or actual_slip < stress_slip):
         raise ValueError("NATIVE_OR_SCENARIO_FRICTION_UNDERPAYMENT")
-    return {**expected, "signed_fee_schedule_sha256": hashlib.sha256(raw).hexdigest(),
+    return {**expected, **close_reserve,
+            "signed_fee_schedule_sha256": hashlib.sha256(raw).hexdigest(),
             "scenario": scenario, "scenario_fee_coin": str(actual_fee),
             "scenario_slippage_coin": str(actual_slip),
             "status": "SIGNED_NATIVE_FEE_LOWER_BOUND_ONLY_NOT_EXECUTION_CERTIFICATION"}
