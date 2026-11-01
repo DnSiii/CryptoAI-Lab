@@ -1,0 +1,24 @@
+name: V98 Independent PC Frozen Economic Receipt Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/pc_receipt_independent_gate.py'
+      - 'research/v98_independent/pc_full_training_frozen_result_20261031.json'
+      - '.github/workflows/v98-independent-pc-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-pc-receipt:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Independent immutable PC receipt arithmetic and binding gate replay
+        working-directory: research/v98_independent
+        run: python pc_receipt_independent_gate.py pc_full_training_frozen_result_20261031.json
