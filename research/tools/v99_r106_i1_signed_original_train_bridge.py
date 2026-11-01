@@ -11,7 +11,10 @@ import json
 import os
 import sys
 import tempfile
+from datetime import timedelta
 from pathlib import Path
+
+from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS, SCHEMA as TAPE_SCHEMA
 
 from research.tools.v99_r106_i1_native_event_equity import (
     SCHEMA as JOURNAL_SCHEMA, replay, replay_signed,
@@ -44,6 +47,55 @@ def _unpromoted(result):
                                             for key in FORBIDDEN):
         raise ValueError("UNTRUSTED_CERTIFICATION_OR_PROMOTION")
     return result
+
+
+
+def verify_original_day_bytes(root, manifest_digest):
+    """Rehash all 661 original compressed days AFTER signed replay, fail closed.
+
+    The source-first oracle has already independently verified the original
+    manifest and its compressed bytes. This final pass closes the gap between
+    the source oracle and signed NAV publication if a concurrent writer
+    mutates a day while signed accounting is executing.
+    """
+    root = Path(root)
+    manifest_path = root / "manifest.json"
+    if not manifest_path.is_file() or manifest_path.is_symlink():
+        raise ValueError("ORIGINAL_SOURCE_DAY_CHANGED_DURING_SIGNED_REPLAY")
+    raw = manifest_path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != manifest_digest:
+        raise ValueError("ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY")
+    try:
+        manifest = json.loads(raw)
+        entries = manifest["days"]
+    except (ValueError, TypeError, KeyError) as exc:
+        raise ValueError("INVALID_SIGNED_ORIGINAL_DAY_MANIFEST") from exc
+    if (manifest.get("schema") != TAPE_SCHEMA
+            or manifest.get("train_start") != FIRST.isoformat()
+            or len(entries) != DAYS
+            or not isinstance(entries, list)):
+        raise ValueError("INVALID_SIGNED_ORIGINAL_DAY_MANIFEST")
+    for i, entry in enumerate(entries):
+        expected_day = (FIRST + timedelta(days=i)).isoformat()
+        expected_file = expected_day + ".csv.gz"
+        if (not isinstance(entry, dict)
+                or entry.get("date") != expected_day
+                or entry.get("file") != expected_file
+                or type(entry.get("rows")) is not int or entry["rows"] <= 0
+                or not isinstance(entry.get("sha256"), str)
+                or len(entry["sha256"]) != 64
+                or any(c not in "0123456789abcdef" for c in entry["sha256"])):
+            raise ValueError("INVALID_SIGNED_ORIGINAL_DAY_MANIFEST")
+        path = root / expected_file
+        if not path.is_file() or path.is_symlink():
+            raise ValueError("ORIGINAL_SOURCE_DAY_CHANGED_DURING_SIGNED_REPLAY")
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
+        if digest.hexdigest() != entry["sha256"]:
+            raise ValueError("ORIGINAL_SOURCE_DAY_CHANGED_DURING_SIGNED_REPLAY")
+    return DAYS
 
 
 def run(signal_path, original_quotes_root, journal_path):
@@ -122,6 +174,7 @@ def run(signal_path, original_quotes_root, journal_path):
         raise ValueError("UNTRUSTED_SIGNED_NUMERIC_DIAGNOSTIC")
 
     verify_source_stability(original)
+    verify_original_day_bytes(original_quotes_root, manifest_entry)
     return {
         "schema": SCHEMA,
         "original_causal_signal_input_sha256": signal_entry,
