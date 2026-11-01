@@ -38,7 +38,7 @@ FORBIDDEN = (
 
 
 def _unpromoted(result):
-    if not isinstance(result, dict) or any(result.get(key) is not False
+    if not isinstance(result, dict) or any(result.get(key, False) is not False
                                             for key in FORBIDDEN):
         raise ValueError("UNTRUSTED_CERTIFICATION_OR_PROMOTION")
     return result
