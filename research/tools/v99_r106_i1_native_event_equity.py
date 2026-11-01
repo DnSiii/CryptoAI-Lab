@@ -500,16 +500,27 @@ def replay_signed(document, *, expected_archive_manifest_sha256=None):
                   expected_archive_manifest_sha256=expected_archive_manifest_sha256)
 
 
-def main(input_path, output_path, *, signed=False):
-    """Explicitly distinguish fixture CLI from authenticated nonfixture replay.
+def main(input_path, output_path, *, signed=False,
+         expected_archive_manifest_sha256=None):
+    """Standalone signed replay requires the SAME archive SHA as its receipts.
 
-    The signed path authenticates individual event evidence; it is NOT a
-    certified full historical TRAIN, and can never authorize promotion.
+    A caller-provided SHA is a cross-pin, never source authentication or
+    permission to trade. The source-first integrated bridge remains mandatory
+    for any complete economic certification.
     """
+    if signed:
+        digest = expected_archive_manifest_sha256
+        if (not isinstance(digest, str) or len(digest) != 64
+                or any(ch not in "0123456789abcdefABCDEF" for ch in digest)):
+            raise ValueError("SIGNED_CLI_REQUIRES_ORIGINAL_ARCHIVE_MANIFEST_SHA256")
+    elif expected_archive_manifest_sha256 is not None:
+        raise ValueError("UNSIGNED_CLI_CANNOT_CLAIM_ORIGINAL_MANIFEST")
     source = json.loads(Path(input_path).read_text(encoding="utf-8"))
     if not signed and isinstance(source, dict) and source.get("fixture") is False:
         raise ValueError("NONFIXTURE_CLI_REQUIRES_EXPLICIT_SIGNED_MODE")
-    report = replay_signed(source) if signed else replay(source)
+    report = (replay_signed(
+        source, expected_archive_manifest_sha256=expected_archive_manifest_sha256
+    ) if signed else replay(source))
     # Write only AFTER all 661 days and both scenario paths have replayed.
     Path(output_path).write_text(json.dumps(report, indent=2, sort_keys=True)+"\n",
                                  encoding="utf-8")
@@ -521,6 +532,15 @@ def main(input_path, output_path, *, signed=False):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) not in (3, 4) or (len(sys.argv) == 4 and sys.argv[3] != "--signed"):
-        raise SystemExit("usage: python -m research.tools.v99_r106_i1_native_event_equity INPUT_JSON OUTPUT_JSON [--signed]")
-    main(sys.argv[1], sys.argv[2], signed=len(sys.argv) == 4)
+    if len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    elif (len(sys.argv) == 6 and sys.argv[3] == "--signed"
+          and sys.argv[4] == "--archive-manifest-sha256"):
+        main(sys.argv[1], sys.argv[2], signed=True,
+             expected_archive_manifest_sha256=sys.argv[5])
+    else:
+        raise SystemExit(
+            "usage: python -m research.tools.v99_r106_i1_native_event_equity "
+            "INPUT_JSON OUTPUT_JSON "
+            "[--signed --archive-manifest-sha256 ORIGINAL_MANIFEST_SHA256]"
+        )
