@@ -11,7 +11,7 @@ SLOTS=(("Opportunity","PU_minus_opportunity"),
 
 def audit(r):
     assert r["architecture"]=="PU"
-    assert r["preregistration"]=="pu_residual_liquidity_prereg_20261101.md"
+    assert r["preregistration"]=="pu_expected_net_wealth_prereg_20261101.md"
     assert r["2025_exposed_training_only"] is True
     assert r["exact_event_mark_attested"] is False
     for k in ("2026_plus_accessed","holdout_accessed","external_benchmarks_accessed",
