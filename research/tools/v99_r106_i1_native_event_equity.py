@@ -425,7 +425,8 @@ def replay(document, *, signed=False,
         journal = {k: v for k, v in document.items() if k != "journal_attestation"}
         verify_signed_event_attestation(
             root, event_digest("JOURNAL", None, journal=journal),
-            expected_archive_manifest_sha256=expected_archive_manifest_sha256)
+            **({"expected_archive_manifest_sha256": expected_archive_manifest_sha256}
+               if expected_archive_manifest_sha256 is not None else {}))
     initial_coin = document.get("initial_coin")
     initial_index = document.get("initial_index_usd")
     if (not isinstance(initial_coin, dict) or not isinstance(initial_index, dict)
