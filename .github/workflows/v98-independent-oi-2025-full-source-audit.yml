@@ -1,0 +1,67 @@
+name: V98 Independent 2025 Native OI Full Source and Independent Audit No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-oi-2025-full-source-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-2025-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and preflight exact 2025-only asset-day inventory
+        run: |
+          python -m py_compile research/v98_independent/v98_oi_2025_full_native_source.py
+          python research/v98_independent/v98_oi_2025_full_native_source.py --inventory-only
+      - name: Download vendor-SHA-verified 2025 Clean-4 OI source and quarantine gaps
+        shell: bash
+        run: |
+          set +e
+          python research/v98_independent/v98_oi_2025_full_native_source.py --output-dir v98-oi-2025-native-source
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+          test -s v98-oi-2025-native-source/v98_oi_2025_native_source_report.json
+          test -s v98-oi-2025-native-source/v98_oi_2025_verified_hourly.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-2025-native-oi-vendor-sha-source-only
+          path: v98-oi-2025-native-source/
+          retention-days: 30
+          if-no-files-found: warn
+  independent-2025-source-audit:
+    needs: native-2025-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Independent audit implementation tamper contract (synthetic only)
+        run: |
+          python -m py_compile research/v98_independent/v98_oi_2025_full_native_independent_audit.py
+          python research/v98_independent/v98_oi_2025_full_native_independent_audit.py --self-test
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-2025-native-oi-vendor-sha-source-only
+          path: frozen-oi-2025
+      - name: Reconcile all 1460 asset-days, vendor SHA references and completed-hour source mask
+        run: |
+          python research/v98_independent/v98_oi_2025_full_native_independent_audit.py --root frozen-oi-2025 --output v98_oi_2025_independent_audit_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-2025-native-oi-source-only-independent-audit
+          path: v98_oi_2025_independent_audit_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
