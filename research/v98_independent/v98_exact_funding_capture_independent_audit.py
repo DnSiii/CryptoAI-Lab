@@ -11,10 +11,10 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
-SCOPE="V98_CLEAN4_2022_2025_EXPOSED_TRAINING_ONLY"
+SCOPE="V98_CLEAN4_2022_2024_TRAINING_ONLY"
 FIRST=1669852800000
 STEP=28800000
-N=3381
+N=2286
 LAST=FIRST+(N-1)*STEP
 ENDPOINT="https://fapi.binance.com/fapi/v1/fundingRate"
 
@@ -66,7 +66,7 @@ def audit(directory:Path)->dict:
         receipt.get("operator_asserted_transport_only") is not True or
         receipt.get("official_origin_independently_attested") is not False or
         receipt.get("pnl_computed") is not False or
-        receipt.get("2025_accessed") is not True or
+        receipt.get("2025_accessed") is not False or
         receipt.get("2026_plus_accessed") is not False):
         raise ValueError("V98_MISLEADING_CAPTURE_RECEIPT")
     captures=receipt.get("capture_pages")
@@ -77,7 +77,7 @@ def audit(directory:Path)->dict:
     for symbol in ASSETS:
         pages=captures[symbol]
         meta=assets[symbol]
-        if not isinstance(pages,list) or not 4<=len(pages)<=7 or not isinstance(meta,dict):
+        if not isinstance(pages,list) or not 3<=len(pages)<=7 or not isinstance(meta,dict):
             raise ValueError("V98_BAD_PAGINATION_OR_MANIFEST")
         rows=[];expected_start=FIRST
         for i,page in enumerate(pages,1):
@@ -117,7 +117,7 @@ def audit(directory:Path)->dict:
             "manifest_sha256":digest(within(root,"v98_exact_funding_manifest.json").read_bytes()),
             "exchange_origin_attested":False,
             "native_rate_and_mark_envelope_reconciled":False,
-            "pnl_computed":False,"2025_accessed":True,"2026_plus_accessed":False}
+            "pnl_computed":False,"2025_accessed":False,"2026_plus_accessed":False}
 
 def self_test()->dict:
     with tempfile.TemporaryDirectory() as folder:
@@ -141,7 +141,7 @@ def self_test()->dict:
                               "first_time":chunk[0]["fundingTime"],
                               "last_time":chunk[-1]["fundingTime"]})
             raw=json.dumps(rows,separators=(",",":")).encode()
-            name=f"{symbol}_fundingRate_exact_2022_2025.json"
+            name=f"{symbol}_fundingRate_exact_2022_2024.json"
             (root/name).write_bytes(raw)
             assets[symbol]={"path":name,"sha256":digest(raw),"source_url":pages[0]["request_url"]}
             caps[symbol]=pages
@@ -154,7 +154,7 @@ def self_test()->dict:
         mp=root/"v98_exact_funding_manifest.json"
         rp=root/"v98_transport_capture_receipt.json"
         mp.write_text(json.dumps(manifest));rp.write_text(json.dumps(receipt))
-        assert audit(root)["events_reconciled"]==13524
+        assert audit(root)["events_reconciled"]==9144
         rawpath=root/caps["BTCUSDT"][0]["raw_path"]
         original=rawpath.read_bytes()
         rawpath.write_bytes(original+b" ")
@@ -183,7 +183,7 @@ def self_test()->dict:
             assert "RAW_PAGES_ASSEMBLED_DIVERGENCE" in str(exc)
         else:raise AssertionError("V98_UNDETECTED_ASSEMBLED_TAMPER")
     return {"decision":"PASS_SYNTHETIC_CAPTURE_CHAIN_TEST_NOT_OFFICIAL_SOURCE",
-            "events_fixture":13524,"tamper_cases":3,
+            "events_fixture":9144,"tamper_cases":3,
             "official_events_acquired":0,"pnl_computed":False}
 
 def main():
