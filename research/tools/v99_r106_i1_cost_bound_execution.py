@@ -77,7 +77,8 @@ def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
 def _signed_dated_fee_bound(attestation, archive_sha256, event_type, wallet,
                             event_data, *, asset, at_ms, native_lots,
                             fee_coin, slippage_coin, premiums_coin=None,
-                            strikes_usd=None, delivery_index_usd=None):
+                            strikes_usd=None, delivery_index_usd=None,
+                            immediate_close_premiums_coin=None):
     """Bind the actual wallet debit to the exact independently signed event.
 
     The verifier authenticates an auditor's signed bytes, NOT original market
@@ -95,7 +96,8 @@ def _signed_dated_fee_bound(attestation, archive_sha256, event_type, wallet,
         native_lots=native_lots, scenario=wallet.scenario,
         fee_coin=fee_coin, slippage_coin=slippage_coin,
         premiums_coin=premiums_coin, strikes_usd=strikes_usd,
-        delivery_index_usd=delivery_index_usd)
+        delivery_index_usd=delivery_index_usd,
+        immediate_close_premiums_coin=immediate_close_premiums_coin)
 
 
 
@@ -118,8 +120,9 @@ def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                                  initial_margin_coin=initial_margin_coin,
                                  maintenance_margin_coin=maintenance_margin_coin))
     verify_charges(w.scenario, native_lots, entry_fees_coin, entry_slippage_coin)
+    native_close_fee_floor = Decimal(0)
     if not fixture:
-        _signed_dated_fee_bound(
+        fee_evidence = _signed_dated_fee_bound(
             attestation, expected_archive_manifest_sha256, "OPEN", w,
             dict(name=name, short=short, long=long, at_ms=at_ms,
                  native_lots=native_lots, entry_fees_coin=entry_fees_coin,
@@ -128,14 +131,17 @@ def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                  maintenance_margin_coin=maintenance_margin_coin),
             asset=w.asset, at_ms=at_ms, native_lots=native_lots,
             fee_coin=entry_fees_coin, slippage_coin=entry_slippage_coin,
-            premiums_coin=[short.bid_coin, long.ask_coin])
+            premiums_coin=[short.bid_coin, long.ask_coin],
+            immediate_close_premiums_coin=[short.ask_coin, long.bid_coin])
+        native_close_fee_floor = D(fee_evidence["immediate_close_fee_minimum_coin"])
     proposed = open_vertical(w, name, short, long, at_ms, native_lots,
                             entry_fees_coin, entry_slippage_coin,
                             initial_margin_coin, maintenance_margin_coin)
     # The wallet's weak post-entry check intentionally omits closing costs.
-    # Enforce the actual severe/supersevere modeled exit-cost FLOOR here,
-    # before a research caller can mistake the position for collateral-safe.
+    # Reserve the larger of the scenario fee floor and the signed dated
+    # hypothetical native CLOSE fee; no execution/fill is inferred.
     exit_fee_floor, exit_slip_floor = charge_floor(w.scenario, native_lots)
+    exit_fee_floor = max(exit_fee_floor, native_close_fee_floor)
     immediate_exit = max(
         D(0), D(native_lots) * (D(short.ask_coin) - D(long.bid_coin))
     ) + exit_fee_floor + exit_slip_floor
