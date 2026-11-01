@@ -245,5 +245,43 @@ class DatedNativeFeePreflightTests(unittest.TestCase):
         self.assertFalse(result["original_options_economic_train_certified"])
 
 
+    def test_mark_close_sides_use_dated_native_fee_and_independent_oracle(self):
+        # MARK is a hypothetical exit, not a realized fill. Signed historical
+        # native account terms must still bound the exit liability.
+        doc = schedule()
+        inputs = dict(event_type="MARK", asset="BTC", at_ms=FIRST+1000,
+                      native_lots="1", premiums_coin=["0.09", "0.04"])
+        result = calculate_minimum_fee(doc, **inputs)
+        self.assertEqual(result["native_fee_minimum_coin"], "0.0006")
+        self.assertTrue(verify(doc, result, **inputs)["independent_native_fee_arithmetic_verified"])
+        forged = dict(result, leg_native_fee_coin=["0", "0.0006"])
+        with self.assertRaisesRegex(AssertionError, "INDEPENDENT_NATIVE_FEE"):
+            verify(doc, forged, **inputs)
+        self.assertFalse(result["historical_native_fee_certified"])
+
+    def test_signed_mark_rejects_historical_undercharge_before_nav(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = json.dumps(schedule(), sort_keys=True).encode()
+            (root / "fee.json").write_bytes(raw)
+            payload = json.dumps({"evidence": {"historical_account_fee_schedule": {
+                "file": "fee.json", "sha256": hashlib.sha256(raw).hexdigest()}}}).encode()
+            (root / "attestation.json").write_bytes(payload)
+            fake_verified = {"independent_signature_verified": True,
+                             "verified_attestation_sha256": hashlib.sha256(payload).hexdigest()}
+            params = dict(event_type="MARK", asset="BTC", at_ms=FIRST+1000,
+                          native_lots="1", scenario="severe",
+                          premiums_coin=["0.09", "0.04"], slippage_coin="0.0024")
+            with patch("research.tools.v99_r106_i1_dated_native_fee_preflight.verify_signed_event_attestation",
+                       return_value=fake_verified):
+                with self.assertRaisesRegex(ValueError, "NATIVE_OR_SCENARIO_FRICTION_UNDERPAYMENT"):
+                    signed_fee_preflight(root, "a"*64, "b"*64, fee_coin="0.0005", **params)
+                accepted = signed_fee_preflight(root, "a"*64, "b"*64,
+                                                fee_coin="0.0024", **params)
+                self.assertFalse(accepted["promotion_authorized"])
+                self.assertEqual(accepted["status"],
+                                 "SIGNED_NATIVE_FEE_LOWER_BOUND_ONLY_NOT_EXECUTION_CERTIFICATION")
+
+
 if __name__ == "__main__":
     unittest.main()
