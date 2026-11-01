@@ -182,5 +182,44 @@ class SignedWalletFeeBindingTests(unittest.TestCase):
         self.assertEqual(self.calls, [])
 
 
+    def test_signed_mark_requires_historical_close_fee_not_just_scenario_floor(self):
+        self.wallet = self.open("p1", "0.01")
+        before = self.wallet
+        # The original close sides (.09 short ask, .04 long bid) have a
+        # synthetic dated native fee floor of .005 per leg = .01 total.
+        # Severe modeled fee floor is only .0024.
+        fee, slip = charge_floor("severe", "1")
+        with self.assertRaisesRegex(ValueError, "NATIVE_OR_SCENARIO_FRICTION_UNDERPAYMENT"):
+            costed_mark(self.wallet, "p1", self.s, self.l, AT,
+                        fee, slip, fixture=False, attestation=str(self.root),
+                        expected_archive_manifest_sha256=ARCHIVE)
+        self.assertEqual(self.wallet, before)
+        self.assertEqual(len(self.wallet.marks), 0)
+        signed = costed_mark(self.wallet, "p1", self.s, self.l, AT,
+                             "0.01", slip, fixture=False,
+                             attestation=str(self.root),
+                             expected_archive_manifest_sha256=ARCHIVE)
+        self.assertEqual(len(signed.marks), 1)
+        self.assertEqual(signed.marks[0][1], D("0.06") + D(slip))
+        self.assertFalse(signed == before)
+
+    def test_signed_mark_primary_fee_tamper_independent_veto(self):
+        self.wallet = self.open("p1", "0.01")
+        before = self.wallet
+        forged = {"native_fee_minimum_coin": "0",
+                  "leg_native_fee_coin": ["0", "0"],
+                  "historical_native_fee_certified": False,
+                  "original_options_economic_train_certified": False,
+                  "promotion_authorized": False}
+        with patch("research.tools.v99_r106_i1_dated_native_fee_preflight.calculate_minimum_fee",
+                   return_value=forged):
+            with self.assertRaisesRegex(ValueError, "SIGNED_NATIVE_FEE_INDEPENDENT_ORACLE_MISMATCH"):
+                costed_mark(self.wallet, "p1", self.s, self.l, AT,
+                            "0.01", "0.0024", fixture=False,
+                            attestation=str(self.root),
+                            expected_archive_manifest_sha256=ARCHIVE)
+        self.assertEqual(self.wallet, before)
+
+
 if __name__ == "__main__":
     unittest.main()
