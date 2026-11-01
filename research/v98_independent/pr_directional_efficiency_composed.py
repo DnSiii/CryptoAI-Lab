@@ -143,7 +143,7 @@ def run(d):
         failures.append("independent_hourly_accounting")
     if fills is None or fills["independent_fee_slippage_funding_mismatches"]:
         failures.append("independent_fills_and_funding")
-    out={"architecture":"PR","preregistration":"pr_directional_efficiency_prereg_20261101.md",
+    out={"architecture":"PR","preregistration":"pr_directional_efficiency_composed_prereg_20261101.md",
          "source":source,"weekly_decisions":len(decisions),"cells":cells,
          "marginals":marginals,"independent_decision_oracle":oracle,
          "independent_accounting":accounting,"independent_fills":fills,
