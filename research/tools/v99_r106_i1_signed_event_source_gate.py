@@ -52,7 +52,7 @@ def canonical(value):
 
 
 def event_digest(event_type, wallet, **kwargs):
-    if event_type not in ("OPEN", "MARK", "SETTLE_BATCH"):
+    if event_type not in ("OPEN", "MARK", "SETTLE_BATCH", "JOURNAL"):
         raise ValueError("UNKNOWN_SIGNED_EVENT_TYPE")
     return hashlib.sha256(canonical({
         "type": event_type, "wallet": wallet, "inputs": kwargs,
