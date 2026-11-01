@@ -471,18 +471,27 @@ def replay_signed(document):
     return replay(document, signed=True)
 
 
-def main(input_path, output_path):
+def main(input_path, output_path, *, signed=False):
+    """Explicitly distinguish fixture CLI from authenticated nonfixture replay.
+
+    The signed path authenticates individual event evidence; it is NOT a
+    certified full historical TRAIN, and can never authorize promotion.
+    """
     source = json.loads(Path(input_path).read_text(encoding="utf-8"))
-    report = replay(source)
+    if not signed and isinstance(source, dict) and source.get("fixture") is False:
+        raise ValueError("NONFIXTURE_CLI_REQUIRES_EXPLICIT_SIGNED_MODE")
+    report = replay_signed(source) if signed else replay(source)
+    # Write only AFTER all 661 days and both scenario paths have replayed.
     Path(output_path).write_text(json.dumps(report, indent=2, sort_keys=True)+"\n",
                                  encoding="utf-8")
     print(json.dumps({"status": report["status"], "days": DAYS,
+                      "signed_event_adapter_replayed": report["signed_event_adapter_replayed"],
                       "economic_train_certified": False,
                       "promotion_authorized": False}, sort_keys=True))
     return report
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        raise SystemExit("usage: python -m research.tools.v99_r106_i1_native_event_equity INPUT_JSON OUTPUT_JSON")
-    main(*sys.argv[1:])
+    if len(sys.argv) not in (3, 4) or (len(sys.argv) == 4 and sys.argv[3] != "--signed"):
+        raise SystemExit("usage: python -m research.tools.v99_r106_i1_native_event_equity INPUT_JSON OUTPUT_JSON [--signed]")
+    main(sys.argv[1], sys.argv[2], signed=len(sys.argv) == 4)
