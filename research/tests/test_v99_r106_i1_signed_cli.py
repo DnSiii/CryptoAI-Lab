@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 from research.tests.test_v99_r106_i1_native_event_equity import flat_fixture
 from research.tests.test_v99_r106_i1_signed_native_event_replay import signed_shape
-from research.tools.v99_r106_i1_native_event_equity import main
+from research.tools.v99_r106_i1_native_event_equity import main, replay
 
 ARCHIVE = "a" * 64
 
@@ -157,6 +157,53 @@ class SignedNativeCLIControls(unittest.TestCase):
             self.assertFalse(report["signed_event_adapter_replayed"])
             self.assertFalse(report["promotion_authorized"])
             self.assertTrue(output.is_file())
+
+
+    def test_existing_output_and_input_alias_are_immutable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, output = self._paths(directory, flat_fixture())
+            original = source.read_bytes()
+            output.write_bytes(b"PREVIOUS_RESULT_DO_NOT_REPLACE")
+            with self.assertRaisesRegex(ValueError, "EXISTING_NATIVE_RESULT_IMMUTABLE"):
+                main(source, output)
+            self.assertEqual(output.read_bytes(), b"PREVIOUS_RESULT_DO_NOT_REPLACE")
+            with self.assertRaisesRegex(ValueError, "EXISTING_NATIVE_RESULT_IMMUTABLE"):
+                main(source, source)
+            self.assertEqual(source.read_bytes(), original)
+
+    def test_dangling_symlink_output_is_not_followed_or_replaced(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, output = self._paths(directory, flat_fixture())
+            output.symlink_to(Path(directory) / "nonexistent-target.json")
+            with self.assertRaisesRegex(ValueError, "EXISTING_NATIVE_RESULT_IMMUTABLE"):
+                main(source, output)
+            self.assertTrue(output.is_symlink())
+            self.assertFalse(output.exists())
+
+    def test_concurrent_output_created_during_replay_is_never_overwritten(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, output = self._paths(directory, flat_fixture())
+            def competitor(document):
+                report = replay(document)
+                output.write_bytes(b"COMPETING_WRITER_RESULT")
+                return report
+            with patch(
+                "research.tools.v99_r106_i1_native_event_equity.replay",
+                side_effect=competitor,
+            ):
+                with self.assertRaisesRegex(ValueError, "EXISTING_NATIVE_RESULT_IMMUTABLE"):
+                    main(source, output)
+            self.assertEqual(output.read_bytes(), b"COMPETING_WRITER_RESULT")
+            self.assertEqual(list(Path(directory).glob(".output.json.*.tmp")), [])
+
+    def test_new_result_is_complete_and_no_temporary_file_remains(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, output = self._paths(directory, flat_fixture())
+            report = main(source, output)
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8")),
+                             report)
+            self.assertFalse(report["promotion_authorized"])
+            self.assertEqual(list(Path(directory).glob(".output.json.*.tmp")), [])
 
 
 if __name__ == "__main__":
