@@ -1,0 +1,27 @@
+name: V98 Independent PE Frozen Economic Receipt Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/pe_receipt_independent_gate.py'
+      - 'research/v98_independent/pe_full_training_frozen_result_20261101.json'
+      - '.github/workflows/v98-independent-pe-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pe-frozen-receipt-audit:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: PE independent arithmetic and frozen binding-gate replay
+        working-directory: research/v98_independent
+        run: python pe_receipt_independent_gate.py pe_full_training_frozen_result_20261101.json
