@@ -166,6 +166,18 @@ def costed_mark(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
     if p is None:
         raise ValueError("UNKNOWN_POSITION")
     verify_charges(w.scenario, p.qty, exit_fees_coin, exit_slippage_coin)
+    if not fixture:
+        # A MARK is a hypothetical close liability, NOT an executed exit.
+        # The original executable CLOSE sides must satisfy the independently
+        # signed historical native fee floor before NAV can be updated.
+        _signed_dated_fee_bound(
+            attestation, expected_archive_manifest_sha256, "MARK", w,
+            dict(name=name, short=short, long=long, at_ms=at_ms,
+                 exit_fees_coin=exit_fees_coin,
+                 exit_slippage_coin=exit_slippage_coin),
+            asset=w.asset, at_ms=at_ms, native_lots=p.qty,
+            fee_coin=exit_fees_coin, slippage_coin=exit_slippage_coin,
+            premiums_coin=[short.ask_coin, long.bid_coin])
     marked = mark_to_exit(w, name, short, long, at_ms,
                           exit_fees_coin, exit_slippage_coin)
     # A complete same-clock mark set is not valid if its NAV violates
