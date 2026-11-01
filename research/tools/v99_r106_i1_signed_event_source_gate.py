@@ -126,7 +126,8 @@ def _verify_oracle_event_binding(oracle_bytes, descriptors, expected_event_sha25
         raise ValueError("SIGNED_ORACLE_NOT_BOUND_TO_ORIGINAL_EVENT_AND_SOURCES")
 
 
-def verify_signed_event_attestation(evidence_root, expected_event_sha256):
+def verify_signed_event_attestation(evidence_root, expected_event_sha256,
+                                    expected_archive_manifest_sha256=None):
     """Check externally anchored Ed25519 signature AND bound evidence bytes.
 
     The key path and its digest pin are provided by independently controlled
@@ -200,6 +201,17 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256):
         if actual_sha256 != item["sha256"].lower():
             raise ValueError("SIGNED_ORIGINAL_EVIDENCE_SHA256_MISMATCH")
     _verify_oracle_event_binding(oracle_bytes, document["evidence"], expected_event_sha256)
+    # An independently signed package is not enough if it authenticates a
+    # DIFFERENT original archive from the one the source-byte oracle replayed.
+    if expected_archive_manifest_sha256 is not None:
+        if (not isinstance(expected_archive_manifest_sha256, str)
+                or len(expected_archive_manifest_sha256) != 64
+                or any(c not in "0123456789abcdefABCDEF"
+                       for c in expected_archive_manifest_sha256)):
+            raise ValueError("INVALID_EXPECTED_ORIGINAL_ARCHIVE_MANIFEST_SHA256")
+        if (document["evidence"]["licensed_train_archive_manifest"]["sha256"].lower()
+                != expected_archive_manifest_sha256.lower()):
+            raise ValueError("SIGNED_EVENT_ORIGINAL_ARCHIVE_MANIFEST_MISMATCH")
     # This only authenticates the independently signed evidence package.
     # Native execution, historical venue completeness and profitability remain
     # separate, mandatory, NEVER automatically certified by this function.
