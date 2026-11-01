@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from research.tools.v99_r106_i1_cost_bound_execution import (
-    costed_open, costed_settle_batch, charge_floor,
+    costed_open, costed_mark, costed_settle_batch, charge_floor,
 )
 from research.tools.v99_r106_i1_native_coin_account_replay import (
     D, start_wallet,
@@ -103,6 +103,10 @@ class SignedWalletFeeBindingTests(unittest.TestCase):
 
     def test_atomic_settlement_checks_every_position_individually(self):
         self.wallet = self.open("p1", "0.01")
+        # Synthetic-only same-clock mark before another open; no invented NAV.
+        floor, slip = charge_floor("severe", "1")
+        self.wallet = costed_mark(self.wallet, "p1", self.s, self.l, AT,
+                                  floor, slip, fixture=True)
         self.wallet = self.open("p2", "0.01")
         self.calls.clear()
         with self.assertRaisesRegex(ValueError, "NATIVE_OR_SCENARIO_FRICTION_UNDERPAYMENT"):
