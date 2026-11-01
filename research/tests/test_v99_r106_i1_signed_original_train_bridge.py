@@ -1,5 +1,6 @@
 """Synthetic controls for ORIGINAL-source + signed-event join. NOT market evidence."""
 import copy
+import hashlib
 import json
 import os
 import tempfile
@@ -29,6 +30,7 @@ class SignedOriginalBridgeTests(unittest.TestCase):
             "full_original_source_asset_week_books_independently_verified": 180,
             "original_complete_option_lifecycles_certified": 0,
             "original_quote_event_identities_checked": 100,
+            "original_quote_manifest_sha256": hashlib.sha256(b"{}").hexdigest(),
             "numeric_descriptive_only": self.numeric,
         }
 
@@ -37,8 +39,12 @@ class SignedOriginalBridgeTests(unittest.TestCase):
         result["signed_event_adapter_replayed"] = True
         return result
 
-    def paths(self, root, document=None):
+    def paths(self, root, document=None, source_inputs=True):
         root = Path(root)
+        if source_inputs:
+            (root / "signal.json").write_bytes(b"{}")
+            (root / "original").mkdir(exist_ok=True)
+            (root / "original" / "manifest.json").write_bytes(b"{}")
         journal = root / "journal.json"
         journal.write_text(json.dumps(self.doc if document is None else document))
         return root / "signal.json", root / "original", journal, root / "result.json"
@@ -56,7 +62,7 @@ class SignedOriginalBridgeTests(unittest.TestCase):
 
     def test_real_missing_original_661d_archive_fails_before_signed_nav(self):
         with tempfile.TemporaryDirectory() as tmp:
-            args = self.paths(tmp)
+            args = self.paths(tmp, source_inputs=False)
             args[0].write_text(json.dumps(original_signal_document()))
             args[1].mkdir()
             with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed") as signed:
@@ -125,6 +131,61 @@ class SignedOriginalBridgeTests(unittest.TestCase):
             self.assertTrue(result["signed_661d_event_wallet_replayed"])
             self.assertFalse(result["promotion_authorized"])
 
+    def test_source_changes_signal_during_verification_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            def changed(signal, root, snapshot):
+                args[0].write_text('{"changed":true}')
+                return self.source_mock()
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       side_effect=changed):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed") as signed:
+                    with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY"):
+                        main(*args)
+                    signed.assert_not_called()
+            self.assertFalse(args[-1].exists())
+
+    def test_source_changes_manifest_during_verification_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            def changed(signal, root, snapshot):
+                (args[1] / "manifest.json").write_text('{"changed":true}')
+                return self.source_mock()
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       side_effect=changed):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed") as signed:
+                    with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY"):
+                        main(*args)
+                    signed.assert_not_called()
+            self.assertFalse(args[-1].exists())
+
+    def test_source_reports_wrong_manifest_hash_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            forged = self.source_mock()
+            forged["original_quote_manifest_sha256"] = "0" * 64
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       return_value=forged):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed") as signed:
+                    with self.assertRaisesRegex(ValueError, "ORIGINAL_MANIFEST_SOURCE_ORACLE_DIGEST_MISMATCH"):
+                        main(*args)
+                    signed.assert_not_called()
+            self.assertFalse(args[-1].exists())
+
+    def test_signed_replay_changes_original_source_after_first_check_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            def signed_then_mutate(document):
+                args[0].write_text('{"late":true}')
+                return self.signed_mock()
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       return_value=self.source_mock()):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed",
+                           side_effect=signed_then_mutate):
+                    with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY"):
+                        main(*args)
+            self.assertFalse(args[-1].exists())
+
     def test_joined_technical_mock_is_never_certified_and_no_overwrite(self):
         # Mocked source and signature results only test orchestration.
         with tempfile.TemporaryDirectory() as tmp:
@@ -137,6 +198,10 @@ class SignedOriginalBridgeTests(unittest.TestCase):
             self.assertTrue(args[-1].exists())
             self.assertTrue(result["signed_661d_event_wallet_replayed"])
             self.assertEqual(result["numeric_descriptive_only"], self.numeric)
+            self.assertEqual(result["original_causal_signal_input_sha256"],
+                             hashlib.sha256(b"{}").hexdigest())
+            self.assertEqual(result["original_quote_manifest_input_sha256"],
+                             hashlib.sha256(b"{}").hexdigest())
             for key in ("original_options_economic_train_certified",
                         "promotion_authorized", "freeze_authorized",
                         "validation_opened", "holdout_opened", "orders_enabled"):
