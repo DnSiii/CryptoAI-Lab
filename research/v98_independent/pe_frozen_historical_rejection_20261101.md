@@ -1,0 +1,21 @@
+# V98 PE — permanent economic rejection (2026-11-01)
+
+**Decision: REJECT_PE_TRAINING.** No post-result threshold, sign, weight, window, fee, gross, or sleeve rescue. PE is neither a champion nor a validated engine, and is not paper/live PnL.
+
+- Pre-result seven-slot specification: [PE preregistration](pe_liquidity_pressure_prereg_20261101.md), committed as `0c6e92856e06862d9a53eae2c3dc68ceef6a2051`, before the strategy code and physical result.
+- Complete historical source-gated 30-cell run: [Actions 41274549785](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41274549785), code SHA `6fecaf684111c9f4b68a5722d5c14694315c7f75`. Exit code 1 was **intentional economic rejection**, not a missing data or runtime failure. All 30 physical cells passed execution feasibility. Exact full result frozen as [PE 30-cell receipt](pe_full_training_frozen_result_20261101.json), copied without selection from `PE_RESULT_JSON` in the job log.
+- Independent scalar-loop decision/allocation oracle: 157 weekly decisions, 5 books, 0 mismatches, max weight error 0. Independent cash accounting: 26,303 hourly identities, 0 mismatches; fill/funding/fee oracle: 49 net fill events, 0 mismatches. The frozen result was also checked in an independent JS-language 60/60 CAGR/log-growth arithmetic replay, reproducing 16/16 binding gate failures. [Independent Python receipt audit](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41274652299) passed.
+- Clean-4 training-only: BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT; Dec-2022 warmup–Dec-2025; 27,048 hourly bars; 13,524 native funding-rate events. Funding settlement uses conservative hourly mark envelope, **not authenticated exact event markPrice**.
+
+| Full PE, carried-before-fill | Base | Severe | Supersevere |
+|---|---:|---:|---:|
+| Simulated CAGR | +13.16% | +11.79% | +10.33% |
+| Maximum drawdown | -11.35% | -11.54% | -12.02% |
+| Turnover, initial NAV USD10k | USD317,190 | USD311,326 | USD305,191 |
+| 2025 return | +18.36% | +16.92% | +15.39% |
+
+**Why rejected:** full base CAGR <80% and severe CAGR <60%; all optional sleeves fail positive marginal-growth requirement. Opportunity marginal full-minus-ablation log-growth = -0.02544 base / -0.02679 severe / -0.02824 supersevere. Relative Value and Stress/Recovery each have **exactly zero** measured marginal contribution under all six cost/settlement combinations. Core-only base CAGR +14.13% exceeds composed full +13.16%; the seven-slot composition is not justified. There are 16 binding economic failures, no physical-accounting failures. Positive annual returns and low drawdown do not override growth and marginal gates. No candidate promotion.
+
+**Source critical path:** the repository ALREADY has a separate full-history 2022–2025 exact capture, independent capture audit and native-mark ingest (`v98_exact_funding_full_history_capture.py`, `v98_exact_funding_full_history_capture_audit.py`, `v98_exact_funding_full_history_ingest.py`). The older 2022–2024 capture contract was checked and restored byte-for-byte; no replacement pipeline is needed. No official exact mark events were acquired this cycle. The missing external evidence is 13,524 original `symbol,fundingTime,fundingRate,markPrice` Binance USD-M records (3,381 each), plus verifiable raw exchange HTTP response bodies, headers, UTC request chronology, SHA256 and independent native-rate/mark-envelope reconciliation. Direct runner fetch has encountered HTTP451; use an **authorized** export from an accessible network, not a bypass or synthetic marks. Exact native settlement cannot be attested without it.
+
+**Next substantive research:** avoid more cosmetic reweights of rejected price/volume proxies; test availability/provenance of genuinely independent market microstructure inputs (e.g. exchange-authenticated taker-buy volume or open interest) before preregistering a new complete composed hypothesis. Preserve future untouched prospective validation, benchmark isolation, V16/V99 Frozen, V99 paper and all 2026+ data. No operation real authorized.
