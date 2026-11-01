@@ -1,4 +1,9 @@
-"""Signed 661-day adapter integration: synthetic wiring only, NEVER original economics."""
+"""Signed 661-day adapter integration: synthetic wiring only, NEVER original economics.
+
+Synthetic signed fixture tests intentionally bypass ONLY the additional dated-fee
+wallet preflight; the real fee preflight and integration have separate adversarial
+tests. A fixture signature is never historical venue/account provenance.
+"""
 import hashlib
 import json
 import os
@@ -81,6 +86,7 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "SIGNED_ATTESTATION_NOT_BOUND_TO_EVENT"):
                 replay_signed(doc)
 
+    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: None)
     def test_missing_open_mark_and_settlement_attestations_rejected(self):
         for kind, error in (
             ("OPEN", "MISSING_SIGNED_ORIGINAL_OPEN_ATTESTATION"),
@@ -105,6 +111,7 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, error):
                     replay_signed(doc)
 
+    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: None)
     def test_full_661d_adapter_real_ephemeral_ed25519_fixture_signatures(self):
         # Synthetic source bytes signed by a TEMPORARY TEST key. This tests
         # cryptographic event binding, never an independent real auditor.
@@ -182,6 +189,7 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
             self.assertFalse(report["original_options_economic_train_certified"])
             self.assertFalse(report["promotion_authorized"])
 
+    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: None)
     def test_every_event_routes_through_signed_gate_without_promotion(self):
         doc, expected = signed_shape()
         verified = set()
