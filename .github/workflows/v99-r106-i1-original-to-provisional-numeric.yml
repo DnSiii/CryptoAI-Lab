@@ -3,6 +3,9 @@ on:
   push:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
+      - research/tools/v99_r106_i1_signed_original_train_bridge.py
+      - research/tests/test_v99_r106_i1_signed_original_train_bridge.py
+      - research/V99_R106_I1_SIGNED_661D_SOURCE_BYTE_STABILITY_PREREG_20261101.md
       - research/tools/v99_r106_i1_original_to_provisional_numeric.py
       - research/tools/v99_r106_i1_train_numeric_gate.py
       - research/verification/independent_v99_r106_i1_train_numeric_oracle.py
@@ -63,6 +66,10 @@ jobs:
           git merge-base --is-ancestor bef6fc11b471c98ca0006fd2db4a787ee292dcb6 HEAD
           test -s research/V99_R106_I1_PROVISIONAL_CLI_IMMUTABLE_PUBLICATION_PREREG_20261101.md
           python -m unittest -v research.tests.test_v99_r106_i1_provisional_cli_immutable
+      - name: Enforce signed replay 661-day original source stability (synthetic only)
+        run: |
+          test -s research/V99_R106_I1_SIGNED_661D_SOURCE_BYTE_STABILITY_PREREG_20261101.md
+          python -m unittest -v research.tests.test_v99_r106_i1_signed_original_train_bridge
       - name: Run end-to-end 661-day original-shaped synthetic and adversarial tests
         run: python -m unittest -v research.tests.test_v99_r106_i1_original_to_provisional_numeric
       - name: Require original held-contract quotes at exact intraday fold clocks
