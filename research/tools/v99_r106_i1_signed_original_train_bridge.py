@@ -70,10 +70,11 @@ def verify_original_day_bytes(root, manifest_digest):
         entries = manifest["days"]
     except (ValueError, TypeError, KeyError) as exc:
         raise ValueError("INVALID_SIGNED_ORIGINAL_DAY_MANIFEST") from exc
-    if (manifest.get("schema") != TAPE_SCHEMA
+    if (not isinstance(manifest, dict)
+            or manifest.get("schema") != TAPE_SCHEMA
             or manifest.get("train_start") != FIRST.isoformat()
-            or len(entries) != DAYS
-            or not isinstance(entries, list)):
+            or not isinstance(entries, list)
+            or len(entries) != DAYS):
         raise ValueError("INVALID_SIGNED_ORIGINAL_DAY_MANIFEST")
     for i, entry in enumerate(entries):
         expected_day = (FIRST + timedelta(days=i)).isoformat()
