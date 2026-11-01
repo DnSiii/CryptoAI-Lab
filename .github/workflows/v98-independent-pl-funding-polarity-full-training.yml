@@ -1,0 +1,128 @@
+name: V98 Independent PL Funding Polarity Seven-Slot Full Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-pk-premium-dislocation-full-training.yml'
+      - 'research/v98_independent/pl_funding_polarity_composed.py'
+      - 'research/v98_independent/pl_funding_polarity_independent_oracle.py'
+      - 'research/v98_independent/pl_funding_polarity_receipt_audit.py'
+      - 'research/v98_independent/pl_funding_polarity_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  pk-full-physical:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical dependencies
+        run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile PL, independent oracle and audit; synthetic premium causality
+        run: |
+          python -m py_compile research/v98_independent/pl_funding_polarity_composed.py research/v98_independent/pl_funding_polarity_independent_oracle.py research/v98_independent/pl_funding_polarity_receipt_audit.py
+          python research/v98_independent/pl_funding_polarity_composed.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old-envelope
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-2025-crossyear-source-41226345264
+          run-id: 41226345264
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/corrected
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-premium-clean4-2022-2025-source-only
+          run-id: 41299240043
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/premium
+      - name: Run all 30 PL physical cells with authenticated premium, independent decisions, cash and fills
+        working-directory: research/v98_independent
+        env:
+          OLD_ROOT: ${{ runner.temp }}/old
+          OLD_ENVELOPE: ${{ runner.temp }}/old-envelope/v98_official_mark_envelope_training.csv
+          NEW_ROOT: ${{ runner.temp }}/new
+          CORRECTED_ROOT: ${{ runner.temp }}/corrected
+          PREMIUM_CSV: ${{ runner.temp }}/premium/v98_premium_2022_2025_verified_hourly.csv
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from v98_2025_full_training_source_bridge import load
+          from pl_funding_polarity_composed import run,load_premium
+          d=load(os.environ["OLD_ROOT"],os.environ["OLD_ENVELOPE"],
+                 os.environ["NEW_ROOT"],os.environ["CORRECTED_ROOT"])
+          premium=load_premium(os.environ["PREMIUM_CSV"],d["time"])
+          out=run(d,premium)
+          Path("pl_full_training_result.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True,allow_nan=False)+"\n")
+          print("PL_BINDING_TRAINING_DECISION",out["decision"],
+                "FAILURES",len(out["gate_failures"]),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-pk-full-training-receipt
+          path: research/v98_independent/pl_full_training_result.json
+          retention-days: 30
+          if-no-files-found: warn
+  pk-independent-audit:
+    needs: pk-full-physical
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-pk-full-training-receipt
+          path: pk-receipt
+      - name: Independently replay arithmetic, binding economic gates and four tamper tests
+        run: |
+          python research/v98_independent/pl_funding_polarity_receipt_audit.py pk-receipt/pl_full_training_result.json | tee pl_independent_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-pk-independent-receipt-audit
+          path: pl_independent_audit.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Enforce binding economic rejection rather than claim a failed engine approved
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path("pk-receipt/pl_full_training_result.json").read_text())
+          if receipt["decision"]!="PASS_PROVISIONAL_PL_TRAINING_NOT_VALIDATED":
+              raise SystemExit("PL_PREREGISTERED_ECONOMIC_REJECTION_NOT_APPROVED")
+          PY
