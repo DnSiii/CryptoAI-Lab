@@ -7,7 +7,9 @@ No validation, holdout, paper, frozen state or orders are accessed.
 from __future__ import annotations
 
 import json
+import os
 import sys
+import tempfile
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
@@ -515,15 +517,38 @@ def main(input_path, output_path, *, signed=False,
             raise ValueError("SIGNED_CLI_REQUIRES_ORIGINAL_ARCHIVE_MANIFEST_SHA256")
     elif expected_archive_manifest_sha256 is not None:
         raise ValueError("UNSIGNED_CLI_CANNOT_CLAIM_ORIGINAL_MANIFEST")
+    target = Path(output_path)
+    # Never overwrite signed source journals, older results, or a symlink.
+    # This preflight also avoids an expensive 661d replay for an occupied path.
+    if target.exists() or target.is_symlink():
+        raise ValueError("EXISTING_NATIVE_RESULT_IMMUTABLE")
     source = json.loads(Path(input_path).read_text(encoding="utf-8"))
     if not signed and isinstance(source, dict) and source.get("fixture") is False:
         raise ValueError("NONFIXTURE_CLI_REQUIRES_EXPLICIT_SIGNED_MODE")
     report = (replay_signed(
         source, expected_archive_manifest_sha256=expected_archive_manifest_sha256
     ) if signed else replay(source))
-    # Write only AFTER all 661 days and both scenario paths have replayed.
-    Path(output_path).write_text(json.dumps(report, indent=2, sort_keys=True)+"\n",
-                                 encoding="utf-8")
+    # Serialize before touching the destination. The temporary file is in
+    # the SAME directory; an exclusive hard link atomically publishes the
+    # completed result and fails if another writer created the target.
+    payload = json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n"
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=target.parent,
+                prefix="." + target.name + ".", suffix=".tmp",
+                delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            os.link(temporary, target)
+        except FileExistsError as exc:
+            raise ValueError("EXISTING_NATIVE_RESULT_IMMUTABLE") from exc
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     print(json.dumps({"status": report["status"], "days": DAYS,
                       "signed_event_adapter_replayed": report["signed_event_adapter_replayed"],
                       "economic_train_certified": False,
