@@ -98,7 +98,7 @@ class SignedEventSourceTests(unittest.TestCase):
                         "-out", str(self.root / "attestation.sig")],
                        check=True, capture_output=True)
 
-    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: None)
+    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: {"immediate_close_fee_minimum_coin": "0"})
     def test_valid_test_signature_allows_only_software_path_not_promotion(self):
         with patch.dict(os.environ, self.env):
             verdict = verify_signed_event_attestation(self.root, self.digest)
@@ -113,7 +113,7 @@ class SignedEventSourceTests(unittest.TestCase):
                             self.fee, self.slip, "4", "2.1",
                             fixture=False, attestation=self.root)
 
-    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: None)
+    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: {"immediate_close_fee_minimum_coin": "0"})
     def test_real_signed_archive_must_equal_original_source_manifest(self):
         # Valid ephemeral Ed25519 signature for archive B is still invalid
         # when the independent source-byte oracle consumed archive A.
