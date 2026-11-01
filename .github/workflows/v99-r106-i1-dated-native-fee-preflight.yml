@@ -11,6 +11,7 @@ on:
       - research/tests/test_v99_r106_i1_signed_cli.py
       - research/V99_R106_I1_SIGNED_WALLET_NATIVE_FEE_BINDING_PREREG_20261101.md
       - research/V99_R106_I1_SIGNED_NATIVE_FEE_PER_EVENT_INDEPENDENT_ORACLE_PREREG_20261101.md
+      - research/V99_R106_I1_SIGNED_OPEN_IMMEDIATE_NATIVE_CLOSE_RESERVE_PREREG_20261101.md
       - research/verification/independent_v99_r106_i1_dated_native_fee_oracle.py
       - research/tests/test_v99_r106_i1_dated_native_fee_preflight.py
       - .github/workflows/v99-r106-i1-dated-native-fee-preflight.yml
@@ -43,6 +44,8 @@ jobs:
           test -s research/V99_R106_I1_SIGNED_WALLET_NATIVE_FEE_BINDING_PREREG_20261101.md
           git merge-base --is-ancestor 857f55150abbacb0e285943abba5e649deca5570 HEAD
           test -s research/V99_R106_I1_SIGNED_NATIVE_FEE_PER_EVENT_INDEPENDENT_ORACLE_PREREG_20261101.md
+          git merge-base --is-ancestor 46a2ba7581c2bffb98ecd35e71a895d7d5ebd9c6 HEAD
+          test -s research/V99_R106_I1_SIGNED_OPEN_IMMEDIATE_NATIVE_CLOSE_RESERVE_PREREG_20261101.md
       - name: Execute real wallet binding path with synthetic negative controls
         run: |
           python -m unittest -v research.tests.test_v99_r106_i1_signed_wallet_fee_binding
