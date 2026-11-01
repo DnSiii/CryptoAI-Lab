@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -141,16 +142,32 @@ def run(signal_path, original_quotes_root, journal_path):
 
 
 def main(signal_path, original_quotes_root, journal_path, output_path):
-    # Atomic publication: no result file is written on any source, signature,
-    # parity or numeric failure. Do not overwrite an existing artifact.
+    # A complete signed result becomes visible ONLY after successful serialization,
+    # durable temporary write, and exclusive publication. An existing output or
+    # symlink is immutable, including if another writer races with this process.
     target = Path(output_path)
-    if target.exists():
+    if target.exists() or target.is_symlink():
         raise ValueError("EXISTING_RESULT_IMMUTABLE")
     result = run(signal_path, original_quotes_root, journal_path)
+    payload = json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n"
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("x", encoding="utf-8") as stream:
-        json.dump(result, stream, indent=2, sort_keys=True, allow_nan=False)
-        stream.write("\n")
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=target.parent,
+            prefix=".v99-i1-signed-", suffix=".tmp", delete=False,
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            os.link(temporary, target)
+        except FileExistsError as exc:
+            raise ValueError("EXISTING_RESULT_IMMUTABLE") from exc
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     print(json.dumps({
         "status": result["status"], "days": DAYS,
         "signed_661d_event_wallet_replayed": True,
