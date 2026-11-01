@@ -20,6 +20,7 @@ from research.tools.v99_r106_i1_signed_event_source_gate import (
 def signed_shape():
     doc = one_position_fixture()
     doc["fixture"] = False
+    doc["journal_attestation"] = "FIXTURE_ONLY_NOT_A_REAL_SIGNATURE/JOURNAL"
     doc["scenario_decisions"] = {
         scenario: complete_fixed_decisions(one_open=True)
         for scenario in ("severe", "supersevere")
@@ -44,6 +45,42 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SIGNED_ORIGINAL_REPLAY_REQUIRES_EVENTS"):
             replay_signed(doc)
 
+    def test_missing_whole_journal_attestation_rejected_before_any_event(self):
+        doc, _ = signed_shape()
+        del doc["journal_attestation"]
+        with self.assertRaisesRegex(ValueError, "MISSING_SIGNED_WHOLE_JOURNAL_ATTESTATION"):
+            replay_signed(doc)
+
+    def test_journal_digest_changes_with_unsigned_daily_index_and_regime(self):
+        # These were not covered by the per-event Ed25519 signatures.
+        from research.tools.v99_r106_i1_signed_event_source_gate import event_digest
+        doc, _ = signed_shape()
+        def digest(d):
+            return event_digest("JOURNAL", None, journal={
+                k: v for k, v in d.items() if k != "journal_attestation"})
+        original = digest(doc)
+        doc["scenarios"]["severe"][0]["index_usd"]["BTC"] = "999999"
+        self.assertNotEqual(original, digest(doc))
+        doc, _ = signed_shape()
+        original = digest(doc)
+        doc["scenarios"]["severe"][0]["regime"] = "SHOCK"
+        self.assertNotEqual(original, digest(doc))
+
+    def test_changed_journal_digest_is_rejected_before_costed_events(self):
+        doc, _ = signed_shape()
+        from research.tools.v99_r106_i1_signed_event_source_gate import event_digest
+        expected = event_digest("JOURNAL", None, journal={
+            k: v for k, v in doc.items() if k != "journal_attestation"})
+        doc["scenarios"]["severe"][0]["index_usd"]["BTC"] = "999999"
+        def mock_external_attestor(root, digest):
+            self.assertEqual(root, doc["journal_attestation"])
+            self.assertNotEqual(digest, expected)
+            raise ValueError("SIGNED_ATTESTATION_NOT_BOUND_TO_EVENT")
+        with patch("research.tools.v99_r106_i1_native_event_equity.verify_signed_event_attestation",
+                   side_effect=mock_external_attestor):
+            with self.assertRaisesRegex(ValueError, "SIGNED_ATTESTATION_NOT_BOUND_TO_EVENT"):
+                replay_signed(doc)
+
     def test_missing_open_mark_and_settlement_attestations_rejected(self):
         for kind, error in (
             ("OPEN", "MISSING_SIGNED_ORIGINAL_OPEN_ATTESTATION"),
@@ -61,7 +98,9 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
                 break
             # A test-only fake verifier is necessary to reach a later event.
             # The real Ed25519 checks are separately exercised in the gate suite.
-            with patch("research.tools.v99_r106_i1_cost_bound_execution.verify_signed_event_attestation",
+            with patch("research.tools.v99_r106_i1_native_event_equity.verify_signed_event_attestation",
+                       return_value={"promotion_authorized": False}), patch(
+                       "research.tools.v99_r106_i1_cost_bound_execution.verify_signed_event_attestation",
                        return_value={"promotion_authorized": False}):
                 with self.assertRaisesRegex(ValueError, error):
                     replay_signed(doc)
@@ -83,6 +122,7 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
                 "V99_I1_TRUSTED_AUDITOR_PUBKEY_SHA256":
                     hashlib.sha256(public.read_bytes()).hexdigest(),
             }
+            doc["journal_attestation"] = str(base / "whole_journal")
             for scenario, days in doc["scenarios"].items():
                 for i, day in enumerate(days):
                     for j, event in enumerate(day["events"]):
@@ -129,11 +169,14 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
 
             with patch.dict(os.environ, env):
                 with patch(
+                    "research.tools.v99_r106_i1_native_event_equity.verify_signed_event_attestation",
+                    side_effect=sign_fixture_then_verify,
+                ), patch(
                     "research.tools.v99_r106_i1_cost_bound_execution.verify_signed_event_attestation",
                     side_effect=sign_fixture_then_verify,
                 ):
                     report = replay_signed(doc)
-            self.assertEqual(len(seen), expected)
+            self.assertEqual(len(seen), expected + 1)
             self.assertEqual(report["scenarios"], replay(doc)["scenarios"])
             self.assertFalse(report["original_source_receipts_independently_authenticated"])
             self.assertFalse(report["original_options_economic_train_certified"])
@@ -151,10 +194,12 @@ class SignedNativeEventReplayIntegrationTests(unittest.TestCase):
                     "promotion_authorized": False}
         # This mock verifies event wiring only. It is NOT a real signature,
         # original-source certificate, economic TRAIN, or independent replay.
-        with patch("research.tools.v99_r106_i1_cost_bound_execution.verify_signed_event_attestation",
+        with patch("research.tools.v99_r106_i1_native_event_equity.verify_signed_event_attestation",
+                   side_effect=fixture_only_verifier), patch(
+                   "research.tools.v99_r106_i1_cost_bound_execution.verify_signed_event_attestation",
                    side_effect=fixture_only_verifier):
             report = replay_signed(doc)
-        self.assertEqual(len(verified), expected)
+        self.assertEqual(len(verified), expected + 1)
         self.assertGreater(expected, 60)
         self.assertTrue(report["signed_event_adapter_replayed"])
         self.assertEqual(len(report["scenarios"]["severe"]), 661)
