@@ -148,7 +148,13 @@ def signed_fee_preflight(evidence_root, expected_event_sha256,
     if verified.get("independent_signature_verified") is not True:
         raise ValueError("MISSING_INDEPENDENT_NATIVE_FEE_SIGNATURE")
     root = Path(evidence_root)
-    attestation = _strict_json_bytes(_regular(root, "attestation.json").read_bytes())
+    # Reopening an attestation after signature verification without comparing
+    # its exact bytes would allow a concurrent swap of BOTH the descriptor and
+    # the fee schedule (TOCTOU). Only consume the signed payload digest.
+    attestation_bytes = _regular(root, "attestation.json").read_bytes()
+    if hashlib.sha256(attestation_bytes).hexdigest() != verified.get("verified_attestation_sha256"):
+        raise ValueError("SIGNED_FEE_ATTESTATION_CHANGED_AFTER_VERIFICATION")
+    attestation = _strict_json_bytes(attestation_bytes)
     descriptor = attestation["evidence"]["historical_account_fee_schedule"]
     raw = _regular(root, descriptor["file"]).read_bytes()
     if hashlib.sha256(raw).hexdigest() != descriptor["sha256"].lower():
@@ -161,6 +167,12 @@ def signed_fee_preflight(evidence_root, expected_event_sha256,
     actual_fee = _decimal(fee_coin)
     actual_slip = _decimal(slippage_coin)
     stress_fee, stress_slip = charge_floor(scenario, native_lots)
+    # Contractual expiry settles at the delivery index, not at a BBO fill.
+    # Do not invent a settlement slippage debit or use it to cover native fees.
+    if event_type == "SETTLE_BATCH":
+        if actual_slip != 0:
+            raise ValueError("INVENTED_CONTRACTUAL_SETTLEMENT_SLIPPAGE")
+        stress_slip = Decimal(0)
     if (actual_fee < max(_decimal(expected["native_fee_minimum_coin"]), stress_fee)
             or actual_slip < stress_slip):
         raise ValueError("NATIVE_OR_SCENARIO_FRICTION_UNDERPAYMENT")
