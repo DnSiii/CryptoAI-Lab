@@ -1,4 +1,4 @@
-name: V98 Independent PD Participation Volume Seven-Slot Full-History
+name: V98 Independent PD Risk-Premium Composition Seven-Slot Full-History
 on:
   push:
     branches: [research/v98-independent-zero]
@@ -48,7 +48,7 @@ jobs:
           run-id: 41226345264
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/corrected
-      - name: PD synthetic future-price and future-volume causality only
+      - name: PD synthetic future-price and future-funding causality only
         working-directory: research/v98_independent
         run: python pd_risk_premium_composition.py
       - name: PD 30 physical cells, independent decision, cash and funding oracles
@@ -67,7 +67,7 @@ jobs:
           d=load(os.environ["OLD_ROOT"],os.environ["OLD_ENVELOPE"],
                  os.environ["NEW_ROOT"],os.environ["CORRECTED_ROOT"])
           result=run(d)
-          Path("pc_full_training_result.json").write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
+          Path("pd_full_training_result.json").write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
           print("PD_BINDING_DECISION",result["decision"],"FAILURES",len(result["gate_failures"]),flush=True)
           if result["decision"]!="PASS_PROVISIONAL_PD_TRAINING_NOT_VALIDATED":
               sys.exit("PD_PRE_REGISTERED_ECONOMIC_REJECTION_NOT_AN_APPROVED_ENGINE")
@@ -76,6 +76,6 @@ jobs:
         if: always()
         with:
           name: v98-pd-full-training-receipt-${{ github.run_id }}
-          path: research/v98_independent/pc_full_training_result.json
+          path: research/v98_independent/pd_full_training_result.json
           retention-days: 30
           if-no-files-found: warn
