@@ -106,7 +106,8 @@ def synthetic_test():
     other={k:v.copy() for k,v in d.items()}
     for k in ("c","h","l"):other[k][15000:]*=np.array([1.3,.8,1.5,.7])
     other["q"][15000:]*=2.
-    other["rate"][15000:]=.03
+    other["event"][15000::8]=True
+    other["rate"][15000::8]=.03
     second=signals(other)
     for t in CLOCK:
         if t>=15000:continue
