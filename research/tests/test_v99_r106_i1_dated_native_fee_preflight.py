@@ -50,6 +50,19 @@ class DatedNativeFeePreflightTests(unittest.TestCase):
         self.assertEqual(result["leg_native_fee_coin"], ["0.00015", "0.000"])
         verify(doc, result, **inputs)
 
+    def test_dated_terms_can_precede_train_without_reading_sealed_period(self):
+        doc = schedule()
+        doc["rows"][0]["effective_from_ms"] = FIRST - 365 * 86400000
+        doc["rows"][0]["effective_to_ms"] = END + 365 * 86400000
+        result = calculate_minimum_fee(
+            doc, event_type="OPEN", asset="BTC", at_ms=FIRST+1000,
+            native_lots="1", premiums_coin=["0.02", "0.01"])
+        self.assertFalse(result["historical_native_fee_certified"])
+        with self.assertRaisesRegex(ValueError, "INVALID_NATIVE_FEE_CLOCK_OR_ASSET"):
+            calculate_minimum_fee(
+                doc, event_type="OPEN", asset="BTC", at_ms=END+1000,
+                native_lots="1", premiums_coin=["0.02", "0.01"])
+
     def test_overlap_rejected(self):
         doc = schedule()
         row = copy.deepcopy(doc["rows"][0])
