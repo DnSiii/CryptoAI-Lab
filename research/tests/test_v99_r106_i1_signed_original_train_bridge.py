@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 import unittest
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +16,8 @@ from research.tests.test_v99_r106_i1_original_to_provisional_numeric import (
 from research.tools.v99_r106_i1_native_event_equity import replay
 from research.tools.v99_r106_i1_signed_original_train_bridge import main, run
 from research.tools.v99_r106_i1_train_numeric_gate import evaluate_provisional
+from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS, SCHEMA as TAPE_SCHEMA
+from research.tools.v99_r106_i1_signed_original_train_bridge import verify_original_day_bytes
 
 
 class SignedOriginalBridgeTests(unittest.TestCase):
@@ -23,6 +26,18 @@ class SignedOriginalBridgeTests(unittest.TestCase):
         cls.doc, _ = signed_shape()
         cls.unsigned = replay(cls.doc)
         cls.numeric = evaluate_provisional(cls.unsigned)
+        cls.day_payload = b"synthetic-only-not-real-options-source"
+        cls.day_digest = hashlib.sha256(cls.day_payload).hexdigest()
+        cls.manifest_bytes = json.dumps({
+            "schema": TAPE_SCHEMA, "train_start": FIRST.isoformat(),
+            "days": [
+                {"date": (FIRST + timedelta(days=i)).isoformat(),
+                 "file": (FIRST + timedelta(days=i)).isoformat() + ".csv.gz",
+                 "sha256": cls.day_digest, "rows": 1}
+                for i in range(DAYS)
+            ],
+        }, sort_keys=True).encode("utf-8")
+        cls.manifest_digest = hashlib.sha256(cls.manifest_bytes).hexdigest()
 
     def source_mock(self):
         return {
@@ -30,7 +45,7 @@ class SignedOriginalBridgeTests(unittest.TestCase):
             "full_original_source_asset_week_books_independently_verified": 180,
             "original_complete_option_lifecycles_certified": 0,
             "original_quote_event_identities_checked": 100,
-            "original_quote_manifest_sha256": hashlib.sha256(b"{}").hexdigest(),
+            "original_quote_manifest_sha256": self.manifest_digest,
             "numeric_descriptive_only": self.numeric,
         }
 
@@ -44,7 +59,9 @@ class SignedOriginalBridgeTests(unittest.TestCase):
         if source_inputs:
             (root / "signal.json").write_bytes(b"{}")
             (root / "original").mkdir(exist_ok=True)
-            (root / "original" / "manifest.json").write_bytes(b"{}")
+            (root / "original" / "manifest.json").write_bytes(self.manifest_bytes)
+            for i in range(DAYS):
+                (root / "original" / ((FIRST + timedelta(days=i)).isoformat() + ".csv.gz")).write_bytes(self.day_payload)
         journal = root / "journal.json"
         journal.write_text(json.dumps(self.doc if document is None else document))
         return root / "signal.json", root / "original", journal, root / "result.json"
@@ -186,6 +203,40 @@ class SignedOriginalBridgeTests(unittest.TestCase):
                         main(*args)
             self.assertFalse(args[-1].exists())
 
+    def test_original_day_byte_changed_during_signed_replay_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            changed_day = args[1] / ((FIRST + timedelta(days=500)).isoformat() + ".csv.gz")
+            def signed_then_mutate(document, **kwargs):
+                changed_day.write_bytes(b"tampered after source oracle")
+                return self.signed_mock()
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       return_value=self.source_mock()):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed",
+                           side_effect=signed_then_mutate):
+                    with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_DAY_CHANGED_DURING_SIGNED_REPLAY"):
+                        main(*args)
+            self.assertFalse(args[-1].exists())
+
+    def test_original_day_symlink_and_missing_file_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            day = args[1] / ((FIRST + timedelta(days=500)).isoformat() + ".csv.gz")
+            day.unlink()
+            with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_DAY_CHANGED_DURING_SIGNED_REPLAY"):
+                verify_original_day_bytes(args[1], self.manifest_digest)
+            day.symlink_to(args[0])
+            with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_DAY_CHANGED_DURING_SIGNED_REPLAY"):
+                verify_original_day_bytes(args[1], self.manifest_digest)
+
+    def test_original_day_manifest_missing_or_invalid_veto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            (args[1] / "manifest.json").write_text(json.dumps({"days": []}))
+            with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY"):
+                verify_original_day_bytes(args[1], self.manifest_digest)
+            self.assertFalse(args[-1].exists())
+
     def test_source_manifest_digest_is_forwarded_to_signed_wallet(self):
         with tempfile.TemporaryDirectory() as tmp:
             args = self.paths(tmp)
@@ -198,7 +249,7 @@ class SignedOriginalBridgeTests(unittest.TestCase):
                 with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed",
                            side_effect=check_signed):
                     result = main(*args)
-            self.assertEqual(observed, [hashlib.sha256(b"{}").hexdigest()])
+            self.assertEqual(observed, [self.manifest_digest])
             self.assertFalse(result["original_options_economic_train_certified"])
 
     def test_joined_technical_mock_is_never_certified_and_no_overwrite(self):
@@ -214,9 +265,9 @@ class SignedOriginalBridgeTests(unittest.TestCase):
             self.assertTrue(result["signed_661d_event_wallet_replayed"])
             self.assertEqual(result["numeric_descriptive_only"], self.numeric)
             self.assertEqual(result["original_causal_signal_input_sha256"],
-                             hashlib.sha256(b"{}").hexdigest())
+                             self.manifest_digest)
             self.assertEqual(result["original_quote_manifest_input_sha256"],
-                             hashlib.sha256(b"{}").hexdigest())
+                             self.manifest_digest)
             for key in ("original_options_economic_train_certified",
                         "promotion_authorized", "freeze_authorized",
                         "validation_opened", "holdout_opened", "orders_enabled"):
