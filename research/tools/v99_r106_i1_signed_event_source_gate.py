@@ -216,6 +216,7 @@ def verify_signed_event_attestation(evidence_root, expected_event_sha256,
     # Native execution, historical venue completeness and profitability remain
     # separate, mandatory, NEVER automatically certified by this function.
     return {"independent_signature_verified": True,
+            "verified_attestation_sha256": hashlib.sha256(payload_bytes).hexdigest(),
             "event_bound": True, "evidence_classes_bound": len(REQUIRED),
             "original_execution_fills_certified": False,
             "economic_train_executed": False, "promotion_authorized": False}
