@@ -1,0 +1,24 @@
+name: V98 Independent PD Frozen Economic Receipt Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/pd_receipt_independent_gate.py'
+      - 'research/v98_independent/pd_full_training_frozen_result_20261101.json'
+      - '.github/workflows/v98-independent-pd-frozen-receipt-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-pd-receipt:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Independent immutable PD receipt arithmetic and binding gate replay
+        working-directory: research/v98_independent
+        run: python pd_receipt_independent_gate.py pd_full_training_frozen_result_20261101.json
