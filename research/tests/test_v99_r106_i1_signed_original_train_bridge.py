@@ -107,6 +107,24 @@ class SignedOriginalBridgeTests(unittest.TestCase):
                         main(*args)
             self.assertFalse(args[-1].exists())
 
+    def test_mutable_caller_journal_cannot_change_source_vs_signed_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            original = args[2].read_bytes()
+            seen = []
+            def mutate_caller(signal, root, source_snapshot):
+                seen.append(Path(source_snapshot).read_bytes())
+                args[2].write_text('{"tampered":true}', encoding="utf-8")
+                return self.source_mock()
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       side_effect=mutate_caller):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed",
+                           return_value=self.signed_mock()):
+                    result = main(*args)
+            self.assertEqual(seen, [original])
+            self.assertTrue(result["signed_661d_event_wallet_replayed"])
+            self.assertFalse(result["promotion_authorized"])
+
     def test_joined_technical_mock_is_never_certified_and_no_overwrite(self):
         # Mocked source and signature results only test orchestration.
         with tempfile.TemporaryDirectory() as tmp:
