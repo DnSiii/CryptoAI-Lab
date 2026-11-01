@@ -3,7 +3,7 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-pk-premium-dislocation-full-training.yml'
+      - '.github/workflows/v98-independent-pl-funding-polarity-full-training.yml'
       - 'research/v98_independent/pl_funding_polarity_composed.py'
       - 'research/v98_independent/pl_funding_polarity_independent_oracle.py'
       - 'research/v98_independent/pl_funding_polarity_receipt_audit.py'
@@ -13,7 +13,7 @@ permissions:
   contents: read
   actions: read
 jobs:
-  pk-full-physical:
+  pl-full-physical:
     if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -91,8 +91,8 @@ jobs:
           path: research/v98_independent/pl_full_training_result.json
           retention-days: 30
           if-no-files-found: warn
-  pk-independent-audit:
-    needs: pk-full-physical
+  pl-independent-audit:
+    needs: pl-full-physical
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
