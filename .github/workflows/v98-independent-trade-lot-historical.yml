@@ -1,0 +1,98 @@
+name: V98 Independent Historical Trade-Level Metrics — Rejected Fixture, Not Engine
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-trade-lot-historical.yml'
+      - 'research/v98_independent/v98_trade_lot_historical_integration.py'
+      - 'research/v98_independent/v98_trade_lot_historical_integration_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  historical-trade-lot-reconciliation:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Compile and synthetic metric check before historical replay
+        run: |
+          python -m py_compile research/v98_independent/v98_trade_lot_metrics.py research/v98_independent/v98_trade_lot_historical_integration.py
+          python research/v98_independent/v98_trade_lot_metrics.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old-envelope
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-2025-crossyear-source-41226345264
+          run-id: 41226345264
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/corrected
+      - name: Reconcile six complete physical ledgers (not PU re-selection)
+        working-directory: research/v98_independent
+        env:
+          OLD_ROOT: ${{ runner.temp }}/old
+          OLD_ENVELOPE: ${{ runner.temp }}/old-envelope/v98_official_mark_envelope_training.csv
+          NEW_ROOT: ${{ runner.temp }}/new
+          CORRECTED_ROOT: ${{ runner.temp }}/corrected
+        run: python v98_trade_lot_historical_integration.py
+      - name: Independent artifact gate and no-promotion assertions
+        working-directory: research/v98_independent
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          r=json.loads(Path("v98_trade_lot_historical_integration_result.json").read_text())
+          assert r["decision"]=="PASS_HISTORICAL_TRADE_METRIC_INTEGRATION_ONLY_NOT_ENGINE"
+          assert r["architecture_fixture"]=="PU_PERMANENTLY_REJECTED_NOT_REOPENED"
+          assert r["future_holdout_accessed"] is False
+          assert r["external_benchmarks_accessed"] is False
+          assert r["paper_or_live_authorized"] is False
+          assert r["exact_funding_mark_attested"] is False
+          assert len(r["cells"])==6
+          assert {(c["tier"],c["funding_order"]) for c in r["cells"]}=={
+            (t,o) for t in ("base","severe","supersevere")
+            for o in ("carried_before_fill","new_after_fill")}
+          for c in r["cells"]:
+            m=c["net_asset_trade_metrics"]
+            assert c["physical_passed"] and c["historical_ledger_hours"]==26303
+            assert c["cash_reconciliation"]["cash_identity_mismatches"]==0
+            assert c["fill_reconciliation"]["independent_fee_slippage_funding_mismatches"]==0
+            assert m["mismatches"]==0 and m["nav_reconciliation_error"]<1e-5
+            assert m["closed_net_asset_roundtrips"]>0
+            assert m["native_exact_mark_attested"] is False
+            assert m["independent_trade_fill_source_attested"] is False
+            assert math.isclose(m["nav_delta"],m["closed_realized_pnl"]+m["open_marked_pnl"],abs_tol=1e-5)
+          print("PASS_HISTORICAL_TRADE_METRICS_NOT_ENGINE_NOT_EXECUTION_PROOF")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-trade-lot-historical-six-cell-receipt
+          path: research/v98_independent/v98_trade_lot_historical_integration_result.json
+          retention-days: 30
+          if-no-files-found: warn
