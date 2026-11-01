@@ -4,8 +4,10 @@ Only exposed Clean-4 2022-25 training; no V99/benchmarks/2026+/paper/holdout.
 """
 import json, math
 import numpy as np
-from ot_breadth_dispersion import source_gate, physical, independent_accounting, COSTS, ORDERS, HOURS, WARMUP, STEP
+from ot_breadth_dispersion import source_gate, independent_accounting, COSTS, ORDERS, HOURS, WARMUP, STEP, YEAREND
 from ot_independent_oracle import independent_fills
+from v98_oneway_net_atomic_planner import plan_virtual, settle_virtual
+from v98_mark_envelope_settlement import worst_funding
 
 BOOKS={"PB_full":(0,1,2,3),"PB_core_only":(0,),
        "PB_minus_opportunity":(0,2,3),"PB_minus_RV":(0,1,3),
@@ -13,6 +15,106 @@ BOOKS={"PB_full":(0,1,2,3),"PB_core_only":(0,),
 PRIORITY={"risk_on":(1,2,3),"risk_off":(3,2,1),"mixed":(2,1,3)}
 MULT={"risk_on":(1.,1.,.50),"risk_off":(.50,.75,1.),"mixed":(.75,1.,.75)}
 CLOCK=tuple(range(WARMUP,HOURS,STEP))
+
+def physical(d,targets,book,tier,order,record=False):
+    fee,slip=COSTS[tier]
+    qty=np.zeros((4,4),dtype=float)
+    nav=10000.
+    equity_path=[];hour_changes=[];ledger=[]
+    turnover=fees=slippage=funding=0.
+    max_intermediate=max_gross=max_concentration=0.
+    min_intrabar=10000.;fills=forced=0
+    annual={};annual_start={2023:10000.}
+    def reject(why,t):
+        return {"passed":False,"book":book,"tier":tier,"order":order,"failure":why,"hour":t,
+                "training_only":True},ledger
+    for t in range(WARMUP+1,HOURS):
+        before=nav
+        px=d["o"][t]; close=d["c"][t]; previous=d["c"][t-1]
+        gap_cash=float(np.sum(qty*(px-previous)))
+        nav+=gap_cash
+        if not math.isfinite(nav) or nav<=0:return reject("INSOLVENT_OPEN",t)
+        pre_gross=float(np.sum(np.abs(qty)*px))
+        pre_net=float(np.sum(np.abs(qty.sum(axis=0))*px))
+        max_gross=max(max_gross,pre_gross/nav)
+        if max(pre_gross,pre_net)>nav*(1+1e-9):return reject("GAP_GROSS_ABOVE_NAV",t)
+        weekly=(t-1) in targets
+        event=bool(d["event"][t].any())
+        guard=(pre_gross>.82*nav or (event and pre_gross>.80*nav))
+        plan=None
+        if weekly or guard:
+            if weekly:
+                weights=targets[t-1]
+            else:
+                weights=qty*px/nav
+                gross=float(np.abs(weights).sum())
+                if gross>0:weights*=((.76 if event else .78)/gross)
+            try:
+                plan=plan_virtual(qty,weights,px,nav,fee,slip,funding_event=event,target_virtual_cap=.88)
+            except ValueError as exc:return reject("PLAN_"+str(exc),t)
+            if np.any((np.abs(plan["net_delta"])>1e-12)&(~d["execution_allowed"][t])):
+                return reject("ZERO_VOLUME_EXECUTION",t)
+            max_intermediate=max(max_intermediate,plan["max_intermediate_net_gross_fraction"])
+            if plan["turnover"]>1e-8:fills+=1
+            if guard and not weekly:forced+=1
+        next_qty=plan["virtual_quantity"] if plan is not None else qty
+        cash=worst_funding(qty.sum(axis=0),next_qty.sum(axis=0),d["rate"][t],d["event"][t],
+                           d["mark_lower"][t],d["mark_upper"][t],order) if event else 0.
+        if plan is not None:
+            try:nav=settle_virtual(plan,cash,order,nav,qty,px)
+            except ValueError as exc:return reject("SETTLEMENT_"+str(exc),t)
+            qty=next_qty
+            turnover+=plan["turnover"];fees+=plan["fees"];slippage+=plan["slippage"]
+        else:nav+=cash
+        funding+=cash
+        if nav<=0 or not math.isfinite(nav):return reject("INSOLVENT_AFTER_SETTLEMENT",t)
+        gross=float(np.sum(np.abs(qty)*px))
+        netgross=float(np.sum(np.abs(qty.sum(axis=0))*px))
+        max_gross=max(max_gross,gross/nav)
+        if max(gross,netgross)>.90*nav+1e-6:return reject("POST_FUNDING_GROSS_CAP",t)
+        if gross>0:
+            max_concentration=max(max_concentration,float(np.max(np.sum(np.abs(qty)*px,axis=0)))/gross)
+        net=qty.sum(axis=0)
+        adverse=np.where(net>=0,d["l"][t],d["h"][t])
+        intra=nav+float(np.dot(net,adverse-px))
+        min_intrabar=min(min_intrabar,intra)
+        if intra<=0:return reject("INSOLVENT_INTRABAR",t)
+        nav+=float(np.dot(net,close-px))
+        if nav<=0 or not math.isfinite(nav):return reject("INSOLVENT_CLOSE",t)
+        if float(np.sum(np.abs(qty)*close))>nav*(1+1e-9):
+            return reject("CLOSE_VIRTUAL_GROSS_ABOVE_NAV",t)
+        if record:
+            ledger.append((t,before,nav,cash,float(plan["fees"] if plan else 0.),
+                           float(plan["slippage"] if plan else 0.),
+                           qty.copy(),gap_cash))
+        equity_path.append(nav);hour_changes.append(nav-before)
+        if t in YEAREND:
+            y=YEAREND[t];annual[y]=nav/annual_start[y]-1
+            if y<2025:annual_start[y+1]=nav
+    curve=np.asarray(equity_path)
+    peak=np.maximum.accumulate(np.r_[10000.,curve])
+    dd=float(np.min(np.r_[10000.,curve]/peak-1))
+    daily=curve[22::24]
+    daily_returns=np.diff(np.r_[10000.,daily])/np.r_[10000.,daily[:-1]]
+    changes=np.asarray(hour_changes)
+    wins=changes[changes>1e-10];loss=-changes[changes< -1e-10]
+    log_growth=math.log(nav/10000.)
+    return {"passed":True,"book":book,"tier":tier,"order":order,
+            "final_equity":float(nav),"cagr":float((nav/10000.)**(365.25/1096.)-1),
+            "log_growth":log_growth,"year_returns":{str(y):float(v) for y,v in annual.items()},
+            "max_dd":dd,"turnover":turnover,"fees":fees,"slippage":slippage,"funding":funding,
+            "max_intermediate_gross_fraction":max_intermediate,"max_pretrade_post_gross_fraction":max_gross,
+            "max_single_asset_gross_concentration":max_concentration,
+            "min_intrabar_equity":min_intrabar,"physical_fills":fills,"forced_safety_fills":forced,
+            "positive_days":int(np.sum(daily_returns>0)),"daily_count":len(daily_returns),
+            "daily_win_rate":float(np.mean(daily_returns>0)),
+            "daily_cvar_1pct":float(np.mean(np.sort(daily_returns)[:max(1,len(daily_returns)//100)])),
+            "hourly_net_pf":float(wins.sum()/loss.sum()) if len(loss) else None,
+            "hourly_net_payoff":float(wins.mean()/loss.mean()) if len(wins) and len(loss) else None,
+            "hourly_net_win_rate":float(len(wins)/(len(wins)+len(loss))) if len(wins)+len(loss) else 0.,
+            "trade_pf_payoff_win_rate_independent":False,
+            "training_only":True,"exact_tick_mark":False},ledger
+
 
 def signals(d):
     c=np.asarray(d["c"],float)
