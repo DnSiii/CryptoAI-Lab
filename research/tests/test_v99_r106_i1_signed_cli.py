@@ -36,7 +36,14 @@ class SignedNativeCLIControls(unittest.TestCase):
 
     def test_signed_nonfixture_without_external_trust_anchor_fails(self):
         with tempfile.TemporaryDirectory() as directory:
-            source, output = self._paths(directory, signed_shape()[0])
+            document, _ = signed_shape()
+            # A real directory must exist to reach the independent key gate.
+            # The verifier correctly checks evidence-root existence first.
+            for rows in document["scenarios"].values():
+                for day in rows:
+                    for event in day["events"]:
+                        event["attestation"] = directory
+            source, output = self._paths(directory, document)
             with patch.dict(os.environ, {
                 "V99_I1_TRUSTED_AUDITOR_PUBKEY": "",
                 "V99_I1_TRUSTED_AUDITOR_PUBKEY_SHA256": "",
@@ -73,7 +80,12 @@ class SignedNativeCLIControls(unittest.TestCase):
 
     def test_real_subprocess_signed_mode_no_key_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
-            source, output = self._paths(directory, signed_shape()[0])
+            document, _ = signed_shape()
+            for rows in document["scenarios"].values():
+                for day in rows:
+                    for event in day["events"]:
+                        event["attestation"] = directory
+            source, output = self._paths(directory, document)
             env = dict(os.environ)
             env.pop("V99_I1_TRUSTED_AUDITOR_PUBKEY", None)
             env.pop("V99_I1_TRUSTED_AUDITOR_PUBKEY_SHA256", None)
