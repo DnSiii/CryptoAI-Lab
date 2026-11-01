@@ -95,6 +95,51 @@ class SignedWalletFeeBindingTests(unittest.TestCase):
         opened = self.open("p1", "0.01")
         self.assertEqual(len(opened.positions), 1)
 
+    def test_signed_open_reserves_native_immediate_close_not_only_stress_floor(self):
+        # Original executable close: short ask=.09, long bid=.04.
+        # Native dated fee = .005 per leg = .01; scenario floor=.0024.
+        # The old stress-only reserve passed 1.04 coin but native reserve
+        # makes immediate maintenance fail. No wallet state may mutate.
+        self.wallet = start_wallet("BTC", "severe", "1.04")
+        with self.assertRaisesRegex(
+            ValueError, "POSTENTRY_SCENARIO_COST_MAINTENANCE_VETO"
+        ):
+            costed_open(
+                self.wallet, "boundary", self.s, self.l, AT, "1",
+                "0.01", "0.0024", "1", "1", fixture=False,
+                attestation=str(self.root),
+                expected_archive_manifest_sha256=ARCHIVE)
+        self.assertEqual(self.wallet.cash_coin, D("1.04"))
+        self.assertEqual(len(self.wallet.positions), 0)
+        # Adequately funded signed original-book OPEN remains allowed.
+        funded = start_wallet("BTC", "severe", "1.05")
+        out = costed_open(
+            funded, "funded", self.s, self.l, AT, "1",
+            "0.01", "0.0024", "1", "1", fixture=False,
+            attestation=str(self.root),
+            expected_archive_manifest_sha256=ARCHIVE)
+        self.assertEqual(len(out.positions), 1)
+
+    def test_signed_open_close_reserve_independent_oracle_vetoes_tampering(self):
+        from research.tools.v99_r106_i1_dated_native_fee_preflight import (
+            calculate_minimum_fee as original_calculator,
+        )
+        def corrupted(*args, **kwargs):
+            result = original_calculator(*args, **kwargs)
+            if kwargs.get("event_type") == "MARK":
+                result["native_fee_minimum_coin"] = "0"
+            return result
+        with patch(
+            "research.tools.v99_r106_i1_dated_native_fee_preflight.calculate_minimum_fee",
+            side_effect=corrupted,
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "SIGNED_IMMEDIATE_CLOSE_FEE_ORACLE_MISMATCH"
+            ):
+                self.open("tampered", "0.01")
+        self.assertEqual(self.wallet.cash_coin, D("100"))
+        self.assertEqual(len(self.wallet.positions), 0)
+
     def test_missing_archive_manifest_fails_closed_before_cash(self):
         with self.assertRaisesRegex(ValueError, "SIGNED_NATIVE_FEE_REQUIRES_ORIGINAL_ARCHIVE_SHA256"):
             self.open("p1", "0.01", archive=None)
