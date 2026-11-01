@@ -1,0 +1,53 @@
+name: V98 Independent Native OI Numerical Bridge Source-Only No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-oi-numerical-value-bridge.yml'
+      - 'research/v98_independent/v98_oi_clean4_value_bridge.py'
+      - 'research/v98_independent/v98_oi_clean4_value_bridge_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  oi-value-bridge:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numerical source-only dependency
+        run: python -m pip install numpy==1.26.4
+      - name: Compile and verify strict causal source-only mask
+        run: |
+          python -m py_compile research/v98_independent/v98_oi_clean4_value_bridge.py
+          python research/v98_independent/v98_oi_clean4_value_bridge.py --self-test
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-oi-clean4-2022-2024-v2-source-only
+          run-id: 40477513000
+          github-token: ${{ github.token }}
+          path: frozen-oi-2022-24
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-2025-native-oi-vendor-sha-source-only
+          run-id: 41282113093
+          github-token: ${{ github.token }}
+          path: frozen-oi-2025
+      - name: Independently audit both source artifacts, load values and reconcile 168h eligibility
+        run: |
+          python research/v98_independent/v98_oi_clean4_value_bridge.py --old-root frozen-oi-2022-24 --new-root frozen-oi-2025 --output v98_oi_numerical_bridge_receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-oi-numerical-bridge-source-only
+          path: v98_oi_numerical_bridge_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
