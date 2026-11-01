@@ -17,6 +17,7 @@ class ProvisionalCLIImmutablePublication(unittest.TestCase):
     def report(self):
         return {
             "status": "PROVISIONAL_ORIGINAL_BBO_ONLY_NOT_NATIVE_ECONOMICS",
+            "original_quote_event_identities_checked": 2,
             "original_options_economic_train_certified": False,
             "promotion_authorized": False,
             "orders_enabled": False,
