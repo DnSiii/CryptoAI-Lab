@@ -200,7 +200,7 @@ def run(d, oi, observed, provenance):
     source = source_gate(d)
     decisions = signals(d, oi, observed)
     books = target_books(d, decisions)
-    from pi_funding_crowding_independent_oracle import independent_decisions
+    from pi_positioning_elasticity_independent_oracle import independent_decisions
     oracle = independent_decisions(d, oi, observed, decisions, books)
     if oracle["mismatches"]:
         raise ValueError("PI_INDEPENDENT_ORACLE")
