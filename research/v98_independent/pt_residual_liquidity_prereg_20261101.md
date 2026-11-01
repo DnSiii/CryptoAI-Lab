@@ -1,0 +1,26 @@
+# V98 PT — market-residual participation + liquidity dislocation (binding preregistration, 2026-11-01)
+
+State: **PRE-IMPLEMENTATION, PRE-PT-PNL**. PT is an independently hypothesized seven-slot composed portfolio; it is not a PS/PR rescue. All previously rejected candidates stay rejected. No prior V98 performance values, V14/V15/V99 architecture/signals/parameters or 2026+ data may be used for PT selection.
+
+## Hypothesis
+In a small liquid crypto universe, common BTC market movement and **idiosyncratic residual price movement** may be different sources of compounding. A BTC market-participation core plus a separately measured altcoin residual sleeve can generate growth with lower turnover than daily re-ranking. Liquidity shocks, beta-hedged residual dislocations and synchronized stress events are economically distinct optional exposures. This hypothesis is falsifiable by complete portfolio net PnL and leave-one-out marginal log growth, not by a single alpha.
+
+## Frozen universe, clock and causality
+BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT Binance USD-M 1h; Dec-2022 warmup to Dec-2025 exposed TRAINING ONLY, exactly 27,048 hours, t=744+168*k <27048 (157 weekly decisions), signal only using completed closes and quote volume through t, fill at t+1 open, no 2026+, XRP, Phase083, holdout, paper or external benchmark. All raw funding rates are native and authenticated; worst-side hourly funding mark envelope is NOT exact event mark. Source geometry, zero-volume fill veto, t-1 atomic execution, 1h OHLC adverse solvency, carried-before-fill and new-after-fill orders as in the existing independent V98 physical engine.
+
+## Frozen deterministic seven slots
+Let L=log close, R(h,j)=L[t,j]-L[t-h,j], H[j,k]=L[k,j]-L[k-1,j]. For each alt j=1,2,3, beta[j]=clip(cov(H[j],H[BTC])/max(var(H[BTC]),1e-10),0,2) on exactly the last 672 completed hourly returns k=t-671,...,t; beta[BTC]=1. Residual E(h,j)=R(h,j)-beta[j]*R(h,BTC) for h=24,72,168,672; E(h,BTC)=0. All covariance/population standard deviation use ddof=0. Liquidity ratio Q(j)=sum quote volume t-71..t / max(sum t-143..t-72,1). Ties always asset index.
+
+1. Growth Core: if R(672,BTC)>0, target BTC +.30 and the alt with largest E(168,j) +.26 **only if E(168,j)>0**; if R(672,BTC)<0, BTC -.26 and the alt with lowest E(168,j) -.24 **only if E(168,j)<0**. BTC exactly zero -> all cash. No hindsight or asset-level lookback tuning.
+2. Opportunity: among alts with Q>=1.35 and abs(E(72,j))>=.05, select max abs(E(72,j))*Q(j); target sign(E(72,j))*.16, otherwise cash. A volume-confirmed *beta residual*, not price breakout.
+3. Relative Value: among alts, if max(E(168))-min(E(168))>=.14 AND (E(24,high)-E(24,low)) has the opposite sign to (E(168,high)-E(168,low)), long residual-low +.11 and short residual-high -.11. Otherwise cash.
+4. Stress/Recovery: if BTC R(24)<-.06, >=3 Clean-4 R(24)<0, and median(Q)>=1.15, short BTC -.15; else if BTC R(168)<-.10, BTC R(24)>.035 and median(Q)>=1.15, long BTC +.15; else cash.
+5. Regime Router: contraction if BTC R(672)<0; expansion if BTC R(672)>0 and median(Q)>=1; dispersion otherwise. Priority contraction=(Stress,RV,Opportunity), expansion=(Opportunity,RV,Stress), dispersion=(RV,Opportunity,Stress).
+6. Dynamic Allocator: core always first, optional gross cap .28, total gross cap .84, clip each sleeve proportionally to available optional room in regime priority order. Preserve distinct virtual sleeves, including for leave-one-out.
+7. Risk Governor: reuse audited one-way net atomic planner and conservative funding cash; pre/post trade gross solvency, adverse intrabar and zero-volume veto; no hidden leverage. Physical guard remains unchanged.
+
+## Binding economic falsification
+Five books PT_full, PT_core_only, PT_minus_opportunity, PT_minus_RV, PT_minus_stress; base fee/slip 4/2 bps, severe 10/10, supersevere 15/20; both funding orders -> 30 physical scenarios. Independent implementation must reconstruct all 157 signals/allocations and all 26,303 hourly cash/fill/funding entries in the base full book, plus receipt arithmetic/tamper audit. Any physical/oracle mismatch is rejection. For both funding orders: base CAGR >80%, severe CAGR >60%, severe DD >-45%, every severe year 2023/24/25 positive, base and severe turnover <=USD1m for USD10k initial; each optional leave-one-out marginal log growth >.02 in base and severe, each annual marginal >=-.03. Severe and supersevere costs must be reported, as must drawdown, tails, concentration, hourly PF/payoff/win rate, positive days and reproducibility. No post-PnL sign, lookback, weights, thresholds, gross, cost or gate rescue. A failure freezes PT as rejected; passing exposed training is only a provisional candidate, not a validated engine.
+
+## External final delivery gates
+13,524 exact exchange-origin funding-event markPrice values still require authorized raw fundingRate response bytes or equivalent exchange-origin export with request URLs, original HTTP Date/headers, UTC capture, per-page SHA256 and independently verified custody (historical API HTTP 451). Account-specific historical fees and executable bid/ask/depth/impact, chronological independent validation, genuinely untouched future holdout and independent prospective paper validation remain mandatory. No real/paper authorization.
