@@ -188,13 +188,13 @@ def self_test():
         lines[0]["response_body"]=json.dumps([{"symbol":ASSETS[0],"fundingTime":START+q*SLOT,"fundingRate":"0.0001","markPrice":"100"} for q in range(3)])
         lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
         lines[0]["response_headers"]={"Date":"not-an-http-date"}
-        pages.write_text("\\n".join(json.dumps(x) for x in lines)+"\\n")
+        pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="MALFORMED_HTTP_DATE"
         else:raise AssertionError("MALFORMED_DATE_ACCEPTED")
         lines[0]["response_headers"]={"Date":"Sun, 01 Nov 2026 12:00:00 GMT"}
         lines[0]["url"]=lines[0]["url"].replace("limit=1000","limit=0")
-        pages.write_text("\\n".join(json.dumps(x) for x in lines)+"\\n")
+        pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="REQUEST_SYMBOL_OR_LIMIT"
         else:raise AssertionError("INVALID_LIMIT_ACCEPTED")
