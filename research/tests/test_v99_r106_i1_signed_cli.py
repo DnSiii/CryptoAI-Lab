@@ -39,6 +39,7 @@ class SignedNativeCLIControls(unittest.TestCase):
             document, _ = signed_shape()
             # A real directory must exist to reach the independent key gate.
             # The verifier correctly checks evidence-root existence first.
+            document["journal_attestation"] = directory
             for rows in document["scenarios"].values():
                 for day in rows:
                     for event in day["events"]:
@@ -63,11 +64,14 @@ class SignedNativeCLIControls(unittest.TestCase):
                 return {"independent_signature_verified": True,
                         "promotion_authorized": False}
             with patch(
+                "research.tools.v99_r106_i1_native_event_equity.verify_signed_event_attestation",
+                side_effect=mock_only,
+            ), patch(
                 "research.tools.v99_r106_i1_cost_bound_execution.verify_signed_event_attestation",
                 side_effect=mock_only,
             ):
                 report = main(source, output, signed=True)
-            self.assertEqual(len(seen), expected)
+            self.assertEqual(len(seen), expected + 1)
             self.assertTrue(report["signed_event_adapter_replayed"])
             self.assertEqual(len(report["scenarios"]["severe"]), 661)
             saved = json.loads(output.read_text(encoding="utf-8"))
@@ -81,6 +85,7 @@ class SignedNativeCLIControls(unittest.TestCase):
     def test_real_subprocess_signed_mode_no_key_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             document, _ = signed_shape()
+            document["journal_attestation"] = directory
             for rows in document["scenarios"].values():
                 for day in rows:
                     for event in day["events"]:
