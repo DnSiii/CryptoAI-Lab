@@ -1,0 +1,54 @@
+name: V98 Independent Official 2025 Spot Masked Source Only No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-spot-2025-masked-source.yml'
+      - 'research/v98_independent/v98_spot_2025_masked_source_only.py'
+      - 'research/v98_independent/v98_spot_2025_masked_source_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  spot-2025-source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile source-only collector
+        run: python -m py_compile research/v98_independent/v98_spot_2025_masked_source_only.py
+      - name: Acquire 48 official spot archives, verify provider SHA256 and explicit missing-hour masks
+        run: python research/v98_independent/v98_spot_2025_masked_source_only.py
+      - name: Independent output-byte and no-PnL contract
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path("research/v98_independent/v98_spot_2025_masked_source_only")
+          r=json.loads((root/"v98_spot_2025_masked_source_receipt.json").read_text())
+          raw=(root/"v98_spot_2025_observed_only.csv").read_bytes()
+          assert r["decision"]=="PASS_MASKED_SPOT_2025_SOURCE_ONLY_NOT_ECONOMIC"
+          assert r["archive_count"]==r["provider_sha256_verified"]==48
+          assert r["expected_asset_hours"]==35040
+          assert r["observed_asset_hours"]+r["missing_asset_hours"]==35040
+          assert hashlib.sha256(raw).hexdigest()==r["canonical_sha256"]
+          assert all(r[k] is False for k in ("pnl_computed","holdout_accessed",
+              "data_2026_accessed","external_benchmarks_accessed","trading_authorized"))
+          assert r["complete_grid_2022_2024_source_rejection_still_active"] is True
+          print("PASS_SPOT_2025_SOURCE_ONLY_NO_PNL",r["observed_asset_hours"],
+                r["missing_asset_hours"],r["canonical_sha256"])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-spot-2025-masked-source-only
+          path: research/v98_independent/v98_spot_2025_masked_source_only/
+          retention-days: 30
+          if-no-files-found: warn
