@@ -116,8 +116,11 @@ def self_test():
         try:check_page(json.dumps([bad]).encode(),"BTCUSDT",FIRST_MS)
         except ValueError:pass
         else:raise AssertionError("V98_TAMPER_NOT_DETECTED")
-    if "2025" in page_url("BTCUSDT",FIRST_MS):
-        raise AssertionError("V98_UNEXPECTED_URL")
+    if EVENTS_PER_ASSET!=3381 or LAST_MS>=1767225600000:
+        raise AssertionError("V98_2022_2025_SCOPE_OR_2026_BOUNDARY")
+    last={"symbol":"BTCUSDT","fundingTime":LAST_MS,"fundingRate":"0.0001","markPrice":"100.25"}
+    if len(check_page(json.dumps([last]).encode(),"BTCUSDT",LAST_MS))!=1:
+        raise AssertionError("V98_LAST_2025_EVENT")
     return {"decision":"PASS_SYNTHETIC_SOURCE_CAPTURE_CONTRACT_NOT_PROVENANCE",
             "tamper_cases":5,"actual_official_events_downloaded":0,
             "pnl_computed":False,"2025_accessed":False,"2026_plus_accessed":False}
@@ -150,7 +153,7 @@ def main():
              "official_origin_independently_attested":False,
              "requires_original_HTTP_and_external_source_identity_verification":True,
              "requires_strict_V98_importer_and_independent_oracle":True,
-             "pnl_computed":False,"2025_accessed":False,"2026_plus_accessed":False,
+             "pnl_computed":False,"2025_accessed":True,"2026_plus_accessed":False,
              "decision":"CAPTURE_COMPLETE_CONTENT_CONTRACT_PENDING_EXTERNAL_PROVENANCE_AUDIT"}
     (out/"v98_exact_funding_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
     (out/"v98_transport_capture_receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
