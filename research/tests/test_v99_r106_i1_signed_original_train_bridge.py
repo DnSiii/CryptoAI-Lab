@@ -175,7 +175,7 @@ class SignedOriginalBridgeTests(unittest.TestCase):
     def test_signed_replay_changes_original_source_after_first_check_veto(self):
         with tempfile.TemporaryDirectory() as tmp:
             args = self.paths(tmp)
-            def signed_then_mutate(document):
+            def signed_then_mutate(document, **kwargs):
                 args[0].write_text('{"late":true}')
                 return self.signed_mock()
             with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
@@ -185,6 +185,21 @@ class SignedOriginalBridgeTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY"):
                         main(*args)
             self.assertFalse(args[-1].exists())
+
+    def test_source_manifest_digest_is_forwarded_to_signed_wallet(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            observed = []
+            def check_signed(document, **kwargs):
+                observed.append(kwargs.get("expected_archive_manifest_sha256"))
+                return self.signed_mock()
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.source_bound_run",
+                       return_value=self.source_mock()):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.replay_signed",
+                           side_effect=check_signed):
+                    result = main(*args)
+            self.assertEqual(observed, [hashlib.sha256(b"{}").hexdigest()])
+            self.assertFalse(result["original_options_economic_train_certified"])
 
     def test_joined_technical_mock_is_never_certified_and_no_overwrite(self):
         # Mocked source and signature results only test orchestration.
