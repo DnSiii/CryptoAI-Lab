@@ -15,7 +15,7 @@ jobs:
     if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
-    stept:
+    steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -70,7 +70,7 @@ jobs:
                        os.environ["NEW_ROOT"],os.environ["CORRECTED_ROOT"])
           out=run(d)
           Path("pt_full_training_result.json").write_text(
-              json.dumpt(out,indent=2,sort_keys=True,allow_nan=False)+"\n")
+              json.dumps(out,indent=2,sort_keys=True,allow_nan=False)+"\n")
           print("PT_BINDING_TRAINING_DECISION",out["decision"],
                 "FAILURES",len(out["gate_failures"]),flush=True)
           PY
@@ -85,7 +85,7 @@ jobs:
     needs: pt-full-physical
     runs-on: ubuntu-24.04
     timeout-minutes: 12
-    stept:
+    steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
