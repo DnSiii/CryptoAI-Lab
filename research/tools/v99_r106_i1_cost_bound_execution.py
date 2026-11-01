@@ -45,7 +45,8 @@ def verify_charges(scenario, native_lots, fee_coin, slip_coin):
 
 def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
                  margin_rules_verified, original_quote_verified,
-                 attestation=None, event_type=None, wallet=None, event_data=None):
+                 attestation=None, event_type=None, wallet=None, event_data=None,
+                 expected_archive_manifest_sha256=None):
     # The booleans are only upstream interface claims, not independent proof.
     # A real execution runner must separately authenticate the actual receipts.
     if type(fixture) is not bool or any(type(x) is not bool for x in (
@@ -66,7 +67,9 @@ def _source_gate(*, fixture, original_fee_verified, native_contract_verified,
     if attestation is None or wallet is None or event_data is None:
         raise ValueError("HISTORICAL_SOURCE_RECEIPTS_REQUIRE_INDEPENDENT_ATTESTATION")
     digest = event_digest(event_type, wallet, **event_data)
-    return verify_signed_event_attestation(attestation, digest)
+    return verify_signed_event_attestation(
+        attestation, digest,
+        expected_archive_manifest_sha256=expected_archive_manifest_sha256)
 
 
 def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
@@ -74,12 +77,14 @@ def costed_open(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                 initial_margin_coin, maintenance_margin_coin, *,
                 fixture=False, original_fee_verified=False,
                 native_contract_verified=False, margin_rules_verified=False,
-                original_quote_verified=False, attestation=None):
+                original_quote_verified=False, attestation=None,
+                expected_archive_manifest_sha256=None):
     _source_gate(fixture=fixture, original_fee_verified=original_fee_verified,
                  native_contract_verified=native_contract_verified,
                  margin_rules_verified=margin_rules_verified,
                  original_quote_verified=original_quote_verified,
                  attestation=attestation, event_type="OPEN", wallet=w,
+                 expected_archive_manifest_sha256=expected_archive_manifest_sha256,
                  event_data=dict(name=name, short=short, long=long, at_ms=at_ms,
                                  native_lots=native_lots, entry_fees_coin=entry_fees_coin,
                                  entry_slippage_coin=entry_slippage_coin,
@@ -108,12 +113,14 @@ def costed_mark(w: Wallet, name: str, short: Quote, long: Quote, at_ms: int,
                 exit_fees_coin, exit_slippage_coin, *,
                 fixture=False, original_fee_verified=False,
                 native_contract_verified=False, margin_rules_verified=False,
-                original_quote_verified=False, attestation=None):
+                original_quote_verified=False, attestation=None,
+                expected_archive_manifest_sha256=None):
     _source_gate(fixture=fixture, original_fee_verified=original_fee_verified,
                  native_contract_verified=native_contract_verified,
                  margin_rules_verified=margin_rules_verified,
                  original_quote_verified=original_quote_verified,
                  attestation=attestation, event_type="MARK", wallet=w,
+                 expected_archive_manifest_sha256=expected_archive_manifest_sha256,
                  event_data=dict(name=name, short=short, long=long, at_ms=at_ms,
                                  exit_fees_coin=exit_fees_coin,
                                  exit_slippage_coin=exit_slippage_coin))
@@ -135,7 +142,8 @@ def costed_settle_batch(w: Wallet, names, at_ms: int,
                         original_delivery_index_usd, delivery_fees_coin: dict, *,
                         fixture=False, original_fee_verified=False,
                         native_contract_verified=False, margin_rules_verified=False,
-                        original_quote_verified=False, attestation=None):
+                        original_quote_verified=False, attestation=None,
+                expected_archive_manifest_sha256=None):
     """Scenario-fee-bound atomic expiry settlement; NOT certified venue economics.
 
     Contractual expiry has no bid/ask exit fill, so enforce only the existing
@@ -147,6 +155,7 @@ def costed_settle_batch(w: Wallet, names, at_ms: int,
                  margin_rules_verified=margin_rules_verified,
                  original_quote_verified=original_quote_verified,
                  attestation=attestation, event_type="SETTLE_BATCH", wallet=w,
+                 expected_archive_manifest_sha256=expected_archive_manifest_sha256,
                  event_data=dict(names=names, at_ms=at_ms,
                                  original_delivery_index_usd=original_delivery_index_usd,
                                  delivery_fees_coin=delivery_fees_coin))
