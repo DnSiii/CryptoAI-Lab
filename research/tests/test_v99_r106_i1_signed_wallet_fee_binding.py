@@ -129,6 +129,50 @@ class SignedWalletFeeBindingTests(unittest.TestCase):
             expected_archive_manifest_sha256=ARCHIVE)
         self.assertEqual(len(settled.positions), 0)
 
+    def test_independent_fee_oracle_vetoes_actual_signed_wallet_mutations(self):
+        # A signed envelope alone cannot authorize a corrupted primary
+        # fee calculation. Both OPEN and expiry must fail before cash moves.
+        forged_open = {
+            "native_fee_minimum_coin": "0",
+            "leg_native_fee_coin": ["0", "0"],
+            "historical_native_fee_certified": False,
+            "original_options_economic_train_certified": False,
+            "promotion_authorized": False,
+        }
+        with patch(
+            "research.tools.v99_r106_i1_dated_native_fee_preflight.calculate_minimum_fee",
+            return_value=forged_open,
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "SIGNED_NATIVE_FEE_INDEPENDENT_ORACLE_MISMATCH"
+            ):
+                self.open("p1", "0.01")
+        self.assertEqual(self.wallet.cash_coin, D("100"))
+        self.assertEqual(len(self.wallet.positions), 0)
+        self.wallet = self.open("p1", "0.01")
+        before_cash = self.wallet.cash_coin
+        forged_delivery = {
+            "native_fee_minimum_coin": "0.005",
+            "leg_native_fee_coin": ["0", "0.005"],
+            "historical_native_fee_certified": False,
+            "original_options_economic_train_certified": False,
+            "promotion_authorized": False,
+        }
+        with patch(
+            "research.tools.v99_r106_i1_dated_native_fee_preflight.calculate_minimum_fee",
+            return_value=forged_delivery,
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "SIGNED_NATIVE_FEE_INDEPENDENT_ORACLE_MISMATCH"
+            ):
+                costed_settle_batch(
+                    self.wallet, ["p1"], EXP, "48000",
+                    {"p1": "0.01"}, fixture=False,
+                    attestation=str(self.root),
+                    expected_archive_manifest_sha256=ARCHIVE)
+        self.assertEqual(self.wallet.cash_coin, before_cash)
+        self.assertEqual(len(self.wallet.positions), 1)
+
     def test_fixture_path_does_not_require_historical_schedule(self):
         floor, slip = charge_floor("severe", "1")
         result = costed_open(
