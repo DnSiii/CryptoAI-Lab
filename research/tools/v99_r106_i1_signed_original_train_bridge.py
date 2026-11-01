@@ -100,7 +100,8 @@ def run(signal_path, original_quotes_root, journal_path):
     # Reproduce unsigned journal economics to detect changed event semantics
     # between the original-byte path and the signed native wallet path.
     unsigned = _unpromoted(replay(document))
-    signed = _unpromoted(replay_signed(document))
+    signed = _unpromoted(replay_signed(
+        document, expected_archive_manifest_sha256=manifest_entry))
     if (signed.get("signed_event_adapter_replayed") is not True
             or signed.get("fixture") is not False
             or signed.get("status") != "PROVISIONAL_UNCERTIFIED_NATIVE_EVENT_EQUITY"
