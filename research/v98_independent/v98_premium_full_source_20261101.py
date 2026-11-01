@@ -25,26 +25,51 @@ def get(url):
     if not raw or len(raw)>MAX_BYTES:raise ValueError("BAD_HTTP_SIZE")
     return raw
 
-def one(asset,ym):
-    name=f"{asset}-1h-{ym}.zip"
-    url=f"{BASE}/{asset}/1h/{name}"
+def read_vendor_zip(url,name):
     zbytes=get(url)
     check=get(url+".CHECKSUM").decode("utf-8").strip()
     sha=hashlib.sha256(zbytes).hexdigest()
-    if not re.fullmatch(r"[a-fA-F0-9]{64}\s+\*?"+re.escape(name),check):
+    if not re.fullmatch(r"[a-fA-F0-9]{64}\\s+\\*?"+re.escape(name),check):
         raise ValueError("VENDOR_CHECKSUM_FORMAT")
     if check.split()[0].lower()!=sha:raise ValueError("VENDOR_CHECKSUM_MISMATCH")
     with zipfile.ZipFile(io.BytesIO(zbytes)) as z:
         if len(z.namelist())!=1 or not z.namelist()[0].endswith(".csv"):
             raise ValueError("ZIP_MEMBER")
         raw=z.read(z.namelist()[0])
-    reader=csv.reader(io.StringIO(raw.decode("utf-8-sig")))
-    rows=list(reader)
+    rows=list(csv.reader(io.StringIO(raw.decode("utf-8-sig"))))
     if rows and rows[0][0].lower() in ("open_time","open time","timestamp"):
         rows=rows[1:]
+    return sha,hashlib.sha256(raw).hexdigest(),rows
+
+def one(asset,ym):
+    name=f"{asset}-1h-{ym}.zip"
+    url=f"{BASE}/{asset}/1h/{name}"
+    sha,csv_sha,rows=read_vendor_zip(url,name)
     begin=dt.datetime.strptime(ym,"%Y-%m").replace(tzinfo=dt.timezone.utc)
     after=(begin.replace(year=begin.year+1,month=1) if begin.month==12 else begin.replace(month=begin.month+1))
     n=int((after-begin).total_seconds()/3600)
+    expected={int(begin.timestamp()*1000)+3600000*k for k in range(n)}
+    monthly_stamps=[int(row[0]) for row in rows]
+    if len(monthly_stamps)!=len(set(monthly_stamps)) or not set(monthly_stamps).issubset(expected):
+        raise ValueError("MONTHLY_DUPLICATE_OR_OUT_OF_SCOPE")
+    repair_days=[]
+    vendor_by_time={t:sha for t in monthly_stamps}
+    missing=sorted(expected-set(monthly_stamps))
+    if missing:
+        if len(missing)!=24 or any(missing[k]!=missing[0]+k*3600000 for k in range(24)):
+            raise ValueError("MISSING_NOT_ONE_COMPLETE_DAY")
+        day=dt.datetime.fromtimestamp(missing[0]/1000,dt.timezone.utc).date().isoformat()
+        dname=f"{asset}-1h-{day}.zip"
+        durl=f"https://data.binance.vision/data/futures/um/daily/premiumIndexKlines/{asset}/1h/{dname}"
+        dsha,dcsv_sha,drows=read_vendor_zip(durl,dname)
+        dstamps=[int(row[0]) for row in drows]
+        if len(dstamps)!=24 or sorted(dstamps)!=missing or len(set(dstamps))!=24:
+            raise ValueError("DAILY_REPAIR_CLOCK_OR_DUPLICATE")
+        rows.extend(drows)
+        for t in dstamps:vendor_by_time[t]=dsha
+        repair_days.append({"date":day,"url":durl,"zip_sha256":dsha,
+                            "csv_sha256":dcsv_sha,"rows":24})
+    rows.sort(key=lambda r:int(r[0]))
     if len(rows)!=n:raise ValueError(f"INCOMPLETE_MONTH_{len(rows)}_OF_{n}")
     out=[]
     for k,row in enumerate(rows):
@@ -55,9 +80,9 @@ def one(asset,ym):
             raise ValueError("NONFINITE_OR_PREMIUM_RANGE")
         if l>min(o,c)+1e-10 or h<max(o,c)-1e-10:
             raise ValueError("PREMIUM_OHLC_GEOMETRY")
-        out.append((asset,(begin+dt.timedelta(hours=k)).isoformat(),o,h,l,c,sha))
+        out.append((asset,(begin+dt.timedelta(hours=k)).isoformat(),o,h,l,c,vendor_by_time[int(row[0])]))
     return {"asset":asset,"month":ym,"url":url,"zip_sha256":sha,
-            "csv_sha256":hashlib.sha256(raw).hexdigest(),"rows":n},out
+            "csv_sha256":csv_sha,"rows":n,"repair_days":repair_days},out
 
 def main():
     jobs=[(a,m) for a in ASSETS for m in months()]
