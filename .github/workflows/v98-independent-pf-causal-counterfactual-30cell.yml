@@ -11,7 +11,7 @@ permissions:
   contents: read
   actions: read
 jobs:
-  pe-full-physical:
+  pf-full-physical:
     if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -55,7 +55,7 @@ jobs:
         working-directory: research/v98_independent
         env:
           OLD_ROOT: ${{ runner.temp }}/old
-          OLD_ENVELOPF: ${{ runner.temp }}/old-envelope/v98_official_mark_envelopf_training.csv
+          OLD_ENVELOPE: ${{ runner.temp }}/old-envelope/v98_official_mark_envelope_training.csv
           NEW_ROOT: ${{ runner.temp }}/new
           CORRECTED_ROOT: ${{ runner.temp }}/corrected
         run: |
@@ -64,7 +64,7 @@ jobs:
           from pathlib import Path
           from v98_2025_full_training_source_bridge import load
           from pf_causal_counterfactual_allocator import run
-          d=load(os.environ["OLD_ROOT"],os.environ["OLD_ENVELOPF"],
+          d=load(os.environ["OLD_ROOT"],os.environ["OLD_ENVELOPE"],
                  os.environ["NEW_ROOT"],os.environ["CORRECTED_ROOT"])
           result=run(d)
           Path("pf_full_training_result.json").write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v98-pe-full-training-receipt-${{ github.run_id }}
+          name: v98-pf-full-training-receipt-${{ github.run_id }}
           path: research/v98_independent/pf_full_training_result.json
           retention-days: 30
           if-no-files-found: warn
