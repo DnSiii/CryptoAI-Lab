@@ -119,6 +119,8 @@ def synthetic_test():
     c=100*np.exp(.00003*t*(1+j/5)+.09*np.sin(t/53+j))
     prem=np.broadcast_to(.0003*np.sin(t/27+j)+.0001*np.cos(t/91),(HOURS,4)).copy()
     d={"c":c,"rate":np.zeros((HOURS,4)),"event":np.zeros((HOURS,4),bool)}
+    d["event"][::8]=True
+    d["rate"][::8]=np.broadcast_to(.00008*np.sin(np.arange(0,HOURS,8)[:,None]/81+j),(len(range(0,HOURS,8)),4))
     a=signals(d,prem)
     d2={k:v.copy() for k,v in d.items()};p2=prem.copy()
     d2["c"][15000:]*=np.array([1.3,.8,1.5,.7])
