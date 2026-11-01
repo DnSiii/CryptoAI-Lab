@@ -51,13 +51,21 @@ def read_expected(path):
         raise ValueError("EXPECTED_NATIVE_FUNDING_CALENDAR")
     return rows
 
+def unique_json_object(pairs):
+    """Reject duplicate keys in BOTH page metadata and exchange body."""
+    out={}
+    for k,v in pairs:
+        if k in out:raise ValueError("DUPLICATE_RAW_JSON_FIELD")
+        out[k]=v
+    return out
+
 def validate(pages_path,expected_path,output_path):
     expected=read_expected(expected_path)
     seen={}; page_receipts=[]; retrieved=[]
     with Path(pages_path).open(encoding="utf-8") as f:
         for line_number,line in enumerate(f,1):
             if not line.strip(): continue
-            page=json.loads(line)
+            page=json.loads(line,object_pairs_hook=unique_json_object)
             url=page["url"]
             parsed=urlparse(url)
             if (parsed.scheme!="https" or parsed.netloc!=OFFICIAL_HOST or
@@ -89,13 +97,7 @@ def validate(pages_path,expected_path,output_path):
             body=page["response_body"]
             if not isinstance(body,str) or digest(body.encode("utf-8"))!=page["response_body_sha256"]:
                 raise ValueError("RAW_BODY_SHA256")
-            def no_duplicate_fields(pairs):
-                obj={}
-                for k,v in pairs:
-                    if k in obj:raise ValueError("DUPLICATE_RAW_JSON_FIELD")
-                    obj[k]=v
-                return obj
-            data=json.loads(body,object_pairs_hook=no_duplicate_fields)
+            data=json.loads(body,object_pairs_hook=unique_json_object)
             if not isinstance(data,list) or not data or len(data)>int(params["limit"][0]):
                 raise ValueError("EMPTY_OR_OVERSIZED_PAGE")
             times=[]
@@ -103,7 +105,9 @@ def validate(pages_path,expected_path,output_path):
                 if not {"symbol","fundingTime","fundingRate","markPrice"}.issubset(row):
                     raise ValueError("MISSING_OFFICIAL_FIELDS")
                 if row["symbol"]!=a: raise ValueError("SYMBOL_MISMATCH")
-                t=int(row["fundingTime"]); k=(a,t)
+                if type(row["fundingTime"]) is not int:
+                    raise ValueError("FUNDING_TIME_NOT_INTEGER")
+                t=row["fundingTime"]; k=(a,t)
                 if t<lo or t>hi or t<START or t>=END or (t-START)%SLOT:
                     raise ValueError("OFF_CALENDAR_OR_FUTURE_EVENT")
                 if k in seen: raise ValueError("DUPLICATE_FUNDING_EVENT")
@@ -193,6 +197,25 @@ def self_test():
         except ValueError as e:assert str(e)=="MALFORMED_HTTP_DATE"
         else:raise AssertionError("MALFORMED_DATE_ACCEPTED")
         lines[0]["response_headers"]={"Date":"Sun, 01 Nov 2026 12:00:00 GMT"}
+        # A fractional timestamp must never be silently truncated onto a valid 8h slot.
+        altered=json.loads(lines[0]["response_body"])
+        altered[0]["fundingTime"]=float(START)+.25
+        lines[0]["response_body"]=json.dumps(altered)
+        lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
+        pages.write_text("\\n".join(json.dumps(x) for x in lines)+"\\n")
+        try:validate(pages,expected,Path(td)/"bad.json")
+        except ValueError as e:assert str(e)=="FUNDING_TIME_NOT_INTEGER"
+        else:raise AssertionError("FRACTIONAL_FUNDING_TIME_ACCEPTED")
+        altered[0]["fundingTime"]=START
+        lines[0]["response_body"]=json.dumps(altered)
+        lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
+        # A duplicate top-level JSONL key must fail even if its last value is valid.
+        first=json.dumps(lines[0])
+        duplicate=first[:-1]+',"status":200}'
+        pages.write_text(duplicate+"\\n"+"\\n".join(json.dumps(x) for x in lines[1:])+"\\n")
+        try:validate(pages,expected,Path(td)/"bad.json")
+        except ValueError as e:assert str(e)=="DUPLICATE_RAW_JSON_FIELD"
+        else:raise AssertionError("DUPLICATE_PAGE_METADATA_ACCEPTED")
         lines[0]["url"]=lines[0]["url"].replace("limit=1000","limit=0")
         pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
