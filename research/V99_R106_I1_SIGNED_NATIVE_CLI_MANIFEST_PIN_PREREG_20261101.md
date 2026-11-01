@@ -1,0 +1,10 @@
+# V99 I1 — signed native CLI must pin the original archive manifest (2026-11-01, before implementation)
+
+## Observable defect and scope
+The research-only `python -m research.tools.v99_r106_i1_native_event_equity INPUT OUTPUT --signed` entry point currently calls `replay_signed(document)` without `expected_archive_manifest_sha256`. Its real nonfixture `costed_open` calls the dated-fee verifier which requires a 64-character original archive digest, so a fully authenticated input cannot pass the standalone CLI. The integrated original-source bridge already passes this digest correctly. Repair only the standalone CLI wiring; do not alter I1 strategy, TRAIN dates, fee schedules, source trust, or economic gates.
+
+## Ex-ante implementation contract
+Require an explicit `--archive-manifest-sha256 <64-hex>` on the standalone `--signed` path, validate it strictly before reading/processing the journal, and forward it to `replay_signed(..., expected_archive_manifest_sha256=...)`. An unsigned/fixture invocation must reject the digest flag; an absent, malformed or nonhex digest must fail closed and never write the output. The digest is an input cross-pin only, NOT an independently authenticated source or economic certification. A signed fixture remains forbidden. The integrated original-source bridge is unchanged and remains the preferred source-first path.
+
+## Adversarial acceptance
+Synthetic CLI tests must show: signed missing/malformed digest fails before source replay; correctly shaped digest is forwarded to the signed event verifier and dated native fee path; a wrong digest is rejected by actual signed receipt verification (no bypass); no trust anchor still fails closed; unsigned fixture still runs, unsigned nonfixture still rejects; no output on failures. Run the two existing GitHub I1 workflows and inspect their logs. Even success is ONLY SOFTWARE INTEGRITY: 658/661 historical days absent, 0/180 original economically certified, no ROI/validation/holdout/Frozen/paper/champion/orders/promotion.
