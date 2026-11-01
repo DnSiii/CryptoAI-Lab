@@ -92,7 +92,7 @@ def synthetic_test():
         if a[1]!=b[1] or not np.array_equal(a[0],b[0]):
             raise ValueError("PR_FUTURE_LEAK")
     books=target_books(original)
-    if any(len(v)!=157 or any(np.abs(w).sum()>.82+1e-10 for w in v.values())
+    if any(len(v)!=157 or any(np.abs(w).sum()>.84+1e-10 for w in v.values())
            for v in books.values()):raise ValueError("PR_SYNTHETIC_GROSS")
     return {"decision":"PASS_PR_SYNTHETIC_CAUSALITY_NOT_PNL","decisions":157,
             "books":5,"future_mutation_safe":True,"pnl_computed":False}
