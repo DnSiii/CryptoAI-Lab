@@ -4,6 +4,10 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - research/tools/v99_r106_i1_dated_native_fee_preflight.py
+      - research/tools/v99_r106_i1_cost_bound_execution.py
+      - research/tests/test_v99_r106_i1_signed_wallet_fee_binding.py
+      - research/tests/test_v99_r106_i1_signed_native_event_replay.py
+      - research/V99_R106_I1_SIGNED_WALLET_NATIVE_FEE_BINDING_PREREG_20261101.md
       - research/verification/independent_v99_r106_i1_dated_native_fee_oracle.py
       - research/tests/test_v99_r106_i1_dated_native_fee_preflight.py
       - .github/workflows/v99-r106-i1-dated-native-fee-preflight.yml
@@ -30,6 +34,15 @@ jobs:
           test -s research/V99_R106_I1_DATED_NATIVE_FEE_ARITHMETIC_PREREG_20261101.md
       - name: Run independent arithmetic and adversarial signed-source veto
         run: python -m unittest -v research.tests.test_v99_r106_i1_dated_native_fee_preflight
+      - name: Confirm wallet binding preregistration predates code
+        run: |
+          git merge-base --is-ancestor 8dfb1d3fc98a0858848263a8c8391a70b93ed19f HEAD
+          test -s research/V99_R106_I1_SIGNED_WALLET_NATIVE_FEE_BINDING_PREREG_20261101.md
+      - name: Execute real wallet binding path with synthetic negative controls
+        run: |
+          python -m unittest -v research.tests.test_v99_r106_i1_signed_wallet_fee_binding
+          python -m unittest -v research.tests.test_v99_r106_i1_cost_bound_execution
+          python -m unittest -v research.tests.test_v99_r106_i1_signed_native_event_replay
       - name: Explicitly preserve external historical provenance block
         run: |
           python - <<'PY'
