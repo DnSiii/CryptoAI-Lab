@@ -58,7 +58,8 @@ def _quote(raw):
         raise ValueError("INVALID_NATIVE_QUOTE_RECEIPT") from exc
 
 
-def _open(wallet, event, at_ms, *, signed=False):
+def _open(wallet, event, at_ms, *, signed=False,
+          expected_archive_manifest_sha256=None):
     # The fixed signal and deterministic selector, not a caller-selected winner.
     quotes = [_quote(q) for q in event["quotes"]]
     chosen = select_fixed_vertical(event["signal"], quotes)
@@ -76,7 +77,8 @@ def _open(wallet, event, at_ms, *, signed=False):
         return costed_open(wallet, name, short, long, at_ms, qty, fee, slip,
                            event["initial_margin_coin"],
                            event["maintenance_margin_coin"],
-                           fixture=False, attestation=attestation)
+                           fixture=False, attestation=attestation,
+                           expected_archive_manifest_sha256=expected_archive_manifest_sha256)
     out = open_vertical(wallet, name, short, long, at_ms, qty, fee, slip,
                         event["initial_margin_coin"],
                         event["maintenance_margin_coin"])
@@ -90,7 +92,8 @@ def _open(wallet, event, at_ms, *, signed=False):
     return out
 
 
-def _mark(wallet, event, at_ms, *, signed=False):
+def _mark(wallet, event, at_ms, *, signed=False,
+          expected_archive_manifest_sha256=None):
     name = event["position_id"]
     position = next((p for p in wallet.positions if p.name == name), None)
     if position is None:
@@ -103,11 +106,13 @@ def _mark(wallet, event, at_ms, *, signed=False):
         if not isinstance(attestation, str) or not attestation:
             raise ValueError("MISSING_SIGNED_ORIGINAL_MARK_ATTESTATION")
         return costed_mark(wallet, name, short, long, at_ms, fee, slip,
-                           fixture=False, attestation=attestation)
+                           fixture=False, attestation=attestation,
+                           expected_archive_manifest_sha256=expected_archive_manifest_sha256)
     return mark_to_exit(wallet, name, short, long, at_ms, fee, slip)
 
 
-def _settle(wallet, event, at_ms, *, signed=False):
+def _settle(wallet, event, at_ms, *, signed=False,
+            expected_archive_manifest_sha256=None):
     names = event["position_ids"]
     fees = event["delivery_fees_coin"]
     if not isinstance(names, list) or not isinstance(fees, dict):
@@ -125,7 +130,8 @@ def _settle(wallet, event, at_ms, *, signed=False):
             raise ValueError("MISSING_SIGNED_ORIGINAL_SETTLEMENT_ATTESTATION")
         return costed_settle_batch(wallet, names, at_ms,
                                    event["delivery_index_usd"], fees,
-                                   fixture=False, attestation=attestation)
+                                   fixture=False, attestation=attestation,
+                           expected_archive_manifest_sha256=expected_archive_manifest_sha256)
     return settle_batch(wallet, names, at_ms, event["delivery_index_usd"], fees)
 
 
@@ -160,7 +166,8 @@ def _fold_snapshot(wallets, edge_ms, indices, initial_coin):
             "actual_exposure_key": "|".join(sorted(exposures)) or "CASH"}
 
 
-def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd, *, signed=False):
+def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd, *,
+                  signed=False, expected_archive_manifest_sha256=None):
     if not isinstance(rows, list) or len(rows) != DAYS:
         raise ValueError("INCOMPLETE_661_DAY_EVENT_JOURNAL")
     wallets = {a: start_wallet(a, scenario, initial_coin[a]) for a in ("BTC", "ETH")}
@@ -207,12 +214,15 @@ def _run_scenario(rows, scenario, initial_coin, initial_index, initial_usd, *, s
                 key = (asset, at_ms)
                 if key in opened_asset_weeks:
                     raise ValueError("DUPLICATE_FIXED_ASSET_WEEK_ENTRY")
-                wallet = _open(wallet, event, at_ms, signed=signed)
+                wallet = _open(wallet, event, at_ms, signed=signed,
+                               expected_archive_manifest_sha256=expected_archive_manifest_sha256)
                 opened_asset_weeks.add(key)
             elif kind == "MARK":
-                wallet = _mark(wallet, event, at_ms, signed=signed)
+                wallet = _mark(wallet, event, at_ms, signed=signed,
+                               expected_archive_manifest_sha256=expected_archive_manifest_sha256)
             elif kind == "SETTLE_BATCH":
-                wallet = _settle(wallet, event, at_ms, signed=signed)
+                wallet = _settle(wallet, event, at_ms, signed=signed,
+                                 expected_archive_manifest_sha256=expected_archive_manifest_sha256)
             else:
                 raise ValueError("UNREGISTERED_NATIVE_CASH_FLOW")
             wallets[asset] = wallet
@@ -393,7 +403,8 @@ def _validate_cross_scenario_market_path(document):
 
 
 
-def replay(document, *, signed=False):
+def replay(document, *, signed=False,
+           expected_archive_manifest_sha256=None):
     if (not isinstance(document, dict) or document.get("schema") != SCHEMA
             or type(document.get("fixture")) is not bool
             or set(document.get("scenarios", {})) != set(SCENARIOS)):
@@ -413,7 +424,8 @@ def replay(document, *, signed=False):
             raise ValueError("MISSING_SIGNED_WHOLE_JOURNAL_ATTESTATION")
         journal = {k: v for k, v in document.items() if k != "journal_attestation"}
         verify_signed_event_attestation(
-            root, event_digest("JOURNAL", None, journal=journal))
+            root, event_digest("JOURNAL", None, journal=journal),
+            expected_archive_manifest_sha256=expected_archive_manifest_sha256)
     initial_coin = document.get("initial_coin")
     initial_index = document.get("initial_index_usd")
     if (not isinstance(initial_coin, dict) or not isinstance(initial_index, dict)
@@ -431,7 +443,8 @@ def replay(document, *, signed=False):
     _validate_cross_scenario_market_path(document)
     replayed = {scenario: _run_scenario(document["scenarios"][scenario],
                                        scenario, coin, index, initial_usd,
-                                       signed=signed)
+                                       signed=signed,
+                                       expected_archive_manifest_sha256=expected_archive_manifest_sha256)
                 for scenario in SCENARIOS}
     results = {scenario: replayed[scenario][0] for scenario in SCENARIOS}
     fold_snapshots = {scenario: replayed[scenario][1] for scenario in SCENARIOS}
@@ -476,13 +489,14 @@ def replay(document, *, signed=False):
     }
 
 
-def replay_signed(document):
+def replay_signed(document, *, expected_archive_manifest_sha256=None):
     """Signed nonfixture event-cost path; NOT full-source economic certification.
 
     All events must bind independent signed evidence to the original wallet.
     This does not authenticate complete venue coverage or original native fees.
     """
-    return replay(document, signed=True)
+    return replay(document, signed=True,
+                  expected_archive_manifest_sha256=expected_archive_manifest_sha256)
 
 
 def main(input_path, output_path, *, signed=False):
