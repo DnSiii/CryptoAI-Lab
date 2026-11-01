@@ -225,5 +225,78 @@ class SignedOriginalBridgeTests(unittest.TestCase):
                 main(*args)
 
 
+    def test_atomic_bridge_existing_output_and_symlink_veto_before_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            target = args[-1]
+            target.write_text("prior-report", encoding="utf-8")
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.run") as source:
+                with self.assertRaisesRegex(ValueError, "EXISTING_RESULT_IMMUTABLE"):
+                    main(*args)
+                source.assert_not_called()
+            self.assertEqual(target.read_text(), "prior-report")
+            target.unlink()
+            target.symlink_to(Path(tmp) / "missing.json")
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.run") as source:
+                with self.assertRaisesRegex(ValueError, "EXISTING_RESULT_IMMUTABLE"):
+                    main(*args)
+                source.assert_not_called()
+            self.assertTrue(target.is_symlink())
+
+    def test_atomic_bridge_nonserializable_report_never_publishes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            bad = {"status": "PROVISIONAL", "not_json": object()}
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.run",
+                       return_value=bad):
+                with self.assertRaises(TypeError):
+                    main(*args)
+            self.assertFalse(args[-1].exists())
+            self.assertEqual(list(Path(tmp).glob(".v99-i1-signed-*.tmp")), [])
+
+    def test_atomic_bridge_fsync_failure_cleans_temp_without_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            report = {"status": "PROVISIONAL", "promotion_authorized": False}
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.run",
+                       return_value=report):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.os.fsync",
+                           side_effect=OSError("synthetic disk failure")):
+                    with self.assertRaisesRegex(OSError, "synthetic disk failure"):
+                        main(*args)
+            self.assertFalse(args[-1].exists())
+            self.assertEqual(list(Path(tmp).glob(".v99-i1-signed-*.tmp")), [])
+
+    def test_atomic_bridge_concurrent_writer_never_overwritten(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            report = {"status": "PROVISIONAL", "promotion_authorized": False}
+            real_link = os.link
+            def competing_writer(source, target):
+                Path(target).write_text("competitor-owned", encoding="utf-8")
+                return real_link(source, target)
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.run",
+                       return_value=report):
+                with patch("research.tools.v99_r106_i1_signed_original_train_bridge.os.link",
+                           side_effect=competing_writer):
+                    with self.assertRaisesRegex(ValueError, "EXISTING_RESULT_IMMUTABLE"):
+                        main(*args)
+            self.assertEqual(args[-1].read_text(), "competitor-owned")
+            self.assertEqual(list(Path(tmp).glob(".v99-i1-signed-*.tmp")), [])
+
+    def test_atomic_bridge_success_preserves_unpromoted_payload(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            report = {"schema": "TEST_ONLY", "status": "PROVISIONAL",
+                      "promotion_authorized": False, "orders_enabled": False,
+                      "original_options_economic_train_certified": False}
+            with patch("research.tools.v99_r106_i1_signed_original_train_bridge.run",
+                       return_value=report):
+                result = main(*args)
+            self.assertEqual(result, report)
+            self.assertEqual(json.loads(args[-1].read_text()), report)
+            self.assertEqual(list(Path(tmp).glob(".v99-i1-signed-*.tmp")), [])
+
+
 if __name__ == "__main__":
     unittest.main()
