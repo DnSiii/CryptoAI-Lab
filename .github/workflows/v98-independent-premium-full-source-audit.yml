@@ -1,0 +1,62 @@
+name: V98 Independent Official Premium 2022-25 Full Source and Audit No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-premium-full-source-audit.yml'
+      - 'research/v98_independent/v98_premium_full_source_20261101.py'
+      - 'research/v98_independent/v98_premium_full_independent_audit_20261101.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  premium-source:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Capture and vendor-SHA verify 148 monthly official premium archives 2022-25; no PnL
+        working-directory: research/v98_independent
+        run: python v98_premium_full_source_20261101.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-premium-clean4-2022-2025-source-only
+          path: |
+            research/v98_independent/v98_premium_2022_2025_source_report.json
+            research/v98_independent/v98_premium_2022_2025_verified_hourly.csv
+          retention-days: 30
+          if-no-files-found: warn
+  premium-independent-audit:
+    needs: premium-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-premium-clean4-2022-2025-source-only
+          path: premium-artifact
+      - name: Independent chronology, vendor manifest, source SHA and scope audit; no PnL
+        run: |
+          python research/v98_independent/v98_premium_full_independent_audit_20261101.py premium-artifact | tee v98_premium_independent_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-premium-clean4-source-audit
+          path: v98_premium_independent_audit.json
+          retention-days: 30
+          if-no-files-found: warn
