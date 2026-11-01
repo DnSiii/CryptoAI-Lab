@@ -20,6 +20,9 @@ from research.tools.v99_r106_i1_full_archive_intake import eligible
 from research.tools.v99_r106_i1_cost_bound_execution import (
     charge_floor, verify_charges, costed_open, costed_mark, costed_settle_batch,
 )
+from research.tools.v99_r106_i1_signed_event_source_gate import (
+    event_digest, verify_signed_event_attestation,
+)
 from research.tools.v99_r106_i1_train_numeric_gate import (
     DAYS, REGIMES, SCENARIOS, _expected_clock, _fold,
 )
@@ -400,6 +403,17 @@ def replay(document, *, signed=False):
     if signed and not any(day.get("events") for rows in document["scenarios"].values()
                           for day in rows if isinstance(day, dict)):
         raise ValueError("SIGNED_ORIGINAL_REPLAY_REQUIRES_EVENTS")
+    if signed:
+        # Per-event signatures alone do NOT bind daily BTC/ETH indices,
+        # fold-edge source indices, regimes, initial wallet or decision ledger.
+        # Verify the complete original journal with an external auditor key
+        # before consuming ANY caller-supplied economic/accounting input.
+        root = document.get("journal_attestation")
+        if not isinstance(root, str) or not root:
+            raise ValueError("MISSING_SIGNED_WHOLE_JOURNAL_ATTESTATION")
+        journal = {k: v for k, v in document.items() if k != "journal_attestation"}
+        verify_signed_event_attestation(
+            root, event_digest("JOURNAL", None, journal=journal))
     initial_coin = document.get("initial_coin")
     initial_index = document.get("initial_index_usd")
     if (not isinstance(initial_coin, dict) or not isinstance(initial_index, dict)
