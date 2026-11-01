@@ -57,7 +57,7 @@ class SignedNativeCLIControls(unittest.TestCase):
                     main(source, output, signed=True)
             self.assertFalse(output.exists())
 
-    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: None)
+    @patch("research.tools.v99_r106_i1_cost_bound_execution._signed_dated_fee_bound", new=lambda *args, **kwargs: {"immediate_close_fee_minimum_coin": "0"})
     def test_signed_cli_dispatch_mocked_event_gate_is_still_provisional(self):
         # The mock proves CLI routing only, NOT real auditor provenance.
         with tempfile.TemporaryDirectory() as directory:
