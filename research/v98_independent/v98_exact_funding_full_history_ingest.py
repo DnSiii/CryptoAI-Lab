@@ -23,8 +23,13 @@ def official_url_claim(url,symbol):
     p=urlsplit(url)
     if p.scheme!="https" or p.netloc!="fapi.binance.com" or p.path!="/fapi/v1/fundingRate" or p.fragment:
         return False
-    qs=parse_qs(p.query)
-    return qs.get("symbol")==[symbol] and "startTime" in qs and "endTime" in qs
+    try:
+        qs=parse_qs(p.query,strict_parsing=True,keep_blank_values=True)
+    except ValueError:
+        return False
+    last=FIRST_MS+(EVENTS_PER_ASSET-1)*INTERVAL_MS
+    return qs=={"symbol":[symbol],"startTime":[str(FIRST_MS)],
+                "endTime":[str(last+60000)],"limit":["1000"]}
 
 def validate_rows(rows,symbol,d):
     if symbol not in ASSETS or not isinstance(rows,list) or len(rows)!=EVENTS_PER_ASSET:
@@ -38,8 +43,14 @@ def validate_rows(rows,symbol,d):
             raise ValueError("V98_FULL_EXACT_SYMBOL")
         if not all(k in row for k in ("fundingTime","fundingRate","markPrice")):
             raise ValueError("V98_FULL_EXACT_MISSING_FIELDS")
+        # The official endpoint emits an integer millisecond timestamp.
+        # int(float/string) silently truncates altered transport data: fail closed.
+        timestamp=row["fundingTime"]
+        if type(timestamp) is not int:
+            raise ValueError("V98_FULL_EXACT_TIMESTAMP_TYPE")
+        if type(row["fundingRate"]) not in (str,int,float) or type(row["markPrice"]) not in (str,int,float):
+            raise ValueError("V98_FULL_EXACT_VALUE_TYPE")
         try:
-            timestamp=int(row["fundingTime"])
             rate=float(row["fundingRate"])
             mark=float(row["markPrice"])
         except (TypeError,ValueError,OverflowError):
@@ -117,6 +128,10 @@ def self_test():
         (0,"fundingRate","0.01"),(0,"symbol","XRPUSDT"),
         (0,"fundingTime",FIRST_MS+60001),
         (1,"fundingTime",FIRST_MS),
+        (0,"fundingTime",str(FIRST_MS)),
+        (0,"fundingTime",float(FIRST_MS)),
+        (0,"fundingRate",True),
+        (0,"markPrice",True),
     ]
     for idx,key,value in cases:
         old=rows[idx][key];rows[idx][key]=value
@@ -124,12 +139,22 @@ def self_test():
         except ValueError:pass
         else:raise AssertionError("V98_FULL_EXACT_TAMPER_NOT_REJECTED")
         finally:rows[idx][key]=old
-    if not official_url_claim("https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1&endTime=2","BTCUSDT"):
+    good_url=("https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT"
+              f"&startTime={FIRST_MS}&endTime={FIRST_MS+(EVENTS_PER_ASSET-1)*INTERVAL_MS+60000}&limit=1000")
+    if not official_url_claim(good_url,"BTCUSDT"):
         raise AssertionError("V98_FULL_EXACT_OFFICIAL_URL")
-    if official_url_claim("https://fake.example/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1&endTime=2","BTCUSDT"):
-        raise AssertionError("V98_FULL_EXACT_HOST_SPOOF")
+    invalid_urls=[
+        good_url.replace("fapi.binance.com","fake.example"),
+        good_url.replace("limit=1000","limit=1000&symbol=BTCUSDT"),
+        good_url.replace("limit=1000","limit=1000&extra=1"),
+        good_url.replace("limit=1000","limit=500"),
+        good_url.replace(str(FIRST_MS+(EVENTS_PER_ASSET-1)*INTERVAL_MS+60000),
+                         str(FIRST_MS+(EVENTS_PER_ASSET-1)*INTERVAL_MS+60000+365*24*3600000)),
+    ]
+    if any(official_url_claim(u,"BTCUSDT") for u in invalid_urls):
+        raise AssertionError("V98_FULL_EXACT_URL_SCOPE_BYPASS")
     return {"decision":"PASS_V98_FULL_EXACT_SYNTHETIC_CONTRACT_NOT_PROVENANCE",
-            "tamper_cases":6,"official_events_retrieved":0,"pnl_computed":False}
+            "tamper_cases":len(cases)+len(invalid_urls),"official_events_retrieved":0,"pnl_computed":False}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
