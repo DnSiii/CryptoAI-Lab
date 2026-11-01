@@ -1,7 +1,11 @@
 """Synthetic/adversarial tests only. No licensed options, PnL or orders."""
 import copy
+import hashlib
+import json
 import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from research.tools.v99_r106_i1_dated_native_fee_preflight import (
     calculate_minimum_fee, parse_schedule, signed_fee_preflight,
@@ -119,6 +123,72 @@ class DatedNativeFeePreflightTests(unittest.TestCase):
         result["native_fee_minimum_coin"] = "0"
         with self.assertRaisesRegex(AssertionError, "INDEPENDENT_NATIVE_FEE"):
             verify(doc, result, **inputs)
+
+    def test_swapped_signed_attestation_and_fee_descriptor_fail_closed(self):
+        # Simulate a valid signature check followed by a simultaneous
+        # attestation + fee schedule swap before the preflight reopens files.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            original = b'{"signed":"original"}'
+            replacement = b'{"signed":"replacement"}'
+            (root / "attestation.json").write_bytes(original)
+            (root / "schedule.json").write_text(json.dumps(schedule()))
+            def swap_after_verification(*args, **kwargs):
+                (root / "attestation.json").write_bytes(replacement)
+                return {"independent_signature_verified": True,
+                        "verified_attestation_sha256":
+                            hashlib.sha256(original).hexdigest()}
+            with patch(
+                "research.tools.v99_r106_i1_dated_native_fee_preflight.verify_signed_event_attestation",
+                side_effect=swap_after_verification,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "SIGNED_FEE_ATTESTATION_CHANGED_AFTER_VERIFICATION"
+                ):
+                    signed_fee_preflight(
+                        root, "a"*64, "b"*64, event_type="OPEN",
+                        asset="BTC", at_ms=FIRST+1000, native_lots="1",
+                        scenario="severe", fee_coin="0.01",
+                        slippage_coin="0.01", premiums_coin=["0.02", "0.01"])
+
+    def test_signed_settlement_no_invented_slippage_and_native_fee_floor(self):
+        # Synthetic signature stub only: the production signature gate is
+        # separately tested with actual ephemeral Ed25519 signatures.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = json.dumps(schedule(), sort_keys=True).encode()
+            (root / "fee.json").write_bytes(raw)
+            descriptor = {"file": "fee.json",
+                          "sha256": hashlib.sha256(raw).hexdigest()}
+            attestation = {"evidence": {
+                "historical_account_fee_schedule": descriptor}}
+            payload = json.dumps(attestation).encode()
+            (root / "attestation.json").write_bytes(payload)
+            fake_verified = {"independent_signature_verified": True,
+                "verified_attestation_sha256": hashlib.sha256(payload).hexdigest()}
+            kwargs = dict(
+                event_type="SETTLE_BATCH", asset="BTC", at_ms=FIRST+1000,
+                native_lots="1", scenario="severe", fee_coin="0.0024",
+                strikes_usd=["30000", "25000"],
+                delivery_index_usd="28000")
+            with patch(
+                "research.tools.v99_r106_i1_dated_native_fee_preflight.verify_signed_event_attestation",
+                return_value=fake_verified,
+            ):
+                result = signed_fee_preflight(
+                    root, "a"*64, "b"*64, slippage_coin="0", **kwargs)
+                self.assertFalse(result["historical_native_fee_certified"])
+                with self.assertRaisesRegex(
+                    ValueError, "INVENTED_CONTRACTUAL_SETTLEMENT_SLIPPAGE"
+                ):
+                    signed_fee_preflight(
+                        root, "a"*64, "b"*64, slippage_coin="0.0024", **kwargs)
+                with self.assertRaisesRegex(
+                    ValueError, "NATIVE_OR_SCENARIO_FRICTION_UNDERPAYMENT"
+                ):
+                    signed_fee_preflight(
+                        root, "a"*64, "b"*64, slippage_coin="0",
+                        **dict(kwargs, fee_coin="0.00001"))
 
     def test_untrusted_promotion_never_in_report(self):
         result = calculate_minimum_fee(schedule(), event_type="OPEN",
