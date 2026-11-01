@@ -7,6 +7,7 @@ from ot_breadth_dispersion import source_gate, physical, independent_accounting,
 from ot_independent_oracle import independent_fills
 
 ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
+SOURCE_ORDER=tuple(sorted(ASSETS))
 PREMIUM_SHA="c301a38642f229ca2746ae33baaf58e4bb21ac280a1a99dbbc328cc074caaad4"
 CLOCK=tuple(range(WARMUP,HOURS,STEP))
 BOOKS={"PK_full":(0,1,2,3),"PK_core_only":(0,),
@@ -27,7 +28,7 @@ def load_premium(path, expected_time):
         count=0
         for row in rows:
             hour,j=divmod(count,4)
-            if hour>=HOURS or row["asset"]!=ASSETS[j]:
+            if hour>=HOURS or row["asset"]!=SOURCE_ORDER[j]:
                 raise ValueError("PK_PREMIUM_ORDER")
             timestamp=dt.datetime.fromisoformat(row["bar_open_utc"])
             if timestamp!=start+dt.timedelta(hours=hour) or timestamp!=expected_time[hour].to_pydatetime():
@@ -37,7 +38,7 @@ def load_premium(path, expected_time):
                 raise ValueError("PK_PREMIUM_GEOMETRY")
             if len(row["source_zip_sha256"])!=64:
                 raise ValueError("PK_PREMIUM_VENDOR_PROVENANCE")
-            p[hour,j]=c
+            p[hour,ASSETS.index(row["asset"])]=c
             count+=1
     if count!=HOURS*4 or not np.isfinite(p).all():
         raise ValueError("PK_PREMIUM_COMPLETENESS")
