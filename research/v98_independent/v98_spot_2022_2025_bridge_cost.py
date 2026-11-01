@@ -121,10 +121,13 @@ def fee_diagnostic(new_raw,new_receipt,nh_dir):
             "p99_abs_basis_bps":round(ordered[int(.99*(len(ordered)-1))],6),
             "max_abs_basis_bps":round(ordered[-1],6),
             "hours_abs_basis_above_illustrative_four_fill_fee_budgets":{
-                str(b):sum(x>b for x in diffs) for b in (8,16,24)}}
+                str(b):sum(x>b for x in diffs) for b in (8,16,24,30)}}
     return {"decision":"PASS_DESCRIPTIVE_TWO_LEG_FEE_FEASIBILITY_NOT_PNL",
             "scenario_fee_bps_per_fill":[2,4,6],"four_fills_assumed":True,
-            "fee_budgets_bps":[8,16,24],"funding_borrow_spread_slippage_excluded":True,
+            "fee_budgets_bps":[8,16,24,30],"published_regular_spot_taker_bps":10,
+            "published_regular_perp_taker_bps":5,"published_regular_two_leg_taker_roundtrip_bps":30,
+            "published_fee_schedule_current_not_historical":True,
+            "funding_borrow_spread_slippage_excluded":True,
             "actual_account_fees_verified":False,"tradeable_edge_proven":False,
             "pnl_computed":False,"2025_exposed_training_only":True,"assets":result}
 

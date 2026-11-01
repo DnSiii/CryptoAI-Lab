@@ -18,9 +18,13 @@ def audit(raw,receipt):
         raise ValueError("AUDIT_REJECTED_SOURCE_FIREWALL")
     d=receipt.get("two_leg_fee_diagnostic",{})
     if (d.get("decision")!="PASS_DESCRIPTIVE_TWO_LEG_FEE_FEASIBILITY_NOT_PNL" or
-        d.get("fee_budgets_bps")!=[8,16,24] or
+        d.get("fee_budgets_bps")!=[8,16,24,30] or
         d.get("actual_account_fees_verified") is not False or
-        d.get("tradeable_edge_proven") is not False or d.get("pnl_computed") is not False):
+        d.get("tradeable_edge_proven") is not False or d.get("pnl_computed") is not False or
+        d.get("published_regular_spot_taker_bps")!=10 or
+        d.get("published_regular_perp_taker_bps")!=5 or
+        d.get("published_regular_two_leg_taker_roundtrip_bps")!=30 or
+        d.get("published_fee_schedule_current_not_historical") is not True):
         raise ValueError("AUDIT_COST_IS_NOT_EXECUTABLE")
     rows=csv.DictReader(io.StringIO(raw.decode("utf-8"),newline=""))
     if rows.fieldnames!=FIELDS:raise ValueError("AUDIT_FIELDS")
@@ -61,7 +65,7 @@ def audit(raw,receipt):
     for a,stats in d["assets"].items():
         if a not in ASSETS or stats["hours"]!=8760:raise ValueError("AUDIT_COST_HOURS")
         previous=8761
-        for budget in ("8","16","24"):
+        for budget in ("8","16","24","30"):
             n=stats["hours_abs_basis_above_illustrative_four_fill_fee_budgets"][budget]
             if not isinstance(n,int) or not 0<=n<=previous:
                 raise ValueError("AUDIT_COST_MONOTONIC")
