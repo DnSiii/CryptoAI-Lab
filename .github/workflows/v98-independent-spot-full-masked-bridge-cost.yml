@@ -1,0 +1,69 @@
+name: V98 Independent Full 2022-25 Masked Spot Bridge and Two-Leg Cost Diagnostic No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-spot-full-masked-bridge-cost.yml'
+      - 'research/v98_independent/v98_spot_2022_2025_bridge_cost.py'
+      - 'research/v98_independent/v98_spot_2022_2025_bridge_cost_oracle.py'
+      - 'research/v98_independent/v98_spot_2022_2025_bridge_cost_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  spot-full-source-and-fee-diagnostic:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile new source and independent oracle
+        run: |
+          python -m py_compile research/v98_independent/v98_spot_2022_2025_bridge_cost.py
+          python -m py_compile research/v98_independent/v98_spot_2022_2025_bridge_cost_oracle.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-hq-spot-masked-training-2022-2024
+          run-id: 40441987477
+          github-token: ${{ github.token }}
+          path: hq
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-spot-2025-masked-source-only
+          run-id: 41328347003
+          github-token: ${{ github.token }}
+          path: spot25
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: nh25
+      - name: Join authenticated 148 spot archives with 8 preserved masks and diagnose conditional two-leg fees
+        run: |
+          python research/v98_independent/v98_spot_2022_2025_bridge_cost.py \
+            --hq-dir hq --spot25-dir spot25 --nh-dir nh25 --output-dir v98_spot_bridge_cost \
+            | tee v98_spot_bridge_cost_stdout.json
+      - name: Independent chronological audit, cost non-executability and negative controls
+        run: |
+          python research/v98_independent/v98_spot_2022_2025_bridge_cost_oracle.py \
+            --csv v98_spot_bridge_cost/v98_spot_2022_2025_masked_calendar.csv \
+            --receipt v98_spot_bridge_cost/v98_spot_bridge_cost_receipt.json \
+            | tee v98_spot_bridge_cost_oracle.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-spot-2022-25-masked-bridge-fee-diagnostic-no-pnl
+          path: |
+            v98_spot_bridge_cost/
+            v98_spot_bridge_cost_stdout.json
+            v98_spot_bridge_cost_oracle.json
+          retention-days: 30
+          if-no-files-found: warn
