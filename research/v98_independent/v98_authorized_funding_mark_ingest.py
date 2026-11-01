@@ -202,7 +202,7 @@ def self_test():
         altered[0]["fundingTime"]=float(START)+.25
         lines[0]["response_body"]=json.dumps(altered)
         lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
-        pages.write_text("\\n".join(json.dumps(x) for x in lines)+"\\n")
+        pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="FUNDING_TIME_NOT_INTEGER"
         else:raise AssertionError("FRACTIONAL_FUNDING_TIME_ACCEPTED")
@@ -212,7 +212,7 @@ def self_test():
         # A duplicate top-level JSONL key must fail even if its last value is valid.
         first=json.dumps(lines[0])
         duplicate=first[:-1]+',"status":200}'
-        pages.write_text(duplicate+"\\n"+"\\n".join(json.dumps(x) for x in lines[1:])+"\\n")
+        pages.write_text(duplicate+"\n"+"\n".join(json.dumps(x) for x in lines[1:])+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="DUPLICATE_RAW_JSON_FIELD"
         else:raise AssertionError("DUPLICATE_PAGE_METADATA_ACCEPTED")
