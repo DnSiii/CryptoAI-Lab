@@ -122,6 +122,35 @@ class SignedEventSourceTests(unittest.TestCase):
                             self.fee, self.slip, "4", "2", fixture=True,
                             attestation=self.root)
 
+    def test_real_ephemeral_signature_binds_daily_index_regime_and_decisions(self):
+        # Real Ed25519 verification on a TEST-ONLY signed whole-journal digest.
+        # A valid signature for one NAV/index path cannot authorize another.
+        journal = {
+            "initial_index_usd": {"BTC": "46000", "ETH": "3500"},
+            "scenarios": {"severe": [{"index_usd": {"BTC": "46000", "ETH": "3500"},
+                                      "regime": "RANGE", "fold_edge_index_usd": None}]},
+            "scenario_decisions": {"severe": [{"action": "CASH"}]},
+        }
+        self.digest = event_digest("JOURNAL", None, journal=journal)
+        self.write_oracle()
+        self.sign()
+        with patch.dict(os.environ, self.env):
+            verified = verify_signed_event_attestation(self.root, self.digest)
+            self.assertFalse(verified["promotion_authorized"])
+            for change in ("index", "regime", "decision"):
+                altered = json.loads(json.dumps(journal))
+                if change == "index":
+                    altered["scenarios"]["severe"][0]["index_usd"]["BTC"] = "47000"
+                elif change == "regime":
+                    altered["scenarios"]["severe"][0]["regime"] = "TREND"
+                else:
+                    altered["scenario_decisions"]["severe"][0]["action"] = "OPEN"
+                with self.subTest(change=change), self.assertRaisesRegex(
+                    ValueError, "SIGNED_ATTESTATION_NOT_BOUND_TO_EVENT"
+                ):
+                    verify_signed_event_attestation(
+                        self.root, event_digest("JOURNAL", None, journal=altered))
+
     def test_mutated_original_evidence_is_vetoed(self):
         with patch.dict(os.environ, self.env):
             (self.root / "source_0.bin").write_bytes(b"changed")
