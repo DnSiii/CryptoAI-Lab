@@ -27,7 +27,7 @@ def independently_recompute_legs(schedule, *, event_type, asset, at_ms, native_l
     quantity = _d(native_lots)
     if quantity <= 0 or quantity % _d(row["native_lot_quantity"]) != 0:
         raise AssertionError("ORACLE_LOT_MISMATCH")
-    if event_type == "OPEN":
+    if event_type in ("OPEN", "MARK"):
         values = [_d(p) for p in premiums_coin]
         rate = _d(row["entry_per_lot_coin"])
     elif event_type == "SETTLE_BATCH":
