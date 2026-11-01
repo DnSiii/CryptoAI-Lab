@@ -1,0 +1,25 @@
+# V98 PM — volatility-compression release and residual continuation, composed seven-slot portfolio (preregistered 2026-11-01)
+
+**Immutable economic hypothesis before implementation/PnL.** This is a new mechanism, not a PK/PL threshold, sign, leverage or cost rescue. Prior PK/PL remain permanently rejected. Scope is only `research/v98-independent-zero`, V98 Independent. Clean-4 BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT Binance USD-M 1h Dec-2022 warmup through Dec-2025 **exposed training only**; XRP, Phase083, 2026+, V14/V15/V99, Frozen, holdout, paper and live excluded.
+
+## Causal source and economic thesis
+
+Use SHA-authenticated 27,048 price hours per asset, 13,524 native funding events with conservative hourly mark envelopes, and authenticated 108,192 premium-index hourly bars (SHA256 `c301a38642f229ca2746ae33baaf58e4bb21ac280a1a99dbbc328cc074caaad4`). Premium bar t is **incomplete** at price-close decision t, so only premium[t-1] or earlier. Funding mean is computed on events `t-168,t-160,...,t-8`, excluding event t. Close[t] is known; order at open[t+1]. No forward-fill, interpolation, unseen future, or re-selection from 2025. Source-only premium parser and audited physical executor may be reused; no rejected alpha/parameter/decision rule is reused.
+
+Hypothesis: medium-term directional persistence captures compound growth; low short-term volatility followed by a price breakout creates a separate opportunity premium; cross-sectional *beta-adjusted residual continuation* captures relative repricing rather than premium convergence; broad downside volatility expansion creates a crash hedge and an upside recovery response. The allocator composes all four simultaneously; each optional sleeve must contribute **net** log wealth to the full engine after funding, friction and capital competition.
+
+At 157 weekly t=744,912,...,26952, let `r_k[j]=ln(close[t,j]/close[t-k,j])`, `v72/v336` be population standard deviations of 72/336 last hourly log returns, `f[j]` mean of 21 native funding events strictly before t, and `prem[j]=premium_close[t-1,j]`.
+
+1. **Growth Core:** among `r504>0,r168>0,f<0.00015,prem<0.004`, rank `r504/max(v336*sqrt(504),0.06)`, long best two at +0.46,+0.24. No shorts in core.
+2. **Opportunity:** among `v72/max(v336,1e-6)<0.80`, `close[t]>max(close[t-168:t])`, `r24>0.018`, `f<0.00018`, long the largest `r24/max(v72,0.0001)` at +0.20.
+3. **Relative Value:** compute 336-hour beta to BTC from hourly log-return covariance / BTC variance (floor 1e-8). Residual `e[j]=r168[j]-beta[j]*r168[BTC]` for non-BTC j=1..3. If max(e)-min(e)>0.12 and `f[max]-f[min]<0.00010`, long highest residual +0.10 and short lowest -0.10. This is dollar-neutral but **not** guaranteed beta-neutral.
+4. **Stress/Recovery:** if BTC `r72<-0.065`, <=1 of 4 assets has positive r72, and `v72_BTC>1.30*v336_BTC`, short BTC -0.16. Otherwise if BTC `r72>0.04`, >=3 assets have positive r24, and `v72_BTC>1.20*v336_BTC`, long BTC +0.16. Else zero.
+5. **Regime Router:** breadth of positive r168 >=3 is `expansion`, <=1 `defense`, else `transition`; priority expansion Opportunity,RV,Stress; defense Stress,RV,Opportunity; transition RV,Opportunity,Stress.
+6. **Dynamic Allocator:** retain Growth Core; allocate up to 0.30 optional gross in regime priority order with proportional truncation; total gross <=0.84, core <=0.70. Recompute all leave-one-out books from raw sleeves independently, never subtract post-trade PnL.
+7. **Risk Governor:** use audited hourly carried inventory, atomic one-way fills, zero-volume veto, open/gap/intrabar/funding/NAV guards and forced gross reductions; no hidden leverage. Base fee/slippage 4/2 bps, severe 10/10, supersevere 15/20; both funding orders.
+
+## Locked physical and independent gates
+
+Exactly five books (full, core-only, minus each of Opportunity/RV/Stress) x three cost tiers x two funding orders = 30 cells. Require all physical cells feasible, zero independent signal/allocation discrepancies at all 157 decisions, zero independent 26,303-hour cash and fee/slippage/funding mismatches, independently rederived receipt arithmetic/gates and four tamper rejections, and future-mutation causal test. For each funding order: base CAGR >80%, severe >60%, base/severe turnover <=USD1m on USD10k start, severe max DD >-45%, all 2023/24/25 severe annual returns positive; each optional sleeve leave-one-out net log marginal >0.02 in base and severe and annual marginal >=-0.03 in each year. Any failed binding gate permanently rejects PM. Report hourly PF/payoff/win as **hourly NAV-change**, never trade-level. Report positive days, tails, concentration and exact-mark limitations.
+
+**External blocker:** 13,524 exact exchange-origin funding-event `markPrice` fields with original raw response, request URL, HTTP headers, retrieval UTC, SHA256 and authorized chain of custody remain absent (HTTP 451). Official public fundingRate archives contain rates, not exact event marks; do not fabricate. Alternative is authorized exchange-origin API export with independent source attestation. Even provisional PM training pass is NOT prospective/holdout validation, superiority, paper or live authorization.
