@@ -3,7 +3,7 @@
 Checks 13,524 event objects and hashes. Cannot prove HTTP origin by itself.
 No source acquisition, PnL, 2026+ market data, holdout or benchmark.
 """
-import argparse,hashlib,json,math,tempfile
+import argparse,datetime as dt,hashlib,json,math,tempfile
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs
 
@@ -13,6 +13,14 @@ SCOPE="V98_CLEAN4_2022_2025_EXPOSED_TRAINING_ONLY"
 ENDPOINT="https://fapi.binance.com/fapi/v1/fundingRate"
 
 def sha(raw):return hashlib.sha256(raw).hexdigest()
+def utc(value):
+    if not isinstance(value,str):raise ValueError("V98_FULL_AUDIT_TIME_TYPE")
+    try:stamp=dt.datetime.fromisoformat(value.replace("Z","+00:00"))
+    except ValueError:raise ValueError("V98_FULL_AUDIT_TIME_FORMAT")
+    if stamp.tzinfo is None or stamp.utcoffset()!=dt.timedelta(0):
+        raise ValueError("V98_FULL_AUDIT_TIME_NOT_UTC")
+    return stamp
+
 def safe(root,name):
     if not isinstance(name,str) or not name or Path(name).is_absolute():
         raise ValueError("V98_FULL_AUDIT_BAD_PATH")
@@ -53,12 +61,25 @@ def audit(folder):
         pages=caps[symbol];meta=files[symbol]
         if not isinstance(pages,list) or not 4<=len(pages)<=7 or not isinstance(meta,dict):
             raise ValueError("V98_FULL_AUDIT_PAGE_COUNT")
-        rows=[];next_start=FIRST
-        for page in pages:
-            if page.get("http_status")!=200 or not page.get("request_utc") or not page.get("response_utc"):
+        rows=[];next_start=FIRST;last_response=None
+        for page_number,page in enumerate(pages,1):
+            if not isinstance(page,dict) or type(page.get("http_status")) is not int or page["http_status"]!=200:
                 raise ValueError("V98_FULL_AUDIT_TRANSPORT_META")
+            request_utc=utc(page.get("request_utc"));response_utc=utc(page.get("response_utc"))
+            if response_utc<request_utc or (last_response is not None and request_utc<last_response):
+                raise ValueError("V98_FULL_AUDIT_NONCAUSAL_HTTP_CHRONOLOGY")
+            last_response=response_utc
+            headers=page.get("response_headers")
+            if not isinstance(headers,dict) or not all(isinstance(k,str) and isinstance(v,str) for k,v in headers.items()):
+                raise ValueError("V98_FULL_AUDIT_HTTP_HEADERS_MISSING")
+            lower={k.lower():v for k,v in headers.items()}
+            if "json" not in lower.get("content-type","").lower():
+                raise ValueError("V98_FULL_AUDIT_HTTP_CONTENT_TYPE")
             check_url(page.get("request_url"),symbol,next_start)
-            raw=safe(root,page.get("raw_path")).read_bytes()
+            expected_page=f"{symbol}_page_{page_number:03d}.json"
+            if page.get("raw_path")!=expected_page:
+                raise ValueError("V98_FULL_AUDIT_PAGE_FILENAME_OR_ALIAS")
+            raw=safe(root,expected_page).read_bytes()
             if sha(raw)!=page.get("raw_sha256"):
                 raise ValueError("V98_FULL_AUDIT_PAGE_SHA")
             part=json.loads(raw)
@@ -83,7 +104,10 @@ def audit(folder):
             next_start=rows[-1]["fundingTime"]+1
         if len(rows)!=N:raise ValueError("V98_FULL_AUDIT_MISSING_EVENTS")
         check_url(meta.get("source_url"),symbol,FIRST)
-        assembled=safe(root,meta.get("path")).read_bytes()
+        expected_assembled=f"{symbol}_fundingRate_exact_2022_2025.json"
+        if meta.get("path")!=expected_assembled:
+            raise ValueError("V98_FULL_AUDIT_ASSEMBLED_FILENAME_OR_ALIAS")
+        assembled=safe(root,expected_assembled).read_bytes()
         if sha(assembled)!=meta.get("sha256"):
             raise ValueError("V98_FULL_AUDIT_ASSEMBLED_SHA")
         if json.loads(assembled)!=rows:
@@ -109,8 +133,10 @@ def self_test():
                 name=f"{symbol}_page_{j//1000+1:03d}.json";(root/name).write_bytes(raw)
                 start=FIRST if j==0 else rows[j-1]["fundingTime"]+1
                 url=ENDPOINT+f"?symbol={symbol}&startTime={start}&endTime={LAST+60000}&limit=1000"
-                pages.append({"request_url":url,"request_utc":"2026-10-31T00:00:00Z",
-                              "response_utc":"2026-10-31T00:00:01Z","http_status":200,
+                request_time=dt.datetime(2026,10,31,tzinfo=dt.timezone.utc)+dt.timedelta(seconds=2*(j//1000))
+                pages.append({"request_url":url,"request_utc":request_time.isoformat(),
+                              "response_utc":(request_time+dt.timedelta(seconds=1)).isoformat(),"http_status":200,
+                              "response_headers":{"Content-Type":"application/json","Date":"Sat, 31 Oct 2026 00:00:00 GMT"},
                               "raw_path":name,"raw_sha256":sha(raw),"rows":len(part),
                               "first_time":part[0]["fundingTime"],"last_time":part[-1]["fundingTime"]})
             data=json.dumps(rows,separators=(",",":")).encode()
@@ -139,6 +165,25 @@ def self_test():
             if "OFFICIAL_URL" not in str(e):raise
         else:raise AssertionError("V98_FULL_AUDIT_UNDETECTED_URL_TAMPER")
         mp.write_text(json.dumps(manifest))
+        original_page=captures["BTCUSDT"][0]
+        original_headers=original_page["response_headers"]
+        original_page["response_headers"]={}
+        rp.write_text(json.dumps(receipt))
+        try:audit(root)
+        except ValueError as e:
+            if "HTTP_CONTENT_TYPE" not in str(e):raise
+        else:raise AssertionError("V98_FULL_AUDIT_UNDETECTED_HEADER_TAMPER")
+        original_page["response_headers"]=original_headers
+        original_page["request_utc"]="2026-10-31T00:00:03+00:00"
+        original_page["response_utc"]="2026-10-31T00:00:02+00:00"
+        rp.write_text(json.dumps(receipt))
+        try:audit(root)
+        except ValueError as e:
+            if "NONCAUSAL_HTTP_CHRONOLOGY" not in str(e):raise
+        else:raise AssertionError("V98_FULL_AUDIT_UNDETECTED_TIME_TAMPER")
+        original_page["request_utc"]="2026-10-31T00:00:00+00:00"
+        original_page["response_utc"]="2026-10-31T00:00:01+00:00"
+        rp.write_text(json.dumps(receipt))
         p=root/assets["BTCUSDT"]["path"];old=p.read_bytes()
         forged=json.loads(old);forged[0]["markPrice"]="200"
         data=json.dumps(forged,separators=(",",":")).encode();p.write_bytes(data)
@@ -148,7 +193,7 @@ def self_test():
             if "ASSEMBLED_DIVERGENCE" not in str(e):raise
         else:raise AssertionError("V98_FULL_AUDIT_UNDETECTED_ASSEMBLED_TAMPER")
     return {"decision":"PASS_V98_FULL_CAPTURE_CHAIN_SYNTHETIC_NOT_PROVENANCE",
-            "synthetic_events":13524,"tamper_cases":3,
+            "synthetic_events":13524,"tamper_cases":5,
             "official_events_acquired":0,"pnl_computed":False}
 
 if __name__=="__main__":
