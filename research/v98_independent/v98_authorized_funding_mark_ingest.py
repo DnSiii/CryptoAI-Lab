@@ -85,7 +85,7 @@ def validate(pages_path,expected_path,output_path):
                 raise ValueError("EMPTY_OR_OVERSIZED_PAGE")
             times=[]
             for row in data:
-                if set(row)<={"symbol","fundingTime","fundingRate","markPrice"}:
+                if not {"symbol","fundingTime","fundingRate","markPrice"}.issubset(row):
                     raise ValueError("MISSING_OFFICIAL_FIELDS")
                 if row["symbol"]!=a: raise ValueError("SYMBOL_MISMATCH")
                 t=int(row["fundingTime"]); k=(a,t)
