@@ -62,7 +62,7 @@ def audit(receipt):
     for key,slots in marginals.items():
         for slot,v in slots.items():
             assert abs(v-receipt["marginals"][key][slot])<1e-10
-    return {"decision":"PASS_INDEPFNDENT_PF_RECEIPT_RECONCILIATION_NOT_ENGINE",
+    return {"decision":"PASS_INDEPENDENT_PF_RECEIPT_RECONCILIATION_NOT_ENGINE",
             "cells":len(rows),"arithmetic_checks":len([r for r in rows if r["passed"]])*2,
             "gate_failures_rederived":len(failures),"max_arithmetic_error":max_error,
             "engine_decision":receipt["decision"],"training_only":True}
