@@ -258,7 +258,9 @@ def synthetic_test():
     t = CLOCK[30]
     mask = observed.copy()
     mask[t-20, 2] = False
-    masked = signals({"c": c, "q": q}, oi, mask)
+    oi_masked = oi.copy()
+    oi_masked[t-20, 2] = np.nan
+    masked = signals({"c": c, "q": q}, oi_masked, mask)
     if masked[t][2] or np.any(masked[t][0][1:]) or not np.array_equal(masked[t][0][0], a[t][0][0]):
         raise ValueError("PG_QUARANTINE_FAIL_OPEN")
     books = target_books({"c": c}, a)
