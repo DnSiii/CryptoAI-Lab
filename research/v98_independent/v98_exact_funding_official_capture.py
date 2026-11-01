@@ -3,7 +3,7 @@
 
 Not an exchange signature, not an independent provenance certificate, not PnL.
 Requires subsequent V98 exact importer and independent chain-of-custody audit.
-Hard-coded 2022-12 through 2025-12 exploratory training; never fetches 2026+.
+Hard-coded 2022-12 through 2024-12; never fetches 2025 or 2026+.
 """
 from __future__ import annotations
 import argparse,datetime as dt,hashlib,json,math,os
@@ -15,10 +15,10 @@ ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
 ENDPOINT="https://fapi.binance.com/fapi/v1/fundingRate"
 FIRST_MS=1669852800000
 INTERVAL_MS=28800000
-EVENTS_PER_ASSET=3381
+EVENTS_PER_ASSET=2286
 LAST_MS=FIRST_MS+(EVENTS_PER_ASSET-1)*INTERVAL_MS
 LIMIT=1000
-SCOPE="V98_CLEAN4_2022_2025_EXPOSED_TRAINING_ONLY"
+SCOPE="V98_CLEAN4_2022_2024_TRAINING_ONLY"
 
 def sha(data:bytes)->str:
     return hashlib.sha256(data).hexdigest()
@@ -62,7 +62,7 @@ def check_page(body:bytes,symbol:str,start_ms:int):
 
 def capture_symbol(out:Path,symbol:str,timeout:int):
     pages=[];rows=[];start_ms=FIRST_MS
-    for page_num in range(1,8): # 4 expected pages; fail on runaway pagination
+    for page_num in range(1,8): # <=3 expected pages; fail on runaway pagination
         url=page_url(symbol,start_ms)
         req=Request(url,headers={"Accept":"application/json","User-Agent":"V98-Independent-Official-Funding-Capture/1.0"})
         requested=utc_now()
@@ -97,7 +97,7 @@ def capture_symbol(out:Path,symbol:str,timeout:int):
         if slot!=index or offset>60000:
             raise ValueError("V98_MISSING_DUPLICATE_OR_OFF_CALENDAR_SLOT_"+symbol)
     assembled=json.dumps(rows,separators=(",",":"),ensure_ascii=False).encode("utf-8")
-    filename=f"{symbol}_fundingRate_exact_2022_2025.json"
+    filename=f"{symbol}_fundingRate_exact_2022_2024.json"
     (out/filename).write_bytes(assembled)
     return {"path":filename,"sha256":sha(assembled),"source_url":pages[0]["request_url"]},pages
 
@@ -116,11 +116,8 @@ def self_test():
         try:check_page(json.dumps([bad]).encode(),"BTCUSDT",FIRST_MS)
         except ValueError:pass
         else:raise AssertionError("V98_TAMPER_NOT_DETECTED")
-    if EVENTS_PER_ASSET!=3381 or LAST_MS>=1767225600000:
-        raise AssertionError("V98_2022_2025_SCOPE_OR_2026_BOUNDARY")
-    last={"symbol":"BTCUSDT","fundingTime":LAST_MS,"fundingRate":"0.0001","markPrice":"100.25"}
-    if len(check_page(json.dumps([last]).encode(),"BTCUSDT",LAST_MS))!=1:
-        raise AssertionError("V98_LAST_2025_EVENT")
+    if "2025" in page_url("BTCUSDT",FIRST_MS):
+        raise AssertionError("V98_UNEXPECTED_URL")
     return {"decision":"PASS_SYNTHETIC_SOURCE_CAPTURE_CONTRACT_NOT_PROVENANCE",
             "tamper_cases":5,"actual_official_events_downloaded":0,
             "pnl_computed":False,"2025_accessed":False,"2026_plus_accessed":False}
@@ -153,7 +150,7 @@ def main():
              "official_origin_independently_attested":False,
              "requires_original_HTTP_and_external_source_identity_verification":True,
              "requires_strict_V98_importer_and_independent_oracle":True,
-             "pnl_computed":False,"2025_accessed":True,"2026_plus_accessed":False,
+             "pnl_computed":False,"2025_accessed":False,"2026_plus_accessed":False,
              "decision":"CAPTURE_COMPLETE_CONTENT_CONTRACT_PENDING_EXTERNAL_PROVENANCE_AUDIT"}
     (out/"v98_exact_funding_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
     (out/"v98_transport_capture_receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
