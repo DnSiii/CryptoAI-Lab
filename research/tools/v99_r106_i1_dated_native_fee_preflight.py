@@ -104,7 +104,9 @@ def calculate_minimum_fee(document, *, event_type, asset, at_ms,
     if quantity % lot != 0:
         raise ValueError("HISTORICAL_NATIVE_LOT_INCREMENT_MISMATCH")
     cap = _decimal(terms["cap_fraction"], positive=True)
-    if event_type == "OPEN":
+    if event_type in ("OPEN", "MARK"):
+        # MARK is an executable-side close-cost liability, never an actual fill.
+        # The native account schedule applies to either two-leg trade direction.
         if (not isinstance(premiums_coin, (tuple, list))
                 or len(premiums_coin) != 2
                 or strikes_usd is not None or delivery_index_usd is not None):
