@@ -7,6 +7,8 @@ on:
       - research/tools/v99_r106_i1_native_event_equity.py
       - research/tests/test_v99_r106_i1_signed_native_event_replay.py
       - research/tests/test_v99_r106_i1_signed_cli.py
+      - research/tools/v99_r106_i1_signed_original_train_bridge.py
+      - research/tests/test_v99_r106_i1_signed_original_train_bridge.py
       - research/tools/v99_r106_i1_signed_event_source_gate.py
       - research/tests/test_v99_r106_i1_signed_event_source_gate.py
       - research/verification/independent_v99_r106_i1_cost_bound_oracle.py
@@ -48,6 +50,8 @@ jobs:
           test -s research/V99_R106_I1_SIGNED_NATIVE_CLI_FAIL_CLOSED_PREREG_20261031.md
           git merge-base --is-ancestor 49c50f069cd34854b96eb632a97ccf943f8aa3bd HEAD
           test -s research/V99_R106_I1_SIGNED_WHOLE_JOURNAL_BINDING_PREREG_20261031.md
+          git merge-base --is-ancestor 17008ef4d49c00cdcce70c759d3bf727d93e868c HEAD
+          test -s research/V99_R106_I1_SIGNED_ORIGINAL_TRAIN_BRIDGE_PREREG_20261031.md
       - name: Independent Decimal entry/mark/atomic-expiry scenario cost checks
         run: python -m unittest -v research.tests.test_v99_r106_i1_cost_bound_execution
       - name: Signed source event authentication and adversarial negative controls (FIXTURE ONLY)
@@ -56,6 +60,8 @@ jobs:
         run: python -m unittest -v research.tests.test_v99_r106_i1_signed_native_event_replay
       - name: Signed nonfixture 661d CLI fail-closed runner checks (SYNTHETIC ONLY)
         run: python -m unittest -v research.tests.test_v99_r106_i1_signed_cli
+      - name: Joined ORIGINAL 661d source and signed native numeric fail-closed controls (SYNTHETIC ONLY)
+        run: python -m unittest -v research.tests.test_v99_r106_i1_signed_original_train_bridge
       - name: Restore original source receipts (not synthetic economic TRAIN)
         run: |
           gh run download 40326586848 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-causal-signal-40326586848 --dir research_evidence/i1_original_signal
