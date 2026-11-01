@@ -1,0 +1,45 @@
+name: V98 Independent Spot 2025 Masked Source Independent Audit No PnL
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-spot-2025-masked-audit.yml'
+      - 'research/v98_independent/v98_spot_2025_masked_source_oracle.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  spot-2025-independent-audit:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile independent source oracle
+        run: python -m py_compile research/v98_independent/v98_spot_2025_masked_source_oracle.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-spot-2025-masked-source-only
+          run-id: 41328347003
+          github-token: ${{ github.token }}
+          path: spot2025
+      - name: Independent source chronology, checksum, provenance and tamper oracle
+        run: |
+          python research/v98_independent/v98_spot_2025_masked_source_oracle.py \
+            --csv spot2025/v98_spot_2025_observed_only.csv \
+            --receipt spot2025/v98_spot_2025_masked_source_receipt.json \
+            | tee v98_spot_2025_independent_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-spot-2025-source-audit-only
+          path: v98_spot_2025_independent_audit.json
+          retention-days: 30
+          if-no-files-found: warn
