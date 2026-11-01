@@ -3,7 +3,7 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-pi-channel-propagation-full-training.yml'
+      - '.github/workflows/v98-independent-pj-channel-propagation-full-training.yml'
       - 'research/v98_independent/pj_channel_propagation_composed.py'
       - 'research/v98_independent/pj_channel_propagation_independent_oracle.py'
       - 'research/v98_independent/pj_channel_propagation_receipt_audit.py'
@@ -12,7 +12,7 @@ permissions:
   contents: read
   actions: read
 jobs:
-  pi-full-physical:
+  pj-full-physical:
     if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -26,7 +26,7 @@ jobs:
           python-version: '3.11'
       - name: Install pinned numerical dependencies
         run: python -m pip install numpy==1.26.4 pandas==2.2.3
-      - name: Compile PJ and independent oracle; synthetic causality and OI quarantine
+      - name: Compile PJ and independent oracle; synthetic causality and gross
         run: |
           python -m py_compile research/v98_independent/pj_channel_propagation_composed.py research/v98_independent/pj_channel_propagation_independent_oracle.py research/v98_independent/pj_channel_propagation_receipt_audit.py
           python research/v98_independent/pj_channel_propagation_composed.py
@@ -78,12 +78,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v98-pi-full-training-receipt
+          name: v98-pj-full-training-receipt
           path: research/v98_independent/pj_full_training_result.json
           retention-days: 30
           if-no-files-found: warn
-  pi-independent-audit:
-    needs: pi-full-physical
+  pj-independent-audit:
+    needs: pj-full-physical
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -96,15 +96,15 @@ jobs:
           python-version: '3.11'
       - uses: actions/download-artifact@v4
         with:
-          name: v98-pi-full-training-receipt
-          path: pi-receipt
+          name: v98-pj-full-training-receipt
+          path: pj-receipt
       - name: Independently replay arithmetic, binding economic gates and four receipt tamper tests
         run: |
-          python research/v98_independent/pj_channel_propagation_receipt_audit.py pi-receipt/pj_full_training_result.json | tee pj_independent_audit.json
+          python research/v98_independent/pj_channel_propagation_receipt_audit.py pj-receipt/pj_full_training_result.json | tee pj_independent_audit.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v98-pi-independent-receipt-audit
+          name: v98-pj-independent-receipt-audit
           path: pj_independent_audit.json
           retention-days: 30
           if-no-files-found: warn
@@ -113,7 +113,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          receipt=json.loads(Path("pi-receipt/pj_full_training_result.json").read_text())
+          receipt=json.loads(Path("pj-receipt/pj_full_training_result.json").read_text())
           if receipt["decision"]!="PASS_PROVISIONAL_PJ_TRAINING_NOT_VALIDATED":
               raise SystemExit("PJ_PRE_REGISTERED_ECONOMIC_REJECTION_NOT_APPROVED")
           PY
