@@ -29,7 +29,7 @@ def read_vendor_zip(url,name):
     zbytes=get(url)
     check=get(url+".CHECKSUM").decode("utf-8").strip()
     sha=hashlib.sha256(zbytes).hexdigest()
-    if not re.fullmatch(r"[a-fA-F0-9]{64}\\s+\\*?"+re.escape(name),check):
+    if not re.fullmatch(r"[a-fA-F0-9]{64}\s+\*?"+re.escape(name),check):
         raise ValueError("VENDOR_CHECKSUM_FORMAT")
     if check.split()[0].lower()!=sha:raise ValueError("VENDOR_CHECKSUM_MISMATCH")
     with zipfile.ZipFile(io.BytesIO(zbytes)) as z:
