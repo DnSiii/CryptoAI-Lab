@@ -108,6 +108,33 @@ class SignedEventSourceTests(unittest.TestCase):
                             self.fee, self.slip, "4", "2.1",
                             fixture=False, attestation=self.root)
 
+    def test_real_signed_archive_must_equal_original_source_manifest(self):
+        # Valid ephemeral Ed25519 signature for archive B is still invalid
+        # when the independent source-byte oracle consumed archive A.
+        correct = self.descriptors["licensed_train_archive_manifest"]["sha256"]
+        with patch.dict(os.environ, self.env):
+            verdict = verify_signed_event_attestation(
+                self.root, self.digest,
+                expected_archive_manifest_sha256=correct.upper())
+            self.assertTrue(verdict["event_bound"])
+            costed_open(self.w, "p1", self.short, self.long, AT, "1",
+                        self.fee, self.slip, "4", "2", fixture=False,
+                        attestation=self.root,
+                        expected_archive_manifest_sha256=correct)
+            with self.assertRaisesRegex(ValueError, "SIGNED_EVENT_ORIGINAL_ARCHIVE_MANIFEST_MISMATCH"):
+                verify_signed_event_attestation(
+                    self.root, self.digest,
+                    expected_archive_manifest_sha256="0" * 64)
+            with self.assertRaisesRegex(ValueError, "SIGNED_EVENT_ORIGINAL_ARCHIVE_MANIFEST_MISMATCH"):
+                costed_open(self.w, "p1", self.short, self.long, AT, "1",
+                            self.fee, self.slip, "4", "2", fixture=False,
+                            attestation=self.root,
+                            expected_archive_manifest_sha256="f" * 64)
+            with self.assertRaisesRegex(ValueError, "INVALID_EXPECTED_ORIGINAL_ARCHIVE_MANIFEST_SHA256"):
+                verify_signed_event_attestation(
+                    self.root, self.digest,
+                    expected_archive_manifest_sha256="not-a-sha")
+
     def test_no_trust_anchor_and_forged_boolean_rejected(self):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(ValueError, "MISSING_INDEPENDENT_AUDITOR_TRUST_ANCHOR"):
