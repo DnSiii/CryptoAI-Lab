@@ -51,5 +51,104 @@ class CoinAPIInventoryProbeTests(unittest.TestCase):
         r = probe(api_key="placeholder", runner=fake)
         self.assertEqual(r["status"], "BLOCKED_UNVERIFIABLE_PROVIDER_RESPONSE")
 
+class FixedTargetCoinAPIListingTests(unittest.TestCase):
+    """Preselected 2022-01-23 original source listing; fixtures are NOT quotes."""
+
+    @staticmethod
+    def obj(asset):
+        symbol = asset + "-25FEB22-" + ("50000" if asset == "BTC" else "3000") + "-P"
+        return {
+            "Key": "T-QUOTES/D-20220123/E-DERIBIT/"
+                   "IDDI-123+SC-DERIBIT_OPT_" + asset + "_USD+S-" + symbol + ".csv.gz",
+            "Size": 1048576,
+        }
+
+    def test_missing_key_makes_no_network_call(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        def forbidden(*a, **kw):
+            raise AssertionError("MUST_NOT_CALL_PROVIDER_WITHOUT_KEY")
+        result = probe_target(api_key="", runner=forbidden)
+        self.assertEqual(result["status"], "BLOCKED_NO_COINAPI_API_KEY")
+        self.assertEqual(result["target_utc_day"], "2022-01-23")
+        self.assertFalse(result["economic_train_executed"])
+
+    def test_complete_paginated_btc_eth_put_inventory_is_only_listing(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        calls = []
+        def fake(args, **kw):
+            calls.append(args)
+            self.assertEqual(args[1:3], ["s3api", "list-objects-v2"])
+            self.assertIn("T-QUOTES/D-20220123/E-DERIBIT/", args)
+            self.assertNotIn("get-object", args)
+            self.assertNotIn("s3", args)
+            if len(calls) == 1:
+                payload = {"IsTruncated": True, "NextContinuationToken": "NEXT",
+                           "Contents": [self.obj("BTC")]}
+            else:
+                self.assertIn("--continuation-token", args)
+                payload = {"IsTruncated": False, "Contents": [self.obj("ETH")]}
+            return SimpleNamespace(returncode=0, stdout=json.dumps(payload), stderr="")
+        result = probe_target(api_key="secret-coinapi", runner=fake)
+        self.assertEqual(result["pages_listed"], 2)
+        self.assertEqual(result["objects_listed"], 2)
+        self.assertEqual(result["compressed_bytes_listed"], 2097152)
+        self.assertEqual(result["btc_put_files_listed"], 1)
+        self.assertEqual(result["eth_put_files_listed"], 1)
+        self.assertTrue(result["listing_complete"])
+        self.assertEqual(result["status"],
+                         "BTC_ETH_TARGET_PUT_OBJECTS_LISTED_NOT_SOURCE_CERTIFIED")
+        self.assertFalse(result["original_24h_bbo_and_size_certified"])
+        self.assertFalse(result["historical_license_and_fee_terms_certified"])
+        self.assertFalse(result["promotion_authorized"])
+        self.assertNotIn("secret-coinapi", json.dumps(result))
+
+    def test_wrong_exchange_and_duplicate_key_fail_closed(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        bad = dict(self.obj("BTC"))
+        bad["Key"] = bad["Key"].replace("E-DERIBIT", "E-BINANCE")
+        for objects in ([bad], [self.obj("BTC"), self.obj("BTC")]):
+            with self.subTest(objects=objects):
+                def fake(*a, **kw):
+                    return SimpleNamespace(returncode=0, stdout=json.dumps({
+                        "IsTruncated": False, "Contents": objects}), stderr="")
+                result = probe_target(api_key="key", runner=fake)
+                self.assertEqual(result["status"],
+                                 "BLOCKED_UNVERIFIABLE_TARGET_PROVIDER_LISTING")
+                self.assertFalse(result["listing_complete"])
+
+    def test_truncation_without_token_and_page_cap_do_not_claim_complete(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        def fake(*a, **kw):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({
+                "IsTruncated": True, "Contents": [self.obj("BTC")],
+                "NextContinuationToken": "NEXT"}), stderr="")
+        result = probe_target(api_key="key", runner=fake, max_pages=1)
+        self.assertEqual(result["status"], "BLOCKED_TARGET_LISTING_PAGE_CAP")
+        self.assertFalse(result["listing_complete"])
+        def no_token(*a, **kw):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({
+                "IsTruncated": True, "Contents": [self.obj("BTC")]}), stderr="")
+        result = probe_target(api_key="key", runner=no_token)
+        self.assertEqual(result["status"],
+                         "BLOCKED_UNVERIFIABLE_TARGET_PROVIDER_LISTING")
+        self.assertFalse(result["listing_complete"])
+
+    def test_nonoption_and_single_asset_are_not_btc_eth_presence(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        item = self.obj("BTC")
+        def fake(*a, **kw):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({
+                "IsTruncated": False, "Contents": [item, {
+                    "Key": "T-QUOTES/D-20220123/E-DERIBIT/"
+                           "IDDI-12+SC-DERIBIT_PERP_BTC+S-BTC-PERPETUAL.csv.gz",
+                    "Size": 300}]}), stderr="")
+        result = probe_target(api_key="key", runner=fake)
+        self.assertEqual(result["btc_put_files_listed"], 1)
+        self.assertEqual(result["eth_put_files_listed"], 0)
+        self.assertEqual(result["status"],
+                         "TARGET_BTC_ETH_PUT_OBJECT_PRESENCE_NOT_SHOWN")
+        self.assertFalse(result["economic_train_executed"])
+
+
 if __name__ == "__main__":
     unittest.main()
