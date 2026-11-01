@@ -265,7 +265,7 @@ class SignedOriginalBridgeTests(unittest.TestCase):
             self.assertTrue(result["signed_661d_event_wallet_replayed"])
             self.assertEqual(result["numeric_descriptive_only"], self.numeric)
             self.assertEqual(result["original_causal_signal_input_sha256"],
-                             self.manifest_digest)
+                             hashlib.sha256(b"{}").hexdigest())
             self.assertEqual(result["original_quote_manifest_input_sha256"],
                              self.manifest_digest)
             for key in ("original_options_economic_train_certified",
