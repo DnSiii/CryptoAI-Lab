@@ -8,6 +8,7 @@ Preregistered: V99_R106_I1_NONFIXTURE_ORIGINAL_TO_NUMERIC_ORCHESTRATOR_PREREG_20
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -195,11 +196,31 @@ def run(original_signal_path, original_quotes_root, journal_path):
 
 
 def main(original_signal_path, original_quotes_root, journal_path, output_path):
+    # The lower-level CLI must be as immutable as the signed bridge: it is
+    # independently callable and must never clobber original evidence/results.
+    target = Path(output_path)
+    if target.exists() or target.is_symlink():
+        raise ValueError("EXISTING_PROVISIONAL_RESULT_IMMUTABLE")
     report = run(original_signal_path, original_quotes_root, journal_path)
-    Path(output_path).write_text(
-        json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n",
-        encoding="utf-8",
-    )
+    payload = json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=target.parent,
+            prefix=".v99-i1-provisional-", suffix=".tmp", delete=False,
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            os.link(temporary, target)
+        except FileExistsError as exc:
+            raise ValueError("EXISTING_PROVISIONAL_RESULT_IMMUTABLE") from exc
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     print(json.dumps({
         "status": report["status"],
         "original_quote_event_identities_checked": report["original_quote_event_identities_checked"],
