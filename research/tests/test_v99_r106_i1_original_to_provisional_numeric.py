@@ -12,6 +12,7 @@ import unittest
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from research.tests.test_v99_r106_i1_native_event_equity import (
     one_position_fixture, flat_fixture, complete_fixed_decisions, ms,
@@ -150,6 +151,26 @@ class OriginalToNumericIntegration(unittest.TestCase):
         self.assertFalse(report["promotion_authorized"])
         self.assertFalse(report["numeric_descriptive_only"]["numeric_train_pass_both_scenarios"])
         self.assertEqual(report["numeric_descriptive_only"]["scenarios"]["severe"]["positive_folds"], 1)
+
+    def test_unverified_positive_cash_never_enters_numeric_nav(self):
+        # Synthetic adversarial injection isolates the final numeric veto.
+        # The independent CASH oracle is mocked ONLY for this negative test;
+        # this is not a market receipt or independently certified risk veto.
+        from research.tools.v99_r106_i1_source_cash_veto import assess as actual_assess
+        for scenario in ("severe", "supersevere"):
+            with self.subTest(scenario=scenario):
+                def unsupported_skip(books, journal):
+                    result = actual_assess(books, journal)
+                    result["scenarios"][scenario]["positive_cash_unverified"] = 1
+                    return result
+                with patch("research.tools.v99_r106_i1_original_to_provisional_numeric.source_cash_veto",
+                           side_effect=unsupported_skip), patch(
+                           "research.tools.v99_r106_i1_original_to_provisional_numeric.independent_source_cash_veto"
+                           ), patch("research.tools.v99_r106_i1_original_to_provisional_numeric.replay") as nav:
+                    with self.assertRaisesRegex(
+                            ValueError, "UNVERIFIED_POSITIVE_CASH_CANNOT_ENTER_NUMERIC_TRAIN"):
+                        self.execute(self.document())
+                    nav.assert_not_called()
 
     def test_real_missing_original_archive_blocks_before_nav(self):
         with tempfile.TemporaryDirectory() as missing:
