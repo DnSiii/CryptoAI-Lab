@@ -121,6 +121,22 @@ def run(original_signal_path, original_quotes_root, journal_path):
     # moneyness, fees, margin and risk vetoes remain UNVERIFIED.
     source_veto = source_cash_veto(entry_books, journal)
     independent_source_cash_veto(entry_books, journal, source_veto)
+    # An observed nonempty original entry book plus a positive causal signal
+    # cannot be selectively skipped on an unproven caller-declared CASH veto.
+    # Otherwise the numeric replay can cherry-pick the worst entries away.
+    # Legitimate cost-path risk vetoes require a separate independent oracle.
+    veto_scenarios = source_veto.get("scenarios")
+    if (not isinstance(veto_scenarios, dict)
+            or set(veto_scenarios) != {"severe", "supersevere"}):
+        raise ValueError("INVALID_SOURCE_POSITIVE_CASH_VETO_COUNTS")
+    for scenario in ("severe", "supersevere"):
+        item = veto_scenarios[scenario]
+        if (not isinstance(item, dict)
+                or type(item.get("positive_cash_unverified")) is not int
+                or item["positive_cash_unverified"] < 0):
+            raise ValueError("INVALID_SOURCE_POSITIVE_CASH_VETO_COUNTS")
+        if item["positive_cash_unverified"] != 0:
+            raise ValueError("UNVERIFIED_POSITIVE_CASH_CANNOT_ENTER_NUMERIC_TRAIN")
 
     # Bind every source-derived held-contract daily mark and expiry-due
     # event to the actual cost-specific journal BEFORE any NAV. Authentic
