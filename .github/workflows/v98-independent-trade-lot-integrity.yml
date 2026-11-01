@@ -1,0 +1,29 @@
+name: V98 Independent Net Asset Trade-Lot Metrics Synthetic Integrity Only
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-trade-lot-integrity.yml'
+      - 'research/v98_independent/v98_trade_lot_metrics.py'
+      - 'research/v98_independent/v98_trade_lot_metrics_contract_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-accounting-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4
+      - name: Independent trade episode accounting synthetic proof (no historical PnL)
+        run: |
+          python -m py_compile research/v98_independent/v98_trade_lot_metrics.py
+          python research/v98_independent/v98_trade_lot_metrics.py
