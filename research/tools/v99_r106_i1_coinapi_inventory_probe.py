@@ -81,5 +81,112 @@ def probe(*, api_key=None, runner=subprocess.run):
     return report
 
 
+# Fixed preregistered single-day source feasibility target, NOT an alpha grid.
+TARGET_DAY = "2022-01-23"
+
+
+def probe_target(*, api_key=None, runner=subprocess.run, max_pages=20):
+    """Bounded S3 LIST of the exact ex-ante Sunday; never GET source bytes.
+
+    Listing is a potentially billable provider operation. No key => no request.
+    Even a complete object listing does not establish quote or economic coverage.
+    """
+    from research.tools.v99_r106_i1_coinapi_quote_intake import SOURCE_KEY, SYMBOL
+
+    if type(max_pages) is not int or not 1 <= max_pages <= 20:
+        raise ValueError("INVALID_BOUNDED_PAGE_LIMIT")
+    key = (os.getenv("COINAPI_API_KEY", "") if api_key is None else api_key).strip()
+    prefix = "T-QUOTES/D-20220123/E-DERIBIT/"
+    report = {
+        "schema": "V99_I1_FIXED_TARGET_COINAPI_LIST_ONLY_V1",
+        "status": "BLOCKED_NO_COINAPI_API_KEY",
+        "target_utc_day": TARGET_DAY,
+        "next_original_decision_utc": "2022-01-24T00:00:00Z",
+        "provider": "CoinAPI", "venue": "DERIBIT", "dataset": "QUOTES",
+        "listing_complete": False, "pages_listed": 0,
+        "objects_listed": 0, "compressed_bytes_listed": 0,
+        "btc_put_files_listed": 0, "eth_put_files_listed": 0,
+        "object_listing_not_quote_coverage": True,
+        "original_24h_bbo_and_size_certified": False,
+        "historical_license_and_fee_terms_certified": False,
+        "economic_train_executed": False, "promotion_authorized": False,
+        "orders_enabled": False, "validation_opened": False,
+        "holdout_opened": False,
+    }
+    if not key:
+        return report
+    env = os.environ.copy()
+    env.update({
+        "AWS_ACCESS_KEY_ID": key,
+        "AWS_SECRET_ACCESS_KEY": "coinapi",
+        "AWS_DEFAULT_REGION": "us-east-1",
+        "AWS_EC2_METADATA_DISABLED": "true",
+        "AWS_PAGER": "",
+    })
+    seen_tokens, seen_keys = set(), set()
+    continuation = None
+    for _ in range(max_pages):
+        args = [
+            "aws", "s3api", "list-objects-v2", "--endpoint-url", ENDPOINT,
+            "--bucket", BUCKET, "--prefix", prefix, "--max-keys", "1000",
+            "--no-paginate", "--output", "json",
+        ]
+        if continuation is not None:
+            args += ["--continuation-token", continuation]
+        try:
+            process = runner(args, env=env, capture_output=True, text=True,
+                             timeout=25, check=False)
+            if process.returncode:
+                report["status"] = "BLOCKED_AUTH_OR_PROVIDER_LISTING_ERROR"
+                return report
+            payload = json.loads(process.stdout)
+            if (not isinstance(payload, dict)
+                    or type(payload.get("IsTruncated")) is not bool):
+                raise ValueError("MALFORMED_TARGET_LISTING")
+            objects = payload.get("Contents", [])
+            if not isinstance(objects, list) or len(objects) > 1000:
+                raise ValueError("INVALID_TARGET_LISTING_OBJECTS")
+            if payload["IsTruncated"] and not objects:
+                raise ValueError("EMPTY_TRUNCATED_TARGET_LISTING")
+            for item in objects:
+                if not isinstance(item, dict):
+                    raise ValueError("INVALID_TARGET_LISTING_OBJECT")
+                name, size = item.get("Key"), item.get("Size")
+                if (not isinstance(name, str) or not name.startswith(prefix)
+                        or not name.endswith(".csv.gz")
+                        or type(size) is not int or size < 0
+                        or name in seen_keys):
+                    raise ValueError("UNBOUND_DUPLICATE_OR_INVALID_TARGET_OBJECT")
+                seen_keys.add(name)
+                report["objects_listed"] += 1
+                report["compressed_bytes_listed"] += size
+                match = SOURCE_KEY.fullmatch(name)
+                if match:
+                    symbol = match.group(2).replace("__002D", "-")
+                    if SYMBOL.fullmatch(symbol):
+                        asset = symbol.split("-", 1)[0].lower()
+                        report[asset + "_put_files_listed"] += 1
+            report["pages_listed"] += 1
+            if not payload["IsTruncated"]:
+                report["listing_complete"] = True
+                break
+            next_token = payload.get("NextContinuationToken")
+            if (not isinstance(next_token, str) or not next_token
+                    or next_token in seen_tokens):
+                raise ValueError("INVALID_TARGET_CONTINUATION_TOKEN")
+            seen_tokens.add(next_token)
+            continuation = next_token
+        except (OSError, ValueError, TypeError, subprocess.TimeoutExpired):
+            report["status"] = "BLOCKED_UNVERIFIABLE_TARGET_PROVIDER_LISTING"
+            return report
+    if not report["listing_complete"]:
+        report["status"] = "BLOCKED_TARGET_LISTING_PAGE_CAP"
+    elif report["btc_put_files_listed"] and report["eth_put_files_listed"]:
+        report["status"] = "BTC_ETH_TARGET_PUT_OBJECTS_LISTED_NOT_SOURCE_CERTIFIED"
+    else:
+        report["status"] = "TARGET_BTC_ETH_PUT_OBJECT_PRESENCE_NOT_SHOWN"
+    return report
+
+
 if __name__ == "__main__":
     print(json.dumps(probe(), sort_keys=True))
