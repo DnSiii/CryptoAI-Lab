@@ -46,6 +46,25 @@ def _unpromoted(result):
 
 
 def run(signal_path, original_quotes_root, journal_path):
+    # The source and signed wallet must refer to the SAME original input bytes.
+    # Missing files still reach the preexisting source-first archive veto.
+    signal_file = Path(signal_path)
+    manifest_file = Path(original_quotes_root) / "manifest.json"
+    signal_entry = (hashlib.sha256(signal_file.read_bytes()).hexdigest()
+                    if signal_file.is_file() else None)
+    manifest_entry = (hashlib.sha256(manifest_file.read_bytes()).hexdigest()
+                      if manifest_file.is_file() else None)
+
+    def verify_source_stability(source_result):
+        if signal_entry is None or manifest_entry is None:
+            raise ValueError("MISSING_ORIGINAL_SOURCE_PROVENANCE_INPUTS")
+        if (not signal_file.is_file() or not manifest_file.is_file()
+                or hashlib.sha256(signal_file.read_bytes()).hexdigest() != signal_entry
+                or hashlib.sha256(manifest_file.read_bytes()).hexdigest() != manifest_entry):
+            raise ValueError("ORIGINAL_SOURCE_INPUT_CHANGED_DURING_SIGNED_REPLAY")
+        if source_result.get("original_quote_manifest_sha256") != manifest_entry:
+            raise ValueError("ORIGINAL_MANIFEST_SOURCE_ORACLE_DIGEST_MISMATCH")
+
     # Snapshot once: source oracle and signed wallet must consume identical
     # journal bytes even if the caller mutates its original file mid-run.
     journal_bytes = Path(journal_path).read_bytes()
@@ -67,6 +86,7 @@ def run(signal_path, original_quotes_root, journal_path):
         snapshot.write_bytes(journal_bytes)
         original = source_bound_run(signal_path, original_quotes_root, snapshot)
     _unpromoted(original)
+    verify_source_stability(original)
     source_numeric = original.get("numeric_descriptive_only")
     if (original.get("original_signal_intents_checked") != 180
             or original.get("full_original_source_asset_week_books_independently_verified") != 180
@@ -99,8 +119,11 @@ def run(signal_path, original_quotes_root, journal_path):
             or numeric.get("days_per_scenario") != DAYS):
         raise ValueError("UNTRUSTED_SIGNED_NUMERIC_DIAGNOSTIC")
 
+    verify_source_stability(original)
     return {
         "schema": SCHEMA,
+        "original_causal_signal_input_sha256": signal_entry,
+        "original_quote_manifest_input_sha256": manifest_entry,
         "status": "ORIGINAL_SOURCE_AND_SIGNED_EVENT_SOFTWARE_PARITY_ONLY",
         "original_signal_intents_checked": 180,
         "original_quote_event_identities_checked":
