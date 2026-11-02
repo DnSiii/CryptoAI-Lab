@@ -1,0 +1,181 @@
+name: V99 I1 licensed 661d original-to-signed TRAIN handoff (NO PROMOTION)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - research/V99_R106_I1_LICENSED_SIGNED_TRAIN_CI_HANDOFF_PREREG_20261102.md
+      - research/tools/v99_r106_i1_signed_original_train_bridge.py
+      - research/tests/test_v99_r106_i1_signed_original_train_bridge.py
+      - .github/workflows/v99-r106-i1-licensed-signed-train-handoff.yml
+  workflow_dispatch:
+    inputs:
+      acknowledge_license_rights:
+        description: 'Operator affirms lawful GitHub Actions processing of licensed bytes; not legal certification'
+        type: boolean
+        required: true
+        default: false
+      source_run_id:
+        description: 'Successful same-branch run holding lawful complete original 661d quotes artifact'
+        type: string
+        required: true
+      source_artifact:
+        description: 'Exact source artifact name (must contain quotes/manifest.json and 661 days)'
+        type: string
+        required: true
+      signed_run_id:
+        description: 'Successful same-branch run holding signed journal and evidence artifact'
+        type: string
+        required: true
+      signed_artifact:
+        description: 'Exact signed artifact name (must contain journal.json and original evidence)'
+        type: string
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-signed-train-no-promotion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration predates executable workflow and sealed partitions
+        run: |
+          git merge-base --is-ancestor 3cbfa815c82666f8b1bf89f3b9c0b7b8f5b35d21 HEAD
+          test -s research/V99_R106_I1_LICENSED_SIGNED_TRAIN_CI_HANDOFF_PREREG_20261102.md
+          python - <<'PY'
+          from research.tools.v99_r106_i1_local_tape_import import FIRST, DAYS
+          from research.tools.v99_r106_i1_train_numeric_gate import END
+          assert FIRST.isoformat() == '2021-12-09' and DAYS == 661
+          assert END.isoformat() == '2023-10-01'
+          print('TRAIN ONLY / SEALED VALIDATION AND HOLDOUT UNTOUCHED')
+          PY
+      - name: Signed source-first integrated bridge adversarial tests (SYNTHETIC ONLY)
+        run: |
+          python -m unittest -v research.tests.test_v99_r106_i1_signed_original_train_bridge
+      - name: Restore archived actual original causal TRAIN signals (NOT options executions)
+        run: |
+          gh run download 40326586848 --repo "$GITHUB_REPOSITORY" \
+            --name v99-i1-original-causal-signal-40326586848 \
+            --dir research_evidence/i1_original_causal
+          python - <<'PY'
+          from pathlib import Path
+          from research.tools.v99_r106_i1_original_intent_binding import bind
+          signal=Path('research_evidence/i1_original_causal/i1_causal_signal.json')
+          r=bind(signal)
+          assert len(r['intents']) == 180 and r['positive_fixed_intents'] == 132
+          print('REAL CAUSAL SIGNALS 182/182; FIXED INTENTS 180/180; POSITIVE 132; NOT TRADES')
+          PY
+      - name: Real missing-original-source veto (push only; no paid reads)
+        if: github.event_name == 'push'
+        run: |
+          python - <<'PY'
+          import json
+          import tempfile
+          from pathlib import Path
+          from research.tests.test_v99_r106_i1_native_event_equity import flat_fixture
+          from research.tools.v99_r106_i1_original_intent_binding import bind
+          from research.tools.v99_r106_i1_signed_original_train_bridge import run
+          signal=Path('research_evidence/i1_original_causal/i1_causal_signal.json')
+          intents=bind(signal)['intents']
+          document=flat_fixture()
+          document['fixture']=False
+          document['journal_attestation']='MISSING_INDEPENDENT_ATTESTATION'
+          decisions=[{**intent, 'action':'CASH',
+                      'reason':('RISK_VETO' if intent['signal']=='POSITIVE_EX_ANTE_PREMIUM'
+                                else intent['signal'])} for intent in intents]
+          document['scenario_decisions']={'severe':decisions, 'supersevere':decisions}
+          with tempfile.TemporaryDirectory() as temporary:
+              root=Path(temporary)
+              journal=root/'nonfixture.json'
+              journal.write_text(json.dumps(document),encoding='utf-8')
+              missing=root/'not_supplied_original_661d'
+              missing.mkdir()
+              try:
+                  run(signal,missing,journal)
+              except ValueError as exc:
+                  assert str(exc)=='ORIGINAL_661D_MANIFEST_NOT_DELIVERED',str(exc)
+                  print('SOURCE_HOLD: ORIGINAL_661D_MANIFEST_NOT_DELIVERED')
+                  print('0/180 ORIGINAL ECONOMIC LIFECYCLES CERTIFIED; NO PROMOTION/ORDERS')
+              else:
+                  raise AssertionError('MISSING_ORIGINAL_SOURCE_BYPASSED')
+          PY
+      - name: Require explicit lawful inputs and successful same-branch evidence runs
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RIGHTS: ${{ inputs.acknowledge_license_rights }}
+          SOURCE_RUN: ${{ inputs.source_run_id }}
+          SOURCE_ARTIFACT: ${{ inputs.source_artifact }}
+          SIGNED_RUN: ${{ inputs.signed_run_id }}
+          SIGNED_ARTIFACT: ${{ inputs.signed_artifact }}
+        run: |
+          set -euo pipefail
+          if [[ "$RIGHTS" != "true" ]]; then
+            echo "SOURCE_HOLD: LAWFUL_ARTIFACT_PROCESSING_NOT_AUTHORIZED"; exit 1
+          fi
+          for id in "$SOURCE_RUN" "$SIGNED_RUN"; do
+            if [[ ! "$id" =~ ^[0-9]{8,15}$ ]]; then
+              echo "SOURCE_HOLD: INVALID_EVIDENCE_RUN_ID"; exit 1
+            fi
+            status="$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json headBranch,conclusion --jq '.headBranch + "|" + .conclusion')"
+            if [[ "$status" != "research/v99-r106-native-all-regime-engine|success" ]]; then
+              echo "SOURCE_HOLD: EVIDENCE_RUN_NOT_SUCCESSFUL_ON_RESEARCH_BRANCH"; exit 1
+            fi
+          done
+          for name in "$SOURCE_ARTIFACT" "$SIGNED_ARTIFACT"; do
+            if [[ ! "$name" =~ ^[A-Za-z0-9_.-]{1,120}$ ]]; then
+              echo "SOURCE_HOLD: INVALID_EXPLICIT_ARTIFACT_NAME"; exit 1
+            fi
+          done
+          mkdir -p research_evidence/i1_original_licensed research_evidence/i1_signed_bundle
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name "$SOURCE_ARTIFACT" --dir research_evidence/i1_original_licensed
+          gh run download "$SIGNED_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name "$SIGNED_ARTIFACT" --dir research_evidence/i1_signed_bundle
+          test -s research_evidence/i1_original_licensed/quotes/manifest.json || {
+            echo "SOURCE_HOLD: ORIGINAL_661D_MANIFEST_NOT_DELIVERED"; exit 1; }
+          test -s research_evidence/i1_signed_bundle/journal.json || {
+            echo "SOURCE_HOLD: SIGNED_NONFIXTURE_JOURNAL_NOT_DELIVERED"; exit 1; }
+      - name: Execute source-first independent signed original TRAIN replay if evidence exists
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TRUSTED_KEY_PEM: ${{ secrets.V99_I1_TRUSTED_AUDITOR_PUBKEY_PEM }}
+          TRUSTED_KEY_SHA256: ${{ secrets.V99_I1_TRUSTED_AUDITOR_PUBKEY_SHA256 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$TRUSTED_KEY_PEM" || ! "$TRUSTED_KEY_SHA256" =~ ^[a-f0-9]{64}$ ]]; then
+            echo "SOURCE_HOLD: MISSING_INDEPENDENT_AUDITOR_TRUST_ANCHOR"; exit 1
+          fi
+          umask 077
+          printf '%s' "$TRUSTED_KEY_PEM" > "$RUNNER_TEMP/v99-i1-independent-auditor.pem"
+          export V99_I1_TRUSTED_AUDITOR_PUBKEY="$RUNNER_TEMP/v99-i1-independent-auditor.pem"
+          export V99_I1_TRUSTED_AUDITOR_PUBKEY_SHA256="$TRUSTED_KEY_SHA256"
+          python -m research.tools.v99_r106_i1_signed_original_train_bridge \
+            research_evidence/i1_original_causal/i1_causal_signal.json \
+            research_evidence/i1_original_licensed/quotes \
+            research_evidence/i1_signed_bundle/journal.json \
+            "$RUNNER_TEMP/v99-i1-original-signed-provisional.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'v99-i1-original-signed-provisional.json').read_text())
+          assert report['status']=='ORIGINAL_SOURCE_AND_SIGNED_EVENT_SOFTWARE_PARITY_ONLY'
+          assert report['original_signal_intents_checked']==180
+          assert report['original_source_asset_week_books_checked']==180
+          assert report['signed_661d_event_wallet_replayed'] is True
+          for key in ('original_options_economic_train_certified','promotion_authorized',
+                      'freeze_authorized','orders_enabled','validation_opened','holdout_opened',
+                      'paper_publication_authorized'):
+              assert report[key] is False,key
+          print('PROVISIONAL ORIGINAL-SIGNED TRAIN PARITY ONLY; NATIVE ECONOMICS NOT CERTIFIED')
+          print('NO PROMOTION / NO PAPER / NO ORDERS / NO VALIDATION / NO HOLDOUT')
+          PY
