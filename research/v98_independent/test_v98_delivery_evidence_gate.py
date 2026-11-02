@@ -360,4 +360,32 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertTrue(all(calls[i][1]<calls[i+1][1] for i in (0,2,4,6)))
         self.assertFalse(out["paper_or_live_authorized"])
 
+
+    def test_jsonl_invalid_account_proof_does_not_publish_source_table(self):
+        import v98_authorized_funding_mark_ingest as importer
+        saved=(importer.START,importer.END,importer.EXPECTED)
+        importer.START=gate.START
+        importer.END=gate.START+2*gate.EIGHT_HOURS_MS
+        importer.EXPECTED=8
+        self.addCleanup(lambda:(
+            setattr(importer,"START",saved[0]),
+            setattr(importer,"END",saved[1]),
+            setattr(importer,"EXPECTED",saved[2])))
+        pages=[]
+        for page in self.pages:
+            body=(self.root/page["file"]).read_text()
+            pages.append({"url":page["url"],"status":200,
+                "response_headers":page["response_headers"],
+                "retrieved_at_utc":page["retrieved_at_utc"],
+                "response_body":body,
+                "response_body_sha256":hashlib.sha256(body.encode()).hexdigest()})
+        (self.root/"native_pages_manifest.json").unlink()
+        (self.root/"authorized_funding_pages.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in pages)+"\n")
+        (self.root/"historical_bid_ask_depth.txt").unlink()
+        result=self.evaluate()
+        self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertFalse((self.root/"v98_authorized_native_preflight.csv").exists())
+        self.assertFalse((self.root/"v98_authorized_native_preflight.json").exists())
+
 if __name__=="__main__":unittest.main()
