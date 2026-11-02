@@ -83,3 +83,5 @@ jobs:
               print('WR_FULL',tier,json.dumps({k:x.get(k) for k in ('passed','reason','hour','cagr','max_dd','annual_returns','governor_trims','fees_spread_impact','signed_funding','turnover')} if x else {'not_run':True},sort_keys=True))
           print('WR_NOT_VALIDATED_NOT_PAPER_NOT_LIVE')
           PY
+
+# WR workflow self-trigger after branch-scoped creation; V98-only.
