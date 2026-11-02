@@ -133,7 +133,7 @@ class TestCoinAPIIntake(unittest.TestCase):
             ROW.replace(",0.0045,3", ",0,3"),
             ROW.replace(",0.0050,2", ",0,2"),
             ROW.replace(",0.0050,2", ",0.0050,0"),
-            ",2022-01-01T00:00:00.1140000,2022-01-01T00:00:00.2350440,0,0,0,0\\n",
+            ",2022-01-01T00:00:00.1140000,2022-01-01T00:00:00.2350440,0,0,0,0\n",
         )
         for raw in variants:
             with self.subTest(raw=raw):
