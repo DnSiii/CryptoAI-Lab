@@ -106,6 +106,37 @@ class EvidenceGateTests(unittest.TestCase):
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.assertIn("NATIVE_SETTLEMENT_OFFSET_GT_60S",self.evaluate()["blocker"])
 
+    def test_authorized_raw_jsonl_uses_same_pinned_expected_calendar(self):
+        import v98_authorized_funding_mark_ingest as importer
+        saved=(importer.START,importer.END,importer.EXPECTED)
+        importer.START=gate.START
+        importer.END=gate.START+2*gate.EIGHT_HOURS_MS
+        importer.EXPECTED=8
+        self.addCleanup(lambda:(setattr(importer,"START",saved[0]),
+                                setattr(importer,"END",saved[1]),
+                                setattr(importer,"EXPECTED",saved[2])))
+        pages=[]
+        for page in self.pages:
+            raw=(self.root/page["file"]).read_text()
+            pages.append({"url":page["url"],"status":200,
+                "response_headers":page["response_headers"],
+                "retrieved_at_utc":page["retrieved_at_utc"],
+                "response_body":raw,
+                "response_body_sha256":hashlib.sha256(raw.encode()).hexdigest()})
+        (self.root/"native_pages_manifest.json").unlink()
+        (self.root/"authorized_funding_pages.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in pages)+"\n")
+        out=self.evaluate()
+        self.assertEqual(out["decision"],
+            "PASS_BYTE_AND_CALENDAR_PREFLIGHT_REQUIRES_INDEPENDENT_AUTHENTICATION")
+        self.assertEqual(out["native"]["event_count"],8)
+        self.assertFalse(out["native"]["exchange_origin_independently_authenticated"])
+        self.assertTrue((self.root/"v98_authorized_native_preflight.csv").is_file())
+
+    def test_dual_source_formats_are_rejected(self):
+        (self.root/"authorized_funding_pages.jsonl").write_text("{}\n")
+        self.assertIn("NATIVE_AMBIGUOUS_SOURCE_FORMAT",self.evaluate()["blocker"])
+
     def test_non_200_status_fails(self):
         self.pages[0]["http_status"]=451
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
