@@ -1,0 +1,21 @@
+# V98 Independent WN — preregistered native premium-index dislocation seven-slot portfolio (2026-11-02)
+
+**Freeze BEFORE reading WN PnL.** WN is a new *native premium-index dislocation* hypothesis, economically different from rejected price-only WL/WM, funding inventory WG and spot/perp fixed VW carry feasibility. No rescue of any rejected system. Do not inspect V14/V15/V99 internals or performance.
+
+## Authenticated input
+Official Binance Vision USD-M Clean-4 BTC/ETH/BNB/SOL hourly **premiumIndexKlines** 2022-12..2025-12, 108,192 asset-hours, pinned canonical CSV SHA256 `c301a38642f229ca2746ae33baaf58e4bb21ac280a1a99dbbc328cc074caaad4`, run 41299240043; 27,048 per asset, no gap. Join by exact UTC bar-open timestamp to authenticated Clean-4 USD-M 1h price/funding bridge, with Dec-2022 warmup and 2023–2025 exposed training. Premium close for bar t is available only after that bar completes; execute no earlier than t+1 UTC open. Never access 2026+, quarantined XRP, Phase083, future holdout, Frozen or paper.
+
+## Fixed seven slots
+1. **Growth Core**: daily at completed 23:00 close, long +0.28 the asset with lowest current premium close **if** its 168h log return is positive; short -0.28 the *different* asset with highest premium close **if** its 168h log return is negative. No selected asset otherwise. This seeks directional premium dislocation convergence with price trend confirmation, not spot-perp arbitrage.
+2. **Opportunity**: calculate per-asset 24h premium change; choose largest absolute change (asset-order tie break). If current premium exceeds median of prior 504 completed premium closes and 24h premium change is positive, short -0.12; if current premium below prior median and 24h change negative, long +0.12; otherwise inactive.
+3. **Relative Value**: if highest minus lowest current premium exceeds 0.00015, long +0.10 lowest-premium asset and short -0.10 highest-premium asset. Otherwise inactive.
+4. **Stress/Recovery**: if equal-weight market 24h log return < -0.04 and average current premium <0, long +0.12 BTC; if market 24h return > +0.04 and average premium >0, short -0.12 BTC; otherwise inactive.
+5. **Regime Router**: if abs(BTC 168h log return)>0.08, scale Opportunity and RV sleeves by 0.60; otherwise unchanged. Core and Stress unchanged.
+6. **Dynamic Allocator**: combine all four sleeves and proportionally scale all to max 0.70 absolute gross; no hidden leverage or artificial upside cap.
+7. **Risk Governor**: same physical cash/funding/adverse intrahour implementation independently exercised by WL, but WN is an entirely new strategy: daily next-open rebalance; hourly next-open trim to 0.65 when gross/equity >0.75 or cash buffer <22%; fail if hidden leverage, maintenance or adverse intrahour survival violated. Both funding/fill orders.
+
+## Immutable economic and audit gates
+5 books (full, core-only, minus-opportunity, minus-RV, minus-stress) x 3 illustrative one-way costs (10/20/35bps) x 2 funding/fill orders = 30 full 27,048-hour cells. No post-result tuning, sign/threshold/window/gross rescue or selection of ablations. Record sleeve incidences as diagnostics **without arbitrary minimum incidence rejection**; require each sleeve to contribute strictly positive marginal full-minus-ablation log growth in both base and severe and both orders. Full portfolio aspiration >80% base CAGR, >60% severe CAGR, severe DD better than -45%, severe every year positive, all 30 physical cells pass; 80/60 are aspirations, not upside ceilings. Independent source SHA/schema/calendar check, causal future-mutation test, separate hourly cash/funding replay with deliberate tamper, tails, positive days, PF, payoff, win rate, concentration, signed funding and fee totals. Even passing exposed training is not independent chronological validation.
+
+## Missing final-delivery evidence
+Original 13,524 exchange-origin exact funding settlement `markPrice` events with raw provenance, account-dated maker/taker fees, historical bid/ask/depth/impact at intended sizes, collateral/liquidation policy, separate untouched future validation and final holdout. Existing conservative hourly mark envelopes and illustrative fees permit exploratory physical simulation, **not** exact account-executable returns, paper or live trading.
