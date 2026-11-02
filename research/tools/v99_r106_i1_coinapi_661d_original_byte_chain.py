@@ -83,7 +83,7 @@ def verify(spec_root, original_root, derived_root, *, fixture=False,
         if (not isinstance(spec, dict) or set(spec) != {"schema", "day", "sources"}
                 or spec["schema"] != DAY_SCHEMA or spec["day"] != day
                 or not isinstance(spec["sources"], list)
-                or not 2 <= len(spec["sources"]) <= 256):
+                or not 2 <= len(spec["sources"]) <= 4096):
             raise ValueError("INVALID_COINAPI_ORIGINAL_DAY_SPEC")
         sidecar_path = _regular(derived_root / (day + ".coinapi-derived.json"))
         daily_path = _regular(derived_root / (day + ".csv.gz"))
