@@ -84,7 +84,7 @@ class CoinapiOriginalEventIdentityTests(unittest.TestCase):
 
     def test_previous_day_last_asof_survives_missing_next_day_contract(self):
         self.write_source([
-            ",2021-12-09T23:59:59.9000000,2021-12-09T23:59:59.9000001,0.0050,2,0.0045,3\\n"
+            ",2021-12-09T23:59:59.9000000,2021-12-09T23:59:59.9000001,0.0050,2,0.0045,3\n"
         ])
         next_spec = self.specs/"2021-12-10.json"
         next_spec.write_text(json.dumps({
