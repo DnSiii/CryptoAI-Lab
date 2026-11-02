@@ -272,9 +272,13 @@ class EvidenceGateTests(unittest.TestCase):
 
     def test_collector_uses_second_official_host_only_on_connectivity_outage(self):
         collector,fetcher,calls=self._capture_fixture(network_primary=True)
+        old_sleep=collector.time.sleep
+        collector.time.sleep=lambda seconds:None
+        self.addCleanup(lambda:setattr(collector.time,"sleep",old_sleep))
         out=collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
         self.assertEqual(out["events"],8)
-        self.assertEqual(len(calls),8)
+        self.assertEqual(len(calls),16)  # three bounded primary retries + one fallback per asset
+        self.assertEqual(sum("fapi1.binance.com" in url for url,_ in calls),4)
         self.assertTrue(all("fapi1.binance.com" in p["url"] for p in
             map(json.loads,(self.root/"capture"/"authorized_funding_pages.jsonl").read_text().splitlines())))
 
