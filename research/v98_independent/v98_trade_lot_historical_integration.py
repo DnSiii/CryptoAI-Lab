@@ -72,6 +72,19 @@ def run_historical(d):
     sensitivity = run_dynamic_sensitivity(d, books, baseline_physical_rows)
     if sensitivity["decision"] != "PASS_DYNAMIC_MARK_SENSITIVITY_NOT_ENGINE":
         raise ValueError("TRADE_DYNAMIC_MARK_SENSITIVITY_INCOMPLETE")
+    if len(sensitivity["cells"]) != 6 or sensitivity["candidate_promoted"] or sensitivity["exact_exchange_marks_attested"]:
+        raise ValueError("TRADE_MARK_SENSITIVITY_NO_PROMOTION_GATE")
+    if sensitivity["holdout_accessed"] or sensitivity["benchmarks_accessed"] or sensitivity["paper_live_authorized"]:
+        raise ValueError("TRADE_MARK_SENSITIVITY_ISOLATION_GATE")
+    if len(sensitivity["synthetic"]["negative_control_categories"]) != 6:
+        raise ValueError("TRADE_MARK_SENSITIVITY_CONTROL_COVERAGE")
+    for pair in sensitivity["cells"]:
+        audit = pair["audit"]
+        if (audit["ledger_hours"] != EXPECTED_HOURS or
+            audit["independent_funding_fee_mismatches"] != 0 or
+            audit["independent_cash_identity_mismatches"] != 0 or
+            audit["funding_asset_events"] != int(d["event"][WARMUP+1:].sum())):
+            raise ValueError("TRADE_MARK_SENSITIVITY_INDEPENDENT_AUDIT")
     result = {
         "decision": "PASS_HISTORICAL_TRADE_METRIC_INTEGRATION_ONLY_NOT_ENGINE",
         "historical_sample": "2023-2025_EXPOSED_TRAINING_ONLY",
