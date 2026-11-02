@@ -61,7 +61,10 @@ def run(d, outdir):
                                 for v in row
                             ])
                 print("STATIC_CELL", name, tier, order, result.get("passed"),
-                      result.get("cagr"), result.get("reason"), flush=True)
+                      result.get("cagr"), result.get("reason"), "stop_hour",
+                      result.get("hour"), "funding_paid",
+                      result.get("signed_funding"), "fees",
+                      result.get("fees_spread_impact"), flush=True)
     if len(cells) != 36:
         raise ValueError("STATIC_CELL_COUNT")
     summary = {
