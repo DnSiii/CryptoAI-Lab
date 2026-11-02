@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v98-independent-delivery-evidence.yml'
       - 'research/v98_independent/v98_delivery_*.py'
       - 'research/v98_independent/test_v98_delivery_evidence_gate.py'
+      - 'research/v98_independent/test_v98_delivery_authorized_exchange_export.py'
       - 'research/v98_independent/v98_delivery_evidence_contract_20261102.md'
   workflow_dispatch:
 permissions:
@@ -28,8 +29,9 @@ jobs:
         run: python -m pip install numpy==1.26.4 pandas==2.2.3
       - name: Compile and run synthetic negative controls
         run: |
-          python -m py_compile research/v98_independent/v98_delivery_evidence_gate.py research/v98_independent/v98_delivery_expected_funding_export.py
+          python -m py_compile research/v98_independent/v98_delivery_evidence_gate.py research/v98_independent/v98_delivery_expected_funding_export.py research/v98_independent/v98_delivery_authorized_exchange_export.py
           python -m unittest discover -s research/v98_independent -p test_v98_delivery_evidence_gate.py -v
+          python -m unittest discover -s research/v98_independent -p test_v98_delivery_authorized_exchange_export.py -v
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
