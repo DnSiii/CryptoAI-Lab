@@ -107,19 +107,20 @@ def physical(data,tier,order):
         if rebalance or exit_final:
             if positions:
                 before_close,_sv,_pv,_sn=equity_at(k,0)
+                total_exit_fee=0.
                 for a,p in list(positions.items()):
                     spot,perp,_=data[a];q=p["q"];so=spot[k][0];po=perp[k][0]
                     sell=q*so;closep=q*po
                     exit_fee=sell*sc+closep*pc
                     cash+=sell+q*(p["perp_entry"]-po)-exit_fee
-                    fees+=exit_fee;friction+=exit_fee;turn+=sell+closep
+                    fees+=exit_fee;total_exit_fee+=exit_fee;friction+=exit_fee;turn+=sell+closep
                     gross=q*(so-p["spot_entry"])+q*(p["perp_entry"]-po)
                     realized=gross+p["funding"]-p["entry_fee"]-exit_fee
                     trades.append({"asset":a,"month":p["month"],"net_pnl":realized,
                                    "entry_notional":p["entry_notional"]})
                     closed+=1;trades_closed+=1
                 positions.clear()
-                if abs(cash-before_close)>max(1e-7,abs(before_close)*1e-10):
+                if abs(cash-before_close+total_exit_fee)>max(1e-7,abs(before_close)*1e-10):
                     raise ValueError("VW_CLOSE_ACCOUNTING")
             if rebalance and not exit_final:
                 if cash<=0:raise ValueError("VW_NEGATIVE_CAPITAL")
