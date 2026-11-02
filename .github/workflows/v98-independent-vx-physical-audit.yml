@@ -43,6 +43,7 @@ jobs:
           path: nh25
       - name: Independent 8760-hour source, cash, fills, fee and funding replay
         run: |
+          set -o pipefail
           python research/v98_independent/vx_spot_led_physical_oracle.py \
             --spot-dir spot25 --nh-dir nh25 \
             --ledger frozen/vx_base_full_hourly_ledger.csv \
