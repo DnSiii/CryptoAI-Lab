@@ -147,6 +147,7 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
     original_sha256, original_bytes = _compressed_digest(path)
     rows, last_arrival_tick = 0, None
     executable_depth_rows, non_executable_depth_rows = 0, 0
+    locked_or_crossed_depth_rows = 0
     first_tick, last_tick = None, None
     for row, delimiter in _original_rows(path):
         if row.get(None) is not None or any(row.get(k) is None for k in COLUMNS):
@@ -163,9 +164,12 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         bid, ask = nonnegative(row["bid_px"]), nonnegative(row["ask_px"])
         bid_size, ask_size = nonnegative(row["bid_sx"]), nonnegative(row["ask_sx"])
         # Zero-sided updates are original source evidence, never executable fills.
-        if bid > 0 and ask > 0 and bid >= ask:
-            raise ValueError("CROSSED_OR_LOCKED_COINAPI_BOOK")
-        if min(bid, ask, bid_size, ask_size) == 0:
+        # A locked/crossed update is genuine source evidence, but cannot be
+        # used for execution. It invalidates any earlier executable BBO.
+        invalid_book = bid > 0 and ask > 0 and bid >= ask
+        if invalid_book:
+            locked_or_crossed_depth_rows += 1
+        if invalid_book or min(bid, ask, bid_size, ask_size) == 0:
             non_executable_depth_rows += 1
         else:
             executable_depth_rows += 1
@@ -191,6 +195,7 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         "original_bytes":original_bytes, "rows":rows,
         "two_sided_positive_depth_rows":executable_depth_rows,
         "non_executable_depth_rows":non_executable_depth_rows,
+        "locked_or_crossed_non_executable_rows":locked_or_crossed_depth_rows,
         "two_sided_source_rows_are_not_certified_fills":True,
         "first_arrival_us":first_tick // 10, "last_arrival_us":last_tick // 10,
         "first_arrival_100ns":first_tick, "last_arrival_100ns":last_tick,
