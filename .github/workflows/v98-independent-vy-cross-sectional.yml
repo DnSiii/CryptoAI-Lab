@@ -66,8 +66,8 @@ jobs:
           d=load('../../old','../../old-envelope/v98_official_mark_envelope_training.csv','../../new','../../corrected')
           s=source_gate(d)
           decisions=targets(d)
-          counts=incidence(decisions)
-          regimes={r:sum(x['regime']==r for x in decisions.values()) for r in ('risk_on','risk_off','mixed')}
+          counts={k:int(v) for k,v in incidence(decisions).items()}
+          regimes={r:int(sum(x['regime']==r for x in decisions.values())) for r in ('risk_on','risk_off','mixed')}
           threshold=int(.15*len(CLOCK))
           failures=[k for k in SLOTS[1:] if counts[k]<threshold]
           result={'decision':'REJECT_VY_SOURCE_INCIDENCE' if failures else 'PASS_VY_SOURCE_INCIDENCE_NOT_PNL',
