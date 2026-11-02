@@ -222,15 +222,17 @@ class EvidenceGateTests(unittest.TestCase):
         import v98_delivery_native_mark_collector as collector
         import v98_authorized_funding_mark_ingest as importer
         from urllib.parse import urlsplit, parse_qs
-        saved=(collector.EXPECTED_COUNT,importer.START,importer.END,importer.EXPECTED)
+        saved=(collector.EXPECTED_COUNT,importer.START,importer.END,importer.EXPECTED,collector.expected_events)
         collector.EXPECTED_COUNT=8
+        collector.expected_events=gate.expected_events
         importer.START=gate.START
         importer.END=gate.START+2*gate.EIGHT_HOURS_MS
         importer.EXPECTED=8
         self.addCleanup(lambda:(setattr(collector,"EXPECTED_COUNT",saved[0]),
                                 setattr(importer,"START",saved[1]),
                                 setattr(importer,"END",saved[2]),
-                                setattr(importer,"EXPECTED",saved[3])))
+                                setattr(importer,"EXPECTED",saved[3]),
+                                setattr(collector,"expected_events",saved[4])))
         calls=[]
         def fetcher(url,timeout):
             q=parse_qs(urlsplit(url).query)
