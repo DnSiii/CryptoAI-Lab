@@ -105,7 +105,7 @@ def acquire(source_key, symbol, output_root, *, license_document,
         raise ValueError("INVALID_ORIGINAL_PROVIDER_HEAD") from exc
     if type(length) is not int or length <= 0 or length > max_bytes:
         raise ValueError("UNKNOWN_EMPTY_OR_OVERSIZED_ORIGINAL_OBJECT")
-    fd, temporary_name = tempfile.mkstemp(prefix=".coinapi-original-", suffix=".tmp", dir=root)
+    fd, temporary_name = tempfile.mkstemp(prefix=".coinapi-original-", suffix=".csv.gz", dir=root)
     os.close(fd)
     temporary = Path(temporary_name)
     side_temp = None
