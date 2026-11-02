@@ -55,7 +55,7 @@ def run(d,outdir):
              "paper_live_authorized":False}
     (out/"wj_exposed_physical.json").write_text(json.dumps(receipt,indent=2,sort_keys=True,allow_nan=False)+"\n")
     if ledger is not None:
-        wjth (out/"wj_base_full_hourly_ledger.csv").open("w",newline="") as f:
+        with (out/"wj_base_full_hourly_ledger.csv").open("w",newline="") as f:
             w=csv.writer(f,lineterminator="\n");w.writerow(HEADER)
             for row in ledger:
                 w.writerow([json.dumps(v.tolist(),separators=(",",":")) if isinstance(v,np.ndarray)
