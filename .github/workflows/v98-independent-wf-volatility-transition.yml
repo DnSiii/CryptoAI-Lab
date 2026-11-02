@@ -12,7 +12,7 @@ permissions:
   contents: read
   actions: read
 jobs:
-  we-2023-25-physical:
+  wf-2023-25-physical:
     if: github.ref == 'refs/heads/research/v98-independent-zero'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -59,14 +59,14 @@ jobs:
           set -euo pipefail
           python research/v98_independent/wf_volatility_transition_physical.py \
             --old-root old --old-envelope old-envelope/v98_official_mark_envelope_training.csv \
-            --new-root new --corrected-root corrected --out-dir we-physical
+            --new-root new --corrected-root corrected --out-dir wf-physical
       - name: Independent source-signal cash/funding audit and adversarial cash mutation
         run: |
           set -euo pipefail
-          if [ -f we-physical/wf_base_full_hourly_ledger.csv ]; then
+          if [ -f wf-physical/wf_base_full_hourly_ledger.csv ]; then
             python research/v98_independent/wf_volatility_transition_oracle.py \
               --old-root old --old-envelope old-envelope/v98_official_mark_envelope_training.csv \
-              --new-root new --corrected-root corrected --out-dir we-physical
+              --new-root new --corrected-root corrected --out-dir wf-physical
           else
             echo 'WF_PREREG_SOURCE_INCIDENCE_REJECTED_NO_PNL'
           fi
@@ -74,7 +74,7 @@ jobs:
         if: always()
         with:
           name: v98-wf-volatility-transition-2023-25-exposed-not-validated
-          path: we-physical/
+          path: wf-physical/
           retention-days: 30
           if-no-files-found: warn
       - name: Enforce explicit economic candidate gate (rejection must not be green)
@@ -82,10 +82,10 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          source=json.loads(Path('we-physical/wf_source.json').read_text())
+          source=json.loads(Path('wf-physical/wf_source.json').read_text())
           if source['decision'].startswith('REJECT'):
               raise SystemExit('WF_PREREG_REJECTED_NO_ENGINE')
-          receipt=json.loads(Path('we-physical/wf_exposed_physical.json').read_text())
+          receipt=json.loads(Path('wf-physical/wf_exposed_physical.json').read_text())
           for tier in ('base','severe','supersevere'):
               row=next(x for x in receipt['cells'] if x['book']=='WF_full' and x['tier']==tier and x['order']=='carried_before_fill')
               print('WF_FINAL_METRICS',tier,json.dumps({'cagr':row.get('cagr'),'max_dd':row.get('max_dd'),'annual_returns':row.get('annual_returns'),'fees':row.get('fees_spread_impact'),'funding':row.get('signed_funding'),'final_equity':row.get('final_equity')},sort_keys=True),flush=True)
@@ -95,6 +95,6 @@ jobs:
           if receipt['decision'].startswith('REJECT'):
               raise SystemExit('WF_ECONOMIC_REJECTED_NO_ENGINE')
           assert receipt['decision']=='PASS_WF_EXPOSED_TRAINING_ONLY_NOT_VALIDATED'
-          assert Path('we-physical/wf_independent_oracle.json').exists()
+          assert Path('wf-physical/wf_independent_oracle.json').exists()
           print('WF_EXPOSED_ONLY_NOT_ENGINE_APPROVAL')
           PY
