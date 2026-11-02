@@ -201,15 +201,36 @@ def convert(specification, output_root, *, fixture=False, license_document=None)
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            try:
-                os.link(tmp, target)
+            # An actual CLI import must pass the separately implemented
+            # original-byte oracle BEFORE either final output is visible.
+            # CI-only independent verification is not sufficient for real data.
+            with tempfile.TemporaryDirectory(
+                prefix=".coinapi-independent-", dir=root,
+            ) as staging_directory:
+                staged = Path(staging_directory)
+                os.link(tmp, staged / target.name)
+                os.link(tmp2, staged / sidecar.name)
+                from research.verification.independent_v99_r106_i1_coinapi_derived_day_oracle import (
+                    verify as independent_verify,
+                )
+                independently_checked = independent_verify(specification, staged)
+                if independently_checked != {
+                    "status": "INDEPENDENT_DERIVED_BYTE_REPLAY_MATCH_NOT_ORIGINAL_ECONOMICS",
+                    "rows": count,
+                    "original_files": len(originals),
+                    "promotion_authorized": False,
+                    "economic_train_executed": False,
+                }:
+                    raise ValueError("INDEPENDENT_DERIVED_SOURCE_REPLAY_MISMATCH")
                 try:
-                    os.link(tmp2, sidecar)
-                except OSError:
-                    target.unlink()
-                    raise
-            except FileExistsError as exc:
-                raise ValueError("REFUSE_OVERWRITE_DERIVED_SOURCE") from exc
+                    os.link(tmp, target)
+                    try:
+                        os.link(tmp2, sidecar)
+                    except OSError:
+                        target.unlink()
+                        raise
+                except FileExistsError as exc:
+                    raise ValueError("REFUSE_OVERWRITE_DERIVED_SOURCE") from exc
         finally:
             Path(tmp2).unlink(missing_ok=True)
         return report
