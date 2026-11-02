@@ -91,6 +91,48 @@ class Coinapi661DayChainTests(unittest.TestCase):
                 self.assertEqual(calls[0], 1)
             finally:
                 path.write_bytes(original_bytes)
+            # A same-row-count replacement after independent derived replay
+            # must not reach the downstream daily scanner.
+            daily = derived/f"{first}.csv.gz"
+            derived_bytes = daily.read_bytes()
+            first_sidecar = derived/f"{first}.coinapi-derived.json"
+            sidecar_bytes = first_sidecar.read_bytes()
+            try:
+                valid_rows = gzip.decompress(derived_bytes).decode("utf-8")
+                self.assertIn("0.0050", valid_rows)
+                changed = gzip.compress(valid_rows.replace("0.0050", "0.0060").encode())
+                self.assertEqual(
+                    len(valid_rows.splitlines()),
+                    len(gzip.decompress(changed).decode().splitlines()),
+                )
+                calls = [0]
+                def mutate_derived_after_oracle(spec_path, derived_root):
+                    checked = actual_oracle(spec_path, derived_root)
+                    calls[0] += 1
+                    if calls[0] == 1:
+                        daily.write_bytes(changed)
+                    return checked
+                with patch(
+                    "research.tools.v99_r106_i1_coinapi_661d_original_byte_chain."
+                    "independent_original_byte_replay",
+                    side_effect=mutate_derived_after_oracle,
+                ):
+                    with self.assertRaisesRegex(
+                        ValueError, "COINAPI_DERIVED_BYTES_CHANGED_DURING_REPLAY",
+                    ):
+                        verify(specs, original, derived, fixture=True)
+                self.assertEqual(calls[0], 1)
+                daily.write_bytes(derived_bytes)
+                sidecar_doc = json.loads(sidecar_bytes)
+                sidecar_doc["derived_gzip_sha256"] = "0" * 64
+                first_sidecar.write_text(json.dumps(sidecar_doc))
+                with self.assertRaisesRegex(
+                    ValueError, "COINAPI_DERIVED_BYTES_NOT_BOUND_TO_SIDECAR",
+                ):
+                    verify(specs, original, derived, fixture=True)
+            finally:
+                daily.write_bytes(derived_bytes)
+                first_sidecar.write_bytes(sidecar_bytes)
             path.write_bytes(b"tampered")
             with self.assertRaisesRegex(ValueError, "COINAPI_ORIGINAL_BYTES_CHANGED"):
                 verify(specs, original, derived, fixture=True)
