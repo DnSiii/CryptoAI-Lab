@@ -182,7 +182,9 @@ def evaluate(root,expected_csv,expected_sha):
             "holdout_accessed":False,"benchmarks_accessed":False,
             "paper_or_live_authorized":False}
     root=Path(root)
-    if not (root/"native_pages_manifest.json").is_file():
+    manifest_path=root/"native_pages_manifest.json"
+    authorized_jsonl=root/"authorized_funding_pages.jsonl"
+    if not manifest_path.is_file() and not authorized_jsonl.is_file():
         result["blocker"]="official fundingRate raw pages + authenticated custody absent"
         return result
     if not (root/"account_costs_manifest.json").is_file():
@@ -190,7 +192,24 @@ def evaluate(root,expected_csv,expected_sha):
         return result
     try:
         expected=expected_events(expected_csv,expected_sha)
-        native=native_mark_pages(read_manifest(root/"native_pages_manifest.json"),root,expected)
+        if manifest_path.is_file() and authorized_jsonl.is_file():
+            fail("NATIVE_AMBIGUOUS_SOURCE_FORMAT")
+        if manifest_path.is_file():
+            native=native_mark_pages(read_manifest(manifest_path),root,expected)
+        else:
+            # The authorized raw JSONL handoff is the same format as the
+            # existing V98 exact-mark importer. Bind it to the SHA-pinned
+            # native funding calendar BEFORE emitting any structural receipt.
+            from v98_authorized_funding_mark_ingest import validate
+            raw_receipt=validate(authorized_jsonl,expected_csv,
+                                 root/"v98_authorized_native_preflight.json")
+            if raw_receipt["records"]!=len(expected):
+                fail("NATIVE_JSONL_EXPECTED_COUNT")
+            native={"event_count":raw_receipt["records"],"assets":list(ASSETS),
+                    "source_pages":raw_receipt["pages"],
+                    "native_marks_reconciled":True,
+                    "exchange_origin_independently_authenticated":False,
+                    "raw_jsonl_receipt_sha256":sha256(root/"v98_authorized_native_preflight.json")}
         costs=cost_evidence(read_manifest(root/"account_costs_manifest.json"),root)
     except (OSError,KeyError,TypeError,ValueError) as exc:
         result["blocker"]=str(exc)
