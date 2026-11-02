@@ -269,7 +269,7 @@ def bind_original_open_inventories(report, journal):
 
 
 def build(spec_root, original_root, derived_root, original_signal_path,
-          *, license_document=None):
+          *, license_document=None, native_journal=None):
     """Nonfixture complete 180-book bridge; source parity, never native economics."""
     chain = verify_chain(spec_root, original_root, derived_root,
                          fixture=False, license_document=license_document)
@@ -313,6 +313,35 @@ def build(spec_root, original_root, derived_root, original_signal_path,
                 "last_eligible_stale_books": item["stale"][asset],
                 "original_books": item["books"][asset],
             })
+    native_binding = None
+    if native_journal is not None:
+        # A real source-only bridge: verify ALL native OPEN candidate books and
+        # every OPEN/MARK quote directly against original CoinAPI 100ns rows.
+        # Never turn the unverified source size unit into a native lot or NAV.
+        from research.tools.v99_r106_i1_coinapi_original_event_identity import (
+            audit_requests,
+        )
+        from research.tools.v99_r106_i1_original_event_quote_identity import (
+            _requests,
+        )
+        journal_path = Path(native_journal)
+        _safe(journal_path.parent, journal_path)
+        before = digest(journal_path)
+        journal = json.loads(journal_path.read_text(encoding="utf-8"))
+        if not isinstance(journal, dict) or journal.get("fixture") is not False:
+            raise ValueError("NONFIXTURE_COINAPI_NATIVE_JOURNAL_REQUIRED")
+        preliminary = {
+            "schema": SCHEMA, "original_intents_checked": 180,
+            "promotion_authorized": False, "rows": result,
+        }
+        native_binding = bind_original_open_inventories(preliminary, journal)
+        original_events = audit_requests(spec_root, original_root, _requests(journal))
+        if (original_events["promotion_authorized"] is not False
+                or original_events["economic_train_executed"] is not False):
+            raise ValueError("UNTRUSTED_COINAPI_NATIVE_EVENT_SOURCE")
+        if digest(journal_path) != before:
+            raise ValueError("COINAPI_NATIVE_JOURNAL_CHANGED_DURING_SOURCE_AUDIT")
+        native_binding["original_100ns_open_mark_event_parity"] = original_events
     return {
         "schema": SCHEMA,
         "status": "COINAPI_ORIGINAL_FULL_OPEN_INVENTORY_PARITY_NO_NATIVE_ECONOMICS",
@@ -320,6 +349,7 @@ def build(spec_root, original_root, derived_root, original_signal_path,
         "original_sundays_independently_replayed": 90,
         "original_sunday_rows_scanned": originals_scanned,
         "original_vendor_files_byte_replayed": chain["original_vendor_files_byte_replayed"],
+        "native_journal_original_open_mark_source_parity": native_binding,
         "source_quote_units_native_lots_certified": False,
         "original_vendor_day_manifest_created": False,
         "derived_day_claimed_original": False,
@@ -341,7 +371,9 @@ if __name__ == "__main__":
     p.add_argument("derived_root")
     p.add_argument("original_signal_json")
     p.add_argument("--license-document", required=True)
+    p.add_argument("--native-journal")
     args = p.parse_args()
     print(json.dumps(build(args.spec_root, args.original_root, args.derived_root,
                            args.original_signal_json,
-                           license_document=args.license_document), sort_keys=True))
+                           license_document=args.license_document,
+                           native_journal=args.native_journal), sort_keys=True))
