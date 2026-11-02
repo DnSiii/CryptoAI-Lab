@@ -1,0 +1,9 @@
+# V98 VZ — frozen source-incidence rejection (2026-11-02)
+
+**DECISION: REJECT_VZ_PRE_PNL_INCIDENCE.** No economic simulation, candidate, paper, or live authorization. Preregistered before code and source evidence at commit `feca0d06f3fadc263e30e8794cef1fc9271296d3`. VZ tested a distinct 6h/24h cross-sectional liquidity-reversal architecture, not a retuning of rejected VY/VX/VW.
+
+GitHub Actions source run [41440374974](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/41440374974) (commit `7f00a930`): Clean-4 full 27,048 hourly observations, 13,524 native funding events, 1,096 causal daily decisions; synthetic future-mutation check passed. Preregistered minimum **109** active decisions per optional sleeve (10% of 1,096). Observed Growth Core **1,096**, Opportunity **537**, Relative Value **546**, Stress/Recovery **53**. Stress failed the pre-PnL incidence gate, therefore **no PnL was calculated and no 30-cell ledger was produced**. A green CI run here means only that the software correctly recorded rejection; it does NOT indicate strategy approval.
+
+Do not lower the 109-event gate, change the stress threshold, rescue VZ with post-result tuning, or transplant its modules into another candidate without a genuinely distinct preregistered thesis. VZ is frozen rejected. V14/V15/V99, 2026+, Phase083 holdout, XRP quarantine, V16/V99 Frozen and paper untouched.
+
+External executable-proof blockers remain: 13,524 original exchange settlement `markPrice` ticks with independent custody (authorized Binance USD-M response pages/export and SHA256), historical account-specific fee tiers, historical spread/depth/impact and margin/liquidation rules. Without these, simulated PnL would not be authenticated executable PnL. Continue toward a distinct complete high-growth seven-slot architecture; do not claim a champion.
