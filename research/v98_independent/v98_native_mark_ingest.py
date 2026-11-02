@@ -7,6 +7,7 @@ is necessary but not sufficient for independent exchange-origin authentication.
 """
 from __future__ import annotations
 import argparse,csv,hashlib,json,math,re,tempfile
+from email.utils import parsedate_to_datetime,format_datetime
 from datetime import datetime,timezone
 from decimal import Decimal,InvalidOperation
 from pathlib import Path
@@ -53,25 +54,59 @@ def verify_manifest_entry(entry,root):
     if (url.scheme!="https" or url.hostname!="fapi.binance.com"
         or url.path!="/fapi/v1/fundingRate" or url.username or url.password or url.fragment):
         raise ValueError("V98_MARK_UNOFFICIAL_CAPTURE_URL")
-    query=parse_qs(url.query)
+    query=parse_qs(url.query,keep_blank_values=True)
     if set(query)-{"symbol","startTime","endTime","limit"} or query.get("symbol")!=[symbol]:
         raise ValueError("V98_MARK_CAPTURE_QUERY")
+    try:
+        limit=int(query.get("limit",["100"])[0])
+        start=int(query["startTime"][0]) if "startTime" in query else None
+        end=int(query["endTime"][0]) if "endTime" in query else None
+        if not 1<=limit<=1000 or (start is not None and start<0) or (end is not None and end<0) or (start is not None and end is not None and start>end):
+            raise ValueError("V98_MARK_CAPTURE_QUERY_BOUNDS")
+        if any(len(v)!=1 for v in query.values()):
+            raise ValueError("V98_MARK_CAPTURE_DUPLICATE_QUERY")
+    except (TypeError,ValueError) as exc:
+        raise ValueError("V98_MARK_CAPTURE_QUERY_BOUNDS") from exc
     if int(entry["http_status"])!=200:
         raise ValueError("V98_MARK_CAPTURE_NOT_HTTP_200")
     if not isinstance(entry["response_headers"],dict) or not entry["response_headers"]:
         raise ValueError("V98_MARK_MISSING_RESPONSE_HEADERS")
+    headers={str(k).lower():str(v) for k,v in entry["response_headers"].items()}
+    if "json" not in headers.get("content-type","").lower():
+        raise ValueError("V98_MARK_NONJSON_RESPONSE_HEADERS")
+    if not headers.get("date"):
+        raise ValueError("V98_MARK_MISSING_SERVER_DATE")
+    try:
+        server_date=parsedate_to_datetime(headers["date"])
+    except (ValueError,TypeError,IndexError) as exc:
+        raise ValueError("V98_MARK_BAD_SERVER_DATE") from exc
+    if server_date.tzinfo is None:
+        raise ValueError("V98_MARK_BAD_SERVER_DATE")
     try:
         when=datetime.fromisoformat(entry["retrieved_at_utc"].replace("Z","+00:00"))
     except (ValueError,AttributeError):
         raise ValueError("V98_MARK_BAD_RETRIEVAL_TIME")
     if when.tzinfo is None or when.utcoffset().total_seconds()!=0 or when>datetime.now(timezone.utc):
         raise ValueError("V98_MARK_BAD_RETRIEVAL_TIME")
+    if abs((when-server_date).total_seconds())>600:
+        raise ValueError("V98_MARK_SERVER_DATE_RETRIEVAL_MISMATCH")
     try:
         records=json.loads(raw)
     except (UnicodeDecodeError,json.JSONDecodeError):
         raise ValueError("V98_MARK_INVALID_RAW_JSON")
     if not isinstance(records,list):
         raise ValueError("V98_MARK_RESPONSE_NOT_LIST")
+    if len(records)>limit:
+        raise ValueError("V98_MARK_PAGE_EXCEEDS_REQUEST_LIMIT")
+    for record in records:
+        if not isinstance(record,dict):
+            raise ValueError("V98_MARK_BAD_PAGE_RECORD")
+        try:
+            ts=int(record["fundingTime"])
+        except (KeyError,ValueError,TypeError) as exc:
+            raise ValueError("V98_MARK_BAD_PAGE_TIME") from exc
+        if (start is not None and ts<start) or (end is not None and ts>end):
+            raise ValueError("V98_MARK_PAGE_OUTSIDE_REQUEST_WINDOW")
     return symbol,records
 
 def reconcile(captures,root,expected):
@@ -157,12 +192,13 @@ def self_test():
         entry={"symbol":"BTCUSDT","file":"capture.json","sha256":digest(raw),
                "source_url":"https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1000",
                "retrieved_at_utc":datetime.now(timezone.utc).isoformat(),
-               "http_status":200,"response_headers":{"Content-Type":"application/json"}}
+               "http_status":200,"response_headers":{"Content-Type":"application/json",
+                   "Date":format_datetime(datetime.now(timezone.utc),usegmt=True)}}
         expected={("BTCUSDT",START_MS):(.0001,99.,101.),
                   ("BTCUSDT",START_MS+8*HOUR_MS):(-.0002,100.,102.)}
         assert len(reconcile([entry],root,expected))==2
         checks=0
-        for bad in ("hash","duplicate","rate","missing","url","envelope"):
+        for bad in ("hash","duplicate","rate","missing","url","envelope","server_date","content_type","limit","window"):
             changed=dict(entry)
             exp=dict(expected)
             if bad=="hash":changed["sha256"]="0"*64
@@ -176,11 +212,20 @@ def self_test():
             elif bad=="missing":exp[("BTCUSDT",START_MS+16*HOUR_MS)]=(.0001,99.,101.)
             elif bad=="url":changed["source_url"]="https://example.com/fapi/v1/fundingRate?symbol=BTCUSDT"
             elif bad=="envelope":exp[("BTCUSDT",START_MS)]=(.0001,101.,102.)
+            elif bad=="server_date":
+                changed["response_headers"]={"Content-Type":"application/json"}
+            elif bad=="content_type":
+                changed["response_headers"]={"Content-Type":"text/html",
+                                             "Date":entry["response_headers"]["Date"]}
+            elif bad=="limit":
+                changed["source_url"]="https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1"
+            elif bad=="window":
+                changed["source_url"]="https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime="+str(START_MS+8*HOUR_MS)+"&limit=1000"
             try:reconcile([changed],root,exp)
             except ValueError:checks+=1
             else:raise AssertionError("V98_MARK_TAMPER_NOT_REJECTED_"+bad)
             (root/"capture.json").write_bytes(raw)
-        if checks!=6:raise AssertionError("V98_MARK_NEGATIVE_TESTS")
+        if checks!=10:raise AssertionError("V98_MARK_NEGATIVE_TESTS")
     return {"decision":"PASS_V98_MARK_IMPORTER_SYNTHETIC_ONLY_NO_EXCHANGE_EVIDENCE",
             "positive_test":1,"negative_tests":checks,
             "2026_accessed":False,"paper_live_authorized":False}
