@@ -21,6 +21,9 @@ class EvidenceGateTests(unittest.TestCase):
             for a in gate.ASSETS:
                 for t in self.ts:w.writerow([a,t,"0.00010000"])
         self.expected_sha=digest(self.expected);self.pages=[]
+        old_pin=gate.PINNED_EXPECTED_FUNDING_SHA256
+        gate.PINNED_EXPECTED_FUNDING_SHA256=self.expected_sha
+        self.addCleanup(lambda:setattr(gate,"PINNED_EXPECTED_FUNDING_SHA256",old_pin))
         for a in gate.ASSETS:
             p=self.root/(a+".json")
             p.write_text(json.dumps([{"symbol":a,"fundingTime":t,
@@ -51,6 +54,10 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertEqual(r["native"]["event_count"],8)
         self.assertFalse(r["native"]["exchange_origin_independently_authenticated"])
         self.assertFalse(r["paper_or_live_authorized"])
+
+    def test_unpinned_expected_source_fails(self):
+        gate.PINNED_EXPECTED_FUNDING_SHA256="0"*64
+        self.assertIn("UNPINNED_EXPECTED_SOURCE",self.evaluate()["blocker"])
 
     def test_missing_native_pages_fails_closed(self):
         (self.root/"native_pages_manifest.json").unlink()
