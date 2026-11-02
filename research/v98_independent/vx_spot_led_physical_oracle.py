@@ -15,7 +15,7 @@ def replay_audit(ledger_path,data):
     if len(rows)!=HOURS:raise ValueError("VX_ORACLE_HOURS")
     previous_spot=np.zeros(4);previous_perp=np.zeros(4)
     prev_spot_close=None;prev_perp_close=None;previous_equity=10000.
-    previous_cash=10000.;mismatches=0;max_error=0.;turnover=0.
+    previous_cash=10000.;mismatches=0;max_error=0.
     for t,row in enumerate(rows):
         if int(row["hour"])!=t:raise ValueError("VX_ORACLE_HOUR_ORDER")
         get=lambda key:float(row[key])
