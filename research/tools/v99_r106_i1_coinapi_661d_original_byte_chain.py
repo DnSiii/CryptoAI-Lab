@@ -94,6 +94,7 @@ def verify(spec_root, original_root, derived_root, *, fixture=False,
                 or sidecar.get("derived_file_must_never_be_attested_as_original") is not True
                 or sidecar.get("native_lot_fee_margin_delivery_certified") is not False):
             raise ValueError("FORGED_COINAPI_CHAIN_RIGHTS_OR_PROVENANCE")
+        day_originals = []
         for source in spec["sources"]:
             if not isinstance(source, dict) or set(source) != {
                 "path", "source_key", "symbol", "sha256"
@@ -115,8 +116,15 @@ def verify(spec_root, original_root, derived_root, *, fixture=False,
                 raise ValueError("COINAPI_ORIGINAL_KEY_DAY_MISMATCH")
             if _sha(path) != source["sha256"]:
                 raise ValueError("COINAPI_ORIGINAL_BYTES_CHANGED")
+            day_originals.append((path, source["sha256"]))
             original_files += 1
         result = independent_original_byte_replay(spec_path, derived_root)
+        # An original can be replaced after its initial digest and after the
+        # independent oracle reads it. Recheck ALL source bytes before the
+        # day's derived data can be accepted by the nonfixture chain.
+        for path, expected_sha in day_originals:
+            if _sha(path) != expected_sha:
+                raise ValueError("COINAPI_ORIGINAL_BYTES_CHANGED_DURING_REPLAY")
         if (result.get("status") !=
                 "INDEPENDENT_DERIVED_BYTE_REPLAY_MATCH_NOT_ORIGINAL_ECONOMICS"
                 or result.get("promotion_authorized") is not False
