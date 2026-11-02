@@ -65,6 +65,32 @@ class Coinapi661DayChainTests(unittest.TestCase):
             first = FIRST.isoformat()
             path = original/f"{first}-BTC.csv.gz"
             original_bytes = path.read_bytes()
+            # Regression: mutate original bytes AFTER the independent oracle
+            # finishes its first-day replay. The pre-oracle hash alone passes.
+            from unittest.mock import patch
+            from research.tools.v99_r106_i1_coinapi_661d_original_byte_chain import (
+                independent_original_byte_replay as actual_oracle,
+            )
+            calls = [0]
+            def mutate_after_oracle(spec_path, derived_root):
+                checked = actual_oracle(spec_path, derived_root)
+                calls[0] += 1
+                if calls[0] == 1:
+                    path.write_bytes(b"replaced-after-independent-replay")
+                return checked
+            try:
+                with patch(
+                    "research.tools.v99_r106_i1_coinapi_661d_original_byte_chain."
+                    "independent_original_byte_replay",
+                    side_effect=mutate_after_oracle,
+                ):
+                    with self.assertRaisesRegex(
+                        ValueError, "COINAPI_ORIGINAL_BYTES_CHANGED_DURING_REPLAY",
+                    ):
+                        verify(specs, original, derived, fixture=True)
+                self.assertEqual(calls[0], 1)
+            finally:
+                path.write_bytes(original_bytes)
             path.write_bytes(b"tampered")
             with self.assertRaisesRegex(ValueError, "COINAPI_ORIGINAL_BYTES_CHANGED"):
                 verify(specs, original, derived, fixture=True)
