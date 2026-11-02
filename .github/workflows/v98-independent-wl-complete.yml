@@ -7,6 +7,7 @@ on:
       - 'research/v98_independent/wl_funding_buffer_compound.py'
       - 'research/v98_independent/wl_funding_buffer_physical.py'
       - 'research/v98_independent/wl_independent_ledger_replay.py'
+      - 'research/v98_independent/wl_governor_synthetic_stress_test.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +31,10 @@ jobs:
           set -euo pipefail
           python -m py_compile research/v98_independent/wl_funding_buffer_compound.py research/v98_independent/wl_funding_buffer_physical.py research/v98_independent/wl_independent_ledger_replay.py
           python research/v98_independent/wl_funding_buffer_physical.py --self-test
+      - name: Synthetic hourly governor trim and adverse margin proof (NOT market PnL)
+        run: |
+          set -euo pipefail
+          python research/v98_independent/wl_governor_synthetic_stress_test.py
       - uses: actions/download-artifact@v4
         with:
           name: v98-independent-clean4-2022-2024-pinned-source
