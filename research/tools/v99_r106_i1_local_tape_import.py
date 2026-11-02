@@ -156,6 +156,10 @@ def build_manifest(root: Path, *, fixture: bool, license_evidence: Path | None =
         raise ValueError("INVALID_FIXTURE_FLAG")
     if not root.is_dir() or root.is_symlink():
         raise ValueError("MISSING_OR_UNSAFE_ORIGINAL_ROOT")
+    # A CoinAPI-derived native-shape gzip is NOT an original Deribit/Tardis
+    # archive. Refuse laundering its bytes into an ORIGINAL-source manifest.
+    if any(root.glob("*.coinapi-derived.json")):
+        raise ValueError("DERIVED_COINAPI_TAPE_CANNOT_BE_ORIGINAL_SOURCE")
     manifest = root / "manifest.json"
     if manifest.exists() or manifest.is_symlink():
         raise ValueError("REFUSE_OVERWRITE_EXISTING_MANIFEST")
