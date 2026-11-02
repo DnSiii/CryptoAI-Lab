@@ -96,11 +96,57 @@ class FixedTargetCoinAPIListingTests(unittest.TestCase):
         self.assertEqual(result["eth_put_files_listed"], 1)
         self.assertTrue(result["listing_complete"])
         self.assertEqual(result["status"],
-                         "BTC_ETH_TARGET_PUT_OBJECTS_LISTED_NOT_SOURCE_CERTIFIED")
+                         "BTC_ETH_PUT_OBJECTS_BUT_NO_FIXED_TENOR_PAIR_PROOF")
+        self.assertFalse(result["fixed_tenor_pair_inventory_shown"])
         self.assertFalse(result["original_24h_bbo_and_size_certified"])
         self.assertFalse(result["historical_license_and_fee_terms_certified"])
         self.assertFalse(result["promotion_authorized"])
         self.assertNotIn("secret-coinapi", json.dumps(result))
+
+    def test_ex_ante_28_35d_same_expiry_two_strike_presence_only(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        def obj(asset, expiry, strike):
+            name = asset + "-" + expiry + "-" + str(strike) + "-P"
+            return {"Key": "T-QUOTES/D-20220123/E-DERIBIT/"
+                    "IDDI-123+SC-DERIBIT_OPT_" + asset + "_USD+S-" + name + ".csv.gz",
+                    "Size": 500}
+        # 21FEB22 expires at 08:00 UTC: 28d8h after fixed 24JAN 00:00.
+        # 28FEB22 expires at 35d8h and is therefore ineligible.
+        items = [obj(a, "21FEB22", k) for a in ("BTC", "ETH")
+                 for k in ((50000, 49000) if a == "BTC" else (3000, 2900))]
+        items += [obj("BTC", "28FEB22", 48000)]
+        def fake(*a, **kw):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({
+                "IsTruncated": False, "Contents": items}), stderr="")
+        result = probe_target(api_key="key", runner=fake)
+        self.assertEqual(result["fixed_tenor_candidate_files_by_asset"],
+                         {"BTC": 2, "ETH": 2})
+        self.assertEqual(result["fixed_tenor_two_strike_expiries_by_asset"],
+                         {"BTC": 1, "ETH": 1})
+        self.assertTrue(result["fixed_tenor_pair_inventory_shown"])
+        self.assertEqual(result["status"],
+                         "FIXED_TENOR_PAIR_OBJECTS_LISTED_NOT_QUOTES_OR_FILLS")
+        self.assertFalse(result["original_24h_bbo_and_size_certified"])
+        self.assertFalse(result["promotion_authorized"])
+
+    def test_two_strikes_on_different_expiries_do_not_make_vertical(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        items = []
+        for asset in ("BTC", "ETH"):
+            for expiry, strike in (("21FEB22", 50000), ("25FEB22", 49000)):
+                items.append({"Key": "T-QUOTES/D-20220123/E-DERIBIT/"
+                              "IDDI-123+SC-DERIBIT_OPT_" + asset + "_USD+S-"
+                              + asset + "-" + expiry + "-" + str(strike) + "-P.csv.gz",
+                              "Size": 100})
+        def fake(*a, **kw):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({
+                "IsTruncated": False, "Contents": items}), stderr="")
+        result = probe_target(api_key="key", runner=fake)
+        self.assertEqual(result["fixed_tenor_two_strike_expiries_by_asset"],
+                         {"BTC": 0, "ETH": 0})
+        self.assertFalse(result["fixed_tenor_pair_inventory_shown"])
+        self.assertEqual(result["status"],
+                         "BTC_ETH_PUT_OBJECTS_BUT_NO_FIXED_TENOR_PAIR_PROOF")
 
     def test_wrong_exchange_and_duplicate_key_fail_closed(self):
         from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
