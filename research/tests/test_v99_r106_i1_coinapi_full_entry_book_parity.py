@@ -114,6 +114,46 @@ class OriginalSundayFullEntryParityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "NONFIXED_OR_SEALED_COINAPI_ENTRY_DAY"):
             verify_sunday(self.spec, self.original, self.derived, CLOCK + 86400000)
 
+    def test_full_257_contract_inventory_crosses_old_limit_with_exact_tie_order(self):
+        # One real-day shaped but SYNTHETIC original file per contract.
+        # 257 files must be streamed through multiple bounded merge batches.
+        self.symbols = tuple(
+            [f"BTC-14JAN22-{15000 + i}-P" for i in range(256)]
+            + ["ETH-14JAN22-3000-P"]
+        )
+        for i, symbol in enumerate(self.symbols):
+            # Same arrival tick for multiple contracts tests original-index ties;
+            # interleaved tick values exercise the external merge ordering.
+            tick = i % 3
+            self.write_source(symbol, [
+                f",2021-12-12T23:59:59.0000000,"
+                f"2021-12-12T23:59:59.000000{tick},0.0050,2,0.0045,3\\n"
+            ])
+        self.update_spec()
+        report = self.derive()
+        self.assertEqual(report["derived_rows"], 257)
+        checked = self.check()
+        self.assertEqual(checked["original_partition_count"], 257)
+        self.assertEqual(checked["original_rows_scanned"], 257)
+        self.assertEqual(len(checked["books"]["BTC"]), 256)
+        self.assertEqual(len(checked["books"]["ETH"]), 1)
+        with gzip.open(self.derived / (DAY + ".csv.gz"), "rt") as stream:
+            rows = list(__import__("csv").DictReader(stream))
+        self.assertEqual(len(rows), 257)
+        self.assertEqual([int(row["local_timestamp"]) for row in rows],
+                         sorted(int(row["local_timestamp"]) for row in rows))
+        self.assertFalse(checked["economic_train_executed"])
+
+    def test_4097_contract_spec_rejected_before_any_original_read(self):
+        self.spec.write_text(json.dumps({
+            "schema": DAY_SCHEMA, "day": DAY,
+            "sources": [{}] * 4097,
+        }), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "INVALID_DERIVED_DAY_SPECIFICATION"):
+            self.derive()
+        self.assertEqual(list(self.derived.iterdir()), [])
+
+
     def test_missing_license_never_reaches_economics(self):
         with self.assertRaisesRegex(ValueError, "WRITTEN_COINAPI_CHAIN_LICENSE_REQUIRED"):
             build(self.specs, self.original, self.derived, self.root / "signals.json")
