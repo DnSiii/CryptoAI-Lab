@@ -162,9 +162,13 @@ class OriginalSundayFullEntryParityTests(unittest.TestCase):
         sunday = self.check()
         grid = [(int(d.timestamp() * 1000), asset)
                 for d in eligible(True) for asset in ("BTC", "ETH")]
-        rows = [{"decision_ms": at, "asset": asset, "original_books": (
-            sunday["books"][asset] if at == CLOCK else [])}
-            for at, asset in grid]
+        from research.tools.v99_r106_i1_train_numeric_gate import _fold
+        rows = [{"decision_ms": at, "asset": asset, "fold": _fold(at),
+                 "signal": ("POSITIVE_EX_ANTE_PREMIUM"
+                            if (at, asset) == (CLOCK, "BTC") else "NO_PREMIUM"),
+                 "original_books": (
+                     sunday["books"][asset] if at == CLOCK else [])}
+                for at, asset in grid]
         report = {
             "schema": "V99_I1_COINAPI_ORIGINAL_180_ENTRY_BOOK_PARITY_V1",
             "original_intents_checked": 180,
@@ -182,6 +186,9 @@ class OriginalSundayFullEntryParityTests(unittest.TestCase):
             "bid_native_lots": "9999", "ask_native_lots": "9999",
         }
         event = {"kind": "OPEN", "at_ms": CLOCK, "asset": "BTC",
+                 "signal": {"decision_ms": CLOCK, "asset": "BTC",
+                            "fold": rows[0]["fold"],
+                            "signal": "POSITIVE_EX_ANTE_PREMIUM"},
                  "quotes": [raw]}
         journal = {"schema": JOURNAL, "scenarios": {
             "severe": [{"events": [copy.deepcopy(event)]}],
@@ -213,6 +220,32 @@ class OriginalSundayFullEntryParityTests(unittest.TestCase):
     def test_incomplete_preregistered_grid_rejected(self):
         report, journal = self._source_only_native_fixture()
         report["rows"][2]["decision_ms"] = report["rows"][0]["decision_ms"]
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_OR_INVALID_COINAPI_ORIGINAL_GRID"):
+            bind_original_open_inventories(report, journal)
+
+    def test_original_open_rejects_signal_mismatched_to_source(self):
+        report, journal = self._source_only_native_fixture()
+        journal["scenarios"]["supersevere"][0]["events"][0]["signal"]["signal"] = "NO_PREMIUM"
+        with self.assertRaisesRegex(ValueError, "UNBOUND_OR_NONPOSITIVE_COINAPI_OPEN_SIGNAL"):
+            bind_original_open_inventories(report, journal)
+
+    def test_original_open_rejects_matching_but_nonpositive_source_signal(self):
+        report, journal = self._source_only_native_fixture()
+        report["rows"][0]["signal"] = "NO_PREMIUM"
+        for scenario in ("severe", "supersevere"):
+            journal["scenarios"][scenario][0]["events"][0]["signal"]["signal"] = "NO_PREMIUM"
+        with self.assertRaisesRegex(ValueError, "UNBOUND_OR_NONPOSITIVE_COINAPI_OPEN_SIGNAL"):
+            bind_original_open_inventories(report, journal)
+
+    def test_original_open_rejects_missing_signal_receipt(self):
+        report, journal = self._source_only_native_fixture()
+        del journal["scenarios"]["severe"][0]["events"][0]["signal"]
+        with self.assertRaisesRegex(ValueError, "UNBOUND_OR_NONPOSITIVE_COINAPI_OPEN_SIGNAL"):
+            bind_original_open_inventories(report, journal)
+
+    def test_source_fold_mutation_rejected_before_open_parity(self):
+        report, journal = self._source_only_native_fixture()
+        report["rows"][0]["fold"] = 5
         with self.assertRaisesRegex(ValueError, "DUPLICATE_OR_INVALID_COINAPI_ORIGINAL_GRID"):
             bind_original_open_inventories(report, journal)
 
