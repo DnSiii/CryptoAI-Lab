@@ -151,8 +151,12 @@ def convert(specification, output_root, *, fixture=False, license_document=None)
         heap = []
         for i, iterator in enumerate(iterators):
             item = next(iterator, None)
-            if item is not None:
-                heapq.heappush(heap, (item[0], i, item[1]))
+            if item is None:
+                # A header-only gzip must not impersonate source presence
+                # for a declared BTC/ETH contract, even if another source
+                # makes the merged day nonempty.
+                raise ValueError("EMPTY_DECLARED_ORIGINAL_COINAPI_SOURCE")
+            heapq.heappush(heap, (item[0], i, item[1]))
         with open(tmp, "wb") as raw:
             with gzip.GzipFile(fileobj=raw, mode="wb", mtime=0, filename="") as compressed:
                 with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text:
