@@ -20,7 +20,8 @@ START=1669852800000  # 2022-12-01 00:00 UTC
 END=1767225600000    # 2026-01-01 00:00 UTC, exclusive
 SLOT=8*3600*1000
 EXPECTED=(END-START)//SLOT*len(ASSETS)
-OFFICIAL_HOST="fapi.binance.com"
+OFFICIAL_HOSTS=("fapi.binance.com","fapi1.binance.com")
+MAX_SETTLEMENT_OFFSET_MS=60000
 
 def digest(b):
     return hashlib.sha256(b).hexdigest()
@@ -39,14 +40,18 @@ def canonical_calendar():
 def read_expected(path):
     with Path(path).open(newline="") as f:
         rd=csv.DictReader(f)
-        if rd.fieldnames!=["asset","fundingTime","fundingRate"]:
+        if rd.fieldnames==["asset","fundingTime","fundingRate"]:
+            time_col,rate_col="fundingTime","fundingRate"
+        elif rd.fieldnames==["asset","funding_time_ms","funding_rate"]:
+            time_col,rate_col="funding_time_ms","funding_rate"
+        else:
             raise ValueError("EXPECTED_SCHEMA")
         rows={}
         for r in rd:
-            a=r["asset"]; t=int(r["fundingTime"])
+            a=r["asset"]; t=int(r[time_col])
             k=(a,t)
             if k in rows: raise ValueError("EXPECTED_DUPLICATE")
-            rows[k]=dec(r["fundingRate"])
+            rows[k]=dec(r[rate_col])
     if len(rows)!=EXPECTED or set(rows)!=canonical_calendar():
         raise ValueError("EXPECTED_NATIVE_FUNDING_CALENDAR")
     return rows
@@ -68,7 +73,7 @@ def validate(pages_path,expected_path,output_path):
             page=json.loads(line,object_pairs_hook=unique_json_object)
             url=page["url"]
             parsed=urlparse(url)
-            if (parsed.scheme!="https" or parsed.netloc!=OFFICIAL_HOST or
+            if (parsed.scheme!="https" or parsed.netloc not in OFFICIAL_HOSTS or
                 parsed.path!="/fapi/v1/fundingRate" or parsed.fragment):
                 raise ValueError("NON_OFFICIAL_ENDPOINT")
             params=parse_qs(parsed.query)
@@ -107,15 +112,19 @@ def validate(pages_path,expected_path,output_path):
                 if row["symbol"]!=a: raise ValueError("SYMBOL_MISMATCH")
                 if type(row["fundingTime"]) is not int:
                     raise ValueError("FUNDING_TIME_NOT_INTEGER")
-                t=row["fundingTime"]; k=(a,t)
-                if t<lo or t>hi or t<START or t>=END or (t-START)%SLOT:
+                t=row["fundingTime"]
+                if t<lo or t>hi or t<START or t>=END:
                     raise ValueError("OFF_CALENDAR_OR_FUTURE_EVENT")
+                slot=START+((t-START)//SLOT)*SLOT
+                if t-slot>MAX_SETTLEMENT_OFFSET_MS:
+                    raise ValueError("FUNDING_SETTLEMENT_OFFSET_GT_60S")
+                k=(a,slot)
                 if k in seen: raise ValueError("DUPLICATE_FUNDING_EVENT")
                 rate=dec(row["fundingRate"]); mark=dec(row["markPrice"])
                 if mark<=0: raise ValueError("INVALID_EXACT_MARK")
                 if k not in expected or abs(rate-expected[k])>Decimal("0.000000005"):
                     raise ValueError("NATIVE_FUNDING_RATE_CONFLICT")
-                seen[k]=(str(rate),str(mark))
+                seen[k]=(str(rate),str(mark),t)
                 times.append(t)
             if times!=sorted(times) or len(times)!=len(set(times)):
                 raise ValueError("UNSORTED_PAGE")
@@ -130,15 +139,16 @@ def validate(pages_path,expected_path,output_path):
     csv_path=out.with_suffix(".csv")
     with csv_path.open("w",newline="") as f:
         w=csv.writer(f)
-        w.writerow(("asset","fundingTime","fundingRate","markPrice"))
+        w.writerow(("asset","fundingSlotTime","fundingTime","fundingRate","markPrice"))
         for a,t in sorted(seen,key=lambda x:(x[1],x[0])):
-            rate,mark=seen[(a,t)]
-            w.writerow((a,t,rate,mark))
+            rate,mark,actual_time=seen[(a,t)]
+            w.writerow((a,t,actual_time,rate,mark))
     receipt={"decision":"STRUCTURAL_MATCH_ONLY_ORIGIN_ATTESTATION_REQUIRED",
              "records":len(seen),"pages":len(page_receipts),"train_start_ms":START,
              "train_end_exclusive_ms":END,"exact_marks_csv_sha256":digest(csv_path.read_bytes()),
              "source_pages_sha256":digest(Path(pages_path).read_bytes()),
              "native_expected_sha256":digest(Path(expected_path).read_bytes()),
+             "settlement_offset_max_ms":MAX_SETTLEMENT_OFFSET_MS,
              "pages_provenance":page_receipts,
              "caveat":"User-supplied HTTP headers and SHA256 are not cryptographic proof of exchange origin. Independent authorized custody required before using for system PnL.",
              "2026_data_used":False,"pnl_computed":False}
@@ -181,6 +191,35 @@ def self_test():
                           "response_body_sha256":digest(raw.encode())})
         pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         assert validate(pages,expected,Path(td)/"receipt.json")["records"]==12
+        # Official settlement events may be up to 60s after their authenticated 8h slot.
+        shifted=json.loads(lines[0]["response_body"])
+        shifted[0]["fundingTime"]+=29000
+        lines[0]["response_body"]=json.dumps(shifted)
+        lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
+        pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
+        assert validate(pages,expected,Path(td)/"shifted.json")["records"]==12
+        with (Path(td)/"shifted.csv").open(newline="") as f:
+            shifted_rows=list(csv.DictReader(f))
+        assert any(r["fundingSlotTime"]==str(START) and
+                   r["fundingTime"]==str(START+29000) for r in shifted_rows)
+        # Both existing V98 expected-event CSV contracts must ingest identically.
+        alternate=Path(td)/"native_snake.csv"
+        with alternate.open("w",newline="") as f:
+            w=csv.writer(f);w.writerow(("asset","funding_time_ms","funding_rate"))
+            for a in ASSETS:
+                for t in range(START,END,SLOT):w.writerow((a,t,"0.0001"))
+        assert validate(pages,alternate,Path(td)/"alternate.json")["records"]==12
+        shifted[0]["fundingTime"]=START+60001
+        lines[0]["response_body"]=json.dumps(shifted)
+        lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
+        pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
+        try:validate(pages,expected,Path(td)/"bad_offset.json")
+        except ValueError as e:assert str(e)=="FUNDING_SETTLEMENT_OFFSET_GT_60S"
+        else:raise AssertionError("BAD_OFFSET_ACCEPTED")
+        shifted[0]["fundingTime"]=START
+        lines[0]["response_body"]=json.dumps(shifted)
+        lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
+        pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         bad=json.loads(lines[0]["response_body"]);bad[0]["markPrice"]="-1"
         lines[0]["response_body"]=json.dumps(bad)
         lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
