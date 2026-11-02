@@ -194,14 +194,21 @@ def bind_original_open_inventories(report, journal):
     if (not isinstance(journal, dict) or journal.get("schema") != JOURNAL_SCHEMA
             or set(journal.get("scenarios", {})) != {"severe", "supersevere"}):
         raise ValueError("INVALID_COINAPI_NATIVE_JOURNAL")
-    books = {}
+    books, signals = {}, {}
+    fixed_signals = frozenset((
+        "POSITIVE_EX_ANTE_PREMIUM", "NO_PREMIUM", "NO_30D_HISTORY",
+    ))
     for row in report["rows"]:
         key = (row.get("decision_ms"), row.get("asset"))
         if (key in books or type(key[0]) is not int
                 or key[1] not in ("BTC", "ETH")
+                or type(row.get("fold")) is not int
+                or row["fold"] != _fold(key[0])
+                or row.get("signal") not in fixed_signals
                 or not isinstance(row.get("original_books"), list)):
             raise ValueError("DUPLICATE_OR_INVALID_COINAPI_ORIGINAL_GRID")
         books[key] = row["original_books"]
+        signals[key] = row["signal"]
     expected_grid = {(int(d.timestamp() * 1000), asset)
                      for d in eligible(True) for asset in ("BTC", "ETH")}
     if len(books) != 180 or set(books) != expected_grid:
@@ -221,6 +228,20 @@ def bind_original_open_inventories(report, journal):
                 key = (event.get("at_ms"), event.get("asset"))
                 if key in seen or key not in books or not books[key]:
                     raise ValueError("UNSCHEDULED_OR_DUPLICATE_COINAPI_OPEN")
+                # A quote can be genuinely original but still be attached to
+                # an ex-ante CASH signal. The entire signal row must match the
+                # independently bound TRAIN grid before source parity is claimed.
+                fixed_signal = event.get("signal")
+                if (not isinstance(fixed_signal, dict)
+                        or set(fixed_signal) != {
+                            "decision_ms", "asset", "fold", "signal"
+                        } or fixed_signal["decision_ms"] != key[0]
+                        or fixed_signal["asset"] != key[1]
+                        or type(fixed_signal["fold"]) is not int
+                        or fixed_signal["fold"] != _fold(key[0])
+                        or fixed_signal["signal"] != signals[key]
+                        or signals[key] != "POSITIVE_EX_ANTE_PREMIUM"):
+                    raise ValueError("UNBOUND_OR_NONPOSITIVE_COINAPI_OPEN_SIGNAL")
                 seen.add(key)
                 expected = {q["symbol"]: q for q in books[key]}
                 received = event.get("quotes")
