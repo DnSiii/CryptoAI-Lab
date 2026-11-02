@@ -6,6 +6,7 @@ executable profit, seven-slot validation, or trading authorization.
 """
 from __future__ import annotations
 import argparse,csv,datetime as dt,hashlib,json,math
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs
 ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
@@ -64,38 +65,75 @@ def expected_events(path,declared_sha):
     if set(counts.values())!={EXPECTED_COUNT//len(ASSETS)}:fail("NATIVE_FUNDING_ASSET_COUNTS")
     return events
 
+def unique_json_object(pairs):
+    out={}
+    for key,value in pairs:
+        if key in out:fail("DUPLICATE_JSON_KEY")
+        out[key]=value
+    return out
+
+def read_manifest(path):
+    return json.loads(Path(path).read_text(encoding="utf-8"),
+                      object_pairs_hook=unique_json_object)
+
+def exact_integer(value,code):
+    if type(value) is not int:fail(code)
+    return value
+
 def native_mark_pages(manifest,root,expected):
     pages=manifest.get("pages")
     if not isinstance(pages,list) or not pages:fail("NATIVE_PAGES_MISSING")
     seen={}
     for page in pages:
+        if not isinstance(page,dict):fail("NATIVE_PAGE_METADATA")
         if page.get("source_type")!="official_binance_usdm_fundingRate":fail("NATIVE_ORIGIN_NOT_OFFICIAL_API")
         url=urlsplit(page.get("url",""))
-        if url.scheme!="https" or url.hostname not in ("fapi.binance.com","fapi1.binance.com") or url.path!="/fapi/v1/fundingRate":
+        if (url.scheme!="https" or url.hostname not in ("fapi.binance.com","fapi1.binance.com")
+            or url.port not in (None,443) or url.username or url.password or url.fragment
+            or url.path!="/fapi/v1/fundingRate"):
             fail("NATIVE_ORIGIN_URL")
-        params=parse_qs(url.query)
-        if params.get("symbol",[None])[0] not in ASSETS or params.get("limit",[None])[0]!="1000":
+        params=parse_qs(url.query,keep_blank_values=True)
+        if set(params)!={"symbol","startTime","endTime","limit"} or any(len(v)!=1 for v in params.values()):
             fail("NATIVE_QUERY_CONTRACT")
+        asset=params["symbol"][0]
+        if asset not in ASSETS or params["limit"][0]!="1000":fail("NATIVE_QUERY_CONTRACT")
+        try:
+            lo=int(params["startTime"][0]);hi=int(params["endTime"][0])
+        except ValueError:fail("NATIVE_QUERY_TIMESTAMP")
+        if (str(lo)!=params["startTime"][0] or str(hi)!=params["endTime"][0]
+            or lo<START or hi>=END or lo>hi):fail("NATIVE_QUERY_OUTSIDE_TRAINING")
+        if type(page.get("http_status")) is not int or page["http_status"]!=200:
+            fail("NATIVE_HTTP_NOT_200")
+        headers=page.get("response_headers")
+        if not isinstance(headers,dict) or sum(k.lower()=="date" for k in headers)!=1:
+            fail("NATIVE_HTTP_DATE_HEADER")
         capture=utc_timestamp(page.get("retrieved_at_utc"))
-        server=utc_timestamp(page.get("http_date_utc"))
+        raw_date=next(v for k,v in headers.items() if k.lower()=="date")
+        try:server=parsedate_to_datetime(raw_date)
+        except (ValueError,TypeError,IndexError):fail("NATIVE_HTTP_DATE_INVALID")
+        if server.tzinfo is None or server.utcoffset()!=dt.timedelta(0):
+            fail("NATIVE_HTTP_DATE_INVALID")
         if abs((capture-server).total_seconds())>600:fail("NATIVE_HTTP_DATE_DRIFT")
         name=page.get("file","")
-        if not isinstance(name,str) or not name.endswith(".json") or Path(name).name!=name:
+        if (not isinstance(name,str) or not name.endswith(".json")
+            or Path(name).name!=name or name in (".","..")):
             fail("NATIVE_PAGE_PATH")
         p=Path(root)/name
-        if not p.is_file() or sha256(p)!=page.get("sha256"):fail("NATIVE_PAGE_SHA")
-        try:records=json.loads(p.read_bytes())
+        if p.is_symlink() or not p.is_file() or sha256(p)!=page.get("sha256"):
+            fail("NATIVE_PAGE_SHA")
+        try:records=read_manifest(p)
         except (ValueError,UnicodeError):fail("NATIVE_PAGE_JSON")
         if not isinstance(records,list) or not records or len(records)>1000:fail("NATIVE_PAGE_SHAPE")
         prev=-1
         for row in records:
-            if not isinstance(row,dict) or row.get("symbol")!=params["symbol"][0]:fail("NATIVE_ROW_SYMBOL")
-            ts=timestamp_ms(row.get("fundingTime"))
+            if not isinstance(row,dict) or row.get("symbol")!=asset:fail("NATIVE_ROW_SYMBOL")
+            ts=timestamp_ms(exact_integer(row.get("fundingTime"),"NATIVE_TIMESTAMP_TYPE"))
+            if not lo<=ts<=hi:fail("NATIVE_ROW_OUTSIDE_REQUEST")
             if ts<=prev:fail("NATIVE_PAGE_ORDER")
             prev=ts
             slot=START+((ts-START)//EIGHT_HOURS_MS)*EIGHT_HOURS_MS
             if ts-slot>MAX_SETTLEMENT_OFFSET_MS:fail("NATIVE_SETTLEMENT_OFFSET_GT_60S")
-            key=(row["symbol"],slot)
+            key=(asset,slot)
             if key in seen or key not in expected:fail("NATIVE_DUPLICATE_OR_UNKNOWN_EVENT")
             try:rate=float(row["fundingRate"])
             except (TypeError,ValueError):fail("NATIVE_ROW_RATE")
@@ -144,8 +182,8 @@ def evaluate(root,expected_csv,expected_sha):
         return result
     try:
         expected=expected_events(expected_csv,expected_sha)
-        native=native_mark_pages(json.loads((root/"native_pages_manifest.json").read_text()),root,expected)
-        costs=cost_evidence(json.loads((root/"account_costs_manifest.json").read_text()),root)
+        native=native_mark_pages(read_manifest(root/"native_pages_manifest.json"),root,expected)
+        costs=cost_evidence(read_manifest(root/"account_costs_manifest.json"),root)
     except (OSError,KeyError,TypeError,ValueError) as exc:
         result["blocker"]=str(exc)
         return result
