@@ -1,0 +1,7 @@
+# V99 I1 — preregistered original quote retention fix (2026-11-02)
+
+**Pre-code, sealed TRAIN-only.** Original CoinAPI Deribit Quotes may contain zero-sided, locked, or crossed positive-price BBO updates. Rejecting an entire compressed day because a single locked/crossed update appears discards original evidence and can block lawful complete-archive intake. Preserve the exact original gzip bytes, source hash, event/arrival clocks, row order and raw numbers; classify any locked/crossed BBO as **non-executable**, never as a fill, never carry forward an earlier executable book through that invalidation. Negative/nonfinite numbers, malformed records, event-after-arrival, reversed arrival clocks, bad partition and changed bytes must still fail closed.
+
+**Fixed implementation:** in `research/tools/v99_r106_i1_coinapi_quote_intake.py`, change only executable-depth classification; count non-executable locked/crossed rows and expose an explicit counter. Test locked, crossed, mixed good/invalid and negative controls. No alternative signal/alpha, no cost tuning, no opened validation >=2023-10-01, no final holdout, no paper/Frozen/champion/order modifications.
+
+**Decision rule:** CI success proves only source-parser safety. This is not a historical economic TRAIN. Still require authenticated licensed 661-day original BTC/ETH option lifecycle archive, dated native contract/fee/margin/delivery terms and independently replayed conservative execution before any promotion.
