@@ -218,7 +218,7 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertIn("NATIVE_ORIGIN_URL",self.evaluate()["blocker"])
 
 
-    def _capture_fixture(self, *, block_primary=False, tamper_rate=False, drop_last=False):
+    def _capture_fixture(self, *, block_primary=False, network_primary=False, tamper_rate=False, drop_last=False):
         import v98_delivery_native_mark_collector as collector
         import v98_authorized_funding_mark_ingest as importer
         from urllib.parse import urlsplit, parse_qs
@@ -241,6 +241,8 @@ class EvidenceGateTests(unittest.TestCase):
             calls.append((url,q))
             if block_primary and urlsplit(url).hostname=="fapi.binance.com":
                 raise RuntimeError("BINANCE_HTTP_451_HOST_fapi.binance.com")
+            if network_primary and urlsplit(url).hostname=="fapi.binance.com":
+                raise RuntimeError("BINANCE_NETWORK_UNAVAILABLE_HOST_fapi.binance.com")
             asset=q["symbol"][0]
             rows=[{"symbol":asset,"fundingTime":t,"fundingRate":"0.00010000",
                    "markPrice":"123.45"} for t in self.ts]
@@ -261,8 +263,15 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertTrue(all(int(q["endTime"][0])==collector.END-1 for _,q in calls))
         self.assertTrue((self.root/"capture"/"authorized_funding_pages.jsonl").exists())
 
-    def test_collector_falls_back_to_second_official_host_on_http_451(self):
+    def test_collector_http_451_stops_without_bypassing_restriction(self):
         collector,fetcher,calls=self._capture_fixture(block_primary=True)
+        with self.assertRaisesRegex(RuntimeError,"HTTP_451"):
+            collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
+        self.assertEqual(len(calls),1)
+        self.assertFalse((self.root/"capture"/"authorized_funding_pages.jsonl").exists())
+
+    def test_collector_uses_second_official_host_only_on_connectivity_outage(self):
+        collector,fetcher,calls=self._capture_fixture(network_primary=True)
         out=collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
         self.assertEqual(out["events"],8)
         self.assertEqual(len(calls),8)
