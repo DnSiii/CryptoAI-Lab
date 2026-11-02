@@ -62,6 +62,13 @@ def _one_scenario(rows, initial, scenario):
     worst_drawdown = Decimal(0)
     positives, negatives = [], []
     fold_factors = [Decimal(1)] * 5
+    # Native BTC/ETH coin collateral has passive USD beta. Track the
+    # portfolio / same-clock passive wallet ratio separately from raw USD NAV.
+    relative_previous = Decimal(1)
+    relative_peak = Decimal(1)
+    relative_drawdown = Decimal(0)
+    relative_factors, relative_gains, relative_losses = [], [], []
+    relative_fold_factors = [Decimal(1)] * 5
     regime_factors = {name: Decimal(1) for name in REGIMES}
     regime_counts = {name: 0 for name in REGIMES}
     factors, keys, benchmarks, regimes = [], [], [], []
@@ -81,6 +88,18 @@ def _one_scenario(rows, initial, scenario):
         change = equity - previous
         (positives if change > 0 else negatives if change < 0 else []).append(
             abs(change)) if change else None
+        relative = equity / benchmark
+        relative_change = relative - relative_previous
+        if relative_change > 0:
+            relative_gains.append(relative_change)
+        elif relative_change < 0:
+            relative_losses.append(-relative_change)
+        relative_factor = relative / relative_previous
+        relative_factors.append(relative_factor)
+        relative_fold_factors[fold-1] *= relative_factor
+        relative_peak = max(relative_peak, relative)
+        relative_drawdown = min(relative_drawdown, relative/relative_peak-1)
+        relative_previous = relative
         factor = equity / previous
         factors.append(factor)
         fold_factors[fold-1] *= factor
@@ -106,6 +125,11 @@ def _one_scenario(rows, initial, scenario):
     pf = (gain_total / loss_total if loss_total > 0 else
           None if gain_total > 0 else Decimal(0))
     benchmark_roi = benchmarks[-1] / initial - 1
+    relative_profit = sum(relative_gains, Decimal(0))
+    relative_loss = sum(relative_losses, Decimal(0))
+    relative_pf = (relative_profit/relative_loss if relative_loss > 0
+                   else None if relative_profit > 0 else Decimal(0))
+    relative_remove_best = relative_previous/max(relative_factors)-1
     gates = {
         "positive_total": total > 0,
         "fold_positive": sum(x > 0 for x in fold_roi) >=
@@ -120,6 +144,7 @@ def _one_scenario(rows, initial, scenario):
     }
     return {
         "scenario": scenario, "total_roi": str(total),
+        "benchmark_relative_diagnostics_not_certified_option_alpha": True,
         "positive_folds": sum(x > 0 for x in fold_roi),
         "fold_roi": [str(x) for x in fold_roi],
         "profit_factor": str(pf) if pf is not None else "infinite",
@@ -128,6 +153,15 @@ def _one_scenario(rows, initial, scenario):
         "top_1pct_positive_gain_share": str(gain_concentration),
         "worst_1pct_loss_share": str(loss_concentration),
         "benchmark_roi": str(benchmark_roi),
+        # Descriptive-only: benchmark-relative NAV is not a tradable
+        # hedge, an independently verified option alpha, or a new gate.
+        "benchmark_relative_total_excess": str(relative_previous-1),
+        "benchmark_relative_max_drawdown": str(relative_drawdown),
+        "benchmark_relative_remove_best_day_excess": str(relative_remove_best),
+        "benchmark_relative_daily_proxy_fold_excess":
+            [str(x-1) for x in relative_fold_factors],
+        "benchmark_relative_profit_factor":
+            str(relative_pf) if relative_pf is not None else "infinite",
         "regime_days": regime_counts,
         "regime_roi_descriptive_only":
             {k: str(v-1) for k, v in regime_factors.items()},
