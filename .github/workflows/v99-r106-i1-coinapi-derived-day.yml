@@ -5,6 +5,7 @@ on:
     paths:
       - research/tools/v99_r106_i1_coinapi_derived_day_bridge.py
       - research/V99_R106_I1_DERIVED_PREPUBLICATION_INDEPENDENT_REPLAY_PREREG_20261102.md
+      - research/V99_R106_I1_COINAPI_NONEMPTY_PER_SOURCE_PREREG_20261102.md
       - research/tools/v99_r106_i1_local_tape_import.py
       - research/tests/test_v99_r106_i1_coinapi_derived_day_bridge.py
       - research/verification/independent_v99_r106_i1_coinapi_derived_day_oracle.py
@@ -31,6 +32,8 @@ jobs:
           git merge-base --is-ancestor c651e124de2a26b617fb2753f41e7e4df92420c3 HEAD
           test -s research/V99_R106_I1_COINAPI_DERIVED_DAY_BRIDGE_PREREG_20261102.md
           git merge-base --is-ancestor 57319c2d1a1951e8815faa7fd36b25ebe074e990 HEAD
+          git merge-base --is-ancestor e5a11031a0f4454a61a3698f7369e85f17a16ebd HEAD
+          test -s research/V99_R106_I1_COINAPI_NONEMPTY_PER_SOURCE_PREREG_20261102.md
           test -s research/V99_R106_I1_DERIVED_PREPUBLICATION_INDEPENDENT_REPLAY_PREREG_20261102.md
       - name: Synthetic two-asset streaming conversion, mandatory independent replay, publication veto
         run: python -m unittest -v research.tests.test_v99_r106_i1_coinapi_derived_day_bridge
