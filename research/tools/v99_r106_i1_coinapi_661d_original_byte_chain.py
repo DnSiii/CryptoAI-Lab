@@ -94,6 +94,14 @@ def verify(spec_root, original_root, derived_root, *, fixture=False,
                 or sidecar.get("derived_file_must_never_be_attested_as_original") is not True
                 or sidecar.get("native_lot_fee_margin_delivery_certified") is not False):
             raise ValueError("FORGED_COINAPI_CHAIN_RIGHTS_OR_PROVENANCE")
+        # The independent original->derived oracle must not be followed by
+        # a scanner consuming a swapped derived gzip with identical row count.
+        expected_derived_sha = sidecar.get("derived_gzip_sha256")
+        if (not isinstance(expected_derived_sha, str)
+                or len(expected_derived_sha) != 64
+                or any(c not in "0123456789abcdef" for c in expected_derived_sha)
+                or _sha(daily_path) != expected_derived_sha):
+            raise ValueError("COINAPI_DERIVED_BYTES_NOT_BOUND_TO_SIDECAR")
         day_originals = []
         for source in spec["sources"]:
             if not isinstance(source, dict) or set(source) != {
@@ -125,6 +133,8 @@ def verify(spec_root, original_root, derived_root, *, fixture=False,
         for path, expected_sha in day_originals:
             if _sha(path) != expected_sha:
                 raise ValueError("COINAPI_ORIGINAL_BYTES_CHANGED_DURING_REPLAY")
+        if _sha(daily_path) != expected_derived_sha:
+            raise ValueError("COINAPI_DERIVED_BYTES_CHANGED_DURING_REPLAY")
         if (result.get("status") !=
                 "INDEPENDENT_DERIVED_BYTE_REPLAY_MATCH_NOT_ORIGINAL_ECONOMICS"
                 or result.get("promotion_authorized") is not False
@@ -133,6 +143,8 @@ def verify(spec_root, original_root, derived_root, *, fixture=False,
                 or type(result.get("rows")) is not int or result["rows"] <= 0):
             raise ValueError("INDEPENDENT_COINAPI_ORIGINAL_CHAIN_REPLAY_FAILED")
         scan = scan_day(daily_path, __import__("datetime").date.fromisoformat(day))
+        if _sha(daily_path) != expected_derived_sha:
+            raise ValueError("COINAPI_DERIVED_BYTES_CHANGED_DURING_SCAN")
         require_hourly_original_coverage(scan)
         if scan["rows"] != result["rows"]:
             raise ValueError("COINAPI_DERIVED_DAY_ROW_COUNT_MISMATCH")
