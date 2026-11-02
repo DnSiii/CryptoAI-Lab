@@ -217,4 +217,72 @@ class EvidenceGateTests(unittest.TestCase):
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.assertIn("NATIVE_ORIGIN_URL",self.evaluate()["blocker"])
 
+
+    def _capture_fixture(self, *, block_primary=False, tamper_rate=False, drop_last=False):
+        import v98_delivery_native_mark_collector as collector
+        import v98_authorized_funding_mark_ingest as importer
+        from urllib.parse import urlsplit, parse_qs
+        saved=(collector.EXPECTED_COUNT,importer.START,importer.END,importer.EXPECTED)
+        collector.EXPECTED_COUNT=8
+        importer.START=gate.START
+        importer.END=gate.START+2*gate.EIGHT_HOURS_MS
+        importer.EXPECTED=8
+        self.addCleanup(lambda:(setattr(collector,"EXPECTED_COUNT",saved[0]),
+                                setattr(importer,"START",saved[1]),
+                                setattr(importer,"END",saved[2]),
+                                setattr(importer,"EXPECTED",saved[3])))
+        calls=[]
+        def fetcher(url,timeout):
+            q=parse_qs(urlsplit(url).query)
+            calls.append((url,q))
+            if block_primary and urlsplit(url).hostname=="fapi.binance.com":
+                raise RuntimeError("BINANCE_HTTP_451_HOST_fapi.binance.com")
+            asset=q["symbol"][0]
+            rows=[{"symbol":asset,"fundingTime":t,"fundingRate":"0.00010000",
+                   "markPrice":"123.45"} for t in self.ts]
+            if tamper_rate and asset=="BTCUSDT":rows[0]["fundingRate"]="0.001"
+            if drop_last and asset=="BTCUSDT":rows.pop()
+            body=json.dumps(rows).encode()
+            return 200,{"Date":"Mon, 02 Nov 2026 00:00:05 GMT"},body,"2026-11-02T00:00:00Z"
+        return collector,fetcher,calls
+
+    def test_collector_captures_all_four_assets_with_pinned_calendar(self):
+        collector,fetcher,calls=self._capture_fixture()
+        out=collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
+        self.assertEqual(out["events"],8)
+        self.assertEqual(out["source_receipt"],
+                         "STRUCTURAL_MATCH_ONLY_ORIGIN_ATTESTATION_REQUIRED")
+        self.assertFalse(out["paper_or_live_authorized"])
+        self.assertEqual(len(calls),4)
+        self.assertTrue(all(int(q["endTime"][0])==gate.END-1 for _,q in calls))
+        self.assertTrue((self.root/"capture"/"authorized_funding_pages.jsonl").exists())
+
+    def test_collector_falls_back_to_second_official_host_on_http_451(self):
+        collector,fetcher,calls=self._capture_fixture(block_primary=True)
+        out=collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
+        self.assertEqual(out["events"],8)
+        self.assertEqual(len(calls),8)
+        self.assertTrue(all("fapi1.binance.com" in p["url"] for p in
+            map(json.loads,(self.root/"capture"/"authorized_funding_pages.jsonl").read_text().splitlines())))
+
+    def test_collector_rejects_rate_conflict_without_partial_evidence(self):
+        collector,fetcher,_=self._capture_fixture(tamper_rate=True)
+        with self.assertRaisesRegex(ValueError,"NATIVE_FUNDING_RATE_CONFLICT"):
+            collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
+        self.assertFalse((self.root/"capture"/"authorized_funding_pages.jsonl").exists())
+
+    def test_collector_rejects_missing_event_without_partial_evidence(self):
+        collector,fetcher,_=self._capture_fixture(drop_last=True)
+        with self.assertRaisesRegex(ValueError,"NATIVE_INCOMPLETE"):
+            collector.collect(self.expected,self.expected_sha,self.root/"capture",fetcher)
+        self.assertFalse((self.root/"capture"/"authorized_funding_pages.jsonl").exists())
+
+    def test_collector_refuses_overwrite_of_existing_native_evidence(self):
+        collector,fetcher,_=self._capture_fixture()
+        dest=self.root/"capture";dest.mkdir()
+        (dest/"native_pages_manifest.json").write_text("{}")
+        with self.assertRaises(FileExistsError):
+            collector.collect(self.expected,self.expected_sha,dest,fetcher)
+        self.assertFalse((dest/"authorized_funding_pages.jsonl").exists())
+
 if __name__=="__main__":unittest.main()
