@@ -29,3 +29,18 @@ The same evidence directory must contain `account_costs_manifest.json`, with con
 `v98_delivery_evidence_gate.py` returns `HOLD_MISSING_EXTERNAL_EVIDENCE` when external proofs are absent or inconsistent. Complete internally consistent but unverified evidence returns `PASS_BYTE_AND_CALENDAR_PREFLIGHT_REQUIRES_INDEPENDENT_AUTHENTICATION`. Neither result is a trading approval. A separate independent origin/custody audit, real fill replay and complete causal seven-slot V98 training/validation remain necessary. Base/severe/supersevere costs, tail/concentration, marginal contribution, chronological validation, frozen candidate, untouched future holdout and only post-freeze external benchmarking remain binding.
 
 The new V98-only workflow runs 12 synthetic negative controls, exports the authenticated expected 13,524-event calendar from pinned artifacts, and asserts that absent external proofs produce an explicit HOLD. **Green CI means source calendar and evidence-preflight code worked, not that the trading engine works.** Rejected engines remain rejected; V16/V99/Frozen/paper unchanged.
+
+## Authorized-network collection path (2026-11-02)
+
+`v98_delivery_native_mark_collector.py` is now an executable V98-only acquisition utility, not a mock proof. On a machine **authorized to reach the official Binance USD-M endpoint**, use the SHA-pinned native expected CSV from the workflow artifact and run:
+
+```bash
+python research/v98_independent/v98_delivery_native_mark_collector.py \\
+  --expected-funding-csv /private/v98_expected_native_funding_2022_2025.csv \\
+  --expected-funding-sha256 3a7e5cc35152663ecfd08edb991c9f5cf1db845877cfb0d0b802d0682f55e7c1 \\
+  --evidence-dir /private/v98-native-evidence
+```
+
+The collector requests only 2022-12-01 through 2025-12-31 (endTime is 2026-01-01 minus one millisecond), pages 1,000 events at a time, and tries only `fapi.binance.com` then `fapi1.binance.com` when a host is unavailable/region-blocked. It retains original response-body bytes (UTF-8 text), original HTTP Date, URL, UTC retrieval time and SHA256; it never manufactures missing marks or silently falls back to candle prices. The independent V98 importer must reconcile every expected native event and rate **before** the collector publishes `authorized_funding_pages.jsonl`. Partial or conflicting captures are not published. HTTP 451 on both hosts is a genuine jurisdiction/network blocker: use a permitted independent exchange-origin export and authenticate custody; do not bypass access restrictions.
+
+The manifest transport of `v98_delivery_evidence_gate.py` now also exposes a canonical `v98_authorized_native_preflight.csv` after source and cost structural checks, matching the JSONL transport's columns. Both outputs are **source-only and unauthenticated**; do not use for physical system PnL until independent provenance, account cost/fill proof and chronological seven-slot validation are complete. Original private account proofs must remain outside public GitHub.
