@@ -82,6 +82,40 @@ class DerivedBridgeTests(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, "INDEPENDENT_DERIVED_INCOMPLETE"):
                 independent_verify(spec, out)
 
+    def test_header_only_declared_btc_or_eth_source_never_publishes(self):
+        valid = (",2022-01-01T00:00:00.0000000,"
+                 "2022-01-01T00:00:00.0000001,0.0050,2,0.0045,3\\n")
+        for empty_asset in ("BTC", "ETH"):
+            with self.subTest(empty_asset=empty_asset):
+                with tempfile.TemporaryDirectory() as tmp:
+                    rows = {asset: ("" if asset == empty_asset else valid)
+                            for asset in ("BTC", "ETH")}
+                    spec, out, _ = prepare(tmp, rows=rows)
+                    with self.assertRaisesRegex(
+                        ValueError, "EMPTY_DECLARED_ORIGINAL_COINAPI_SOURCE"
+                    ):
+                        convert(spec, out, fixture=True)
+                    self.assertEqual(list(out.iterdir()), [])
+
+    def test_independent_oracle_vetoes_legacy_empty_declared_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec, out, originals = prepare(tmp)
+            convert(spec, out, fixture=True)
+            empty_gzip = gzip.compress(HEADER.encode("utf-8"))
+            Path(originals[0]["path"]).write_bytes(empty_gzip)
+            digest = hashlib.sha256(empty_gzip).hexdigest()
+            specification = json.loads(spec.read_text())
+            specification["sources"][0]["sha256"] = digest
+            spec.write_text(json.dumps(specification))
+            sidecar = out / (DAY + ".coinapi-derived.json")
+            report = json.loads(sidecar.read_text())
+            report["original_sources"][0]["original_gzip_sha256"] = digest
+            sidecar.write_text(json.dumps(report))
+            with self.assertRaisesRegex(
+                AssertionError, "INDEPENDENT_EMPTY_DECLARED_ORIGINAL_SOURCE"
+            ):
+                independent_verify(spec, out)
+
     def test_source_tamper_rejected_before_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             spec, out, originals = prepare(tmp)
