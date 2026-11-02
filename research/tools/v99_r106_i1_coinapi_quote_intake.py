@@ -90,7 +90,9 @@ def _original_rows(path: Path):
     """Iterate original CSV in bounded memory; validate gzip through EOF."""
     try:
         with gzip.open(path, "rt", encoding="utf-8", newline="") as stream:
-            reader = csv.DictReader(stream, delimiter=";")
+            # CoinAPI official Flat Files Quotes are comma-separated, not semicolon CSV.
+            # Do not accept a fallback dialect: it could silently misparse originals.
+            reader = csv.DictReader(stream, delimiter=",")
             if tuple(reader.fieldnames or ()) != COLUMNS:
                 raise ValueError("WRONG_COINAPI_QUOTES_COLUMNS")
             yield from reader
