@@ -1,5 +1,6 @@
 """CoinAPI original Sunday full-inventory cross-parser tests (synthetic only)."""
 import gzip
+import copy
 import hashlib
 import json
 import tempfile
@@ -11,7 +12,7 @@ from research.tools.v99_r106_i1_coinapi_derived_day_bridge import (
     SCHEMA as DAY_SCHEMA, convert,
 )
 from research.tools.v99_r106_i1_coinapi_full_entry_book_parity import (
-    verify_sunday, build,
+    verify_sunday, build, bind_original_open_inventories,
 )
 
 DAY = "2021-12-12"
@@ -153,6 +154,67 @@ class OriginalSundayFullEntryParityTests(unittest.TestCase):
             self.derive()
         self.assertEqual(list(self.derived.iterdir()), [])
 
+
+    def _source_only_native_fixture(self):
+        from research.tools.v99_r106_i1_full_archive_intake import eligible
+        from research.tools.v99_r106_i1_native_event_equity import SCHEMA as JOURNAL
+        self.derive()
+        sunday = self.check()
+        grid = [(int(d.timestamp() * 1000), asset)
+                for d in eligible(True) for asset in ("BTC", "ETH")]
+        rows = [{"decision_ms": at, "asset": asset, "original_books": (
+            sunday["books"][asset] if at == CLOCK else [])}
+            for at, asset in grid]
+        report = {
+            "schema": "V99_I1_COINAPI_ORIGINAL_180_ENTRY_BOOK_PARITY_V1",
+            "original_intents_checked": 180,
+            "promotion_authorized": False,
+            "rows": rows,
+        }
+        quote = sunday["books"]["BTC"][0]
+        raw = {
+            "symbol": quote["symbol"], "asset": "BTC",
+            "expiry_ms": quote["expiry_ms"], "strike_usd": quote["strike_usd"],
+            "bid_coin": quote["bid_coin"], "ask_coin": quote["ask_coin"],
+            "venue_ms": quote["venue_us"] // 1000,
+            "arrival_ms": quote["arrival_us"] // 1000,
+            # Source bid_sx/ask_sx are NOT proven native lots.
+            "bid_native_lots": "9999", "ask_native_lots": "9999",
+        }
+        event = {"kind": "OPEN", "at_ms": CLOCK, "asset": "BTC",
+                 "quotes": [raw]}
+        journal = {"schema": JOURNAL, "scenarios": {
+            "severe": [{"events": [copy.deepcopy(event)]}],
+            "supersevere": [{"events": [copy.deepcopy(event)]}],
+        }}
+        return report, journal
+
+    def test_original_price_clock_parity_binds_both_cost_scenarios(self):
+        report, journal = self._source_only_native_fixture()
+        result = bind_original_open_inventories(report, journal)
+        self.assertEqual(result["scenario_opens_original_book_bound"],
+                         {"severe": 1, "supersevere": 1})
+        self.assertFalse(result["source_quote_size_units_native_lots_certified"])
+        self.assertFalse(result["economic_train_executed"])
+        self.assertFalse(result["promotion_authorized"])
+
+    def test_price_mutation_in_one_cost_scenario_rejected(self):
+        report, journal = self._source_only_native_fixture()
+        journal["scenarios"]["supersevere"][0]["events"][0]["quotes"][0]["ask_coin"] = "0.7"
+        with self.assertRaisesRegex(ValueError, "COINAPI_OPEN_ORIGINAL_PRICE_CLOCK_MISMATCH"):
+            bind_original_open_inventories(report, journal)
+
+    def test_source_contract_omission_from_one_cost_scenario_rejected(self):
+        report, journal = self._source_only_native_fixture()
+        journal["scenarios"]["severe"][0]["events"][0]["quotes"] = []
+        with self.assertRaisesRegex(ValueError, "COINAPI_OPEN_ORIGINAL_INVENTORY_MISMATCH"):
+            bind_original_open_inventories(report, journal)
+
+    def test_incomplete_preregistered_grid_rejected(self):
+        report, journal = self._source_only_native_fixture()
+        report["rows"][2]["decision_ms"] = report["rows"][0]["decision_ms"]
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_OR_INVALID_COINAPI_ORIGINAL_GRID"):
+            bind_original_open_inventories(report, journal)
 
     def test_missing_license_never_reaches_economics(self):
         with self.assertRaisesRegex(ValueError, "WRITTEN_COINAPI_CHAIN_LICENSE_REQUIRED"):
