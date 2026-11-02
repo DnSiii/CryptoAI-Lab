@@ -77,3 +77,18 @@ jobs:
           path: vz-physical/
           retention-days: 30
           if-no-files-found: warn
+      - name: Enforce explicit economic candidate gate (rejection must not be green)
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source=json.loads(Path('vz-physical/vz_source.json').read_text())
+          if source['decision'].startswith('REJECT'):
+              raise SystemExit('VZ_PREREG_REJECTED_NO_ENGINE')
+          receipt=json.loads(Path('vz-physical/vz_exposed_physical.json').read_text())
+          if receipt['decision'].startswith('REJECT'):
+              raise SystemExit('VZ_ECONOMIC_REJECTED_NO_ENGINE')
+          assert receipt['decision']=='PASS_VZ_EXPOSED_TRAINING_ONLY_NOT_VALIDATED'
+          assert Path('vz-physical/vz_independent_oracle.json').exists()
+          print('VZ_EXPOSED_ONLY_NOT_ENGINE_APPROVAL')
+          PY
