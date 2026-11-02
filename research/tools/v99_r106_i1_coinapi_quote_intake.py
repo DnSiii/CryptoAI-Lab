@@ -61,6 +61,28 @@ def microseconds(value: str) -> int:
     return int(dt.timestamp()) * 1_000_000 + dt.microsecond
 
 
+def ticks100ns(value: str) -> int:
+    """Exact provider 100ns UTC clock; never truncate for causal comparisons.
+
+    CoinAPI's published 7-digit fractional timestamps can differ within a
+    single microsecond. Truncating first can reverse event/arrival ordering.
+    """
+    if not isinstance(value, str) or not re.fullmatch(
+        r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?(?:Z|\+00:00)?", value
+    ):
+        raise ValueError("UNTRUSTED_COINAPI_CLOCK_FORMAT")
+    fraction = value.split(".", 1)[1].split("+", 1)[0].rstrip("Z") if "." in value else ""
+    if len(fraction) > 7 and any(d != "0" for d in fraction[7:]):
+        raise ValueError("SUB_100NS_TIME_CANNOT_BE_REPRESENTED")
+    dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    if dt.utcoffset().total_seconds() != 0:
+        raise ValueError("NON_UTC_CLOCK")
+    whole_seconds = int(dt.replace(microsecond=0).timestamp())
+    return whole_seconds * 10_000_000 + int(fraction[:7].ljust(7, "0") or "0")
+
+
 def positive(value: str) -> Decimal:
     try:
         d = Decimal(value)
@@ -90,11 +112,19 @@ def _original_rows(path: Path):
     """Iterate original CSV in bounded memory; validate gzip through EOF."""
     try:
         with gzip.open(path, "rt", encoding="utf-8", newline="") as stream:
-            # CoinAPI official Flat Files Quotes are comma-separated, not semicolon CSV.
-            # Do not accept a fallback dialect: it could silently misparse originals.
-            reader = csv.DictReader(stream, delimiter=",")
-            if tuple(reader.fieldnames or ()) != COLUMNS:
+            # The vendor's Quotes dataset page shows comma CSV, while its
+            # official downloadable Quotes samples show semicolon CSV.
+            # Recognize only those two EXACT headers, then lock one dialect
+            # for the entire file. Never use csv.Sniffer or a row fallback.
+            header = stream.readline().rstrip("\r\n")
+            if header == ",".join(COLUMNS):
+                delimiter = ","
+            elif header == ";".join(COLUMNS):
+                delimiter = ";"
+            else:
                 raise ValueError("WRONG_COINAPI_QUOTES_COLUMNS")
+            reader = csv.DictReader(stream, fieldnames=COLUMNS, delimiter=delimiter,
+                                    strict=True)
             yield from reader
     except (OSError, UnicodeError, EOFError, csv.Error) as exc:
         raise ValueError("INVALID_ORIGINAL_GZIP") from exc
@@ -113,26 +143,27 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
     # Licensed flat-file partitions can be huge: never materialize compressed
     # bytes or decompressed CSV in memory. Hash original bytes in chunks.
     original_sha256, original_bytes = _compressed_digest(path)
-    rows, last_arrival = 0, None
-    first, last = None, None
+    rows, last_arrival_tick = 0, None
+    first_tick, last_tick = None, None
     for row in _original_rows(path):
         if row.get(None) is not None or any(row.get(k) is None for k in COLUMNS):
             raise ValueError("MALFORMED_ORIGINAL_COINAPI_ROW")
         if row["id_site_coinapi"] and not SITE_UUID.fullmatch(row["id_site_coinapi"]):
             raise ValueError("INVALID_COINAPI_RECEIVING_SITE_UUID")
-        event = microseconds(row["time_exchange"])
-        arrival = microseconds(row["time_coinapi"])
-        if not (day_start_us <= arrival < day_end_us):
+        event_tick = ticks100ns(row["time_exchange"])
+        arrival_tick = ticks100ns(row["time_coinapi"])
+        if not (day_start_us * 10 <= arrival_tick < day_end_us * 10):
             raise ValueError("SOURCE_KEY_PARTITION_TIMESTAMP_MISMATCH")
-        if event > arrival or (last_arrival is not None and arrival < last_arrival):
+        if (event_tick > arrival_tick or
+                (last_arrival_tick is not None and arrival_tick < last_arrival_tick)):
             raise ValueError("NONCAUSAL_OR_OUT_OF_ORDER_COINAPI_QUOTE")
         bid, ask = positive(row["bid_px"]), positive(row["ask_px"])
         positive(row["bid_sx"]); positive(row["ask_sx"])
         if bid >= ask:
             raise ValueError("CROSSED_OR_LOCKED_COINAPI_BOOK")
-        first = arrival if first is None else first
-        last = arrival
-        last_arrival = arrival
+        first_tick = arrival_tick if first_tick is None else first_tick
+        last_tick = arrival_tick
+        last_arrival_tick = arrival_tick
         rows += 1
     # Reject files changed between the original-byte hash and streamed parse.
     second_sha, second_bytes = _compressed_digest(path)
@@ -150,7 +181,10 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         "source_key_independently_verified":False,
         "license_document_independently_verified":False,
         "original_bytes":original_bytes, "rows":rows,
-        "first_arrival_us":first, "last_arrival_us":last,
+        "first_arrival_us":first_tick // 10, "last_arrival_us":last_tick // 10,
+        "first_arrival_100ns":first_tick, "last_arrival_100ns":last_tick,
+        "microsecond_fields_are_floored_display_only":True,
+        "csv_delimiter":delimiter,
         "source_quote_size_units_certified_as_native_contracts":False,
         "original_2021_2023_btc_eth_coverage_certified":False,
         "complete_21_45d_lifecycles_certified":False,
