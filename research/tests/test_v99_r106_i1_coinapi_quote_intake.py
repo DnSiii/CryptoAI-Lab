@@ -127,9 +127,41 @@ class TestCoinAPIIntake(unittest.TestCase):
     def test_arrival_before_exchange_rejected(self):
         with self.assertRaisesRegex(ValueError,"NONCAUSAL"):
             self.case(ROW.replace("00:00:00.2350440","00:00:00.1000000"))
-    def test_bad_depth_rejected(self):
-        with self.assertRaisesRegex(ValueError,"NONPOSITIVE"):
-            self.case(ROW.replace(",0.0045,3",",0.0045,0"))
+    def test_zero_depth_is_source_only_and_never_executable(self):
+        variants = (
+            ROW.replace(",0.0045,3", ",0.0045,0"),
+            ROW.replace(",0.0045,3", ",0,3"),
+            ROW.replace(",0.0050,2", ",0,2"),
+            ROW.replace(",0.0050,2", ",0.0050,0"),
+            ",2022-01-01T00:00:00.1140000,2022-01-01T00:00:00.2350440,0,0,0,0\\n",
+        )
+        for raw in variants:
+            with self.subTest(raw=raw):
+                result = self.case(raw)
+                self.assertEqual(result["rows"], 1)
+                self.assertEqual(result["two_sided_positive_depth_rows"], 0)
+                self.assertEqual(result["non_executable_depth_rows"], 1)
+                self.assertTrue(result["two_sided_source_rows_are_not_certified_fills"])
+                self.assertFalse(result["promotion_authorized"])
+
+    def test_mixed_zero_and_valid_quotes_preserve_original_row_count(self):
+        result = self.case(ROW.replace(",0.0045,3", ",0.0045,0") + ROW)
+        self.assertEqual(result["rows"], 2)
+        self.assertEqual(result["non_executable_depth_rows"], 1)
+        self.assertEqual(result["two_sided_positive_depth_rows"], 1)
+        self.assertFalse(result["economic_train_executed"])
+
+    def test_negative_or_nonfinite_original_quote_rejected(self):
+        for bad in ("-0.0045", "NaN", "Infinity", "-Infinity"):
+            with self.subTest(value=bad):
+                with self.assertRaisesRegex(ValueError, "NEGATIVE_OR_NONFINITE"):
+                    self.case(ROW.replace(",0.0045,3", "," + bad + ",3"))
+
+    def test_original_quote_numeric_parse_errors_rejected(self):
+        for bad in ("abc", "", "0.0.1"):
+            with self.subTest(value=bad):
+                with self.assertRaisesRegex(ValueError, "INVALID_ORIGINAL_COINAPI_NUMBER"):
+                    self.case(ROW.replace(",0.0045,3", "," + bad + ",3"))
     def test_locked_book_rejected(self):
         with self.assertRaisesRegex(ValueError,"CROSSED"):
             self.case(ROW.replace(",0.0045,3",",0.0050,3"))
