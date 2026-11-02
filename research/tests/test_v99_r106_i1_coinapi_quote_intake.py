@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from pathlib import Path
-from research.tools.v99_r106_i1_coinapi_quote_intake import inspect, microseconds, main
+from research.tools.v99_r106_i1_coinapi_quote_intake import inspect, microseconds, ticks100ns, main
 
 HEADER = "id_site_coinapi,time_exchange,time_coinapi,ask_px,ask_sx,bid_px,bid_sx\n"
 ROW = ",2022-01-01T00:00:00.1140000,2022-01-01T00:00:00.2350440,0.0050,2,0.0045,3\n"
@@ -48,13 +48,43 @@ class TestCoinAPIIntake(unittest.TestCase):
         self.assertEqual(report["status"], "SOURCE_FORMAT_ONLY_NO_ECONOMICS")
         self.assertFalse(report["promotion_authorized"])
 
-    def test_old_semicolon_fixture_is_rejected(self):
+    def test_vendor_documented_semicolon_quotes_and_100ns_precision(self):
+        # CoinAPI's separate official Quotes Samples page shows semicolons,
+        # 7 fractional digits and nonzero 100ns values.
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "legacy.csv.gz"
-            path.write_bytes(gzip.compress((HEADER.replace(",", ";") + ROW.replace(",", ";")).encode()))
-            with self.assertRaisesRegex(ValueError, "WRONG_COINAPI_QUOTES_COLUMNS"):
-                inspect(path, venue="DERIBIT", symbol="BTC-30DEC22-15000-P",
-                        licensed=True, source_key=KEY)
+            path = Path(tmp) / "sample.csv.gz"
+            semicolon = (HEADER + ROW.replace(".2350440", ".2350442")).replace(",", ";")
+            path.write_bytes(gzip.compress(semicolon.encode()))
+            report = inspect(path, venue="DERIBIT", symbol="BTC-30DEC22-15000-P",
+                             licensed=True, source_key=KEY)
+            self.assertEqual(report["csv_delimiter"], ";")
+            self.assertEqual(report["rows"], 1)
+            self.assertEqual(report["last_arrival_100ns"], 16409952002350442)
+            self.assertEqual(report["last_arrival_us"], 1640995200235044)
+            self.assertTrue(report["microsecond_fields_are_floored_display_only"])
+            self.assertFalse(report["economic_train_executed"])
+
+    def test_nonzero_100ns_comma_clock_accepted_without_float_rounding(self):
+        report = self.case(ROW.replace(".2350440", ".2350442"))
+        self.assertEqual(report["csv_delimiter"], ",")
+        self.assertEqual(report["last_arrival_100ns"], 16409952002350442)
+        self.assertEqual(ticks100ns("2022-01-01T00:00:00.2350442"),
+                         16409952002350442)
+
+    def test_same_microsecond_reversed_100ns_clock_rejected(self):
+        bad = ROW.replace(".1140000", ".2350442").replace(".2350440", ".2350441")
+        with self.assertRaisesRegex(ValueError, "NONCAUSAL"):
+            self.case(bad)
+
+    def test_same_microsecond_out_of_order_100ns_arrivals_rejected(self):
+        later = ROW.replace(".2350440", ".2350442")
+        earlier = ROW.replace(".2350440", ".2350441")
+        with self.assertRaisesRegex(ValueError, "OUT_OF_ORDER"):
+            self.case(later + earlier)
+
+    def test_nonzero_sub_100ns_precision_rejected(self):
+        with self.assertRaisesRegex(ValueError, "SUB_100NS"):
+            self.case(ROW.replace(".2350440", ".23504421"))
 
     def test_mixed_delimiters_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
