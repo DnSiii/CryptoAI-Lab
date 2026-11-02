@@ -107,6 +107,17 @@ class DerivedBridgeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 convert(spec, out, fixture=True)
 
+    def test_reused_original_file_path_cannot_impersonate_second_asset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec, out, originals = prepare(tmp)
+            doc = json.loads(spec.read_text())
+            doc["sources"][1]["path"] = originals[0]["path"]
+            doc["sources"][1]["sha256"] = originals[0]["sha256"]
+            spec.write_text(json.dumps(doc))
+            with self.assertRaisesRegex(ValueError, "DUPLICATE_DERIVED_SOURCE"):
+                convert(spec, out, fixture=True)
+            self.assertFalse(list(out.iterdir()))
+
     def test_zero_and_crossed_books_preserved_not_executable(self):
         with tempfile.TemporaryDirectory() as tmp:
             row = (",2022-01-01T00:00:00.0000000,"
