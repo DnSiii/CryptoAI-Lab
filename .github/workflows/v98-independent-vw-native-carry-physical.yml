@@ -1,0 +1,66 @@
+name: V98 Independent VW Fixed Native Carry Physical 2025 Exposed Falsification
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-vw-native-carry-physical.yml'
+      - 'research/v98_independent/vw_native_carry_physical*.py'
+      - 'research/v98_independent/vw_native_carry_physical_prereg_20261101.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  vw-physical-and-independent-audit:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile fixed physical runner and independent replay
+        run: |
+          python -m py_compile research/v98_independent/vw_native_carry_physical.py research/v98_independent/vw_native_carry_physical_oracle.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-spot-2025-masked-source-only
+          run-id: 41328347003
+          github-token: ${{ github.token }}
+          path: spot25
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: nh25
+      - name: Run six frozen physical cost and funding-boundary scenarios
+        run: |
+          python research/v98_independent/vw_native_carry_physical.py --spot-dir spot25 --nh-dir nh25 --output-dir vw-result | tee vw-stdout.txt
+      - name: Independently replay hourly accounting, gates and four tamper controls
+        run: |
+          python research/v98_independent/vw_native_carry_physical_oracle.py vw-result | tee vw-oracle.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-vw-2025-exposed-physical-carry-not-engine
+          path: |
+            vw-result/
+            vw-stdout.txt
+            vw-oracle.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Enforce honest economic gate without making test failure a source failure
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("vw-result/vw_result.json").read_text())
+          print("VW_ECONOMIC_GATE",r["decision"],"FAILURES",r["gate_failures"])
+          if r["decision"]!="PASS_VW_EXPLORATORY_2025_NOT_SEVENSLOT_OR_VALIDATED":
+              raise SystemExit("VW_REJECTED_BY_PREREGISTERED_ECONOMIC_GATE")
+          PY
