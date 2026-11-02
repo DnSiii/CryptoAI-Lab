@@ -76,7 +76,7 @@ def audit(d,ledger_path,receipt_path):
     base=next(x for x in receipt["cells"] if x["book"]=="WJ_full"
               and x["tier"]=="base" and x["order"]=="carried_before_fill")
     cash=10000.;q=np.zeros(4);checks=events=decisions=0;costs=fund_total=0.;n=0
-    wjth Path(ledger_path).open(newline="") as handle:
+    with Path(ledger_path).open(newline="") as handle:
         reader=csv.DictReader(handle)
         if tuple(reader.fieldnames)!=COLS:raise ValueError("WJ_ORACLE_COLUMNS")
         for row in reader:
@@ -140,9 +140,9 @@ def run(d,outdir):
     out=Path(outdir);ledger=out/"wj_base_full_hourly_ledger.csv"
     receipt=out/"wj_exposed_physical.json"
     result=audit(d,ledger,receipt)
-    wjth tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory() as tmp:
         bad=Path(tmp)/"tampered.csv"
-        wjth ledger.open(newline="") as src,bad.open("w",newline="") as dest:
+        with ledger.open(newline="") as src,bad.open("w",newline="") as dest:
             reader=csv.DictReader(src);writer=csv.DictWriter(dest,fieldnames=reader.fieldnames)
             writer.writeheader()
             for row in reader:
