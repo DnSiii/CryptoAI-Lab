@@ -63,7 +63,6 @@ def replay_audit(ledger_path,data):
         previous_spot=sq;previous_perp=pq
         prev_spot_close=sc;prev_perp_close=pc
         previous_cash=expected_cash;previous_equity=expected_equity
-        turnover+=float(np.abs(sq-previous_spot)@so) if False else 0.
     return {"decision":"PASS_INDEPENDENT_VX_HOURLY_ACCOUNTING_ONLY" if mismatches==0 else "FAIL_VX_ACCOUNTING",
             "hours":HOURS,"identities_checked":HOURS*10,
             "mismatches":mismatches,"max_absolute_error":max_error,
