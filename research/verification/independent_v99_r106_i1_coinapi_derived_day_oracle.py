@@ -92,8 +92,10 @@ def verify(specification, root):
         iterator = iter(original_rows(entry["path"], entry["symbol"]))
         generators.append(iterator)
         first = next(iterator, None)
-        if first is not None:
-            heapq.heappush(pending, (first[0], i, first[1]))
+        if first is None:
+            # Independent source-byte check, not a trusted converter claim.
+            raise AssertionError("INDEPENDENT_EMPTY_DECLARED_ORIGINAL_SOURCE")
+        heapq.heappush(pending, (first[0], i, first[1]))
     count = 0
     with gzip.open(target, "rt", newline="", encoding="utf-8") as stream:
         reader = csv.DictReader(stream, strict=True)
