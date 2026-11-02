@@ -91,6 +91,8 @@ def validate(pages_path,expected_path,output_path):
             at=dt.datetime.fromisoformat(page["retrieved_at_utc"].replace("Z","+00:00"))
             if at.tzinfo is None or at.utcoffset()!=dt.timedelta(0):
                 raise ValueError("RETRIEVAL_NOT_UTC")
+            if at>dt.datetime.now(dt.timezone.utc)+dt.timedelta(minutes=5):
+                raise ValueError("RETRIEVAL_IN_FUTURE")
             date_value=next(v for k,v in headers.items() if k.lower()=="date")
             try:
                 server_at=parsedate_to_datetime(date_value)
@@ -115,6 +117,8 @@ def validate(pages_path,expected_path,output_path):
                 t=row["fundingTime"]
                 if t<lo or t>hi or t<START or t>=END:
                     raise ValueError("OFF_CALENDAR_OR_FUTURE_EVENT")
+                if t>int(at.timestamp()*1000):
+                    raise ValueError("RETRIEVAL_BEFORE_FUNDING_EVENT")
                 slot=START+((t-START)//SLOT)*SLOT
                 if t-slot>MAX_SETTLEMENT_OFFSET_MS:
                     raise ValueError("FUNDING_SETTLEMENT_OFFSET_GT_60S")
