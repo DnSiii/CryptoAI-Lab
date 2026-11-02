@@ -77,3 +77,18 @@ jobs:
           path: wa-physical/
           retention-days: 30
           if-no-files-found: warn
+      - name: Enforce explicit economic candidate gate (rejection must not be green)
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source=json.loads(Path('wa-physical/wa_source.json').read_text())
+          if source['decision'].startswith('REJECT'):
+              raise SystemExit('WA_PREREG_REJECTED_NO_ENGINE')
+          receipt=json.loads(Path('wa-physical/wa_exposed_physical.json').read_text())
+          if receipt['decision'].startswith('REJECT'):
+              raise SystemExit('WA_ECONOMIC_REJECTED_NO_ENGINE')
+          assert receipt['decision']=='PASS_WA_EXPOSED_TRAINING_ONLY_NOT_VALIDATED'
+          assert Path('wa-physical/wa_independent_oracle.json').exists()
+          print('WA_EXPOSED_ONLY_NOT_ENGINE_APPROVAL')
+          PY
