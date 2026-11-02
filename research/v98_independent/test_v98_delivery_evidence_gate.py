@@ -303,6 +303,36 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertFalse((dest/"authorized_funding_pages.jsonl").exists())
 
 
+    def test_gate_rejects_symlinked_native_manifest_before_reading(self):
+        original=self.root/"native_pages_manifest.json"
+        target=self.root/"original_native_manifest.json"
+        original.rename(target)
+        try:original.symlink_to(target)
+        except (OSError,NotImplementedError):self.skipTest("symlink unavailable")
+        result=self.evaluate()
+        self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertIn("SYMLINKED_SOURCE_OR_COST_MANIFEST",result["blocker"])
+        self.assertFalse((self.root/"v98_authorized_native_preflight.csv").exists())
+
+    def test_gate_rejects_symlinked_cost_manifest_before_reading(self):
+        original=self.root/"account_costs_manifest.json"
+        target=self.root/"original_cost_manifest.json"
+        original.rename(target)
+        try:original.symlink_to(target)
+        except (OSError,NotImplementedError):self.skipTest("symlink unavailable")
+        result=self.evaluate()
+        self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertIn("SYMLINKED_SOURCE_OR_COST_MANIFEST",result["blocker"])
+
+    def test_gate_rejects_symlinked_evidence_root(self):
+        link=self.root.parent/(self.root.name+"_alias")
+        try:link.symlink_to(self.root,target_is_directory=True)
+        except (OSError,NotImplementedError):self.skipTest("symlink unavailable")
+        self.addCleanup(lambda:link.unlink(missing_ok=True))
+        result=gate.evaluate(link,self.expected,self.expected_sha)
+        self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertIn("SYMLINKED_EVIDENCE_DIRECTORY",result["blocker"])
+
     def test_collector_rejects_existing_authorized_export_before_network(self):
         collector,_,_=self._capture_fixture()
         dest=self.root/"capture";dest.mkdir()
