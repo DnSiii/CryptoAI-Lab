@@ -13,6 +13,7 @@ from ot_breadth_dispersion import COSTS, ORDERS, HOURS, WARMUP, independent_acco
 from ot_independent_oracle import independent_fills
 from pu_expected_net_wealth_composed import signals, target_books
 from v98_trade_lot_metrics import roundtrip_metrics, synthetic_tests
+from v98_dynamic_mark_sensitivity import run_dynamic_sensitivity
 from v98_2025_full_training_source_bridge import load
 
 EXPECTED_HOURS = HOURS - WARMUP - 1
@@ -30,6 +31,7 @@ def run_historical(d):
     if len(decision) != 157 or len(books["PU_full"]) != 157:
         raise ValueError("TRADE_FROZEN_PU_DECISION_CLOCK")
     cells = []
+    baseline_physical_rows = []
     for tier, (fee, slip) in COSTS.items():
         for order in ORDERS:
             physical_row, ledger = physical(d, books["PU_full"], "PU_full", tier, order, record=True)
@@ -48,6 +50,7 @@ def run_historical(d):
                 raise ValueError("TRADE_EMPTY_HISTORICAL_EPISODES")
             if trade["closed_wins"] + trade["closed_losses"] > trade["closed_net_asset_roundtrips"]:
                 raise ValueError("TRADE_CLASSIFICATION_INVALID")
+            baseline_physical_rows.append(physical_row)
             cells.append({
                 "tier": tier, "funding_order": order,
                 "historical_ledger_hours": len(ledger),
@@ -64,6 +67,11 @@ def run_historical(d):
                   "payoff", trade["trade_payoff"],
                   "win_rate", trade["trade_win_rate"],
                   "NAV_ERROR", trade["nav_reconciliation_error"], flush=True)
+    # Counterfactual source-uncertainty audit, preregistered separately.
+    # Rejected PU is not reselected, altered, promoted or benchmarked.
+    sensitivity = run_dynamic_sensitivity(d, books, baseline_physical_rows)
+    if sensitivity["decision"] != "PASS_DYNAMIC_MARK_SENSITIVITY_NOT_ENGINE":
+        raise ValueError("TRADE_DYNAMIC_MARK_SENSITIVITY_INCOMPLETE")
     result = {
         "decision": "PASS_HISTORICAL_TRADE_METRIC_INTEGRATION_ONLY_NOT_ENGINE",
         "historical_sample": "2023-2025_EXPOSED_TRAINING_ONLY",
@@ -72,6 +80,7 @@ def run_historical(d):
         "preregistration": PRE_RUN_CONTRACT,
         "source": source,
         "cells": cells,
+        "dynamic_mark_sensitivity": sensitivity,
         "physical_scenarios": len(cells),
         "ledger_hours_per_scenario": EXPECTED_HOURS,
         "exact_funding_mark_attested": False,
@@ -93,6 +102,8 @@ def main():
     dest = Path("v98_trade_lot_historical_integration_result.json")
     dest.write_text(json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n")
     print("TRADE_HISTORICAL_INTEGRATION", result["decision"], "six_scenarios", len(result["cells"]), flush=True)
+    print("MARK_DYNAMIC_SENSITIVITY", result["dynamic_mark_sensitivity"]["decision"],
+          "six_paired_paths", len(result["dynamic_mark_sensitivity"]["cells"]), flush=True)
 
 
 if __name__ == "__main__":
