@@ -1,0 +1,18 @@
+# V98 Independent WQ — preregistered native-funding-receiver growth and breakout composition (2026-11-02)
+
+**FROZEN BEFORE WQ CODE/PNL.** One complete seven-slot architecture economically distinct from rejected WP channel-state persistence and WO asynchronous momentum inventory: native funding receipt conditional on aligned price drift as the *growth engine*, plus a 72h price/volume expansion sleeve and a separate market-neutral funding dispersion spread. No post-WP rescue, no V14/V15/V99 signals, no massive grid.
+
+**Source firewall:** Clean-4 BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, Binance USD-M 1h Dec-2022 warmup to Dec-2025 exposed training only. Use pinned native funding rates only at events already settled by t; no 2026+, XRP, contaminated Phase083, external benchmark internals, future validation/holdout, Frozen, paper or live.
+
+**Frozen architecture, t close -> t+1 open:**
+1. Growth Core: at each daily close, calculate 168h log-price return and trailing **21 already settled 8h funding rates** per asset. Eligible long: return positive and mean funding negative (long receives carry); eligible short: return negative and mean funding positive (short receives carry). Rank eligible by absolute mean funding divided by 168h realized log-return volatility, stable asset-index tie break. Hold at most two at +0.30 or -0.30 each, otherwise cash. No fixed asset or hindsight.
+2. Opportunity Sleeve: 72h price breakout above previous 72h log-high with latest 24h quote volume > preceding 24h quote volume -> long +0.12 the strongest eligible 24h log return. Symmetric breakdown below previous 72h low -> short -0.12 the weakest eligible. At most one.
+3. Relative Value: using the same settled trailing 21-event funding means, if highest minus lowest >0.00008, long +0.08 lowest-funding asset and short -0.08 highest-funding asset. This sleeve seeks both sides of native funding receipt, independent of core price eligibility.
+4. Stress/Recovery: if equal-weight 24h market log return < -0.04, short -0.12 the weakest 24h asset. If preceding 24h market log return < -0.04 and current 24h return >+0.02, long +0.12 the strongest 24h asset. Otherwise zero.
+5. Regime Router: negative equal-weight 672h log return halves positive Growth/Opportunity weights, leaves shorts and RV untouched.
+6. Dynamic Allocator: scale all sleeves proportionally if absolute gross >0.70; no hidden leverage, no ceiling on compounded wealth itself.
+7. Risk Governor: existing hourly WL physical cash/funding governor with trim to 0.65 gross when gross/equity >0.75 or reserve <22%, both funding/fill orders.
+
+**Predeclared gates:** at least 30 nonzero daily activations each for Opportunity, RV, Stress; causal future-mutation; 30 complete physical cells (full/core-only/minus Opportunity/minus RV/minus Stress x 10/20/35bps illustrative costs x 2 funding/fill orders); no margin/survival breach; full CAGR >80% base and >60% severe, severe drawdown >-45%, every severe calendar year positive, strictly positive Opportunity/RV/Stress full-minus-ablation log-growth marginals base/severe both orders; separate hourly ledger reconciliation/tamper detection. Fail -> frozen rejection, no retune or rescue. Report concentration, positive days, PF, payoff, win rate, tails, fees and native funding. Aspirational gates are not upside ceilings.
+
+**Cannot approve delivery without** independently authenticated 13,524 original settlement markPrice events, dated account costs and executable depth/impact, collateral/liquidation rules, untouched chronological validation and clean future holdout, then external benchmark comparison after complete V98 freeze. No paper/live.
