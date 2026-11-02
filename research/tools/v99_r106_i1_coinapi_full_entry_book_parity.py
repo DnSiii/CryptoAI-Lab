@@ -202,7 +202,9 @@ def bind_original_open_inventories(report, journal):
                 or not isinstance(row.get("original_books"), list)):
             raise ValueError("DUPLICATE_OR_INVALID_COINAPI_ORIGINAL_GRID")
         books[key] = row["original_books"]
-    if len(books) != 180:
+    expected_grid = {(int(d.timestamp() * 1000), asset)
+                     for d in eligible(True) for asset in ("BTC", "ETH")}
+    if len(books) != 180 or set(books) != expected_grid:
         raise ValueError("INCOMPLETE_COINAPI_ORIGINAL_OPEN_GRID")
     checked = {}
     for scenario in ("severe", "supersevere"):
