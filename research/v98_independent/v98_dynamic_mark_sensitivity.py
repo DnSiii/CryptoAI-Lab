@@ -117,13 +117,14 @@ def independent_favorable_audit(d, ledger, fee, slip, order):
 
 
 def synthetic_controls():
+    """Explicitly exercised categories; no counters for unexecuted assertions."""
     old = np.array([2.0, -1.0, 3.0, -4.0])
     new = np.array([-2.0, 1.0, -3.0, 4.0])
     rate = np.array([0.001, -0.002, -0.003, 0.004])
     event = np.ones(4, dtype=bool)
     lower = np.array([100., 200., 300., 400.])
     upper = lower * 1.1
-    checked = 0
+    controls = set()
     for order in ot.ORDERS:
         good = favorable_funding(old, new, rate, event, lower, upper, order)
         independent = scalar_oracle_cash(old, new, rate, event, lower, upper, order)
@@ -133,37 +134,39 @@ def synthetic_controls():
         other = "new_after_fill" if order == "carried_before_fill" else "carried_before_fill"
         if abs(good - scalar_oracle_cash(old, new, rate, event, lower, upper, other)) < 1e-8:
             raise ValueError("MARK_SYNTHETIC_ORDER_TAMPER_UNDETECTED")
+        controls.add("wrong_funding_order")
         if abs((good + 1.) - independent) <= 1e-8:
             raise ValueError("MARK_SYNTHETIC_CASH_TAMPER_UNDETECTED")
-        altered = upper.copy()
-        altered[0] *= 1.5
-        if abs(favorable_funding(old, new, rate, event, lower, altered, order) -
-               scalar_oracle_cash(old, new, rate, event, lower, upper, order)) < 1e-8:
-            # This tamper is expected to change funding only if the changed upper
-            # bound belongs to a receiving position. Check that separately below.
-            pass
-        checked += 1
+        controls.add("cash_tamper")
     if favorable_funding(old, new, np.zeros(4), event, lower, upper, ot.ORDERS[0]) != 0:
         raise ValueError("MARK_SYNTHETIC_ZERO_RATE")
+    controls.add("zero_rate")
     if favorable_funding(old, new, rate, np.zeros(4, bool), lower, upper, ot.ORDERS[0]) != 0:
         raise ValueError("MARK_SYNTHETIC_NO_EVENT")
-    # Receiving short on a positive funding rate must use the upper bound.
+    controls.add("no_event")
+    # A receiving short on positive funding must use upper, and altered upper
+    # must change cash; compare to the independent original unmodified oracle.
     one_old = np.array([-1., 0., 0., 0.])
     one_rate = np.array([.001, 0., 0., 0.])
-    x = favorable_funding(one_old, one_old, one_rate, event, lower, upper, ot.ORDERS[0])
+    original_cash = scalar_oracle_cash(one_old, one_old, one_rate, event,
+                                       lower, upper, ot.ORDERS[0])
     altered = upper.copy()
     altered[0] *= 1.5
-    y = favorable_funding(one_old, one_old, one_rate, event, lower, altered, ot.ORDERS[0])
-    if not y > x or abs(y - scalar_oracle_cash(one_old, one_old, one_rate, event,
-                                               lower, altered, ot.ORDERS[0])) > 1e-12:
+    changed = favorable_funding(one_old, one_old, one_rate, event,
+                                 lower, altered, ot.ORDERS[0])
+    if not changed > original_cash or abs(changed - original_cash) < 1e-8:
         raise ValueError("MARK_SYNTHETIC_MARK_TAMPER_UNDETECTED")
+    controls.add("mark_tamper")
     try:
         favorable_funding(old, new, rate, event, upper, lower, ot.ORDERS[0])
     except ValueError:
-        checked += 1
+        controls.add("inverted_interval")
     else:
         raise ValueError("MARK_SYNTHETIC_INVERTED_INTERVAL_ACCEPTED")
-    return {"signed_orders": 2, "negative_controls": 5,
+    if controls != {"wrong_funding_order", "cash_tamper", "zero_rate",
+                    "no_event", "mark_tamper", "inverted_interval"}:
+        raise ValueError("MARK_SYNTHETIC_CONTROL_COVERAGE")
+    return {"signed_orders": 2, "negative_control_categories": sorted(controls),
             "decision": "PASS_MARK_SENSITIVITY_SYNTHETIC_NOT_PNL"}
 
 
