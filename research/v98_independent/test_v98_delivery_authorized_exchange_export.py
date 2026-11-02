@@ -93,6 +93,12 @@ class AlternateExchangeExport(unittest.TestCase):
     def test_missing_custodian_rejected(self):
         self.manifest["independent_custodian"]=""
         self.fails("MISSING_INDEPENDENT_CUSTODIAN")
+    def test_impossible_capture_before_source_end_rejected(self):
+        self.manifest["captured_at_utc"]="2022-12-01T00:00:00Z"
+        self.fails("IMPOSSIBLE_CAPTURE_TIME")
+    def test_future_capture_timestamp_rejected(self):
+        self.manifest["captured_at_utc"]="2099-01-01T00:00:00Z"
+        self.fails("IMPOSSIBLE_CAPTURE_TIME")
     def test_unsafe_export_path_rejected(self):
         self.manifest["export_file"]="../outside.csv"
         self.fails("UNSAFE_PATH")
