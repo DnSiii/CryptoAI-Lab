@@ -26,6 +26,8 @@ COLUMNS = ("exchange", "symbol", "timestamp", "local_timestamp",
            "bid_price", "ask_price", "bid_amount", "ask_amount")
 SCHEMA = "V99_I1_COINAPI_DERIVED_NATIVE_DAY_ONLY_V1"
 START, END = date(2021, 12, 9), date(2023, 10, 1)
+MAX_ORIGINAL_PARTITIONS = 4096
+MERGE_FANIN = 64
 
 
 def digest(path):
@@ -96,6 +98,61 @@ def _events(path, symbol, day):
         yield arrival, row
 
 
+def _bounded_original_merge(originals, day, staging):
+    """Exact (100ns arrival, source ordinal) merge, <=64 open source/run streams.
+
+    Per-batch sorted runs are disk-backed; a complete day is never buffered in
+    RAM, and 4096 original option partitions never require 4096 file handles.
+    """
+    runs = []
+    for start in range(0, len(originals), MERGE_FANIN):
+        batch = originals[start:start + MERGE_FANIN]
+        iterators = [iter(_events(path, symbol, day)) for path, symbol, _ in batch]
+        heap = []
+        try:
+            for offset, iterator in enumerate(iterators):
+                item = next(iterator, None)
+                if item is None:
+                    raise ValueError("EMPTY_DECLARED_ORIGINAL_COINAPI_SOURCE")
+                heapq.heappush(heap, (item[0], start + offset, item[1]))
+            run = staging / ("run-%04d.jsonl" % (start // MERGE_FANIN))
+            with run.open("w", encoding="utf-8", newline="") as output:
+                while heap:
+                    tick, ordinal, row = heapq.heappop(heap)
+                    output.write(json.dumps([tick, ordinal, row], separators=(",", ":")) + "\n")
+                    following = next(iterators[ordinal - start], None)
+                    if following is not None:
+                        heapq.heappush(heap, (following[0], ordinal, following[1]))
+            runs.append(run)
+        finally:
+            for iterator in iterators:
+                iterator.close()
+
+    def run_rows(path):
+        with path.open("r", encoding="utf-8") as stream:
+            for line in stream:
+                tick, ordinal, row = json.loads(line)
+                yield tick, ordinal, row
+
+    iterators = [iter(run_rows(path)) for path in runs]
+    heap = []
+    try:
+        for i, iterator in enumerate(iterators):
+            item = next(iterator, None)
+            if item is None:
+                raise ValueError("EMPTY_BOUNDED_COINAPI_MERGE_RUN")
+            heapq.heappush(heap, (item[0], item[1], i, item[2]))
+        while heap:
+            _tick, _ordinal, i, row = heapq.heappop(heap)
+            yield row
+            following = next(iterators[i], None)
+            if following is not None:
+                heapq.heappush(heap, (following[0], following[1], i, following[2]))
+    finally:
+        for iterator in iterators:
+            iterator.close()
+
+
 def convert(specification, output_root, *, fixture=False, license_document=None):
     """Stream sorted original partitions; write derived day and sidecar exclusively."""
     if type(fixture) is not bool:
@@ -103,7 +160,7 @@ def convert(specification, output_root, *, fixture=False, license_document=None)
     spec = json.loads(Path(specification).read_text(encoding="utf-8"))
     if (not isinstance(spec, dict) or set(spec) != {"schema", "day", "sources"}
             or spec["schema"] != SCHEMA or not isinstance(spec["sources"], list)
-            or not 2 <= len(spec["sources"]) <= 256):
+            or not 2 <= len(spec["sources"]) <= MAX_ORIGINAL_PARTITIONS):
         raise ValueError("INVALID_DERIVED_DAY_SPECIFICATION")
     try:
         day = date.fromisoformat(spec["day"])
@@ -147,34 +204,21 @@ def convert(specification, output_root, *, fixture=False, license_document=None)
     os.close(fd)
     count, invalid = 0, 0
     try:
-        iterators = [iter(_events(path, symbol, day)) for path, symbol, _ in originals]
-        heap = []
-        for i, iterator in enumerate(iterators):
-            item = next(iterator, None)
-            if item is None:
-                # A header-only gzip must not impersonate source presence
-                # for a declared BTC/ETH contract, even if another source
-                # makes the merged day nonempty.
-                raise ValueError("EMPTY_DECLARED_ORIGINAL_COINAPI_SOURCE")
-            heapq.heappush(heap, (item[0], i, item[1]))
-        with open(tmp, "wb") as raw:
-            with gzip.GzipFile(fileobj=raw, mode="wb", mtime=0, filename="") as compressed:
-                with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text:
-                    writer = csv.DictWriter(text, fieldnames=COLUMNS, lineterminator="\n")
-                    writer.writeheader()
-                    while heap:
-                        _, i, row = heapq.heappop(heap)
-                        writer.writerow(row)
-                        count += 1
-                        if (min(Decimal(row[k]) for k in (
-                                "bid_price", "ask_price", "bid_amount", "ask_amount")) == 0
-                                or Decimal(row["bid_price"]) >= Decimal(row["ask_price"])):
-                            invalid += 1
-                        item = next(iterators[i], None)
-                        if item is not None:
-                            heapq.heappush(heap, (item[0], i, item[1]))
-            raw.flush()
-            os.fsync(raw.fileno())
+        with tempfile.TemporaryDirectory(prefix=".coinapi-merge-", dir=root) as merge_dir:
+            with open(tmp, "wb") as raw:
+                with gzip.GzipFile(fileobj=raw, mode="wb", mtime=0, filename="") as compressed:
+                    with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text:
+                        writer = csv.DictWriter(text, fieldnames=COLUMNS, lineterminator="\n")
+                        writer.writeheader()
+                        for row in _bounded_original_merge(originals, day, Path(merge_dir)):
+                            writer.writerow(row)
+                            count += 1
+                            if (min(Decimal(row[k]) for k in (
+                                    "bid_price", "ask_price", "bid_amount", "ask_amount")) == 0
+                                    or Decimal(row["bid_price"]) >= Decimal(row["ask_price"])):
+                                invalid += 1
+                raw.flush()
+                os.fsync(raw.fileno())
         if not count:
             raise ValueError("EMPTY_DERIVED_DAY")
         for path, _, item in originals:
