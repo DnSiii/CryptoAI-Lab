@@ -92,7 +92,7 @@ class CoinapiOriginalEventIdentityTests(unittest.TestCase):
         doc = json.loads(self.spec.read_text())
         doc["sources"] = []
         self.spec.write_text(json.dumps(doc))
-        with self.assertRaisesRegex(ValueError, "MISSING_OR_DUPLICATED_COINAPI"):
+        with self.assertRaisesRegex(ValueError, "MISSING_ORIGINAL_COINAPI_LAST_ASOF"):
             audit_requests(self.specs, self.original,
                            {(T0+1000, "BTC", SYMBOL): quote()})
 
