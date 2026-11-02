@@ -69,7 +69,8 @@ def run(d,premium,outdir):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.add_argument("--self-test",action="store_true")\n    p.add_argument("--premium-csv")
+    p.add_argument("--self-test",action="store_true")
+    p.add_argument("--premium-csv")
     for k in ("old-root","old-envelope","new-root","corrected-root","out-dir"):
         p.add_argument("--"+k)
     a=p.parse_args()
