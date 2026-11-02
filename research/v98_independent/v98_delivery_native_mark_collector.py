@@ -74,8 +74,8 @@ def _page(url, fetcher, timeout):
             return headers, body, retrieved, data
         except RuntimeError as exc:
             last = exc
-            # A regional/legal block is not a transient rate-limit; try the
-            # other official host without manufacturing an alternative source.
+            # A legal/regional HTTP block is not transient and MUST NOT be
+            # circumvented by switching hosts. Stop and request authorized export.
             if any(x in str(exc) for x in ("HTTP_451", "HTTP_403", "HTTP_418")):
                 raise
             if attempt == 2:
@@ -111,7 +111,7 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
                     break
                 except RuntimeError as exc:
                     last_error = exc
-                    if not any(x in str(exc) for x in ("HTTP_451", "HTTP_403", "HTTP_418", "NETWORK_UNAVAILABLE")):
+                    if "NETWORK_UNAVAILABLE" not in str(exc):
                         raise
             if response is None:
                 raise RuntimeError("ALL_OFFICIAL_HOSTS_UNAVAILABLE_" + str(last_error))
