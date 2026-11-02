@@ -10,6 +10,7 @@ from pathlib import Path
 
 from research.tools.v99_r106_i1_coinapi_derived_day_bridge import convert, SCHEMA
 from research.tools.v99_r106_i1_local_tape_import import scan_day, build_manifest
+from research.verification.independent_v99_r106_i1_coinapi_derived_day_oracle import verify as independent_verify
 
 HEADER = "id_site_coinapi,time_exchange,time_coinapi,ask_px,ask_sx,bid_px,bid_sx\n"
 DAY = "2022-01-01"
@@ -46,6 +47,7 @@ class DerivedBridgeTests(unittest.TestCase):
             spec, out, originals = prepare(tmp)
             report = convert(spec, out, fixture=True)
             self.assertEqual(report["derived_rows"], 2)
+            self.assertEqual(independent_verify(spec, out)["rows"], 2)
             self.assertEqual(report["status"], "DERIVED_ONLY_NOT_ORIGINAL_SOURCE")
             self.assertFalse(report["promotion_authorized"])
             self.assertFalse(report["original_economic_train_executed"])
@@ -67,6 +69,17 @@ class DerivedBridgeTests(unittest.TestCase):
             # Shape-compatible is NOT source-original. Guard against manifest laundering.
             with self.assertRaisesRegex(ValueError, "DERIVED_COINAPI_TAPE_CANNOT_BE_ORIGINAL"):
                 build_manifest(out, fixture=True)
+
+    def test_independent_oracle_rejects_forged_derived_provenance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec, out, _ = prepare(tmp)
+            convert(spec, out, fixture=True)
+            manifest = out/(DAY+".coinapi-derived.json")
+            report = json.loads(manifest.read_text())
+            report["derived_rows"] = 999
+            manifest.write_text(json.dumps(report))
+            with self.assertRaisesRegex(AssertionError, "INDEPENDENT_DERIVED_INCOMPLETE"):
+                independent_verify(spec, out)
 
     def test_source_tamper_rejected_before_output(self):
         with tempfile.TemporaryDirectory() as tmp:
