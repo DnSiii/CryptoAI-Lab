@@ -125,7 +125,8 @@ def _original_rows(path: Path):
                 raise ValueError("WRONG_COINAPI_QUOTES_COLUMNS")
             reader = csv.DictReader(stream, fieldnames=COLUMNS, delimiter=delimiter,
                                     strict=True)
-            yield from reader
+            for row in reader:
+                yield row, delimiter
     except (OSError, UnicodeError, EOFError, csv.Error) as exc:
         raise ValueError("INVALID_ORIGINAL_GZIP") from exc
 
@@ -145,7 +146,7 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
     original_sha256, original_bytes = _compressed_digest(path)
     rows, last_arrival_tick = 0, None
     first_tick, last_tick = None, None
-    for row in _original_rows(path):
+    for row, delimiter in _original_rows(path):
         if row.get(None) is not None or any(row.get(k) is None for k in COLUMNS):
             raise ValueError("MALFORMED_ORIGINAL_COINAPI_ROW")
         if row["id_site_coinapi"] and not SITE_UUID.fullmatch(row["id_site_coinapi"]):
