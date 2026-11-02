@@ -303,6 +303,31 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertFalse((dest/"authorized_funding_pages.jsonl").exists())
 
 
+    def test_collector_rejects_existing_authorized_export_before_network(self):
+        collector,_,_=self._capture_fixture()
+        dest=self.root/"capture";dest.mkdir()
+        (dest/"authorized_exchange_export_manifest.json").write_text("{}")
+        calls=[]
+        def forbidden_fetch(url,timeout):
+            calls.append(url)
+            raise AssertionError("NETWORK_MUST_NOT_BE_CALLED")
+        with self.assertRaisesRegex(FileExistsError,"EXISTING_NATIVE_EVIDENCE"):
+            collector.collect(self.expected,self.expected_sha,dest,forbidden_fetch)
+        self.assertEqual(calls,[])
+        self.assertFalse((dest/"authorized_funding_pages.jsonl").exists())
+
+    def test_collector_rejects_symlinked_private_evidence_directory(self):
+        collector,_,_=self._capture_fixture()
+        actual=self.root/"real_private";actual.mkdir()
+        link=self.root/"linked_private"
+        try:link.symlink_to(actual,target_is_directory=True)
+        except (OSError,NotImplementedError):self.skipTest("symlink unavailable")
+        def forbidden_fetch(url,timeout):
+            raise AssertionError("NETWORK_MUST_NOT_BE_CALLED")
+        with self.assertRaisesRegex(ValueError,"SYMLINKED_EVIDENCE_DIRECTORY"):
+            collector.collect(self.expected,self.expected_sha,link,forbidden_fetch)
+        self.assertEqual(list(actual.iterdir()),[])
+
     def test_manifest_transport_exposes_source_only_exact_mark_csv(self):
         result=self.evaluate()
         p=self.root/"v98_authorized_native_preflight.csv"
