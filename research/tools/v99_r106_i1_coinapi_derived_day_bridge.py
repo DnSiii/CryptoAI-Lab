@@ -15,6 +15,7 @@ import os
 import tempfile
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from decimal import Decimal
 
 from research.tools.v99_r106_i1_coinapi_quote_intake import (
     SOURCE_KEY, SITE_UUID, SYMBOL, _original_rows, nonnegative,
@@ -122,11 +123,13 @@ def convert(specification, output_root, *, fixture=False, license_document=None)
         if license_document is not None:
             raise ValueError("FIXTURE_CANNOT_CLAIM_LICENSE")
         license_digest = None
-    originals, keys, symbols, assets = [], set(), set(), set()
+    originals, keys, symbols, assets, paths = [], set(), set(), set(), set()
     for item in spec["sources"]:
         path, symbol = _source(item, day)
-        if item["source_key"] in keys or symbol in symbols:
+        if (item["source_key"] in keys or symbol in symbols
+                or path.resolve() in paths):
             raise ValueError("DUPLICATE_DERIVED_SOURCE_IDENTITY")
+        paths.add(path.resolve())
         keys.add(item["source_key"])
         symbols.add(symbol)
         assets.add(symbol.split("-", 1)[0])
@@ -159,9 +162,9 @@ def convert(specification, output_root, *, fixture=False, license_document=None)
                         _, i, row = heapq.heappop(heap)
                         writer.writerow(row)
                         count += 1
-                        if (min(float(row[k]) for k in (
+                        if (min(Decimal(row[k]) for k in (
                                 "bid_price", "ask_price", "bid_amount", "ask_amount")) == 0
-                                or float(row["bid_price"]) >= float(row["ask_price"])):
+                                or Decimal(row["bid_price"]) >= Decimal(row["ask_price"])):
                             invalid += 1
                         item = next(iterators[i], None)
                         if item is not None:
