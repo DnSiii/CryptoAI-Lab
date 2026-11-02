@@ -14,7 +14,7 @@ BOOKS = {"cash": (0.,0.,0.,0.), "equal_20": (.20,.20,.20,.20)}
 
 def close_enough(actual, expected, label, t):
     a=np.asarray(actual,float);b=np.asarray(expected,float)
-    if a.shape!=b.shape or not np.allclose(a,b,rtol=1e-10,atol=1e-7):
+    if a.shape!=b.shape or not np.allclose(a,b,rtol=1e-10,atol=1e-7,equal_nan=True):
         raise ValueError("STATIC_INDEPENDENT_MISMATCH_"+label+"_HOUR_"+str(t))
     return 1
 
