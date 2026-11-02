@@ -12,7 +12,7 @@ COLS=("hour","cash_before","cash_after","equity_before","equity_after","gap_pnl"
       "rate","lower","upper","target_weight")
 VECTORS=("qty","open","close","rate","lower","upper","target_weight")
 def equal(a,b,label,t,atol=1e-6):
-    if not np.allclose(a,b,rtol=1e-11,atol=atol):
+    if not np.allclose(a,b,rtol=1e-11,atol=atol,equal_nan=True):
         raise ValueError("WH_INDEPENDENT_MISMATCH_"+label+"_HOUR_"+str(t))
     return 1
 def independent_signal(d,t):
