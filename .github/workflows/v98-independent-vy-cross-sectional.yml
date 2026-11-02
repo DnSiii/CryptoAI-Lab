@@ -1,0 +1,90 @@
+name: V98 Independent VY Cross-Sectional Seven-Slot Exposed Training
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-vy-cross-sectional.yml'
+      - 'research/v98_independent/vy_cross_sectional_spread.py'
+      - 'research/v98_independent/vy_cross_sectional_physical.py'
+      - 'research/v98_independent/vy_cross_sectional_oracle.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  vy-causal-full-history-source-first:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Synthetic causal test before historical sources
+        run: |
+          set -euo pipefail
+          python -m py_compile research/v98_independent/vy_cross_sectional_spread.py
+          python research/v98_independent/vy_cross_sectional_spread.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-independent-clean4-2022-2024-pinned-source
+          run-id: 40064588623
+          github-token: ${{ github.token }}
+          path: old
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-official-mark-envelope-40908310578
+          run-id: 40908310578
+          github-token: ${{ github.token }}
+          path: old-envelope
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-nh-2025-official-source-41076438477
+          run-id: 41076438477
+          github-token: ${{ github.token }}
+          path: new
+      - uses: actions/download-artifact@v4
+        with:
+          name: v98-2025-crossyear-source-41226345264
+          run-id: 41226345264
+          github-token: ${{ github.token }}
+          path: corrected
+      - name: Full-history source, causal decision and minimum-incidence pre-PnL falsification
+        working-directory: research/v98_independent
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from v98_2025_full_training_source_bridge import load
+          from vy_cross_sectional_spread import source_gate,targets,incidence,CLOCK,SLOTS
+          d=load('../../old','../../old-envelope/v98_official_mark_envelope_training.csv','../../new','../../corrected')
+          s=source_gate(d)
+          decisions=targets(d)
+          counts=incidence(decisions)
+          regimes={r:sum(x['regime']==r for x in decisions.values()) for r in ('risk_on','risk_off','mixed')}
+          threshold=int(.15*len(CLOCK))
+          failures=[k for k in SLOTS[1:] if counts[k]<threshold]
+          result={'decision':'REJECT_VY_SOURCE_INCIDENCE' if failures else 'PASS_VY_SOURCE_INCIDENCE_NOT_PNL',
+                  'source':s,'decisions':len(CLOCK),'sleeve_incidence':counts,
+                  'regimes':regimes,'minimum_incidence':threshold,'failures':failures,
+                  '2025_exposed_training_only':True,'2026_accessed':False,
+                  'pnl_computed':False,'account_costs_authenticated':False,
+                  'exact_funding_marks_authenticated':False,'holdout_accessed':False,
+                  'benchmarks_accessed':False,'paper_live_authorized':False}
+          Path('vy_source_receipt.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print('VY_SOURCE',json.dumps(result,sort_keys=True),flush=True)
+          if failures:raise SystemExit('VY_PREREG_SOURCE_FALSIFICATION: '+','.join(failures))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-vy-full-2023-25-source-incidence-not-pnl
+          path: research/v98_independent/vy_source_receipt.json
+          retention-days: 30
+          if-no-files-found: warn
