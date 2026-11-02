@@ -65,7 +65,7 @@ def verify_sunday(spec_path, original_root, derived_root, decision_ms):
     if (not isinstance(spec, dict) or set(spec) != {"schema", "day", "sources"}
             or spec["schema"] != DAY_SCHEMA or spec["day"] != day.isoformat()
             or not isinstance(spec["sources"], list)
-            or not 2 <= len(spec["sources"]) <= 256):
+            or not 2 <= len(spec["sources"]) <= 4096):
         raise ValueError("INVALID_COINAPI_ENTRY_SPEC")
     start = int(datetime(day.year, day.month, day.day,
                          tzinfo=timezone.utc).timestamp()) * 10_000_000
