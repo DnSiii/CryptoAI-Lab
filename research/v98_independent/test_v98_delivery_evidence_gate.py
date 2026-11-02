@@ -401,4 +401,44 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertFalse((self.root/"v98_authorized_native_preflight.csv").exists())
         self.assertFalse((self.root/"v98_authorized_native_preflight.json").exists())
 
+    def test_manifest_rejects_capture_before_latest_event(self):
+        # Original server/capture timestamps cannot precede the records
+        # purportedly returned, even when their two clocks agree.
+        self.pages[0]["retrieved_at_utc"]="2022-12-01T00:00:00Z"
+        self.pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT"}
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_CAPTURE_BEFORE_EVENT",self.evaluate()["blocker"])
+
+    def test_manifest_rejects_capture_claimed_in_future(self):
+        self.pages[0]["retrieved_at_utc"]="2035-11-02T00:00:00Z"
+        self.pages[0]["response_headers"]={"Date":"Fri, 02 Nov 2035 00:00:00 GMT"}
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_CAPTURE_IN_FUTURE",self.evaluate()["blocker"])
+
+    def test_jsonl_rejects_capture_before_latest_event(self):
+        import v98_authorized_funding_mark_ingest as importer
+        saved=(importer.START,importer.END,importer.EXPECTED)
+        importer.START=gate.START
+        importer.END=gate.START+2*gate.EIGHT_HOURS_MS
+        importer.EXPECTED=8
+        self.addCleanup(lambda:(
+            setattr(importer,"START",saved[0]),
+            setattr(importer,"END",saved[1]),
+            setattr(importer,"EXPECTED",saved[2])))
+        pages=[]
+        for page in self.pages:
+            raw=(self.root/page["file"]).read_text()
+            pages.append({"url":page["url"],"status":200,
+                "response_headers":page["response_headers"],
+                "retrieved_at_utc":page["retrieved_at_utc"],
+                "response_body":raw,
+                "response_body_sha256":hashlib.sha256(raw.encode()).hexdigest()})
+        pages[0]["retrieved_at_utc"]="2022-12-01T00:00:00Z"
+        pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT"}
+        (self.root/"native_pages_manifest.json").unlink()
+        (self.root/"authorized_funding_pages.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in pages)+"\n")
+        self.assertIn("RETRIEVAL_BEFORE_FUNDING_EVENT",self.evaluate()["blocker"])
+        self.assertFalse((self.root/"v98_authorized_native_preflight.csv").exists())
+
 if __name__=="__main__":unittest.main()
