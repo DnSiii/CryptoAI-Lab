@@ -315,4 +315,49 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
         self.assertIn("EXACT_MARK_OUTPUT_CONFLICT",result["blocker"])
 
+
+    def test_collector_multi_page_cursor_is_lossless_and_never_crosses_cutoff(self):
+        import v98_delivery_native_mark_collector as collector
+        import v98_authorized_funding_mark_ingest as importer
+        from urllib.parse import urlsplit,parse_qs
+        saved=(gate.EXPECTED_COUNT,gate.PINNED_EXPECTED_FUNDING_SHA256,
+               collector.EXPECTED_COUNT,collector.END,collector.MAX_PAGE,
+               collector.expected_events,importer.END,importer.EXPECTED)
+        self.addCleanup(lambda:(
+            setattr(gate,"EXPECTED_COUNT",saved[0]),
+            setattr(gate,"PINNED_EXPECTED_FUNDING_SHA256",saved[1]),
+            setattr(collector,"EXPECTED_COUNT",saved[2]),
+            setattr(collector,"END",saved[3]),
+            setattr(collector,"MAX_PAGE",saved[4]),
+            setattr(collector,"expected_events",saved[5]),
+            setattr(importer,"END",saved[6]),
+            setattr(importer,"EXPECTED",saved[7])))
+        ts=[gate.START+i*gate.EIGHT_HOURS_MS for i in range(3)]
+        with self.expected.open("w",newline="") as f:
+            w=csv.writer(f);w.writerow(gate.FIELDS)
+            for a in gate.ASSETS:
+                for t in ts:w.writerow((a,t,"0.00010000"))
+        sha=digest(self.expected)
+        gate.EXPECTED_COUNT=collector.EXPECTED_COUNT=importer.EXPECTED=12
+        gate.PINNED_EXPECTED_FUNDING_SHA256=sha
+        collector.expected_events=gate.expected_events
+        collector.END=importer.END=ts[-1]+gate.EIGHT_HOURS_MS
+        collector.MAX_PAGE=2
+        calls=[]
+        def fetcher(url,timeout):
+            q=parse_qs(urlsplit(url).query)
+            self.assertEqual(int(q["endTime"][0]),collector.END-1)
+            self.assertEqual(int(q["limit"][0]),2)
+            asset=q["symbol"][0];cursor=int(q["startTime"][0])
+            rows=[{"symbol":asset,"fundingTime":t,"fundingRate":"0.00010000",
+                   "markPrice":"123.45"} for t in ts if t>=cursor][:2]
+            calls.append((asset,cursor,len(rows)))
+            return 200,{"Date":"Mon, 02 Nov 2026 00:00:05 GMT"},json.dumps(rows).encode(),"2026-11-02T00:00:00Z"
+        out=collector.collect(self.expected,sha,self.root/"multipage",fetcher)
+        self.assertEqual(out["events"],12)
+        self.assertEqual(out["pages"],8)
+        self.assertEqual(len(calls),8)
+        self.assertTrue(all(calls[i][1]<calls[i+1][1] for i in (0,2,4,6)))
+        self.assertFalse(out["paper_or_live_authorized"])
+
 if __name__=="__main__":unittest.main()
