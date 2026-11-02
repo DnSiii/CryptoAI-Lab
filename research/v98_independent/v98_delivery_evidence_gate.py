@@ -109,6 +109,8 @@ def native_mark_pages(manifest,root,expected):
         if not isinstance(headers,dict) or sum(k.lower()=="date" for k in headers)!=1:
             fail("NATIVE_HTTP_DATE_HEADER")
         capture=utc_timestamp(page.get("retrieved_at_utc"))
+        if capture>dt.datetime.now(dt.timezone.utc)+dt.timedelta(minutes=5):
+            fail("NATIVE_CAPTURE_IN_FUTURE")
         raw_date=next(v for k,v in headers.items() if k.lower()=="date")
         try:server=parsedate_to_datetime(raw_date)
         except (ValueError,TypeError,IndexError):fail("NATIVE_HTTP_DATE_INVALID")
@@ -131,6 +133,7 @@ def native_mark_pages(manifest,root,expected):
             ts=timestamp_ms(exact_integer(row.get("fundingTime"),"NATIVE_TIMESTAMP_TYPE"))
             if not lo<=ts<=hi:fail("NATIVE_ROW_OUTSIDE_REQUEST")
             if ts<=prev:fail("NATIVE_PAGE_ORDER")
+            if ts>int(capture.timestamp()*1000):fail("NATIVE_CAPTURE_BEFORE_EVENT")
             prev=ts
             slot=START+((ts-START)//EIGHT_HOURS_MS)*EIGHT_HOURS_MS
             if ts-slot>MAX_SETTLEMENT_OFFSET_MS:fail("NATIVE_SETTLEMENT_OFFSET_GT_60S")
