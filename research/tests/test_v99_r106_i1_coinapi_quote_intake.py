@@ -162,9 +162,27 @@ class TestCoinAPIIntake(unittest.TestCase):
             with self.subTest(value=bad):
                 with self.assertRaisesRegex(ValueError, "INVALID_ORIGINAL_COINAPI_NUMBER"):
                     self.case(ROW.replace(",0.0045,3", "," + bad + ",3"))
-    def test_locked_book_rejected(self):
-        with self.assertRaisesRegex(ValueError,"CROSSED"):
-            self.case(ROW.replace(",0.0045,3",",0.0050,3"))
+    def test_locked_and_crossed_books_retained_only_as_non_executable(self):
+        for bad_bid in ("0.0050", "0.0060"):
+            with self.subTest(bid=bad_bid):
+                result = self.case(ROW.replace(",0.0045,3", "," + bad_bid + ",3"))
+                self.assertEqual(result["rows"], 1)
+                self.assertEqual(result["two_sided_positive_depth_rows"], 0)
+                self.assertEqual(result["non_executable_depth_rows"], 1)
+                self.assertEqual(result["locked_or_crossed_non_executable_rows"], 1)
+                self.assertFalse(result["economic_train_executed"])
+                self.assertFalse(result["promotion_authorized"])
+
+    def test_good_locked_crossed_good_preserves_original_sequence(self):
+        locked = ROW.replace(".2350440", ".3350440").replace(",0.0045,3", ",0.0050,3")
+        crossed = ROW.replace(".2350440", ".4350440").replace(",0.0045,3", ",0.0060,3")
+        later = ROW.replace(".2350440", ".5350440")
+        result = self.case(ROW + locked + crossed + later)
+        self.assertEqual(result["rows"], 4)
+        self.assertEqual(result["two_sided_positive_depth_rows"], 2)
+        self.assertEqual(result["non_executable_depth_rows"], 2)
+        self.assertEqual(result["locked_or_crossed_non_executable_rows"], 2)
+        self.assertFalse(result["source_quote_size_units_certified_as_native_contracts"])
     def test_reordered_arrival_rejected(self):
         with self.assertRaisesRegex(ValueError,"OUT_OF_ORDER"):
             self.case(ROW+ROW.replace("00:00:00.2350440","00:00:00.2000000"))
