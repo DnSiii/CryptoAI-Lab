@@ -8,6 +8,7 @@ import gzip
 import hashlib
 import heapq
 import json
+import tempfile
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -67,6 +68,57 @@ def original_rows(path, symbol):
             }
 
 
+def independently_sorted_rows(sources, staging):
+    """Independent 64-way external merge of original 100ns receipt streams."""
+    runs = []
+    for start in range(0, len(sources), 64):
+        batch = sources[start:start + 64]
+        generators = [iter(original_rows(item["path"], item["symbol"])) for item in batch]
+        pending = []
+        try:
+            for offset, iterator in enumerate(generators):
+                first = next(iterator, None)
+                if first is None:
+                    raise AssertionError("INDEPENDENT_EMPTY_DECLARED_ORIGINAL_SOURCE")
+                heapq.heappush(pending, (first[0], start + offset, first[1]))
+            path = staging / ("independent-%04d.jsonl" % (start // 64))
+            with path.open("w", encoding="utf-8") as stream:
+                while pending:
+                    tick, ordinal, row = heapq.heappop(pending)
+                    stream.write(json.dumps([tick, ordinal, row], separators=(",", ":")) + "\n")
+                    nxt = next(generators[ordinal - start], None)
+                    if nxt is not None:
+                        heapq.heappush(pending, (nxt[0], ordinal, nxt[1]))
+            runs.append(path)
+        finally:
+            for generator in generators:
+                generator.close()
+
+    def records(path):
+        with path.open("r", encoding="utf-8") as stream:
+            for line in stream:
+                tick, ordinal, row = json.loads(line)
+                yield tick, ordinal, row
+
+    generators = [iter(records(path)) for path in runs]
+    pending = []
+    try:
+        for i, generator in enumerate(generators):
+            first = next(generator, None)
+            if first is None:
+                raise AssertionError("INDEPENDENT_EMPTY_MERGE_RUN")
+            heapq.heappush(pending, (first[0], first[1], i, first[2]))
+        while pending:
+            _tick, _ordinal, i, row = heapq.heappop(pending)
+            yield row
+            nxt = next(generators[i], None)
+            if nxt is not None:
+                heapq.heappush(pending, (nxt[0], nxt[1], i, nxt[2]))
+    finally:
+        for generator in generators:
+            generator.close()
+
+
 def verify(specification, root):
     spec = json.loads(Path(specification).read_text(encoding="utf-8"))
     day = spec["day"]
@@ -80,8 +132,6 @@ def verify(specification, root):
             or report.get("derived_gzip_sha256") != sha(target)
             or len(spec["sources"]) != len(report.get("original_sources", []))):
         raise AssertionError("INDEPENDENT_DERIVED_PROVENANCE_MISMATCH")
-    pending = []
-    generators = []
     for i, entry in enumerate(spec["sources"]):
         attested = report["original_sources"][i]
         if (sha(entry["path"]) != entry["sha256"]
@@ -89,30 +139,25 @@ def verify(specification, root):
                 or attested["source_key"] != entry["source_key"]
                 or attested["symbol"] != entry["symbol"]):
             raise AssertionError("INDEPENDENT_ORIGINAL_BYTES_OR_IDENTITY_MISMATCH")
-        iterator = iter(original_rows(entry["path"], entry["symbol"]))
-        generators.append(iterator)
-        first = next(iterator, None)
-        if first is None:
-            # Independent source-byte check, not a trusted converter claim.
-            raise AssertionError("INDEPENDENT_EMPTY_DECLARED_ORIGINAL_SOURCE")
-        heapq.heappush(pending, (first[0], i, first[1]))
     count = 0
-    with gzip.open(target, "rt", newline="", encoding="utf-8") as stream:
-        reader = csv.DictReader(stream, strict=True)
-        if tuple(reader.fieldnames or ()) != HEAD:
-            raise AssertionError("INDEPENDENT_DERIVED_COLUMNS_MISMATCH")
-        for actual in reader:
-            if not pending:
-                raise AssertionError("INDEPENDENT_DERIVED_EXTRA_ROW")
-            _, i, expected = heapq.heappop(pending)
-            if actual != expected:
-                raise AssertionError("INDEPENDENT_DERIVED_ROW_OR_CLOCK_MISMATCH")
-            count += 1
-            following = next(generators[i], None)
-            if following is not None:
-                heapq.heappush(pending, (following[0], i, following[1]))
-    if pending or count != report.get("derived_rows"):
-        raise AssertionError("INDEPENDENT_DERIVED_INCOMPLETE_ROWS")
+    with tempfile.TemporaryDirectory(prefix=".coinapi-independent-sort-", dir=root) as tmp:
+        expected_rows = independently_sorted_rows(spec["sources"], Path(tmp))
+        try:
+            with gzip.open(target, "rt", newline="", encoding="utf-8") as stream:
+                reader = csv.DictReader(stream, strict=True)
+                if tuple(reader.fieldnames or ()) != HEAD:
+                    raise AssertionError("INDEPENDENT_DERIVED_COLUMNS_MISMATCH")
+                for actual in reader:
+                    expected = next(expected_rows, None)
+                    if expected is None:
+                        raise AssertionError("INDEPENDENT_DERIVED_EXTRA_ROW")
+                    if actual != expected:
+                        raise AssertionError("INDEPENDENT_DERIVED_ROW_OR_CLOCK_MISMATCH")
+                    count += 1
+            if next(expected_rows, None) is not None or count != report.get("derived_rows"):
+                raise AssertionError("INDEPENDENT_DERIVED_INCOMPLETE_ROWS")
+        finally:
+            expected_rows.close()
     return {"status": "INDEPENDENT_DERIVED_BYTE_REPLAY_MATCH_NOT_ORIGINAL_ECONOMICS",
-            "rows": count, "original_files": len(generators),
+            "rows": count, "original_files": len(spec["sources"]),
             "promotion_authorized": False, "economic_train_executed": False}
