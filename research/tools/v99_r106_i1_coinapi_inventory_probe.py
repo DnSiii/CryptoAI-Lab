@@ -169,6 +169,9 @@ def probe_target(*, api_key=None, runner=subprocess.run, max_pages=20):
                 report["compressed_bytes_listed"] += size
                 match = SOURCE_KEY.fullmatch(name)
                 if match:
+                    # An empty object cannot contain a gzip quote archive.
+                    # Keep its LIST metadata, but never treat its symbol name
+                    # as evidence of a usable fixed-tenor options book.
                     symbol = match.group(2).replace("__002D", "-")
                     if SYMBOL.fullmatch(symbol):
                         asset = symbol.split("-", 1)[0].lower()
@@ -180,7 +183,8 @@ def probe_target(*, api_key=None, runner=subprocess.run, max_pages=20):
                             strike = int(parts[2])
                         except (ValueError, OverflowError):
                             continue
-                        if (strike > 0 and timedelta(days=28) <= expiry-entry
+                        if (size > 0 and strike > 0
+                                and timedelta(days=28) <= expiry-entry
                                 <= timedelta(days=35)):
                             asset_upper = asset.upper()
                             report["fixed_tenor_candidate_files_by_asset"][asset_upper] += 1
