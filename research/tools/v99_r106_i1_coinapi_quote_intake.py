@@ -83,13 +83,14 @@ def ticks100ns(value: str) -> int:
     return whole_seconds * 10_000_000 + int(fraction[:7].ljust(7, "0") or "0")
 
 
-def positive(value: str) -> Decimal:
+def nonnegative(value: str) -> Decimal:
+    """Validate raw source numbers without declaring a zero-side quote tradable."""
     try:
         d = Decimal(value)
     except (InvalidOperation, TypeError):
         raise ValueError("INVALID_ORIGINAL_COINAPI_NUMBER")
-    if not d.is_finite() or d <= 0:
-        raise ValueError("NONPOSITIVE_ORIGINAL_COINAPI_NUMBER")
+    if not d.is_finite() or d < 0:
+        raise ValueError("NEGATIVE_OR_NONFINITE_ORIGINAL_COINAPI_NUMBER")
     return d
 
 
@@ -145,6 +146,7 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
     # bytes or decompressed CSV in memory. Hash original bytes in chunks.
     original_sha256, original_bytes = _compressed_digest(path)
     rows, last_arrival_tick = 0, None
+    executable_depth_rows, non_executable_depth_rows = 0, 0
     first_tick, last_tick = None, None
     for row, delimiter in _original_rows(path):
         if row.get(None) is not None or any(row.get(k) is None for k in COLUMNS):
@@ -158,10 +160,15 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         if (event_tick > arrival_tick or
                 (last_arrival_tick is not None and arrival_tick < last_arrival_tick)):
             raise ValueError("NONCAUSAL_OR_OUT_OF_ORDER_COINAPI_QUOTE")
-        bid, ask = positive(row["bid_px"]), positive(row["ask_px"])
-        positive(row["bid_sx"]); positive(row["ask_sx"])
-        if bid >= ask:
+        bid, ask = nonnegative(row["bid_px"]), nonnegative(row["ask_px"])
+        bid_size, ask_size = nonnegative(row["bid_sx"]), nonnegative(row["ask_sx"])
+        # Zero-sided updates are original source evidence, never executable fills.
+        if bid > 0 and ask > 0 and bid >= ask:
             raise ValueError("CROSSED_OR_LOCKED_COINAPI_BOOK")
+        if min(bid, ask, bid_size, ask_size) == 0:
+            non_executable_depth_rows += 1
+        else:
+            executable_depth_rows += 1
         first_tick = arrival_tick if first_tick is None else first_tick
         last_tick = arrival_tick
         last_arrival_tick = arrival_tick
@@ -182,6 +189,9 @@ def inspect(original_gzip: Path, *, venue: str, symbol: str, licensed: bool, sou
         "source_key_independently_verified":False,
         "license_document_independently_verified":False,
         "original_bytes":original_bytes, "rows":rows,
+        "two_sided_positive_depth_rows":executable_depth_rows,
+        "non_executable_depth_rows":non_executable_depth_rows,
+        "two_sided_source_rows_are_not_certified_fills":True,
         "first_arrival_us":first_tick // 10, "last_arrival_us":last_tick // 10,
         "first_arrival_100ns":first_tick, "last_arrival_100ns":last_tick,
         "microsecond_fields_are_floored_display_only":True,
