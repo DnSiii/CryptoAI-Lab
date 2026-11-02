@@ -174,6 +174,98 @@ def verify_sunday(spec_path, original_root, derived_root, decision_ms):
     }
 
 
+
+def bind_original_open_inventories(report, journal):
+    """Bind BOTH scenario OPEN inventories to original CoinAPI prices and clocks.
+
+    SOURCE-ONLY: original bid_sx/ask_sx are NOT native lots. Deliberately do
+    not compare these unverified source sizes to journal bid_native_lots.
+    Numeric wallet/fills must remain blocked pending independently authenticated
+    lot conversion, fee/margin/index and execution evidence.
+    """
+    from decimal import Decimal, InvalidOperation
+    from research.tools.v99_r106_i1_native_event_equity import SCHEMA as JOURNAL_SCHEMA
+    if (not isinstance(report, dict) or report.get("schema") != SCHEMA
+            or report.get("original_intents_checked") != 180
+            or report.get("promotion_authorized") is not False
+            or not isinstance(report.get("rows"), list)
+            or len(report["rows"]) != 180):
+        raise ValueError("UNTRUSTED_COINAPI_ORIGINAL_OPEN_GRID")
+    if (not isinstance(journal, dict) or journal.get("schema") != JOURNAL_SCHEMA
+            or set(journal.get("scenarios", {})) != {"severe", "supersevere"}):
+        raise ValueError("INVALID_COINAPI_NATIVE_JOURNAL")
+    books = {}
+    for row in report["rows"]:
+        key = (row.get("decision_ms"), row.get("asset"))
+        if (key in books or type(key[0]) is not int
+                or key[1] not in ("BTC", "ETH")
+                or not isinstance(row.get("original_books"), list)):
+            raise ValueError("DUPLICATE_OR_INVALID_COINAPI_ORIGINAL_GRID")
+        books[key] = row["original_books"]
+    if len(books) != 180:
+        raise ValueError("INCOMPLETE_COINAPI_ORIGINAL_OPEN_GRID")
+    checked = {}
+    for scenario in ("severe", "supersevere"):
+        seen = set()
+        count = 0
+        for day in journal["scenarios"][scenario]:
+            if not isinstance(day, dict) or not isinstance(day.get("events"), list):
+                raise ValueError("INVALID_COINAPI_NATIVE_EVENT_DAY")
+            for event in day["events"]:
+                if not isinstance(event, dict):
+                    raise ValueError("INVALID_COINAPI_NATIVE_EVENT")
+                if event.get("kind") != "OPEN":
+                    continue
+                key = (event.get("at_ms"), event.get("asset"))
+                if key in seen or key not in books or not books[key]:
+                    raise ValueError("UNSCHEDULED_OR_DUPLICATE_COINAPI_OPEN")
+                seen.add(key)
+                expected = {q["symbol"]: q for q in books[key]}
+                received = event.get("quotes")
+                if (not isinstance(received, list)
+                        or len(received) != len(expected)
+                        or len(expected) != len(books[key])):
+                    raise ValueError("COINAPI_OPEN_ORIGINAL_INVENTORY_MISMATCH")
+                symbols = set()
+                for quote in received:
+                    if not isinstance(quote, dict):
+                        raise ValueError("COINAPI_OPEN_INVALID_QUOTE")
+                    symbol = quote.get("symbol")
+                    if symbol in symbols or symbol not in expected:
+                        raise ValueError("COINAPI_OPEN_ORIGINAL_INVENTORY_MISMATCH")
+                    symbols.add(symbol)
+                    source = expected[symbol]
+                    try:
+                        same = (quote.get("asset") == key[1]
+                            and quote.get("expiry_ms") == source["expiry_ms"]
+                            and all(Decimal(str(quote.get(dst))) ==
+                                    Decimal(str(source[src])) for dst, src in (
+                                        ("strike_usd", "strike_usd"),
+                                        ("bid_coin", "bid_coin"),
+                                        ("ask_coin", "ask_coin")))
+                            and quote.get("venue_ms") == source["venue_us"] // 1000
+                            and quote.get("arrival_ms") == source["arrival_us"] // 1000)
+                    except (InvalidOperation, TypeError, ValueError):
+                        same = False
+                    if not same:
+                        raise ValueError("COINAPI_OPEN_ORIGINAL_PRICE_CLOCK_MISMATCH")
+                if symbols != set(expected):
+                    raise ValueError("COINAPI_OPEN_ORIGINAL_INVENTORY_MISMATCH")
+                count += 1
+        checked[scenario] = count
+    return {
+        "status": "ORIGINAL_OPEN_PRICE_CLOCK_PARITY_ONLY_NO_NATIVE_LOT_CERTIFICATION",
+        "scenario_opens_original_book_bound": checked,
+        "source_quote_size_units_native_lots_certified": False,
+        "original_index_fees_margin_delivery_certified": False,
+        "economic_train_executed": False,
+        "promotion_authorized": False,
+        "validation_opened": False,
+        "holdout_opened": False,
+        "orders_enabled": False,
+    }
+
+
 def build(spec_root, original_root, derived_root, original_signal_path,
           *, license_document=None):
     """Nonfixture complete 180-book bridge; source parity, never native economics."""
