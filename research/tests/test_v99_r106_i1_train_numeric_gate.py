@@ -329,6 +329,49 @@ class NumericTrainGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INCOMPLETE_661_DAY"):
             evaluate_provisional(incomplete)
 
+    def test_passive_coin_usd_gain_is_not_relative_option_alpha(self):
+        doc = fixture()
+        for scenario in SCENARIOS:
+            for row in doc["scenarios"][scenario]:
+                row["equity_usd"] = row["benchmark_usd"]
+        report = evaluate(doc)
+        for scenario in SCENARIOS:
+            metrics = report["scenarios"][scenario]
+            self.assertGreater(Decimal(metrics["total_roi"]), 0)
+            self.assertEqual(Decimal(metrics["benchmark_relative_total_excess"]), 0)
+            self.assertEqual(Decimal(metrics["benchmark_relative_max_drawdown"]), 0)
+            self.assertEqual(Decimal(metrics["benchmark_relative_remove_best_day_excess"]), 0)
+            self.assertEqual(metrics["benchmark_relative_profit_factor"], "0")
+            self.assertEqual([Decimal(x) for x in
+                              metrics["benchmark_relative_daily_proxy_fold_excess"]],
+                             [Decimal(0)]*5)
+            self.assertFalse(metrics["gates"]["original_benchmark_excess"])
+        self.assertFalse(report["numeric_train_pass_both_scenarios"])
+        self.assertFalse(report["promotion_authorized"])
+        independent_verify(doc, report)
+
+    def test_forged_benchmark_relative_risk_rejected_by_independent_oracle(self):
+        doc = fixture()
+        report = evaluate(doc)
+        independent_verify(doc, report)
+        for field, fake in (
+            ("benchmark_relative_total_excess", "999"),
+            ("benchmark_relative_max_drawdown", "0.99"),
+            ("benchmark_relative_remove_best_day_excess", "999"),
+            ("benchmark_relative_profit_factor", "infinite"),
+            ("benchmark_relative_daily_proxy_fold_excess", ["99"]*5),
+        ):
+            with self.subTest(field=field):
+                forged = copy.deepcopy(report)
+                forged["scenarios"]["severe"][field] = fake
+                with self.assertRaisesRegex(
+                    AssertionError,
+                    "INDEPENDENT_NUMERIC_METRIC_MISMATCH|"
+                    "INDEPENDENT_BENCHMARK_RELATIVE_METRIC_MISMATCH",
+                ):
+                    independent_verify(doc, forged)
+        self.assertFalse(report["promotion_authorized"])
+
 
 if __name__ == "__main__":
     unittest.main()
