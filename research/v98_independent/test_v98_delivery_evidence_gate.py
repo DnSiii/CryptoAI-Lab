@@ -29,9 +29,10 @@ class EvidenceGateTests(unittest.TestCase):
             p.write_text(json.dumps([{"symbol":a,"fundingTime":t,
                 "fundingRate":"0.00010000","markPrice":"123.45"} for t in self.ts]))
             self.pages.append({"source_type":"official_binance_usdm_fundingRate",
-                "url":f"https://fapi.binance.com/fapi/v1/fundingRate?symbol={a}&limit=1000&startTime={self.ts[0]}",
+                "url":f"https://fapi.binance.com/fapi/v1/fundingRate?symbol={a}&limit=1000&startTime={self.ts[0]}&endTime={self.ts[-1]+60000}",
                 "retrieved_at_utc":"2026-11-02T00:00:00Z",
-                "http_date_utc":"2026-11-02T00:00:05Z",
+                "http_status":200,
+                "response_headers":{"Date":"Mon, 02 Nov 2026 00:00:05 GMT"},
                 "file":p.name,"sha256":digest(p)})
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.proofs={}
@@ -104,6 +105,50 @@ class EvidenceGateTests(unittest.TestCase):
         self.pages[0]["sha256"]=digest(p)
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.assertIn("NATIVE_SETTLEMENT_OFFSET_GT_60S",self.evaluate()["blocker"])
+
+    def test_non_200_status_fails(self):
+        self.pages[0]["http_status"]=451
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_HTTP_NOT_200",self.evaluate()["blocker"])
+
+    def test_missing_original_http_date_fails(self):
+        self.pages[0]["response_headers"]={}
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_HTTP_DATE_HEADER",self.evaluate()["blocker"])
+
+    def test_request_window_cannot_claim_unrequested_event(self):
+        self.pages[0]["url"]=self.pages[0]["url"].replace(
+            str(self.ts[-1]+60000),str(self.ts[0]))
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_ROW_OUTSIDE_REQUEST",self.evaluate()["blocker"])
+
+    def test_future_request_window_fails_before_reading_rows(self):
+        self.pages[0]["url"]=self.pages[0]["url"].replace(
+            str(self.ts[-1]+60000),str(gate.END))
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_QUERY_OUTSIDE_TRAINING",self.evaluate()["blocker"])
+
+    def test_fractional_timestamp_cannot_truncate_to_slot(self):
+        p=self.root/"BTCUSDT.json";rows=json.loads(p.read_text())
+        rows[0]["fundingTime"]=float(self.ts[0])+0.25
+        p.write_text(json.dumps(rows));self.pages[0]["sha256"]=digest(p)
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_TIMESTAMP_TYPE",self.evaluate()["blocker"])
+
+    def test_duplicate_exchange_json_key_fails(self):
+        p=self.root/"BTCUSDT.json"
+        rows=json.loads(p.read_text())
+        body=json.dumps(rows)
+        body=body.replace('"markPrice": "123.45"', '"markPrice": "1", "markPrice": "123.45"',1)
+        p.write_text(body);self.pages[0]["sha256"]=digest(p)
+        self.write_json("native_pages_manifest.json",{"pages":self.pages})
+        self.assertIn("NATIVE_PAGE_JSON",self.evaluate()["blocker"])
+
+    def test_duplicate_manifest_metadata_key_fails(self):
+        p=self.root/"native_pages_manifest.json"
+        raw=p.read_text().replace('"pages":', '"pages": [], "pages":',1)
+        p.write_text(raw)
+        self.assertIn("DUPLICATE_JSON_KEY",self.evaluate()["blocker"])
 
     def test_fee_period_gap_fails(self):
         self.cost["fee_periods"][0]["start_ms"]+=1
