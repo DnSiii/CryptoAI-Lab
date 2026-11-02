@@ -196,5 +196,54 @@ class FixedTargetCoinAPIListingTests(unittest.TestCase):
         self.assertFalse(result["economic_train_executed"])
 
 
+    def test_zero_byte_option_files_never_prove_two_strike_inventory(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        prefix = "T-QUOTES/D-20220123/E-DERIBIT/"
+        def option(asset, strike, size):
+            return {"Key": prefix + "IDDI-123+SC-DERIBIT_OPT_" + asset +
+                    "_USD+S-" + asset + "-25FEB22-" + str(strike) + "-P.csv.gz",
+                    "Size": size}
+        for zero_only in (True, False):
+            with self.subTest(zero_only=zero_only):
+                # The 25FEB22 expiry is 32d8h after the fixed 24JAN entry.
+                # Even one nonempty strike per asset is NOT a two-strike book.
+                objects = [option(a, 1000, 0) for a in ("BTC", "ETH")]
+                objects += [option(a, 2000, 0 if zero_only else 100)
+                            for a in ("BTC", "ETH")]
+                def fake(*args, **kwargs):
+                    return SimpleNamespace(returncode=0, stdout=json.dumps({
+                        "IsTruncated": False, "Contents": objects}), stderr="")
+                report = probe_target(api_key="fixture", runner=fake)
+                self.assertEqual(report["objects_listed"], 4)
+                self.assertEqual(report["compressed_bytes_listed"],
+                                 0 if zero_only else 200)
+                self.assertEqual(report["fixed_tenor_two_strike_expiries_by_asset"],
+                                 {"BTC": 0, "ETH": 0})
+                self.assertFalse(report["fixed_tenor_pair_inventory_shown"])
+                self.assertFalse(report["economic_train_executed"])
+                self.assertFalse(report["promotion_authorized"])
+
+    def test_nonempty_two_strikes_per_asset_remain_listing_only(self):
+        from research.tools.v99_r106_i1_coinapi_inventory_probe import probe_target
+        prefix = "T-QUOTES/D-20220123/E-DERIBIT/"
+        objects = [
+            {"Key": prefix + "IDDI-123+SC-DERIBIT_OPT_" + asset +
+                    "_USD+S-" + asset + "-25FEB22-" + str(strike) + "-P.csv.gz",
+             "Size": 100}
+            for asset in ("BTC", "ETH") for strike in (1000, 2000)
+        ]
+        def fake(*args, **kwargs):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({
+                "IsTruncated": False, "Contents": objects}), stderr="")
+        report = probe_target(api_key="fixture", runner=fake)
+        self.assertTrue(report["fixed_tenor_pair_inventory_shown"])
+        self.assertEqual(report["fixed_tenor_two_strike_expiries_by_asset"],
+                         {"BTC": 1, "ETH": 1})
+        self.assertEqual(report["status"],
+                         "FIXED_TENOR_PAIR_OBJECTS_LISTED_NOT_QUOTES_OR_FILLS")
+        self.assertFalse(report["original_24h_bbo_and_size_certified"])
+        self.assertFalse(report["promotion_authorized"])
+
+
 if __name__ == "__main__":
     unittest.main()
