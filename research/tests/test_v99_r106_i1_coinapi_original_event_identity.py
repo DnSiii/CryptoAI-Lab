@@ -42,7 +42,7 @@ class CoinapiOriginalEventIdentityTests(unittest.TestCase):
         self.key = ("T-QUOTES/D-20211209/E-DERIBIT/"
                     "IDDI-123+SC-DERIBIT_OPTION_BTC+S-"+SYMBOL+".csv.gz")
         self.write_source([
-            " ,2021-12-09T00:00:00.0000000,2021-12-09T00:00:00.0000001,0.0050,2,0.0045,3\n"
+            ",2021-12-09T00:00:00.0000000,2021-12-09T00:00:00.0000001,0.0050,2,0.0045,3\n"
         ])
 
     def write_source(self, lines):
