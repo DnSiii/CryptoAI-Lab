@@ -9,7 +9,6 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import hashlib
-import math
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -64,6 +63,10 @@ def validate_export(root, manifest, expected, start, end, assets, slot_ms):
         _fail("CAPTURE_TIMESTAMP")
     if parsed.utcoffset() != dt.timedelta(0):
         _fail("CAPTURE_TIMESTAMP")
+    # A file containing all 2025 events cannot have been captured before
+    # 2026-01-01. Nor can it credibly have a future capture timestamp.
+    if parsed.timestamp() * 1000 < end or parsed > dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=5):
+        _fail("IMPOSSIBLE_CAPTURE_TIME")
     raw = _basename(root, manifest.get("export_file"), ".csv")
     attestation = _basename(root, manifest.get("custody_attestation_file"))
     if _digest(raw) != manifest.get("export_sha256"):
