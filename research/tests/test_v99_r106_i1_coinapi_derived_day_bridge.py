@@ -84,7 +84,7 @@ class DerivedBridgeTests(unittest.TestCase):
 
     def test_header_only_declared_btc_or_eth_source_never_publishes(self):
         valid = (",2022-01-01T00:00:00.0000000,"
-                 "2022-01-01T00:00:00.0000001,0.0050,2,0.0045,3\\n")
+                 "2022-01-01T00:00:00.0000001,0.0050,2,0.0045,3\n")
         for empty_asset in ("BTC", "ETH"):
             with self.subTest(empty_asset=empty_asset):
                 with tempfile.TemporaryDirectory() as tmp:
