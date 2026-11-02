@@ -18,11 +18,39 @@ Provide dated account-applicable spot and USD-M fee schedules, effective taker/m
 
 ## Single authorized handoff (implemented 2026-11-02)
 
-The evidence directory now accepts **exactly one** native mark transport, never both: (A) `native_pages_manifest.json` plus original SHA256-matched raw page JSON files, or (B) `authorized_funding_pages.jsonl` in the existing `v98_authorized_funding_mark_ingest.py` handoff format. Option B reuses the original request URL, HTTP status 200, original RFC 7231 `Date` header, UTC retrieval timestamp, verbatim response body and its SHA256. Both transports must bind every record to the **same SHA-pinned 13,524-event native funding calendar**. For B, the structural importer writes a separate exact-mark CSV retaining both the original exchange `fundingTime` and the authenticated 8-hour `fundingSlotTime`; offsets 0-60 seconds are supported, larger offsets rejected. A 2026+ event or out-of-request-window event is rejected. The official host string, plausible headers and self-computed SHA do **not** independently prove Binance origin.
+The evidence directory now accepts **exactly one** native mark transport, never multiple: (A) `native_pages_manifest.json` plus original SHA256-matched raw page JSON files, (B) `authorized_funding_pages.jsonl` in the existing `v98_authorized_funding_mark_ingest.py` handoff format, or (C) `authorized_exchange_export_manifest.json` plus a separately authorized, original exchange-origin CSV and a separate custodian-attestation file. The (C) path is intended for lawful, authorized exports when the API returns HTTP 451; it is not a substitute for independent origin verification. Option B reuses the original request URL, HTTP status 200, original RFC 7231 `Date` header, UTC retrieval timestamp, verbatim response body and its SHA256. Both transports must bind every record to the **same SHA-pinned 13,524-event native funding calendar**. For B, the structural importer writes a separate exact-mark CSV retaining both the original exchange `fundingTime` and the authenticated 8-hour `fundingSlotTime`; offsets 0-60 seconds are supported, larger offsets rejected. A 2026+ event or out-of-request-window event is rejected. The official host string, plausible headers and self-computed SHA do **not** independently prove Binance origin.
 
 The same evidence directory must contain `account_costs_manifest.json`, with continuous integer-millisecond `fee_periods` covering 2022-12-01 to 2026-01-01 (exclusive), each declaring `spot_taker_bps`, `perp_taker_bps`, `spot_spread_bps`, `perp_spread_bps`, `spot_impact_bps`, `perp_impact_bps`. It must reference original account-specific proof files under `account_fee_schedule`, `historical_bid_ask_depth`, `collateral_liquidation_policy`, each with a basename-only `file`, `sha256`, `issuer` and `applicable_account_tier`. No symlinks or non-integer effective dates. This is a **byte/schema preflight only**: a separate independent reviewer must authenticate issuer, account applicability, time-effective fee rates, real order-book depth and fill economics. Preserve sensitive account proofs outside public GitHub.
 
 `v98_delivery_evidence_gate.py` consumes the evidence directory, the SHA-pinned native expected CSV and its declared digest; it returns a **HOLD** without external proofs and only a structural **PASS requiring independent authentication** when internally consistent. Neither state authorizes portfolio PnL claims, paper or live execution.
+
+## Authorized exchange-origin CSV alternative to HTTP 451 (2026-11-02)
+
+The new `v98_delivery_authorized_exchange_export.py` implements transport **C** without contacting a blocked API or inventing mark prices. Place the following **private** files in the same evidence directory:
+
+- `original_exchange_export.csv`: original authorized exchange-origin UTF-8 CSV, exactly `symbol,fundingTime,fundingRate,markPrice` in this order; 13,524 native events (3,381 per asset), per-asset strictly increasing timestamps, 0–60s settlement offsets, no XRP or 2026+. Never substitute OHLC or a synthetic mark envelope.
+- `custody_attestation.pdf` (or other independently issued original file): separate provenance document identifying how the custodian acquired the export. The preflight checks only that its bytes match the declared SHA256. **A self-written document is not valid independent attestation**; a reviewer must verify issuer, original source, signatures where available, acquisition chain and account/exchange applicability outside the program.
+- `authorized_exchange_export_manifest.json`, containing the original CSV and custody-file basenames and SHA256 values:
+
+```json
+{
+  "source_type": "authorized_exchange_origin_export",
+  "schema": "symbol,fundingTime,fundingRate,markPrice",
+  "exchange_issuer": "ACTUAL_ISSUER_FROM_ORIGINAL_EXPORT",
+  "independent_custodian": "ACTUAL_INDEPENDENT_CUSTODIAN",
+  "custody_method": "DOCUMENTED_AUTHORIZED_EXPORT_METHOD",
+  "export_reference": "ORIGINAL_EXPORT_REFERENCE",
+  "captured_at_utc": "2026-11-02T06:00:00Z",
+  "export_file": "original_exchange_export.csv",
+  "export_sha256": "ACTUAL_SHA256_OF_ORIGINAL_CSV",
+  "custody_attestation_file": "custody_attestation.pdf",
+  "custody_attestation_sha256": "ACTUAL_SHA256_OF_ATTESTATION"
+}
+```
+
+The timestamp above is an **illustrative manifest example**, not a claim that such an export exists. The code rejects absent/ambiguous transports, unsafe paths, changed bytes, missing events, duplicate or out-of-order records, one-native-tick rate conflicts, nonfinite/negative marks and post-2025 events. Only after a separate complete account-cost preflight does it publish `v98_authorized_native_preflight.csv`; it never overwrites a conflicting output. This alternative does not require an original HTTP `Date` header because it is **not** an HTTP-response capture. It cannot be presented as a Binance API response.
+
+**External evidence still missing:** no original authorized CSV, no authentic independent custody proof, and no account-specific historical fees, order-book/depth and collateral/liquidation proofs have been supplied. Thus the gate remains HOLD, and no V98 trading engine, PnL, paper or live state is approved.
 
 ## Gates and execution
 
