@@ -146,6 +146,18 @@ def native_mark_pages(manifest,root,expected):
             "native_marks_reconciled":True,"exchange_origin_independently_authenticated":False},seen)
 
 
+
+def publish_staged_evidence(root,files):
+    """Check all existing outputs before writing; never overwrite conflicting proofs."""
+    for name,data in files.items():
+        p=Path(root)/name
+        if p.exists() and (p.is_symlink() or p.read_bytes()!=data):
+            fail("STAGED_EVIDENCE_OUTPUT_CONFLICT")
+    for name,data in files.items():
+        p=Path(root)/name
+        if not p.exists():
+            with p.open("xb") as handle:handle.write(data)
+
 def publish_exact_mark_csv(root,seen):
     """Publish one canonical source-only mark table, never a PnL/trading approval.
 
@@ -226,21 +238,28 @@ def evaluate(root,expected_csv,expected_sha):
             # existing V98 exact-mark importer. Bind it to the SHA-pinned
             # native funding calendar BEFORE emitting any structural receipt.
             from v98_authorized_funding_mark_ingest import validate
-            raw_receipt=validate(authorized_jsonl,expected_csv,
-                                 root/"v98_authorized_native_preflight.json")
-            if raw_receipt["records"]!=len(expected):
-                fail("NATIVE_JSONL_EXPECTED_COUNT")
+            import tempfile
+            with tempfile.TemporaryDirectory() as td:
+                temporary_receipt=Path(td)/"v98_authorized_native_preflight.json"
+                raw_receipt=validate(authorized_jsonl,expected_csv,temporary_receipt)
+                if raw_receipt["records"]!=len(expected):
+                    fail("NATIVE_JSONL_EXPECTED_COUNT")
+                staged_csv=temporary_receipt.with_suffix(".csv").read_bytes()
+                staged_receipt=temporary_receipt.read_bytes()
             marks=None
             native={"event_count":raw_receipt["records"],"assets":list(ASSETS),
                     "source_pages":raw_receipt["pages"],
                     "native_marks_reconciled":True,
                     "exchange_origin_independently_authenticated":False,
-                    "raw_jsonl_receipt_sha256":sha256(root/"v98_authorized_native_preflight.json")}
+                    "raw_jsonl_receipt_sha256":hashlib.sha256(staged_receipt).hexdigest()}
         costs=cost_evidence(read_manifest(root/"account_costs_manifest.json"),root)
         if marks is not None:
             native["exact_marks_csv_sha256"]=publish_exact_mark_csv(root,marks)
         else:
-            native["exact_marks_csv_sha256"]=sha256(root/"v98_authorized_native_preflight.csv")
+            publish_staged_evidence(root,{
+                "v98_authorized_native_preflight.csv":staged_csv,
+                "v98_authorized_native_preflight.json":staged_receipt})
+            native["exact_marks_csv_sha256"]=hashlib.sha256(staged_csv).hexdigest()
     except (OSError,KeyError,TypeError,ValueError) as exc:
         result["blocker"]=str(exc)
         return result
