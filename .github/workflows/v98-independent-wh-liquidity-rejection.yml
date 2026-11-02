@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v98-independent-wh-liquidity-rejection.yml'
       - 'research/v98_independent/wh_liquidity_rejection.py'
       - 'research/v98_independent/wh_liquidity_rejection_physical.py'
+      - 'research/v98_independent/wh_liquidity_rejection_oracle.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -59,6 +60,17 @@ jobs:
           python research/v98_independent/wh_liquidity_rejection_physical.py \
             --old-root old --old-envelope old-envelope/v98_official_mark_envelope_training.csv \
             --new-root new --corrected-root corrected --out-dir wh-physical
+      - name: Independent WH signal and cash/funding oracle with tamper detection
+        run: |
+          set -euo pipefail
+          python -m py_compile research/v98_independent/wh_liquidity_rejection_oracle.py
+          if [ -f wh-physical/wh_base_full_hourly_ledger.csv ]; then
+            python research/v98_independent/wh_liquidity_rejection_oracle.py \
+              --old-root old --old-envelope old-envelope/v98_official_mark_envelope_training.csv \
+              --new-root new --corrected-root corrected --out-dir wh-physical
+          else
+            echo 'WH_PRE_PNL_REJECTED_NO_PHYSICAL_LEDGER'
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
