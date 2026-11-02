@@ -41,6 +41,10 @@ def audit(d, ledger_path, book, expected_result):
             gap=float(np.dot(q,op-(previous_close if t else op)))
             cash+=gap
             checks+=close_enough(float(row["gap_pnl"]),gap,"gap",t)
+            # Verify source event timing independently, not just aggregate count.
+            observed=np.asarray(d["event"][t],bool)
+            if observed.shape!=(4,) or not np.array_equal(observed,np.full(4,t%8==0)):
+                raise ValueError("STATIC_ORACLE_FUNDING_CALENDAR_HOUR_"+str(t))
             f=0.
             if t%8==0:
                 events+=4
