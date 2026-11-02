@@ -72,8 +72,10 @@ def audit_requests(spec_root, original_root, requests):
         for symbol, keys in wanted[day].items():
             matches = [item for item in spec["sources"]
                        if isinstance(item, dict) and item.get("symbol") == symbol]
-            if len(matches) != 1:
-                raise ValueError("MISSING_OR_DUPLICATED_COINAPI_ORIGINAL_CONTRACT")
+            if len(matches) > 1:
+                raise ValueError("DUPLICATED_COINAPI_ORIGINAL_CONTRACT")
+            if not matches:
+                continue  # A newly listed/expired contract need not exist on both days.
             path, verified_symbol = _source(matches[0], day)
             _safe(original_root, path)
             if verified_symbol != symbol:
