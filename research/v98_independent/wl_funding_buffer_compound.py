@@ -54,7 +54,7 @@ def books_from_decisions(dec):
     return {name:{t:np.sum(v["weights"][list(slots)],axis=0)
                   for t,v in dec.items()} for name,slots in BOOKS.items()}
 def incidence(dec):
-    return {slot:sum(np.abs(v["weights"][i]).sum()>1e-12 for v in dec.values())
+    return {slot:int(sum(bool(np.abs(v["weights"][i]).sum()>1e-12) for v in dec.values()))
             for i,slot in enumerate(SLOTS)}
 def synthetic_test():
     x=np.arange(HOURS,dtype=float)[:,None]
