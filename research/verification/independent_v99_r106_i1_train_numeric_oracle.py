@@ -169,6 +169,7 @@ def verify(source, report):
         regime_factors = {r: Decimal(1) for r in regimes}
         counts = {r: 0 for r in regimes}
         stamps = []
+        ratios = []
         for i, row in enumerate(rows):
             day = start + timedelta(days=i)
             t = int(datetime(day.year, day.month, day.day, 23, 59, 59,
@@ -183,6 +184,7 @@ def verify(source, report):
                 raise AssertionError("FORGED_REFERENCE_CLOCK_OR_REGIME")
             value = dec(row["equity_usd"])
             benchmark = dec(row["benchmark_usd"])
+            ratios.append(value/benchmark)
             change = value - prev
             if change > 0:
                 gains.append(change)
@@ -199,6 +201,30 @@ def verify(source, report):
             stamps.append((benchmark, row["regime"]))
         aligned.append(stamps)
         exposure.append([r["actual_exposure_key"] for r in rows])
+        # Independently recompute native-coin collateral-adjusted diagnostics.
+        # A rising passive BTC/ETH wallet has ratio 1, not option alpha.
+        previous_ratio = Decimal(1)
+        ratio_peak = Decimal(1)
+        ratio_dd = Decimal(0)
+        ratio_gains, ratio_losses, ratio_factors = [], [], []
+        ratio_fold_factors = [Decimal(1)]*5
+        for row, ratio in zip(rows, ratios):
+            delta = ratio-previous_ratio
+            if delta > 0:
+                ratio_gains.append(delta)
+            elif delta < 0:
+                ratio_losses.append(-delta)
+            f = ratio/previous_ratio
+            ratio_factors.append(f)
+            ratio_fold_factors[row["fold"]-1] *= f
+            ratio_peak = max(ratio_peak, ratio)
+            ratio_dd = min(ratio_dd, ratio/ratio_peak-1)
+            previous_ratio = ratio
+        ratio_profit = sum(ratio_gains, Decimal(0))
+        ratio_loss = sum(ratio_losses, Decimal(0))
+        ratio_pf = (ratio_profit/ratio_loss if ratio_loss
+                    else None if ratio_profit else Decimal(0))
+        ratio_remove = ratios[-1]/max(ratio_factors)-1
         roi = prev/initial-1
         remove = (prev/initial)/max(factors)-1
         profit = sum(gains, Decimal(0))
@@ -212,10 +238,20 @@ def verify(source, report):
             "max_drawdown": dd, "top_1pct_positive_gain_share": gain_share,
             "worst_1pct_loss_share": loss_share,
             "benchmark_roi": stamps[-1][0]/initial-1,
+            "benchmark_relative_total_excess": ratios[-1]-1,
+            "benchmark_relative_max_drawdown": ratio_dd,
+            "benchmark_relative_remove_best_day_excess": ratio_remove,
         }
         for key, number in expected.items():
             if Decimal(got[key]) != number:
                 raise AssertionError("INDEPENDENT_NUMERIC_METRIC_MISMATCH:" + key)
+        if (got.get("benchmark_relative_diagnostics_not_certified_option_alpha") is not True
+                or got.get("benchmark_relative_profit_factor") !=
+                   ("infinite" if ratio_pf is None else str(ratio_pf))
+                or [Decimal(x) for x in got.get(
+                    "benchmark_relative_daily_proxy_fold_excess", [])] !=
+                   [x-1 for x in ratio_fold_factors]):
+            raise AssertionError("INDEPENDENT_BENCHMARK_RELATIVE_METRIC_MISMATCH")
         if (got.get("profit_factor") != ("infinite" if pf is None else str(pf))
                 or [Decimal(x) for x in got.get("fold_roi", [])] !=
                 [x-1 for x in fold_factors]
