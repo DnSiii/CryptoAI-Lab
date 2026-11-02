@@ -93,6 +93,20 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
     expected = expected_events(expected_csv, expected_sha)
     if len(expected) != EXPECTED_COUNT:
         fail("COLLECTOR_EXPECTED_COUNT")
+    output_dir = Path(output_dir)
+    # Reject conflicting evidence BEFORE requesting historical pages. The
+    # authorized exchange-origin CSV is a third mutually exclusive transport.
+    # A symlinked directory could redirect private raw response bytes.
+    if output_dir.is_symlink():
+        raise ValueError("SYMLINKED_EVIDENCE_DIRECTORY")
+    transport_names = (
+        "authorized_funding_pages.jsonl",
+        "native_pages_manifest.json",
+        "authorized_exchange_export_manifest.json",
+    )
+    if any((output_dir / name).exists() or (output_dir / name).is_symlink()
+           for name in transport_names):
+        raise FileExistsError("EXISTING_NATIVE_EVIDENCE_MUST_NOT_BE_OVERWRITTEN")
     pages = []
     observed = set()
     for asset in ASSETS:
@@ -142,11 +156,14 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
             cursor = previous + 1
     if observed != set(expected):
         raise ValueError(f"NATIVE_INCOMPLETE_{len(set(expected)-observed)}_MISSING")
-    output_dir = Path(output_dir)
+    # Recheck after the network capture to catch a competing handoff.
+    if output_dir.is_symlink():
+        raise ValueError("SYMLINKED_EVIDENCE_DIRECTORY")
+    if any((output_dir / name).exists() or (output_dir / name).is_symlink()
+           for name in transport_names):
+        raise FileExistsError("EXISTING_NATIVE_EVIDENCE_MUST_NOT_BE_OVERWRITTEN")
     output_dir.mkdir(parents=True, exist_ok=True)
     final = output_dir / "authorized_funding_pages.jsonl"
-    if final.exists() or (output_dir / "native_pages_manifest.json").exists():
-        raise FileExistsError("EXISTING_NATIVE_EVIDENCE_MUST_NOT_BE_OVERWRITTEN")
     # Importer's independent rate/calendar/HTTP-date verification runs before
     # the first output byte is committed to the evidence handoff.
     with tempfile.TemporaryDirectory() as td:
