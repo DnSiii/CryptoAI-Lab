@@ -1,0 +1,16 @@
+# V98 VZ — preregistered intraday reversal composed engine (2026-11-02)
+
+**LOCKED BEFORE CODE, SOURCE INCIDENCE, OR PNL.** New economic mechanism: transient 6h–24h liquidity shocks and short-horizon reversal, NOT VY's 28-day relative momentum, VX's spot-led trend, VW's spot-perp carry, or any V14/V15/V99 signal. A short-horizon reversal can fail when momentum persists; no sign/window/threshold rescue after results. BTCUSDT/ETHUSDT/BNBUSDT/SOLUSDT only; 2022-12 warmup, 2023–2025 EXPOSED TRAINING. USD-M perps only; 2026+, XRP, Phase083 and benchmark internals prohibited.
+
+**Seven slots (daily causal t close -> next hour open; chronological source gate before PnL):**
+1. Growth Core: cross-sectional 24-hour log-return reversal, long two worst / short two best, 0.14 absolute weight each (gross 0.56). Opposes short-term forced-flow overshoot, not a 28d momentum signal.
+2. Opportunity: when 24h cross-sectional return dispersion exceeds its trailing 21-day daily 24h dispersion median, long worst 24h and short best 24h, 0.08 each; distinct conditional tail-liquidity sleeve.
+3. Relative Value: when 6h cross-sectional return dispersion exceeds trailing 21-day median of 6h dispersion, long worst 6h and short best 6h, 0.07 each; transient short-term dislocation rather than funding carry.
+4. Stress/Recovery: when equal-weight 72h market log return <= -0.08, long BTC and short SOL at 0.07 each; fixed flight-to-liquidity stress hypothesis, no ex-post rescue.
+5. Regime Router: equal-weight 168h market log return negative -> halve core gross; otherwise full. No fitted regime threshold.
+6. Dynamic Allocator: core priority, then Opportunity, Relative Value, Stress; each optional uniformly clipped to remaining 0.90 gross; zero net; no leverage, cash-backed.
+7. Risk Governor: reject bad OHLC/zero-volume fills, nonfinite funding, hidden leverage, simultaneous intrahour adverse margin <=10% gross, insolvent cash, unclosed terminal positions. Native funding with conservative settlement-hour mark envelope, two funding orders.
+
+**Preregistered gates:** source geometry 27,048h x4 and 13,524 native funding events, future-mutation causality, 1,096 daily decisions; each optional sleeve >=10% nonzero incidence BEFORE economic testing. Five books (full/core-only/leave-one-out for each optional), 3 cost tiers (one-way 10/20/35 bps all-in illustrative), two funding orders -> 30 full-history cells. USD10k initial, no hidden leverage, terminal close, daily/annual compounded CAGR, max DD, PF/payoff/win-rate, tails, concentration, fees, funding, turnover. Reject if full base CAGR <=80%, severe <=60%, severe DD <=-45%, any severe annual return <=0, or any optional marginal log growth <=+0.02 in base or severe. Do not optimize VZ after result. Independent cash/fill/funding oracle required before any promotion; green tests alone are not a strategy pass. Even passing exposed training is not future chronological validation, exact settlement marks, account-specific cost proof, holdout, benchmarks, paper or live.
+
+**Known external evidence gap:** 13,524 exchange-original settlement markPrice observations and independently attested provenance; account-specific dated fee tiers, historical spread/depth/impact and margin/liquidation rules. An authorized original export can replace HTTP 451, but cannot be fabricated. No live trading.
