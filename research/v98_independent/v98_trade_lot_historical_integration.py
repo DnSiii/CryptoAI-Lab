@@ -14,6 +14,7 @@ from ot_independent_oracle import independent_fills
 from pu_expected_net_wealth_composed import signals, target_books
 from v98_trade_lot_metrics import roundtrip_metrics, synthetic_tests
 from v98_dynamic_mark_sensitivity import run_dynamic_sensitivity
+from v98_dynamic_mark_receipt_audit import verify_with_tamper
 from v98_2025_full_training_source_bridge import load
 
 EXPECTED_HOURS = HOURS - WARMUP - 1
@@ -85,6 +86,11 @@ def run_historical(d):
             audit["independent_cash_identity_mismatches"] != 0 or
             audit["funding_asset_events"] != int(d["event"][WARMUP+1:].sum())):
             raise ValueError("TRADE_MARK_SENSITIVITY_INDEPENDENT_AUDIT")
+    receipt_audit = verify_with_tamper(sensitivity)
+    if (receipt_audit["decision"] != "PASS_RECEIPT_ARITHMETIC_NOT_SOURCE_OR_ENGINE" or
+        len(receipt_audit["tamper_controls_detected"]) != 4):
+        raise ValueError("TRADE_MARK_SENSITIVITY_RECEIPT_ORACLE")
+    sensitivity["receipt_arithmetic_audit"] = receipt_audit
     result = {
         "decision": "PASS_HISTORICAL_TRADE_METRIC_INTEGRATION_ONLY_NOT_ENGINE",
         "historical_sample": "2023-2025_EXPOSED_TRAINING_ONLY",
