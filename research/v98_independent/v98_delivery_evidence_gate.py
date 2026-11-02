@@ -25,6 +25,7 @@ def fail(code):
     raise ValueError("V98_EVIDENCE_"+code)
 
 def positive_number(value,name,*,allow_zero=False):
+    if type(value) is bool:fail(name+"_INVALID")
     try:v=float(value)
     except (TypeError,ValueError):fail(name+"_NOT_NUMERIC")
     if not math.isfinite(v) or (v<0 if allow_zero else v<=0):fail(name+"_INVALID")
@@ -146,10 +147,14 @@ def native_mark_pages(manifest,root,expected):
 def cost_evidence(manifest,root):
     bands=manifest.get("fee_periods")
     if not isinstance(bands,list) or not bands:fail("ACCOUNT_FEE_PERIODS_MISSING")
-    bands=sorted(bands,key=lambda x:x.get("start_ms",0))
+    for band in bands:
+        if not isinstance(band,dict):fail("ACCOUNT_FEE_PERIOD_SHAPE")
+        exact_integer(band.get("start_ms"),"ACCOUNT_FEE_PERIOD_TIMESTAMP_TYPE")
+        exact_integer(band.get("end_ms"),"ACCOUNT_FEE_PERIOD_TIMESTAMP_TYPE")
+    bands=sorted(bands,key=lambda x:x["start_ms"])
     cursor=START
     for band in bands:
-        start,end=int(band["start_ms"]),int(band["end_ms"])
+        start,end=band["start_ms"],band["end_ms"]
         if start!=cursor or not start<end<=END:fail("ACCOUNT_FEE_PERIOD_GAP_OR_OVERLAP")
         for k in ("spot_taker_bps","perp_taker_bps","spot_spread_bps","perp_spread_bps",
                   "spot_impact_bps","perp_impact_bps"):
@@ -160,10 +165,13 @@ def cost_evidence(manifest,root):
         proof=manifest.get(name)
         if not isinstance(proof,dict):fail(name.upper()+"_MISSING")
         fname=proof.get("file","")
-        if not isinstance(fname,str) or Path(fname).name!=fname or not fname:fail(name.upper()+"_PATH")
+        if (not isinstance(fname,str) or not fname or fname in (".","..")
+            or Path(fname).name!=fname):fail(name.upper()+"_PATH")
         p=Path(root)/fname
-        if not p.is_file() or sha256(p)!=proof.get("sha256"):fail(name.upper()+"_SHA")
-        if not proof.get("issuer") or not proof.get("applicable_account_tier"):fail(name.upper()+"_IDENTITY")
+        if p.is_symlink() or not p.is_file() or sha256(p)!=proof.get("sha256"):
+            fail(name.upper()+"_SHA")
+        if not proof.get("issuer") or not proof.get("applicable_account_tier"):
+            fail(name.upper()+"_IDENTITY")
     return {"fee_periods":len(bands),"evidence_files":3,
             "actual_fills_or_orderbook_replay_verified":False,
             "independent_account_provenance_authenticated":False}
