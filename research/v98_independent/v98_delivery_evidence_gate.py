@@ -139,10 +139,35 @@ def native_mark_pages(manifest,root,expected):
             try:rate=float(row["fundingRate"])
             except (TypeError,ValueError):fail("NATIVE_ROW_RATE")
             if not math.isfinite(rate) or abs(rate-expected[key])>1e-10:fail("NATIVE_RATE_CONFLICT")
-            seen[key]=positive_number(row.get("markPrice"),"NATIVE_MARK")
+            positive_number(row.get("markPrice"),"NATIVE_MARK")
+            seen[key]=(ts,str(row["fundingRate"]),str(row["markPrice"]))
     if set(seen)!=set(expected):fail("NATIVE_INCOMPLETE_COVERAGE")
-    return {"event_count":len(seen),"assets":list(ASSETS),"source_pages":len(pages),
-            "native_marks_reconciled":True,"exchange_origin_independently_authenticated":False}
+    return ({"event_count":len(seen),"assets":list(ASSETS),"source_pages":len(pages),
+            "native_marks_reconciled":True,"exchange_origin_independently_authenticated":False},seen)
+
+
+def publish_exact_mark_csv(root,seen):
+    """Publish one canonical source-only mark table, never a PnL/trading approval.
+
+    The manifest transport otherwise only counts mark rows, making the exact
+    native marks unavailable to a later independently authorized physical run.
+    Do not overwrite a conflicting prior source table.
+    """
+    import io
+    out=io.StringIO(newline="")
+    writer=csv.writer(out,lineterminator="\\n")
+    writer.writerow(("asset","fundingSlotTime","fundingTime","fundingRate","markPrice"))
+    for asset,slot in sorted(seen,key=lambda key:(key[1],key[0])):
+        ts,rate,mark=seen[(asset,slot)]
+        writer.writerow((asset,slot,ts,rate,mark))
+    data=out.getvalue().encode("utf-8")
+    path=Path(root)/"v98_authorized_native_preflight.csv"
+    if path.exists():
+        if path.is_symlink() or path.read_bytes()!=data:
+            fail("EXACT_MARK_OUTPUT_CONFLICT")
+    else:
+        with path.open("xb") as handle:handle.write(data)
+    return hashlib.sha256(data).hexdigest()
 
 def cost_evidence(manifest,root):
     bands=manifest.get("fee_periods")
@@ -195,7 +220,7 @@ def evaluate(root,expected_csv,expected_sha):
         if manifest_path.is_file() and authorized_jsonl.is_file():
             fail("NATIVE_AMBIGUOUS_SOURCE_FORMAT")
         if manifest_path.is_file():
-            native=native_mark_pages(read_manifest(manifest_path),root,expected)
+            native,marks=native_mark_pages(read_manifest(manifest_path),root,expected)
         else:
             # The authorized raw JSONL handoff is the same format as the
             # existing V98 exact-mark importer. Bind it to the SHA-pinned
@@ -205,12 +230,17 @@ def evaluate(root,expected_csv,expected_sha):
                                  root/"v98_authorized_native_preflight.json")
             if raw_receipt["records"]!=len(expected):
                 fail("NATIVE_JSONL_EXPECTED_COUNT")
+            marks=None
             native={"event_count":raw_receipt["records"],"assets":list(ASSETS),
                     "source_pages":raw_receipt["pages"],
                     "native_marks_reconciled":True,
                     "exchange_origin_independently_authenticated":False,
                     "raw_jsonl_receipt_sha256":sha256(root/"v98_authorized_native_preflight.json")}
         costs=cost_evidence(read_manifest(root/"account_costs_manifest.json"),root)
+        if marks is not None:
+            native["exact_marks_csv_sha256"]=publish_exact_mark_csv(root,marks)
+        else:
+            native["exact_marks_csv_sha256"]=sha256(root/"v98_authorized_native_preflight.csv")
     except (OSError,KeyError,TypeError,ValueError) as exc:
         result["blocker"]=str(exc)
         return result
