@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v98-independent-static-baseline.yml'
       - 'research/v98_independent/v98_static_baseline_physical.py'
       - 'research/v98_independent/v98_static_baseline_oracle.py'
+      - 'research/v98_independent/v98_static_baseline_failure_forensics.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -63,6 +64,13 @@ jobs:
         run: |
           set -euo pipefail
           python research/v98_independent/v98_static_baseline_oracle.py \
+            --old-root old --old-envelope old-envelope/v98_official_mark_envelope_training.csv \
+            --new-root new --corrected-root corrected --out-dir static-control
+      - name: Independent 36-cell funding-only failure cause and terminal reconciliation
+        run: |
+          set -euo pipefail
+          python -m py_compile research/v98_independent/v98_static_baseline_failure_forensics.py
+          python research/v98_independent/v98_static_baseline_failure_forensics.py \
             --old-root old --old-envelope old-envelope/v98_official_mark_envelope_training.csv \
             --new-root new --corrected-root corrected --out-dir static-control
       - uses: actions/upload-artifact@v4
