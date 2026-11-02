@@ -7,6 +7,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from research.tools.v99_r106_i1_coinapi_derived_day_bridge import convert, SCHEMA
 from research.tools.v99_r106_i1_local_tape_import import scan_day, build_manifest
@@ -139,6 +140,35 @@ class DerivedBridgeTests(unittest.TestCase):
             report = convert(spec, out, fixture=True)
             self.assertEqual(report["non_executable_or_crossed_rows"], 2)
             self.assertFalse(report["native_lot_fee_margin_delivery_certified"])
+
+    def test_independent_replay_veto_prevents_any_publication(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec, out, _ = prepare(tmp)
+            with patch(
+                "research.verification.independent_v99_r106_i1_coinapi_derived_day_oracle.verify",
+                side_effect=AssertionError("INDEPENDENT_ORIGINAL_REPLAY_REJECTED"),
+            ):
+                with self.assertRaisesRegex(AssertionError, "INDEPENDENT_ORIGINAL_REPLAY_REJECTED"):
+                    convert(spec, out, fixture=True)
+            self.assertEqual(list(out.iterdir()), [])
+            # A failed independent check must not poison a valid later import.
+            report = convert(spec, out, fixture=True)
+            self.assertEqual(report["derived_rows"], 2)
+            self.assertEqual(independent_verify(spec, out)["rows"], 2)
+
+    def test_independent_replay_forged_success_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec, out, _ = prepare(tmp)
+            with patch(
+                "research.verification.independent_v99_r106_i1_coinapi_derived_day_oracle.verify",
+                return_value={"status": "INDEPENDENT_DERIVED_BYTE_REPLAY_MATCH_NOT_ORIGINAL_ECONOMICS",
+                              "rows": 999, "original_files": 2,
+                              "promotion_authorized": False,
+                              "economic_train_executed": False},
+            ):
+                with self.assertRaisesRegex(ValueError, "INDEPENDENT_DERIVED_SOURCE_REPLAY_MISMATCH"):
+                    convert(spec, out, fixture=True)
+            self.assertEqual(list(out.iterdir()), [])
 
     def test_no_overwrite_and_nonfixture_requires_license(self):
         with tempfile.TemporaryDirectory() as tmp:
