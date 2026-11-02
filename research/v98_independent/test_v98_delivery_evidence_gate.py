@@ -155,6 +155,28 @@ class EvidenceGateTests(unittest.TestCase):
         self.write_json("account_costs_manifest.json",self.cost)
         self.assertIn("ACCOUNT_FEE_PERIOD_GAP_OR_OVERLAP",self.evaluate()["blocker"])
 
+    def test_fractional_fee_period_cannot_be_truncated(self):
+        self.cost["fee_periods"][0]["start_ms"]=float(gate.START)+0.25
+        self.write_json("account_costs_manifest.json",self.cost)
+        self.assertIn("ACCOUNT_FEE_PERIOD_TIMESTAMP_TYPE",self.evaluate()["blocker"])
+
+    def test_boolean_cost_cannot_be_treated_as_one_basis_point(self):
+        self.cost["fee_periods"][0]["perp_taker_bps"]=True
+        self.write_json("account_costs_manifest.json",self.cost)
+        self.assertIn("perp_taker_bps_INVALID",self.evaluate()["blocker"])
+
+    def test_non_object_fee_period_fails_closed(self):
+        self.cost["fee_periods"]=[None]
+        self.write_json("account_costs_manifest.json",self.cost)
+        self.assertIn("ACCOUNT_FEE_PERIOD_SHAPE",self.evaluate()["blocker"])
+
+    def test_symlinked_account_proof_rejected(self):
+        p=self.root/"historical_bid_ask_depth.txt"
+        original=p.read_bytes();p.unlink()
+        target=self.root/"outside_proof.txt";target.write_bytes(original)
+        p.symlink_to(target)
+        self.assertIn("HISTORICAL_BID_ASK_DEPTH_SHA",self.evaluate()["blocker"])
+
     def test_missing_depth_evidence_fails(self):
         (self.root/"historical_bid_ask_depth.txt").unlink()
         self.assertIn("HISTORICAL_BID_ASK_DEPTH_SHA",self.evaluate()["blocker"])
