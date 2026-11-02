@@ -127,7 +127,7 @@ class OriginalSundayFullEntryParityTests(unittest.TestCase):
             tick = i % 3
             self.write_source(symbol, [
                 f",2021-12-12T23:59:59.0000000,"
-                f"2021-12-12T23:59:59.000000{tick},0.0050,2,0.0045,3\\n"
+                f"2021-12-12T23:59:59.000000{tick},0.0050,2,0.0045,3\n"
             ])
         self.update_spec()
         report = self.derive()
