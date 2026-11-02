@@ -79,6 +79,12 @@ def main():
     p=argparse.ArgumentParser();p.add_argument("--csv",required=True);p.add_argument("--receipt",required=True)
     a=p.parse_args();raw=Path(a.csv).read_bytes();r=json.loads(Path(a.receipt).read_text())
     result=audit(raw,r)
+    # Independently replay every native funding event and all 48 signed monthly sums.
+    from v98_funding_carry_source_oracle import audit as audit_carry, tamper as tamper_carry
+    carry=r["native_signed_funding_carry_diagnostic"]
+    carry_raw=(Path(a.receipt).parent/carry["canonical_event_csv"]).read_bytes()
+    result["native_signed_funding_carry"]=audit_carry(carry_raw,carry)
+    result["native_funding_tamper_cases_rejected"]=tamper_carry(carry_raw,carry)
     controls=0
     for key,value,error in (("canonical_sha256","0"*64,"AUDIT_CANONICAL_SHA"),
                             ("trading_authorized",True,"AUDIT_RESEARCH_FIREWALL")):
