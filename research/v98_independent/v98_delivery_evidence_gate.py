@@ -222,9 +222,19 @@ def evaluate(root,expected_csv,expected_sha):
             "holdout_accessed":False,"benchmarks_accessed":False,
             "paper_or_live_authorized":False}
     root=Path(root)
+    if root.is_symlink():
+        result["blocker"]="V98_EVIDENCE_SYMLINKED_EVIDENCE_DIRECTORY"
+        return result
     manifest_path=root/"native_pages_manifest.json"
     authorized_jsonl=root/"authorized_funding_pages.jsonl"
     authorized_exchange=root/"authorized_exchange_export_manifest.json"
+    cost_manifest=root/"account_costs_manifest.json"
+    # Original transport manifests and account proof manifests are themselves
+    # custody-bearing evidence. Do not follow mutable external symlinks.
+    if any(p.is_symlink() for p in (manifest_path,authorized_jsonl,
+                                   authorized_exchange,cost_manifest)):
+        result["blocker"]="V98_EVIDENCE_SYMLINKED_SOURCE_OR_COST_MANIFEST"
+        return result
     transports=sum(p.is_file() for p in (manifest_path,authorized_jsonl,authorized_exchange))
     if transports==0:
         result["blocker"]="official fundingRate pages OR separately authorized exchange-origin CSV + independently authenticated custody absent"
@@ -232,7 +242,7 @@ def evaluate(root,expected_csv,expected_sha):
     if transports!=1:
         result["blocker"]="V98_EVIDENCE_NATIVE_AMBIGUOUS_SOURCE_FORMAT"
         return result
-    if not (root/"account_costs_manifest.json").is_file():
+    if not cost_manifest.is_file():
         result["blocker"]="historical account fee, depth and liquidation evidence absent"
         return result
     try:
@@ -265,7 +275,7 @@ def evaluate(root,expected_csv,expected_sha):
                     "native_marks_reconciled":True,
                     "exchange_origin_independently_authenticated":False,
                     "raw_jsonl_receipt_sha256":hashlib.sha256(staged_receipt).hexdigest()}
-        costs=cost_evidence(read_manifest(root/"account_costs_manifest.json"),root)
+        costs=cost_evidence(read_manifest(cost_manifest),root)
         if marks is not None:
             native["exact_marks_csv_sha256"]=publish_exact_mark_csv(root,marks)
         else:
