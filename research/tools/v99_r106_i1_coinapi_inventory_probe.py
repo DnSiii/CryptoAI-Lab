@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 DATES = ("2021-12-12", "2022-06-12", "2023-09-24")
 ENDPOINT = "https://s3.flatfiles.coinapi.io"
@@ -124,6 +124,10 @@ def probe_target(*, api_key=None, runner=subprocess.run, max_pages=20):
         "AWS_PAGER": "",
     })
     seen_tokens, seen_keys = set(), set()
+    # Predeclared Monday decision at 00:00 UTC, with Deribit 08:00 UTC expiry.
+    # S3 object presence is a necessary inventory screen, NEVER a live BBO.
+    entry = datetime(2022, 1, 24, tzinfo=timezone.utc)
+    strikes_by_asset_expiry = {"BTC": {}, "ETH": {}}
     continuation = None
     for _ in range(max_pages):
         args = [
@@ -166,6 +170,19 @@ def probe_target(*, api_key=None, runner=subprocess.run, max_pages=20):
                     if SYMBOL.fullmatch(symbol):
                         asset = symbol.split("-", 1)[0].lower()
                         report[asset + "_put_files_listed"] += 1
+                        parts = symbol.split("-")
+                        try:
+                            expiry = datetime.strptime(parts[1], "%d%b%y").replace(
+                                hour=8, tzinfo=timezone.utc)
+                            strike = int(parts[2])
+                        except (ValueError, OverflowError):
+                            continue
+                        if (strike > 0 and timedelta(days=28) <= expiry-entry
+                                <= timedelta(days=35)):
+                            asset_upper = asset.upper()
+                            report["fixed_tenor_candidate_files_by_asset"][asset_upper] += 1
+                            strikes_by_asset_expiry[asset_upper].setdefault(
+                                expiry.isoformat(), set()).add(strike)
             report["pages_listed"] += 1
             if not payload["IsTruncated"]:
                 report["listing_complete"] = True
@@ -181,10 +198,19 @@ def probe_target(*, api_key=None, runner=subprocess.run, max_pages=20):
             return report
     if not report["listing_complete"]:
         report["status"] = "BLOCKED_TARGET_LISTING_PAGE_CAP"
-    elif report["btc_put_files_listed"] and report["eth_put_files_listed"]:
-        report["status"] = "BTC_ETH_TARGET_PUT_OBJECTS_LISTED_NOT_SOURCE_CERTIFIED"
     else:
-        report["status"] = "TARGET_BTC_ETH_PUT_OBJECT_PRESENCE_NOT_SHOWN"
+        for asset in ("BTC", "ETH"):
+            report["fixed_tenor_two_strike_expiries_by_asset"][asset] = sum(
+                len(strikes) >= 2 for strikes in strikes_by_asset_expiry[asset].values())
+        report["fixed_tenor_pair_inventory_shown"] = all(
+            report["fixed_tenor_two_strike_expiries_by_asset"][asset] > 0
+            for asset in ("BTC", "ETH"))
+        if report["fixed_tenor_pair_inventory_shown"]:
+            report["status"] = "FIXED_TENOR_PAIR_OBJECTS_LISTED_NOT_QUOTES_OR_FILLS"
+        elif report["btc_put_files_listed"] and report["eth_put_files_listed"]:
+            report["status"] = "BTC_ETH_PUT_OBJECTS_BUT_NO_FIXED_TENOR_PAIR_PROOF"
+        else:
+            report["status"] = "TARGET_BTC_ETH_PUT_OBJECT_PRESENCE_NOT_SHOWN"
     return report
 
 
