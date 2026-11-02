@@ -1,0 +1,30 @@
+name: V98 Independent Exact Funding Mark Custody Importer Self-Test
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-native-mark-ingest.yml'
+      - 'research/v98_independent/v98_native_mark_ingest.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mark-importer-synthetic-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==1.26.4 pandas==2.2.3
+      - name: Fail-closed exact-mark ingestion syntax and tamper tests
+        run: |
+          set -euo pipefail
+          python -m py_compile research/v98_independent/v98_native_mark_ingest.py
+          python research/v98_independent/v98_native_mark_ingest.py --self-test
+          echo "SYNTHETIC_ONLY: NO RAW BINANCE SETTLEMENT MARKS INGESTED OR AUTHENTICATED"
