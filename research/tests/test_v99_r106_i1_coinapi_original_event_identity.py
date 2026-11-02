@@ -82,6 +82,22 @@ class CoinapiOriginalEventIdentityTests(unittest.TestCase):
             audit_requests(self.specs, self.original,
                            {(T0+1000, "BTC", SYMBOL): quote()})
 
+    def test_previous_day_last_asof_survives_missing_next_day_contract(self):
+        self.write_source([
+            ",2021-12-09T23:59:59.9000000,2021-12-09T23:59:59.9000001,0.0050,2,0.0045,3\\n"
+        ])
+        next_spec = self.specs/"2021-12-10.json"
+        next_spec.write_text(json.dumps({
+            "schema": DAY_SCHEMA, "day": "2021-12-10", "sources": [],
+        }))
+        at = T0 + 86_400_000 + 500
+        q = replace(quote(at), venue_ms=T0+86_399_900,
+                    arrival_ms=T0+86_399_900)
+        result = audit_requests(self.specs, self.original,
+                                {(at, "BTC", SYMBOL): q})
+        self.assertEqual(result["original_event_quote_identities_checked"], 1)
+        self.assertEqual(result["original_symbol_day_files_replayed"], 1)
+
     def test_source_mutation_rejected(self):
         self.source.write_bytes(b"tampered")
         with self.assertRaisesRegex(ValueError, "SOURCE_KEY_DAY_OR_ORIGINAL_SHA_MISMATCH"):
