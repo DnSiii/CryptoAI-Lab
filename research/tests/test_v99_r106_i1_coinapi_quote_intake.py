@@ -1,4 +1,4 @@
-"""Negative controls for a possible alternative archive; no market data or ROI."""
+"""Negative controls for a possible alternative archive, no market data or ROI."""
 import gzip
 import hashlib
 import io
@@ -9,8 +9,8 @@ from unittest.mock import patch
 from pathlib import Path
 from research.tools.v99_r106_i1_coinapi_quote_intake import inspect, microseconds, main
 
-HEADER = "id_site_coinapi;time_exchange;time_coinapi;ask_px;ask_sx;bid_px;bid_sx\n"
-ROW = ";2022-01-01T00:00:00.1140000;2022-01-01T00:00:00.2350440;0.0050;2;0.0045;3\n"
+HEADER = "id_site_coinapi,time_exchange,time_coinapi,ask_px,ask_sx,bid_px,bid_sx\n"
+ROW = ",2022-01-01T00:00:00.1140000,2022-01-01T00:00:00.2350440,0.0050,2,0.0045,3\n"
 KEY = "T-QUOTES/D-20220101/E-DERIBIT/IDDI-123+SC-DERIBIT_OPTION_BTC+S-BTC-30DEC22-15000-P.csv.gz"
 
 class TestCoinAPIIntake(unittest.TestCase):
@@ -39,6 +39,30 @@ class TestCoinAPIIntake(unittest.TestCase):
             self.assertEqual(result["original_sha256"], hashlib.sha256(compressed).hexdigest())
             self.assertEqual(result["original_bytes"], len(compressed))
             self.assertFalse(result["economic_train_executed"])
+
+    def test_official_vendor_comma_csv_schema_is_accepted(self):
+        # Official CoinAPI Flat Files Quotes example: comma-separated seven columns.
+        # TRAIN-only clocks and native option price units are NOT certified by this.
+        report = self.case(ROW)
+        self.assertEqual(report["rows"], 1)
+        self.assertEqual(report["status"], "SOURCE_FORMAT_ONLY_NO_ECONOMICS")
+        self.assertFalse(report["promotion_authorized"])
+
+    def test_old_semicolon_fixture_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "legacy.csv.gz"
+            path.write_bytes(gzip.compress((HEADER.replace(",", ";") + ROW.replace(",", ";")).encode()))
+            with self.assertRaisesRegex(ValueError, "WRONG_COINAPI_QUOTES_COLUMNS"):
+                inspect(path, venue="DERIBIT", symbol="BTC-30DEC22-15000-P",
+                        licensed=True, source_key=KEY)
+
+    def test_mixed_delimiters_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mixed.csv.gz"
+            path.write_bytes(gzip.compress((HEADER + ROW.replace(",", ";")).encode()))
+            with self.assertRaisesRegex(ValueError, "MALFORMED_ORIGINAL_COINAPI_ROW"):
+                inspect(path, venue="DERIBIT", symbol="BTC-30DEC22-15000-P",
+                        licensed=True, source_key=KEY)
 
     def test_truncated_original_stream_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -75,10 +99,10 @@ class TestCoinAPIIntake(unittest.TestCase):
             self.case(ROW.replace("00:00:00.2350440","00:00:00.1000000"))
     def test_bad_depth_rejected(self):
         with self.assertRaisesRegex(ValueError,"NONPOSITIVE"):
-            self.case(ROW.replace(";0.0045;3",";0.0045;0"))
+            self.case(ROW.replace(",0.0045,3",",0.0045,0"))
     def test_locked_book_rejected(self):
         with self.assertRaisesRegex(ValueError,"CROSSED"):
-            self.case(ROW.replace(";0.0045;3",";0.0050;3"))
+            self.case(ROW.replace(",0.0045,3",",0.0050,3"))
     def test_reordered_arrival_rejected(self):
         with self.assertRaisesRegex(ValueError,"OUT_OF_ORDER"):
             self.case(ROW+ROW.replace("00:00:00.2350440","00:00:00.2000000"))
@@ -86,12 +110,12 @@ class TestCoinAPIIntake(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"EMPTY"):
             self.case("")
     def test_original_site_uuid_allowed_not_instrument_identity(self):
-        r=self.case(ROW.replace(";", "550e8400-e29b-41d4-a716-446655440000;",1))
+        r=self.case(ROW.replace(",", "550e8400-e29b-41d4-a716-446655440000,",1))
         self.assertEqual(r["rows"],1)
         self.assertFalse(r["source_key_independently_verified"])
     def test_invalid_site_uuid_rejected(self):
         with self.assertRaisesRegex(ValueError,"RECEIVING_SITE_UUID"):
-            self.case(ROW.replace(";", "not-a-uuid;",1))
+            self.case(ROW.replace(",", "not-a-uuid,",1))
     def test_wrong_original_key_symbol_rejected(self):
         with self.assertRaisesRegex(ValueError,"SOURCE_KEY_DERIBIT_SYMBOL"):
             self.case(ROW,source_key=KEY.replace("S-BTC-", "S-ETH-"))
