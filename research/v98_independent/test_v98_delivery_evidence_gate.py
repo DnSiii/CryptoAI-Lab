@@ -285,4 +285,30 @@ class EvidenceGateTests(unittest.TestCase):
             collector.collect(self.expected,self.expected_sha,dest,fetcher)
         self.assertFalse((dest/"authorized_funding_pages.jsonl").exists())
 
+
+    def test_manifest_transport_exposes_source_only_exact_mark_csv(self):
+        result=self.evaluate()
+        p=self.root/"v98_authorized_native_preflight.csv"
+        self.assertEqual(result["decision"],
+                         "PASS_BYTE_AND_CALENDAR_PREFLIGHT_REQUIRES_INDEPENDENT_AUTHENTICATION")
+        self.assertTrue(p.exists())
+        self.assertEqual(digest(p),result["native"]["exact_marks_csv_sha256"])
+        with p.open(newline="") as f:
+            rows=list(csv.DictReader(f))
+        self.assertEqual(len(rows),8)
+        self.assertEqual(rows[0]["markPrice"],"123.45")
+        self.assertFalse(result["paper_or_live_authorized"])
+
+    def test_failed_cost_evidence_does_not_emit_exact_mark_table(self):
+        (self.root/"historical_bid_ask_depth.txt").unlink()
+        result=self.evaluate()
+        self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertFalse((self.root/"v98_authorized_native_preflight.csv").exists())
+
+    def test_conflicting_existing_exact_mark_table_is_rejected(self):
+        (self.root/"v98_authorized_native_preflight.csv").write_text("TAMPERED")
+        result=self.evaluate()
+        self.assertEqual(result["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertIn("EXACT_MARK_OUTPUT_CONFLICT",result["blocker"])
+
 if __name__=="__main__":unittest.main()
