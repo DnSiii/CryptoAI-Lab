@@ -26,7 +26,7 @@ def targets(d):
         r72=p[t]-p[t-72];r24=p[t]-p[t-24]
         residual72=r72[1:]-beta[1:]*r72[0]
         residual24=r24[1:]-beta[1:]*r24[0]
-        b72=float(r72[0]);b12=float(p[t,0]-p[t-12])
+        b72=float(r72[0]);b12=float(p[t,0]-p[t-12,0])
         raw=np.zeros((4,4),float)
         # Underreaction relative to BTC impulse, directional BTC-led growth.
         direction=1. if b72>=0 else -1.
