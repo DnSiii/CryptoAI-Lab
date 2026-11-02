@@ -221,18 +221,28 @@ def evaluate(root,expected_csv,expected_sha):
     root=Path(root)
     manifest_path=root/"native_pages_manifest.json"
     authorized_jsonl=root/"authorized_funding_pages.jsonl"
-    if not manifest_path.is_file() and not authorized_jsonl.is_file():
-        result["blocker"]="official fundingRate raw pages + authenticated custody absent"
+    authorized_exchange=root/"authorized_exchange_export_manifest.json"
+    transports=sum(p.is_file() for p in (manifest_path,authorized_jsonl,authorized_exchange))
+    if transports==0:
+        result["blocker"]="official fundingRate pages OR separately authorized exchange-origin CSV + independently authenticated custody absent"
+        return result
+    if transports!=1:
+        result["blocker"]="V98_EVIDENCE_NATIVE_AMBIGUOUS_SOURCE_FORMAT"
         return result
     if not (root/"account_costs_manifest.json").is_file():
         result["blocker"]="historical account fee, depth and liquidation evidence absent"
         return result
     try:
         expected=expected_events(expected_csv,expected_sha)
-        if manifest_path.is_file() and authorized_jsonl.is_file():
-            fail("NATIVE_AMBIGUOUS_SOURCE_FORMAT")
         if manifest_path.is_file():
             native,marks=native_mark_pages(read_manifest(manifest_path),root,expected)
+        elif authorized_exchange.is_file():
+            # Alternate independently obtained exchange-origin export, useful
+            # when the public API is legally inaccessible (HTTP 451).
+            # Byte/schema/custody fields are NOT independent authentication.
+            from v98_delivery_authorized_exchange_export import validate_export
+            native,marks=validate_export(root,read_manifest(authorized_exchange),
+                                         expected,START,END,ASSETS,EIGHT_HOURS_MS)
         else:
             # The authorized raw JSONL handoff is the same format as the
             # existing V98 exact-mark importer. Bind it to the SHA-pinned
