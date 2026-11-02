@@ -12,6 +12,7 @@ ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
 START=int(dt.datetime(2022,12,1,tzinfo=dt.timezone.utc).timestamp()*1000)
 END=int(dt.datetime(2026,1,1,tzinfo=dt.timezone.utc).timestamp()*1000)
 EXPECTED_COUNT=13524
+PINNED_EXPECTED_FUNDING_SHA256="3a7e5cc35152663ecfd08edb991c9f5cf1db845877cfb0d0b802d0682f55e7c1"
 EIGHT_HOURS_MS=8*3600*1000
 MAX_SETTLEMENT_OFFSET_MS=60000
 FIELDS=("asset","funding_time_ms","funding_rate")
@@ -42,6 +43,7 @@ def utc_timestamp(value):
     return x
 
 def expected_events(path,declared_sha):
+    if declared_sha!=PINNED_EXPECTED_FUNDING_SHA256:fail("UNPINNED_EXPECTED_SOURCE")
     if sha256(path)!=declared_sha:fail("NATIVE_FUNDING_EXPECTED_SHA")
     with Path(path).open(newline="") as f:
         reader=csv.DictReader(f)
