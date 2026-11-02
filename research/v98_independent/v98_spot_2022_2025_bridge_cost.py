@@ -146,6 +146,9 @@ def main():
     if raw!=repeat:raise ValueError("SPOT_BRIDGE_NONDETERMINISM")
     (out/"v98_spot_2022_2025_masked_calendar.csv").write_bytes(raw)
     diag=fee_diagnostic(sb,sr,a.nh_dir)
+    # Separate preregistered signed native funding source-only feasibility, never PnL.
+    from v98_funding_carry_source_only import generate as generate_funding_carry
+    carry=generate_funding_carry(a.nh_dir,out)
     result={"decision":"PASS_AUTHENTICATED_SPOT_2022_2025_MASKED_BRIDGE_NOT_PNL",
             "counts":counts,"canonical_sha256":sha(raw),
             "hq_canonical_sha256":sha(hb),"spot25_canonical_sha256":sha(sb),
@@ -155,7 +158,8 @@ def main():
             "2025_exposed_training_only":True,"holdout_accessed":False,
             "data_2026_accessed":False,"external_benchmarks_accessed":False,
             "pnl_computed":False,"trading_authorized":False,
-            "two_leg_fee_diagnostic":diag}
+            "two_leg_fee_diagnostic":diag,
+            "native_signed_funding_carry_diagnostic":carry}
     (out/"v98_spot_bridge_cost_receipt.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
     print(json.dumps({"decision":result["decision"],"counts":counts,"sha256":sha(raw),
                       "fee_diagnostic":diag},sort_keys=True))
