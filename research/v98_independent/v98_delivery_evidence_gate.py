@@ -155,7 +155,7 @@ def publish_exact_mark_csv(root,seen):
     """
     import io
     out=io.StringIO(newline="")
-    writer=csv.writer(out,lineterminator="\\n")
+    writer=csv.writer(out,lineterminator="\n")
     writer.writerow(("asset","fundingSlotTime","fundingTime","fundingRate","markPrice"))
     for asset,slot in sorted(seen,key=lambda key:(key[1],key[0])):
         ts,rate,mark=seen[(asset,slot)]
