@@ -4,6 +4,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -71,7 +72,7 @@ class CoinapiOriginalEventIdentityTests(unittest.TestCase):
         ])
         with self.assertRaisesRegex(ValueError, "LATEST_ORIGINAL_RECEIPT_INVALID"):
             audit_requests(self.specs, self.original,
-                           {(T0+1000, "BTC", SYMBOL): quote()})
+                           {(T0+1000, "BTC", SYMBOL): replace(quote(), venue_ms=T0+500, arrival_ms=T0+500)})
 
     def test_future_only_source_never_backfills(self):
         self.write_source([
