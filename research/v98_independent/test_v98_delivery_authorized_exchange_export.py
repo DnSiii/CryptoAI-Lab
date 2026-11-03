@@ -69,6 +69,12 @@ class AlternateExchangeExport(unittest.TestCase):
     def test_single_native_rate_tick_conflict_rejected(self):
         self.rows[0]["fundingRate"]="0.00010001";self.write()
         self.fails("NATIVE_FUNDING_RATE_CONFLICT")
+    def test_native_rate_tolerance_boundary(self):
+        # Match native JSON page gate: deviations <=1e-10 pass, >1e-10 fail.
+        self.rows[0]["fundingRate"]="0.0001000001";self.write()
+        self.assertEqual(len(self.validate()[1]),12)
+        self.rows[0]["fundingRate"]="0.00010000011";self.write()
+        self.fails("NATIVE_FUNDING_RATE_CONFLICT")
     def test_duplicate_event_rejected(self):
         self.rows[1]["fundingTime"]=self.rows[0]["fundingTime"];self.write()
         self.fails("OUTSIDE_TRAINING_OR_NONMONOTONIC")
