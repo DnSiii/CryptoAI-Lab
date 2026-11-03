@@ -64,6 +64,29 @@ class EvidenceGateTests(unittest.TestCase):
         (self.root/"native_pages_manifest.json").unlink()
         self.assertEqual(self.evaluate()["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
 
+    def test_native_source_only_can_reconcile_without_account_costs(self):
+        (self.root/"account_costs_manifest.json").unlink()
+        out=gate.evaluate(self.root,self.expected,self.expected_sha,source_only=True)
+        self.assertEqual(out["decision"],"PASS_NATIVE_SOURCE_PREFLIGHT_ONLY_NOT_ECONOMIC")
+        self.assertEqual(out["native"]["event_count"],8)
+        self.assertIsNone(out["costs"])
+        self.assertFalse(out["paper_or_live_authorized"])
+        self.assertFalse(out["native"]["exchange_origin_independently_authenticated"])
+
+    def test_native_source_only_still_rejects_tampered_mark_source(self):
+        (self.root/"account_costs_manifest.json").unlink()
+        (self.root/"BTCUSDT.json").write_text("[]")
+        out=gate.evaluate(self.root,self.expected,self.expected_sha,source_only=True)
+        self.assertEqual(out["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertIn("NATIVE_PAGE_SHA",out["blocker"])
+
+    def test_native_source_only_does_not_bypass_missing_marks(self):
+        (self.root/"account_costs_manifest.json").unlink()
+        (self.root/"native_pages_manifest.json").unlink()
+        out=gate.evaluate(self.root,self.expected,self.expected_sha,source_only=True)
+        self.assertEqual(out["decision"],"HOLD_MISSING_EXTERNAL_EVIDENCE")
+        self.assertIn("fundingRate",out["blocker"])
+
     def test_missing_account_evidence_fails_closed(self):
         (self.root/"account_costs_manifest.json").unlink()
         self.assertIn("account",self.evaluate()["blocker"])
