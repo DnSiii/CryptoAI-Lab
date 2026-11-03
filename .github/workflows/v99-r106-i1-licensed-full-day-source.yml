@@ -4,17 +4,20 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - research_tools/v99_r106_tardis_full_day_source.py
+      - research/tools/v99_r106_i1_one_day_procurement.py
       - research/tests/test_v99_r106_i1_licensed_full_day_source.py
       - .github/workflows/v99-r106-i1-licensed-full-day-source.yml
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   bounded-original-day:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       TARDIS_API_KEY: ${{ secrets.TARDIS_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -31,6 +34,30 @@ jobs:
           test -s research/V99_R106_I1_LICENSED_FULLDAY_SOURCE_PREREG_20261026.md
       - name: Falsification tests on synthetic fixtures (NOT economic evidence)
         run: python -m unittest -v research.tests.test_v99_r106_i1_licensed_full_day_source
+      - name: Restore original TRAIN-only target inputs (no licensed bytes)
+        run: |
+          mkdir -p research_evidence/i1_native_instruments research_evidence/i1_original_causal
+          gh run download 40148052668 --repo "$GITHUB_REPOSITORY" --name v99-i1-firstparty-native-instruments-40148052668 --dir research_evidence/i1_native_instruments
+          gh run download 40326586848 --repo "$GITHUB_REPOSITORY" --name v99-i1-original-causal-signal-40326586848 --dir research_evidence/i1_original_causal
+      - name: Independently verify and bind preregistered one-day source target
+        run: |
+          python -m research.tools.v99_r106_i1_one_day_procurement research_evidence/i1_native_instruments research_evidence/i1_original_causal/i1_causal_signal.json one_day_original_source_procurement.json
+          python -m research.verification.independent_v99_r106_i1_one_day_procurement research_evidence/i1_native_instruments research_evidence/i1_original_causal/i1_causal_signal.json one_day_original_source_procurement.json
+          python - <<'PY'
+          import json, os
+          from datetime import date
+          from pathlib import Path
+          r=json.loads(Path('one_day_original_source_procurement.json').read_text())
+          assert r['schema']=='V99_I1_SINGLE_PRESELECTED_PAID_SOURCE_DAY_V1'
+          assert r['status']=='ONE_PRESELECTED_LICENSED_SAMPLE_REQUEST_NOT_RECEIVED'
+          assert r['target'] is not None
+          assert not any(r[k] for k in ('source_license_received','economic_train_executed','roi_calculated','validation_opened','holdout_opened','orders_enabled','promotion_authorized'))
+          d=r['target']['sunday_source_date_utc']
+          assert date(2021,1,1)<=date.fromisoformat(d)<date(2023,10,1)
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('V99_I1_SOURCE_DATE='+d+'\\n')
+          print('PREREGISTERED SOURCE TARGET:',d,'(NO ECONOMIC CERTIFICATION)')
+          PY
       - name: Attempt one authorized complete original TRAIN day, or prove missing key
         run: python research_tools/v99_r106_tardis_full_day_source.py
       - name: Fail closed on all unproven economic and market coverage flags
@@ -38,9 +65,12 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=json.loads(Path('research_evidence/v99_i1_full_day_20220615/source_check.json').read_text())
+          from datetime import date
+          import os
+          d=os.environ['V99_I1_SOURCE_DATE']
+          p=json.loads(Path('research_evidence/v99_i1_full_day_'+d.replace('-','')+'/source_check.json').read_text())
           assert p['schema']=='V99_I1_BOUNDED_AUTHENTICATED_FULL_DAY_SOURCE_V1'
-          assert p['source_date_utc']=='2022-06-15'
+          assert p['source_date_utc']==d
           assert not any(p[k] for k in ('economic_train_executed','validation_opened',
               'holdout_opened','orders_enabled','promotion_authorized'))
           if p['status']=='SOURCE_ONE_DAY_FIELDS_OBSERVED_NOT_LIFECYCLE':
@@ -57,6 +87,6 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: v99-i1-licensed-day-metadata-only-${{ github.run_id }}
-          path: research_evidence/v99_i1_full_day_20220615/source_check.json
+          path: research_evidence/v99_i1_full_day_*/source_check.json
           retention-days: 30
           if-no-files-found: warn
