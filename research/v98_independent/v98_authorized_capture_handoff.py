@@ -185,7 +185,8 @@ def self_test() -> dict:
         try:
             bridge(capture, expected, root / "bad_mime")
         except ValueError as exc:
-            assert "MISSING_OR_INVALID_HTTP_CONTENT_TYPE" in str(exc)
+            assert ("MISSING_OR_INVALID_HTTP_CONTENT_TYPE" in str(exc) or
+                    "V98_FULL_AUDIT_HTTP_CONTENT_TYPE" in str(exc))
         else:
             raise AssertionError("V98_HANDOFF_ACCEPTED_FALSE_HTTP_MIME")
         assert not (root / "bad_mime").exists()
