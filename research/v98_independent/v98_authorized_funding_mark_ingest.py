@@ -88,6 +88,12 @@ def validate(pages_path,expected_path,output_path):
             headers=page["response_headers"]
             if not isinstance(headers,dict) or sum(k.lower()=="date" for k in headers)!=1:
                 raise ValueError("MISSING_OR_DUPLICATE_HTTP_DATE")
+            # A JSON-looking body with an absent/wrong MIME type is not a
+            # valid authenticated API response capture.
+            content_types=[v for k,v in headers.items() if k.lower()=="content-type"]
+            if (len(content_types)!=1 or not isinstance(content_types[0],str) or
+                content_types[0].split(";",1)[0].strip().lower()!="application/json"):
+                raise ValueError("MISSING_OR_INVALID_HTTP_CONTENT_TYPE")
             at=dt.datetime.fromisoformat(page["retrieved_at_utc"].replace("Z","+00:00"))
             if at.tzinfo is None or at.utcoffset()!=dt.timedelta(0):
                 raise ValueError("RETRIEVAL_NOT_UTC")
@@ -190,7 +196,7 @@ def self_test():
             rows=[{"symbol":a,"fundingTime":t,"fundingRate":"0.0001","markPrice":"100.0"} for t in range(START,END,SLOT)]
             raw=json.dumps(rows,separators=(",",":"))
             lines.append({"url":f"https://fapi.binance.com/fapi/v1/fundingRate?symbol={a}&startTime={START}&endTime={END-1}&limit=1000",
-                          "status":200,"response_headers":{"Date":"Sun, 01 Nov 2026 12:00:00 GMT"},
+                          "status":200,"response_headers":{"Date":"Sun, 01 Nov 2026 12:00:00 GMT","Content-Type":"application/json"},
                           "retrieved_at_utc":"2026-11-01T12:00:00Z","response_body":raw,
                           "response_body_sha256":digest(raw.encode())})
         pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
@@ -239,7 +245,18 @@ def self_test():
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="MALFORMED_HTTP_DATE"
         else:raise AssertionError("MALFORMED_DATE_ACCEPTED")
-        lines[0]["response_headers"]={"Date":"Sun, 01 Nov 2026 12:00:00 GMT"}
+        lines[0]["response_headers"]={"Date":"Sun, 01 Nov 2026 12:00:00 GMT","Content-Type":"application/json"}
+        # Missing and misleading content types must be rejected independently.
+        for bad_type in (None,"text/html"):
+            headers=dict(lines[0]["response_headers"])
+            if bad_type is None:headers.pop("Content-Type")
+            else:headers["Content-Type"]=bad_type
+            lines[0]["response_headers"]=headers
+            pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
+            try:validate(pages,expected,Path(td)/"bad_mime.json")
+            except ValueError as e:assert str(e)=="MISSING_OR_INVALID_HTTP_CONTENT_TYPE"
+            else:raise AssertionError("BAD_HTTP_CONTENT_TYPE_ACCEPTED")
+        lines[0]["response_headers"]={"Date":"Sun, 01 Nov 2026 12:00:00 GMT","Content-Type":"application/json"}
         # A fractional timestamp must never be silently truncated onto a valid 8h slot.
         altered=json.loads(lines[0]["response_body"])
         altered[0]["fundingTime"]=float(START)+.25
