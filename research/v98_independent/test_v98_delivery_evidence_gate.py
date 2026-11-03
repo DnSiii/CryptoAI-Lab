@@ -32,7 +32,7 @@ class EvidenceGateTests(unittest.TestCase):
                 "url":f"https://fapi.binance.com/fapi/v1/fundingRate?symbol={a}&limit=1000&startTime={self.ts[0]}&endTime={self.ts[-1]+60000}",
                 "retrieved_at_utc":"2026-11-02T00:00:00Z",
                 "http_status":200,
-                "response_headers":{"Date":"Mon, 02 Nov 2026 00:00:05 GMT"},
+                "response_headers":{"Date":"Mon, 02 Nov 2026 00:00:05 GMT","Content-Type":"application/json"},
                 "file":p.name,"sha256":digest(p)})
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.proofs={}
@@ -249,7 +249,7 @@ class EvidenceGateTests(unittest.TestCase):
             if tamper_rate and asset=="BTCUSDT":rows[0]["fundingRate"]="0.001"
             if drop_last and asset=="BTCUSDT":rows.pop()
             body=json.dumps(rows).encode()
-            return 200,{"Date":"Mon, 02 Nov 2026 00:00:05 GMT"},body,"2026-11-02T00:00:00Z"
+            return 200,{"Date":"Mon, 02 Nov 2026 00:00:05 GMT","Content-Type":"application/json"},body,"2026-11-02T00:00:00Z"
         return collector,fetcher,calls
 
     def test_collector_captures_all_four_assets_with_pinned_calendar(self):
@@ -420,7 +420,7 @@ class EvidenceGateTests(unittest.TestCase):
             rows=[{"symbol":asset,"fundingTime":t,"fundingRate":"0.00010000",
                    "markPrice":"123.45"} for t in ts if t>=cursor][:2]
             calls.append((asset,cursor,len(rows)))
-            return 200,{"Date":"Mon, 02 Nov 2026 00:00:05 GMT"},json.dumps(rows).encode(),"2026-11-02T00:00:00Z"
+            return 200,{"Date":"Mon, 02 Nov 2026 00:00:05 GMT","Content-Type":"application/json"},json.dumps(rows).encode(),"2026-11-02T00:00:00Z"
         out=collector.collect(self.expected,sha,self.root/"multipage",fetcher)
         self.assertEqual(out["events"],12)
         self.assertEqual(out["pages"],8)
