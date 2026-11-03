@@ -191,13 +191,17 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
                 staged.flush()
                 os.fsync(staged.fileno())
             os.link(staged_path, final, follow_symlinks=False)
-            # Persist directory metadata when the filesystem supports it.
+            # Directory fsync is best-effort: unsupported filesystems must
+            # not turn an already published, verified file into a false failure.
             if hasattr(os, "O_DIRECTORY"):
-                fd = os.open(output_dir, os.O_RDONLY | os.O_DIRECTORY)
                 try:
-                    os.fsync(fd)
-                finally:
-                    os.close(fd)
+                    fd = os.open(output_dir, os.O_RDONLY | os.O_DIRECTORY)
+                    try:
+                        os.fsync(fd)
+                    finally:
+                        os.close(fd)
+                except OSError:
+                    pass
         finally:
             if staged_path is not None:
                 staged_path.unlink(missing_ok=True)
