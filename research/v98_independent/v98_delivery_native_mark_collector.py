@@ -177,8 +177,30 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
         if output_dir.exists() and not output_dir.is_dir():
             raise FileExistsError("EVIDENCE_DESTINATION_NOT_DIRECTORY")
         output_dir.mkdir(parents=True, exist_ok=True)
-        with final.open("x", encoding="utf-8") as handle:
-            handle.write(raw.read_text(encoding="utf-8"))
+        # Stage in the destination filesystem, fsync, then publish with an
+        # exclusive hard link. A crash cannot expose a truncated final file;
+        # a competing writer cannot be silently overwritten.
+        staged_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="wb", dir=output_dir, prefix=".v98_mark_staged_",
+                suffix=".tmp", delete=False
+            ) as staged:
+                staged_path = Path(staged.name)
+                staged.write(raw.read_bytes())
+                staged.flush()
+                os.fsync(staged.fileno())
+            os.link(staged_path, final, follow_symlinks=False)
+            # Persist directory metadata when the filesystem supports it.
+            if hasattr(os, "O_DIRECTORY"):
+                fd = os.open(output_dir, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(fd)
+                finally:
+                    os.close(fd)
+        finally:
+            if staged_path is not None:
+                staged_path.unlink(missing_ok=True)
         return {"decision": "CAPTURED_STRUCTURAL_ONLY_ORIGIN_UNATTESTED",
                 "events": len(observed), "pages": len(pages),
                 "raw_jsonl_sha256": hashlib.sha256(final.read_bytes()).hexdigest(),
