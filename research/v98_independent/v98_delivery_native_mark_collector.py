@@ -43,7 +43,7 @@ def fetch_official(url, timeout=20):
         with opener.open(request, timeout=timeout) as response:
             body = response.read()
             retrieved = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-            return int(response.status), {"Date": response.headers.get("Date", "")}, body, retrieved
+            return int(response.status), {"Date": response.headers.get("Date", ""), "Content-Type": response.headers.get("Content-Type", "")}, body, retrieved
     except HTTPError as exc:
         raise RuntimeError(f"BINANCE_HTTP_{exc.code}_HOST_{urlsplit(url).hostname}") from exc
     except (URLError, TimeoutError) as exc:
