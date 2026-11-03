@@ -216,7 +216,7 @@ def cost_evidence(manifest,root):
             "actual_fills_or_orderbook_replay_verified":False,
             "independent_account_provenance_authenticated":False}
 
-def evaluate(root,expected_csv,expected_sha):
+def evaluate(root,expected_csv,expected_sha,*,source_only=False):
     result={"decision":"HOLD_MISSING_EXTERNAL_EVIDENCE","engine":"V98 Independent",
             "training_only":True,"2026_training_accessed":False,
             "holdout_accessed":False,"benchmarks_accessed":False,
@@ -242,7 +242,7 @@ def evaluate(root,expected_csv,expected_sha):
     if transports!=1:
         result["blocker"]="V98_EVIDENCE_NATIVE_AMBIGUOUS_SOURCE_FORMAT"
         return result
-    if not cost_manifest.is_file():
+    if not source_only and not cost_manifest.is_file():
         result["blocker"]="historical account fee, depth and liquidation evidence absent"
         return result
     try:
@@ -275,7 +275,7 @@ def evaluate(root,expected_csv,expected_sha):
                     "native_marks_reconciled":True,
                     "exchange_origin_independently_authenticated":False,
                     "raw_jsonl_receipt_sha256":hashlib.sha256(staged_receipt).hexdigest()}
-        costs=cost_evidence(read_manifest(cost_manifest),root)
+        costs=None if source_only else cost_evidence(read_manifest(cost_manifest),root)
         if marks is not None:
             native["exact_marks_csv_sha256"]=publish_exact_mark_csv(root,marks)
         else:
@@ -286,9 +286,14 @@ def evaluate(root,expected_csv,expected_sha):
     except (OSError,KeyError,TypeError,ValueError) as exc:
         result["blocker"]=str(exc)
         return result
-    result.update({"decision":"PASS_BYTE_AND_CALENDAR_PREFLIGHT_REQUIRES_INDEPENDENT_AUTHENTICATION",
-                   "native":native,"costs":costs,
-                   "blocker":"manual independent exchange/account custody authentication and physical fill validation"})
+    if source_only:
+        result.update({"decision":"PASS_NATIVE_SOURCE_PREFLIGHT_ONLY_NOT_ECONOMIC",
+                       "native":native,"costs":None,
+                       "blocker":"historical account costs, independent exchange custody authentication and physical fill validation still required"})
+    else:
+        result.update({"decision":"PASS_BYTE_AND_CALENDAR_PREFLIGHT_REQUIRES_INDEPENDENT_AUTHENTICATION",
+                       "native":native,"costs":costs,
+                       "blocker":"manual independent exchange/account custody authentication and physical fill validation"})
     return result
 
 def main():
@@ -297,8 +302,9 @@ def main():
     p.add_argument("--expected-funding-csv",type=Path,required=True)
     p.add_argument("--expected-funding-sha256",required=True)
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--source-only",action="store_true",help="Validate native marks independently of missing cost documents; never approves PnL")
     a=p.parse_args()
-    out=evaluate(a.evidence_dir,a.expected_funding_csv,a.expected_funding_sha256)
+    out=evaluate(a.evidence_dir,a.expected_funding_csv,a.expected_funding_sha256,source_only=a.source_only)
     a.output.parent.mkdir(parents=True,exist_ok=True)
     a.output.write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
     print(json.dumps(out,sort_keys=True))
