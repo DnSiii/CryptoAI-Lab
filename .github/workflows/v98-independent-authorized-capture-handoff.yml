@@ -1,0 +1,39 @@
+name: V98 Independent Authorized Capture to Native Mark Handoff
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-authorized-capture-handoff.yml'
+      - 'research/v98_independent/v98_authorized_capture_handoff.py'
+      - 'research/v98_independent/v98_authorized_funding_mark_ingest.py'
+      - 'research/v98_independent/v98_exact_funding_full_history_capture_audit.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile three independent source-chain components
+        run: |
+          python -m py_compile research/v98_independent/v98_authorized_capture_handoff.py \
+            research/v98_independent/v98_authorized_funding_mark_ingest.py \
+            research/v98_independent/v98_exact_funding_full_history_capture_audit.py
+      - name: End-to-end synthetic 13524-event chain and fail-closed tamper cases
+        run: |
+          python research/v98_independent/v98_authorized_capture_handoff.py --self-test
+      - name: Existing strict importer regression
+        run: |
+          python research/v98_independent/v98_authorized_funding_mark_ingest.py --self-test
+      - name: Existing independent full-history capture audit regression
+        run: |
+          python research/v98_independent/v98_exact_funding_full_history_capture_audit.py --self-test
