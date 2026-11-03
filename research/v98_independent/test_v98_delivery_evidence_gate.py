@@ -460,13 +460,13 @@ class EvidenceGateTests(unittest.TestCase):
         # Original server/capture timestamps cannot precede the records
         # purportedly returned, even when their two clocks agree.
         self.pages[0]["retrieved_at_utc"]="2022-12-01T00:00:00Z"
-        self.pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT"}
+        self.pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT","Content-Type":"application/json"}
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.assertIn("NATIVE_CAPTURE_BEFORE_EVENT",self.evaluate()["blocker"])
 
     def test_manifest_rejects_capture_claimed_in_future(self):
         self.pages[0]["retrieved_at_utc"]="2035-11-02T00:00:00Z"
-        self.pages[0]["response_headers"]={"Date":"Fri, 02 Nov 2035 00:00:00 GMT"}
+        self.pages[0]["response_headers"]={"Date":"Fri, 02 Nov 2035 00:00:00 GMT","Content-Type":"application/json"}
         self.write_json("native_pages_manifest.json",{"pages":self.pages})
         self.assertIn("NATIVE_CAPTURE_IN_FUTURE",self.evaluate()["blocker"])
 
@@ -489,7 +489,7 @@ class EvidenceGateTests(unittest.TestCase):
                 "response_body":raw,
                 "response_body_sha256":hashlib.sha256(raw.encode()).hexdigest()})
         pages[0]["retrieved_at_utc"]="2022-12-01T00:00:00Z"
-        pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT"}
+        pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT","Content-Type":"application/json"}
         (self.root/"native_pages_manifest.json").unlink()
         (self.root/"authorized_funding_pages.jsonl").write_text(
             "\n".join(json.dumps(x) for x in pages)+"\n")
