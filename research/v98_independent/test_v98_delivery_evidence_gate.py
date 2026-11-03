@@ -490,6 +490,10 @@ class EvidenceGateTests(unittest.TestCase):
                 "response_body_sha256":hashlib.sha256(raw.encode()).hexdigest()})
         pages[0]["retrieved_at_utc"]="2022-12-01T00:00:00Z"
         pages[0]["response_headers"]={"Date":"Thu, 01 Dec 2022 00:00:00 GMT","Content-Type":"application/json"}
+        # Keep the other captured pages MIME-complete; this negative control
+        # isolates chronology rather than failing earlier on missing headers.
+        for page in pages:
+            page["response_headers"].setdefault("Content-Type","application/json")
         (self.root/"native_pages_manifest.json").unlink()
         (self.root/"authorized_funding_pages.jsonl").write_text(
             "\n".join(json.dumps(x) for x in pages)+"\n")
