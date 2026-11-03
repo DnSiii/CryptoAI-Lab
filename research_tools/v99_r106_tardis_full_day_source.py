@@ -21,9 +21,17 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-DAY = "2022-06-15"
-URL = "https://datasets.tardis.dev/v1/deribit/quotes/2022/06/15/OPTIONS.csv.gz"
-OUT = Path("research_evidence/v99_i1_full_day_20220615/source_check.json")
+# The default preserves the original preregistered source fixture. CI may supply
+# ONLY the independently verified, preregistered one-day procurement target.
+DAY = os.environ.get("V99_I1_SOURCE_DATE", "2022-06-15")
+try:
+    _date = datetime.strptime(DAY, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+except ValueError as exc:
+    raise ValueError("INVALID_SOURCE_DATE") from exc
+if not (datetime(2021, 1, 1, tzinfo=timezone.utc) <= _date < datetime(2023, 10, 1, tzinfo=timezone.utc)):
+    raise ValueError("SOURCE_DATE_OUTSIDE_SEALED_TRAIN")
+URL = f"https://datasets.tardis.dev/v1/deribit/quotes/{_date:%Y/%m/%d}/OPTIONS.csv.gz"
+OUT = Path(f"research_evidence/v99_i1_full_day_{_date:%Y%m%d}/source_check.json")
 MAX_COMPRESSED = 512 * 1024 * 1024
 MAX_ROWS = 8_000_000
 MAX_SECONDS = 720
@@ -31,7 +39,7 @@ MAX_EVENT_LAG_US = 10_000_000  # preregistered 10s freshness for source quote co
 FIELDS = {"exchange", "symbol", "timestamp", "local_timestamp",
           "bid_price", "ask_price", "bid_amount", "ask_amount"}
 SYMBOL = re.compile(r"^(BTC|ETH)-[0-9]{1,2}[A-Z]{3}[0-9]{2}-[0-9]+(?:\.[0-9]+)?-([PC])$")
-DAY_START = int(datetime(2022, 6, 15, tzinfo=timezone.utc).timestamp() * 1_000_000)
+DAY_START = int(_date.timestamp() * 1_000_000)
 DAY_END = DAY_START + 86_400_000_000
 
 
