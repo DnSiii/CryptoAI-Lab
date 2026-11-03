@@ -240,7 +240,7 @@ def self_test():
         # Reject malformed HTTP metadata even when body hashes are valid.
         lines[0]["response_body"]=json.dumps([{"symbol":ASSETS[0],"fundingTime":START+q*SLOT,"fundingRate":"0.0001","markPrice":"100"} for q in range(3)])
         lines[0]["response_body_sha256"]=digest(lines[0]["response_body"].encode())
-        lines[0]["response_headers"]={"Date":"not-an-http-date"}
+        lines[0]["response_headers"]={"Date":"not-an-http-date","Content-Type":"application/json"}
         pages.write_text("\n".join(json.dumps(x) for x in lines)+"\n")
         try:validate(pages,expected,Path(td)/"bad.json")
         except ValueError as e:assert str(e)=="MALFORMED_HTTP_DATE"
