@@ -162,10 +162,9 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
     if any((output_dir / name).exists() or (output_dir / name).is_symlink()
            for name in transport_names):
         raise FileExistsError("EXISTING_NATIVE_EVIDENCE_MUST_NOT_BE_OVERWRITTEN")
-    output_dir.mkdir(parents=True, exist_ok=True)
     final = output_dir / "authorized_funding_pages.jsonl"
-    # Importer's independent rate/calendar/HTTP-date verification runs before
-    # the first output byte is committed to the evidence handoff.
+    # Validate before creating the destination. A failed audit must not leave
+    # an empty directory that looks like an attempted published capture.
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td)
         raw = tmp / final.name
@@ -173,7 +172,11 @@ def collect(expected_csv, expected_sha, output_dir, fetcher=fetch_official, time
         receipt = independent_import(raw, expected_csv, tmp / "native_receipt.json")
         if receipt["records"] != len(expected):
             raise ValueError("INDEPENDENT_RECONCILIATION_COUNT")
-        # Exclusive create: never clobber another capture or source.
+        # Fail closed on an existing destination; publish the verified bytes
+        # through an exclusive file create, never overwriting prior evidence.
+        if output_dir.exists() and not output_dir.is_dir():
+            raise FileExistsError("EVIDENCE_DESTINATION_NOT_DIRECTORY")
+        output_dir.mkdir(parents=True, exist_ok=True)
         with final.open("x", encoding="utf-8") as handle:
             handle.write(raw.read_text(encoding="utf-8"))
         return {"decision": "CAPTURED_STRUCTURAL_ONLY_ORIGIN_UNATTESTED",
