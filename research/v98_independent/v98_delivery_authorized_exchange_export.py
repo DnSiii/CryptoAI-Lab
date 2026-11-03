@@ -107,7 +107,7 @@ def validate_export(root, manifest, expected, start, end, assets, slot_ms):
             # Expected 12-significant-digit CSV can differ slightly from the
             # original exchange decimal. A one-native-tick discrepancy (1e-8)
             # must NEVER be accepted as a rounding artifact.
-            if abs(rate - Decimal(str(expected[key]))) > Decimal("0.0000000005"):
+            if abs(rate - Decimal(str(expected[key]))) > Decimal("0.0000000001"):
                 _fail("NATIVE_FUNDING_RATE_CONFLICT")
             seen[key] = (ts, str(rate), str(mark))
     if set(seen) != set(expected):
