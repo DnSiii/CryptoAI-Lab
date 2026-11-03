@@ -24,7 +24,7 @@ jobs:
       - name: Retrieve pinned training-only expected native funding events
         uses: actions/download-artifact@v4
         with:
-          name: v98-independent-authorized-mark-ingest-readiness-no-pnl
+          name: v98-independent-delivery-native-event-custody-preflight-not-engine
           run-id: 41580181612
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/expected
@@ -37,7 +37,7 @@ jobs:
           import hashlib
           from pathlib import Path
           root=Path("${{ runner.temp }}/expected")
-          paths=list(root.rglob("v98_native_expected_funding_2022_2025.csv"))
+          paths=list(root.rglob("v98_expected_native_funding_2022_2025.csv"))
           if len(paths)!=1: raise SystemExit("EXPECTED_CSV_MISSING_OR_AMBIGUOUS")
           p=paths[0]
           print("expected_csv_sha256="+hashlib.sha256(p.read_bytes()).hexdigest())
