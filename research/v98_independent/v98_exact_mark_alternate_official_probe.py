@@ -26,6 +26,9 @@ for host in HOSTS:
             body=res.read(100001)
             if len(body)>100000:raise ValueError('OVERSIZE_RESPONSE')
             rec['http_status']=res.status
+            rec['content_type']=res.headers.get('Content-Type','')
+            if 'json' not in rec['content_type'].lower():
+                raise ValueError('NON_JSON_CONTENT_TYPE')
             rec['sha256']=hashlib.sha256(body).hexdigest()
             rows=json.loads(body)
             if not isinstance(rows,list):raise ValueError('RESPONSE_NOT_LIST')
@@ -43,9 +46,13 @@ for host in HOSTS:
                 times.append(t)
             if len(times)!=len(set(times)) or times!=sorted(times):valid=False
             rec['status']='SAMPLE_SCHEMA_PASS_NOT_FULL_PROVENANCE' if valid else 'UNUSABLE_SAMPLE'
-    except (urllib.error.HTTPError,urllib.error.URLError,socket.timeout,TimeoutError,ValueError) as e:
+    except (urllib.error.HTTPError,urllib.error.URLError,socket.timeout,TimeoutError,ValueError,TypeError,KeyError,OverflowError) as e:
         rec['error']=type(e).__name__+':'+str(e)[:160]
-        if isinstance(e,urllib.error.HTTPError):rec['http_status']=e.code
+        if isinstance(e,urllib.error.HTTPError):
+            rec['http_status']=e.code
+            rec['http_error_class']='REGION_RESTRICTED' if e.code==451 else ('ACCESS_DENIED' if e.code in (403,418) else 'OTHER_HTTP_ERROR')
+            rec['retry_after']=e.headers.get('Retry-After')
+            rec['error_body_sha256']=hashlib.sha256(e.read(4096)).hexdigest()
     out['results'].append(rec)
 Path('v98_exact_mark_alternate_probe_receipt.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
 print(json.dumps(out,indent=2,sort_keys=True))
