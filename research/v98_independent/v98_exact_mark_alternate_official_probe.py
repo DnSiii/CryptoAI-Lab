@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """V98 source-only alternative Binance USD-M historical markPrice transports; 2023 only."""
-import hashlib,json,math,socket,urllib.request,urllib.error
+import hashlib,json,math,socket,time,urllib.parse,urllib.request,urllib.error
 from pathlib import Path
 HOSTS=('https://fapi2.binance.com','https://fapi3.binance.com','https://fapi4.binance.com')
 PATH='/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1672531200000&endTime=1672617600000&limit=10'
@@ -10,14 +10,23 @@ for host in HOSTS:
     rec={'host':host,'status':'UNVERIFIED_TRANSPORT'}
     try:
         req=urllib.request.Request(host+PATH,headers={'User-Agent':'V98-Independent-Mark-Probe/1.0','Accept':'application/json'})
+        started=time.monotonic()
         with urllib.request.urlopen(req,timeout=8) as res:
-            body=res.read(100000)
+            final=urllib.parse.urlsplit(res.geturl())
+            expected=urllib.parse.urlsplit(host)
+            rec['final_host']=final.hostname
+            rec['elapsed_ms']=round((time.monotonic()-started)*1000)
+            if final.scheme!='https' or final.hostname!=expected.hostname:
+                raise ValueError('UNTRUSTED_REDIRECT_ORIGIN')
+            body=res.read(100001)
+            if len(body)>100000:raise ValueError('OVERSIZE_RESPONSE')
             rec['http_status']=res.status
             rec['sha256']=hashlib.sha256(body).hexdigest()
             rows=json.loads(body)
             if not isinstance(rows,list):raise ValueError('RESPONSE_NOT_LIST')
             rec['row_count']=len(rows)
             valid=bool(rows)
+            times=[]
             for row in rows:
                 if not isinstance(row,dict) or row.get('symbol')!='BTCUSDT':
                     valid=False;break
@@ -26,6 +35,8 @@ for host in HOSTS:
                 t=int(row['fundingTime']);r=float(row['fundingRate']);m=float(row['markPrice'])
                 if not (1672531200000<=t<=1672617600000 and math.isfinite(r) and math.isfinite(m) and m>0):
                     valid=False;break
+                times.append(t)
+            if len(times)!=len(set(times)) or times!=sorted(times):valid=False
             rec['status']='SAMPLE_SCHEMA_PASS_NOT_FULL_PROVENANCE' if valid else 'UNUSABLE_SAMPLE'
     except (urllib.error.HTTPError,urllib.error.URLError,socket.timeout,TimeoutError,ValueError) as e:
         rec['error']=type(e).__name__+':'+str(e)[:160]
