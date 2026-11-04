@@ -47,11 +47,17 @@ jobs:
           Path("/tmp/v98_expected_path").write_text(str(p))
           PY
           EXPECTED="$(cat /tmp/v98_expected_path)"
-          SHA="$(sha256sum "$EXPECTED" | cut -d' ' -f1)"
+          SHA="$(PYTHONPATH=research/v98_independent python -c 'from v98_delivery_evidence_gate import PINNED_EXPECTED_FUNDING_SHA256; print(PINNED_EXPECTED_FUNDING_SHA256)')"
+          set +e
           python research/v98_independent/v98_delivery_native_mark_collector.py \
             --expected-funding-csv "$EXPECTED" \
             --expected-funding-sha256 "$SHA" \
-            --evidence-dir "${{ runner.temp }}/native_capture"
+            --evidence-dir "${{ runner.temp }}/native_capture" \
+            > "${{ runner.temp }}/v98_capture_diagnostic.log" 2>&1
+          code=$?
+          set -e
+          cat "${{ runner.temp }}/v98_capture_diagnostic.log"
+          exit "$code"
       - name: Preserve captured raw responses (transport only, origin NOT independently attested)
         if: success()
         uses: actions/upload-artifact@v4
@@ -60,3 +66,11 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           path: ${{ runner.temp }}/native_capture/authorized_funding_pages.jsonl
+      - name: Preserve acquisition failure diagnostic (no evidence or PnL)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-native-mark-failure-diagnostic
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/v98_capture_diagnostic.log
