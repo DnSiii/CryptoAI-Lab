@@ -4,6 +4,11 @@ import hashlib,json,math,socket,time,urllib.parse,urllib.request,urllib.error
 from pathlib import Path
 HOSTS=('https://fapi2.binance.com','https://fapi3.binance.com','https://fapi4.binance.com')
 PATH='/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1672531200000&endTime=1672617600000&limit=10'
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError('REDIRECT_REJECTED_BEFORE_FOLLOW')
+
+OPENER=urllib.request.build_opener(NoRedirect)
 out={'scope':'V98_2023_ONLY_NO_PNL','2025_accessed':False,'2026_plus_accessed':False,
      'candidate_transport_hosts_not_yet_attested':list(HOSTS),'results':[]}
 for host in HOSTS:
@@ -11,7 +16,7 @@ for host in HOSTS:
     try:
         req=urllib.request.Request(host+PATH,headers={'User-Agent':'V98-Independent-Mark-Probe/1.0','Accept':'application/json'})
         started=time.monotonic()
-        with urllib.request.urlopen(req,timeout=8) as res:
+        with OPENER.open(req,timeout=8) as res:
             final=urllib.parse.urlsplit(res.geturl())
             expected=urllib.parse.urlsplit(host)
             rec['final_host']=final.hostname
