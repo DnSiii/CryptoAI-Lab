@@ -4,11 +4,23 @@ import hashlib,json,math,socket,time,urllib.parse,urllib.request,urllib.error
 from pathlib import Path
 HOSTS=('https://fapi2.binance.com','https://fapi3.binance.com','https://fapi4.binance.com')
 PATH='/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1672531200000&endTime=1672617600000&limit=10'
-class NoRedirect(urllib.request.HTTPRedirectHandler):
+class StrictSameOriginRedirect(urllib.request.HTTPRedirectHandler):
+    """Allow one transparent canonical redirect only when origin, path and query are identical."""
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None  # urllib raises HTTPError for 3xx; Location is recorded without following
+        old=urllib.parse.urlsplit(req.full_url)
+        new=urllib.parse.urlsplit(newurl)
+        hops=int(req.headers.get('X-v98-redirect-hops','0'))
+        if (code not in (301,302,307,308) or hops >= 1 or
+            new.scheme != 'https' or old.scheme != 'https' or
+            new.hostname != old.hostname or new.port != old.port or
+            new.path != old.path or new.query != old.query or new.username or new.password):
+            return None
+        next_req=super().redirect_request(req,fp,code,msg,headers,newurl)
+        if next_req is not None:
+            next_req.add_header('X-v98-redirect-hops','1')
+        return next_req
 
-OPENER=urllib.request.build_opener(NoRedirect)
+OPENER=urllib.request.build_opener(StrictSameOriginRedirect)
 out={'scope':'V98_2023_ONLY_NO_PNL','2025_accessed':False,'2026_plus_accessed':False,
      'candidate_transport_hosts_not_yet_attested':list(HOSTS),'results':[]}
 for host in HOSTS:
