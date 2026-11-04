@@ -90,3 +90,20 @@ jobs:
           path: research_evidence/v99_i1_full_day_*/source_check.json
           retention-days: 30
           if-no-files-found: warn
+      - name: Require actual original source acquisition (blocked is a failed acquisition, not green)
+        if: always()
+        run: |
+          python - <<'PY'
+          import glob, json, sys
+          paths=glob.glob('research_evidence/v99_i1_full_day_*/source_check.json')
+          if len(paths)!=1:
+              print('SOURCE HOLD: missing or ambiguous source receipt; NO PROMOTION')
+              sys.exit(1)
+          receipt=json.load(open(paths[0]))
+          status=receipt.get('status','MISSING_STATUS')
+          print('ORIGINAL SOURCE ACQUISITION STATUS:',status)
+          if status!='SOURCE_ONE_DAY_FIELDS_OBSERVED_NOT_LIFECYCLE':
+              print('SOURCE HOLD: no authenticated original one-day source; NO PROMOTION')
+              sys.exit(1)
+          print('ONE-DAY ORIGINAL SOURCE OBSERVED ONLY; full history, native costs, economic gates still unproven; NO PROMOTION')
+          PY
