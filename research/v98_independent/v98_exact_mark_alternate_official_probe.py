@@ -6,7 +6,7 @@ HOSTS=('https://fapi2.binance.com','https://fapi3.binance.com','https://fapi4.bi
 PATH='/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1672531200000&endTime=1672617600000&limit=10'
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        raise ValueError('REDIRECT_REJECTED_BEFORE_FOLLOW')
+        return None  # urllib raises HTTPError for 3xx; Location is recorded without following
 
 OPENER=urllib.request.build_opener(NoRedirect)
 out={'scope':'V98_2023_ONLY_NO_PNL','2025_accessed':False,'2026_plus_accessed':False,
@@ -50,7 +50,18 @@ for host in HOSTS:
         rec['error']=type(e).__name__+':'+str(e)[:160]
         if isinstance(e,urllib.error.HTTPError):
             rec['http_status']=e.code
-            rec['http_error_class']='REGION_RESTRICTED' if e.code==451 else ('ACCESS_DENIED' if e.code in (403,418) else 'OTHER_HTTP_ERROR')
+            if 300 <= e.code < 400:
+                location=e.headers.get('Location','')
+                parsed=urllib.parse.urlsplit(urllib.parse.urljoin(host+PATH,location))
+                rec['redirect_status']=e.code
+                rec['redirect_scheme']=parsed.scheme
+                rec['redirect_host']=parsed.hostname
+                rec['redirect_path']=parsed.path
+                rec['redirect_query_keys']=sorted(urllib.parse.parse_qs(parsed.query))
+                rec['redirect_is_official_same_host']=parsed.scheme=='https' and parsed.hostname==urllib.parse.urlsplit(host).hostname
+                rec['redirect_followed']=False
+                rec['http_error_class']='REDIRECT_NOT_FOLLOWED'
+            rec['http_error_class']=rec.get('http_error_class') or ('REGION_RESTRICTED' if e.code==451 else ('ACCESS_DENIED' if e.code in (403,418) else 'OTHER_HTTP_ERROR'))
             rec['retry_after']=e.headers.get('Retry-After')
             rec['error_body_sha256']=hashlib.sha256(e.read(4096)).hexdigest()
     out['results'].append(rec)
