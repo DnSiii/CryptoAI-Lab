@@ -6,25 +6,25 @@
   "candidate_version": "v99-frozen-r16-2026-09-06",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-09-06T22:00:00+00:00",
-  "latest_data_timestamp": "2026-11-04T09:00:00+00:00",
+  "latest_data_timestamp": "2026-11-04T15:00:00+00:00",
   "summary": {
-    "new_forward_hours": 1403,
-    "net_result_brl": -1712.1,
-    "current_capital_brl": 8287.9,
+    "new_forward_hours": 1409,
+    "net_result_brl": -1824.33,
+    "current_capital_brl": 8175.67,
     "highest_capital_brl": 10205.76,
-    "lowest_capital_brl": 8286.46,
-    "forward_return_pct": -17.121046
+    "lowest_capital_brl": 8175.67,
+    "forward_return_pct": -18.243308
   },
   "assets": {
     "BTCUSDT": {
       "direction": "sell",
-      "current_weight": -0.08031337,
-      "position_value_brl": 665.63
+      "current_weight": -0.08543408,
+      "position_value_brl": 698.48
     },
     "ETHUSDT": {
       "direction": "sell",
-      "current_weight": -0.25416778,
-      "position_value_brl": 2106.52
+      "current_weight": -0.27361652,
+      "position_value_brl": 2237.0
     }
   },
   "equity_curve": [
@@ -8451,11 +8451,47 @@
       "equity_multiple": 0.8287895397,
       "capital_brl": 8287.9,
       "hour_result_brl": 1.43
+    },
+    {
+      "timestamp": "2026-11-04T10:00:00+00:00",
+      "equity_multiple": 0.8280539063,
+      "capital_brl": 8280.54,
+      "hour_result_brl": -7.36
+    },
+    {
+      "timestamp": "2026-11-04T11:00:00+00:00",
+      "equity_multiple": 0.8282265168,
+      "capital_brl": 8282.27,
+      "hour_result_brl": 1.73
+    },
+    {
+      "timestamp": "2026-11-04T12:00:00+00:00",
+      "equity_multiple": 0.8296942821,
+      "capital_brl": 8296.94,
+      "hour_result_brl": 14.68
+    },
+    {
+      "timestamp": "2026-11-04T13:00:00+00:00",
+      "equity_multiple": 0.8291791282,
+      "capital_brl": 8291.79,
+      "hour_result_brl": -5.15
+    },
+    {
+      "timestamp": "2026-11-04T14:00:00+00:00",
+      "equity_multiple": 0.8227567778,
+      "capital_brl": 8227.57,
+      "hour_result_brl": -64.22
+    },
+    {
+      "timestamp": "2026-11-04T15:00:00+00:00",
+      "equity_multiple": 0.8175669231,
+      "capital_brl": 8175.67,
+      "hour_result_brl": -51.9
     }
   ],
   "composite": {
     "architecture": "V16 core + consensus-gated persistent alpha satellite",
-    "satellite_realized_weight": 0.1008928,
+    "satellite_realized_weight": 0.10088921,
     "satellite_target_weight": 0.1,
     "consensus_vote_fraction": 1.0,
     "maximum_satellite_weight": 0.1,
@@ -8484,72 +8520,78 @@
         "through": "2026-11-03T15:00:00+00:00",
         "kind": "RETROSPECTIVE_GAP_RECOVERY",
         "computed_at_utc": "2026-11-03T16:37:19.957406+00:00"
+      },
+      {
+        "after": "2026-11-04T09:00:00+00:00",
+        "through": "2026-11-04T15:00:00+00:00",
+        "kind": "RETROSPECTIVE_GAP_RECOVERY",
+        "computed_at_utc": "2026-11-04T16:23:22.527809+00:00"
       }
     ],
-    "independent_forward_after_timestamp": "2026-11-03T16:00:00+00:00"
+    "independent_forward_after_timestamp": "2026-11-04T16:00:00+00:00"
   },
   "execution_checkpoint": {
-    "timestamp": "2026-11-04T09:00:00+00:00",
+    "timestamp": "2026-11-04T15:00:00+00:00",
     "parent": {
-      "timestamp": "2026-11-04T09:00:00+00:00",
-      "equity": 0.8345645903532601,
+      "timestamp": "2026-11-04T15:00:00+00:00",
+      "equity": 0.823267053728025,
       "peak_equity": 0.8719690217422308,
       "weights": {
-        "BTCUSDT": -0.08270653602545273,
-        "ETHUSDT": -0.2618404899699483
+        "BTCUSDT": -0.08545154002714786,
+        "ETHUSDT": -0.27357768319568243
       },
       "last_requested_target": {
-        "BTCUSDT": -0.08201099901614686,
-        "ETHUSDT": -0.2581882101090992
+        "BTCUSDT": -0.08209411887679843,
+        "ETHUSDT": -0.25706646916560055
       },
       "drawdown_guard_active": false,
       "guard_remaining_hours": 0,
       "ruined": false,
       "last_prices": {
-        "BTCUSDT": 78377.4,
-        "ETHUSDT": 2321.95,
-        "BNBUSDT": 702.76,
-        "XRPUSDT": 1.2833,
-        "ADAUSDT": 0.191,
-        "LINKUSDT": 11.125,
-        "LTCUSDT": 54.66,
-        "DOGEUSDT": 0.07517,
-        "SOLUSDT": 93.11,
-        "AVAXUSDT": 8.686,
-        "TRXUSDT": 0.32171,
-        "ETCUSDT": 7.148,
-        "BCHUSDT": 275.2,
-        "XLMUSDT": 0.16392,
-        "ATOMUSDT": 1.427,
-        "DOTUSDT": 0.9503,
-        "FILUSDT": 0.8672,
-        "AAVEUSDT": 130.91,
-        "UNIUSDT": 7.473,
-        "SUSHIUSDT": 0.1921,
-        "NEARUSDT": 4.074,
-        "ALGOUSDT": 0.09439,
-        "VETUSDT": 0.005754,
-        "RUNEUSDT": 0.6342,
-        "ZECUSDT": 1285.98,
-        "DASHUSDT": 47.06,
-        "THETAUSDT": 0.1529,
-        "COMPUSDT": 20.14,
-        "SNXUSDT": 0.1795,
-        "KAVAUSDT": 0.06821,
-        "IOTAUSDT": 0.03972,
-        "ONTUSDT": 0.04532,
-        "XMRUSDT": 636.25,
-        "YFIUSDT": 2023.0,
-        "CRVUSDT": 0.265,
-        "1INCHUSDT": 0.08265,
-        "GRTUSDT": 0.02015,
-        "AXSUSDT": 0.863,
-        "SANDUSDT": 0.04496,
-        "MANAUSDT": 0.07355,
-        "EGLDUSDT": 3.451,
-        "CHZUSDT": 0.01183,
-        "ENJUSDT": 0.02423,
-        "ZILUSDT": 0.001807
+        "BTCUSDT": 80274.3,
+        "ETHUSDT": 2425.68,
+        "BNBUSDT": 717.48,
+        "XRPUSDT": 1.3162,
+        "ADAUSDT": 0.1979,
+        "LINKUSDT": 11.598,
+        "LTCUSDT": 56.3,
+        "DOGEUSDT": 0.07732,
+        "SOLUSDT": 96.69,
+        "AVAXUSDT": 8.949,
+        "TRXUSDT": 0.31967,
+        "ETCUSDT": 7.282,
+        "BCHUSDT": 280.79,
+        "XLMUSDT": 0.16854,
+        "ATOMUSDT": 1.477,
+        "DOTUSDT": 0.9693,
+        "FILUSDT": 0.8853,
+        "AAVEUSDT": 133.49,
+        "UNIUSDT": 7.673,
+        "SUSHIUSDT": 0.197,
+        "NEARUSDT": 4.145,
+        "ALGOUSDT": 0.09868,
+        "VETUSDT": 0.005937,
+        "RUNEUSDT": 0.6341,
+        "ZECUSDT": 1305.97,
+        "DASHUSDT": 48.14,
+        "THETAUSDT": 0.1583,
+        "COMPUSDT": 20.59,
+        "SNXUSDT": 0.1826,
+        "KAVAUSDT": 0.0686,
+        "IOTAUSDT": 0.04089,
+        "ONTUSDT": 0.04627,
+        "XMRUSDT": 640.23,
+        "YFIUSDT": 2055.0,
+        "CRVUSDT": 0.2777,
+        "1INCHUSDT": 0.08417,
+        "GRTUSDT": 0.02071,
+        "AXSUSDT": 0.8776,
+        "SANDUSDT": 0.04668,
+        "MANAUSDT": 0.07498,
+        "EGLDUSDT": 3.459,
+        "CHZUSDT": 0.012,
+        "ENJUSDT": 0.02491,
+        "ZILUSDT": 0.001863
       },
       "execution_parameters": {
         "cost_per_side": 0.0007,
@@ -8563,70 +8605,71 @@
         "drawdown_guard_cooldown_hours": 72
       },
       "next_target": {
-        "BTCUSDT": -0.08205582269789446,
-        "ETHUSDT": -0.25814338642735163
+        "BTCUSDT": -0.014205589837615763,
+        "ETHUSDT": -0.07540767293484452,
+        "UNIUSDT": 0.011494669704875537
       }
     },
     "satellite": {
-      "timestamp": "2026-11-04T09:00:00+00:00",
-      "equity": 22.663324213934562,
+      "timestamp": "2026-11-04T15:00:00+00:00",
+      "equity": 22.35564705429771,
       "peak_equity": 23.412966846813358,
       "weights": {
-        "BTCUSDT": -0.05898663768976012,
-        "ETHUSDT": -0.18579238187161068
+        "BTCUSDT": -0.08527848947680036,
+        "ETHUSDT": -0.273962659358008
       },
       "last_requested_target": {
-        "BTCUSDT": -0.05906728973631336,
-        "ETHUSDT": -0.18587614083386378
+        "BTCUSDT": -0.08205582269789446,
+        "ETHUSDT": -0.25814338642735163
       },
       "drawdown_guard_active": false,
       "guard_remaining_hours": 0,
       "ruined": false,
       "last_prices": {
-        "BTCUSDT": 78377.4,
-        "ETHUSDT": 2321.95,
-        "BNBUSDT": 702.76,
-        "XRPUSDT": 1.2833,
-        "ADAUSDT": 0.191,
-        "LINKUSDT": 11.125,
-        "LTCUSDT": 54.66,
-        "DOGEUSDT": 0.07517,
-        "SOLUSDT": 93.11,
-        "AVAXUSDT": 8.686,
-        "TRXUSDT": 0.32171,
-        "ETCUSDT": 7.148,
-        "BCHUSDT": 275.2,
-        "XLMUSDT": 0.16392,
-        "ATOMUSDT": 1.427,
-        "DOTUSDT": 0.9503,
-        "FILUSDT": 0.8672,
-        "AAVEUSDT": 130.91,
-        "UNIUSDT": 7.473,
-        "SUSHIUSDT": 0.1921,
-        "NEARUSDT": 4.074,
-        "ALGOUSDT": 0.09439,
-        "VETUSDT": 0.005754,
-        "RUNEUSDT": 0.6342,
-        "ZECUSDT": 1285.98,
-        "DASHUSDT": 47.06,
-        "THETAUSDT": 0.1529,
-        "COMPUSDT": 20.14,
-        "SNXUSDT": 0.1795,
-        "KAVAUSDT": 0.06821,
-        "IOTAUSDT": 0.03972,
-        "ONTUSDT": 0.04532,
-        "XMRUSDT": 636.25,
-        "YFIUSDT": 2023.0,
-        "CRVUSDT": 0.265,
-        "1INCHUSDT": 0.08265,
-        "GRTUSDT": 0.02015,
-        "AXSUSDT": 0.863,
-        "SANDUSDT": 0.04496,
-        "MANAUSDT": 0.07355,
-        "EGLDUSDT": 3.451,
-        "CHZUSDT": 0.01183,
-        "ENJUSDT": 0.02423,
-        "ZILUSDT": 0.001807
+        "BTCUSDT": 80274.3,
+        "ETHUSDT": 2425.68,
+        "BNBUSDT": 717.48,
+        "XRPUSDT": 1.3162,
+        "ADAUSDT": 0.1979,
+        "LINKUSDT": 11.598,
+        "LTCUSDT": 56.3,
+        "DOGEUSDT": 0.07732,
+        "SOLUSDT": 96.69,
+        "AVAXUSDT": 8.949,
+        "TRXUSDT": 0.31967,
+        "ETCUSDT": 7.282,
+        "BCHUSDT": 280.79,
+        "XLMUSDT": 0.16854,
+        "ATOMUSDT": 1.477,
+        "DOTUSDT": 0.9693,
+        "FILUSDT": 0.8853,
+        "AAVEUSDT": 133.49,
+        "UNIUSDT": 7.673,
+        "SUSHIUSDT": 0.197,
+        "NEARUSDT": 4.145,
+        "ALGOUSDT": 0.09868,
+        "VETUSDT": 0.005937,
+        "RUNEUSDT": 0.6341,
+        "ZECUSDT": 1305.97,
+        "DASHUSDT": 48.14,
+        "THETAUSDT": 0.1583,
+        "COMPUSDT": 20.59,
+        "SNXUSDT": 0.1826,
+        "KAVAUSDT": 0.0686,
+        "IOTAUSDT": 0.04089,
+        "ONTUSDT": 0.04627,
+        "XMRUSDT": 640.23,
+        "YFIUSDT": 2055.0,
+        "CRVUSDT": 0.2777,
+        "1INCHUSDT": 0.08417,
+        "GRTUSDT": 0.02071,
+        "AXSUSDT": 0.8776,
+        "SANDUSDT": 0.04668,
+        "MANAUSDT": 0.07498,
+        "EGLDUSDT": 3.459,
+        "CHZUSDT": 0.012,
+        "ENJUSDT": 0.02491,
+        "ZILUSDT": 0.001863
       },
       "execution_parameters": {
         "cost_per_side": 0.0007,
@@ -8640,13 +8683,13 @@
         "drawdown_guard_cooldown_hours": 6
       },
       "next_target": {
-        "BTCUSDT": -0.08203790241154633,
-        "ETHUSDT": -0.2581613067136997
+        "BTCUSDT": -0.08205582269789446,
+        "ETHUSDT": -0.25814338642735163
       }
     },
-    "parent_capital": 0.7451706452035042,
-    "satellite_capital": 0.08361889447319346,
-    "next_rebalance": 495,
+    "parent_capital": 0.7350832382447771,
+    "satellite_capital": 0.08248368484107482,
+    "next_rebalance": 489,
     "migration": "Legacy V99 sleeve allocations inferred from published aggregate positions and parent checkpoint; missing guard internals reconstructed."
   }
 }
