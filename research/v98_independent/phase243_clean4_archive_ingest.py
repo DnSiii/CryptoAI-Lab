@@ -8,18 +8,27 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import tempfile
 from pathlib import Path
 import pandas as pd
 from phase243_binance_archive_ingest import _parse_month, MONTHS, CUTOFF
 
 CLEAN4 = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
 
+def _reject_symlink_components(path: Path):
+    """Reject symlinks anywhere in the supplied path, not just at its leaf."""
+    for part in (path.absolute(), *path.absolute().parents):
+        if part.is_symlink():
+            raise ValueError("SYMLINKED_PATH_COMPONENT")
+
+
 def assemble_clean4(archive_root: Path, output_root: Path, *, write: bool = False):
     root, dest = Path(archive_root), Path(output_root)
     if "v98_independent" not in root.resolve().parts or "v98_independent" not in dest.resolve().parts:
         raise ValueError("V98_NAMESPACE_REQUIRED")
-    if root.is_symlink() or dest.is_symlink():
-        raise ValueError("SYMLINKED_ROOT")
+    _reject_symlink_components(root)
+    _reject_symlink_components(dest)
     if len(MONTHS) != 37 or MONTHS[0] != "2022-12" or MONTHS[-1] != "2025-12":
         raise ValueError("TRAINING_CALENDAR_CHANGED")
     manifest = {"mode": "V98_PHASE243_CLEAN4_SOURCE_ONLY", "assets": {}, "training_cut_exclusive": CUTOFF.isoformat(),
@@ -29,8 +38,7 @@ def assemble_clean4(archive_root: Path, output_root: Path, *, write: bool = Fals
         pieces, evidence = [], {}
         for month in MONTHS:
             archive = root / "klines" / asset / "1h" / f"{asset}-1h-{month}.zip"
-            if archive.is_symlink():
-                raise ValueError("SYMLINKED_ARCHIVE")
+            _reject_symlink_components(archive)
             frame, receipt = _parse_month(archive, asset, month)
             pieces.append(frame)
             evidence[month] = receipt
@@ -48,14 +56,21 @@ def assemble_clean4(archive_root: Path, output_root: Path, *, write: bool = Fals
         frames[asset] = joined
         manifest["assets"][asset] = {"months": evidence, "rows": len(joined), "panel_sha256": fp}
     if write:
-        if dest.exists() and (not dest.is_dir() or any(dest.iterdir())):
-            raise FileExistsError("NONEMPTY_OUTPUT_REFUSED")
-        dest.mkdir(parents=True, exist_ok=True)
-        for asset, frame in frames.items():
-            raw = frame.to_csv(index=False, float_format="%.12g").encode()
-            (dest / f"{asset}_1h.csv").write_bytes(raw)
-            manifest["assets"][asset]["canonical_sha256"] = hashlib.sha256(raw).hexdigest()
-        (dest / "source_manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
+        # Never overwrite a previous evidence set, including an empty directory.
+        # Publish one complete directory after every CSV and manifest is durable.
+        if dest.exists():
+            raise FileExistsError("OUTPUT_EXISTS_REFUSED")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        _reject_symlink_components(dest)
+        with tempfile.TemporaryDirectory(prefix=".v98_clean4_stage_", dir=dest.parent) as staging:
+            stage = Path(staging)
+            for asset, frame in frames.items():
+                raw = frame.to_csv(index=False, float_format="%.12g").encode()
+                (stage / f"{asset}_1h.csv").write_bytes(raw)
+                manifest["assets"][asset]["canonical_sha256"] = hashlib.sha256(raw).hexdigest()
+            (stage / "source_manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\\n")
+            # Directory rename is atomic on the same filesystem; no partial output.
+            os.rename(stage, dest)
     return manifest
 
 if __name__ == "__main__":
