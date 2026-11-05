@@ -4,6 +4,8 @@ on:
     branches: [research/v98-independent-zero]
     paths:
       - 'research/v98_independent/phase243_clean4_archive_ingest.py'
+      - 'research/v98_independent/phase243_clean4_official_archive_acquire.py'
+      - 'research/v98_independent/test_phase243_clean4_official_archive_acquire.py'
       - 'research/v98_independent/test_phase243_clean4_archive_ingest.py'
       - 'research/v98_independent/phase243_binance_archive_ingest.py'
       - 'research/v98_independent/phase243_sell_residual_conservation.py'
@@ -27,4 +29,4 @@ jobs:
       - name: Execute Clean-4 synthetic regression (not economic validation)
         env:
           PYTHONPATH: research/v98_independent
-        run: python -m pytest -q research/v98_independent/test_phase243_clean4_archive_ingest.py
+        run: python -m pytest -q research/v98_independent/test_phase243_clean4_archive_ingest.py research/v98_independent/test_phase243_clean4_official_archive_acquire.py
