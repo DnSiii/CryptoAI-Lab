@@ -309,6 +309,7 @@ def build_ledger(
                         ),
                         2,
                     ),
+                    "order_value_brl_unrounded": to_brl(abs(float(result.asset_order_notional.loc[timestamp, symbol]))),
                     "previous_weight": round(before, 8),
                     "new_weight": round(after, 8),
                     "execution_price": round(
