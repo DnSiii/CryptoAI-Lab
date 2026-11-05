@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/v98-independent-native-funding-audit.yml'
       - 'research/v98_independent/phase243_native_funding_archive.py'
+      - 'research/v98_independent/phase243_native_funding_canonicalize.py'
   workflow_dispatch:
     inputs:
       full_history:
@@ -52,6 +53,15 @@ jobs:
           print('V98_NATIVE_FUNDING_DIAGNOSTIC_PASS_NOT_PNL')
           PY
           fi
+      - name: Canonicalize complete native funding provenance (no PnL)
+        if: github.event_name == 'push' || inputs.full_history == true
+        env:
+          PYTHONPATH: research/v98_independent
+        run: |
+          python research/v98_independent/phase243_native_funding_canonicalize.py \
+            --root /tmp/v98_independent/native_funding \
+            --receipt /tmp/v98_independent/native_funding_receipt.json \
+            --output-root /tmp/v98_independent/native_funding_canonical
       - name: Save funding provenance
         uses: actions/upload-artifact@v4
         if: success()
@@ -60,5 +70,6 @@ jobs:
           path: |
             /tmp/v98_independent/native_funding/
             /tmp/v98_independent/native_funding_receipt.json
+            /tmp/v98_independent/native_funding_canonical/
           retention-days: 30
           if-no-files-found: error
