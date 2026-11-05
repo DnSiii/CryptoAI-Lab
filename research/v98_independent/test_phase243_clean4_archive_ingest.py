@@ -1,5 +1,6 @@
 """Regression tests for V98 Clean-4 source-only archive assembler (synthetic, no PnL)."""
 from pathlib import Path
+import hashlib
 import numpy as np
 import pandas as pd
 import pytest
@@ -22,6 +23,7 @@ def _fake_month(path, asset, month):
 
 def test_clean4_full_calendar_and_no_xrp_or_holdout(monkeypatch, tmp_path):
     monkeypatch.setattr(module, "_parse_month", _fake_month)
+    monkeypatch.setattr(module, "_verify_provider_receipt", lambda archive, receipt: None)
     root = tmp_path / "v98_independent" / "archives"
     dest = tmp_path / "v98_independent" / "output"
     result = module.assemble_clean4(root, dest, write=True)
@@ -45,6 +47,7 @@ def test_missing_hour_fails_without_publication(monkeypatch, tmp_path):
             frame = frame.iloc[1:].copy()
         return frame, receipt
     monkeypatch.setattr(module, "_parse_month", missing_hour)
+    monkeypatch.setattr(module, "_verify_provider_receipt", lambda archive, receipt: None)
     root = tmp_path / "v98_independent" / "archives"
     dest = tmp_path / "v98_independent" / "output"
     with pytest.raises(ValueError, match="CLEAN4_CONTINUITY_FAILURE_BNBUSDT"):
@@ -59,8 +62,25 @@ def test_identical_cross_asset_panel_rejected(monkeypatch, tmp_path):
         btc_frame, _ = _fake_month(path.parent.parent.parent / "BTCUSDT" / "1h" / f"BTCUSDT-1h-{month}.zip", "BTCUSDT", month)
         return btc_frame, receipt
     monkeypatch.setattr(module, "_parse_month", identical)
+    monkeypatch.setattr(module, "_verify_provider_receipt", lambda archive, receipt: None)
     root = tmp_path / "v98_independent" / "archives"
     dest = tmp_path / "v98_independent" / "output"
     with pytest.raises(ValueError, match="DUPLICATED_CROSS_ASSET_PANEL"):
         module.assemble_clean4(root, dest, write=True)
     assert not dest.exists()
+
+def test_provider_receipt_required_and_bound_to_archive(tmp_path):
+    archive = tmp_path / "BTCUSDT-1h-2022-12.zip"
+    raw = b"synthetic only"
+    archive.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    with pytest.raises(ValueError, match="PROVIDER_CHECKSUM_MISSING"):
+        module._verify_provider_receipt(archive, {"archive_sha256": digest})
+    sidecar = archive.with_name(archive.name + ".CHECKSUM")
+    sidecar.write_text(f"{digest}  {archive.name}\\n")
+    module._verify_provider_receipt(archive, {"archive_sha256": digest})
+    with pytest.raises(ValueError, match="PROVIDER_ARCHIVE_SHA256_MISMATCH"):
+        module._verify_provider_receipt(archive, {"archive_sha256": "0" * 64})
+    sidecar.write_text(f"{digest}  WRONG.zip\\n")
+    with pytest.raises(ValueError, match="PROVIDER_CHECKSUM_INVALID"):
+        module._verify_provider_receipt(archive, {"archive_sha256": digest})
