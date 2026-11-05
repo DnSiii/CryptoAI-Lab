@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import tempfile
 from pathlib import Path
 import pandas as pd
@@ -21,6 +22,27 @@ def _reject_symlink_components(path: Path):
     for part in (path.absolute(), *path.absolute().parents):
         if part.is_symlink():
             raise ValueError("SYMLINKED_PATH_COMPONENT")
+
+
+def _verify_provider_receipt(archive: Path, receipt: dict) -> None:
+    """Require original Binance checksum sidecar and bind it to parsed ZIP bytes."""
+    name = archive.name
+    sidecar = archive.with_name(name + ".CHECKSUM")
+    _reject_symlink_components(sidecar)
+    if not sidecar.is_file():
+        raise ValueError(f"PROVIDER_CHECKSUM_MISSING: {name}")
+    if sidecar.stat().st_size > 4096:
+        raise ValueError(f"PROVIDER_CHECKSUM_OVERSIZE: {name}")
+    try:
+        line = sidecar.read_text(encoding="ascii").strip()
+    except UnicodeError as exc:
+        raise ValueError(f"PROVIDER_CHECKSUM_INVALID: {name}") from exc
+    match = re.fullmatch(r"([0-9a-fA-F]{64})\\s+\\*?([^/\\\\\\s]+)", line)
+    if not match or match.group(2) != name:
+        raise ValueError(f"PROVIDER_CHECKSUM_INVALID: {name}")
+    expected = match.group(1).lower()
+    if receipt.get("archive_sha256") != expected:
+        raise ValueError(f"PROVIDER_ARCHIVE_SHA256_MISMATCH: {name}")
 
 
 def assemble_clean4(archive_root: Path, output_root: Path, *, write: bool = False):
@@ -40,6 +62,7 @@ def assemble_clean4(archive_root: Path, output_root: Path, *, write: bool = Fals
             archive = root / "klines" / asset / "1h" / f"{asset}-1h-{month}.zip"
             _reject_symlink_components(archive)
             frame, receipt = _parse_month(archive, asset, month)
+            _verify_provider_receipt(archive, receipt)
             pieces.append(frame)
             evidence[month] = receipt
         joined = pd.concat(pieces, ignore_index=True)
