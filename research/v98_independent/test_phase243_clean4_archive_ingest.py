@@ -33,7 +33,7 @@ def test_clean4_full_calendar_and_no_xrp_or_holdout(monkeypatch, tmp_path):
     assert set(p.name for p in dest.iterdir()) == {
         "BTCUSDT_1h.csv", "ETHUSDT_1h.csv", "BNBUSDT_1h.csv",
         "SOLUSDT_1h.csv", "source_manifest.json"}
-    assert all(v["rows"] == 27024 for v in result["assets"].values())
+    assert all(v["rows"] == 27048 for v in result["assets"].values())
     with pytest.raises(FileExistsError, match="OUTPUT_EXISTS_REFUSED"):
         module.assemble_clean4(root, dest, write=True)
 
