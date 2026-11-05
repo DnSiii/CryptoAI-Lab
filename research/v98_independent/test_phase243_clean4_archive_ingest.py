@@ -54,7 +54,10 @@ def test_missing_hour_fails_without_publication(monkeypatch, tmp_path):
 
 def test_identical_cross_asset_panel_rejected(monkeypatch, tmp_path):
     def identical(path, asset, month):
-        return _fake_month(path, "BTCUSDT", month)
+        # Keep the original asset path contract; only clone BTC numeric data.
+        frame, receipt = _fake_month(path, asset, month)
+        btc_frame, _ = _fake_month(path.parent.parent.parent / "BTCUSDT" / "1h" / f"BTCUSDT-1h-{month}.zip", "BTCUSDT", month)
+        return btc_frame, receipt
     monkeypatch.setattr(module, "_parse_month", identical)
     root = tmp_path / "v98_independent" / "archives"
     dest = tmp_path / "v98_independent" / "output"
