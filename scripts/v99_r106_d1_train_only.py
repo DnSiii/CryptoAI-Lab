@@ -20,13 +20,21 @@ from pathlib import Path
 
 CUTOFF = dt.date(2023, 10, 1)
 FIELDS = ("date", "btc_close", "atm_iv", "relative_spread",
-          "straddle_hedged_net_return", "execution_verified", "funding_verified")
+          "straddle_hedged_net_return", "execution_verified", "funding_verified", "source_receipt_sha256", "execution_receipt_sha256", "funding_receipt_sha256")
 def evaluate(path):
-    rows = list(csv.DictReader(Path(path).open(encoding="utf-8", newline="")))
+    with Path(path).open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh, restkey="__EXTRA__", restval=None)
+        if not reader.fieldnames or len(set(reader.fieldnames)) != len(reader.fieldnames):
+            raise ValueError("duplicate or missing CSV headers")
+        rows = list(reader)
     if not rows or not set(FIELDS).issubset(rows[0]):
         raise ValueError("missing complete source/ledger columns")
     dates = []
+    import re
+    sha256 = re.compile(r"^[0-9a-f]{64}$")
     for row in rows:
+        if "__EXTRA__" in row or any(v is None or v == "" for v in row.values()):
+            raise ValueError("incomplete or malformed ledger row")
         d = dt.date.fromisoformat(row["date"])
         if d >= CUTOFF or (dates and d <= dates[-1]):
             raise ValueError("sealed boundary or unordered daily data")
@@ -38,6 +46,12 @@ def evaluate(path):
                 raise ValueError("nonfinite ledger value")
         if float(row["btc_close"]) <= 0 or float(row["atm_iv"]) < 0:
             raise ValueError("invalid price or IV")
+        if not all(sha256.fullmatch(row[k]) for k in ("source_receipt_sha256", "execution_receipt_sha256", "funding_receipt_sha256")):
+            raise ValueError("missing receipt digests; external receipt verification still required")
+        if not 0 <= float(row["relative_spread"]) <= 1:
+            raise ValueError("invalid spread")
+        if float(row["straddle_hedged_net_return"]) < -1:
+            raise ValueError("impossible loss below -100 percent of allocated notional")
         if row["execution_verified"] != "true" or row["funding_verified"] != "true":
             raise ValueError("native execution/funding evidence missing")
     if len(rows) < 180:
@@ -45,6 +59,10 @@ def evaluate(path):
     # Signals at day i use strictly completed observations <= i-1.
     # Realized volatility annualized from 30 prior close-to-close returns.
     equity = 1.0
+    peak = 1.0
+    max_drawdown = 0.0
+    traded_days = 0
+    worst_daily_return = 0.0
     fold_results = []
     n = len(rows)
     boundaries = [30 + (n-30)*j//5 for j in range(6)]
@@ -66,11 +84,18 @@ def evaluate(path):
             if daily <= -1:
                 raise ValueError("invalid equity return")
             equity *= 1 + daily
+            peak = max(peak, equity)
+            max_drawdown = min(max_drawdown, equity / peak - 1)
+            worst_daily_return = min(worst_daily_return, daily)
+            traded_days += int(trade)
         fold_results.append(equity/fold_start-1)
     return {"status":"TRAIN_EXPERIMENT_ONLY", "candidate":"D1",
             "fold_returns":fold_results, "positive_folds":sum(x>0 for x in fold_results),
-            "train_return":equity-1, "promotion":False,
-            "warning":"not independent validation; provenance flags must be externally audited"}
+            "train_return":equity-1, "max_drawdown":max_drawdown,
+            "worst_daily_return":worst_daily_return, "traded_days":traded_days,
+            "severe_supersevere_cost_scenarios":"NOT IMPLEMENTED",
+            "regime_tail_benchmark_gates":"NOT IMPLEMENTED", "promotion":False,
+            "warning":"receipt digests are not verification; strategy economics and cost-path scenarios incomplete"}
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
