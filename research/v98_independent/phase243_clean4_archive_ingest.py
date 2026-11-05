@@ -68,7 +68,7 @@ def assemble_clean4(archive_root: Path, output_root: Path, *, write: bool = Fals
                 raw = frame.to_csv(index=False, float_format="%.12g").encode()
                 (stage / f"{asset}_1h.csv").write_bytes(raw)
                 manifest["assets"][asset]["canonical_sha256"] = hashlib.sha256(raw).hexdigest()
-            (stage / "source_manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\\n")
+            (stage / "source_manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
             # Directory rename is atomic on the same filesystem; no partial output.
             os.rename(stage, dest)
     return manifest
