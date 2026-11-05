@@ -35,7 +35,7 @@ def canonicalize(root: Path, dest: Path, receipt_file: Path) -> dict:
             if checksum_path.is_symlink() or not checksum_path.is_file():
                 raise ValueError(f"MISSING_CHECKSUM:{name}")
             import re
-            match = re.fullmatch(r"([0-9a-fA-F]{64})\\s+\\*?([^/\\\\\\s]+)", checksum_path.read_text().strip())
+            match = re.fullmatch(r"([0-9a-fA-F]{64})\s+\*?([^/\\\s]+)", checksum_path.read_text().strip())
             if not match or match.group(2) != name:
                 raise ValueError(f"INVALID_CHECKSUM:{name}")
             sha = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -68,7 +68,7 @@ def canonicalize(root: Path, dest: Path, receipt_file: Path) -> dict:
     manifest = {"mode":"V98_CLEAN4_SOURCE_ONLY", "assets":manifests,
                 "holdout_accessed":False, "promotion_eligible":False,
                 "funding_reconciled":False, "economic_validation":False}
-    (dest / "source_manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2)+"\\n")
+    (dest / "source_manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2)+"\n")
     return manifest
 
 if __name__ == "__main__":
