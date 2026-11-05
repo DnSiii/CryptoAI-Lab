@@ -1,5 +1,9 @@
 name: V98 Independent Clean-4 Full Official Archive Acquisition
 on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-clean4-full-official-acquisition.yml'
   workflow_dispatch:
 permissions:
   contents: read
