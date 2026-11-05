@@ -70,8 +70,19 @@ def main() -> None:
             expected_side = "buy" if delta > 0 else "sell"
             if adjustment.get("order_side") != expected_side:
                 raise RuntimeError("lado da ordem não corresponde à execução real")
-            if float(adjustment.get("order_value_brl", 0.0)) <= 0.0:
-                raise RuntimeError("movimentação sem valor executado")
+            displayed = float(adjustment.get("order_value_brl", 0.0))
+            if displayed <= 0.0:
+                # Only a positive simulated pre-round notional strictly below half a cent
+                # can explain zero in the two-decimal display. Fail closed otherwise.
+                raw = adjustment.get("order_value_brl_unrounded")
+                if raw is None:
+                    raise RuntimeError("movimentação sem valor executado")
+                import math
+                precise = float(raw)
+                if not (math.isfinite(precise) and 0.0 < precise < 0.005
+                        and displayed == 0.0 and delta != 0.0
+                        and round(precise, 2) == displayed):
+                    raise RuntimeError("movimentação sem valor executado")
             if adjustment.get("result_scope") != "whole_asset_hour_not_order_profit":
                 raise RuntimeError("resultado do ativo está atribuído incorretamente à ordem")
     if sync.get("mode") != "PUBLIC_DATA_ONLY" or sync.get("private_api_used") is not False:
