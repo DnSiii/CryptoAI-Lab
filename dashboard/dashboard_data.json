@@ -1,21 +1,21 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-11-05T18:47:59.951401+00:00",
+  "generatedAt": "2026-11-05T21:02:59.640243+00:00",
   "timezone": "America/Sao_Paulo",
   "mode": "PAPER_ONLY",
   "realOrders": false,
   "runtime": {
     "schema_version": 1,
     "status": "completed",
-    "heartbeat_at_utc": "2026-11-04T20:00:55.135355+00:00",
-    "workflow_run_id": "41901533180",
+    "heartbeat_at_utc": "2026-11-05T21:01:07.881893+00:00",
+    "workflow_run_id": "42107374879",
     "workflow_run_attempt": "1",
     "latest_official_timestamps": {
-      "v13": "2026-11-04T18:00:00+00:00",
-      "v14": "2026-11-04T18:00:00+00:00",
-      "v15": "2026-11-04T18:00:00+00:00",
-      "v16": "2026-11-04T18:00:00+00:00",
-      "v99": "2026-11-04T18:00:00+00:00"
+      "v13": "2026-11-05T19:00:00+00:00",
+      "v14": "2026-11-05T19:00:00+00:00",
+      "v15": "2026-11-05T19:00:00+00:00",
+      "v16": "2026-11-05T19:00:00+00:00",
+      "v99": "2026-11-05T19:00:00+00:00"
     },
     "note": "Operational heartbeat only. It does not alter any candidate, position, or calculation."
   },
@@ -57,36 +57,42 @@
               "through": "2026-11-04T15:00:00+00:00",
               "kind": "RETROSPECTIVE_GAP_RECOVERY",
               "computed_at_utc": "2026-11-04T16:22:13.521019+00:00"
+            },
+            {
+              "after": "2026-11-04T18:00:00+00:00",
+              "through": "2026-11-05T19:00:00+00:00",
+              "kind": "RETROSPECTIVE_GAP_RECOVERY",
+              "computed_at_utc": "2026-11-05T20:59:53.612255+00:00"
             }
           ],
           "migration": "Legacy capital and positions restored; guard state reconstructed from published paper curve, not a revised replay.",
-          "independent_forward_after_timestamp": "2026-11-04T16:00:00+00:00"
+          "independent_forward_after_timestamp": "2026-11-05T20:00:00+00:00"
         },
         "paperStart": "2026-08-20T23:00:00+00:00",
-        "latest": "2026-11-04T18:00:00+00:00",
+        "latest": "2026-11-05T19:00:00+00:00",
         "baseCapitalBrl": 10000.0,
-        "currentCapitalBrl": 9411.91,
-        "roiPct": -5.8809,
-        "grossExposurePct": 30.0507,
-        "newForwardHours": 1819,
+        "currentCapitalBrl": 8862.07,
+        "roiPct": -11.3793,
+        "grossExposurePct": 45.3199,
+        "newForwardHours": 1844,
         "positions": [
+          {
+            "symbol": "ADAUSDT",
+            "direction": "sell",
+            "weightPct": -22.9252,
+            "valueBrl": 2031.65
+          },
           {
             "symbol": "ETHUSDT",
             "direction": "sell",
-            "weightPct": -17.6934,
-            "valueBrl": 1665.29
-          },
-          {
-            "symbol": "UNIUSDT",
-            "direction": "buy",
-            "weightPct": 7.6187,
-            "valueBrl": 717.07
+            "weightPct": -18.7143,
+            "valueBrl": 1658.47
           },
           {
             "symbol": "BTCUSDT",
-            "direction": "sell",
-            "weightPct": -4.7385,
-            "valueBrl": 445.99
+            "direction": "buy",
+            "weightPct": 3.6805,
+            "valueBrl": 326.16
           }
         ],
         "curve": [
@@ -7369,6 +7375,106 @@
           {
             "time": "2026-11-04T18:00:00+00:00",
             "capital": 9411.91
+          },
+          {
+            "time": "2026-11-04T19:00:00+00:00",
+            "capital": 9418.23
+          },
+          {
+            "time": "2026-11-04T20:00:00+00:00",
+            "capital": 9413.25
+          },
+          {
+            "time": "2026-11-04T21:00:00+00:00",
+            "capital": 9417.28
+          },
+          {
+            "time": "2026-11-04T22:00:00+00:00",
+            "capital": 9416.89
+          },
+          {
+            "time": "2026-11-04T23:00:00+00:00",
+            "capital": 9409.97
+          },
+          {
+            "time": "2026-11-05T00:00:00+00:00",
+            "capital": 9415.86
+          },
+          {
+            "time": "2026-11-05T01:00:00+00:00",
+            "capital": 9428.96
+          },
+          {
+            "time": "2026-11-05T02:00:00+00:00",
+            "capital": 9419.57
+          },
+          {
+            "time": "2026-11-05T03:00:00+00:00",
+            "capital": 9414.55
+          },
+          {
+            "time": "2026-11-05T04:00:00+00:00",
+            "capital": 9408.36
+          },
+          {
+            "time": "2026-11-05T05:00:00+00:00",
+            "capital": 9376.71
+          },
+          {
+            "time": "2026-11-05T06:00:00+00:00",
+            "capital": 9430.85
+          },
+          {
+            "time": "2026-11-05T07:00:00+00:00",
+            "capital": 9375.47
+          },
+          {
+            "time": "2026-11-05T08:00:00+00:00",
+            "capital": 9400.22
+          },
+          {
+            "time": "2026-11-05T09:00:00+00:00",
+            "capital": 9388.94
+          },
+          {
+            "time": "2026-11-05T10:00:00+00:00",
+            "capital": 9355.15
+          },
+          {
+            "time": "2026-11-05T11:00:00+00:00",
+            "capital": 9368.62
+          },
+          {
+            "time": "2026-11-05T12:00:00+00:00",
+            "capital": 9237.92
+          },
+          {
+            "time": "2026-11-05T13:00:00+00:00",
+            "capital": 9219.1
+          },
+          {
+            "time": "2026-11-05T14:00:00+00:00",
+            "capital": 9086.2
+          },
+          {
+            "time": "2026-11-05T15:00:00+00:00",
+            "capital": 8907.02
+          },
+          {
+            "time": "2026-11-05T16:00:00+00:00",
+            "capital": 8889.08
+          },
+          {
+            "time": "2026-11-05T17:00:00+00:00",
+            "capital": 8915.82
+          },
+          {
+            "time": "2026-11-05T18:00:00+00:00",
+            "capital": 8897.96
+          },
+          {
+            "time": "2026-11-05T19:00:00+00:00",
+            "capital": 8862.07
           }
         ],
         "strictResearchGate": null,
@@ -7411,36 +7517,42 @@
               "through": "2026-11-04T15:00:00+00:00",
               "kind": "RETROSPECTIVE_GAP_RECOVERY",
               "computed_at_utc": "2026-11-04T16:22:43.565427+00:00"
+            },
+            {
+              "after": "2026-11-04T18:00:00+00:00",
+              "through": "2026-11-05T19:00:00+00:00",
+              "kind": "RETROSPECTIVE_GAP_RECOVERY",
+              "computed_at_utc": "2026-11-05T21:00:24.407941+00:00"
             }
           ],
           "migration": "Legacy capital and positions restored; guard state reconstructed from published paper curve, not a revised replay.",
-          "independent_forward_after_timestamp": "2026-11-04T16:00:00+00:00"
+          "independent_forward_after_timestamp": "2026-11-05T21:00:00+00:00"
         },
         "paperStart": "2026-08-23T23:00:00+00:00",
-        "latest": "2026-11-04T18:00:00+00:00",
+        "latest": "2026-11-05T19:00:00+00:00",
         "baseCapitalBrl": 10000.0,
-        "currentCapitalBrl": 9153.39,
-        "roiPct": -8.4661,
-        "grossExposurePct": 30.0507,
-        "newForwardHours": 1747,
+        "currentCapitalBrl": 8618.65,
+        "roiPct": -13.8135,
+        "grossExposurePct": 45.3199,
+        "newForwardHours": 1772,
         "positions": [
+          {
+            "symbol": "ADAUSDT",
+            "direction": "sell",
+            "weightPct": -22.9252,
+            "valueBrl": 1975.84
+          },
           {
             "symbol": "ETHUSDT",
             "direction": "sell",
-            "weightPct": -17.6934,
-            "valueBrl": 1619.55
-          },
-          {
-            "symbol": "UNIUSDT",
-            "direction": "buy",
-            "weightPct": 7.6187,
-            "valueBrl": 697.37
+            "weightPct": -18.7143,
+            "valueBrl": 1612.92
           },
           {
             "symbol": "BTCUSDT",
-            "direction": "sell",
-            "weightPct": -4.7385,
-            "valueBrl": 433.74
+            "direction": "buy",
+            "weightPct": 3.6805,
+            "valueBrl": 317.2
           }
         ],
         "curve": [
@@ -14435,6 +14547,106 @@
           {
             "time": "2026-11-04T18:00:00+00:00",
             "capital": 9153.39
+          },
+          {
+            "time": "2026-11-04T19:00:00+00:00",
+            "capital": 9159.53
+          },
+          {
+            "time": "2026-11-04T20:00:00+00:00",
+            "capital": 9154.69
+          },
+          {
+            "time": "2026-11-04T21:00:00+00:00",
+            "capital": 9158.62
+          },
+          {
+            "time": "2026-11-04T22:00:00+00:00",
+            "capital": 9158.23
+          },
+          {
+            "time": "2026-11-04T23:00:00+00:00",
+            "capital": 9151.5
+          },
+          {
+            "time": "2026-11-05T00:00:00+00:00",
+            "capital": 9157.23
+          },
+          {
+            "time": "2026-11-05T01:00:00+00:00",
+            "capital": 9169.98
+          },
+          {
+            "time": "2026-11-05T02:00:00+00:00",
+            "capital": 9160.84
+          },
+          {
+            "time": "2026-11-05T03:00:00+00:00",
+            "capital": 9155.95
+          },
+          {
+            "time": "2026-11-05T04:00:00+00:00",
+            "capital": 9149.94
+          },
+          {
+            "time": "2026-11-05T05:00:00+00:00",
+            "capital": 9119.16
+          },
+          {
+            "time": "2026-11-05T06:00:00+00:00",
+            "capital": 9171.81
+          },
+          {
+            "time": "2026-11-05T07:00:00+00:00",
+            "capital": 9117.95
+          },
+          {
+            "time": "2026-11-05T08:00:00+00:00",
+            "capital": 9142.02
+          },
+          {
+            "time": "2026-11-05T09:00:00+00:00",
+            "capital": 9131.05
+          },
+          {
+            "time": "2026-11-05T10:00:00+00:00",
+            "capital": 9098.19
+          },
+          {
+            "time": "2026-11-05T11:00:00+00:00",
+            "capital": 9111.28
+          },
+          {
+            "time": "2026-11-05T12:00:00+00:00",
+            "capital": 8984.18
+          },
+          {
+            "time": "2026-11-05T13:00:00+00:00",
+            "capital": 8965.87
+          },
+          {
+            "time": "2026-11-05T14:00:00+00:00",
+            "capital": 8836.63
+          },
+          {
+            "time": "2026-11-05T15:00:00+00:00",
+            "capital": 8662.37
+          },
+          {
+            "time": "2026-11-05T16:00:00+00:00",
+            "capital": 8644.92
+          },
+          {
+            "time": "2026-11-05T17:00:00+00:00",
+            "capital": 8670.92
+          },
+          {
+            "time": "2026-11-05T18:00:00+00:00",
+            "capital": 8653.56
+          },
+          {
+            "time": "2026-11-05T19:00:00+00:00",
+            "capital": 8618.65
           }
         ],
         "strictResearchGate": null,
@@ -14477,36 +14689,42 @@
               "through": "2026-11-04T15:00:00+00:00",
               "kind": "RETROSPECTIVE_GAP_RECOVERY",
               "computed_at_utc": "2026-11-04T16:22:59.219931+00:00"
+            },
+            {
+              "after": "2026-11-04T18:00:00+00:00",
+              "through": "2026-11-05T19:00:00+00:00",
+              "kind": "RETROSPECTIVE_GAP_RECOVERY",
+              "computed_at_utc": "2026-11-05T21:00:41.252919+00:00"
             }
           ],
           "migration": "Legacy capital and positions restored; guard state reconstructed from published paper curve, not a revised replay.",
-          "independent_forward_after_timestamp": "2026-11-04T16:00:00+00:00"
+          "independent_forward_after_timestamp": "2026-11-05T21:00:00+00:00"
         },
         "paperStart": "2026-09-01T11:00:00+00:00",
-        "latest": "2026-11-04T18:00:00+00:00",
+        "latest": "2026-11-05T19:00:00+00:00",
         "baseCapitalBrl": 10000.0,
-        "currentCapitalBrl": 8230.76,
-        "roiPct": -17.6924,
-        "grossExposurePct": 10.0924,
-        "newForwardHours": 1543,
+        "currentCapitalBrl": 8182.82,
+        "roiPct": -18.1718,
+        "grossExposurePct": 0.8747,
+        "newForwardHours": 1568,
         "positions": [
           {
             "symbol": "ETHUSDT",
             "direction": "sell",
-            "weightPct": -7.5287,
-            "valueBrl": 619.66
+            "weightPct": -0.5592,
+            "valueBrl": 45.75
+          },
+          {
+            "symbol": "ADAUSDT",
+            "direction": "sell",
+            "weightPct": -0.2055,
+            "valueBrl": 16.82
           },
           {
             "symbol": "BTCUSDT",
-            "direction": "sell",
-            "weightPct": -1.4212,
-            "valueBrl": 116.97
-          },
-          {
-            "symbol": "UNIUSDT",
             "direction": "buy",
-            "weightPct": 1.1425,
-            "valueBrl": 94.04
+            "weightPct": 0.11,
+            "valueBrl": 9.0
           }
         ],
         "curve": [
@@ -20685,6 +20903,106 @@
           {
             "time": "2026-11-04T18:00:00+00:00",
             "capital": 8230.76
+          },
+          {
+            "time": "2026-11-04T19:00:00+00:00",
+            "capital": 8234.64
+          },
+          {
+            "time": "2026-11-04T20:00:00+00:00",
+            "capital": 8231.43
+          },
+          {
+            "time": "2026-11-04T21:00:00+00:00",
+            "capital": 8232.33
+          },
+          {
+            "time": "2026-11-04T22:00:00+00:00",
+            "capital": 8228.91
+          },
+          {
+            "time": "2026-11-04T23:00:00+00:00",
+            "capital": 8230.12
+          },
+          {
+            "time": "2026-11-05T00:00:00+00:00",
+            "capital": 8231.42
+          },
+          {
+            "time": "2026-11-05T01:00:00+00:00",
+            "capital": 8234.56
+          },
+          {
+            "time": "2026-11-05T02:00:00+00:00",
+            "capital": 8231.72
+          },
+          {
+            "time": "2026-11-05T03:00:00+00:00",
+            "capital": 8230.01
+          },
+          {
+            "time": "2026-11-05T04:00:00+00:00",
+            "capital": 8229.04
+          },
+          {
+            "time": "2026-11-05T05:00:00+00:00",
+            "capital": 8223.13
+          },
+          {
+            "time": "2026-11-05T06:00:00+00:00",
+            "capital": 8234.39
+          },
+          {
+            "time": "2026-11-05T07:00:00+00:00",
+            "capital": 8222.65
+          },
+          {
+            "time": "2026-11-05T08:00:00+00:00",
+            "capital": 8227.91
+          },
+          {
+            "time": "2026-11-05T09:00:00+00:00",
+            "capital": 8225.81
+          },
+          {
+            "time": "2026-11-05T10:00:00+00:00",
+            "capital": 8219.34
+          },
+          {
+            "time": "2026-11-05T11:00:00+00:00",
+            "capital": 8223.14
+          },
+          {
+            "time": "2026-11-05T12:00:00+00:00",
+            "capital": 8193.33
+          },
+          {
+            "time": "2026-11-05T13:00:00+00:00",
+            "capital": 8191.03
+          },
+          {
+            "time": "2026-11-05T14:00:00+00:00",
+            "capital": 8188.21
+          },
+          {
+            "time": "2026-11-05T15:00:00+00:00",
+            "capital": 8183.39
+          },
+          {
+            "time": "2026-11-05T16:00:00+00:00",
+            "capital": 8182.99
+          },
+          {
+            "time": "2026-11-05T17:00:00+00:00",
+            "capital": 8183.33
+          },
+          {
+            "time": "2026-11-05T18:00:00+00:00",
+            "capital": 8183.24
+          },
+          {
+            "time": "2026-11-05T19:00:00+00:00",
+            "capital": 8182.82
           }
         ],
         "strictResearchGate": "REJECTED",
@@ -20727,35 +21045,41 @@
               "through": "2026-11-04T15:00:00+00:00",
               "kind": "RETROSPECTIVE_GAP_RECOVERY",
               "computed_at_utc": "2026-11-04T16:23:22.527809+00:00"
+            },
+            {
+              "after": "2026-11-04T18:00:00+00:00",
+              "through": "2026-11-05T19:00:00+00:00",
+              "kind": "RETROSPECTIVE_GAP_RECOVERY",
+              "computed_at_utc": "2026-11-05T21:01:06.830900+00:00"
             }
           ],
-          "independent_forward_after_timestamp": "2026-11-04T16:00:00+00:00"
+          "independent_forward_after_timestamp": "2026-11-05T21:00:00+00:00"
         },
         "paperStart": "2026-09-06T22:00:00+00:00",
-        "latest": "2026-11-04T18:00:00+00:00",
+        "latest": "2026-11-05T19:00:00+00:00",
         "baseCapitalBrl": 10000.0,
-        "currentCapitalBrl": 8174.77,
-        "roiPct": -18.2523,
-        "grossExposurePct": 12.4774,
-        "newForwardHours": 1412,
+        "currentCapitalBrl": 8114.1,
+        "roiPct": -18.859,
+        "grossExposurePct": 0.7419,
+        "newForwardHours": 1437,
         "positions": [
+          {
+            "symbol": "BTCUSDT",
+            "direction": "buy",
+            "weightPct": 0.2868,
+            "valueBrl": 23.27
+          },
           {
             "symbol": "ETHUSDT",
             "direction": "sell",
-            "weightPct": -9.3469,
-            "valueBrl": 764.09
+            "weightPct": -0.27,
+            "valueBrl": 21.91
           },
           {
-            "symbol": "BTCUSDT",
+            "symbol": "ADAUSDT",
             "direction": "sell",
-            "weightPct": -2.1033,
-            "valueBrl": 171.94
-          },
-          {
-            "symbol": "UNIUSDT",
-            "direction": "buy",
-            "weightPct": 1.0272,
-            "valueBrl": 83.97
+            "weightPct": -0.1851,
+            "valueBrl": 15.02
           }
         ],
         "curve": [
@@ -26410,11 +26734,111 @@
           {
             "time": "2026-11-04T18:00:00+00:00",
             "capital": 8174.77
+          },
+          {
+            "time": "2026-11-04T19:00:00+00:00",
+            "capital": 8180.01
+          },
+          {
+            "time": "2026-11-04T20:00:00+00:00",
+            "capital": 8176.69
+          },
+          {
+            "time": "2026-11-04T21:00:00+00:00",
+            "capital": 8177.57
+          },
+          {
+            "time": "2026-11-04T22:00:00+00:00",
+            "capital": 8174.18
+          },
+          {
+            "time": "2026-11-04T23:00:00+00:00",
+            "capital": 8175.37
+          },
+          {
+            "time": "2026-11-05T00:00:00+00:00",
+            "capital": 8176.66
+          },
+          {
+            "time": "2026-11-05T01:00:00+00:00",
+            "capital": 8179.19
+          },
+          {
+            "time": "2026-11-05T02:00:00+00:00",
+            "capital": 8176.7
+          },
+          {
+            "time": "2026-11-05T03:00:00+00:00",
+            "capital": 8175.37
+          },
+          {
+            "time": "2026-11-05T04:00:00+00:00",
+            "capital": 8174.45
+          },
+          {
+            "time": "2026-11-05T05:00:00+00:00",
+            "capital": 8168.31
+          },
+          {
+            "time": "2026-11-05T06:00:00+00:00",
+            "capital": 8179.67
+          },
+          {
+            "time": "2026-11-05T07:00:00+00:00",
+            "capital": 8167.79
+          },
+          {
+            "time": "2026-11-05T08:00:00+00:00",
+            "capital": 8173.11
+          },
+          {
+            "time": "2026-11-05T09:00:00+00:00",
+            "capital": 8170.97
+          },
+          {
+            "time": "2026-11-05T10:00:00+00:00",
+            "capital": 8164.43
+          },
+          {
+            "time": "2026-11-05T11:00:00+00:00",
+            "capital": 8168.28
+          },
+          {
+            "time": "2026-11-05T12:00:00+00:00",
+            "capital": 8138.61
+          },
+          {
+            "time": "2026-11-05T13:00:00+00:00",
+            "capital": 8136.37
+          },
+          {
+            "time": "2026-11-05T14:00:00+00:00",
+            "capital": 8128.36
+          },
+          {
+            "time": "2026-11-05T15:00:00+00:00",
+            "capital": 8114.53
+          },
+          {
+            "time": "2026-11-05T16:00:00+00:00",
+            "capital": 8114.36
+          },
+          {
+            "time": "2026-11-05T17:00:00+00:00",
+            "capital": 8114.42
+          },
+          {
+            "time": "2026-11-05T18:00:00+00:00",
+            "capital": 8114.34
+          },
+          {
+            "time": "2026-11-05T19:00:00+00:00",
+            "capital": 8114.1
           }
         ],
         "strictResearchGate": "BACKTEST_VALIDATED_FORWARD_PENDING",
         "forwardValidation": "PENDING_INDEPENDENT_DATA",
-        "satelliteWeightPct": 10.093,
+        "satelliteWeightPct": 9.948,
         "satelliteTargetPct": 10.0,
         "consensusPct": 100.0
       },
@@ -26452,30 +26876,36 @@
               "through": "2026-11-04T15:00:00+00:00",
               "kind": "RETROSPECTIVE_GAP_RECOVERY",
               "computed_at_utc": "2026-11-04T16:21:31.933389+00:00"
+            },
+            {
+              "after": "2026-11-04T18:00:00+00:00",
+              "through": "2026-11-05T19:00:00+00:00",
+              "kind": "RETROSPECTIVE_GAP_RECOVERY",
+              "computed_at_utc": "2026-11-05T20:59:07.676320+00:00"
             }
           ],
           "migration": "Legacy capital and positions restored; guard state reconstructed from published paper curve, not a revised replay.",
-          "independent_forward_after_timestamp": "2026-11-04T16:00:00+00:00"
+          "independent_forward_after_timestamp": "2026-11-05T20:00:00+00:00"
         },
         "paperStart": "2026-08-13T19:00:00+00:00",
-        "latest": "2026-11-04T18:00:00+00:00",
+        "latest": "2026-11-05T19:00:00+00:00",
         "baseCapitalBrl": 10000.0,
-        "currentCapitalBrl": 10123.63,
-        "roiPct": 1.2363,
-        "grossExposurePct": 37.2229,
-        "newForwardHours": 1991,
+        "currentCapitalBrl": 9664.23,
+        "roiPct": -3.3577,
+        "grossExposurePct": 22.3202,
+        "newForwardHours": 2016,
         "positions": [
           {
             "symbol": "ETHUSDT",
             "direction": "sell",
-            "weightPct": -32.4877,
-            "valueBrl": 3288.94
+            "weightPct": -18.652,
+            "valueBrl": 1802.57
           },
           {
             "symbol": "BTCUSDT",
-            "direction": "sell",
-            "weightPct": -4.7352,
-            "valueBrl": 479.38
+            "direction": "buy",
+            "weightPct": 3.6682,
+            "valueBrl": 354.51
           }
         ],
         "curve": [
@@ -34446,6 +34876,106 @@
           {
             "time": "2026-11-04T18:00:00+00:00",
             "capital": 10123.63
+          },
+          {
+            "time": "2026-11-04T19:00:00+00:00",
+            "capital": 10148.72
+          },
+          {
+            "time": "2026-11-04T20:00:00+00:00",
+            "capital": 10127.67
+          },
+          {
+            "time": "2026-11-04T21:00:00+00:00",
+            "capital": 10130.67
+          },
+          {
+            "time": "2026-11-04T22:00:00+00:00",
+            "capital": 10103.05
+          },
+          {
+            "time": "2026-11-04T23:00:00+00:00",
+            "capital": 10120.37
+          },
+          {
+            "time": "2026-11-05T00:00:00+00:00",
+            "capital": 10124.71
+          },
+          {
+            "time": "2026-11-05T01:00:00+00:00",
+            "capital": 10136.93
+          },
+          {
+            "time": "2026-11-05T02:00:00+00:00",
+            "capital": 10124.61
+          },
+          {
+            "time": "2026-11-05T03:00:00+00:00",
+            "capital": 10116.93
+          },
+          {
+            "time": "2026-11-05T04:00:00+00:00",
+            "capital": 10114.07
+          },
+          {
+            "time": "2026-11-05T05:00:00+00:00",
+            "capital": 10094.1
+          },
+          {
+            "time": "2026-11-05T06:00:00+00:00",
+            "capital": 10135.08
+          },
+          {
+            "time": "2026-11-05T07:00:00+00:00",
+            "capital": 10091.79
+          },
+          {
+            "time": "2026-11-05T08:00:00+00:00",
+            "capital": 10111.22
+          },
+          {
+            "time": "2026-11-05T09:00:00+00:00",
+            "capital": 10104.03
+          },
+          {
+            "time": "2026-11-05T10:00:00+00:00",
+            "capital": 10081.79
+          },
+          {
+            "time": "2026-11-05T11:00:00+00:00",
+            "capital": 10097.83
+          },
+          {
+            "time": "2026-11-05T12:00:00+00:00",
+            "capital": 9983.85
+          },
+          {
+            "time": "2026-11-05T13:00:00+00:00",
+            "capital": 9969.21
+          },
+          {
+            "time": "2026-11-05T14:00:00+00:00",
+            "capital": 9867.15
+          },
+          {
+            "time": "2026-11-05T15:00:00+00:00",
+            "capital": 9675.76
+          },
+          {
+            "time": "2026-11-05T16:00:00+00:00",
+            "capital": 9661.42
+          },
+          {
+            "time": "2026-11-05T17:00:00+00:00",
+            "capital": 9667.79
+          },
+          {
+            "time": "2026-11-05T18:00:00+00:00",
+            "capital": 9671.07
+          },
+          {
+            "time": "2026-11-05T19:00:00+00:00",
+            "capital": 9664.23
           }
         ],
         "strictResearchGate": null,
@@ -44494,7 +45024,7 @@
         "description": "Direção e universo adaptativos derivados do V14.",
         "track": "v15",
         "summary": {
-          "returnPct": 14394.125417,
+          "returnPct": 14391.120678,
           "maxDrawdownPct": -36.09352,
           "bestDayPct": 24.666146,
           "worstDayPct": -12.382926
@@ -54502,7 +55032,7 @@
           },
           {
             "time": "2026-11-04T00:00:00-03:00",
-            "equity": 144.9412541691
+            "equity": 144.9112067785
           }
         ]
       },
