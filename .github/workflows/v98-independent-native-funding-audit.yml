@@ -1,0 +1,64 @@
+name: V98 Independent Native Funding Source Audit
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-native-funding-audit.yml'
+      - 'research/v98_independent/phase243_native_funding_archive.py'
+  workflow_dispatch:
+    inputs:
+      full_history:
+        description: 'Fetch all 148 monthly native funding archives after diagnostic succeeds'
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  native-funding:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Provider-authenticated native funding source (no economic claims)
+        env:
+          PYTHONPATH: research/v98_independent
+          FULL_HISTORY: ${{ inputs.full_history || 'false' }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/native_funding
+          if [[ "$FULL_HISTORY" == "true" ]]; then
+            python research/v98_independent/phase243_native_funding_archive.py --root /tmp/v98_independent/native_funding > /tmp/v98_independent/native_funding_receipt.json
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/v98_independent/native_funding_receipt.json').read_text())
+          assert r['verified_archives']==148 and r['complete'] and not r['economic_validation']
+          print('V98_NATIVE_FUNDING_SOURCE_148_PASS_NOT_PNL')
+          PY
+          else
+            python research/v98_independent/phase243_native_funding_archive.py --root /tmp/v98_independent/native_funding --limit 1 > /tmp/v98_independent/native_funding_receipt.json
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/v98_independent/native_funding_receipt.json').read_text())
+          assert r['verified_archives']==1 and not r['complete'] and not r['economic_validation']
+          print('V98_NATIVE_FUNDING_DIAGNOSTIC_PASS_NOT_PNL')
+          PY
+          fi
+      - name: Save funding provenance
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: v98-independent-native-funding-${{ github.run_id }}
+          path: |
+            /tmp/v98_independent/native_funding/
+            /tmp/v98_independent/native_funding_receipt.json
+          retention-days: 30
+          if-no-files-found: error
