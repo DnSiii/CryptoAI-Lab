@@ -37,7 +37,7 @@ def _verify_provider_receipt(archive: Path, receipt: dict) -> None:
         line = sidecar.read_text(encoding="ascii").strip()
     except UnicodeError as exc:
         raise ValueError(f"PROVIDER_CHECKSUM_INVALID: {name}") from exc
-    match = re.fullmatch(r"([0-9a-fA-F]{64})\\s+\\*?([^/\\\\\\s]+)", line)
+    match = re.fullmatch(r"([0-9a-fA-F]{64})\s+\*?([^/\\\s]+)", line)
     if not match or match.group(2) != name:
         raise ValueError(f"PROVIDER_CHECKSUM_INVALID: {name}")
     expected = match.group(1).lower()
