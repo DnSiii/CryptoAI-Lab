@@ -77,10 +77,10 @@ def test_provider_receipt_required_and_bound_to_archive(tmp_path):
     with pytest.raises(ValueError, match="PROVIDER_CHECKSUM_MISSING"):
         module._verify_provider_receipt(archive, {"archive_sha256": digest})
     sidecar = archive.with_name(archive.name + ".CHECKSUM")
-    sidecar.write_text(f"{digest}  {archive.name}\\n")
+    sidecar.write_text(f"{digest}  {archive.name}")
     module._verify_provider_receipt(archive, {"archive_sha256": digest})
     with pytest.raises(ValueError, match="PROVIDER_ARCHIVE_SHA256_MISMATCH"):
         module._verify_provider_receipt(archive, {"archive_sha256": "0" * 64})
-    sidecar.write_text(f"{digest}  WRONG.zip\\n")
+    sidecar.write_text(f"{digest}  WRONG.zip")
     with pytest.raises(ValueError, match="PROVIDER_CHECKSUM_INVALID"):
         module._verify_provider_receipt(archive, {"archive_sha256": digest})
