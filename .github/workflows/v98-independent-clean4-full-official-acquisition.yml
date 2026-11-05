@@ -1,0 +1,54 @@
+name: V98 Independent Clean-4 Full Official Archive Acquisition
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  clean4-full-official-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Acquire and attest all 148 provider-signed Clean-4 monthly archives
+        env:
+          PYTHONPATH: research/v98_independent
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/full_official_source
+          python research/v98_independent/phase243_clean4_official_archive_acquire.py --archive-root /tmp/v98_independent/full_official_source > /tmp/v98_independent/full_official_source_receipt.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from phase243_binance_archive_ingest import _parse_month
+          receipt=json.loads(Path('/tmp/v98_independent/full_official_source_receipt.json').read_text())
+          assert receipt['verified_archives']==148
+          assert receipt['months']==37
+          assert receipt['assets']==['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT']
+          assert receipt['source_only'] and not receipt['promotion_eligible'] and not receipt['holdout_accessed']
+          root=Path('/tmp/v98_independent/full_official_source')
+          for asset in receipt['assets']:
+              total=0
+              for key in sorted(receipt['receipts']):
+                  if not key.startswith(asset+'/'): continue
+                  month=key.split('/')[1]
+                  frame,_=_parse_month(root/'klines'/asset/'1h'/f'{asset}-1h-{month}.zip',asset,month)
+                  total+=len(frame)
+              assert total==27048,(asset,total)
+          print('V98_CLEAN4_FULL_SOURCE_PASS 148 provider-checksummed ZIPs, 27048 hourly bars per asset; no PnL')
+          PY
+      - name: Save verified original source evidence
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: v98-independent-clean4-148-official-archives-${{ github.run_id }}
+          path: |
+            /tmp/v98_independent/full_official_source/
+            /tmp/v98_independent/full_official_source_receipt.json
+          retention-days: 30
+          if-no-files-found: error
