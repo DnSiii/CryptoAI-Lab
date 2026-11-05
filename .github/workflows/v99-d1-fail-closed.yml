@@ -1,0 +1,48 @@
+name: V99 D1 fail-closed smoke tests (NO ECONOMICS)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - scripts/v99_r106_d1_train_only.py
+      - .github/workflows/v99-d1-fail-closed.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  d1-negative-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify absent receipts and sealed boundary are rejected
+        run: |
+          python - <<'PY'
+          import csv, tempfile, pathlib, datetime
+          from scripts.v99_r106_d1_train_only import evaluate, FIELDS
+          with tempfile.TemporaryDirectory() as d:
+              p = pathlib.Path(d) / "ledger.csv"
+              def write(rows):
+                  with p.open("w", newline="") as f:
+                      w=csv.DictWriter(f,fieldnames=FIELDS);w.writeheader();w.writerows(rows)
+              base={"date":"2022-01-01","btc_close":"40000","atm_iv":"0.5",
+                    "relative_spread":"0.01","straddle_hedged_net_return":"0",
+                    "execution_verified":"true","funding_verified":"true",
+                    "source_receipt_sha256":"a"*64,"execution_receipt_sha256":"b"*64,
+                    "funding_receipt_sha256":"c"*64}
+              cases=[]
+              cases.append([dict(base)])
+              cases.append([dict(base,date="2023-10-01")])
+              cases.append([dict(base,source_receipt_sha256="missing")])
+              cases.append([dict(base,relative_spread="-0.1")])
+              cases.append([dict(base,execution_verified="false")])
+              cases.append([dict(base,straddle_hedged_net_return="-1.2")])
+              for i, rows in enumerate(cases):
+                  write(rows)
+                  try: evaluate(p)
+                  except ValueError: pass
+                  else: raise AssertionError(f"case {i} unexpectedly accepted")
+              print("6 negative fail-closed checks passed; NOT economic validation")
+          PY
