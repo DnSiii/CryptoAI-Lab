@@ -1,0 +1,22 @@
+name: V99 R106 TRAIN source preflight (NO ECONOMICS)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - scripts/v99_r106_train_source_preflight.py
+      - .github/workflows/v99-r106-train-source-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run fail-closed TRAIN boundary adversarial tests
+        run: python scripts/v99_r106_train_source_preflight.py --selftest
