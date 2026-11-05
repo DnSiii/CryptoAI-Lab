@@ -58,7 +58,7 @@ def selftest():
     with tempfile.TemporaryDirectory() as directory:
         p = Path(directory) / "sample.csv"
         def check(data, success):
-            p.write_text("timestamp,btc_open,eth_open\\n" + data, encoding="utf-8")
+            p.write_text("timestamp,btc_open,eth_open\n" + data, encoding="utf-8")
             sha = hashlib.sha256(p.read_bytes()).hexdigest()
             try:
                 audit(p, sha)
@@ -66,11 +66,11 @@ def selftest():
             except ValueError:
                 got = False
             assert got == success, (data, got, success)
-        check("2023-09-29T00:00:00Z,100,10\\n2023-09-30T00:00:00Z,101,11\\n", True)
-        check("2023-09-30T00:00:00Z,100,10\\n2023-10-01T00:00:00Z,101,11\\n", False)
-        check("2023-09-30T00:00:00Z,100,10\\n2023-09-30T00:00:00Z,101,11\\n", False)
-        check("2023-09-29T00:00:00,100,10\\n2023-09-30T00:00:00,101,11\\n", False)
-        check("2023-09-29T00:00:00Z,100,10\\n2023-09-30T00:00:00Z,-1,11\\n", False)
+        check("2023-09-29T00:00:00Z,100,10\n2023-09-30T00:00:00Z,101,11\n", True)
+        check("2023-09-30T00:00:00Z,100,10\n2023-10-01T00:00:00Z,101,11\n", False)
+        check("2023-09-30T00:00:00Z,100,10\n2023-09-30T00:00:00Z,101,11\n", False)
+        check("2023-09-29T00:00:00,100,10\n2023-09-30T00:00:00,101,11\n", False)
+        check("2023-09-29T00:00:00Z,100,10\n2023-09-30T00:00:00Z,-1,11\n", False)
     print("5/5 TRAIN boundary selftests PASS; NOT an economic backtest")
 
 if __name__ == "__main__":
