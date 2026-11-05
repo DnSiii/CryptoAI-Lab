@@ -4,6 +4,7 @@ on:
     branches: [research/v98-independent-zero]
     paths:
       - '.github/workflows/v98-independent-clean4-full-official-acquisition.yml'
+      - 'research/v98_independent/phase243_clean4_canonicalize.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -48,6 +49,14 @@ jobs:
               assert total==27048,(asset,total)
           print('V98_CLEAN4_FULL_SOURCE_PASS 148 provider-checksummed ZIPs, 27048 hourly bars per asset; no PnL')
           PY
+      - name: Canonicalize authenticated Clean-4 source (no alpha, no funding claim)
+        env:
+          PYTHONPATH: research/v98_independent
+        run: |
+          python research/v98_independent/phase243_clean4_canonicalize.py \
+            --archive-root /tmp/v98_independent/full_official_source \
+            --receipt /tmp/v98_independent/full_official_source_receipt.json \
+            --output-root /tmp/v98_independent/clean4_canonical
       - name: Save verified original source evidence
         uses: actions/upload-artifact@v4
         if: success()
@@ -56,5 +65,6 @@ jobs:
           path: |
             /tmp/v98_independent/full_official_source/
             /tmp/v98_independent/full_official_source_receipt.json
+            /tmp/v98_independent/clean4_canonical/
           retention-days: 30
           if-no-files-found: error
