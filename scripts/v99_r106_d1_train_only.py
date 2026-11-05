@@ -54,9 +54,9 @@ def evaluate(path):
             raise ValueError("impossible loss below -100 percent of allocated notional")
         if row["execution_verified"] != "true" or row["funding_verified"] != "true":
             raise ValueError("native execution/funding evidence missing")
-    if len(rows) < 180:
+    if len(rows) < 181:
         raise ValueError("insufficient TRAIN history for five chronological folds")
-    # Signals at day i use strictly completed observations <= i-1.
+    # Start at i=31: i=30 would use rows[-1] in the 30-return window,\n    # leaking the final TRAIN observation into the first signal.\n    # Signals at day i use strictly completed observations <= i-1.
     # Realized volatility annualized from 30 prior close-to-close returns.
     equity = 1.0
     peak = 1.0
@@ -65,7 +65,7 @@ def evaluate(path):
     worst_daily_return = 0.0
     fold_results = []
     n = len(rows)
-    boundaries = [30 + (n-30)*j//5 for j in range(6)]
+    boundaries = [31 + (n-31)*j//5 for j in range(6)]
     for fold in range(5):
         start, end = boundaries[fold], boundaries[fold+1]
         fold_start = equity
