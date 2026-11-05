@@ -34,6 +34,10 @@ def audit(blob, asset, month):
             if not lo<=t<hi or not -1<r<1: raise ValueError("INVALID_FUNDING_EVENT")
             times.append(t)
         if not times or times!=sorted(set(times)): raise ValueError("FUNDING_DUPLICATE_OR_ORDER")
+        if times[0] - lo > 24*3600*1000 or hi - times[-1] > 24*3600*1000:
+            raise ValueError("FUNDING_MONTH_BOUNDARY_GAP")
+        if any(b-a > 24*3600*1000 for a,b in zip(times,times[1:])):
+            raise ValueError("FUNDING_EVENT_GAP")
         return {"events":len(times),"first_ms":times[0],"last_ms":times[-1]}
 def acquire(root, limit=None):
     root=Path(root)
