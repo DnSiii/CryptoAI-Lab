@@ -298,16 +298,10 @@ def _build_ledger_replay(
                     "action_code": code,
                     "order_side": "buy" if order_weight > 0.0 else "sell",
                     "order_value_brl": round(
-                        to_brl(
-                            abs(
-                                float(
-                                    result.asset_order_notional.loc[
-                                        timestamp, symbol
-                                    ]
-                                )
-                            )
-                        ),
-                        2,
+                        to_brl(abs(float(result.asset_order_notional.loc[timestamp, symbol]))), 2
+                    ),
+                    "order_value_brl_unrounded": to_brl(
+                        abs(float(result.asset_order_notional.loc[timestamp, symbol]))
                     ),
                     "previous_weight": round(before, 8),
                     "new_weight": round(after, 8),
