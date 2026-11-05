@@ -1,0 +1,44 @@
+name: V98 Independent Clean-4 official archive live smoke
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase243_clean4_official_archive_acquire.py'
+      - 'research/v98_independent/phase243_binance_archive_ingest.py'
+      - '.github/workflows/v98-independent-clean4-official-live-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-source-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser dependency
+        run: python -m pip install 'pandas>=2,<3'
+      - name: Fetch one first-party archive with provider checksum and parse real 1h data
+        env:
+          PYTHONPATH: research/v98_independent
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/official_source
+          python research/v98_independent/phase243_clean4_official_archive_acquire.py --archive-root /tmp/v98_independent/official_source --limit 1 > /tmp/v98_independent/source_receipt.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from phase243_binance_archive_ingest import _parse_month
+          root = Path('/tmp/v98_independent/official_source')
+          archive = root / 'klines/BTCUSDT/1h/BTCUSDT-1h-2022-12.zip'
+          frame, receipt = _parse_month(archive, 'BTCUSDT', '2022-12')
+          assert len(frame) == 744, f'unexpected row count {len(frame)}'
+          assert frame.open_time.iloc[0].isoformat() == '2022-12-01T00:00:00+00:00'
+          assert frame.open_time.iloc[-1].isoformat() == '2022-12-31T23:00:00+00:00'
+          assert (frame.open_time.diff().dropna().dt.total_seconds() == 3600).all()
+          result = json.loads(Path('/tmp/v98_independent/source_receipt.json').read_text())
+          assert result['verified_archives'] == 1 and not result['promotion_eligible']
+          print(json.dumps({'status':'OFFICIAL_SOURCE_SMOKE_ONLY','rows':len(frame),'source_sha256':result['receipts']['BTCUSDT/2022-12']['sha256'],'pnl_computed':False,'promotion_eligible':False},sort_keys=True))
+          PY
