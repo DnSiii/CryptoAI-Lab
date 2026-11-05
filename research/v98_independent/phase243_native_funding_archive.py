@@ -12,14 +12,25 @@ def audit(blob, asset, month):
         if len(members)!=1 or members[0].filename!=name or members[0].file_size>20_000_000:
             raise ValueError("INVALID_FUNDING_ZIP_MEMBER")
         reader=csv.DictReader(io.StringIO(z.read(name).decode("utf-8-sig")))
-        if not {"fundingTime","fundingRate"}.issubset(reader.fieldnames or []):
-            raise ValueError("INVALID_FUNDING_COLUMNS")
+        columns=set(reader.fieldnames or [])
+        if {"calc_time","funding_interval_hours","last_funding_rate"}.issubset(columns):
+            time_col, rate_col = "calc_time", "last_funding_rate"
+            interval_col = "funding_interval_hours"
+        elif {"fundingTime","fundingRate"}.issubset(columns):
+            time_col, rate_col = "fundingTime", "fundingRate"
+            interval_col = None
+        else:
+            raise ValueError(f"INVALID_FUNDING_COLUMNS:{sorted(columns)}")
         year,mo=map(int,month.split("-"))
         lo=int(datetime(year,mo,1,tzinfo=timezone.utc).timestamp()*1000)
         hi=int(datetime(year+(mo==12),mo%12+1,1,tzinfo=timezone.utc).timestamp()*1000)
         times=[]
         for row in reader:
-            t=int(row["fundingTime"]); r=float(row["fundingRate"])
+            t=int(row[time_col]); r=float(row[rate_col])
+            if interval_col is not None:
+                interval=float(row[interval_col])
+                if not 0 < interval <= 24:
+                    raise ValueError("INVALID_FUNDING_INTERVAL")
             if not lo<=t<hi or not -1<r<1: raise ValueError("INVALID_FUNDING_EVENT")
             times.append(t)
         if not times or times!=sorted(set(times)): raise ValueError("FUNDING_DUPLICATE_OR_ORDER")
