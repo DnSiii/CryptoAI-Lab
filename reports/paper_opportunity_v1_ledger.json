@@ -4,19 +4,19 @@
   "candidate": "Oportunidades V1 \u2014 tamanho alocado",
   "base_capital_brl": 10000.0,
   "paper_start_after_timestamp": "2026-08-20T15:00:00+00:00",
-  "latest_data_timestamp": "2026-11-05T21:00:00+00:00",
+  "latest_data_timestamp": "2026-11-05T22:00:00+00:00",
   "summary": {
-    "decision_events": 89,
-    "position_adjustments": 215,
-    "positioned_hours": 1123,
-    "positive_hours": 539,
+    "decision_events": 90,
+    "position_adjustments": 217,
+    "positioned_hours": 1124,
+    "positive_hours": 540,
     "negative_hours": 591,
-    "gross_result_brl": 135.28,
-    "fees_brl": 32.69,
+    "gross_result_brl": 139.32,
+    "fees_brl": 33.28,
     "funding_result_brl": -8.43,
-    "total_cost_brl": 41.12,
-    "net_result_brl": 94.16,
-    "current_capital_brl": 10094.16,
+    "total_cost_brl": 41.71,
+    "net_result_brl": 97.61,
+    "current_capital_brl": 10097.61,
     "highest_capital_brl": 10218.66,
     "lowest_capital_brl": 9989.72
   },
@@ -64,18 +64,18 @@
       "net_result_brl": -24.18
     },
     "XRPUSDT": {
-      "status": "closed",
-      "direction": "none",
-      "current_weight": 0.0,
-      "position_value_brl": 0.0,
-      "current_price": 1.4809,
+      "status": "open",
+      "direction": "sell",
+      "current_weight": -0.0413755,
+      "position_value_brl": 417.8,
+      "current_price": 1.2172,
       "tracked_since": "2026-09-15T19:00:00+00:00",
       "inherited_at_paper_start": false,
-      "gross_result_brl": 2.02,
-      "fees_brl": 1.0,
+      "gross_result_brl": 3.59,
+      "fees_brl": 1.29,
       "funding_result_brl": -0.05,
-      "total_cost_brl": 1.05,
-      "net_result_brl": 0.97
+      "total_cost_brl": 1.34,
+      "net_result_brl": 2.25
     },
     "LINKUSDT": {
       "status": "closed",
@@ -248,16 +248,16 @@
     "ADAUSDT": {
       "status": "open",
       "direction": "sell",
-      "current_weight": -0.07477891,
-      "position_value_brl": 754.83,
-      "current_price": 0.1818,
+      "current_weight": -0.03323878,
+      "position_value_brl": 335.63,
+      "current_price": 0.1806,
       "tracked_since": "2026-10-29T21:00:00+00:00",
       "inherited_at_paper_start": false,
-      "gross_result_brl": -14.73,
-      "fees_brl": 2.15,
+      "gross_result_brl": -12.26,
+      "fees_brl": 2.45,
       "funding_result_brl": 0.12,
-      "total_cost_brl": 2.03,
-      "net_result_brl": -16.76
+      "total_cost_brl": 2.33,
+      "net_result_brl": -14.59
     }
   },
   "opening_snapshot": {
@@ -20673,6 +20673,17 @@
       "funding_result_brl": -0.0,
       "total_cost_brl": 0.0,
       "net_result_brl": 9.14
+    },
+    {
+      "timestamp": "2026-11-05T22:00:00+00:00",
+      "equity_multiple": 1.009761,
+      "capital_brl": 10097.61,
+      "hour_result_brl": 3.45,
+      "gross_result_brl": 4.04,
+      "fees_brl": 0.59,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.59,
+      "net_result_brl": 3.45
     }
   ],
   "candles": {
@@ -26160,6 +26171,13 @@
         "high": 0.184,
         "low": 0.1816,
         "close": 0.1818
+      },
+      {
+        "timestamp": "2026-11-05T22:00:00+00:00",
+        "open": 0.1817,
+        "high": 0.1822,
+        "low": 0.1804,
+        "close": 0.1806
       }
     ],
     "UNIUSDT": [
@@ -26409,6 +26427,15 @@
         "high": 124.77,
         "low": 122.69,
         "close": 124.62
+      }
+    ],
+    "XRPUSDT": [
+      {
+        "timestamp": "2026-11-05T22:00:00+00:00",
+        "open": 1.2218,
+        "high": 1.2269,
+        "low": 1.2144,
+        "close": 1.2172
       }
     ]
   },
@@ -31193,6 +31220,55 @@
           "net_result_brl": -1.77
         }
       ]
+    },
+    {
+      "timestamp": "2026-11-05T22:00:00+00:00",
+      "status": "open_or_rebalanced",
+      "reason": "O rob\u00f4 mudou o tamanho das posi\u00e7\u00f5es na abertura desta hora.",
+      "result_scope": "whole_hour_not_trade_profit",
+      "capital_before_brl": 10094.16,
+      "capital_after_hour_brl": 10097.61,
+      "gross_result_brl": 4.04,
+      "fees_brl": 0.59,
+      "funding_result_brl": -0.0,
+      "total_cost_brl": 0.59,
+      "net_result_brl": 3.45,
+      "adjustments": [
+        {
+          "symbol": "XRPUSDT",
+          "action": "Abriu venda",
+          "action_code": "open_short",
+          "order_side": "sell",
+          "order_value_brl": 419.39,
+          "order_value_brl_unrounded": 415.48478923150753,
+          "previous_weight": 0.0,
+          "new_weight": -0.04154677,
+          "execution_price": 1.2218,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 1.57,
+          "fees_brl": 0.29,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.29,
+          "net_result_brl": 1.28
+        },
+        {
+          "symbol": "ADAUSDT",
+          "action": "Reduziu venda",
+          "action_code": "reduce_short",
+          "order_side": "buy",
+          "order_value_brl": 416.72,
+          "order_value_brl_unrounded": 412.831741997669,
+          "previous_weight": -0.07473471,
+          "new_weight": -0.03345323,
+          "execution_price": 0.1817,
+          "result_scope": "whole_asset_hour_not_order_profit",
+          "gross_result_brl": 2.46,
+          "fees_brl": 0.29,
+          "funding_result_brl": -0.0,
+          "total_cost_brl": 0.29,
+          "net_result_brl": 2.17
+        }
+      ]
     }
   ],
   "explanation": {
@@ -31202,63 +31278,65 @@
     "open_positions": "Aberta significa que o rob\u00f4 ainda mant\u00e9m exposi\u00e7\u00e3o. O resultado pode mudar a cada nova vela."
   },
   "execution_checkpoint": {
-    "timestamp": "2026-11-05T21:00:00+00:00",
-    "equity": 1.0094181322741178,
+    "timestamp": "2026-11-05T22:00:00+00:00",
+    "equity": 1.0097634430757876,
     "peak_equity": 1.021866,
     "weights": {
-      "ADAUSDT": -0.07477891273051347
+      "XRPUSDT": -0.04137549751571942,
+      "ADAUSDT": -0.033238775437404805
     },
     "last_requested_target": {
-      "ADAUSDT": -0.075
+      "XRPUSDT": -0.04154677,
+      "ADAUSDT": -0.03345323
     },
     "drawdown_guard_active": false,
     "guard_remaining_hours": 0,
     "ruined": false,
     "last_prices": {
-      "BTCUSDT": 75825.6,
-      "ETHUSDT": 2228.51,
-      "BNBUSDT": 688.75,
-      "XRPUSDT": 1.2218,
-      "ADAUSDT": 0.1818,
-      "LINKUSDT": 10.691,
-      "LTCUSDT": 52.0,
-      "DOGEUSDT": 0.07195,
-      "SOLUSDT": 89.91,
-      "AVAXUSDT": 8.268,
-      "TRXUSDT": 0.31848,
-      "ETCUSDT": 6.911,
-      "BCHUSDT": 271.66,
-      "XLMUSDT": 0.15383,
-      "ATOMUSDT": 1.394,
-      "DOTUSDT": 0.9182,
-      "FILUSDT": 0.7964,
-      "AAVEUSDT": 129.64,
-      "UNIUSDT": 6.816,
-      "SUSHIUSDT": 0.1808,
-      "NEARUSDT": 3.696,
-      "ALGOUSDT": 0.09387,
-      "VETUSDT": 0.005414,
-      "RUNEUSDT": 0.6058,
-      "ZECUSDT": 1254.12,
-      "DASHUSDT": 44.73,
-      "THETAUSDT": 0.1421,
-      "COMPUSDT": 19.51,
-      "SNXUSDT": 0.1641,
-      "KAVAUSDT": 0.06825,
-      "IOTAUSDT": 0.03783,
-      "ONTUSDT": 0.04272,
-      "XMRUSDT": 618.0,
-      "YFIUSDT": 1986.0,
-      "CRVUSDT": 0.2543,
-      "1INCHUSDT": 0.07942,
-      "GRTUSDT": 0.01909,
-      "AXSUSDT": 0.8297,
-      "SANDUSDT": 0.04285,
-      "MANAUSDT": 0.07067,
-      "EGLDUSDT": 3.198,
-      "CHZUSDT": 0.01126,
-      "ENJUSDT": 0.02313,
-      "ZILUSDT": 0.001643
+      "BTCUSDT": 75685.0,
+      "ETHUSDT": 2229.71,
+      "BNBUSDT": 688.18,
+      "XRPUSDT": 1.2172,
+      "ADAUSDT": 0.1806,
+      "LINKUSDT": 10.656,
+      "LTCUSDT": 51.61,
+      "DOGEUSDT": 0.07148,
+      "SOLUSDT": 89.56,
+      "AVAXUSDT": 8.225,
+      "TRXUSDT": 0.3182,
+      "ETCUSDT": 6.879,
+      "BCHUSDT": 271.38,
+      "XLMUSDT": 0.15328,
+      "ATOMUSDT": 1.37,
+      "DOTUSDT": 0.9128,
+      "FILUSDT": 0.7891,
+      "AAVEUSDT": 128.7,
+      "UNIUSDT": 6.781,
+      "SUSHIUSDT": 0.1802,
+      "NEARUSDT": 3.676,
+      "ALGOUSDT": 0.09288,
+      "VETUSDT": 0.005398,
+      "RUNEUSDT": 0.601,
+      "ZECUSDT": 1262.96,
+      "DASHUSDT": 44.41,
+      "THETAUSDT": 0.1412,
+      "COMPUSDT": 19.41,
+      "SNXUSDT": 0.1628,
+      "KAVAUSDT": 0.06849,
+      "IOTAUSDT": 0.03758,
+      "ONTUSDT": 0.04251,
+      "XMRUSDT": 619.65,
+      "YFIUSDT": 1983.0,
+      "CRVUSDT": 0.2523,
+      "1INCHUSDT": 0.07939,
+      "GRTUSDT": 0.019,
+      "AXSUSDT": 0.8245,
+      "SANDUSDT": 0.04249,
+      "MANAUSDT": 0.07035,
+      "EGLDUSDT": 3.194,
+      "CHZUSDT": 0.01122,
+      "ENJUSDT": 0.02306,
+      "ZILUSDT": 0.001636
     },
     "execution_parameters": {
       "cost_per_side": 0.0007,
