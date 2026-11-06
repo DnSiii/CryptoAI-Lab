@@ -1,0 +1,26 @@
+name: V98 Independent Native Funding Cashflow Contract
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/phase243_native_funding_cashflow.py'
+      - 'research/v98_independent/test_phase243_native_funding_cashflow.py'
+      - '.github/workflows/v98-independent-native-funding-cashflow.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  causal-funding-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate V98 funding attribution contract (not strategy PnL)
+        run: |
+          python -m unittest research/v98_independent/test_phase243_native_funding_cashflow.py -v
