@@ -29,6 +29,11 @@ class EconomicAccountingTests(unittest.TestCase):
         a=account(grid(target=100,pre=100),funding(),initial_equity_usd=10000,taker_fee_bps=5,slippage_bps=5)
         b=account(grid(target=100,pre=100),funding(),initial_equity_usd=10000,taker_fee_bps=5,slippage_bps=5,cost_multiplier=3)
         self.assertLess(b[-1]["ending_equity_usd"],a[-1]["ending_equity_usd"])
+    def test_closing_leverage_after_adverse_move(self):
+        # Entry gross 1.6x passes; a 30% adverse mark leaves 2.15x.
+        with self.assertRaisesRegex(ValueError,"CLOSING_GROSS_LEVERAGE_LIMIT"):
+            account(grid(target=4000,close=70,fill=100),funding(),
+                    initial_equity_usd=10000,taker_fee_bps=0,slippage_bps=0)
     def test_leverage_gate(self):
         with self.assertRaisesRegex(ValueError,"GROSS_LEVERAGE_LIMIT"):
             account(grid(target=10000),funding(),initial_equity_usd=10000,taker_fee_bps=5,slippage_bps=5)
