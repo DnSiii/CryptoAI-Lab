@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from phase243_native_funding_cashflow import settle, load_funding
+from phase243_native_funding_cashflow import settle, load_funding, validate_complete_inventory
 
 class NativeFundingCashflowTests(unittest.TestCase):
     def test_signed_settlement_and_non_event(self):
@@ -34,6 +34,28 @@ class NativeFundingCashflowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INVALID_POSITION"):
             settle([{"asset": "BTCUSDT", "hour_open_ms": 0,
                      "signed_notional_usd_before_hour": float("nan")}], {"BTCUSDT": {}})
+
+
+    def test_complete_inventory_and_missing_hour(self):
+        assets = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
+        rows = [{"asset": a, "hour_open_ms": t, "signed_notional_usd_before_hour": 0}
+                for a in assets for t in (0, 3600000, 7200000)]
+        funding = {a: {3600000: 0.0001} for a in assets}
+        self.assertEqual(validate_complete_inventory(rows, funding)["hours_per_asset"], 3)
+        with self.assertRaisesRegex(ValueError, "MISSING_POSITION_HOUR"):
+            validate_complete_inventory([r for r in rows
+                if not (r["asset"] == "BTCUSDT" and r["hour_open_ms"] == 3600000)], funding)
+
+    def test_asset_misalignment_and_future_rejected(self):
+        assets = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
+        funding = {a: {} for a in assets}
+        rows = [{"asset": a, "hour_open_ms": 0, "signed_notional_usd_before_hour": 0}
+                for a in assets]
+        with self.assertRaisesRegex(ValueError, "INCOMPLETE_CLEAN4_INVENTORY"):
+            validate_complete_inventory(rows[:-1], funding)
+        future = [{**r, "hour_open_ms": 1767225600000} for r in rows]
+        with self.assertRaisesRegex(ValueError, "TRAINING_BOUNDARY_VIOLATION"):
+            validate_complete_inventory(future, funding)
 
 if __name__ == "__main__":
     unittest.main()
