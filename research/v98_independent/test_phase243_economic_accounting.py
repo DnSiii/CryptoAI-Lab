@@ -34,7 +34,19 @@ class EconomicAccountingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"CLOSING_GROSS_LEVERAGE_LIMIT"):
             account(grid(target=4000,close=70,fill=100),funding(),
                     initial_equity_usd=10000,taker_fee_bps=0,slippage_bps=0)
+    def test_entry_leverage_uses_post_gap_equity(self):
+        rows = grid(target=4000, pre=4000)
+        for r in rows:
+            if r["hour_open_ms"] == H:
+                r["fill_price"] = 70
+                r["close_price"] = 70
+                r["target_notional_usd"] = 4000
+        # Prior inventory of 16k loses 4.8k at the next open. 16k target
+        # must be rejected against 5.2k available equity, even if it passed
+        # the obsolete check against 10k starting equity.
+        with self.assertRaisesRegex(ValueError,"ENTRY_GROSS_LEVERAGE_LIMIT"):
+            account(rows,funding(),initial_equity_usd=10000,taker_fee_bps=0,slippage_bps=0)
     def test_leverage_gate(self):
-        with self.assertRaisesRegex(ValueError,"GROSS_LEVERAGE_LIMIT"):
+        with self.assertRaisesRegex(ValueError,"ENTRY_GROSS_LEVERAGE_LIMIT"):
             account(grid(target=10000),funding(),initial_equity_usd=10000,taker_fee_bps=5,slippage_bps=5)
 if __name__=="__main__": unittest.main()
