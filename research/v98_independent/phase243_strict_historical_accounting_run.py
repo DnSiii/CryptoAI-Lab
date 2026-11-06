@@ -54,6 +54,17 @@ def verify_native_prices(rows, price_root, price_manifest_path):
             raise ValueError("EXECUTION_PRICE_SOURCE_MISMATCH")
 
 
+def verify_full_training_coverage(hours):
+    """A claimed full-history receipt must span all 2023-2025 hourly bars."""
+    from datetime import datetime, timezone
+    start = int(datetime(2023,1,1,tzinfo=timezone.utc).timestamp()*1000)
+    end = int(datetime(2026,1,1,tzinfo=timezone.utc).timestamp()*1000)
+    warmup = int(datetime(2022,12,1,tzinfo=timezone.utc).timestamp()*1000)
+    if not hours or hours[0] not in (start,warmup) or hours[-1] != end-HOUR_MS:
+        raise ValueError("INCOMPLETE_2023_2025_TRAINING_COVERAGE")
+    if len(hours) != (end-hours[0])//HOUR_MS:
+        raise ValueError("INCOMPLETE_2023_2025_TRAINING_COVERAGE")
+
 def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_fee_bps, slippage_bps, cost_multiplier, max_gross_leverage, price_root=None, price_manifest_path=None):
     for p in (positions_path, funding_root, output_path):
         if "v98_independent" not in Path(p).absolute().parts:
@@ -88,6 +99,7 @@ def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_
         if len(set(keys)) != len(keys) or set(row["asset"] for row in rows) != set(ASSETS):
             raise ValueError("DUPLICATE_OR_MISSING_HISTORICAL_ASSET")
         hours = sorted(counts)
+        verify_full_training_coverage(hours)
         if any(b-a != HOUR_MS for a,b in zip(hours,hours[1:])):
             raise ValueError("NONCONTIGUOUS_HISTORICAL_POSITION_HOURS")
     for row in rows:
