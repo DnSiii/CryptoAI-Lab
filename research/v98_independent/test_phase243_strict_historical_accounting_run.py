@@ -88,6 +88,13 @@ class StrictHistoricalRunTests(unittest.TestCase):
         m.write_text(json.dumps(manifest))
         with self.positions.open(newline="") as f: rows=list(csv.DictReader(f))
         verify_native_prices(rows,prices,m)
+        receipt=run(self.positions,self.funding,self.output,initial_equity_usd=10000,
+                    taker_fee_bps=5,slippage_bps=2,cost_multiplier=1,max_gross_leverage=2,
+                    price_root=prices,price_manifest_path=m)
+        self.assertTrue(receipt["authenticated_prices"])
+        self.assertEqual(receipt["price_manifest_sha256"],hashlib.sha256(m.read_bytes()).hexdigest())
+        self.assertEqual(json.loads(self.output.with_suffix(".receipt.json").read_text())["price_manifest_sha256"],
+                         receipt["price_manifest_sha256"])
         rows[0]["fill_price"]="101"
         with self.assertRaisesRegex(ValueError,"EXECUTION_PRICE_SOURCE_MISMATCH"):
             verify_native_prices(rows,prices,m)
