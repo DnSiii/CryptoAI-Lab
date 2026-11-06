@@ -32,6 +32,6 @@ class CausalBridgeTest(unittest.TestCase):
             with out.open(newline="") as f:rows=list(csv.DictReader(f))
             x=[r for r in rows if r["asset"]==ASSETS[0]]
             self.assertEqual([float(r["target_notional_usd"]) for r in x],[0,50,70])
-            self.assertEqual([float(r["pre_trade_notional_usd"]) for r in x],[0,0,55])
-            self.assertEqual([int(r["decision_time_ms"]) for r in x],[h-HOUR_MS for h in hours])
+            self.assertEqual([float(r["pre_trade_notional_usd"]) for r in x],[0,0,50])
+            # A previous close of 110 followed by a new open of 100 must not\n            # fabricate 10% inventory value; units are conserved across the gap.\n            self.assertEqual([int(r["decision_time_ms"]) for r in x],[h-HOUR_MS for h in hours])
 if __name__=="__main__":unittest.main()
