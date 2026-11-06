@@ -62,8 +62,26 @@ class StrictHistoricalRunTests(unittest.TestCase):
                      pre_trade_notional_usd=0,target_notional_usd=0,close_price=100,fill_price=100)
             for _ in range(8760*len(ASSETS)):
                 w.writerow(row)
-        with self.assertRaisesRegex(ValueError,"INCOMPLETE_HISTORICAL_ASSET_GRID"):
+        with self.assertRaisesRegex(ValueError,"DUPLICATE_POSITION_ASSET_HOUR"):
             self.execute()
+    def test_reject_duplicate_short_run_before_accounting(self):
+        self.write()
+        with self.positions.open(newline="") as f:
+            lines=f.readlines()
+        with self.positions.open("a") as f:
+            f.write(lines[1])
+        with self.assertRaisesRegex(ValueError,"DUPLICATE_POSITION_ASSET_HOUR"):
+            self.execute()
+
+    def test_reject_non_clean4_asset_before_accounting(self):
+        self.write()
+        with self.positions.open(newline="") as f:
+            lines=f.readlines()
+        with self.positions.open("a") as f:
+            f.write(lines[1].replace("BTCUSDT","XRPUSDT"))
+        with self.assertRaisesRegex(ValueError,"UNAUTHORIZED_CLEAN4_ASSET"):
+            self.execute()
+
     def test_full_training_coverage_exact_boundaries(self):
         from datetime import datetime, timezone
         def ms(y,m,d):
