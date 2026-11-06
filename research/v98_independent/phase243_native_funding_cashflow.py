@@ -55,6 +55,35 @@ def settle(positions, funding):
                        "funding_rate": rate, "funding_cashflow_usd": cash})
     return output
 
+
+def validate_complete_inventory(positions, funding):
+    """Fail closed before cashflow: every Clean-4 hour and settlement must have inventory."""
+    if not positions:
+        raise ValueError("EMPTY_POSITION_TIMELINE")
+    by_asset = {asset: set() for asset in ASSETS}
+    for row in positions:
+        asset = row["asset"]
+        t = int(row["hour_open_ms"])
+        if asset not in by_asset or t % HOUR_MS or t < 0:
+            raise ValueError("INVALID_POSITION")
+        if t in by_asset[asset]:
+            raise ValueError("DUPLICATE_POSITION_HOUR")
+        by_asset[asset].add(t)
+    starts = {min(v) for v in by_asset.values() if v}
+    ends = {max(v) for v in by_asset.values() if v}
+    if len(starts) != 1 or len(ends) != 1 or any(not v for v in by_asset.values()):
+        raise ValueError("INCOMPLETE_CLEAN4_INVENTORY")
+    start, end = starts.pop(), ends.pop()
+    if end >= 1767225600000:  # 2026-01-01 UTC, exclusive
+        raise ValueError("TRAINING_BOUNDARY_VIOLATION")
+    expected = (end - start) // HOUR_MS + 1
+    for asset in ASSETS:
+        if len(by_asset[asset]) != expected:
+            raise ValueError("MISSING_POSITION_HOUR")
+        if any(start <= t <= end and t not in by_asset[asset] for t in funding[asset]):
+            raise ValueError("MISSING_SETTLEMENT_INVENTORY")
+    return {"start_ms": start, "end_ms": end, "hours_per_asset": expected}
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--funding-root", type=Path, required=True)
@@ -77,6 +106,7 @@ def main():
         funding[asset] = load_funding(path)
     with a.positions.open(newline="") as f:
         positions = list(csv.DictReader(f))
+    coverage = validate_complete_inventory(positions, funding)
     ledger = settle(positions, funding)
     a.output.parent.mkdir(parents=True, exist_ok=True)
     with a.output.open("w", newline="") as f:
@@ -84,7 +114,7 @@ def main():
             "signed_notional_usd_before_hour", "funding_rate", "funding_cashflow_usd"))
         writer.writeheader()
         writer.writerows(ledger)
-    print(json.dumps({"rows": len(ledger), "cashflow_usd": sum(x["funding_cashflow_usd"] for x in ledger),
+    print(json.dumps({"rows": len(ledger), "inventory_coverage": coverage, "cashflow_usd": sum(x["funding_cashflow_usd"] for x in ledger),
                       "status": "FUNDING_ATTRIBUTION_ONLY_NOT_STRATEGY_VALIDATION",
                       "holdout_accessed": False}))
 
