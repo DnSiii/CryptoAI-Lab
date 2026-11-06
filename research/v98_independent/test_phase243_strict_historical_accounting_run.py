@@ -4,7 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from research.v98_independent.phase243_strict_historical_accounting_run import run, verify_native_prices
+from research.v98_independent.phase243_strict_historical_accounting_run import run, verify_native_prices, verify_full_training_coverage
 
 ASSETS=("BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT")
 H=3600000
@@ -64,6 +64,19 @@ class StrictHistoricalRunTests(unittest.TestCase):
                 w.writerow(row)
         with self.assertRaisesRegex(ValueError,"INCOMPLETE_HISTORICAL_ASSET_GRID"):
             self.execute()
+    def test_full_training_coverage_exact_boundaries(self):
+        from datetime import datetime, timezone
+        def ms(y,m,d):
+            return int(datetime(y,m,d,tzinfo=timezone.utc).timestamp()*1000)
+        start,end,warmup=ms(2023,1,1),ms(2026,1,1),ms(2022,12,1)
+        verify_full_training_coverage(list(range(start,end,H)))
+        verify_full_training_coverage(list(range(warmup,end,H)))
+        for hours in (list(range(start,start+8760*H,H)),
+                      list(range(start+H,end,H)),
+                      list(range(start,end-H,H)),
+                      list(range(start,end,H))[::2]):
+            with self.assertRaisesRegex(ValueError,"INCOMPLETE_2023_2025_TRAINING_COVERAGE"):
+                verify_full_training_coverage(hours)
     def test_reject_modified_funding(self):
         self.write()
         with (self.funding/"BTCUSDT_native_funding.csv").open("a") as f: f.write("\n")
