@@ -88,6 +88,13 @@ def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_
         rows = list(reader)
     if not rows:
         raise ValueError("EMPTY_POSITION_TIMELINE")
+    # Reject duplicated asset-hour positions even in short diagnostic runs: duplicate
+    # rows would double count exposures and funding without any distinct market hour.
+    keys_all = [(row["asset"], int(row["hour_open_ms"])) for row in rows]
+    if any(asset not in ASSETS for asset, _ in keys_all):
+        raise ValueError("UNAUTHORIZED_CLEAN4_ASSET")
+    if len(set(keys_all)) != len(keys_all):
+        raise ValueError("DUPLICATE_POSITION_ASSET_HOUR")
     # A full-history economic receipt must cover each hour for every Clean-4 asset.
     # Prevent duplicated assets/hours from satisfying the 8760*4 length threshold.
     if len(rows) >= 8760 * len(ASSETS):
