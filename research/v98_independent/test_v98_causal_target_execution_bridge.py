@@ -33,7 +33,9 @@ class CausalBridgeTest(unittest.TestCase):
             x=[r for r in rows if r["asset"]==ASSETS[0]]
             self.assertEqual([float(r["target_notional_usd"]) for r in x],[0,50,70])
             self.assertEqual([float(r["pre_trade_notional_usd"]) for r in x],[0,0,50])
-            # A previous close of 110 followed by a new open of 100 must not\n            # fabricate 10% inventory value; units are conserved across the gap.\n            self.assertEqual([int(r["decision_time_ms"]) for r in x],[h-HOUR_MS for h in hours])
+            # A previous close of 110 followed by a new open of 100 must not
+            # fabricate 10% inventory value; units are conserved across the gap.
+            self.assertEqual([int(r["decision_time_ms"]) for r in x],[h-HOUR_MS for h in hours])
 
     def test_future_price_row_rejected_before_execution(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
@@ -41,9 +43,9 @@ class CausalBridgeTest(unittest.TestCase):
             prices=root/"prices";prices.mkdir()
             for a in ASSETS:
                 (prices/f"{a}_1h.csv").write_text(
-                    "open_time,open,close\\n2026-01-01T00:00:00+00:00,100,101\\n")
+                    "open_time,open,close\n2026-01-01T00:00:00+00:00,100,101\n")
             targets=root/"targets.csv"
-            targets.write_text("asset,hour_open_ms,target_notional_usd\\n")
+            targets.write_text("asset,hour_open_ms,target_notional_usd\n")
             with self.assertRaisesRegex(ValueError,"TRAINING_BOUNDARY"):
                 bridge(targets,prices,root/"positions.csv")
 
@@ -53,9 +55,9 @@ class CausalBridgeTest(unittest.TestCase):
             prices=root/"prices";prices.mkdir()
             for a in ASSETS:
                 (prices/f"{a}_1h.csv").write_text(
-                    "open_time,open,close\\n2023-01-01T00:00:00+00:00,nan,101\\n")
+                    "open_time,open,close\n2023-01-01T00:00:00+00:00,nan,101\n")
             targets=root/"targets.csv"
-            targets.write_text("asset,hour_open_ms,target_notional_usd\\n")
+            targets.write_text("asset,hour_open_ms,target_notional_usd\n")
             with self.assertRaisesRegex(ValueError,"INVALID_PRICE"):
                 bridge(targets,prices,root/"positions.csv")
 
