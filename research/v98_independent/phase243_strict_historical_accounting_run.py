@@ -10,7 +10,37 @@ from research.v98_independent.phase243_native_funding_cashflow import ASSETS, HO
 
 REQUIRED = {"asset","hour_open_ms","decision_time_ms","pre_trade_notional_usd","target_notional_usd","close_price","fill_price"}
 
-def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_fee_bps, slippage_bps, cost_multiplier, max_gross_leverage):
+def verify_native_prices(rows, price_root, price_manifest_path):
+    """Bind executed fills and closes to authenticated Clean-4 Binance USD-M bars."""
+    manifest = json.loads(price_manifest_path.read_text())
+    if (manifest.get("mode") != "CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA"
+            or manifest.get("holdout_accessed") is not False
+            or set(manifest.get("prices", {})) != set(ASSETS)):
+        raise ValueError("UNTRUSTED_PRICE_MANIFEST")
+    expected = {}
+    for asset in ASSETS:
+        path = price_root / f"{asset}_1h.csv"
+        if hashlib.sha256(path.read_bytes()).hexdigest() != manifest["prices"][asset]["canonical_sha256"]:
+            raise ValueError("PRICE_CANONICAL_HASH_MISMATCH")
+        with path.open(newline="") as f:
+            for bar in csv.DictReader(f):
+                stamp = bar["open_time"]
+                from datetime import datetime
+                t = int(datetime.fromisoformat(stamp.replace("Z","+00:00")).timestamp()*1000)
+                if t >= 1767225600000:
+                    raise ValueError("PRICE_TRAINING_BOUNDARY")
+                expected[(asset,t)] = (float(bar["open"]),float(bar["close"]))
+    for row in rows:
+        key = (row["asset"],int(row["hour_open_ms"]))
+        if key not in expected:
+            raise ValueError("MISSING_AUTHENTICATED_PRICE_HOUR")
+        op,cl = expected[key]
+        # Execution uses native open; slippage is charged separately in account().
+        if abs(float(row["fill_price"])-op)>1e-8*max(1,op) or abs(float(row["close_price"])-cl)>1e-8*max(1,cl):
+            raise ValueError("EXECUTION_PRICE_SOURCE_MISMATCH")
+
+
+def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_fee_bps, slippage_bps, cost_multiplier, max_gross_leverage, price_root=None, price_manifest_path=None):
     for p in (positions_path, funding_root, output_path):
         if "v98_independent" not in Path(p).absolute().parts:
             raise ValueError("V98_NAMESPACE_REQUIRED")
@@ -38,6 +68,15 @@ def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_
         d = int(row["decision_time_ms"])
         if t < 0 or t >= 1767225600000 or d > t-HOUR_MS:
             raise ValueError("NONCAUSAL_DECISION_OR_TRAINING_BOUNDARY")
+    if (price_root is None) != (price_manifest_path is None):
+        raise ValueError("INCOMPLETE_PRICE_PROVENANCE")
+    if len(rows) >= 8760 * len(ASSETS) and price_root is None:
+        raise ValueError("HISTORICAL_RUN_REQUIRES_AUTHENTICATED_PRICES")
+    if price_root is not None:
+        for p in (price_root,price_manifest_path):
+            if "v98_independent" not in Path(p).absolute().parts:
+                raise ValueError("V98_NAMESPACE_REQUIRED")
+        verify_native_prices(rows,price_root,price_manifest_path)
     ledger = account(rows, funding, initial_equity_usd=initial_equity_usd,
                      taker_fee_bps=taker_fee_bps, slippage_bps=slippage_bps,
                      cost_multiplier=cost_multiplier, max_gross_leverage=max_gross_leverage)
@@ -65,8 +104,10 @@ def main():
     p.add_argument("--slippage-bps",type=float,required=True)
     p.add_argument("--cost-multiplier",type=float,default=1)
     p.add_argument("--max-gross-leverage",type=float,default=2)
+    p.add_argument("--price-root",type=Path)
+    p.add_argument("--price-manifest",type=Path)
     a=p.parse_args()
     print(json.dumps(run(a.positions,a.funding_root,a.output,initial_equity_usd=a.initial_equity_usd,
         taker_fee_bps=a.taker_fee_bps,slippage_bps=a.slippage_bps,cost_multiplier=a.cost_multiplier,
-        max_gross_leverage=a.max_gross_leverage),sort_keys=True))
+        max_gross_leverage=a.max_gross_leverage,price_root=a.price_root,price_manifest_path=a.price_manifest),sort_keys=True))
 if __name__=="__main__": main()
