@@ -49,6 +49,7 @@ def account(rows, funding, *, initial_equity_usd, taker_fee_bps, slippage_bps,
     for t in hours:
         pnl, cash, fees, traded, gross = 0., 0., 0., 0., 0.
         next_positions = {}
+        entry_price_pnl = 0.0
         for a in ASSETS:
             r = grouped[t][a]
             pre = float(r["pre_trade_notional_usd"])
@@ -61,7 +62,9 @@ def account(rows, funding, *, initial_equity_usd, taker_fee_bps, slippage_bps,
                 raise ValueError("PRE_TRADE_INVENTORY_MISMATCH")
             # Pre-trade inventory earns price movement from prior close to current fill.
             if a in previous_close:
-                pnl += pre * (fill / previous_close[a] - 1)
+                move = pre * (fill / previous_close[a] - 1)
+                pnl += move
+                entry_price_pnl += move
             elif pre:
                 raise ValueError("NONZERO_UNFUNDED_INITIAL_INVENTORY")
             cash -= pre * funding[a].get(t,0.0)
@@ -73,11 +76,14 @@ def account(rows, funding, *, initial_equity_usd, taker_fee_bps, slippage_bps,
             gross += abs(target)
             next_positions[a] = target * close / fill
             previous_close[a] = close
+        entry_equity = equity + entry_price_pnl + cash - fees
+        if entry_equity <= 0 or not math.isfinite(entry_equity):
+            raise ValueError("PORTFOLIO_INSOLVENT_AT_ENTRY")
+        if gross > max_gross_leverage * entry_equity + 1e-8:
+            raise ValueError("ENTRY_GROSS_LEVERAGE_LIMIT")
         ending = equity + pnl + cash - fees
         if ending <= 0 or not math.isfinite(ending):
             raise ValueError("PORTFOLIO_INSOLVENT")
-        if gross > max_gross_leverage * equity + 1e-8:
-            raise ValueError("GROSS_LEVERAGE_LIMIT")
         # Mark-to-market may breach the leverage cap after the entry check.
         closing_gross = sum(abs(v) for v in next_positions.values())
         if closing_gross > max_gross_leverage * ending + 1e-8:
