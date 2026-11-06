@@ -77,6 +77,19 @@ def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_
         rows = list(reader)
     if not rows:
         raise ValueError("EMPTY_POSITION_TIMELINE")
+    # A full-history economic receipt must cover each hour for every Clean-4 asset.
+    # Prevent duplicated assets/hours from satisfying the 8760*4 length threshold.
+    if len(rows) >= 8760 * len(ASSETS):
+        from collections import Counter
+        counts = Counter(int(row["hour_open_ms"]) for row in rows)
+        if any(n != len(ASSETS) for n in counts.values()):
+            raise ValueError("INCOMPLETE_HISTORICAL_ASSET_GRID")
+        keys = [(row["asset"], int(row["hour_open_ms"])) for row in rows]
+        if len(set(keys)) != len(keys) or set(row["asset"] for row in rows) != set(ASSETS):
+            raise ValueError("DUPLICATE_OR_MISSING_HISTORICAL_ASSET")
+        hours = sorted(counts)
+        if any(b-a != HOUR_MS for a,b in zip(hours,hours[1:])):
+            raise ValueError("NONCONTIGUOUS_HISTORICAL_POSITION_HOURS")
     for row in rows:
         t = int(row["hour_open_ms"])
         d = int(row["decision_time_ms"])
