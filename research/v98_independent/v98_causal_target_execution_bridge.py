@@ -44,15 +44,17 @@ def bridge(targets_path, prices_root, output_path):
         raise ValueError("INCOMPLETE_TARGET_GRID")
     if hours[-1]>=1767225600000:raise ValueError("TRAINING_BOUNDARY")
     rows=[]
-    prev={a:0.0 for a in ASSETS}
+    # Carry units, not stale USD notionals: revalue inventory at each new open.
+    held_units={a:0.0 for a in ASSETS}
     for i,t in enumerate(hours):
         for a in ASSETS:
             op,cl=prices[a,t]
             if not (0<op and 0<cl):raise ValueError("INVALID_PRICE")
             # No same-bar target is allowed to influence this hour's execution.
             target=targets[a,hours[i-1]] if i else 0.0
-            rows.append(dict(zip(FIELDS,(a,t,t-HOUR_MS,prev[a],target,cl,op))))
-            prev[a]=target*cl/op
+            pre_trade=held_units[a]*op
+            rows.append(dict(zip(FIELDS,(a,t,t-HOUR_MS,pre_trade,target,cl,op))))
+            held_units[a]=target/op
     Path(output_path).parent.mkdir(parents=True,exist_ok=True)
     with open(output_path,"w",newline="") as f:
         w=csv.DictWriter(f,fieldnames=FIELDS);w.writeheader();w.writerows(rows)
