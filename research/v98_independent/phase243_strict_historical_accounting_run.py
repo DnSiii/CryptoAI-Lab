@@ -18,10 +18,12 @@ def verify_native_prices(rows, price_root, price_manifest_path):
             or set(manifest.get("prices", {})) != set(ASSETS)):
         raise ValueError("UNTRUSTED_PRICE_MANIFEST")
     expected = {}
+    asset_hours = {}
     for asset in ASSETS:
         path = price_root / f"{asset}_1h.csv"
         if hashlib.sha256(path.read_bytes()).hexdigest() != manifest["prices"][asset]["canonical_sha256"]:
             raise ValueError("PRICE_CANONICAL_HASH_MISMATCH")
+        hours = []
         with path.open(newline="") as f:
             for bar in csv.DictReader(f):
                 stamp = bar["open_time"]
@@ -29,7 +31,19 @@ def verify_native_prices(rows, price_root, price_manifest_path):
                 t = int(datetime.fromisoformat(stamp.replace("Z","+00:00")).timestamp()*1000)
                 if t >= 1767225600000:
                     raise ValueError("PRICE_TRAINING_BOUNDARY")
-                expected[(asset,t)] = (float(bar["open"]),float(bar["close"]))
+                if t % HOUR_MS or (asset,t) in expected:
+                    raise ValueError("DUPLICATE_OR_UNALIGNED_AUTHENTICATED_PRICE_HOUR")
+                if hours and t != hours[-1] + HOUR_MS:
+                    raise ValueError("NONCONTIGUOUS_AUTHENTICATED_PRICE_HOURS")
+                op, cl = float(bar["open"]), float(bar["close"])
+                import math
+                if not all(math.isfinite(v) and v > 0 for v in (op,cl)):
+                    raise ValueError("INVALID_AUTHENTICATED_PRICE")
+                hours.append(t)
+                expected[(asset,t)] = (op,cl)
+        asset_hours[asset] = hours
+    if not asset_hours[ASSETS[0]] or any(asset_hours[a] != asset_hours[ASSETS[0]] for a in ASSETS[1:]):
+        raise ValueError("MISALIGNED_AUTHENTICATED_PRICE_ASSETS")
     for row in rows:
         key = (row["asset"],int(row["hour_open_ms"]))
         if key not in expected:
