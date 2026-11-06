@@ -78,6 +78,10 @@ def account(rows, funding, *, initial_equity_usd, taker_fee_bps, slippage_bps,
             raise ValueError("PORTFOLIO_INSOLVENT")
         if gross > max_gross_leverage * equity + 1e-8:
             raise ValueError("GROSS_LEVERAGE_LIMIT")
+        # Mark-to-market may breach the leverage cap after the entry check.
+        closing_gross = sum(abs(v) for v in next_positions.values())
+        if closing_gross > max_gross_leverage * ending + 1e-8:
+            raise ValueError("CLOSING_GROSS_LEVERAGE_LIMIT")
         ledger.append({"hour_open_ms":t,"starting_equity_usd":equity,
                        "price_pnl_usd":pnl,"funding_cashflow_usd":cash,
                        "execution_cost_usd":fees,"turnover_usd":traded,
