@@ -10,7 +10,7 @@ Funding is settled on PRE-trade inventory, never on the newly targeted position.
 import csv
 import math
 from collections import defaultdict
-from phase243_native_funding_cashflow import ASSETS, HOUR_MS, validate_complete_inventory
+from research.v98_independent.phase243_native_funding_cashflow import ASSETS, HOUR_MS, validate_complete_inventory
 
 def account(rows, funding, *, initial_equity_usd, taker_fee_bps, slippage_bps,
             cost_multiplier=1.0, max_gross_leverage=2.0):
