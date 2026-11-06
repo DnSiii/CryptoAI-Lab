@@ -245,24 +245,25 @@
 
   function render(){if(!state.data)return;state.tab==='backtest'?renderBacktest():renderPaper()}
   async function load(){
-    // The published JSON lives beside this script; avoid a redundant 5 MB
-    // cross-origin request before trying the copy already on GitHub Pages.
-    let failure=null;
-    for(const url of [`dashboard_data.json?t=${Date.now()}`,`${DATA_URL}?t=${Date.now()}`]){
-      try{
-        const response=await fetch(url,{cache:'no-store'});
-        if(!response.ok)throw new Error(`HTTP ${response.status}`);
-        const snapshot=await response.json();
-        if(!snapshot?.v99Research)throw new Error('Snapshot sem V99 Research');
-        state.data=snapshot;break;
-      }catch(error){failure=error;console.warn('V99 Research snapshot unavailable:',url,error)}
+    // Fail closed: never silently substitute an older Pages-local snapshot.
+    // The canonical research publication is paper-results; no frozen/paper ledger is modified.
+    const rootIds=['#v99-backtest','#v99-paper'];
+    const showFailure=(message)=>{
+      for(const id of rootIds){const root=$(id);if(root)root.innerHTML=`<div class="v99-empty" role="alert">${message}</div>`;}
+    };
+    try{
+      const response=await fetch(`${DATA_URL}?t=${Date.now()}`,{cache:'no-store'});
+      if(!response.ok)throw new Error(`HTTP ${response.status}`);
+      const snapshot=await response.json();
+      if(!snapshot || typeof snapshot!=='object' || !snapshot.v99Research)
+        throw new Error('Snapshot sem V99 Research');
+      state.data=snapshot;
+      render();
+    }catch(error){
+      state.data=null;
+      console.error('V99 canonical research data unavailable; refusing stale local fallback:',error);
+      showFailure('⚠ DADOS INDISPONÍVEIS / NÃO VERIFICADOS. Fonte oficial paper-results inacessível. Nenhum resultado local antigo será exibido como atualizado. RESEARCH ONLY · SEM ORDENS REAIS.');
     }
-    if(!state.data){
-      const message='Não foi possível carregar o V99 Research. Recarregue a página para tentar novamente.';
-      for(const id of ['#v99-backtest','#v99-paper']){const root=$(id);if(root)root.innerHTML=`<div class="v99-empty">${message}</div>`;}
-      return;
-    }
-    render();
   }
 
   installStyles();ensureNavigation();ensureView();load();
