@@ -52,6 +52,18 @@ class StrictHistoricalRunTests(unittest.TestCase):
         self.write(missing=True)
         with self.assertRaisesRegex(ValueError,"INCOMPLETE_CLEAN4"):
             self.execute()
+    def test_full_length_duplicate_rows_cannot_fake_clean4_history(self):
+        # 35,040 rows, but only one asset and one hour: never an admissible year.
+        with self.positions.open("w",newline="") as f:
+            w=csv.DictWriter(f,fieldnames=["asset","hour_open_ms","decision_time_ms",
+                "pre_trade_notional_usd","target_notional_usd","close_price","fill_price"])
+            w.writeheader()
+            row=dict(asset="BTCUSDT",hour_open_ms=START,decision_time_ms=START-H,
+                     pre_trade_notional_usd=0,target_notional_usd=0,close_price=100,fill_price=100)
+            for _ in range(8760*len(ASSETS)):
+                w.writerow(row)
+        with self.assertRaisesRegex(ValueError,"INCOMPLETE_HISTORICAL_ASSET_GRID"):
+            self.execute()
     def test_reject_modified_funding(self):
         self.write()
         with (self.funding/"BTCUSDT_native_funding.csv").open("a") as f: f.write("\n")
