@@ -117,6 +117,8 @@ def run(positions_path, funding_root, output_path, *, initial_equity_usd, taker_
                "total_funding_cashflow_usd":sum(x["funding_cashflow_usd"] for x in ledger),
                "positions_sha256":hashlib.sha256(positions_path.read_bytes()).hexdigest(),
                "funding_manifest_sha256":hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+               "price_manifest_sha256":hashlib.sha256(price_manifest_path.read_bytes()).hexdigest() if price_manifest_path is not None else None,
+               "authenticated_prices":price_manifest_path is not None,
                "ledger_sha256":hashlib.sha256(output_path.read_bytes()).hexdigest()}
     output_path.with_suffix(".receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
     return receipt
