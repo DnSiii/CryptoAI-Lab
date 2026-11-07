@@ -17,7 +17,7 @@ class ReplayTest(unittest.TestCase):
                 return EXPECTED_HOURS * len(ASSETS)
             def fake_bridge(source,prices,dest):
                 dest.write_text("positions")
-                return 4
+                return EXPECTED_HOURS * len(ASSETS)
             def fake_run(positions,funding,output,**kw):
                 import hashlib
                 return {"hours":EXPECTED_HOURS,"authenticated_prices":True,
