@@ -32,7 +32,10 @@ def bridge(targets_path, prices_root, output_path):
     for asset in ASSETS:
         with open(Path(prices_root)/f"{asset}_1h.csv",newline="") as f:
             for r in csv.DictReader(f):
-                t=int(datetime.fromisoformat(r["open_time"].replace("Z","+00:00")).timestamp()*1000)
+                stamp=datetime.fromisoformat(r["open_time"].replace("Z","+00:00"))
+                if stamp.utcoffset() is None or stamp.utcoffset().total_seconds()!=0:
+                    raise ValueError("PRICE_TIMESTAMP_MUST_BE_UTC")
+                t=int(stamp.timestamp()*1000)
                 if t >= 1767225600000: raise ValueError("TRAINING_BOUNDARY")
                 if t < 1669852800000 or t % HOUR_MS: raise ValueError("INVALID_PRICE_HOUR")
                 if (asset,t) in prices:raise ValueError("DUPLICATE_PRICE")
