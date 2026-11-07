@@ -133,6 +133,23 @@ class StrictHistoricalRunTests(unittest.TestCase):
         with (prices/"BTCUSDT_1h.csv").open("a") as f:f.write("tamper")
         with self.assertRaisesRegex(ValueError,"PRICE_CANONICAL_HASH_MISMATCH"):
             verify_native_prices(rows,prices,m)
+    def test_reject_naive_and_non_utc_price_stamps_even_with_matching_hashes(self):
+        self.write()
+        prices=self.root/"prices"
+        prices.mkdir()
+        manifest={"mode":"CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA","holdout_accessed":False,"prices":{}}
+        for stamp in ("2024-01-01T00:00:00","2024-01-01T01:00:00+01:00"):
+            for a in ASSETS:
+                p=prices/f"{a}_1h.csv"
+                p.write_text("open_time,open,close\\n"+stamp+",100,100\\n")
+                manifest["prices"][a]={"canonical_sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
+            m=self.root/"price_manifest.json"
+            m.write_text(json.dumps(manifest))
+            with self.positions.open(newline="") as f:
+                rows=list(csv.DictReader(f))
+            with self.assertRaisesRegex(ValueError,"NON_UTC_AUTHENTICATED_PRICE_TIMESTAMP"):
+                verify_native_prices(rows,prices,m)
+
     def test_reject_duplicate_and_gapped_authenticated_bars(self):
         self.write()
         prices=self.root/"prices"
