@@ -35,8 +35,7 @@ def load(price_root, price_manifest_path, funding_root):
         raise ValueError("UNTRUSTED_PHASE243_MANIFEST")
     funding_manifest_path = funding_root / "funding_manifest.json"
     funding_manifest = json.loads(funding_manifest_path.read_text())
-    if (funding_manifest.get("mode") not in ("V98_NATIVE_FUNDING_CANONICAL_SOURCE_ONLY",
-                                             "V98_NATIVE_FUNDING_CANONICAL_SOURCE_ONLY")
+    if (funding_manifest.get("mode") != "V98_NATIVE_FUNDING_CANONICAL_SOURCE_ONLY"
             or funding_manifest.get("holdout_accessed") is not False
             or set(funding_manifest.get("assets", {})) != set(ASSETS)):
         raise ValueError("UNTRUSTED_NATIVE_FUNDING_MANIFEST")
