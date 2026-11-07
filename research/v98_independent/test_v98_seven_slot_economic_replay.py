@@ -37,5 +37,23 @@ class ReplayTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"INVALID_COST_SCENARIOS"):
                 replay(root,root,root,root,root,1000,5,2,multipliers=(1,4,2))
 
+    def test_nonfinite_multiplier_rejected(self):
+        with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
+            root=Path(d)/"v98_independent"
+            root.mkdir()
+            for bad in (float("nan"),float("inf")):
+                with self.assertRaisesRegex(ValueError,"INVALID_COST_SCENARIOS"):
+                    replay(root,root,root,root,root,1000,5,2,multipliers=(1,2,bad))
+
+    def test_invalid_economic_inputs_rejected_before_io(self):
+        with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
+            root=Path(d)/"v98_independent"
+            root.mkdir()
+            cases=((0,5,2,1,2),(1000,-1,2,1,2),(1000,5,-1,1,2),
+                   (1000,5,2,2,1),(float("nan"),5,2,1,2))
+            for capital,fee,slip,gross,leverage in cases:
+                with self.assertRaisesRegex(ValueError,"INVALID_ECONOMIC_INPUTS"):
+                    replay(root,root,root,root,root,capital,fee,slip,gross,leverage)
+
 if __name__=="__main__":
     unittest.main()
