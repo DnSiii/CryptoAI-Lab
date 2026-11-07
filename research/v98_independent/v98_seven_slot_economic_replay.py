@@ -14,7 +14,8 @@ def replay(slots, prices, price_manifest, funding, output, capital, fee_bps, sli
     if any("v98_independent" not in Path(p).absolute().parts
            for p in (slots,prices,price_manifest,funding,output)):
         raise ValueError("V98_NAMESPACE_REQUIRED")
-    if len(multipliers)!=3 or any(not math.isfinite(x) or x<=0 for x in multipliers) or tuple(sorted(multipliers))!=tuple(multipliers):
+    if (len(multipliers)!=3 or any(not math.isfinite(x) for x in multipliers)
+            or multipliers[0]!=1 or not (1 < multipliers[1] < multipliers[2])):
         raise ValueError("INVALID_COST_SCENARIOS")
     if any(not math.isfinite(x) for x in (capital,fee_bps,slippage_bps,gross_cap,max_gross_leverage)) or capital<=0 or fee_bps<0 or slippage_bps<0 or not 0<gross_cap<=max_gross_leverage:
         raise ValueError("INVALID_ECONOMIC_INPUTS")
