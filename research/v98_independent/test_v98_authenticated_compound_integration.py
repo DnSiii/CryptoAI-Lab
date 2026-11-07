@@ -12,7 +12,8 @@ from research.v98_independent.v98_sevenslot_weight_to_targets import FIELDS
 class IntegrationTest(unittest.TestCase):
     def test_previous_hour_execution_and_cost_independence(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as root:
-            root = Path(root)
+            root = Path(root) / "v98_independent"
+            root.mkdir()
             slots = root / "slots.csv"
             with slots.open("w", newline="") as f:
                 writer = csv.DictWriter(f, fieldnames=FIELDS)
@@ -45,7 +46,8 @@ class IntegrationTest(unittest.TestCase):
 
     def test_reject_incomplete_slots_before_pnl(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as root:
-            root = Path(root)
+            root = Path(root) / "v98_independent"
+            root.mkdir()
             slots = root/"slots.csv"
             with slots.open("w", newline="") as f:
                 writer = csv.DictWriter(f, fieldnames=FIELDS)
