@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from research.v98_independent.v98_seven_slot_economic_replay import replay
+from research.v98_independent.v98_seven_slot_economic_replay import replay, EXPECTED_HOURS, ASSETS
 
 class ReplayTest(unittest.TestCase):
     def test_three_scenarios_share_identical_positions(self):
@@ -14,13 +14,14 @@ class ReplayTest(unittest.TestCase):
             out=root/"out"
             def fake_convert(source,dest,**kw):
                 dest.write_text("targets")
-                return 4
+                return EXPECTED_HOURS * len(ASSETS)
             def fake_bridge(source,prices,dest):
                 dest.write_text("positions")
                 return 4
             def fake_run(positions,funding,output,**kw):
                 import hashlib
-                return {"positions_sha256":hashlib.sha256(positions.read_bytes()).hexdigest(),
+                return {"hours":EXPECTED_HOURS,"authenticated_prices":True,
+                        "positions_sha256":hashlib.sha256(positions.read_bytes()).hexdigest(),
                         "cost_multiplier":kw["cost_multiplier"]}
             with patch("research.v98_independent.v98_seven_slot_economic_replay.convert",side_effect=fake_convert), \
                  patch("research.v98_independent.v98_seven_slot_economic_replay.bridge",side_effect=fake_bridge), \
@@ -29,6 +30,31 @@ class ReplayTest(unittest.TestCase):
             self.assertEqual([result["receipts"][k]["cost_multiplier"] for k in
                 ("baseline","severe","supersevere")],[1,2,4])
             self.assertTrue((out/"scenario_summary.json").exists())
+
+    def test_short_history_rejected_before_execution(self):
+        with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
+            root=Path(d)/"v98_independent";root.mkdir()
+            slots=root/"slots.csv";slots.write_text("short")
+            with patch("research.v98_independent.v98_seven_slot_economic_replay.convert",return_value=4), \
+                 patch("research.v98_independent.v98_seven_slot_economic_replay.bridge") as bridge_mock, \
+                 patch("research.v98_independent.v98_seven_slot_economic_replay.run") as run_mock:
+                with self.assertRaisesRegex(ValueError,"INCOMPLETE_PHASE243_SEVEN_SLOT_GRID"):
+                    replay(slots,root,root/"manifest.json",root,root/"out",1000,5,2)
+                bridge_mock.assert_not_called();run_mock.assert_not_called()
+
+    def test_unverified_receipt_rejected(self):
+        with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
+            root=Path(d)/"v98_independent";root.mkdir()
+            slots=root/"slots.csv";slots.write_text("slots")
+            def fake_convert(src,dst,**kwargs):
+                dst.write_text("targets");return EXPECTED_HOURS*len(ASSETS)
+            def fake_bridge(src,prices,dst):
+                dst.write_text("positions");return EXPECTED_HOURS*len(ASSETS)
+            with patch("research.v98_independent.v98_seven_slot_economic_replay.convert",side_effect=fake_convert), \
+                 patch("research.v98_independent.v98_seven_slot_economic_replay.bridge",side_effect=fake_bridge), \
+                 patch("research.v98_independent.v98_seven_slot_economic_replay.run",return_value={"hours":1,"authenticated_prices":False}):
+                with self.assertRaisesRegex(ValueError,"UNVERIFIED_FULL_PHASE243_RECEIPT"):
+                    replay(slots,root,root/"manifest.json",root,root/"out",1000,5,2)
 
     def test_invalid_cost_scenarios_fail_closed(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
