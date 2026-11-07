@@ -25,3 +25,14 @@ Before running a new candidate, map each proposed traded instrument to original 
 4. I1 options branch is blocked by unreceived/unlicensed full Deribit historical options coverage (~658 of 661 required days missing). Require explicit commercial license/permission and authenticated complete original history; no purchase without approval.
 
 No orders, ROI claim, historical rewrite, frozen mutation or economic execution was performed in this audit.
+
+## Follow-up 2026-11-07 01:38 UTC — independent read-only cross-check
+
+Source: `paper-results/reports/paper_data_sync_v13.json`, blob `4753a6365cfe1729c775ab7d495f00378c9c4606`, and `paper-results/state/paper_v13_state.json`, blob `ac654da5e085cb0e70e3a1ab935c99869dafc3e1`.
+
+- Market candle boundary now `2026-11-07T00:00:00Z`, with `publication_lag_hours=0`; V13 state `latest_data_timestamp` agrees, `new_forward_hours=2045`, `mode=PAPER_ONLY`, `real_orders_enabled=false`.
+- FTM funding lag increased to **12136 h**, MKR to **10192 h**, while BTC/ETH funding lag is **8 h** and remains within the configured **12 h** threshold. V13 state explicitly quarantines `FTMUSDT` and `MKRUSDT`. The stale funding is not proof of a collector defect or delisting by itself.
+- Additional independent discrepancy: `EOSUSDT` kline `latest=2025-05-21T09:00:00Z`, `rows_added=0`, despite its funding `latest=2026-11-06T16:00:00Z`. The global funding-lag map omits EOS. This is a **cross-feed lifecycle mismatch**, not evidence of a currently tradable EOS perpetual. Do not infer tradability from one fresh feed alone. Confirm exchange contract identity and symbol status from original exchange metadata before any new strategy includes EOS.
+- GitHub Actions run `42313431356` completed successfully; its paper job includes `Verify paper safety and freshness`, `Verify published history was not rewritten`, and `Publish durable paper results`, all successful. This validates workflow gates, not economic PnL or browser rendering.
+
+**Decision:** NO PROMOTION. Keep the existing V13 paper and immutable historical records untouched. For any *new* TRAIN candidate, require a joint instrument identity + contemporaneous kline + actual settled funding + fee/fill provenance gate. A global `publication_lag_hours=0` is insufficient to certify individual instruments. Next engineering action is a fail-closed, instrument-level coverage validator with independent tests on real receipts; do not filter assets posthoc based on returns. No new strategy run or order was performed in this follow-up.
