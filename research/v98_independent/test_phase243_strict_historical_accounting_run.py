@@ -141,7 +141,7 @@ class StrictHistoricalRunTests(unittest.TestCase):
         for stamp in ("2024-01-01T00:00:00","2024-01-01T01:00:00+01:00"):
             for a in ASSETS:
                 p=prices/f"{a}_1h.csv"
-                p.write_text("open_time,open,close\\n"+stamp+",100,100\\n")
+                p.write_text("open_time,open,close\n"+stamp+",100,100\n")
                 manifest["prices"][a]={"canonical_sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
             m=self.root/"price_manifest.json"
             m.write_text(json.dumps(manifest))
@@ -169,7 +169,7 @@ class StrictHistoricalRunTests(unittest.TestCase):
         p=prices/"BTCUSDT_1h.csv"
         original=p.read_text()
         for corrupted, error in (
-            (original+original.splitlines()[-1]+"\\n","DUPLICATE_OR_UNALIGNED"),
+            (original+original.splitlines()[-1]+"\n","DUPLICATE_OR_UNALIGNED"),
             (original.replace(datetime.fromtimestamp((START+H)/1000,timezone.utc).isoformat(),
                               datetime.fromtimestamp((START+2*H)/1000,timezone.utc).isoformat()),"NONCONTIGUOUS"),
         ):
