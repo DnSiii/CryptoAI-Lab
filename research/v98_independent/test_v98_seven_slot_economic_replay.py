@@ -37,6 +37,15 @@ class ReplayTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"INVALID_COST_SCENARIOS"):
                 replay(root,root,root,root,root,1000,5,2,multipliers=(1,4,2))
 
+    def test_cost_stress_cannot_masquerade_as_severe(self):
+        with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
+            root=Path(d)/"v98_independent"
+            root.mkdir()
+            for multipliers in ((1,1,4),(1,2,2),(0.5,2,4),(2,3,4),(1,0.9,4)):
+                with self.subTest(multipliers=multipliers):
+                    with self.assertRaisesRegex(ValueError,"INVALID_COST_SCENARIOS"):
+                        replay(root,root,root,root,root,1000,5,2,multipliers=multipliers)
+
     def test_nonfinite_multiplier_rejected(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as d:
             root=Path(d)/"v98_independent"
