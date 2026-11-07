@@ -58,11 +58,12 @@ def account(rows, funding, *, initial_equity_usd, taker_fee_bps, slippage_bps,
             fill = float(r["fill_price"])
             if any(not math.isfinite(v) for v in (pre,target,close,fill)) or close <= 0 or fill <= 0:
                 raise ValueError("INVALID_EXECUTION_DATA")
-            if abs(pre - previous[a]) > 1e-7 * max(1,abs(pre),abs(previous[a])):
+            expected_pre = previous[a] * fill / previous_close[a] if a in previous_close else 0.0
+            if abs(pre - expected_pre) > 1e-7 * max(1,abs(pre),abs(expected_pre)):
                 raise ValueError("PRE_TRADE_INVENTORY_MISMATCH")
             # Pre-trade inventory earns price movement from prior close to current fill.
             if a in previous_close:
-                move = pre * (fill / previous_close[a] - 1)
+                move = pre - previous[a]
                 pnl += move
                 entry_price_pnl += move
             elif pre:
