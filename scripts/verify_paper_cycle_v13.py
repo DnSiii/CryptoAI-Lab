@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -71,13 +72,15 @@ def main() -> None:
             if adjustment.get("order_side") != expected_side:
                 raise RuntimeError("lado da ordem não corresponde à execução real")
             displayed = float(adjustment.get("order_value_brl", 0.0))
+            # NaN and infinity bypass ordinary <= 0 checks: reject them explicitly.
+            if not math.isfinite(displayed):
+                raise RuntimeError("movimentação sem valor executado")
             if displayed <= 0.0:
                 # Only a positive simulated pre-round notional strictly below half a cent
                 # can explain zero in the two-decimal display. Fail closed otherwise.
                 raw = adjustment.get("order_value_brl_unrounded")
                 if raw is None:
                     raise RuntimeError("movimentação sem valor executado")
-                import math
                 precise = float(raw)
                 if not (math.isfinite(precise) and 0.0 < precise < 0.005
                         and displayed == 0.0 and delta != 0.0
