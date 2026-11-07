@@ -61,4 +61,16 @@ class CausalBridgeTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"INVALID_PRICE"):
                 bridge(targets,prices,root/"positions.csv")
 
+    def test_naive_or_non_utc_price_timestamp_rejected(self):
+        for stamp in ('2023-01-01T00:00:00', '2023-01-01T01:00:00+01:00'):
+            with self.subTest(stamp=stamp), tempfile.TemporaryDirectory(prefix='v98_independent_') as d:
+                root=Path(d)/'v98_independent';root.mkdir()
+                prices=root/'prices';prices.mkdir()
+                for a in ASSETS:
+                    (prices/f'{a}_1h.csv').write_text(f'open_time,open,close\n{stamp},100,101\n')
+                targets=root/'targets.csv'
+                targets.write_text('asset,hour_open_ms,target_notional_usd\n')
+                with self.assertRaisesRegex(ValueError,'PRICE_TIMESTAMP_MUST_BE_UTC'):
+                    bridge(targets,prices,root/'positions.csv')
+
 if __name__=="__main__":unittest.main()
