@@ -6,6 +6,7 @@ No strategy decisions, historical edits, or instrument substitutions.
 """
 import datetime as dt
 import json
+import math
 import sys
 
 UTC = dt.timezone.utc
@@ -22,7 +23,7 @@ def timestamp(value):
 def audit(doc):
     boundary = timestamp(doc["expected_latest_closed_hour"])
     max_funding = doc.get("maximum_funding_lag_hours")
-    if type(max_funding) not in (int, float) or not 0 <= max_funding <= 12:
+    if type(max_funding) not in (int, float) or not math.isfinite(max_funding) or not 0 <= max_funding <= 12:
         raise ValueError("unsafe funding threshold")
     rows = {}
     symbols = doc.get("symbols")
@@ -34,7 +35,7 @@ def audit(doc):
         try:
             k = timestamp(feeds["klines"]["latest"])
             f = timestamp(feeds["funding"]["latest"])
-            if k > boundary or f > boundary + dt.timedelta(hours=1):
+            if k > boundary or f > boundary:
                 reasons.append("FUTURE_FEED")
             if (boundary - k).total_seconds() / 3600 > MAX_KLINE_AGE_H:
                 reasons.append("STALE_KLINE")
@@ -43,7 +44,8 @@ def audit(doc):
             declared = lagmap.get(symbol)
             if declared is None:
                 reasons.append("MISSING_DECLARED_FUNDING_LAG")
-            elif type(declared) not in (int, float) or abs(declared - (boundary - f).total_seconds() / 3600) > 1.01:
+            elif (type(declared) not in (int, float) or not math.isfinite(declared)
+                  or declared < 0 or abs(declared - (boundary - f).total_seconds() / 3600) > 1.01):
                 reasons.append("FUNDING_LAG_MISMATCH")
         except (ValueError, KeyError, TypeError, OverflowError):
             reasons.append("INVALID_FEED")
@@ -72,7 +74,20 @@ def selftest():
     assert "MISSING_DECLARED_FUNDING_LAG" in audit(base)["BTCUSDT"]["reasons"]
     base["symbols"]["BTCUSDT"]["klines"]["latest"] = "2026-11-08T00:00:00Z"
     assert "FUTURE_FEED" in audit(base)["BTCUSDT"]["reasons"]
-    print("selftest: PASS (fresh, stale kline, stale funding, missing lag, future)")
+    base["symbols"]["BTCUSDT"]["klines"]["latest"] = "2026-11-07T01:00:00Z"
+    base["symbols"]["BTCUSDT"]["funding"]["latest"] = "2026-11-07T02:00:00Z"
+    assert "FUTURE_FEED" in audit(base)["BTCUSDT"]["reasons"]
+    base["symbols"]["BTCUSDT"]["funding"]["latest"] = "2026-11-07T00:00:00Z"
+    for invalid in [float("nan"), float("inf"), -1, True]:
+        base["funding_lag_hours"]["BTCUSDT"] = invalid
+        assert "FUNDING_LAG_MISMATCH" in audit(base)["BTCUSDT"]["reasons"]
+    base["maximum_funding_lag_hours"] = float("nan")
+    try:
+        audit(base)
+        raise AssertionError("NaN threshold accepted")
+    except ValueError:
+        pass
+    print("selftest: PASS (fresh, stale, future, nonfinite, negative, boolean lag)")
 
 if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == "--selftest":
