@@ -39,6 +39,7 @@ class EconomicAccountingTests(unittest.TestCase):
         for r in rows:
             if r["hour_open_ms"] == H:
                 r["fill_price"] = 70
+                r["pre_trade_notional_usd"] = 2800
                 r["close_price"] = 70
                 r["target_notional_usd"] = 4000
         # Prior inventory of 16k loses 4.8k at the next open. 16k target
@@ -46,6 +47,27 @@ class EconomicAccountingTests(unittest.TestCase):
         # the obsolete check against 10k starting equity.
         with self.assertRaisesRegex(ValueError,"ENTRY_GROSS_LEVERAGE_LIMIT"):
             account(rows,funding(),initial_equity_usd=10000,taker_fee_bps=0,slippage_bps=0)
+    def test_gap_revalues_units_without_double_counting(self):
+        rows = grid(target=100,pre=100)
+        for r in rows:
+            if r["hour_open_ms"] == H:
+                r["fill_price"] = 110
+                r["pre_trade_notional_usd"] = 110
+                r["close_price"] = 110
+                r["target_notional_usd"] = 110
+        out=account(rows,funding(),initial_equity_usd=10000,taker_fee_bps=0,slippage_bps=0)
+        self.assertAlmostEqual(out[-1]["price_pnl_usd"],40)
+        self.assertAlmostEqual(out[-1]["ending_equity_usd"],10040)
+
+    def test_stale_pretrade_usd_rejected_on_gap(self):
+        rows = grid(target=100,pre=100)
+        for r in rows:
+            if r["hour_open_ms"] == H:
+                r["fill_price"] = 110
+                r["close_price"] = 110
+        with self.assertRaisesRegex(ValueError,"PRE_TRADE_INVENTORY_MISMATCH"):
+            account(rows,funding(),initial_equity_usd=10000,taker_fee_bps=0,slippage_bps=0)
+
     def test_leverage_gate(self):
         with self.assertRaisesRegex(ValueError,"ENTRY_GROSS_LEVERAGE_LIMIT"):
             account(grid(target=10000),funding(),initial_equity_usd=10000,taker_fee_bps=5,slippage_bps=5)
