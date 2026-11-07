@@ -28,7 +28,11 @@ def verify_native_prices(rows, price_root, price_manifest_path):
             for bar in csv.DictReader(f):
                 stamp = bar["open_time"]
                 from datetime import datetime
-                t = int(datetime.fromisoformat(stamp.replace("Z","+00:00")).timestamp()*1000)
+                parsed = datetime.fromisoformat(stamp.replace("Z","+00:00"))
+                from datetime import timezone, timedelta
+                if parsed.tzinfo is None or parsed.utcoffset() != timedelta(0):
+                    raise ValueError("NON_UTC_AUTHENTICATED_PRICE_TIMESTAMP")
+                t = int(parsed.timestamp()*1000)
                 if t >= 1767225600000:
                     raise ValueError("PRICE_TRAINING_BOUNDARY")
                 if t % HOUR_MS or (asset,t) in expected:
