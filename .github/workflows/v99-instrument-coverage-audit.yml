@@ -1,0 +1,45 @@
+name: V99 instrument coverage audit (research only)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - 'scripts/audit_v99_instrument_coverage.py'
+      - '.github/workflows/v99-instrument-coverage-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Adversarial selftest
+        run: python3 scripts/audit_v99_instrument_coverage.py --selftest
+      - name: Download canonical public manifest
+        run: |
+          curl --fail --location --retry 3 --silent --show-error \
+            https://raw.githubusercontent.com/DnSiii/CryptoAI-Lab/paper-results/reports/paper_data_sync_v13.json \
+            -o /tmp/v99-paper-data-sync.json
+      - name: Read-only coverage gate (expected fail for quarantined instruments)
+        shell: bash
+        run: |
+          set +e
+          python3 scripts/audit_v99_instrument_coverage.py /tmp/v99-paper-data-sync.json > /tmp/coverage.json
+          rc=$?
+          set -e
+          python3 - <<'PY'
+          import json
+          r=json.load(open('/tmp/coverage.json'))
+          bad={k:v['reasons'] for k,v in r.items() if v['market_data_gate']!='PASS'}
+          print(json.dumps({'total':len(r),'market_data_pass':len(r)-len(bad),'market_data_fail':bad,'economic_gate':'UNVERIFIED'},sort_keys=True))
+          assert len(r)>0
+          assert all(v['economic_gate']=='UNVERIFIED' for v in r.values())
+          PY
+          if [ "$rc" -eq 2 ]; then
+            echo 'Expected quarantine: market-data coverage not universally valid; NO PROMOTION'
+          elif [ "$rc" -eq 0 ]; then
+            echo 'Market data gate passed; economic certification still UNVERIFIED'
+          else
+            echo "Unexpected verifier failure: $rc"
+            exit "$rc"
+          fi
