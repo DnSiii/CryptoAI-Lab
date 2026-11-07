@@ -1,0 +1,52 @@
+name: V98 Independent Authenticated Clean-4 Reader Real-Artifact Gate
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-authenticated-reader-real-artifact.yml'
+      - 'research/v98_independent/v98_phase243_training_reader.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  authenticated-reader-real-artifact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Retrieve existing provider-authenticated source artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/price_artifact /tmp/v98_independent/funding_artifact
+          gh run download 42087023745 -R DnSiii/CryptoAI-Lab -n v98-independent-clean4-148-official-archives-42087023745 -D /tmp/v98_independent/price_artifact
+          gh run download 42132030145 -R DnSiii/CryptoAI-Lab -n v98-independent-native-funding-42132030145 -D /tmp/v98_independent/funding_artifact
+          find /tmp/v98_independent/price_artifact -name source_manifest.json -print
+          find /tmp/v98_independent/funding_artifact -name funding_manifest.json -print
+      - name: Execute strict full-history authenticated reader (source only, never PnL)
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from research.v98_independent.v98_phase243_training_reader import load, EXPECTED_HOURS
+          p=Path('/tmp/v98_independent/price_artifact')
+          f=Path('/tmp/v98_independent/funding_artifact')
+          manifests=list(p.rglob('source_manifest.json'))
+          funds=list(f.rglob('funding_manifest.json'))
+          assert len(manifests)==1,('PRICE_MANIFEST_COUNT',len(manifests))
+          assert len(funds)==1,('FUNDING_MANIFEST_COUNT',len(funds))
+          result=load(manifests[0].parent,manifests[0],funds[0].parent)
+          assert result['hours']==EXPECTED_HOURS
+          assert result['holdout_accessed'] is False
+          print('V98_AUTHENTICATED_READER_REAL_ARTIFACT_PASS_NO_STRATEGY_PNL')
+          print('price_manifest_sha256:',result['price_manifest_sha256'])
+          print('funding_manifest_sha256:',result['funding_manifest_sha256'])
+          PY
