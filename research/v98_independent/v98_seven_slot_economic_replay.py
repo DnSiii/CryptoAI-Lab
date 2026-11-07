@@ -8,6 +8,8 @@ from pathlib import Path
 from research.v98_independent.v98_sevenslot_weight_to_targets import convert
 from research.v98_independent.v98_causal_target_execution_bridge import bridge
 from research.v98_independent.phase243_strict_historical_accounting_run import run
+from research.v98_independent.v98_phase243_training_reader import EXPECTED_HOURS
+from research.v98_independent.phase243_native_funding_cashflow import ASSETS
 
 def replay(slots, prices, price_manifest, funding, output, capital, fee_bps, slippage_bps,
            gross_cap=1.0, max_gross_leverage=2.0, multipliers=(1,2,4)):
@@ -24,6 +26,8 @@ def replay(slots, prices, price_manifest, funding, output, capital, fee_bps, sli
     targets=output/"seven_slot_targets.csv"
     positions=output/"causal_positions.csv"
     count=convert(slots,targets,fixed_capital_usd=capital,gross_cap=gross_cap)
+    if count != EXPECTED_HOURS * len(ASSETS):
+        raise ValueError('INCOMPLETE_PHASE243_SEVEN_SLOT_GRID')
     if bridge(targets,prices,positions)!=count:
         raise ValueError("POSITION_COUNT_MISMATCH")
     digest=hashlib.sha256(positions.read_bytes()).hexdigest()
@@ -34,6 +38,8 @@ def replay(slots, prices, price_manifest, funding, output, capital, fee_bps, sli
                     slippage_bps=slippage_bps,cost_multiplier=multiplier,
                     max_gross_leverage=max_gross_leverage,price_root=Path(prices),
                     price_manifest_path=Path(price_manifest))
+        if receipt.get("hours") != EXPECTED_HOURS or receipt.get("authenticated_prices") is not True:
+            raise ValueError("UNVERIFIED_FULL_PHASE243_RECEIPT")
         if receipt["positions_sha256"]!=digest:
             raise ValueError("SCENARIO_POSITION_DRIFT")
         receipts[label]=receipt
