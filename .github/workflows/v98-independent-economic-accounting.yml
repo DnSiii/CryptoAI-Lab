@@ -19,6 +19,8 @@ on:
       - 'research/v98_independent/test_v98_seven_slot_economic_replay.py'
       - 'research/v98_independent/v98_phase243_training_reader.py'
       - 'research/v98_independent/test_v98_phase243_training_reader.py'
+      - 'research/v98_independent/v98_authenticated_compound_integration.py'
+      - 'research/v98_independent/test_v98_authenticated_compound_integration.py'
       - '.github/workflows/v98-independent-economic-accounting.yml'
   workflow_dispatch:
 permissions:
@@ -36,4 +38,4 @@ jobs:
         with:
           python-version: '3.11'
       - name: Validate V98 cost and funding accounting (not historical strategy validation)
-        run: python -m unittest research/v98_independent/test_phase243_economic_accounting.py research/v98_independent/test_phase243_strict_historical_accounting_run.py research/v98_independent/test_v98_causal_target_execution_bridge.py research/v98_independent/test_v98_sevenslot_weight_to_targets.py research/v98_independent/test_v98_seven_slot_economic_replay.py research/v98_independent/test_v98_phase243_training_reader.py research/v98_independent/test_v98_causal_compound_sizing.py research/v98_independent/test_v98_compound_scenario_replay.py -v
+        run: python -m unittest research/v98_independent/test_phase243_economic_accounting.py research/v98_independent/test_phase243_strict_historical_accounting_run.py research/v98_independent/test_v98_causal_target_execution_bridge.py research/v98_independent/test_v98_sevenslot_weight_to_targets.py research/v98_independent/test_v98_seven_slot_economic_replay.py research/v98_independent/test_v98_phase243_training_reader.py research/v98_independent/test_v98_causal_compound_sizing.py research/v98_independent/test_v98_compound_scenario_replay.py research/v98_independent/test_v98_authenticated_compound_integration.py -v
