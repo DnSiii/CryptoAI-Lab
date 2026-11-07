@@ -245,42 +245,24 @@
 
   function render(){if(!state.data)return;state.tab==='backtest'?renderBacktest():renderPaper()}
   async function load(){
-    // Fail closed: never silently substitute an older Pages-local snapshot.
-    // The canonical research publication is paper-results; no frozen/paper ledger is modified.
-    const rootIds=['#v99-backtest','#v99-paper'];
-    const showFailure=(message)=>{
-      for(const id of rootIds){const root=$(id);if(root)root.innerHTML=`<div class="v99-empty" role="alert">${message}</div>`;}
-    };
-    try{
-      const response=await fetch(`${DATA_URL}?t=${Date.now()}`,{cache:'no-store'});
-      if(!response.ok)throw new Error(`HTTP ${response.status}`);
-      const snapshot=await response.json();
-      if(!snapshot || typeof snapshot!=='object' || !snapshot.v99Research)
-        throw new Error('Snapshot sem V99 Research');
-      // The remote URL alone does not prove freshness: expose the market timestamp.
-      const latest=Date.parse(snapshot.v99Research.latest);
-      if(!Number.isFinite(latest) || latest<=0 || latest>Date.now()+3600000)
-        throw new Error('Timestamp de mercado ausente, inválido ou no futuro');
-      const hours=(Date.now()-latest)/3600000;
-      let notice=$('#v99-market-freshness');
-      if(!notice){
-        notice=document.createElement('div');
-        notice.id='v99-market-freshness';
-        notice.setAttribute('role','status');
-        notice.style.cssText='padding:12px 16px;margin:12px 0;border:1px solid #f59e0b;border-radius:12px;background:#422006;color:#fff3d6;font:700 13px/1.5 system-ui,sans-serif';
-        const view=$('#v99research');
-        if(view)view.prepend(notice);
-      }
-      if(notice)notice.textContent=(hours>48?'⚠ SNAPSHOT DESATUALIZADO':'PAPER DE PESQUISA · NÃO CERTIFICADO')+' · Mercado: '+new Date(latest).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})+' · Idade: '+Math.max(0,Math.floor(hours))+'h · Fonte: paper-results · RESEARCH ONLY · SEM ORDENS REAIS';
-      state.data=snapshot;
-      render();
-    }catch(error){
-      state.data=null;
-      const notice=$('#v99-market-freshness');
-      if(notice)notice.textContent='⚠ DADOS INDISPONÍVEIS / NÃO VERIFICADOS · RESEARCH ONLY · SEM ORDENS REAIS';
-      console.error('V99 canonical research data unavailable; refusing stale local fallback:',error);
-      showFailure('⚠ DADOS INDISPONÍVEIS / NÃO VERIFICADOS. Fonte oficial paper-results inacessível. Nenhum resultado local antigo será exibido como atualizado. RESEARCH ONLY · SEM ORDENS REAIS.');
+    // The published JSON lives beside this script; avoid a redundant 5 MB
+    // cross-origin request before trying the copy already on GitHub Pages.
+    let failure=null;
+    for(const url of [`dashboard_data.json?t=${Date.now()}`,`${DATA_URL}?t=${Date.now()}`]){
+      try{
+        const response=await fetch(url,{cache:'no-store'});
+        if(!response.ok)throw new Error(`HTTP ${response.status}`);
+        const snapshot=await response.json();
+        if(!snapshot?.v99Research)throw new Error('Snapshot sem V99 Research');
+        state.data=snapshot;break;
+      }catch(error){failure=error;console.warn('V99 Research snapshot unavailable:',url,error)}
     }
+    if(!state.data){
+      const message='Não foi possível carregar o V99 Research. Recarregue a página para tentar novamente.';
+      for(const id of ['#v99-backtest','#v99-paper']){const root=$(id);if(root)root.innerHTML=`<div class="v99-empty">${message}</div>`;}
+      return;
+    }
+    render();
   }
 
   installStyles();ensureNavigation();ensureView();load();
