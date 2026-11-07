@@ -29,6 +29,11 @@ def test_positive_subcent():
     (0.0, float("inf"), 0.0000002),
     (0.0, 0.00223, 0.0),
     (-0.01, 0.00223, 0.0000002),
+    (float("nan"), 0.00223, 0.0000002),
+    (float("inf"), 0.00223, 0.0000002),
+    (-float("inf"), 0.00223, 0.0000002),
+    (0.0, -float("inf"), 0.0000002),
+    (0.0, 0.004999, 0.0),
 ])
 def test_fail_closed(displayed, raw, delta):
     with pytest.raises(RuntimeError, match="movimentação sem valor executado"):
@@ -36,3 +41,7 @@ def test_fail_closed(displayed, raw, delta):
 
 def test_regular_positive_order():
     check(12.34, None)
+
+@pytest.mark.parametrize("raw", [0.000000001, 0.0049])
+def test_strict_positive_subcent_boundaries(raw):
+    check(0.0, raw)
