@@ -24,20 +24,26 @@ def load(price_root, price_manifest_path, funding_root):
         raise ValueError("V98_NAMESPACE_REQUIRED")
     price_root, price_manifest_path, funding_root = map(Path, paths)
     manifest = json.loads(price_manifest_path.read_text())
-    if (manifest.get("mode") != "CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA"
+    source_mode = manifest.get("mode") == "V98_CLEAN4_SOURCE_ONLY"
+    legacy_mode = manifest.get("mode") == "CLEAN4_SOURCE_DATA_ONLY_NO_ALPHA"
+    price_entries = manifest.get("assets" if source_mode else "prices", {})
+    if (not (source_mode or legacy_mode)
             or manifest.get("holdout_accessed") is not False
-            or set(manifest.get("prices", {})) != set(ASSETS)):
+            or set(price_entries) != set(ASSETS)
+            or (source_mode and (manifest.get("promotion_eligible") is not False
+                                 or manifest.get("economic_validation") is not False))):
         raise ValueError("UNTRUSTED_PHASE243_MANIFEST")
     funding_manifest_path = funding_root / "funding_manifest.json"
     funding_manifest = json.loads(funding_manifest_path.read_text())
-    if (funding_manifest.get("mode") != "V98_NATIVE_FUNDING_CANONICAL_SOURCE_ONLY"
+    if (funding_manifest.get("mode") not in ("V98_NATIVE_FUNDING_CANONICAL_SOURCE_ONLY",
+                                             "V98_NATIVE_FUNDING_CANONICAL_SOURCE_ONLY")
             or funding_manifest.get("holdout_accessed") is not False
             or set(funding_manifest.get("assets", {})) != set(ASSETS)):
         raise ValueError("UNTRUSTED_NATIVE_FUNDING_MANIFEST")
     bars, funding = {}, {}
     for asset in ASSETS:
         path = price_root / (asset + "_1h.csv")
-        if _sha(path) != manifest["prices"][asset]["canonical_sha256"]:
+        if _sha(path) != price_entries[asset]["canonical_sha256"]:
             raise ValueError("PHASE243_PRICE_HASH_MISMATCH_" + asset)
         asset_bars = []
         with path.open(newline="") as stream:
