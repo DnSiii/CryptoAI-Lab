@@ -33,7 +33,7 @@ class Phase243ReaderTest(unittest.TestCase):
                         writer.writerow((stamp, 100, 101, 99, 100, 1000))
                 price_manifest["prices"][asset] = {"canonical_sha256": sha(path)}
                 fp = funding / (asset + "_native_funding.csv")
-                fp.write_text("funding_time_ms,funding_rate\\n" + str(START_MS) + ",0.0001\\n")
+                fp.write_text("funding_time_ms,funding_rate\n" + str(START_MS) + ",0.0001\n")
                 funding_manifest["assets"][asset] = {"sha256": sha(fp)}
             mp = root / "phase243_manifest.json"
             mp.write_text(json.dumps(price_manifest))
@@ -43,7 +43,7 @@ class Phase243ReaderTest(unittest.TestCase):
             self.assertEqual(set(result["bars"]), set(ASSETS))
             self.assertFalse(result["holdout_accessed"])
             with (prices / "BTCUSDT_1h.csv").open("a") as f:
-                f.write("2026-01-01T00:00:00+00:00,100,101,99,100,1000\\n")
+                f.write("2026-01-01T00:00:00+00:00,100,101,99,100,1000\n")
             with self.assertRaisesRegex(ValueError, "PHASE243_PRICE_HASH_MISMATCH"):
                 load(prices, mp, funding)
 
