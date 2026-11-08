@@ -7,6 +7,7 @@ on:
       - '.github/workflows/v98-independent-a2-authenticated-full-replay.yml'
       - 'research/v98_independent/v98_a0_economic_diagnostics.py'
       - 'research/v98_independent/v98_sevenslot_preregistered_a2.py'
+      - 'research/v98_independent/v98_a2_chronological_gate.py'
       - 'research/v98_independent/v98_authenticated_compound_integration.py'
       - 'research/v98_independent/v98_compound_scenario_replay.py'
       - 'research/v98_independent/v98_causal_compound_sizing.py'
@@ -118,6 +119,9 @@ jobs:
       - name: Compute chronological economics and stress diagnostics (no promotion)
         run: |
           python -m research.v98_independent.v98_a0_economic_diagnostics --replay /tmp/v98_independent/a2/replay --output /tmp/v98_independent/a2/replay/diagnostics.json
+      - name: Audit retrospective chronological folds without false OOS claims
+        run: |
+          python -m research.v98_independent.v98_a2_chronological_gate --replay /tmp/v98_independent/a2/replay --output /tmp/v98_independent/a2/replay/chronological_gate.json
       - name: Upload unapproved research-only economic ledgers
         if: success()
         uses: actions/upload-artifact@v4
