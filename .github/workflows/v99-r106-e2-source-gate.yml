@@ -1,0 +1,50 @@
+name: V99 E2 TRAIN source integrity (NO ECONOMICS)
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - scripts/v99_r106_e2_train_source_gate.py
+      - .github/workflows/v99-r106-e2-source-gate.yml
+permissions:
+  contents: read
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Adversarial fail-closed source tests, no market PnL
+        run: |
+          python - <<'PY'
+          import csv, datetime as dt, hashlib, tempfile
+          from pathlib import Path
+          from scripts.v99_r106_e2_train_source_gate import audit
+          with tempfile.TemporaryDirectory() as directory:
+              path = Path(directory)/"fixture.csv"
+              fields = ["timestamp","symbol","market_type","open","high","low","close","volume"]
+              def write(modifier=None):
+                  with path.open("w",newline="") as f:
+                      w=csv.DictWriter(f,fieldnames=fields);w.writeheader()
+                      for n in range(181):
+                          t=dt.datetime(2023,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(hours=n)
+                          for symbol in ("BTC","ETH"):
+                              row=dict(timestamp=t.isoformat(),symbol=symbol,market_type="perpetual",open="100",high="101",low="99",close="100",volume="1")
+                              if modifier: modifier(row,n,symbol)
+                              w.writerow(row)
+                  return hashlib.sha256(path.read_bytes()).hexdigest()
+              def reject(label, modifier=None, bad_hash=False):
+                  sha=write(modifier)
+                  try: audit(path, "0"*64 if bad_hash else sha)
+                  except ValueError: print("EXPECTED REJECTION:",label)
+                  else: raise AssertionError("failed open: "+label)
+              sha=write();assert audit(path,sha)["hours_per_symbol"]==181
+              reject("wrong digest",bad_hash=True)
+              reject("post TRAIN timestamp",lambda r,n,s: r.update(timestamp="2023-10-01T00:00:00+00:00") if n==180 and s=="ETH" else None)
+              reject("zero price",lambda r,n,s: r.update(open="0") if n==5 and s=="BTC" else None)
+              reject("wrong market",lambda r,n,s: r.update(market_type="spot") if n==5 and s=="BTC" else None)
+              reject("missing hour",lambda r,n,s: r.update(timestamp="2023-01-09T00:00:00+00:00") if n==5 and s=="BTC" else None)
+              print("SOURCE GATE PASS; FIXTURES ONLY; NO ECONOMIC BACKTEST; NO PROMOTION")
+          PY
