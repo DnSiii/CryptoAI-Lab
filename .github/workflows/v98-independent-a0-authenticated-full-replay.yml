@@ -74,10 +74,7 @@ jobs:
           funds=list((base/'funding').rglob('funding_manifest.json'))
           if len(prices)!=1 or len(funds)!=1:
               raise SystemExit(f'AMBIGUOUS_CANONICAL_SOURCES price={len(prices)} funding={len(funds)}')
-          (base/'paths.env').write_text('PRICES='+str(prices[0].parent)+'
-PRICE_MANIFEST='+str(prices[0])+'
-FUNDING='+str(funds[0].parent)+'
-')
+          (base/'paths.env').write_text('PRICES='+str(prices[0].parent)+'\nPRICE_MANIFEST='+str(prices[0])+'\nFUNDING='+str(funds[0].parent)+'\n')
           PY
           cat /tmp/v98_independent/artifacts/paths.env >> "$GITHUB_ENV"
           python -m research.v98_independent.v98_phase243_training_reader --prices "$PRICES" --price-manifest "$PRICE_MANIFEST" --funding "$FUNDING"
