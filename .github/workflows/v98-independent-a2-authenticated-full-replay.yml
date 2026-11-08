@@ -34,62 +34,32 @@ jobs:
           python -m compileall -q research/v98_independent/v98_sevenslot_preregistered_a2.py research/v98_independent/v98_authenticated_compound_integration.py research/v98_independent/v98_compound_scenario_replay.py research/v98_independent/v98_causal_compound_sizing.py research/v98_independent/v98_phase243_training_reader.py research/v98_independent/v98_a0_economic_diagnostics.py
       - name: Verify native funding settlement contract before artifact acquisition
         run: python -m unittest discover -s research/v98_independent -p test_phase243_native_funding_cashflow.py -v
-      - name: Retrieve latest available V98 authenticated artifacts only
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+      # Pinned Phase243 artifacts: native action downloads avoid the broken gh API JSON path.
+      # Artifact IDs are immutable; never fall back to latest or other branches.
+      - name: Download pinned Clean-4 price artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 13444665313
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: /tmp/v98_independent/artifacts/prices
+      - name: Download pinned native funding artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 13464271018
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: /tmp/v98_independent/artifacts/funding
+      - name: Verify pinned source manifest presence before processing
         run: |
-          set -euo pipefail
-          mkdir -p /tmp/v98_independent/artifacts
           python - <<'PY'
-          import json,os,subprocess,time,zipfile
           from pathlib import Path
-          repo=os.environ['GH_REPO']
-          # Phase243 authenticated source IDs are pinned to avoid unstable repository-wide pagination.
-          # Fail closed on expiration, branch, and artifact identity; never substitute newer sources.
-          pinned={'prices':13444665313,'funding':13464271018}
-          artifacts={}
-          for label,artifact_id in pinned.items():
-              a=None
-              for attempt in range(5):
-                  proc=subprocess.run(['gh','api','--method','GET',
-                                       f'repos/{repo}/actions/artifacts/{artifact_id}'],
-                                      text=True,capture_output=True,timeout=60)
-                  try:
-                      if proc.returncode: raise RuntimeError(proc.stderr[-300:])
-                      a=json.loads(proc.stdout)
-                      if not isinstance(a,dict) or int(a.get('id',-1))!=artifact_id: raise ValueError('ARTIFACT_ID_MISMATCH')
-                      break
-                  except (ValueError,RuntimeError) as exc:
-                      if attempt==4: raise SystemExit(f'PINNED_METADATA_FAILURE {label} id={artifact_id}: {exc}')
-                      time.sleep(min(2**attempt,8))
-              name=a.get('name','').lower()
-              if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
-                  raise SystemExit(f'INVALID_PINNED_SOURCE {label} id={artifact_id} expired_or_wrong_branch')
-              if label=='prices' and not name.startswith('v98-independent-clean4-148-official-archives-'):
-                  raise SystemExit(f'INVALID_PINNED_PRICE_NAME {name}')
-              if label=='funding' and not ('funding' in name and 'native' in name):
-                  raise SystemExit(f'INVALID_PINNED_FUNDING_NAME {name}')
-              artifacts[label]=a
-          for label,a in artifacts.items():
-              target=Path('/tmp/v98_independent/artifacts')/label
-              target.mkdir(parents=True,exist_ok=True)
-              archive=target/'artifact.zip'
-              for attempt in range(5):
-                  with archive.open('wb') as dest:
-                      proc=subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{a["id"]}/zip',
-                                           '-H','Accept: application/vnd.github+json'],
-                                          stdout=dest,capture_output=True,timeout=120)
-                  if proc.returncode==0 and zipfile.is_zipfile(archive) and zipfile.ZipFile(archive).testzip() is None: break
-                  if attempt==4: raise SystemExit(f'PINNED_ZIP_FAILURE {label} id={a["id"]} rc={proc.returncode} stderr={proc.stderr[-300:]!r}')
-                  time.sleep(min(2**attempt,8))
-              with zipfile.ZipFile(archive) as z:
-                  for item in z.infolist():
-                      resolved=(target/item.filename).resolve()
-                      if not resolved.is_relative_to(target.resolve()):
-                          raise ValueError('ARTIFACT_ZIP_PATH_TRAVERSAL')
-                  z.extractall(target)
-              print(label,a['id'],a['name'],a['workflow_run']['id'])
+          base=Path('/tmp/v98_independent/artifacts')
+          for label,manifest in [('prices','source_manifest.json'),('funding','funding_manifest.json')]:
+              matches=list((base/label).rglob(manifest))
+              if len(matches)!=1:
+                  raise SystemExit(f'PINNED_SOURCE_MANIFEST_MISSING_OR_AMBIGUOUS {label}: {len(matches)}')
+              print(label, matches[0])
           PY
       - name: Resolve canonical sources and verify authenticated manifests
         run: |
