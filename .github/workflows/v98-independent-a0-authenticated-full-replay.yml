@@ -42,24 +42,36 @@ jobs:
           repo=os.environ['GH_REPO']
           # Fetch bounded pages without gh --paginate: pagination previously failed with
           # "unexpected end of JSON input" before any source was recovered.
-          artifacts=[]
-          for page in range(1,31):
-              endpoint=f'repos/{repo}/actions/artifacts?per_page=100&page={page}'
-              raw=subprocess.check_output(['gh','api','--method','GET',endpoint],text=True)
-              batch=json.loads(raw).get('artifacts',[])
-              artifacts.extend(batch)
-              if len(batch)<100:break
-          else:
-              raise SystemExit('ARTIFACT_PAGINATION_LIMIT_REACHED: increase bounded page cap')
-          specs={'prices':'v98-independent-clean4-148-official-archives-',
-                 'funding':'v98-independent'}
-          eligible=[a for a in artifacts if not a['expired'] and a.get('workflow_run',{}).get('head_branch')=='research/v98-independent-zero']
-          price=next((a for a in sorted(eligible,key=lambda x:x['created_at'],reverse=True)
-                      if a['name'].startswith(specs['prices'])),None)
-          funding=next((a for a in sorted(eligible,key=lambda x:x['created_at'],reverse=True)
-                        if 'funding' in a['name'].lower() and 'native' in a['name'].lower()),None)
+          # Small pages avoid the GH CLI JSON truncation seen at page 5 with 100 items.
+          # Stop immediately when both authenticated V98 source artifacts are found.
+          import time
+          price=funding=None
+          for page in range(1,251):
+              endpoint=f'repos/{repo}/actions/artifacts?per_page=20&page={page}'
+              batch=None
+              for attempt in range(3):
+                  proc=subprocess.run(['gh','api','--method','GET',endpoint],
+                                      text=True,capture_output=True)
+                  try:
+                      if proc.returncode: raise RuntimeError(proc.stderr[-300:])
+                      batch=json.loads(proc.stdout)['artifacts']
+                      break
+                  except (ValueError,KeyError,RuntimeError) as exc:
+                      if attempt==2:
+                          raise SystemExit(f'ARTIFACT_PAGE_FAILURE page={page}: {exc}')
+                      time.sleep(2**attempt)
+              for a in batch:
+                  if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
+                      continue
+                  name=a['name'].lower()
+                  if price is None and name.startswith('v98-independent-clean4-148-official-archives-'):
+                      price=a
+                  if funding is None and 'funding' in name and 'native' in name:
+                      funding=a
+              if price and funding: break
+              if len(batch)<20: break
           if not price or not funding:
-              raise SystemExit('MISSING_AUTHENTICATED_V98_ARTIFACT: price='+str(bool(price))+' funding='+str(bool(funding)))
+              raise SystemExit(f'MISSING_AUTHENTICATED_V98_ARTIFACT price={bool(price)} funding={bool(funding)}')
           for label,a in [('prices',price),('funding',funding)]:
               target=Path('/tmp/v98_independent/artifacts')/label
               target.mkdir(parents=True,exist_ok=True)
