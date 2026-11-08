@@ -1,0 +1,21 @@
+name: V99 E2 native readiness adversarial (NO ECONOMICS)
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - scripts/v99_r106_e2_native_readiness.py
+      - scripts/test_v99_r106_e2_native_readiness.py
+      - .github/workflows/v99-r106-e2-native-readiness.yml
+permissions:
+  contents: read
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Fail-closed receipt tests (fixtures, no PnL)
+        run: python scripts/test_v99_r106_e2_native_readiness.py
