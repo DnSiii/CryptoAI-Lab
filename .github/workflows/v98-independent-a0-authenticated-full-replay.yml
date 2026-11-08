@@ -27,7 +27,7 @@ jobs:
           import json,os,subprocess
           from pathlib import Path
           repo=os.environ['GH_REPO']
-          raw=subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts','--paginate','-f','per_page=100'],text=True)
+          raw=subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts','--paginate','-X','GET','-f','per_page=100'],text=True)
           # gh --paginate may concatenate JSON documents.
           decoder=json.JSONDecoder(); offset=0; artifacts=[]
           while offset<len(raw):
