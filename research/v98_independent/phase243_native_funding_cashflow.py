@@ -20,18 +20,23 @@ def load_funding(path):
     events = {}
     previous = None
     for row in rows:
-        t = int(row["funding_time_ms"])
+        raw_t = int(row["funding_time_ms"])
+        # Normalize only the exchange +1ms settlement stamp to its hour.
+        # The original CSV and manifest hash remain unchanged.
+        t = raw_t - 1 if raw_t % HOUR_MS == 1 else raw_t
         r = float(row["funding_rate"])
         if (not math.isfinite(r) or abs(r) > 1 or t % HOUR_MS
+                or t in events
                 or (previous is not None and (t <= previous or t - previous > 24 * HOUR_MS))):
             reason = ("nonfinite_rate" if not math.isfinite(r) else
                       "rate_out_of_bounds" if abs(r) > 1 else
                       "non_hour_boundary" if t % HOUR_MS else
+                      "duplicate_normalized_settlement" if t in events else
                       "nonmonotonic_timestamp" if previous is not None and t <= previous else
                       "gap_over_24_hours")
             raise ValueError(
                 f"INVALID_NATIVE_FUNDING_EVENT file={Path(path).name} "
-                f"row={len(events)+2} time_ms={t} previous_ms={previous} "
+                f"row={len(events)+2} raw_time_ms={raw_t} normalized_time_ms={t} previous_ms={previous} "
                 f"gap_hours={(t-previous)/HOUR_MS if previous is not None else None} "
                 f"rate={r} reason={reason}")
         events[t] = r
