@@ -1,0 +1,28 @@
+name: V13 paper movement forensics (read-only)
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - scripts/diagnose_v13_paper_movements_readonly.py
+      - .github/workflows/v13-paper-movement-forensics.yml
+permissions:
+  contents: read
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Adversarial classification tests
+        run: python scripts/diagnose_v13_paper_movements_readonly.py --selftest
+      - name: Diagnose published ledger without rewriting it
+        run: |
+          if test -f reports/paper_v13_ledger.json; then
+            python scripts/diagnose_v13_paper_movements_readonly.py --ledger reports/paper_v13_ledger.json
+          else
+            echo "BLOCKED: ledger missing; cannot attest historical movements"
+            exit 2
+          fi
