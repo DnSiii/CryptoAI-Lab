@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 from v99_r106_e2_train_source_gate import audit, parse_time, CUTOFF
 
@@ -18,14 +19,33 @@ def read_receipts(path, digest, required):
         rows = list(reader)
     if not rows:
         raise ValueError("native receipts empty")
+    seen = set()
     for row in rows:
         t = parse_time(row["timestamp"])
         if t >= CUTOFF:
             raise ValueError("receipt crosses TRAIN boundary")
+        if row["symbol"] not in {"BTC", "ETH"} or not row["source_id"].strip():
+            raise ValueError("invalid native symbol/source_id")
+        key = (row["symbol"], row["source_id"])
+        if key in seen:
+            raise ValueError("duplicate native receipt")
+        seen.add(key)
+        for field in {"funding_rate", "fee_rate", "price", "quantity", "fee"} & required:
+            value = float(row[field])
+            if not math.isfinite(value):
+                raise ValueError("nonfinite native receipt")
+            if field in {"price", "quantity"} and value <= 0:
+                raise ValueError("invalid fill price/quantity")
+            if field == "fee_rate" and not 0 <= value <= 1:
+                raise ValueError("invalid fee rate")
+        if "fee_tier" in required and not row["fee_tier"].strip():
+            raise ValueError("missing native fee tier")
     return len(rows)
 
 def readiness(bars, bars_sha, funding, funding_sha, fees, fees_sha, fills, fills_sha):
     source = audit(bars, bars_sha)
+    if source['hours_per_symbol'] < 875:
+        raise ValueError('insufficient TRAIN hours for five folds with 168h warmup and 6h holding')
     # Receipt existence alone is NOT reconciliation: historical execution fills
     # for hypothetical trades cannot be certified by unrelated real executions.
     counts = {
