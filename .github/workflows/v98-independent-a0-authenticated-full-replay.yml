@@ -1,6 +1,10 @@
 name: V98 Independent A0 Authenticated Full Economic Replay
 on:
   workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-a0-authenticated-full-replay.yml'
 permissions:
   contents: read
   actions: read
