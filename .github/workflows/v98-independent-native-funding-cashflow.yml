@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/v98_independent/phase243_native_funding_cashflow.py'
       - 'research/v98_independent/test_phase243_native_funding_cashflow.py'
+      - 'research/v98_independent/test_phase243_funding_stamp_normalization.py'
       - '.github/workflows/v98-independent-native-funding-cashflow.yml'
   workflow_dispatch:
 permissions:
@@ -23,4 +24,4 @@ jobs:
           python-version: '3.11'
       - name: Validate V98 funding attribution contract (not strategy PnL)
         run: |
-          python -m unittest research/v98_independent/test_phase243_native_funding_cashflow.py -v
+          python -m unittest research/v98_independent/test_phase243_native_funding_cashflow.py research/v98_independent/test_phase243_funding_stamp_normalization.py -v
