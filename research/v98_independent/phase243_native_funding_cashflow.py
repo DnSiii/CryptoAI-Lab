@@ -21,9 +21,12 @@ def load_funding(path):
     previous = None
     for row in rows:
         raw_t = int(row["funding_time_ms"])
-        # Normalize only the exchange +1ms settlement stamp to its hour.
-        # The original CSV and manifest hash remain unchanged.
-        t = raw_t - 1 if raw_t % HOUR_MS == 1 else raw_t
+        # Binance native settlement timestamps can carry sub-second milliseconds.
+        # Accept ONLY timestamps within the first 999 ms after an exact UTC hour;
+        # retain original CSV + SHA256 provenance, and reject second-level drift.
+        # This is timestamp representation normalization, never rate interpolation.
+        offset_ms = raw_t % HOUR_MS
+        t = raw_t - offset_ms if offset_ms < 1000 else raw_t
         r = float(row["funding_rate"])
         if (not math.isfinite(r) or abs(r) > 1 or t % HOUR_MS
                 or t in events
