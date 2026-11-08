@@ -54,11 +54,11 @@ jobs:
               for attempt in range(5):
                   proc=subprocess.run(['gh','api','--method','GET',
                                        f'repos/{repo}/actions/artifacts/{artifact_id}'],
-                                      text=True,capture_output=True)
+                                      text=True,capture_output=True,timeout=60)
                   try:
                       if proc.returncode: raise RuntimeError(proc.stderr[-300:])
                       a=json.loads(proc.stdout)
-                      if int(a.get('id',-1))!=artifact_id: raise ValueError('ARTIFACT_ID_MISMATCH')
+                      if not isinstance(a,dict) or int(a.get('id',-1))!=artifact_id: raise ValueError('ARTIFACT_ID_MISMATCH')
                       break
                   except (ValueError,RuntimeError) as exc:
                       if attempt==4: raise SystemExit(f'PINNED_METADATA_FAILURE {label} id={artifact_id}: {exc}')
@@ -79,8 +79,8 @@ jobs:
                   with archive.open('wb') as dest:
                       proc=subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{a["id"]}/zip',
                                            '-H','Accept: application/vnd.github+json'],
-                                          stdout=dest,capture_output=True)
-                  if proc.returncode==0 and zipfile.is_zipfile(archive): break
+                                          stdout=dest,capture_output=True,timeout=120)
+                  if proc.returncode==0 and zipfile.is_zipfile(archive) and zipfile.ZipFile(archive).testzip() is None: break
                   if attempt==4: raise SystemExit(f'PINNED_ZIP_FAILURE {label} id={a["id"]} rc={proc.returncode} stderr={proc.stderr[-300:]!r}')
                   time.sleep(min(2**attempt,8))
               with zipfile.ZipFile(archive) as z:
