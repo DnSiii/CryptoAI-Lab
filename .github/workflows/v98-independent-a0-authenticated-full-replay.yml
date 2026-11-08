@@ -100,6 +100,9 @@ jobs:
           (base/'paths.env').write_text('PRICES='+str(prices[0].parent)+'\nPRICE_MANIFEST='+str(prices[0])+'\nFUNDING='+str(funds[0].parent)+'\n')
           PY
           cat /tmp/v98_independent/artifacts/paths.env >> "$GITHUB_ENV"
+          set -a
+          source /tmp/v98_independent/artifacts/paths.env
+          set +a
           python -m research.v98_independent.v98_phase243_training_reader --prices "$PRICES" --price-manifest "$PRICE_MANIFEST" --funding "$FUNDING"
       - name: Generate preregistered causal seven-slot A0 decisions
         run: |
