@@ -40,14 +40,17 @@ jobs:
           import json,os,subprocess
           from pathlib import Path
           repo=os.environ['GH_REPO']
-          raw=subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts','--paginate','-X','GET','-f','per_page=100'],text=True)
-          # gh --paginate may concatenate JSON documents.
-          decoder=json.JSONDecoder(); offset=0; artifacts=[]
-          while offset<len(raw):
-              while offset<len(raw) and raw[offset].isspace():offset+=1
-              if offset>=len(raw):break
-              obj,used=decoder.raw_decode(raw[offset:]);offset+=used
-              artifacts+=obj.get('artifacts',[])
+          # Fetch bounded pages without gh --paginate: pagination previously failed with
+          # "unexpected end of JSON input" before any source was recovered.
+          artifacts=[]
+          for page in range(1,31):
+              endpoint=f'repos/{repo}/actions/artifacts?per_page=100&page={page}'
+              raw=subprocess.check_output(['gh','api','--method','GET',endpoint],text=True)
+              batch=json.loads(raw).get('artifacts',[])
+              artifacts.extend(batch)
+              if len(batch)<100:break
+          else:
+              raise SystemExit('ARTIFACT_PAGINATION_LIMIT_REACHED: increase bounded page cap')
           specs={'prices':'v98-independent-clean4-148-official-archives-',
                  'funding':'v98-independent'}
           eligible=[a for a in artifacts if not a['expired'] and a.get('workflow_run',{}).get('head_branch')=='research/v98-independent-zero']
