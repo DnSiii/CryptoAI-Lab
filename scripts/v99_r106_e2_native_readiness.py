@@ -20,12 +20,14 @@ def read_receipts(path, digest, required):
     if not rows:
         raise ValueError("native receipts empty")
     seen = set()
+    covered_symbols = set()
     for row in rows:
         t = parse_time(row["timestamp"])
         if t >= CUTOFF:
             raise ValueError("receipt crosses TRAIN boundary")
         if row["symbol"] not in {"BTC", "ETH"} or not row["source_id"].strip():
             raise ValueError("invalid native symbol/source_id")
+        covered_symbols.add(row["symbol"])
         key = (row["symbol"], row["source_id"])
         if key in seen:
             raise ValueError("duplicate native receipt")
@@ -36,10 +38,14 @@ def read_receipts(path, digest, required):
                 raise ValueError("nonfinite native receipt")
             if field in {"price", "quantity"} and value <= 0:
                 raise ValueError("invalid fill price/quantity")
+            if field == "fee" and value < 0:
+                raise ValueError("negative native execution fee")
             if field == "fee_rate" and not 0 <= value <= 1:
                 raise ValueError("invalid fee rate")
         if "fee_tier" in required and not row["fee_tier"].strip():
             raise ValueError("missing native fee tier")
+    if covered_symbols != {"BTC", "ETH"}:
+        raise ValueError("native receipt lacks BTC/ETH coverage")
     return len(rows)
 
 def readiness(bars, bars_sha, funding, funding_sha, fees, fees_sha, fills, fills_sha):
