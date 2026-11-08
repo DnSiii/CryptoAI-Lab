@@ -24,7 +24,16 @@ def load_funding(path):
         r = float(row["funding_rate"])
         if (not math.isfinite(r) or abs(r) > 1 or t % HOUR_MS
                 or (previous is not None and (t <= previous or t - previous > 24 * HOUR_MS))):
-            raise ValueError("INVALID_NATIVE_FUNDING_EVENT")
+            reason = ("nonfinite_rate" if not math.isfinite(r) else
+                      "rate_out_of_bounds" if abs(r) > 1 else
+                      "non_hour_boundary" if t % HOUR_MS else
+                      "nonmonotonic_timestamp" if previous is not None and t <= previous else
+                      "gap_over_24_hours")
+            raise ValueError(
+                f"INVALID_NATIVE_FUNDING_EVENT file={Path(path).name} "
+                f"row={len(events)+2} time_ms={t} previous_ms={previous} "
+                f"gap_hours={(t-previous)/HOUR_MS if previous is not None else None} "
+                f"rate={r} reason={reason}")
         events[t] = r
         previous = t
     if not events:
