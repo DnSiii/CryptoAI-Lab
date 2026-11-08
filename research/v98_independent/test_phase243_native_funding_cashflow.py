@@ -6,6 +6,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from phase243_native_funding_cashflow import settle, load_funding, validate_complete_inventory
 
 class NativeFundingCashflowTests(unittest.TestCase):
+    def test_subsecond_exchange_stamps_and_duplicate_rejection(self):
+        import csv
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "BTCUSDT_native_funding.csv"
+            def write(times):
+                with p.open("w", newline="") as out:
+                    w = csv.DictWriter(out, fieldnames=["funding_time_ms", "funding_rate"])
+                    w.writeheader()
+                    w.writerows({"funding_time_ms": t, "funding_rate": "0.0001"} for t in times)
+            base = 1669852800000
+            write([base + 1, base + 8 * 3600000 + 6, base + 16 * 3600000 + 999])
+            self.assertEqual(list(load_funding(p)), [base, base + 8 * 3600000, base + 16 * 3600000])
+            write([base, base + 999])
+            with self.assertRaisesRegex(ValueError, "duplicate_normalized_settlement"):
+                load_funding(p)
+            write([base + 1000])
+            with self.assertRaisesRegex(ValueError, "non_hour_boundary"):
+                load_funding(p)
+
     def test_signed_settlement_and_non_event(self):
         t = 8 * 3600000
         events = {"BTCUSDT": {t: 0.0001}, "ETHUSDT": {}, "BNBUSDT": {}, "SOLUSDT": {}}
