@@ -18,6 +18,11 @@ jobs:
           persist-credentials: false
       - name: Adversarial classification tests
         run: python scripts/diagnose_v13_paper_movements_readonly.py --selftest
+      - name: Restore published ledger read-only from paper-results
+        run: |
+          git fetch --no-tags --depth=1 origin paper-results
+          mkdir -p reports
+          git show FETCH_HEAD:reports/paper_v13_ledger.json > reports/paper_v13_ledger.json
       - name: Diagnose published ledger without rewriting it
         run: |
           if test -f reports/paper_v13_ledger.json; then
