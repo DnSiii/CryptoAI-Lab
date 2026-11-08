@@ -28,11 +28,11 @@ def main():
         bsha = write(bars,bcols,records)
         t = START.isoformat()
         fcols = ["timestamp","symbol","funding_rate","source_id"]
-        frows = [dict(timestamp=t,symbol="BTC",funding_rate="0.0001",source_id="fund-1")]
+        frows = [dict(timestamp=t,symbol=s,funding_rate="0.0001",source_id="fund-"+s) for s in ("BTC","ETH")]
         fee_cols = ["timestamp","symbol","fee_tier","fee_rate","source_id"]
-        fee_rows = [dict(timestamp=t,symbol="BTC",fee_tier="tier1",fee_rate="0.001",source_id="fee-1")]
+        fee_rows = [dict(timestamp=t,symbol=s,fee_tier="tier1",fee_rate="0.001",source_id="fee-"+s) for s in ("BTC","ETH")]
         fill_cols = ["timestamp","symbol","price","quantity","fee","source_id"]
-        fill_rows = [dict(timestamp=t,symbol="BTC",price="100",quantity="0.01",fee="0.01",source_id="fill-1")]
+        fill_rows = [dict(timestamp=t,symbol=s,price="100",quantity="0.01",fee="0.01",source_id="fill-"+s) for s in ("BTC","ETH")]
         def check(fr=frows, fer=fee_rows, fir=fill_rows, expected=None, bars_digest=bsha):
             fh=write(funding,fcols,fr)
             feh=write(fees,fee_cols,fer)
@@ -50,6 +50,10 @@ def main():
         check()
         check(expected="bad bar hash",bars_digest="0"*64)
         check(fr=[],expected="empty funding")
+        check(fr=frows[:1],expected="ETH funding missing")
+        check(fer=fee_rows[:1],expected="ETH fee tier missing")
+        check(fir=fill_rows[:1],expected="ETH execution receipts missing")
+        check(fir=[dict(fill_rows[0],fee="-0.01"),fill_rows[1]],expected="negative execution fee")
         check(fr=frows*2,expected="duplicate funding id")
         check(fr=[dict(frows[0],timestamp="2023-10-01T00:00:00+00:00")],expected="TRAIN boundary")
         check(fer=[dict(fee_rows[0],fee_rate="nan")],expected="nonfinite fee")
