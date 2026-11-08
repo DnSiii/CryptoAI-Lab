@@ -42,7 +42,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/v98_independent/artifacts
           python - <<'PY'
-          import json,os,subprocess
+          import json,os,subprocess,time,zipfile
           from pathlib import Path
           repo=os.environ['GH_REPO']
           # Phase243 authenticated source IDs are pinned to avoid unstable repository-wide pagination.
@@ -50,10 +50,19 @@ jobs:
           pinned={'prices':13444665313,'funding':13464271018}
           artifacts={}
           for label,artifact_id in pinned.items():
-              proc=subprocess.run(['gh','api','--method','GET',
-                                   f'repos/{repo}/actions/artifacts/{artifact_id}'],
-                                  text=True,capture_output=True,check=True)
-              a=json.loads(proc.stdout)
+              a=None
+              for attempt in range(5):
+                  proc=subprocess.run(['gh','api','--method','GET',
+                                       f'repos/{repo}/actions/artifacts/{artifact_id}'],
+                                      text=True,capture_output=True)
+                  try:
+                      if proc.returncode: raise RuntimeError(proc.stderr[-300:])
+                      a=json.loads(proc.stdout)
+                      if int(a.get('id',-1))!=artifact_id: raise ValueError('ARTIFACT_ID_MISMATCH')
+                      break
+                  except (ValueError,RuntimeError) as exc:
+                      if attempt==4: raise SystemExit(f'PINNED_METADATA_FAILURE {label} id={artifact_id}: {exc}')
+                      time.sleep(min(2**attempt,8))
               name=a.get('name','').lower()
               if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
                   raise SystemExit(f'INVALID_PINNED_SOURCE {label} id={artifact_id} expired_or_wrong_branch')
@@ -65,11 +74,16 @@ jobs:
           for label,a in artifacts.items():
               target=Path('/tmp/v98_independent/artifacts')/label
               target.mkdir(parents=True,exist_ok=True)
-              subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{a["id"]}/zip',
-                              '-H','Accept: application/vnd.github+json'],
-                             stdout=(target/'artifact.zip').open('wb'),check=True)
-              import zipfile
-              with zipfile.ZipFile(target/'artifact.zip') as z:
+              archive=target/'artifact.zip'
+              for attempt in range(5):
+                  with archive.open('wb') as dest:
+                      proc=subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{a["id"]}/zip',
+                                           '-H','Accept: application/vnd.github+json'],
+                                          stdout=dest,capture_output=True)
+                  if proc.returncode==0 and zipfile.is_zipfile(archive): break
+                  if attempt==4: raise SystemExit(f'PINNED_ZIP_FAILURE {label} id={a["id"]} rc={proc.returncode} stderr={proc.stderr[-300:]!r}')
+                  time.sleep(min(2**attempt,8))
+              with zipfile.ZipFile(archive) as z:
                   for item in z.infolist():
                       resolved=(target/item.filename).resolve()
                       if not resolved.is_relative_to(target.resolve()):
