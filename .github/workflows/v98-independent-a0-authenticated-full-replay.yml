@@ -1,0 +1,92 @@
+name: V98 Independent A0 Authenticated Full Economic Replay
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  v98-a0-full-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Retrieve latest available V98 authenticated artifacts only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/artifacts
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          repo=os.environ['GH_REPO']
+          raw=subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts','--paginate','-f','per_page=100'],text=True)
+          # gh --paginate may concatenate JSON documents.
+          decoder=json.JSONDecoder(); offset=0; artifacts=[]
+          while offset<len(raw):
+              while offset<len(raw) and raw[offset].isspace():offset+=1
+              if offset>=len(raw):break
+              obj,used=decoder.raw_decode(raw[offset:]);offset+=used
+              artifacts+=obj.get('artifacts',[])
+          specs={'prices':'v98-independent-clean4-148-official-archives-',
+                 'funding':'v98-independent'}
+          eligible=[a for a in artifacts if not a['expired'] and a.get('workflow_run',{}).get('head_branch')=='research/v98-independent-zero']
+          price=next((a for a in sorted(eligible,key=lambda x:x['created_at'],reverse=True)
+                      if a['name'].startswith(specs['prices'])),None)
+          funding=next((a for a in sorted(eligible,key=lambda x:x['created_at'],reverse=True)
+                        if 'funding' in a['name'].lower() and 'native' in a['name'].lower()),None)
+          if not price or not funding:
+              raise SystemExit('MISSING_AUTHENTICATED_V98_ARTIFACT: price='+str(bool(price))+' funding='+str(bool(funding)))
+          for label,a in [('prices',price),('funding',funding)]:
+              target=Path('/tmp/v98_independent/artifacts')/label
+              target.mkdir(parents=True,exist_ok=True)
+              subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{a["id"]}/zip',
+                              '-H','Accept: application/vnd.github+json'],
+                             stdout=(target/'artifact.zip').open('wb'),check=True)
+              import zipfile
+              with zipfile.ZipFile(target/'artifact.zip') as z:
+                  for item in z.infolist():
+                      resolved=(target/item.filename).resolve()
+                      if not resolved.is_relative_to(target.resolve()):
+                          raise ValueError('ARTIFACT_ZIP_PATH_TRAVERSAL')
+                  z.extractall(target)
+              print(label,a['id'],a['name'],a['workflow_run']['id'])
+          PY
+      - name: Resolve canonical sources and verify authenticated manifests
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          base=Path('/tmp/v98_independent/artifacts')
+          prices=list((base/'prices').rglob('source_manifest.json'))
+          funds=list((base/'funding').rglob('funding_manifest.json'))
+          if len(prices)!=1 or len(funds)!=1:
+              raise SystemExit(f'AMBIGUOUS_CANONICAL_SOURCES price={len(prices)} funding={len(funds)}')
+          (base/'paths.env').write_text('PRICES='+str(prices[0].parent)+'\nPRICE_MANIFEST='+str(prices[0])+'\nFUNDING='+str(funds[0].parent)+'\n')
+          PY
+          cat /tmp/v98_independent/artifacts/paths.env >> "$GITHUB_ENV"
+          python -m research.v98_independent.v98_phase243_training_reader --prices "$PRICES" --price-manifest "$PRICE_MANIFEST" --funding "$FUNDING"
+      - name: Generate preregistered causal seven-slot A0 decisions
+        run: |
+          mkdir -p /tmp/v98_independent/a0
+          python -m research.v98_independent.v98_sevenslot_preregistered_a0 --prices "$PRICES" --manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a0/slots.csv
+      - name: Run full authenticated compound replay across three costs
+        run: |
+          python -m research.v98_independent.v98_authenticated_compound_integration --slots /tmp/v98_independent/a0/slots.csv --prices "$PRICES" --price-manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a0/replay --capital 10000 --fee-bps 4 --slippage-bps 2
+      - name: Upload unapproved research-only economic ledgers
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-a0-unvalidated-full-replay-${{ github.run_id }}
+          path: |
+            /tmp/v98_independent/a0/slots.csv
+            /tmp/v98_independent/a0/replay/
+          retention-days: 30
+          if-no-files-found: error
