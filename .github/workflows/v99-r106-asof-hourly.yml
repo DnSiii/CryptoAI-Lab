@@ -47,15 +47,33 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          recent="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name | startswith("v99-r106-okx-firstparty-")) | select(.expired == false)] | sort_by(.created_at) | last | .name // empty')"
-          if [ -z "$recent" ]; then
-            recent="v99-r106-okx-firstparty-38630788811"
-            echo "::notice::Using the archived first OKX market source receipt as fallback"
-          fi
-          runid="${recent##*-}"
-          mkdir -p research_evidence/previous_okx
-          echo "::notice::Continuity source run=$runid artifact=$recent"
-          gh run download "$runid" --repo "$GITHUB_REPOSITORY" --name "$recent" --dir research_evidence/previous_okx
+          python - <<'PY'
+          import io, json, os, pathlib, urllib.request, zipfile
+          repo=os.environ['GITHUB_REPOSITORY']
+          token=os.environ['GH_TOKEN']
+          headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+          def request(url):
+              req=urllib.request.Request(url,headers=headers)
+              with urllib.request.urlopen(req,timeout=30) as response:
+                  return response.read()
+          try:
+              payload=json.loads(request(f'https://api.github.com/repos/{repo}/actions/artifacts?per_page=100'))
+              candidates=sorted((a for a in payload.get('artifacts',[]) if a.get('name','').startswith('v99-r106-okx-firstparty-') and not a.get('expired') and str(os.environ['GITHUB_RUN_ID']) not in a.get('name','')),key=lambda a:a['created_at'],reverse=True)
+              if not candidates:
+                  raise RuntimeError('no unexpired previous OKX artifact')
+              previous=candidates[0]
+              print('Continuity previous artifact id=',previous['id'],'name=',previous['name'],flush=True)
+              archive=request(f'https://api.github.com/repos/{repo}/actions/artifacts/{previous["id"]}/zip')
+              with zipfile.ZipFile(io.BytesIO(archive)) as z:
+                  names=z.namelist()
+                  if any(pathlib.PurePosixPath(n).is_absolute() or '..' in pathlib.PurePosixPath(n).parts for n in names):
+                      raise RuntimeError('unsafe artifact path')
+                  z.extractall('research_evidence/previous_okx')
+              print('Previous OKX files extracted:',len(names),flush=True)
+          except Exception as exc:
+              print('::error::Previous OKX artifact retrieval failed:',type(exc).__name__,str(exc),flush=True)
+              raise
+          PY
           python -m research.tools.v99_r106_okx_multihour_continuity \
             --previous research_evidence/previous_okx \
             --current research_evidence/okx_live_receipt \
