@@ -42,7 +42,7 @@ def run(slots, prices, manifest, funding, output, baseline_summary):
     if baseline.get('status') != 'ECONOMIC_REPLAY_ONLY_NOT_VALIDATED_ENGINE' or baseline.get('holdout_accessed') is not False:
         raise ValueError('INVALID_BASELINE_STATUS')
     scenarios = baseline.get('scenarios', {})
-    if set(scenarios) != {'cost_1x', 'cost_2x', 'cost_4x'}:
+    if set(scenarios) != {'1.0', '2.0', '4.0'}:
         raise ValueError('INVALID_BASELINE_SCENARIOS')
     result = {"status":"RETROSPECTIVE_ABLATION_NOT_INDEPENDENT_VALIDATION",
               "holdout_accessed":False, "cost_multipliers":[1,2,4],
