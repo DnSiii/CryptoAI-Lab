@@ -68,6 +68,12 @@ def load(price_root, price_manifest_path, funding_root):
         events = load_funding(funding_path)
         if any(t < START_MS or t >= END_MS for t in events):
             raise ValueError("PHASE243_FUNDING_OUT_OF_TRAINING")
+        # The event loader checks internal gaps, but without edge coverage a
+        # truncated source could silently be interpreted as zero funding.
+        # Require a native settlement near both boundaries; never interpolate.
+        first, last = min(events), max(events)
+        if first >= START_MS + 24 * HOUR_MS or last < END_MS - 24 * HOUR_MS:
+            raise ValueError("PHASE243_FUNDING_EDGE_COVERAGE_" + asset)
         bars[asset] = asset_bars
         funding[asset] = events
     return {"bars": bars, "funding": funding, "hours": EXPECTED_HOURS,
