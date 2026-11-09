@@ -18,6 +18,17 @@ EXPECTED_HOURS = (END_MS - START_MS) // HOUR_MS
 def _sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def validate_funding_edges(events, asset):
+    """Reject silently truncated native funding, without imputing any rates."""
+    if not events:
+        raise ValueError("PHASE243_EMPTY_FUNDING_" + asset)
+    first, last = min(events), max(events)
+    if first < START_MS or last >= END_MS:
+        raise ValueError("PHASE243_FUNDING_OUT_OF_TRAINING")
+    if first >= START_MS + 24 * HOUR_MS or last < END_MS - 24 * HOUR_MS:
+        raise ValueError("PHASE243_FUNDING_EDGE_COVERAGE_" + asset)
+
+
 def load(price_root, price_manifest_path, funding_root):
     paths = (price_root, price_manifest_path, funding_root)
     if any("v98_independent" not in Path(p).absolute().parts for p in paths):
@@ -66,14 +77,7 @@ def load(price_root, price_manifest_path, funding_root):
         if _sha(funding_path) != funding_manifest["assets"][asset]["sha256"]:
             raise ValueError("PHASE243_FUNDING_HASH_MISMATCH_" + asset)
         events = load_funding(funding_path)
-        if any(t < START_MS or t >= END_MS for t in events):
-            raise ValueError("PHASE243_FUNDING_OUT_OF_TRAINING")
-        # The event loader checks internal gaps, but without edge coverage a
-        # truncated source could silently be interpreted as zero funding.
-        # Require a native settlement near both boundaries; never interpolate.
-        first, last = min(events), max(events)
-        if first >= START_MS + 24 * HOUR_MS or last < END_MS - 24 * HOUR_MS:
-            raise ValueError("PHASE243_FUNDING_EDGE_COVERAGE_" + asset)
+        validate_funding_edges(events, asset)
         bars[asset] = asset_bars
         funding[asset] = events
     return {"bars": bars, "funding": funding, "hours": EXPECTED_HOURS,
