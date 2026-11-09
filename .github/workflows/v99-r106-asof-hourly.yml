@@ -40,18 +40,21 @@ jobs:
       - name: Capture five first-party OKX swap market receipts
         run: python -m research.tools.v99_r106_okx_prospective_receipt --out research_evidence/okx_live_receipt
       - name: Retrieve last archived OKX market receipt and quarantine continuity
+        id: continuity
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          recent="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name | startswith("v99-r106-okx-firstparty-")) | select(.expired == false)] | sort_by(.created_at) | last | .name // empty')"
+          recent="$(gh api --retry 3 "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name | startswith("v99-r106-okx-firstparty-")) | select(.expired == false)] | sort_by(.created_at) | last | .name // empty')"
           if [ -z "$recent" ]; then
             recent="v99-r106-okx-firstparty-38630788811"
             echo "::notice::Using the archived first OKX market source receipt as fallback"
           fi
           runid="${recent##*-}"
           mkdir -p research_evidence/previous_okx
+          echo "::notice::Continuity source run=$runid artifact=$recent"
           gh run download "$runid" --repo "$GITHUB_REPOSITORY" --name "$recent" --dir research_evidence/previous_okx
           python -m research.tools.v99_r106_okx_multihour_continuity \
             --previous research_evidence/previous_okx \
@@ -65,13 +68,32 @@ jobs:
           assert r['promotion_authorized'] is False
           print('OKX HOURLY DATA_ONLY:',r['status'],r['issues'])
           PY
+      - name: Record fail-closed continuity outcome even on retrieval failure
+        if: always() && steps.continuity.outcome == 'failure'
+        run: |
+          mkdir -p research_evidence/okx_live_receipt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research_evidence/okx_live_receipt/continuity_retrieval_failure.json')
+          p.write_text(json.dumps({
+            'status':'CONTINUITY_UNVERIFIED',
+            'reason':'previous artifact retrieval or continuity verification failed; see workflow step logs',
+            'paper_publication_authorized':False,
+            'promotion_authorized':False
+          },indent=2)+'\n')
+          PY
       - name: Upload raw market source and continuity evidence
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: v99-r106-okx-firstparty-${{ github.run_id }}
           retention-days: 90
           if-no-files-found: error
           path: research_evidence/okx_live_receipt/
+      - name: Fail closed if continuity could not be verified
+        if: steps.continuity.outcome == 'failure'
+        run: exit 1
 
   terms-hourly:
     if: github.event_name != 'schedule' || github.event.schedule == '39 * * * *'
