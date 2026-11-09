@@ -1,0 +1,135 @@
+name: V98 Independent A3 Authenticated Full Economic Replay
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-a3-authenticated-full-replay.yml'
+      - 'research/v98_independent/v98_a0_economic_diagnostics.py'
+      - 'research/v98_independent/v98_sevenslot_preregistered_a3.py'
+      - 'research/v98_independent/v98_a2_chronological_gate.py'
+      - 'research/v98_independent/v98_authenticated_compound_integration.py'
+      - 'research/v98_independent/v98_compound_scenario_replay.py'
+      - 'research/v98_independent/v98_causal_compound_sizing.py'
+      - 'research/v98_independent/v98_phase243_training_reader.py'
+      - 'research/v98_independent/phase243_native_funding_cashflow.py'
+      - 'research/v98_independent/test_phase243_native_funding_cashflow.py'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  v98-a3-full-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile V98-only full replay dependency chain
+        run: |
+          python -m compileall -q research/v98_independent/v98_sevenslot_preregistered_a3.py research/v98_independent/v98_authenticated_compound_integration.py research/v98_independent/v98_compound_scenario_replay.py research/v98_independent/v98_causal_compound_sizing.py research/v98_independent/v98_phase243_training_reader.py research/v98_independent/v98_a0_economic_diagnostics.py research/v98_independent/v98_a2_chronological_gate.py
+      - name: Verify native funding settlement contract before artifact acquisition
+        run: python -m unittest discover -s research/v98_independent -p test_phase243_native_funding_cashflow.py -v
+      - name: Retrieve latest available V98 authenticated artifacts only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/artifacts
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          repo=os.environ['GH_REPO']
+          # Phase243 authenticated source IDs are pinned to avoid unstable repository-wide pagination.
+          # Fail closed on expiration, branch, and artifact identity; never substitute newer sources.
+          pinned={'prices':13444665313,'funding':13464271018}
+          artifacts={}
+          for label,artifact_id in pinned.items():
+              proc=subprocess.run(['gh','api','--method','GET',
+                                   f'repos/{repo}/actions/artifacts/{artifact_id}'],
+                                  text=True,capture_output=True,check=True)
+              a=json.loads(proc.stdout)
+              name=a.get('name','').lower()
+              if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
+                  raise SystemExit(f'INVALID_PINNED_SOURCE {label} id={artifact_id} expired_or_wrong_branch')
+              if label=='prices' and not name.startswith('v98-independent-clean4-148-official-archives-'):
+                  raise SystemExit(f'INVALID_PINNED_PRICE_NAME {name}')
+              if label=='funding' and not ('funding' in name and 'native' in name):
+                  raise SystemExit(f'INVALID_PINNED_FUNDING_NAME {name}')
+              artifacts[label]=a
+          for label,a in artifacts.items():
+              target=Path('/tmp/v98_independent/artifacts')/label
+              target.mkdir(parents=True,exist_ok=True)
+              subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{a["id"]}/zip',
+                              '-H','Accept: application/vnd.github+json'],
+                             stdout=(target/'artifact.zip').open('wb'),check=True)
+              import zipfile
+              with zipfile.ZipFile(target/'artifact.zip') as z:
+                  for item in z.infolist():
+                      resolved=(target/item.filename).resolve()
+                      if not resolved.is_relative_to(target.resolve()):
+                          raise ValueError('ARTIFACT_ZIP_PATH_TRAVERSAL')
+                  z.extractall(target)
+              print(label,a['id'],a['name'],a['workflow_run']['id'])
+          PY
+      - name: Resolve canonical sources and verify authenticated manifests
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          base=Path('/tmp/v98_independent/artifacts')
+          prices=list((base/'prices').rglob('source_manifest.json'))
+          funds=list((base/'funding').rglob('funding_manifest.json'))
+          if len(prices)!=1 or len(funds)!=1:
+              raise SystemExit(f'AMBIGUOUS_CANONICAL_SOURCES price={len(prices)} funding={len(funds)}')
+          (base/'paths.env').write_text('PRICES='+str(prices[0].parent)+'\nPRICE_MANIFEST='+str(prices[0])+'\nFUNDING='+str(funds[0].parent)+'\n')
+          PY
+          cat /tmp/v98_independent/artifacts/paths.env >> "$GITHUB_ENV"
+          set -a
+          source /tmp/v98_independent/artifacts/paths.env
+          set +a
+          python -m research.v98_independent.v98_phase243_training_reader --prices "$PRICES" --price-manifest "$PRICE_MANIFEST" --funding "$FUNDING"
+      - name: Generate preregistered causal seven-slot A3 decisions
+        run: |
+          mkdir -p /tmp/v98_independent/a3
+          python -m research.v98_independent.v98_sevenslot_preregistered_a3 --prices "$PRICES" --manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a3/slots.csv
+      - name: Run full authenticated compound replay across three costs
+        run: |
+          python -m research.v98_independent.v98_authenticated_compound_integration --slots /tmp/v98_independent/a3/slots.csv --prices "$PRICES" --price-manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a3/replay --capital 10000 --fee-bps 4 --slippage-bps 2
+      - name: Compute chronological economics and stress diagnostics (no promotion)
+        run: |
+          python -m research.v98_independent.v98_a0_economic_diagnostics --replay /tmp/v98_independent/a3/replay --output /tmp/v98_independent/a3/replay/diagnostics.json
+      - name: Audit retrospective chronological folds without false OOS claims
+        run: |
+          python -m research.v98_independent.v98_a2_chronological_gate --replay /tmp/v98_independent/a3/replay --output /tmp/v98_independent/a3/replay/chronological_gate.json
+      - name: Verify required independent diagnostic outputs before upload
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/a3/replay')
+          for name in ('diagnostics.json','chronological_gate.json'):
+              path=root/name
+              if not path.is_file() or path.stat().st_size==0:
+                  raise SystemExit(f'MISSING_OR_EMPTY_DIAGNOSTIC: {path}')
+              with path.open(encoding='utf-8') as stream:
+                  report=json.load(stream)
+              if not isinstance(report,dict) or not report:
+                  raise SystemExit(f'INVALID_DIAGNOSTIC: {path}')
+              print(f'VALID_DIAGNOSTIC {name}: {path.stat().st_size} bytes')
+          PY
+      - name: Upload unapproved research-only economic ledgers
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-a3-unvalidated-full-replay-${{ github.run_id }}
+          path: |
+            /tmp/v98_independent/a3/slots.csv
+            /tmp/v98_independent/a3/replay/
+          retention-days: 30
+          if-no-files-found: error
