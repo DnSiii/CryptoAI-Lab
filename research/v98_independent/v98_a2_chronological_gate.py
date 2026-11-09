@@ -22,6 +22,7 @@ def run(directory, output):
               "holdout_accessed": False,
               "reason": "A2 complete-history results were observed before this gate existed",
               "folds": {}, "gates": {}}
+    canonical_stamps = None
     for scenario in SCENARIOS:
         rows = json.loads((directory / ("compound_ledger_" + scenario + ".json")).read_text())
         if len(rows) != 27048:
@@ -29,6 +30,14 @@ def run(directory, output):
         stamps = [int(r["hour_open_ms"]) for r in rows]
         if len(set(stamps)) != len(stamps) or any(b-a != 3600000 for a,b in zip(stamps,stamps[1:])):
             raise ValueError("INVALID_CHRONOLOGY")
+        start_ms = int(datetime(2022, 12, 1, tzinfo=timezone.utc).timestamp()*1000)
+        end_ms = int(datetime(2025, 12, 31, 23, tzinfo=timezone.utc).timestamp()*1000)
+        if stamps[0] != start_ms or stamps[-1] != end_ms:
+            raise ValueError("TRAINING_WINDOW_MISMATCH_OR_FUTURE_DATA")
+        if canonical_stamps is None:
+            canonical_stamps = stamps
+        elif stamps != canonical_stamps:
+            raise ValueError("COST_SCENARIO_TIME_MISMATCH")
         slices = {}
         for label, first, last in FOLDS:
             subset = [r for r in rows if first <= datetime.fromtimestamp(
