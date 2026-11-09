@@ -31,7 +31,7 @@ jobs:
           python-version: '3.11'
       - name: Compile V98-only full replay dependency chain
         run: |
-          python -m compileall -q research/v98_independent/v98_sevenslot_preregistered_a2.py research/v98_independent/v98_authenticated_compound_integration.py research/v98_independent/v98_compound_scenario_replay.py research/v98_independent/v98_causal_compound_sizing.py research/v98_independent/v98_phase243_training_reader.py research/v98_independent/v98_a0_economic_diagnostics.py
+          python -m compileall -q research/v98_independent/v98_sevenslot_preregistered_a2.py research/v98_independent/v98_authenticated_compound_integration.py research/v98_independent/v98_compound_scenario_replay.py research/v98_independent/v98_causal_compound_sizing.py research/v98_independent/v98_phase243_training_reader.py research/v98_independent/v98_a0_economic_diagnostics.py research/v98_independent/v98_a2_chronological_gate.py
       - name: Verify native funding settlement contract before artifact acquisition
         run: python -m unittest discover -s research/v98_independent -p test_phase243_native_funding_cashflow.py -v
       # Pinned Phase243 artifacts: native action downloads avoid the broken gh API JSON path.
@@ -91,6 +91,22 @@ jobs:
       - name: Audit retrospective chronological folds without false OOS claims
         run: |
           python -m research.v98_independent.v98_a2_chronological_gate --replay /tmp/v98_independent/a2/replay --output /tmp/v98_independent/a2/replay/chronological_gate.json
+      - name: Verify required independent diagnostic outputs before upload
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/a2/replay')
+          for name in ('diagnostics.json','chronological_gate.json'):
+              path=root/name
+              if not path.is_file() or path.stat().st_size==0:
+                  raise SystemExit(f'MISSING_OR_EMPTY_DIAGNOSTIC: {path}')
+              with path.open(encoding='utf-8') as stream:
+                  report=json.load(stream)
+              if not isinstance(report,dict) or not report:
+                  raise SystemExit(f'INVALID_DIAGNOSTIC: {path}')
+              print(f'VALID_DIAGNOSTIC {name}: {path.stat().st_size} bytes')
+          PY
       - name: Upload unapproved research-only economic ledgers
         if: success()
         uses: actions/upload-artifact@v4
