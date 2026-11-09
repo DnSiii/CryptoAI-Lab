@@ -1,0 +1,35 @@
+"""V98 native funding edge coverage: no silent zero-funding source truncation."""
+import unittest
+from research.v98_independent.v98_phase243_training_reader import (
+    START_MS, END_MS, HOUR_MS, validate_funding_edges,
+)
+
+
+class FundingEdgeCoverage(unittest.TestCase):
+    def test_valid_native_boundary_events(self):
+        validate_funding_edges({START_MS + 8 * HOUR_MS: 0.0001,
+                                END_MS - 8 * HOUR_MS: -0.0001}, "BTCUSDT")
+
+    def test_missing_early_events_rejected(self):
+        with self.assertRaisesRegex(ValueError, "EDGE_COVERAGE"):
+            validate_funding_edges({START_MS + 25 * HOUR_MS: 0.0001,
+                                    END_MS - HOUR_MS: 0.0001}, "BTCUSDT")
+
+    def test_missing_late_events_rejected(self):
+        with self.assertRaisesRegex(ValueError, "EDGE_COVERAGE"):
+            validate_funding_edges({START_MS: 0.0001,
+                                    END_MS - 25 * HOUR_MS: 0.0001}, "ETHUSDT")
+
+    def test_out_of_training_events_rejected(self):
+        for events in ({START_MS - HOUR_MS: 0.1, END_MS - HOUR_MS: 0.1},
+                       {START_MS: 0.1, END_MS: 0.1}):
+            with self.assertRaisesRegex(ValueError, "OUT_OF_TRAINING"):
+                validate_funding_edges(events, "SOLUSDT")
+
+    def test_empty_rejected(self):
+        with self.assertRaisesRegex(ValueError, "EMPTY_FUNDING"):
+            validate_funding_edges({}, "BNBUSDT")
+
+
+if __name__ == "__main__":
+    unittest.main()
