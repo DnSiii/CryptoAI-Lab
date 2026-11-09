@@ -27,8 +27,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: research/v98-independent-zero
+          ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Reject cross-branch dispatch and verify immutable checkout
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_REF: refs/heads/research/v98-independent-zero
+          ACTUAL_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          test "$ACTUAL_REF" = "$EXPECTED_REF" || { echo 'WRONG_V98_BRANCH'; exit 1; }
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo 'V98_CHECKOUT_SHA_MISMATCH'; exit 1; }
+          echo "V98_PINNED_COMMIT=$EXPECTED_SHA"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
