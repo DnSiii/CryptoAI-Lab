@@ -38,8 +38,22 @@ def heartbeat_stale(payload: dict, now: datetime) -> bool:
 
 
 def gh(*args: str) -> str:
-    return subprocess.check_output(["gh", *args], text=True, timeout=60, stderr=subprocess.STDOUT)
-
+    # Retry only read-only metadata requests; never repeat dispatch/cancel mutations.
+    readonly = len(args) >= 2 and args[0] == "api" and "--method" not in args
+    for attempt in range(4 if readonly else 1):
+        try:
+            return subprocess.check_output(["gh", *args], text=True, timeout=60, stderr=subprocess.STDOUT)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            output = getattr(error, "output", "") or ""
+            transient = isinstance(error, subprocess.TimeoutExpired) or any(
+                marker in output for marker in ("HTTP 429", "HTTP 500", "HTTP 502", "HTTP 503", "HTTP 504", "unexpected end of JSON input")
+            )
+            if not readonly or not transient or attempt == 3:
+                raise
+            delay = 2 ** attempt
+            print(f"GitHub metadata retry {attempt + 1}/3 in {delay}s", flush=True)
+            time.sleep(delay)
+    raise AssertionError("unreachable")
 
 def main(continue_chain: bool = False) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
