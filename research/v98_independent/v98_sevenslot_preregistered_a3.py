@@ -55,7 +55,11 @@ def generate(prices, manifest, funding, output):
                     router = 0.5 if vols[a] > 0.035 else 1.
                     state[a] = (g, o, r, s, router)
             gross = sum(sum(state[a][:4]) * state[a][4] for a in ASSETS)
-            allocator = min(1., 0.75 / gross) if gross else 1.
+            # Enforce both portfolio gross budget and the preregistered 40% per-asset governor.
+            # This is a deterministic feasibility projection, not a post-PnL parameter rescue.
+            peak = max(sum(state[a][:4]) * state[a][4] for a in ASSETS)
+            allocator = min(1., 0.75 / gross if gross else 1.,
+                            0.4 / peak if peak else 1.)
             for a in ASSETS:
                 g, o, r, s, router = state[a]
                 governor = 0.4
