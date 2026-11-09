@@ -16,8 +16,8 @@ from research.v98_independent.v98_phase243_training_reader import load, START_MS
 from research.v98_independent.v98_sevenslot_weight_to_targets import FIELDS, SLEEVES
 from research.v98_independent.v98_compound_scenario_replay import replay
 
-def run(slots, prices, manifest, funding, output):
-    paths = (slots, prices, manifest, funding, output)
+def run(slots, prices, manifest, funding, output, baseline_summary):
+    paths = (slots, prices, manifest, funding, output, baseline_summary)
     if any("v98_independent" not in Path(p).absolute().parts for p in paths):
         raise ValueError("V98_NAMESPACE_REQUIRED")
     data = load(prices, manifest, funding)
@@ -38,8 +38,15 @@ def run(slots, prices, manifest, funding, output):
             grid[t,a] = v
     if len(grid) != EXPECTED_HOURS * len(ASSETS):
         raise ValueError("INCOMPLETE_SLOT_GRID")
+    baseline = json.loads(Path(baseline_summary).read_text())
+    if baseline.get('status') != 'ECONOMIC_REPLAY_ONLY_NOT_VALIDATED_ENGINE' or baseline.get('holdout_accessed') is not False:
+        raise ValueError('INVALID_BASELINE_STATUS')
+    scenarios = baseline.get('scenarios', {})
+    if set(scenarios) != {'cost_1x', 'cost_2x', 'cost_4x'}:
+        raise ValueError('INVALID_BASELINE_SCENARIOS')
     result = {"status":"RETROSPECTIVE_ABLATION_NOT_INDEPENDENT_VALIDATION",
               "holdout_accessed":False, "cost_multipliers":[1,2,4],
+              "baseline_final_equity_usd":{k:scenarios[k]["final_equity_usd"] for k in scenarios},
               "counterfactuals":{}}
     for removed in SLEEVES:
         decisions = []
@@ -67,7 +74,9 @@ def run(slots, prices, manifest, funding, output):
                          fee_bps=4., slippage_bps=2.,
                          multipliers=(1.,2.,4.),gross_cap=1.,leverage_cap=2.)
         result["counterfactuals"][removed] = {
-            scenario:{"hours":len(rows),"final_equity_usd":rows[-1]["ending_equity_usd"]}
+            scenario:{"hours":len(rows),"final_equity_usd":rows[-1]["ending_equity_usd"],
+                      "marginal_equity_usd":scenarios[scenario]["final_equity_usd"]-rows[-1]["ending_equity_usd"],
+                      "positive_marginal_contribution":scenarios[scenario]["final_equity_usd"]>rows[-1]["ending_equity_usd"]}
             for scenario,rows in ledgers.items()}
         if any(len(rows) != EXPECTED_HOURS for rows in ledgers.values()):
             raise ValueError("INCOMPLETE_ABLATION")
@@ -78,7 +87,7 @@ def run(slots, prices, manifest, funding, output):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    for k in ("slots","prices","manifest","funding","output"):
+    for k in ("slots","prices","manifest","funding","output","baseline-summary"):
         p.add_argument("--"+k,type=Path,required=True)
     a=p.parse_args()
-    print(json.dumps(run(a.slots,a.prices,a.manifest,a.funding,a.output),sort_keys=True))
+    print(json.dumps(run(a.slots,a.prices,a.manifest,a.funding,a.output,a.baseline_summary),sort_keys=True))
