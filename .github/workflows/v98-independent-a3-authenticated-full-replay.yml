@@ -110,7 +110,7 @@ jobs:
           python -m research.v98_independent.v98_a2_chronological_gate --replay /tmp/v98_independent/a3/replay --output /tmp/v98_independent/a3/replay/chronological_gate.json
       - name: Replay fixed retrospective sleeve ablations without promotion
         run: |
-          python -m research.v98_independent.v98_a3_retrospective_ablation --slots /tmp/v98_independent/a3/slots.csv --prices "$PRICES" --manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a3/replay/retrospective_ablation.json
+          python -m research.v98_independent.v98_a3_retrospective_ablation --slots /tmp/v98_independent/a3/slots.csv --prices "$PRICES" --manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a3/replay/retrospective_ablation.json --baseline-summary /tmp/v98_independent/a3/replay/compound_summary.json
       - name: Verify required independent diagnostic outputs before upload
         run: |
           python - <<'PY'
