@@ -8,6 +8,7 @@ on:
       - 'research/v98_independent/v98_a0_economic_diagnostics.py'
       - 'research/v98_independent/v98_sevenslot_preregistered_a3.py'
       - 'research/v98_independent/v98_a3_retrospective_ablation.py'
+      - 'research/v98_independent/v98_a3_independent_accounting_audit.py'
       - 'research/v98_independent/v98_a2_chronological_gate.py'
       - 'research/v98_independent/v98_authenticated_compound_integration.py'
       - 'research/v98_independent/v98_compound_scenario_replay.py'
@@ -111,13 +112,16 @@ jobs:
       - name: Replay fixed retrospective sleeve ablations without promotion
         run: |
           python -m research.v98_independent.v98_a3_retrospective_ablation --slots /tmp/v98_independent/a3/slots.csv --prices "$PRICES" --manifest "$PRICE_MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/a3/replay/retrospective_ablation.json --baseline-summary /tmp/v98_independent/a3/replay/compound_summary.json
+      - name: Independently reconcile every hourly A3 ledger and cost scenario
+        run: |
+          python -m research.v98_independent.v98_a3_independent_accounting_audit --replay /tmp/v98_independent/a3/replay --output /tmp/v98_independent/a3/replay/independent_accounting_audit.json
       - name: Verify required independent diagnostic outputs before upload
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           root=Path('/tmp/v98_independent/a3/replay')
-          for name in ('diagnostics.json','chronological_gate.json','retrospective_ablation.json'):
+          for name in ('diagnostics.json','chronological_gate.json','retrospective_ablation.json','independent_accounting_audit.json'):
               path=root/name
               if not path.is_file() or path.stat().st_size==0:
                   raise SystemExit(f'MISSING_OR_EMPTY_DIAGNOSTIC: {path}')
