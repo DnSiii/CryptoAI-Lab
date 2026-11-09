@@ -17,6 +17,7 @@ on:
       - 'research/v98_independent/v98_phase243_training_reader.py'
       - 'research/v98_independent/phase243_native_funding_cashflow.py'
       - 'research/v98_independent/test_phase243_native_funding_cashflow.py'
+      - 'research/v98_independent/test_v98_phase243_funding_edges.py'
 permissions:
   contents: read
   actions: read
@@ -49,6 +50,8 @@ jobs:
         run: python -m unittest research.v98_independent.test_v98_a3_prefix_invariance -v
       - name: Verify native funding settlement contract before artifact acquisition
         run: python -m unittest discover -s research/v98_independent -p test_phase243_native_funding_cashflow.py -v
+      - name: Reject truncated native funding source windows
+        run: python -m unittest research.v98_independent.test_v98_phase243_funding_edges -v
       - name: Retrieve latest available V98 authenticated artifacts only
         env:
           GH_TOKEN: ${{ github.token }}
