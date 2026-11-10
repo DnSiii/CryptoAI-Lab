@@ -148,6 +148,14 @@ jobs:
                   report=json.load(stream)
               if not isinstance(report,dict) or not report:
                   raise SystemExit(f'INVALID_DIAGNOSTIC: {path}')
+              if name == 'independent_accounting_audit.json':
+                  if report.get('all_accounting_gates_passed') is not True or set(report.get('scenarios', {})) != {'1.0', '2.0', '4.0'}:
+                      raise SystemExit('INDEPENDENT_ACCOUNTING_GATE_FAILED')
+              if name == 'chronological_gate.json':
+                  if report.get('status') != 'RETROSPECTIVE_ONLY_NOT_INDEPENDENT_VALIDATION' or report.get('gates', {}).get('independent_validation') is not False:
+                      raise SystemExit('INVALID_RETROSPECTIVE_GATE_STATUS')
+              if report.get('holdout_accessed') is not False or report.get('promotion_eligible') is True:
+                  raise SystemExit(f'INVALID_RESEARCH_BOUNDARY: {name}')
               print(f'VALID_DIAGNOSTIC {name}: {path.stat().st_size} bytes')
           PY
       - name: Upload unapproved research-only economic ledgers
