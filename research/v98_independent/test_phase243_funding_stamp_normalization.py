@@ -25,9 +25,14 @@ class FundingTimestampTests(unittest.TestCase):
         start = 1669852800000
         self.assertEqual(self.read([start]), {start: 0.0001})
 
-    def test_other_offsets_fail_closed(self):
+    def test_subsecond_offsets_are_normalized_without_rate_interpolation(self):
+        start = 1669852800000
+        self.assertEqual(self.read([start + 2, start + 8*HOUR_MS + 999]),
+                         {start: 0.0001, start + 8*HOUR_MS: 0.0001})
+
+    def test_second_level_offsets_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "non_hour_boundary"):
-            self.read([1669852800002])
+            self.read([1669852801000])
 
     def test_normalization_collision_fails(self):
         with self.assertRaisesRegex(ValueError, "duplicate_normalized_settlement"):
