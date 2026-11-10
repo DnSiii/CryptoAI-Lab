@@ -25,7 +25,8 @@ def validate_funding_edges(events, asset):
     first, last = min(events), max(events)
     if first < START_MS or last >= END_MS:
         raise ValueError("PHASE243_FUNDING_OUT_OF_TRAINING")
-    # USD-M funding settles at least every eight hours for this historical universe.\n    # A 24-hour edge allowance could silently omit one or more settlements.\n    if first > START_MS + 8 * HOUR_MS or last < END_MS - 8 * HOUR_MS:
+    # Native funding edge allowance is eight hours; reject missing boundary settlements.
+    if first > START_MS + 8 * HOUR_MS or last < END_MS - 8 * HOUR_MS:
         raise ValueError("PHASE243_FUNDING_EDGE_COVERAGE_" + asset)
 
 
