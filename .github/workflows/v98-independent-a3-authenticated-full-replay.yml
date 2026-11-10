@@ -11,6 +11,7 @@ on:
       - 'research/v98_independent/v98_a3_independent_accounting_audit.py'
       - 'research/v98_independent/v98_a2_chronological_gate.py'
       - 'research/v98_independent/test_v98_a3_prefix_invariance.py'
+      - 'research/v98_independent/test_v98_compound_decision_alignment.py'
       - 'research/v98_independent/v98_authenticated_compound_integration.py'
       - 'research/v98_independent/v98_compound_scenario_replay.py'
       - 'research/v98_independent/v98_causal_compound_sizing.py'
@@ -49,6 +50,8 @@ jobs:
           python -m compileall -q research/v98_independent/v98_sevenslot_preregistered_a3.py research/v98_independent/v98_authenticated_compound_integration.py research/v98_independent/v98_compound_scenario_replay.py research/v98_independent/v98_causal_compound_sizing.py research/v98_independent/v98_phase243_training_reader.py research/v98_independent/v98_a0_economic_diagnostics.py research/v98_independent/v98_a2_chronological_gate.py
       - name: Verify A3 future-shock causal prefix invariance
         run: python -m unittest research.v98_independent.test_v98_a3_prefix_invariance -v
+      - name: Verify exact previous-hour execution decision alignment
+        run: python -m unittest research.v98_independent.test_v98_compound_decision_alignment -v
       - name: Verify native funding settlement contract before artifact acquisition
         run: python -m unittest discover -s research/v98_independent -p test_phase243_native_funding_cashflow.py -v
       - name: Reject truncated native funding source windows
