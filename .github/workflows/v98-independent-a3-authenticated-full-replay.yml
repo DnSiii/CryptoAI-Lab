@@ -158,8 +158,8 @@ jobs:
                   raise SystemExit(f'INVALID_RESEARCH_BOUNDARY: {name}')
               print(f'VALID_DIAGNOSTIC {name}: {path.stat().st_size} bytes')
           PY
-      - name: Upload unapproved research-only economic ledgers
-        if: success()
+      - name: Preserve unapproved research-only economic evidence even on gate failure
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: v98-independent-a3-unvalidated-full-replay-${{ github.run_id }}
@@ -167,4 +167,4 @@ jobs:
             /tmp/v98_independent/a3/slots.csv
             /tmp/v98_independent/a3/replay/
           retention-days: 30
-          if-no-files-found: error
+          if-no-files-found: warn
