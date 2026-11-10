@@ -97,7 +97,11 @@ def validate_complete_inventory(positions, funding):
     for asset in ASSETS:
         if len(by_asset[asset]) != expected:
             raise ValueError("MISSING_POSITION_HOUR")
-        if any(start <= t <= end and t not in by_asset[asset] for t in funding[asset]):
+        # Never silently discard a native settlement outside the position window.
+        # A truncated inventory would otherwise omit real funding cashflows.
+        if any(t < start or t > end for t in funding[asset]):
+            raise ValueError("SETTLEMENT_OUTSIDE_INVENTORY")
+        if any(t not in by_asset[asset] for t in funding[asset]):
             raise ValueError("MISSING_SETTLEMENT_INVENTORY")
     return {"start_ms": start, "end_ms": end, "hours_per_asset": expected}
 
