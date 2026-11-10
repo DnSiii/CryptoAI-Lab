@@ -66,6 +66,15 @@ class NativeFundingCashflowTests(unittest.TestCase):
             validate_complete_inventory([r for r in rows
                 if not (r["asset"] == "BTCUSDT" and r["hour_open_ms"] == 3600000)], funding)
 
+    def test_settlement_outside_inventory_rejected(self):
+        assets = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
+        rows = [{"asset": a, "hour_open_ms": t, "signed_notional_usd_before_hour": 0}
+                for a in assets for t in (0, 3600000, 7200000)]
+        funding = {a: {3600000: 0.0001} for a in assets}
+        funding["BTCUSDT"][10800000] = 0.0001
+        with self.assertRaisesRegex(ValueError, "SETTLEMENT_OUTSIDE_INVENTORY"):
+            validate_complete_inventory(rows, funding)
+
     def test_asset_misalignment_and_future_rejected(self):
         assets = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
         funding = {a: {} for a in assets}
