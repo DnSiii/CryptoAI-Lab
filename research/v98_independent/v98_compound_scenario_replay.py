@@ -35,7 +35,7 @@ def replay(decisions, bars, funding, *, first_hour_ms, initial_equity_usd,
         raise ValueError("DUPLICATE_SCENARIO")
     for i, decision in enumerate(decisions):
         t = first_hour_ms + i*HOUR_MS
-        if int(decision["hour_open_ms"]) != t or int(decision["decision_time_ms"]) > t-HOUR_MS:
+        if int(decision["hour_open_ms"]) != t or int(decision["decision_time_ms"]) != t-HOUR_MS:
             raise ValueError("NONCAUSAL_OR_MISSING_DECISION")
         weights = decision["weights"]
         if set(weights) != set(ASSETS):
