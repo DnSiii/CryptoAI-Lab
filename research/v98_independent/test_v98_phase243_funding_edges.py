@@ -10,6 +10,16 @@ class FundingEdgeCoverage(unittest.TestCase):
         validate_funding_edges({START_MS + 8 * HOUR_MS: 0.0001,
                                 END_MS - 8 * HOUR_MS: -0.0001}, "BTCUSDT")
 
+    def test_nine_hour_early_truncation_rejected(self):
+        with self.assertRaisesRegex(ValueError, "EDGE_COVERAGE"):
+            validate_funding_edges({START_MS + 9 * HOUR_MS: 0.0001,
+                                    END_MS - 8 * HOUR_MS: -0.0001}, "BTCUSDT")
+
+    def test_nine_hour_late_truncation_rejected(self):
+        with self.assertRaisesRegex(ValueError, "EDGE_COVERAGE"):
+            validate_funding_edges({START_MS + 8 * HOUR_MS: 0.0001,
+                                    END_MS - 9 * HOUR_MS: -0.0001}, "ETHUSDT")
+
     def test_missing_early_events_rejected(self):
         with self.assertRaisesRegex(ValueError, "EDGE_COVERAGE"):
             validate_funding_edges({START_MS + 25 * HOUR_MS: 0.0001,
