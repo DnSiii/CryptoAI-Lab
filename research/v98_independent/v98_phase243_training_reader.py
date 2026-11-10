@@ -28,6 +28,12 @@ def validate_funding_edges(events, asset):
     # Native funding edge allowance is eight hours; reject missing boundary settlements.
     if first > START_MS + 8 * HOUR_MS or last < END_MS - 8 * HOUR_MS:
         raise ValueError("PHASE243_FUNDING_EDGE_COVERAGE_" + asset)
+    # Clean-4 canonical archive has one native settlement every eight hours.
+    # An interior missing settlement can pass the generic <=24h gap check,
+    # silently understating funding costs. Reject it before any system PnL.
+    expected_times = range(START_MS, END_MS, 8 * HOUR_MS)
+    if len(events) != len(expected_times) or any(t not in events for t in expected_times):
+        raise ValueError("PHASE243_FUNDING_INTERIOR_COVERAGE_" + asset)
 
 
 def load(price_root, price_manifest_path, funding_root):
