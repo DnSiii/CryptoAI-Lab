@@ -59,7 +59,7 @@ jobs:
                               'paper_publication_authorized': False}
               assert selected['promotion_authorized'] is False
               assert selected['paper_publication_authorized'] is False
-              out.write_text(json.dumps(selected, indent=2, sort_keys=True) + '\\n')
+              out.write_text(json.dumps(selected, indent=2, sort_keys=True) + '\n')
               print('Fresh original pair operational gate:', selected['status'])
           PY
       - name: Verify entire durable original-byte receipt chain
