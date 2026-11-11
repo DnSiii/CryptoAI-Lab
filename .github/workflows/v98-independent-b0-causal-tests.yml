@@ -1,0 +1,25 @@
+name: V98 Independent B0 Causal Tests
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_b0_causal_overlay.py'
+      - 'research/v98_independent/test_v98_b0_causal_overlay.py'
+      - '.github/workflows/v98-independent-b0-causal-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  b0-causal-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: B0 deterministic causal tests
+        run: python -m unittest research.v98_independent.test_v98_b0_causal_overlay -v
+      - name: B0 syntax check
+        run: python -m py_compile research/v98_independent/v98_b0_causal_overlay.py
