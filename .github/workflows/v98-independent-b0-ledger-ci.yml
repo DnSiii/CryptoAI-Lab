@@ -1,0 +1,21 @@
+name: V98 Independent B0 causal and ledger checks
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_b0_*.py'
+      - '.github/workflows/v98-independent-b0-ledger-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  b0-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run both B0 suites against checked-out branch
+        run: |
+          python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger
