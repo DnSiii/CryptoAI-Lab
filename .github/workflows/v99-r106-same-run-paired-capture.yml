@@ -1,0 +1,64 @@
+name: V99 R106 same-run OKX source capture DATA_ONLY
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: v99-r106-same-run-capture
+  cancel-in-progress: false
+jobs:
+  same-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: research/v99-r106-native-all-regime-engine
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Capture two original streams sequentially in one run
+        run: |
+          python -m research.tools.v99_r106_okx_prospective_receipt --out research_evidence/same_run/market
+          python -m research.tools.v99_r106_okx_terms_asof --out research_evidence/same_run/terms
+      - name: Check source hashes and original observation times
+        run: |
+          python - <<'PY'
+          import json,hashlib,datetime,os
+          from pathlib import Path
+          root=Path('research_evidence/same_run')
+          m=json.loads((root/'market/manifest.json').read_text())
+          t=json.loads((root/'terms/manifest.json').read_text())
+          parse=lambda x:datetime.datetime.fromisoformat(x.replace('Z','+00:00'))
+          pm,pt=parse(m['last_received_utc']),parse(t['acquisition_last_utc'])
+          delta=abs((pm-pt).total_seconds())
+          assert len(m['instruments'])==len(t['contracts'])==5
+          assert set(m['instruments'])==set(t['contracts'])
+          for inst,item in m['instruments'].items():
+              assert hashlib.sha256((root/'market'/(inst+'.raw.json')).read_bytes()).hexdigest()==item['source_raw_sha256']
+          for inst,item in t['contracts'].items():
+              for typ in ('metadata','funding'):
+                  key=('contract' if typ=='metadata' else 'funding')+'_raw_sha256'
+                  assert hashlib.sha256((root/'terms'/(typ+'_'+inst+'.raw.json')).read_bytes()).hexdigest()==item[key]
+          ok=delta<=1500 and pm.strftime('%Y%m%d%H')==pt.strftime('%Y%m%d%H')
+          report=dict(status='DATA_ONLY_SAME_RUN_CLOCK_PASS' if ok else 'DATA_ONLY_SAME_RUN_CLOCK_HOLD',
+                      delta_seconds=delta,market_utc=m['last_received_utc'],
+                      terms_utc=t['acquisition_last_utc'],source_run_id=os.environ['GITHUB_RUN_ID'],
+                      original_hashes_verified=True,durable_provenance_authenticated=False,
+                      two_consecutive_hours_authenticated=False,
+                      paper_publication_authorized=False,promotion_authorized=False,economic_trials=0)
+          (root/'pair_clock_report.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(report))
+          assert ok,'Original sources outside strict same-hour <=25m window'
+          PY
+      - name: Preserve raw receipts and report even on gate failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v99-r106-same-run-pair-${{ github.run_id }}
+          path: research_evidence/same_run/
+          retention-days: 90
+          if-no-files-found: warn
