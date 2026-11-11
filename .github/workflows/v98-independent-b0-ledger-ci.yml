@@ -19,4 +19,4 @@ jobs:
           python-version: '3.11'
       - name: Run both B0 suites against checked-out branch
         run: |
-          python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration
+          python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution
