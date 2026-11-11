@@ -1,0 +1,48 @@
+name: V98 Independent A3 Economic Ledger Inventory
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths: [.github/workflows/v98-independent-a3-ledger-inventory.yml]
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce branch
+        env:
+          REF: ${{ github.ref }}
+        run: test "$REF" = refs/heads/research/v98-independent-zero
+      - name: Inspect frozen replay archive without changing data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import json,os,subprocess,zipfile,io,csv
+          from pathlib import PurePosixPath
+          aid=13819914098
+          meta=json.loads(subprocess.check_output(['gh','api',f'repos/{os.environ["GH_REPO"]}/actions/artifacts/{aid}'],text=True))
+          assert not meta.get('expired'), 'FROZEN_REPLAY_EXPIRED'
+          assert meta.get('workflow_run',{}).get('id')==42941324822, 'WRONG_REPLAY'
+          raw=subprocess.check_output(['gh','api',f'repos/{os.environ["GH_REPO"]}/actions/artifacts/{aid}/zip'])
+          rows=[]
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              for f in z.infolist():
+                  p=PurePosixPath(f.filename)
+                  assert not p.is_absolute() and '..' not in p.parts, 'UNSAFE_ZIP_PATH'
+                  if f.is_dir(): continue
+                  item={'path':f.filename,'bytes':f.file_size}
+                  if f.filename.lower().endswith('.csv'):
+                      with z.open(f) as h:
+                          first=h.readline().decode('utf-8-sig',errors='replace').strip()
+                          item['header']=next(csv.reader([first])) if first else []
+                  elif f.filename.lower().endswith('.json') and f.file_size<200000:
+                      with z.open(f) as h:
+                          obj=json.load(h)
+                      item['top_level_keys']=list(obj)[:60] if isinstance(obj,dict) else ['non_object']
+                  rows.append(item)
+          print(json.dumps({'frozen_replay_run':42941324822,'artifact_id':aid,'inventory':rows},ensure_ascii=False,indent=2))
+          PY
