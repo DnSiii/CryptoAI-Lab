@@ -20,12 +20,14 @@ class MaterialEvidenceTests(unittest.TestCase):
             "promotion_eligible": False, "training_end": "2025-12-31T23:00:00Z",
             "source_sha256": {"a": ""}, "slots_sha256": "",
             "price_manifest_sha256": "", "funding_manifest_sha256": "",
-            "replay_summary_sha256": "",
+            "replay_summary_sha256": "", "chronological_gate_sha256": "",
+            "accounting_audit_sha256": "",
             "ledger_sha256": {"1.0": "", "2.0": "", "4.0": ""}
         }
         self.mapping = {}
         for key in ("slots_sha256", "price_manifest_sha256",
-                    "funding_manifest_sha256", "replay_summary_sha256"):
+                    "funding_manifest_sha256", "replay_summary_sha256",
+                    "chronological_gate_sha256", "accounting_audit_sha256"):
             self._write(key, key, b"test:" + key.encode())
         for group in ("source_sha256", "ledger_sha256"):
             for name in self.lock[group]:
@@ -51,7 +53,7 @@ class MaterialEvidenceTests(unittest.TestCase):
 
     def test_all_material_bytes_verified_without_promotion(self):
         result = self.check()
-        self.assertEqual(result["material_hashes_verified"], 8)
+        self.assertEqual(result["material_hashes_verified"], 10)
         self.assertFalse(result["independent_validation"])
 
     def test_modified_bytes_rejected(self):
