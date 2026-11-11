@@ -10,6 +10,7 @@ on:
       - 'research/v98_independent/v98_a3_retrospective_ablation.py'
       - 'research/v98_independent/v98_a3_independent_accounting_audit.py'
       - 'research/v98_independent/v98_a2_chronological_gate.py'
+      - 'research/v98_independent/v98_a3_reproducibility_lock.py'
       - 'research/v98_independent/test_v98_a3_prefix_invariance.py'
       - 'research/v98_independent/test_v98_compound_decision_alignment.py'
       - 'research/v98_independent/v98_authenticated_compound_integration.py'
@@ -161,6 +162,11 @@ jobs:
                   raise SystemExit(f'INVALID_RESEARCH_BOUNDARY: {name}')
               print(f'VALID_DIAGNOSTIC {name}: {path.stat().st_size} bytes')
           PY
+      - name: Lock A3 source and economic evidence for future independent evaluation
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          python -m research.v98_independent.v98_a3_reproducibility_lock --replay /tmp/v98_independent/a3/replay --slots /tmp/v98_independent/a3/slots.csv --root "$GITHUB_WORKSPACE" --output /tmp/v98_independent/a3/replay/reproducibility_lock.json --expected-commit "$EXPECTED_SHA"
       - name: Preserve unapproved research-only economic evidence even on gate failure
         if: always()
         uses: actions/upload-artifact@v4
