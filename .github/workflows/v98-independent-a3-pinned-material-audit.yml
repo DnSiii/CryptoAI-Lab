@@ -1,6 +1,10 @@
 name: V98 Independent A3 Pinned Material Audit
 on:
   workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-a3-pinned-material-audit.yml'
 permissions:
   contents: read
   actions: read
