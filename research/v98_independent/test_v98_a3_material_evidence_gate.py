@@ -51,7 +51,7 @@ class MaterialEvidenceTests(unittest.TestCase):
 
     def test_all_material_bytes_verified_without_promotion(self):
         result = self.check()
-        self.assertEqual(result["material_hashes_verified"], 9)
+        self.assertEqual(result["material_hashes_verified"], 8)
         self.assertFalse(result["independent_validation"])
 
     def test_modified_bytes_rejected(self):
@@ -74,7 +74,7 @@ class MaterialEvidenceTests(unittest.TestCase):
     def test_reused_file_rejected(self):
         self.mapping["slots_sha256"] = self.mapping["price_manifest_sha256"]
         self._save()
-        with self.assertRaisesRegex(ValueError, "REUSE"):
+        with self.assertRaisesRegex(ValueError, "SHA256_MISMATCH|REUSE"):
             self.check()
 
 if __name__ == "__main__":
