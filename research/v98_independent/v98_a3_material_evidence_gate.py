@@ -11,7 +11,7 @@ from research.v98_independent.v98_a3_frozen_boundary_gate import verify
 
 def expected_hashes(lock):
     hashes = {}
-    for key in ("slots_sha256", "price_manifest_sha256", "funding_manifest_sha256", "replay_summary_sha256"):
+    for key in ("slots_sha256", "price_manifest_sha256", "funding_manifest_sha256", "replay_summary_sha256", "chronological_gate_sha256", "accounting_audit_sha256"):
         hashes[key] = lock[key]
     for key in ("source_sha256", "ledger_sha256"):
         for name, digest in lock[key].items():
