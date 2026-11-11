@@ -4,6 +4,8 @@ on:
     branches: [research/v99-r106-native-all-regime-engine]
     paths:
       - 'research/tools/v99_r106_durable_pair_chain_audit.py'
+      - 'research/tools/v99_r106_fresh_pair_selector.py'
+      - 'research/tests/test_v99_r106_fresh_pair_selector.py'
       - 'research/tools/v99_r106_durable_run_attestation.py'
       - 'research/tests/test_v99_r106_durable_run_attestation.py'
       - 'research/tests/test_v99_r106_durable_pair_chain_audit.py'
@@ -32,6 +34,34 @@ jobs:
           python-version: '3.12'
       - name: Adversarial synthetic verification
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_durable_pair_chain_audit.py' -v
+      - name: Select independently verified fresh original pair (no publication)
+        shell: bash
+        run: |
+          python -m unittest discover -s research/tests -p 'test_v99_r106_fresh_pair_selector.py' -v
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from research.tools.v99_r106_fresh_pair_selector import select
+          root = Path('durable_receipts/receipts')
+          out = Path('research_evidence/fresh_pair_operational.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          with tempfile.TemporaryDirectory() as tmp:
+              linkroot = Path(tmp)
+              (linkroot / 'markets').symlink_to((root / 'v99_r106_okx').resolve(), target_is_directory=True)
+              (linkroot / 'terms').symlink_to((root / 'v99_r106_okx_terms').resolve(), target_is_directory=True)
+              try:
+                  selected = select(linkroot)
+              except ValueError as exc:
+                  # The full historical chain audit below still runs; this
+                  # independent current-pair result remains fail-closed.
+                  selected = {'status': 'DATA_ONLY_HOLD_NO_FRESH_VERIFIED_PAIR',
+                              'reason': str(exc), 'promotion_authorized': False,
+                              'paper_publication_authorized': False}
+              assert selected['promotion_authorized'] is False
+              assert selected['paper_publication_authorized'] is False
+              out.write_text(json.dumps(selected, indent=2, sort_keys=True) + '\\n')
+              print('Fresh original pair operational gate:', selected['status'])
+          PY
       - name: Verify entire durable original-byte receipt chain
         run: |
           python -m research.tools.v99_r106_durable_pair_chain_audit \
@@ -78,6 +108,7 @@ jobs:
           name: v99-r106-durable-chain-audit
           retention-days: 90
           path: |
+            research_evidence/fresh_pair_operational.json
             research_evidence/durable_pair_chain.json
             research_evidence/durable_run_attestation.json
           if-no-files-found: error
