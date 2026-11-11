@@ -1,0 +1,75 @@
+name: V98 Independent A3 Pinned Material Audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-frozen-material:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Enforce V98 branch and freeze source identity
+        env:
+          EXPECTED_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          test "$EXPECTED_REF" = refs/heads/research/v98-independent-zero
+          mkdir -p /tmp/v98_independent/material
+          git archive 2b43253c485ef705cc7f4bcce50dad0a450cedbd research/v98_independent | tar -x -C /tmp/v98_independent/material
+      - name: Retrieve pinned replay and original authenticated source artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess,zipfile
+          from pathlib import Path
+          repo=os.environ["GH_REPO"]
+          root=Path("/tmp/v98_independent/material")
+          pinned={"replay":13819914098,"prices":13444665313,"funding":13464271018}
+          for label,aid in pinned.items():
+              meta=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/artifacts/{aid}"],text=True))
+              if meta.get("expired") or meta.get("workflow_run",{}).get("head_branch")!="research/v98-independent-zero":
+                  raise SystemExit(f"EXPIRED_OR_WRONG_BRANCH:{label}:{aid}")
+              if label=="replay" and meta.get("workflow_run",{}).get("id")!=42941324822:
+                  raise SystemExit("WRONG_FROZEN_REPLAY_RUN")
+              dest=root/label
+              dest.mkdir()
+              archive=dest/"artifact.zip"
+              with archive.open("wb") as f:
+                  subprocess.run(["gh","api",f"repos/{repo}/actions/artifacts/{aid}/zip"],stdout=f,check=True)
+              with zipfile.ZipFile(archive) as z:
+                  for entry in z.infolist():
+                      path=(dest/entry.filename).resolve()
+                      if not path.is_relative_to(dest.resolve()):
+                          raise SystemExit("UNSAFE_ARTIFACT_ZIP")
+                  z.extractall(dest)
+              archive.unlink()
+              print("PINNED",label,aid,meta.get("name"))
+          PY
+      - name: Recompute every frozen material hash from original bytes
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/v98_independent/material
+          LOCK=$(find "$ROOT/replay" -name reproducibility_lock.json -type f)
+          test "$(printf '%s\n' "$LOCK" | wc -l)" -eq 1
+          python -m research.v98_independent.v98_a3_pinned_material_audit --root "$ROOT" --lock "$LOCK" --output "$ROOT/v98_material_audit_result.json"
+      - name: Upload audit evidence even if rejected
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-a3-pinned-material-audit-${{ github.run_id }}
+          path: |
+            /tmp/v98_independent/material/v98_material_audit_result.json
+            /tmp/v98_independent/material/v98_material_mapping.json
+          if-no-files-found: warn
+          retention-days: 30
