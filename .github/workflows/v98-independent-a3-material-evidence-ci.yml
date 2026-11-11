@@ -1,0 +1,32 @@
+name: V98 Independent A3 Material Evidence CI
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_a3_material_evidence_gate.py'
+      - 'research/v98_independent/test_v98_a3_material_evidence_gate.py'
+      - '.github/workflows/v98-independent-a3-material-evidence-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  material-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Enforce V98-only checkout
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          ACTUAL_REF: ${{ github.ref }}
+        run: |
+          test "$ACTUAL_REF" = "refs/heads/research/v98-independent-zero"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Run material hash regression (synthetic fixtures only)
+        run: python -m unittest research.v98_independent.test_v98_a3_material_evidence_gate -v
