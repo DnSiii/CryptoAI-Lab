@@ -1,5 +1,8 @@
 name: V99 R106 same-run OKX source capture DATA_ONLY
 on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ['.github/workflows/v99-r106-same-run-paired-capture.yml']
   workflow_dispatch:
   schedule:
     - cron: '15 * * * *'
