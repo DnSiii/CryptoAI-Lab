@@ -61,6 +61,16 @@ class MaterialEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SHA256_MISMATCH"):
             self.check()
 
+    def test_chronological_gate_tampering_rejected(self):
+        (self.root / self.mapping["chronological_gate_sha256"]).write_bytes(b"tampered chronology")
+        with self.assertRaisesRegex(ValueError, "SHA256_MISMATCH"):
+            self.check()
+
+    def test_accounting_audit_tampering_rejected(self):
+        (self.root / self.mapping["accounting_audit_sha256"]).write_bytes(b"tampered accounting")
+        with self.assertRaisesRegex(ValueError, "SHA256_MISMATCH"):
+            self.check()
+
     def test_missing_mapping_rejected(self):
         del self.mapping["slots_sha256"]
         self._save()
