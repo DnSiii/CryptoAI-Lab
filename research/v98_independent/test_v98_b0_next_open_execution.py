@@ -32,7 +32,8 @@ class NextOpenTests(unittest.TestCase):
             return {a:(.2,0.,0.,0.) for a in ASSETS}
         result, entries=replay_next_open(warmed_bars(),{a:{} for a in ASSETS},sleeve)
         self.assertTrue(any(e["cost_return"]>0 for e in entries))
-        self.assertLess(result["final_equity"],10000.)
+        baseline,_=replay_next_open(warmed_bars(),{a:{} for a in ASSETS},sleeve, cost_scale=0.)
+        self.assertLess(result["final_equity"],baseline["final_equity"])
 
     def test_funding_signed(self):
         def sleeve(h):
