@@ -1,0 +1,94 @@
+name: V98 Independent B0 Authenticated Next Open Replay
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-b0-authenticated-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  b0-authenticated:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify B0 causal and ledger tests
+        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner
+      - name: Retrieve pinned V98-only authenticated Clean-4 sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/b0/sources
+          python - <<'PY'
+          import json, os, subprocess, zipfile
+          from pathlib import Path
+          repo=os.environ['GH_REPO']
+          for label,artifact_id in {'prices':13444665313,'funding':13464271018}.items():
+              a=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}'],text=True))
+              name=a.get('name','').lower()
+              if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
+                  raise SystemExit(f'PINNED_SOURCE_UNAVAILABLE {label} {artifact_id}')
+              if label=='prices' and not name.startswith('v98-independent-clean4-148-official-archives-'):
+                  raise SystemExit('WRONG_PRICE_SOURCE')
+              if label=='funding' and not ('native' in name and 'funding' in name):
+                  raise SystemExit('WRONG_FUNDING_SOURCE')
+              target=Path('/tmp/v98_independent/b0/sources')/label
+              target.mkdir(parents=True,exist_ok=True)
+              archive=target/'artifact.zip'
+              with archive.open('wb') as stream:
+                  subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}/zip'],stdout=stream,check=True)
+              with zipfile.ZipFile(archive) as z:
+                  for item in z.infolist():
+                      if not (target/item.filename).resolve().is_relative_to(target.resolve()):
+                          raise SystemExit('ZIP_PATH_TRAVERSAL')
+                  z.extractall(target)
+              print('PINNED_SOURCE',label,artifact_id)
+          PY
+      - name: Resolve manifests and validate native Clean-4 training history
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/b0/sources')
+          prices=list((root/'prices').rglob('source_manifest.json'))
+          funding=list((root/'funding').rglob('funding_manifest.json'))
+          if len(prices)!=1 or len(funding)!=1:
+              raise SystemExit(f'MISSING_OR_AMBIGUOUS_MANIFESTS {len(prices)} {len(funding)}')
+          (root/'paths.env').write_text(f'PRICES={prices[0].parent}\nMANIFEST={prices[0]}\nFUNDING={funding[0].parent}\n')
+          PY
+          cat /tmp/v98_independent/b0/sources/paths.env >> "$GITHUB_ENV"
+      - name: Run full B0 next-open replay 1x 2x 4x without holdout
+        run: |
+          python -m research.v98_independent.v98_b0_next_open_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/b0_next_open_summary.json
+      - name: Enforce economic evidence completeness without promotion
+        run: |
+          python - <<'PY'
+          import json,math
+          p='/tmp/v98_independent/b0/b0_next_open_summary.json'
+          r=json.load(open(p))
+          assert r['holdout_accessed'] is False and r['status']=='EXPLORATORY_NEXT_OPEN_NOT_INDEPENDENTLY_VALIDATED'
+          assert set(r['results'])=={'1x','2x','4x'}
+          for label,v in r['results'].items():
+              assert v['hours']==27048,(label,v['hours'])
+              for key in ('final_equity','max_drawdown','total_turnover','funding_return_sum'):
+                  assert math.isfinite(v[key]),(label,key)
+          print(json.dumps(r,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-b0-unvalidated-next-open-${{ github.run_id }}
+          path: /tmp/v98_independent/b0/b0_next_open_summary.json
+          retention-days: 30
+          if-no-files-found: warn
