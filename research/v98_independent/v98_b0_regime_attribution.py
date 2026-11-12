@@ -30,16 +30,24 @@ def attribute(entries, final_equity, initial_equity=10000.):
         row["funding_log"] += math.log1p(funding/(1+gross))
         row["cost_log"] += math.log1p(-cost)
         row["net_log"] += math.log(e["equity"]/previous)
-        row["turnover"] += e["turnover"]
+        turnover = float(e["turnover"])
+        if not math.isfinite(turnover) or turnover < 0:
+            raise ValueError("INVALID_TURNOVER")
+        row["turnover"] += turnover
         exposure = sum(abs(w) for w in e["weights_after_fill"].values())
+        if not math.isfinite(exposure) or exposure < 0 or exposure > 1+1e-9:
+            raise ValueError("INVALID_EXPOSURE")
         row["exposure"] += exposure
         row["invested_hours"] += exposure > 1e-12
         for asset,w in e["weights_after_fill"].items():
             row["assets"][asset] += abs(w)
         previous = e["equity"]
     terminal_log = math.log(final_equity/previous)
-    years["2025"]["terminal_mark_log"] = terminal_log
-    years["2025"]["net_log"] += terminal_log
+    terminal_year = str(datetime.fromtimestamp((START_MS+(len(entries)-1)*HOUR_MS)/1000, tz=timezone.utc).year)
+    if terminal_year not in years:
+        raise ValueError("INVALID_TERMINAL_YEAR")
+    years[terminal_year]["terminal_mark_log"] = terminal_log
+    years[terminal_year]["net_log"] += terminal_log
     result = {}
     for year,row in sorted(years.items()):
         hours = row["hours"]
