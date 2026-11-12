@@ -47,5 +47,22 @@ class JournalGateTests(unittest.TestCase):
         self.journal["head_hash"]=e["hash"]
         self.assertIn("EVENT_0_UNSETTLED_FUNDING",verify(self.journal,self.provenance)["errors"])
 
+
+    def test_malformed_receipt_hash_rejected_even_when_length_is_64(self):
+        e={"type":"MARK","event_id":"bad-hash","event_utc":"2026-11-12T01:00:00Z",
+           "receipt_sha256":"z"*64,"prev_hash":"0"*64}
+        e["hash"]=hashlib.sha256(canonical(e)).hexdigest()
+        self.journal["events"]=[e]
+        self.journal["head_hash"]=e["hash"]
+        self.assertIn("EVENT_0_MISSING_RECEIPT_HASH",verify(self.journal,self.provenance)["errors"])
+
+    def test_invalid_utc_calendar_timestamp_rejected(self):
+        e={"type":"MARK","event_id":"bad-time","event_utc":"2026-99-99T01:00:00Z",
+           "receipt_sha256":"a"*64,"prev_hash":"0"*64}
+        e["hash"]=hashlib.sha256(canonical(e)).hexdigest()
+        self.journal["events"]=[e]
+        self.journal["head_hash"]=e["hash"]
+        self.assertIn("EVENT_0_INVALID_ORDER",verify(self.journal,self.provenance)["errors"])
+
 if __name__=="__main__":
     unittest.main()
