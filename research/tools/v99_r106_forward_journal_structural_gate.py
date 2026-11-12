@@ -35,6 +35,13 @@ def verify(journal, provenance):
             errors.append("INVALID_INITIAL_CAPITAL")
     except (InvalidOperation, TypeError, ValueError):
         errors.append("INVALID_INITIAL_CAPITAL")
+    try:
+        epoch_start = datetime.fromisoformat(str(journal["epoch_start_utc"]).replace("Z", "+00:00"))
+        if not str(journal["epoch_start_utc"]).endswith("Z") or epoch_start.utcoffset() != timezone.utc.utcoffset(None):
+            raise ValueError("epoch must be UTC")
+    except (ValueError, TypeError, OverflowError):
+        epoch_start = None
+        errors.append("INVALID_EPOCH_START")
     events = journal["events"]
     if not isinstance(events, list):
         errors.append("INVALID_EVENTS")
@@ -60,6 +67,8 @@ def verify(journal, provenance):
             instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             if instant.utcoffset() != timezone.utc.utcoffset(None) or (last_time is not None and instant < last_time):
                 raise ValueError("non-UTC or decreasing timestamp")
+            if epoch_start is not None and instant < epoch_start:
+                errors.append(f"EVENT_{i}_BEFORE_EPOCH")
             last_time = instant
         except (ValueError, TypeError, OverflowError):
             errors.append(f"EVENT_{i}_INVALID_ORDER")
