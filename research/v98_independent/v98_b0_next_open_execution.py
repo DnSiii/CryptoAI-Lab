@@ -51,7 +51,10 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
             histories[a].append(bars[a][i][3])
     # Final open-to-close mark; do not fill after the sample ends.
     final_return = {a:bars[a][-1][3]/bars[a][-1][0]-1 for a in ASSETS}
-    equity *= 1+sum(weights[a]*final_return[a] for a in ASSETS)
+    final_factor = 1+sum(weights[a]*final_return[a] for a in ASSETS)
+    if not math.isfinite(final_factor) or final_factor <= 0:
+        raise ValueError("INSOLVENT_FINAL_MARK")
+    equity *= final_factor
     peak = max(peak,equity)
     return dict(final_equity=equity, max_drawdown=max(
         [1-equity/peak]+[e["drawdown"] for e in entries]),
