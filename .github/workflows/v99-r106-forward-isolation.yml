@@ -51,6 +51,8 @@ jobs:
       - name: Re-run five-variant research epoch quarantine tests
         run: python -m unittest discover -s research/tests -p 'test_v99_phase195gb_paper_epoch_audit.py' -v
 
+      - name: Adversarial forward receipt provenance gate (fixtures only)
+        run: python -m unittest discover -s research/tests -p 'test_v99_r106_forward_receipt_preflight.py' -v
       - name: Validate fresh R106 epoch schema, causal receipts and exact PnL
         run: python -m unittest discover -s research/tests -p 'test_v99_r106_epoch2_quarantine.py' -v
       - name: Prove immutable-prefix feasibility offline
