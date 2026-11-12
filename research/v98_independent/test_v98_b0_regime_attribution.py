@@ -10,6 +10,8 @@ class AttributionTests(unittest.TestCase):
             dict(index=i, gross_return=0.001, funding_return=-0.0001,
                  cost_return=0.0002, pre_fill_equity=0.,
                  equity=0., turnover=0.3,
+                 gross_by_asset={"BTCUSDT":0.001,"ETHUSDT":0.0,"BNBUSDT":0.0,"SOLUSDT":0.0},
+                 funding_by_asset={"BTCUSDT":-0.0001,"ETHUSDT":0.0,"BNBUSDT":0.0,"SOLUSDT":0.0},
                  weights_after_fill={"BTCUSDT":0.4,"ETHUSDT":0.2,
                                      "BNBUSDT":0.0,"SOLUSDT":0.0})
             for i in range(1,27048)
@@ -45,6 +47,17 @@ class AttributionTests(unittest.TestCase):
         entries[0]["turnover"]=0.3
         entries[0]["weights_after_fill"]["BTCUSDT"]=float("nan")
         with self.assertRaisesRegex(ValueError,"INVALID_EXPOSURE"):
+            module.attribute(entries,previous)
+
+    def test_asset_contribution_mismatch_rejected(self):
+        entries=self._entries()
+        previous=10000.
+        for e in entries:
+            e["pre_fill_equity"]=previous*(1+e["gross_return"]+e["funding_return"])
+            e["equity"]=e["pre_fill_equity"]*(1-e["cost_return"])
+            previous=e["equity"]
+        entries[0]["gross_by_asset"]["BTCUSDT"]=0.5
+        with self.assertRaisesRegex(ValueError,"ASSET_CONTRIBUTION_MISMATCH"):
             module.attribute(entries,previous)
 
     def test_missing_hour_rejected(self):
