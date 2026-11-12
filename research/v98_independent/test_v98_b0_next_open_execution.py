@@ -48,6 +48,21 @@ class NextOpenTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INSOLVENT_FINAL_MARK"):
             replay_next_open(series, {a:{} for a in ASSETS}, sleeve)
 
+    def test_reject_invalid_costs_and_funding(self):
+        base = bars()
+        funding = {a:{} for a in ASSETS}
+        zero = lambda h:{a:(0.,0.,0.,0.) for a in ASSETS}
+        for kwargs in ({"fee_rate":-.001}, {"slippage_rate":float("nan")},
+                       {"cost_scale":float("inf")}, {"initial_equity":float("nan")}):
+            with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, "INVALID_ACCOUNT"):
+                replay_next_open(base, funding, zero, **kwargs)
+        invalid = {a:{} for a in ASSETS}
+        invalid["BTCUSDT"][1] = float("nan")
+        with self.assertRaisesRegex(ValueError, "INVALID_NATIVE_FUNDING"):
+            replay_next_open(base, invalid, zero)
+        with self.assertRaisesRegex(ValueError, "INVALID_CLEAN4_ASSETS"):
+            replay_next_open(base, {"BTCUSDT":{}}, zero)
+
     def test_funding_signed(self):
         def sleeve(h):
             return {a:(.2,0.,0.,0.) for a in ASSETS}
