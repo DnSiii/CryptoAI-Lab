@@ -1,6 +1,7 @@
 import unittest
 from research.v98_independent.v98_b0_next_open_execution import replay_next_open
 from research.v98_independent.v98_b0_stream_integration import ASSETS
+from research.v98_independent.v98_b0_ledger_diagnostics import diagnose
 
 def bars(n=4, shock=1):
     return {a:[(100. if i<2 else shock, 100., 100., 100., 0.)
@@ -72,6 +73,19 @@ class NextOpenTests(unittest.TestCase):
             self.assertEqual(set(e["weights_after_fill"]), set(ASSETS))
             self.assertAlmostEqual(e["equity"], e["pre_fill_equity"]*(1-e["cost_return"]))
             self.assertAlmostEqual(e["turnover"], sum(abs(e["weights_after_fill"][a]-e["weights_before_fill"][a]) for a in ASSETS))
+
+    def test_daily_diagnostics_complete_24h_bucket_and_final_close(self):
+        assets = {"BTCUSDT": 0.0}
+        entries = [dict(index=i, equity=10000. + i,
+                        weights_after_fill=assets, drawdown=0.,
+                        turnover=0., cost_return=0.) for i in range(1, 49)]
+        report = diagnose(entries, final_equity=10100.)
+        self.assertEqual(report["observed_days"], 2)
+        self.assertEqual(report["positive_days"], 2)
+        self.assertAlmostEqual(report["daily_return_mean"],
+                               ((10024./10000.-1)+(10100./10024.-1))/2)
+        with self.assertRaisesRegex(ValueError, "INVALID_FINAL_EQUITY"):
+            diagnose(entries, final_equity=float("nan"))
 
     def test_funding_signed(self):
         def sleeve(h):
