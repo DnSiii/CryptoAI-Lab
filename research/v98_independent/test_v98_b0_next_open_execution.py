@@ -35,6 +35,19 @@ class NextOpenTests(unittest.TestCase):
         baseline,_=replay_next_open(warmed_bars(),{a:{} for a in ASSETS},sleeve, cost_scale=0.)
         self.assertLess(result["final_equity"],baseline["final_equity"])
 
+    def test_final_mark_insolvency_fails_closed(self):
+        # No fill after the final open; an adverse final close must not
+        # produce a negative equity curve disguised as a valid backtest.
+        def sleeve(h):
+            return {a:(1.,0.,0.,0.) for a in ASSETS}
+        series = warmed_bars(2190)
+        for a in ASSETS:
+            op, hi, lo, _, vol = series[a][-1]
+            series[a][-1] = (op, hi, lo, 0., vol)
+        # An invalid zero close is rejected economically by the final mark.
+        with self.assertRaisesRegex(ValueError, "INSOLVENT_FINAL_MARK"):
+            replay_next_open(series, {a:{} for a in ASSETS}, sleeve)
+
     def test_funding_signed(self):
         def sleeve(h):
             return {a:(.2,0.,0.,0.) for a in ASSETS}
