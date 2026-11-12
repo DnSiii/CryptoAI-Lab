@@ -24,6 +24,7 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
     weights = {a:0. for a in ASSETS}
     histories = {a:[] for a in ASSETS}
     entries = []
+    max_drawdown = 0.
     # Bar i open: mark holdings from open i-1, then apply funding, then fill
     # target based ONLY on close i-1. No current-bar close is accessible.
     for i in range(n):
@@ -36,6 +37,7 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
                 raise ValueError("INSOLVENT_MARK")
             equity *= factor
             peak = max(peak, equity)
+            max_drawdown = max(max_drawdown, 1-equity/peak)
             weights = {a:weights[a]*(1+returns[a])/factor for a in ASSETS}
         if i:
             sleeves = sleeve_fn({a:tuple(histories[a]) for a in ASSETS})
@@ -46,11 +48,16 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
             cost = turnover*(fee_rate+slippage_rate)*cost_scale
             if not math.isfinite(cost) or cost >= 1:
                 raise ValueError("INSOLVENT_COST")
+            pre_fill_equity = equity
+            previous_weights = dict(weights)
             equity *= (1-cost)
             weights = dict(target)
             peak = max(peak,equity)
-            entries.append(dict(index=i, equity=equity, turnover=turnover,
-                                cost_return=cost, drawdown=1-equity/peak,
+            drawdown = 1-equity/peak
+            max_drawdown = max(max_drawdown, drawdown)
+            entries.append(dict(index=i, equity=equity, pre_fill_equity=pre_fill_equity,
+                                weights_before_fill=previous_weights, weights_after_fill=dict(weights),
+                                turnover=turnover, cost_return=cost, drawdown=drawdown,
                                 gross_return=gross, funding_return=carry))
         for a in ASSETS:
             histories[a].append(bars[a][i][3])
@@ -61,8 +68,8 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
         raise ValueError("INSOLVENT_FINAL_MARK")
     equity *= final_factor
     peak = max(peak,equity)
-    return dict(final_equity=equity, max_drawdown=max(
-        [1-equity/peak]+[e["drawdown"] for e in entries]),
+    max_drawdown = max(max_drawdown, 1-equity/peak)
+    return dict(final_equity=equity, max_drawdown=max_drawdown,
         total_turnover=sum(e["turnover"] for e in entries),
         funding_return_sum=sum(e["funding_return"] for e in entries),
         hours=n, execution="NEXT_OPEN_CAUSAL_RESEARCH"), entries
