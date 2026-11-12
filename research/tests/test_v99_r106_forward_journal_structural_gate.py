@@ -64,5 +64,20 @@ class JournalGateTests(unittest.TestCase):
         self.journal["head_hash"]=e["hash"]
         self.assertIn("EVENT_0_INVALID_ORDER",verify(self.journal,self.provenance)["errors"])
 
+    def test_pre_epoch_event_rejected_even_with_valid_hash_chain(self):
+        e={"type":"MARK","event_id":"pre-epoch","event_utc":"2026-11-11T23:59:59Z",
+           "receipt_sha256":"a"*64,"prev_hash":"0"*64}
+        e["hash"]=hashlib.sha256(canonical(e)).hexdigest()
+        self.journal["events"]=[e]
+        self.journal["head_hash"]=e["hash"]
+        r=verify(self.journal,self.provenance)
+        self.assertIn("EVENT_0_BEFORE_EPOCH",r["errors"])
+        self.assertFalse(r["publication_authorized"])
+
+    def test_invalid_epoch_calendar_rejected(self):
+        self.journal["epoch_start_utc"]="2026-99-99T00:00:00Z"
+        self.provenance["epoch_start_utc"]=self.journal["epoch_start_utc"]
+        self.assertIn("INVALID_EPOCH_START",verify(self.journal,self.provenance)["errors"])
+
 if __name__=="__main__":
     unittest.main()
