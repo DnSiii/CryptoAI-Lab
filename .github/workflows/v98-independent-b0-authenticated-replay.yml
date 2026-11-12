@@ -14,6 +14,9 @@ on:
       - 'research/v98_independent/test_v98_b0_regime_attribution.py'
       - 'research/v98_independent/test_v98_b0_independent_arithmetic_audit.py'
       - 'research/v98_independent/v98_composed_c1.py'
+      - 'research/v98_independent/v98_composed_c2.py'
+      - 'research/v98_independent/v98_composed_c2_authenticated_runner.py'
+      - 'research/v98_independent/test_v98_composed_c2.py'
       - 'research/v98_independent/test_v98_composed_c1.py'
       - 'research/v98_independent/test_v98_composed_c1_execution.py'
       - 'research/v98_independent/test_v98_composed_c1_prefix_invariance.py'
@@ -39,7 +42,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Verify B0 causal and ledger tests
-        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner research.v98_independent.test_v98_b0_independent_arithmetic_audit research.v98_independent.test_v98_b0_regime_attribution research.v98_independent.test_v98_composed_c1 research.v98_independent.test_v98_composed_c1_execution research.v98_independent.test_v98_composed_c1_prefix_invariance research.v98_independent.test_v98_c1_frozen_ablation
+        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner research.v98_independent.test_v98_b0_independent_arithmetic_audit research.v98_independent.test_v98_b0_regime_attribution research.v98_independent.test_v98_composed_c1 research.v98_independent.test_v98_composed_c1_execution research.v98_independent.test_v98_composed_c1_prefix_invariance research.v98_independent.test_v98_c1_frozen_ablation research.v98_independent.test_v98_composed_c2
       - name: Retrieve pinned V98-only authenticated Clean-4 sources
         env:
           GH_TOKEN: ${{ github.token }}
@@ -90,6 +93,8 @@ jobs:
           python -m research.v98_independent.v98_b0_next_open_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/b0_next_open_summary.json
       - name: Replay preregistered C1 composed portfolio on same authenticated training only
         run: python -m research.v98_independent.v98_composed_c1_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c1_composed_summary.json
+      - name: Replay preregistered C2 composed portfolio on authenticated training only
+        run: python -m research.v98_independent.v98_composed_c2_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c2_composed_summary.json
       - name: Independently audit C1 chronological folds and asset attribution
         run: python -m research.v98_independent.v98_composed_c1_evidence --directory /tmp/v98_independent/b0
       - name: Run frozen C1 sleeve ablations and independently audit each counterfactual
@@ -131,5 +136,7 @@ jobs:
             /tmp/v98_independent/b0/c1_composed_evidence.json
             /tmp/v98_independent/b0/c1_composed_summary.json
             /tmp/v98_independent/b0/c1_composed_summary_*_ledger.jsonl
+            /tmp/v98_independent/b0/c2_composed_summary.json
+            /tmp/v98_independent/b0/c2_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
