@@ -63,6 +63,16 @@ class NextOpenTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INVALID_CLEAN4_ASSETS"):
             replay_next_open(base, {"BTCUSDT":{}}, zero)
 
+    def test_position_ledger_and_pre_fill_equity(self):
+        sleeve = lambda h:{a:(.2,0.,0.,0.) for a in ASSETS}
+        _, entries = replay_next_open(warmed_bars(), {a:{} for a in ASSETS}, sleeve)
+        self.assertEqual(len(entries), 2189)
+        for e in entries:
+            self.assertEqual(set(e["weights_before_fill"]), set(ASSETS))
+            self.assertEqual(set(e["weights_after_fill"]), set(ASSETS))
+            self.assertAlmostEqual(e["equity"], e["pre_fill_equity"]*(1-e["cost_return"]))
+            self.assertAlmostEqual(e["turnover"], sum(abs(e["weights_after_fill"][a]-e["weights_before_fill"][a]) for a in ASSETS))
+
     def test_funding_signed(self):
         def sleeve(h):
             return {a:(.2,0.,0.,0.) for a in ASSETS}
