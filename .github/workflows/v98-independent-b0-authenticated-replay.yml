@@ -4,6 +4,9 @@ on:
     branches: [research/v98-independent-zero]
     paths:
       - '.github/workflows/v98-independent-b0-authenticated-replay.yml'
+      - 'research/v98_independent/v98_b0_next_open_execution.py'
+      - 'research/v98_independent/v98_b0_next_open_authenticated_runner.py'
+      - 'research/v98_independent/test_v98_b0_next_open_execution.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -89,6 +92,8 @@ jobs:
         if: always()
         with:
           name: v98-independent-b0-unvalidated-next-open-${{ github.run_id }}
-          path: /tmp/v98_independent/b0/b0_next_open_summary.json
+          path: |
+            /tmp/v98_independent/b0/b0_next_open_summary.json
+            /tmp/v98_independent/b0/b0_next_open_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
