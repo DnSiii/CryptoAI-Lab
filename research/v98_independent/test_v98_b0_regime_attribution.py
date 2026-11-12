@@ -32,6 +32,21 @@ class AttributionTests(unittest.TestCase):
             self.assertLess(abs(row["log_decomposition_residual"]),1e-8)
             self.assertAlmostEqual(row["mean_gross_exposure"],0.6,places=10)
 
+    def test_invalid_turnover_and_exposure_rejected(self):
+        entries=self._entries()
+        previous=10000.
+        for e in entries:
+            e["pre_fill_equity"]=previous*(1+e["gross_return"]+e["funding_return"])
+            e["equity"]=e["pre_fill_equity"]*(1-e["cost_return"])
+            previous=e["equity"]
+        entries[0]["turnover"]=-0.1
+        with self.assertRaisesRegex(ValueError,"INVALID_TURNOVER"):
+            module.attribute(entries,previous)
+        entries[0]["turnover"]=0.3
+        entries[0]["weights_after_fill"]["BTCUSDT"]=float("nan")
+        with self.assertRaisesRegex(ValueError,"INVALID_EXPOSURE"):
+            module.attribute(entries,previous)
+
     def test_missing_hour_rejected(self):
         with self.assertRaisesRegex(ValueError,"INCOMPLETE_TRAINING_LEDGER"):
             module.attribute([],10000.)
