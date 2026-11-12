@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 from decimal import Decimal, InvalidOperation
+from datetime import datetime, timezone
 from pathlib import Path
 
 REQUIRED = ("epoch_id", "epoch_start_utc", "mode", "initial_capital", "events")
@@ -47,16 +48,21 @@ def verify(journal, provenance):
             continue
         if event.get("type") not in ("MARK", "FILL", "FUNDING", "FEE"):
             errors.append(f"EVENT_{i}_UNKNOWN_TYPE")
-        if not event.get("receipt_sha256") or len(str(event["receipt_sha256"])) != 64:
+        if not isinstance(event.get("receipt_sha256"), str) or len(event["receipt_sha256"]) != 64 or any(ch not in "0123456789abcdef" for ch in event["receipt_sha256"]):
             errors.append(f"EVENT_{i}_MISSING_RECEIPT_HASH")
         if event.get("event_id") in ids or not event.get("event_id"):
             errors.append(f"EVENT_{i}_DUPLICATE_OR_MISSING_ID")
         ids.add(event.get("event_id"))
         timestamp = event.get("event_utc")
-        if not isinstance(timestamp, str) or not timestamp.endswith("Z") or (last_time and timestamp < last_time):
+        try:
+            if not isinstance(timestamp, str) or not timestamp.endswith("Z"):
+                raise ValueError("timestamp must be UTC Z")
+            instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            if instant.utcoffset() != timezone.utc.utcoffset(None) or (last_time is not None and instant < last_time):
+                raise ValueError("non-UTC or decreasing timestamp")
+            last_time = instant
+        except (ValueError, TypeError, OverflowError):
             errors.append(f"EVENT_{i}_INVALID_ORDER")
-        else:
-            last_time = timestamp
         if event.get("prev_hash") != previous:
             errors.append(f"EVENT_{i}_CHAIN_BREAK")
         payload = {k: v for k, v in event.items() if k != "hash"}
