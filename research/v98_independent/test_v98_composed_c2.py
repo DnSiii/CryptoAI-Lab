@@ -31,6 +31,6 @@ class C2Tests(unittest.TestCase):
             other=composed_c2_sleeves()
             self.assertEqual(expected,other(prefix))
             other(altered)
-            self.assertEqual(expected,f(prefix))
+            self.assertEqual(expected,composed_c2_sleeves()(prefix))
 if __name__=="__main__":
     unittest.main()
