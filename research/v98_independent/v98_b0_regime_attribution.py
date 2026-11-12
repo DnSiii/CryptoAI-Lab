@@ -45,8 +45,17 @@ def attribute(entries, final_equity, initial_equity=10000.):
         turnover = float(e["turnover"])
         if not math.isfinite(turnover) or turnover < 0:
             raise ValueError("INVALID_TURNOVER")
+        before = e.get("weights_before_fill")
+        after = e["weights_after_fill"]
+        if not isinstance(before, dict) or set(before) != set(after):
+            raise ValueError("INVALID_PRE_FILL_WEIGHTS")
+        if any(not math.isfinite(float(w)) or w < -1e-12 for w in list(before.values()) + list(after.values())):
+            raise ValueError("INVALID_WEIGHTS")
+        actual_turnover = sum(abs(float(after[a]) - float(before[a])) for a in after)
+        if abs(turnover - actual_turnover) > 1e-9 * max(1., actual_turnover):
+            raise ValueError("TURNOVER_RECONCILIATION_FAILURE")
         row["turnover"] += turnover
-        exposure = sum(abs(w) for w in e["weights_after_fill"].values())
+        exposure = sum(abs(w) for w in after.values())
         if not math.isfinite(exposure) or exposure < 0 or exposure > 1+1e-9:
             raise ValueError("INVALID_EXPOSURE")
         row["exposure"] += exposure
