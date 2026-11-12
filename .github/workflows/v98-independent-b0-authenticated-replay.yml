@@ -8,6 +8,8 @@ on:
       - 'research/v98_independent/v98_b0_next_open_authenticated_runner.py'
       - 'research/v98_independent/test_v98_b0_next_open_execution.py'
       - 'research/v98_independent/v98_b0_ledger_diagnostics.py'
+      - 'research/v98_independent/v98_b0_independent_arithmetic_audit.py'
+      - 'research/v98_independent/test_v98_b0_independent_arithmetic_audit.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Verify B0 causal and ledger tests
-        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner
+        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner research.v98_independent.test_v98_b0_independent_arithmetic_audit
       - name: Retrieve pinned V98-only authenticated Clean-4 sources
         env:
           GH_TOKEN: ${{ github.token }}
@@ -77,6 +79,8 @@ jobs:
           python -m research.v98_independent.v98_b0_next_open_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/b0_next_open_summary.json
       - name: Generate descriptive B0 diagnostics from complete ledger
         run: python -m research.v98_independent.v98_b0_ledger_diagnostics --directory /tmp/v98_independent/b0
+      - name: Independently reconcile B0 arithmetic identities
+        run: python -m research.v98_independent.v98_b0_independent_arithmetic_audit --directory /tmp/v98_independent/b0
       - name: Enforce economic evidence completeness without promotion
         run: |
           python - <<'PY'
@@ -99,5 +103,6 @@ jobs:
             /tmp/v98_independent/b0/b0_next_open_summary.json
             /tmp/v98_independent/b0/b0_next_open_summary_*_ledger.jsonl
             /tmp/v98_independent/b0/b0_*_diagnostics.json
+            /tmp/v98_independent/b0/b0_independent_arithmetic_audit.json
           retention-days: 30
           if-no-files-found: warn
