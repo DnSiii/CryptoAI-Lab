@@ -11,11 +11,15 @@ from .v98_b0_stream_integration import ASSETS
 
 def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
                      fee_rate=.0004, slippage_rate=.0002, cost_scale=1.):
+    if set(bars) != set(ASSETS) or set(funding) != set(ASSETS):
+        raise ValueError("INVALID_CLEAN4_ASSETS")
     n = len(bars[ASSETS[0]])
     if n < 3 or any(len(bars[a]) != n for a in ASSETS):
         raise ValueError("INVALID_CLEAN4_LENGTH")
-    if not (initial_equity > 0 and cost_scale >= 0):
+    if not all(math.isfinite(float(v)) for v in (initial_equity, fee_rate, slippage_rate, cost_scale)) or not (initial_equity > 0 and fee_rate >= 0 and slippage_rate >= 0 and cost_scale >= 0):
         raise ValueError("INVALID_ACCOUNT")
+    if any(not math.isfinite(float(rate)) for a in ASSETS for rate in funding[a].values()):
+        raise ValueError("INVALID_NATIVE_FUNDING")
     equity = peak = float(initial_equity)
     weights = {a:0. for a in ASSETS}
     histories = {a:[] for a in ASSETS}
