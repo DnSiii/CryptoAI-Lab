@@ -25,6 +25,18 @@ def attribute(entries, final_equity, initial_equity=10000.):
         if abs(marked-e["pre_fill_equity"]) > 1e-7*max(1,abs(marked)) or abs(expected-e["equity"]) > 1e-7*max(1,abs(expected)):
             raise ValueError("ACCOUNTING_MISMATCH")
         row = years[year]
+        gross_parts = e.get("gross_by_asset")
+        funding_parts = e.get("funding_by_asset")
+        if not isinstance(gross_parts, dict) or not isinstance(funding_parts, dict) or set(gross_parts) != set(e["weights_after_fill"]) or set(funding_parts) != set(gross_parts):
+            raise ValueError("MISSING_ASSET_CONTRIBUTION")
+        if any(not math.isfinite(float(x)) for x in list(gross_parts.values())+list(funding_parts.values())) or abs(sum(gross_parts.values())-gross)>1e-12 or abs(sum(funding_parts.values())-funding)>1e-12:
+            raise ValueError("ASSET_CONTRIBUTION_MISMATCH")
+        if "asset_gross_simple" not in row:
+            row["asset_gross_simple"] = defaultdict(float)
+            row["asset_funding_simple"] = defaultdict(float)
+        for asset in gross_parts:
+            row["asset_gross_simple"][asset] += gross_parts[asset]
+            row["asset_funding_simple"][asset] += funding_parts[asset]
         row["hours"] += 1
         row["gross_log"] += math.log1p(gross)
         row["funding_log"] += math.log1p(funding/(1+gross))
@@ -51,7 +63,7 @@ def attribute(entries, final_equity, initial_equity=10000.):
     result = {}
     for year,row in sorted(years.items()):
         hours = row["hours"]
-        result[year] = {k:v for k,v in row.items() if k != "assets"}
+        result[year] = {k:(dict(v) if isinstance(v, defaultdict) else v) for k,v in row.items() if k != "assets"}
         result[year]["mean_gross_exposure"] = row["exposure"]/hours
         result[year]["mean_asset_exposure"] = {a:v/hours for a,v in sorted(row["assets"].items())}
         result[year]["net_return"] = math.expm1(row["net_log"])
