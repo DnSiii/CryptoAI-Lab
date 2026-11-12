@@ -24,6 +24,8 @@ def main():
         with (root/f"c1_composed_summary_{scale}_ledger.jsonl").open() as stream:
             ledger=[json.loads(line) for line in stream]
         final=summary["results"][scale]["final_equity"]
+        if len(ledger) != summary["results"][scale]["hours"] - 1 or summary["results"][scale]["hours"] != 27048:
+            raise ValueError("C1_INCOMPLETE_AUTHENTICATED_LEDGER")
         result[scale]={
             "arithmetic":reconcile(ledger,summary["results"][scale]),
             "chronology":chronological_audit(ledger,final),
@@ -32,6 +34,8 @@ def main():
     target=root/"c1_composed_evidence.json"
     target.write_text(json.dumps(result,sort_keys=True,indent=2,allow_nan=False)+"\n")
     print(json.dumps({s:{
+        "arithmetic_status":r["arithmetic"]["status"],
+        "arithmetic_max_residual":r["arithmetic"]["max_relative_residual"],
         "annual_returns":r["chronology"]["utc_annual_returns_including_warmup"],
         "negative_months":r["chronology"]["negative_months"],
         "months":r["chronology"]["months"]
