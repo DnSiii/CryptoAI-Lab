@@ -79,5 +79,28 @@ class JournalGateTests(unittest.TestCase):
         self.provenance["epoch_start_utc"]=self.journal["epoch_start_utc"]
         self.assertIn("INVALID_EPOCH_START",verify(self.journal,self.provenance)["errors"])
 
+    def test_unhashable_event_id_fails_closed(self):
+        e={"type":"MARK","event_id":["invalid"],"event_utc":"2026-11-12T01:00:00Z",
+           "receipt_sha256":"a"*64,"prev_hash":"0"*64}
+        e["hash"]=hashlib.sha256(canonical(e)).hexdigest()
+        self.journal["events"]=[e]
+        self.journal["head_hash"]=e["hash"]
+        r=verify(self.journal,self.provenance)
+        self.assertIn("EVENT_0_DUPLICATE_OR_MISSING_ID",r["errors"])
+        self.assertFalse(r["publication_authorized"])
+
+    def test_nonpositive_and_nonfinite_fills_rejected(self):
+        for qty,price in [("0","10"),("-1","10"),("NaN","10"),("1","Infinity"),("1","-10")]:
+            with self.subTest(qty=qty,price=price):
+                e={"type":"FILL","event_id":"fill-1","event_utc":"2026-11-12T01:00:00Z",
+                   "receipt_sha256":"a"*64,"prev_hash":"0"*64,
+                   "fill_id":"f1","fee_tier":"maker","executed_qty":qty,"executed_price":price}
+                e["hash"]=hashlib.sha256(canonical(e)).hexdigest()
+                self.journal["events"]=[e]
+                self.journal["head_hash"]=e["hash"]
+                r=verify(self.journal,self.provenance)
+                self.assertIn("EVENT_0_INVALID_FILL_ECONOMICS",r["errors"])
+                self.assertFalse(r["publication_authorized"])
+
 if __name__=="__main__":
     unittest.main()
