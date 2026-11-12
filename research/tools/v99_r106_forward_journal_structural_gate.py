@@ -57,9 +57,11 @@ def verify(journal, provenance):
             errors.append(f"EVENT_{i}_UNKNOWN_TYPE")
         if not isinstance(event.get("receipt_sha256"), str) or len(event["receipt_sha256"]) != 64 or any(ch not in "0123456789abcdef" for ch in event["receipt_sha256"]):
             errors.append(f"EVENT_{i}_MISSING_RECEIPT_HASH")
-        if event.get("event_id") in ids or not event.get("event_id"):
+        event_id = event.get("event_id")
+        if not isinstance(event_id, str) or not event_id.strip() or event_id in ids:
             errors.append(f"EVENT_{i}_DUPLICATE_OR_MISSING_ID")
-        ids.add(event.get("event_id"))
+        else:
+            ids.add(event_id)
         timestamp = event.get("event_utc")
         try:
             if not isinstance(timestamp, str) or not timestamp.endswith("Z"):
@@ -75,12 +77,24 @@ def verify(journal, provenance):
         if event.get("prev_hash") != previous:
             errors.append(f"EVENT_{i}_CHAIN_BREAK")
         payload = {k: v for k, v in event.items() if k != "hash"}
-        digest = hashlib.sha256(canonical(payload)).hexdigest()
+        try:
+            digest = hashlib.sha256(canonical(payload)).hexdigest()
+        except (TypeError, ValueError, OverflowError):
+            errors.append(f"EVENT_{i}_INVALID_PAYLOAD")
+            digest = "0" * 64
         if event.get("hash") != digest:
             errors.append(f"EVENT_{i}_HASH_MISMATCH")
         previous = digest
-        if event.get("type") == "FILL" and not all(event.get(k) for k in ("fill_id", "fee_tier", "executed_qty", "executed_price")):
-            errors.append(f"EVENT_{i}_INCOMPLETE_FILL")
+        if event.get("type") == "FILL":
+            if not all(event.get(k) for k in ("fill_id", "fee_tier", "executed_qty", "executed_price")):
+                errors.append(f"EVENT_{i}_INCOMPLETE_FILL")
+            try:
+                qty = Decimal(str(event["executed_qty"]))
+                price = Decimal(str(event["executed_price"]))
+                if not qty.is_finite() or not price.is_finite() or qty <= 0 or price <= 0:
+                    raise ValueError("invalid fill economics")
+            except (KeyError, InvalidOperation, TypeError, ValueError):
+                errors.append(f"EVENT_{i}_INVALID_FILL_ECONOMICS")
         if event.get("type") == "FUNDING" and not event.get("settlement_event_id"):
             errors.append(f"EVENT_{i}_UNSETTLED_FUNDING")
     if journal.get("head_hash") != previous:
