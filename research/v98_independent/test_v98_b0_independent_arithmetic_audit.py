@@ -44,7 +44,7 @@ class CalendarDiagnosticsTests(unittest.TestCase):
         result = diagnose(rows, final_equity=10300.)
         self.assertEqual(result["observed_days"], 2)
         self.assertEqual(result["positive_days"], 2)
-        self.assertAlmostEqual(result["daily_return_max"], .02)
+        self.assertAlmostEqual(result["daily_return_max"], 10300./10100.-1)
         self.assertIn("2022", result["utc_year_returns_including_warmup"])
 
     def test_final_close_mark_is_in_last_utc_day(self):
