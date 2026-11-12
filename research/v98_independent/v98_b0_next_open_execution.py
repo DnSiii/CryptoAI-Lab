@@ -30,8 +30,10 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
     for i in range(n):
         if i:
             returns = {a: bars[a][i][0]/bars[a][i-1][0]-1 for a in ASSETS}
-            gross = sum(weights[a]*returns[a] for a in ASSETS)
-            carry = -sum(weights[a]*funding[a].get(i,0.) for a in ASSETS)
+            gross_by_asset = {a:weights[a]*returns[a] for a in ASSETS}
+            funding_by_asset = {a:-weights[a]*funding[a].get(i,0.) for a in ASSETS}
+            gross = sum(gross_by_asset.values())
+            carry = sum(funding_by_asset.values())
             factor = 1+gross+carry
             if not math.isfinite(factor) or factor <= 0:
                 raise ValueError("INSOLVENT_MARK")
@@ -58,7 +60,9 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
             entries.append(dict(index=i, equity=equity, pre_fill_equity=pre_fill_equity,
                                 weights_before_fill=previous_weights, weights_after_fill=dict(weights),
                                 turnover=turnover, cost_return=cost, drawdown=drawdown,
-                                gross_return=gross, funding_return=carry))
+                                gross_return=gross, funding_return=carry,
+                                gross_by_asset=gross_by_asset,
+                                funding_by_asset=funding_by_asset))
         for a in ASSETS:
             histories[a].append(bars[a][i][3])
     # Final open-to-close mark; do not fill after the sample ends.
