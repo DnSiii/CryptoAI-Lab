@@ -10,6 +10,7 @@ on:
       - 'research/v98_independent/v98_b0_ledger_diagnostics.py'
       - 'research/v98_independent/v98_b0_independent_arithmetic_audit.py'
       - 'research/v98_independent/v98_b0_chronological_evidence.py'
+      - 'research/v98_independent/v98_b0_regime_attribution.py'
       - 'research/v98_independent/test_v98_b0_independent_arithmetic_audit.py'
   workflow_dispatch:
 permissions:
@@ -84,6 +85,8 @@ jobs:
         run: python -m research.v98_independent.v98_b0_independent_arithmetic_audit --directory /tmp/v98_independent/b0
       - name: Independently summarize chronological training months and years
         run: python -m research.v98_independent.v98_b0_chronological_evidence --directory /tmp/v98_independent/b0
+      - name: Independently attribute annual exposure and costs
+        run: python -m research.v98_independent.v98_b0_regime_attribution --directory /tmp/v98_independent/b0
       - name: Enforce economic evidence completeness without promotion
         run: |
           python - <<'PY'
@@ -108,5 +111,6 @@ jobs:
             /tmp/v98_independent/b0/b0_*_diagnostics.json
             /tmp/v98_independent/b0/b0_independent_arithmetic_audit.json
             /tmp/v98_independent/b0/b0_chronological_evidence.json
+            /tmp/v98_independent/b0/b0_regime_attribution.json
           retention-days: 30
           if-no-files-found: warn
