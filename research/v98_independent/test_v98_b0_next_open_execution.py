@@ -78,12 +78,12 @@ class NextOpenTests(unittest.TestCase):
         assets = {"BTCUSDT": 0.0}
         entries = [dict(index=i, equity=10000. + i,
                         weights_after_fill=assets, drawdown=0.,
-                        turnover=0., cost_return=0.) for i in range(1, 49)]
+                        turnover=0., cost_return=0.) for i in range(1, 48)]
         report = diagnose(entries, final_equity=10100.)
         self.assertEqual(report["observed_days"], 2)
         self.assertEqual(report["positive_days"], 2)
         self.assertAlmostEqual(report["daily_return_mean"],
-                               ((10024./10000.-1)+(10100./10024.-1))/2)
+                               ((10023./10000.-1)+(10100./10023.-1))/2)
         with self.assertRaisesRegex(ValueError, "INVALID_FINAL_EQUITY"):
             diagnose(entries, final_equity=float("nan"))
 
