@@ -20,6 +20,7 @@ def run(prices, manifest, funding):
                 raise ValueError("INVALID_FUNDING_TIMESTAMP")
             indexed[a][offset // HOUR_MS] = rate
     results = {}
+    ledgers = {}
     for scale in (1., 2., 4.):
         summary, entries = replay_next_open(
             data["bars"], indexed, preregistered_sleeves(), cost_scale=scale)
@@ -29,12 +30,14 @@ def run(prices, manifest, funding):
                    (summary["final_equity"], summary["max_drawdown"],
                     summary["total_turnover"], summary["funding_return_sum"])):
             raise ValueError("NONFINITE_ECONOMIC_RESULT")
-        results[str(int(scale)) + "x"] = summary
+        scenario = str(int(scale)) + "x"
+        results[scenario] = summary
+        ledgers[scenario] = entries
     return {"status": "EXPLORATORY_NEXT_OPEN_NOT_INDEPENDENTLY_VALIDATED",
             "holdout_accessed": False, "source": "AUTHENTICATED_CLEAN4",
             "price_manifest_sha256": data["price_manifest_sha256"],
             "funding_manifest_sha256": data["funding_manifest_sha256"],
-            "results": results}
+            "results": results, "ledgers": ledgers}
 
 def main():
     p = argparse.ArgumentParser()
@@ -45,7 +48,14 @@ def main():
         raise ValueError("V98_NAMESPACE_REQUIRED")
     result = run(a.prices, a.manifest, a.funding)
     a.output.parent.mkdir(parents=True, exist_ok=True)
-    a.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    # Persist full position/equity chronology separately from compact summary.
+    ledgers = result.pop("ledgers")
+    for scenario, entries in ledgers.items():
+        ledger_path = a.output.with_name(a.output.stem + "_" + scenario + "_ledger.jsonl")
+        with ledger_path.open("w") as out:
+            for entry in entries:
+                out.write(json.dumps(entry, sort_keys=True, allow_nan=False) + "\n")
+    a.output.write_text(json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n")
     print(json.dumps(result, sort_keys=True))
 
 if __name__ == "__main__":
