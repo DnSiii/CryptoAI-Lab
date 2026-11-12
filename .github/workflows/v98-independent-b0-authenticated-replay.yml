@@ -17,6 +17,7 @@ on:
       - 'research/v98_independent/test_v98_composed_c1.py'
       - 'research/v98_independent/test_v98_composed_c1_execution.py'
       - 'research/v98_independent/v98_composed_c1_authenticated_runner.py'
+      - 'research/v98_independent/v98_composed_c1_evidence.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -86,6 +87,8 @@ jobs:
           python -m research.v98_independent.v98_b0_next_open_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/b0_next_open_summary.json
       - name: Replay preregistered C1 composed portfolio on same authenticated training only
         run: python -m research.v98_independent.v98_composed_c1_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c1_composed_summary.json
+      - name: Independently audit C1 chronological folds and asset attribution
+        run: python -m research.v98_independent.v98_composed_c1_evidence --directory /tmp/v98_independent/b0
       - name: Generate descriptive B0 diagnostics from complete ledger
         run: python -m research.v98_independent.v98_b0_ledger_diagnostics --directory /tmp/v98_independent/b0
       - name: Independently reconcile B0 arithmetic identities
@@ -119,6 +122,7 @@ jobs:
             /tmp/v98_independent/b0/b0_independent_arithmetic_audit.json
             /tmp/v98_independent/b0/b0_chronological_evidence.json
             /tmp/v98_independent/b0/b0_regime_attribution.json
+            /tmp/v98_independent/b0/c1_composed_evidence.json
             /tmp/v98_independent/b0/c1_composed_summary.json
             /tmp/v98_independent/b0/c1_composed_summary_*_ledger.jsonl
           retention-days: 30
