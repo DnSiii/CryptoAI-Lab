@@ -16,6 +16,7 @@ on:
       - 'research/v98_independent/v98_composed_c1.py'
       - 'research/v98_independent/test_v98_composed_c1.py'
       - 'research/v98_independent/test_v98_composed_c1_execution.py'
+      - 'research/v98_independent/test_v98_composed_c1_prefix_invariance.py'
       - 'research/v98_independent/v98_composed_c1_authenticated_runner.py'
       - 'research/v98_independent/v98_composed_c1_evidence.py'
   workflow_dispatch:
@@ -36,7 +37,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Verify B0 causal and ledger tests
-        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner research.v98_independent.test_v98_b0_independent_arithmetic_audit research.v98_independent.test_v98_b0_regime_attribution research.v98_independent.test_v98_composed_c1 research.v98_independent.test_v98_composed_c1_execution
+        run: python -m unittest -v research.v98_independent.test_v98_b0_causal_overlay research.v98_independent.test_v98_b0_hourly_ledger research.v98_independent.test_v98_b0_stream_integration research.v98_independent.test_v98_b0_next_open_execution research.v98_independent.test_v98_b0_next_open_authenticated_runner research.v98_independent.test_v98_b0_independent_arithmetic_audit research.v98_independent.test_v98_b0_regime_attribution research.v98_independent.test_v98_composed_c1 research.v98_independent.test_v98_composed_c1_execution research.v98_independent.test_v98_composed_c1_prefix_invariance
       - name: Retrieve pinned V98-only authenticated Clean-4 sources
         env:
           GH_TOKEN: ${{ github.token }}
