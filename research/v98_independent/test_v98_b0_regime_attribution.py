@@ -12,6 +12,7 @@ class AttributionTests(unittest.TestCase):
                  equity=0., turnover=0.3,
                  gross_by_asset={"BTCUSDT":0.001,"ETHUSDT":0.0,"BNBUSDT":0.0,"SOLUSDT":0.0},
                  funding_by_asset={"BTCUSDT":-0.0001,"ETHUSDT":0.0,"BNBUSDT":0.0,"SOLUSDT":0.0},
+                 weights_before_fill={"BTCUSDT":0.1,"ETHUSDT":0.2,"BNBUSDT":0.0,"SOLUSDT":0.0},
                  weights_after_fill={"BTCUSDT":0.4,"ETHUSDT":0.2,
                                      "BNBUSDT":0.0,"SOLUSDT":0.0})
             for i in range(1,27048)
@@ -58,6 +59,17 @@ class AttributionTests(unittest.TestCase):
             previous=e["equity"]
         entries[0]["gross_by_asset"]["BTCUSDT"]=0.5
         with self.assertRaisesRegex(ValueError,"ASSET_CONTRIBUTION_MISMATCH"):
+            module.attribute(entries,previous)
+
+    def test_false_turnover_rejected(self):
+        entries=self._entries()
+        previous=10000.
+        for e in entries:
+            e["pre_fill_equity"]=previous*(1+e["gross_return"]+e["funding_return"])
+            e["equity"]=e["pre_fill_equity"]*(1-e["cost_return"])
+            previous=e["equity"]
+        entries[0]["turnover"]=0.4
+        with self.assertRaisesRegex(ValueError,"TURNOVER_RECONCILIATION_FAILURE"):
             module.attribute(entries,previous)
 
     def test_missing_hour_rejected(self):
