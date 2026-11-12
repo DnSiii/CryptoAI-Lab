@@ -6,6 +6,12 @@ def bars(n=4, shock=1):
     return {a:[(100. if i<2 else shock, 100., 100., 100., 0.)
                for i in range(n)] for a in ASSETS}
 
+def warmed_bars(n=2190):
+    # Nonzero rolling volatility is required before the preregistered router
+    # permits any exposure (13 x 168 completed returns + initial close).
+    return {a:[(100. + (i % 2), 100., 100., 100. + (i % 2), 0.)
+               for i in range(n)] for a in ASSETS}
+
 class NextOpenTests(unittest.TestCase):
     def test_zero_signal_no_pnl(self):
         result, entries = replay_next_open(bars(),{a:{} for a in ASSETS},
@@ -24,15 +30,15 @@ class NextOpenTests(unittest.TestCase):
     def test_costs_nonzero_when_rebalanced(self):
         def sleeve(h):
             return {a:(.2,0.,0.,0.) for a in ASSETS}
-        result, entries=replay_next_open(bars(),{a:{} for a in ASSETS},sleeve)
+        result, entries=replay_next_open(warmed_bars(),{a:{} for a in ASSETS},sleeve)
         self.assertTrue(any(e["cost_return"]>0 for e in entries))
         self.assertLess(result["final_equity"],10000.)
 
     def test_funding_signed(self):
         def sleeve(h):
             return {a:(.2,0.,0.,0.) for a in ASSETS}
-        result,_=replay_next_open(bars(),{a:{2:.01} for a in ASSETS},sleeve)
-        baseline,_=replay_next_open(bars(),{a:{} for a in ASSETS},sleeve)
+        result,_=replay_next_open(warmed_bars(),{a:{2187:.01} for a in ASSETS},sleeve)
+        baseline,_=replay_next_open(warmed_bars(),{a:{} for a in ASSETS},sleeve)
         self.assertLess(result["final_equity"],baseline["final_equity"])
 
 if __name__=="__main__":
