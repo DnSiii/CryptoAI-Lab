@@ -7,6 +7,7 @@ on:
       - 'research/v98_independent/v98_b0_next_open_execution.py'
       - 'research/v98_independent/v98_b0_next_open_authenticated_runner.py'
       - 'research/v98_independent/test_v98_b0_next_open_execution.py'
+      - 'research/v98_independent/v98_b0_ledger_diagnostics.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -74,6 +75,8 @@ jobs:
       - name: Run full B0 next-open replay 1x 2x 4x without holdout
         run: |
           python -m research.v98_independent.v98_b0_next_open_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/b0_next_open_summary.json
+      - name: Generate descriptive B0 diagnostics from complete ledger
+        run: python -m research.v98_independent.v98_b0_ledger_diagnostics --directory /tmp/v98_independent/b0
       - name: Enforce economic evidence completeness without promotion
         run: |
           python - <<'PY'
@@ -95,5 +98,6 @@ jobs:
           path: |
             /tmp/v98_independent/b0/b0_next_open_summary.json
             /tmp/v98_independent/b0/b0_next_open_summary_*_ledger.jsonl
+            /tmp/v98_independent/b0/b0_*_diagnostics.json
           retention-days: 30
           if-no-files-found: warn
