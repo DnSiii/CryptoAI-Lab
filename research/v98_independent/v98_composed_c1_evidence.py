@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from .v98_b0_chronological_evidence import audit as chronological_audit
 from .v98_b0_regime_attribution import attribute as annual_attribution
+from .v98_b0_independent_arithmetic_audit import reconcile
 
 def main():
     p=argparse.ArgumentParser()
@@ -24,6 +25,7 @@ def main():
             ledger=[json.loads(line) for line in stream]
         final=summary["results"][scale]["final_equity"]
         result[scale]={
+            "arithmetic":reconcile(ledger,summary["results"][scale]),
             "chronology":chronological_audit(ledger,final),
             "attribution":annual_attribution(ledger,final)
         }
