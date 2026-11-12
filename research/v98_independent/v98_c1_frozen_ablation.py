@@ -52,7 +52,7 @@ def run(prices, manifest, funding, baseline_path):
             if summary["hours"] != 27048 or len(ledger) != 27047:
                 raise ValueError("C1_ABLATION_INCOMPLETE")
             audit = reconcile(ledger, summary)
-            if audit["status"] != "PASS" or audit["max_relative_residual"] > 1e-9:
+            if audit["status"] != "ARITHMETIC_RECONCILED_NOT_STRATEGY_VALIDATED" or audit["max_relative_residual"] > 1e-9:
                 raise ValueError("C1_ABLATION_ACCOUNTING_FAILED")
             chronology = chronological_audit(ledger, summary["final_equity"])
             base_equity = float(baseline["results"][label]["final_equity"])
