@@ -43,8 +43,8 @@ class NextOpenTests(unittest.TestCase):
         series = warmed_bars(2190)
         for a in ASSETS:
             op, hi, lo, _, vol = series[a][-1]
-            series[a][-1] = (op, hi, lo, 0., vol)
-        # An invalid zero close is rejected economically by the final mark.
+            series[a][-1] = (op, hi, lo, float("nan"), vol)
+        # A nonfinite final close must fail closed, not produce NaN PnL.
         with self.assertRaisesRegex(ValueError, "INSOLVENT_FINAL_MARK"):
             replay_next_open(series, {a:{} for a in ASSETS}, sleeve)
 
