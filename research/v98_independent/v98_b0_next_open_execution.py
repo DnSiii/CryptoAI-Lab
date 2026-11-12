@@ -35,6 +35,7 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
             if not math.isfinite(factor) or factor <= 0:
                 raise ValueError("INSOLVENT_MARK")
             equity *= factor
+            peak = max(peak, equity)
             weights = {a:weights[a]*(1+returns[a])/factor for a in ASSETS}
         if i:
             sleeves = sleeve_fn({a:tuple(histories[a]) for a in ASSETS})
