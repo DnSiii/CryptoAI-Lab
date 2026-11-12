@@ -1,6 +1,9 @@
 """Descriptive B0 diagnostics from full chronological ledgers; never a promotion gate."""
 import json
 import math
+from datetime import datetime, timezone
+from .v98_phase243_training_reader import START_MS
+from .phase243_native_funding_cashflow import HOUR_MS
 from pathlib import Path
 
 def diagnose(entries, initial_equity=10000., final_equity=None):
@@ -12,7 +15,7 @@ def diagnose(entries, initial_equity=10000., final_equity=None):
         raise ValueError("INVALID_EQUITY")
     days = {}
     for e in entries:
-        days[(e["index"] - 1) // 24] = e["equity"]
+        days[e["index"] // 24] = e["equity"]
     prev = initial_equity
     daily_returns = []
     for _, equity in sorted(days.items()):
@@ -23,18 +26,31 @@ def diagnose(entries, initial_equity=10000., final_equity=None):
     if final_equity is not None:
         if not math.isfinite(final_equity) or final_equity <= 0:
             raise ValueError("INVALID_FINAL_EQUITY")
-        last_day = (entries[-1]["index"] - 1) // 24
+        last_day = entries[-1]["index"] // 24
         days[last_day] = final_equity
         prev = initial_equity
         daily_returns = []
         for _, day_equity in sorted(days.items()):
             daily_returns.append(day_equity / prev - 1)
             prev = day_equity
+    # Exact UTC year boundaries from authenticated Clean-4 timestamps. No
+    # optimization or selection: descriptive realized annual returns only.
+    year_ends = {}
+    for day_index, day_equity in sorted(days.items()):
+        stamp_ms = START_MS + day_index * 24 * HOUR_MS
+        year = datetime.fromtimestamp(stamp_ms / 1000, tz=timezone.utc).year
+        year_ends[year] = day_equity
+    annual_returns = {}
+    previous_year_equity = initial_equity
+    for year, year_equity in sorted(year_ends.items()):
+        annual_returns[str(year)] = year_equity / previous_year_equity - 1
+        previous_year_equity = year_equity
     exposure = {a: sum(abs(e["weights_after_fill"][a]) for e in entries) / len(entries)
                 for a in entries[0]["weights_after_fill"]}
     return {
         "observations": len(entries),
         "observed_days": len(daily_returns),
+        "utc_year_returns_including_warmup": annual_returns,
         "positive_days": sum(x > 0 for x in daily_returns),
         "daily_return_min": min(daily_returns),
         "daily_return_max": max(daily_returns),
