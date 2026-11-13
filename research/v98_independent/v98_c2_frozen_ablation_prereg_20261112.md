@@ -1,0 +1,7 @@
+# V98 C2 frozen marginal ablation protocol — 2026-11-12
+
+C2 architecture and parameters are frozen at commit 9248188e56ca83b72a29d964934e872f8396134e, before C2 sleeve-ablation outcomes. No changes to C2, no C1 rescue, no benchmark, no future holdout.
+
+Run four leave-one-sleeve-out full-portfolio counterfactuals: growth_core, opportunity, relative_value, stress_recovery. For each remove only that sleeve's target weight, preserve all other sleeve outputs, cash remains cash, rerun next-open execution and native funding with costs 1x/2x/4x. Recompute router, allocator and governor through the same execution path. Compare terminal equity and annual chronological returns to the untouched C2 baseline; independently reconcile every ledger. Marginal contribution is baseline terminal equity minus ablated terminal equity; not additive across sleeves. The three shared routing/allocation/risk slots are assessed through separate causal/system gates, not falsely counted as sleeve ablations.
+
+A positive full-period marginal result alone does not promote a module or system. Require chronological robustness, stress survival, tails and separate validation; report negative contributions as rejection evidence without parameter rescue. All output remains V98-only and training-only.
