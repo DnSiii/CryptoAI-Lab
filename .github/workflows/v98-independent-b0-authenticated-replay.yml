@@ -17,6 +17,7 @@ on:
       - 'research/v98_independent/v98_composed_c2.py'
       - 'research/v98_independent/v98_composed_c3.py'
       - 'research/v98_independent/v98_composed_c3_authenticated_runner.py'
+      - 'research/v98_independent/v98_composed_c3_evidence.py'
       - 'research/v98_independent/test_v98_composed_c3.py'
       - 'research/v98_independent/v98_composed_c2_authenticated_runner.py'
       - 'research/v98_independent/v98_composed_c2_evidence.py'
@@ -103,6 +104,8 @@ jobs:
         run: python -m research.v98_independent.v98_composed_c2_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c2_composed_summary.json
       - name: Replay preregistered C3 seven-slot portfolio on authenticated Clean-4 training only
         run: python -m research.v98_independent.v98_composed_c3_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c3_composed_summary.json
+      - name: Independently reconcile C3 chronological folds and asset attribution
+        run: python -m research.v98_independent.v98_composed_c3_evidence --directory /tmp/v98_independent/b0
       - name: Independently audit C2 chronological folds and asset attribution
         run: python -m research.v98_independent.v98_composed_c2_evidence --directory /tmp/v98_independent/b0
       - name: Run frozen C2 sleeve ablations and independently audit each counterfactual
@@ -168,6 +171,7 @@ jobs:
             /tmp/v98_independent/b0/b0_independent_arithmetic_audit.json
             /tmp/v98_independent/b0/b0_chronological_evidence.json
             /tmp/v98_independent/b0/b0_regime_attribution.json
+            /tmp/v98_independent/b0/c3_composed_evidence.json
             /tmp/v98_independent/b0/c3_composed_summary.json
             /tmp/v98_independent/b0/c3_composed_summary_*_ledger.jsonl
             /tmp/v98_independent/b0/c2_frozen_ablation.json
