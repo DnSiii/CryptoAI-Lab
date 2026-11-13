@@ -53,6 +53,12 @@ class ManifestGate(unittest.TestCase):
             lambda m: m["receipts"][0].update(quantity="0"),
             lambda m: m["receipts"][0].update(price="-1"),
             lambda m: m["receipts"][0].update(fee_amount="-0.01"),
+            lambda m: m.update(epoch_id="../escape"),
+            lambda m: m.update(epoch_id="epoch with spaces"),
+            lambda m: m["receipts"][0].update(source=""),
+            lambda m: m["receipts"][0].update(instrument="  "),
+            lambda m: m["receipts"][0].update(units=None),
+            lambda m: m["receipts"][0].update(fee_currency=""),
         ]
         for i, mutate in enumerate(mutations):
             with self.subTest(case=i):
