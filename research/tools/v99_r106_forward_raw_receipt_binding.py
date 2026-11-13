@@ -7,7 +7,7 @@ from research.tools.v99_r106_forward_receipt_preflight import check, utc
 from research.tools.v99_r106_forward_journal_structural_gate import verify
 
 def audit(journal, manifest, raw_dir):
-    provenance = check(manifest, raw_dir)
+    provenance = check(manifest, raw_dir, phase="forward")
     structure = verify(journal, {**provenance, "epoch_id": manifest.get("epoch_id"),
                                   "epoch_start_utc": manifest.get("epoch_start_utc")})
     errors = list(provenance["errors"]) + list(structure["errors"])
