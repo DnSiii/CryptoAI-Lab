@@ -45,6 +45,18 @@ class RawBindingTests(unittest.TestCase):
             event["receipt_sha256"]=digest
             event["hash"]=hashlib.sha256(canonical({k:v for k,v in event.items() if k!="hash"})).hexdigest()
             journal["head_hash"]=event["hash"]
+            event["symbol"]="ETH-USDT-SWAP"
+            event["hash"]=hashlib.sha256(canonical({k:v for k,v in event.items() if k!="hash"})).hexdigest()
+            journal["head_hash"]=event["hash"]
+            self.assertIn("EVENT_0_SYMBOL_MISMATCH",audit(journal,manifest,root)["errors"])
+            event["symbol"]="BTC-USDT-SWAP"
+            event["fee_tier"]="taker"
+            event["hash"]=hashlib.sha256(canonical({k:v for k,v in event.items() if k!="hash"})).hexdigest()
+            journal["head_hash"]=event["hash"]
+            self.assertIn("EVENT_0_FEE_TIER_MISMATCH",audit(journal,manifest,root)["errors"])
+            event["fee_tier"]="maker"
+            event["hash"]=hashlib.sha256(canonical({k:v for k,v in event.items() if k!="hash"})).hexdigest()
+            journal["head_hash"]=event["hash"]
             manifest["receipts"][0]["kind"]="funding"
             manifest["receipts"][0]["settlement_event_id"]="s1"
             self.assertIn("EVENT_0_WRONG_RECEIPT_KIND",audit(journal,manifest,root)["errors"])
