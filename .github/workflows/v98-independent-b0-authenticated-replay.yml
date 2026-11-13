@@ -102,6 +102,30 @@ jobs:
         run: python -m research.v98_independent.v98_composed_c2_evidence --directory /tmp/v98_independent/b0
       - name: Run frozen C2 sleeve ablations and independently audit each counterfactual
         run: python -m research.v98_independent.v98_c2_frozen_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --baseline /tmp/v98_independent/b0/c2_composed_summary.json --output /tmp/v98_independent/b0/c2_frozen_ablation.json
+      - name: Fail closed on C2 ablation evidence completeness
+        run: |
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/b0')
+          baseline=json.loads((root/'c2_composed_summary.json').read_text())
+          report=json.loads((root/'c2_frozen_ablation.json').read_text())
+          assert report['status']=='C2_FROZEN_TRAINING_ABLATION_NO_PROMOTION'
+          assert report['holdout_accessed'] is False
+          for key in ('price_manifest_sha256','funding_manifest_sha256'):
+              assert report[key]==baseline[key], key
+          assert set(report['results'])=={'growth_core','opportunity','relative_value','stress_recovery'}
+          for slot, scales in report['results'].items():
+              assert set(scales)=={'1x','2x','4x'}, slot
+              for scale, row in scales.items():
+                  assert row['arithmetic_status']=='ARITHMETIC_RECONCILED_NOT_STRATEGY_VALIDATED'
+                  assert math.isfinite(row['arithmetic_max_residual']) and row['arithmetic_max_residual']<=1e-9
+                  for field in ('counterfactual_final_equity','full_c2_final_equity','marginal_final_equity','counterfactual_max_drawdown','counterfactual_turnover','counterfactual_funding_return_sum'):
+                      assert math.isfinite(row[field]), (slot,scale,field)
+                  assert abs(row['full_c2_final_equity']-baseline['results'][scale]['final_equity'])<=1e-8
+                  assert abs(row['marginal_final_equity']-(row['full_c2_final_equity']-row['counterfactual_final_equity']))<=1e-8
+          print('C2_ABLATION_12_OF_12_RECONCILED_NO_PROMOTION')
+          PY
       - name: Independently audit C1 chronological folds and asset attribution
         run: python -m research.v98_independent.v98_composed_c1_evidence --directory /tmp/v98_independent/b0
       - name: Run frozen C1 sleeve ablations and independently audit each counterfactual
