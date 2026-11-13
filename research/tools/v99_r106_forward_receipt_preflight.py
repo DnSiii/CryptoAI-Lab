@@ -19,7 +19,9 @@ def utc(value):
         raise ValueError("non-UTC timestamp")
     return t
 
-def check(manifest, raw_dir):
+def check(manifest, raw_dir, *, phase="historical"):
+    if phase not in ("historical", "forward"):
+        raise ValueError("unknown receipt phase")
     errors = []
     if manifest.get("mode") != "RESEARCH_ONLY_NO_REAL_ORDERS":
         errors.append("REAL_ORDER_MODE_NOT_FORBIDDEN")
@@ -53,10 +55,13 @@ def check(manifest, raw_dir):
                 errors.append(prefix + ":NON_HOURLY_CLOSE")
             if acquired < close:
                 errors.append(prefix + ":LOOKAHEAD_ACQUISITION")
-            if start and close > start:
-                errors.append(prefix + ":AFTER_EPOCH_START")
-            if start and acquired > start:
-                errors.append(prefix + ":NOT_AVAILABLE_AS_OF_START")
+            if phase == "historical":
+                if start and close > start:
+                    errors.append(prefix + ":AFTER_EPOCH_START")
+                if start and acquired > start:
+                    errors.append(prefix + ":NOT_AVAILABLE_AS_OF_START")
+            elif start and close < start:
+                errors.append(prefix + ":FORWARD_RECEIPT_BEFORE_EPOCH")
             if not isinstance(r.get("source_url_or_archive_id"), str) or not r["source_url_or_archive_id"].strip():
                 errors.append(prefix + ":NO_PROVENANCE")
             name = r["raw_file"]
