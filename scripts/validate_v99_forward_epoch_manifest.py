@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+from decimal import Decimal, InvalidOperation
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,6 +38,9 @@ def validate(m: dict) -> dict:
         raise ValueError("exactly five unique frozen variant IDs required")
     if not m.get("epoch_id") or not str(m.get("output_namespace", "")).startswith("research-forward-epochs/"):
         raise ValueError("new versioned epoch ID and isolated output namespace required")
+    namespace = m["output_namespace"]
+    if any(part in ("", ".", "..") for part in namespace.split("/")) or "\\" in namespace or namespace != f"research-forward-epochs/{m['epoch_id']}":
+        raise ValueError("unsafe or mismatched forward namespace")
     predecessor = m["predecessor"]
     digest = predecessor["ledger_sha256"]
     if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
@@ -54,6 +59,13 @@ def validate(m: dict) -> dict:
     for r in events:
         if not REQUIRED_RECEIPT.issubset(r):
             raise ValueError("missing original receipt economic fields")
+        for field in ("quantity", "price", "fee_amount", "settled_funding"):
+            try:
+                amount = Decimal(str(r[field]))
+            except (InvalidOperation, ValueError, TypeError):
+                raise ValueError(f"invalid numeric receipt field: {field}") from None
+            if not amount.is_finite() or (field in ("quantity", "price") and amount <= 0) or (field == "fee_amount" and amount < 0):
+                raise ValueError(f"invalid economic receipt field: {field}")
         event, capture = utc(r["event_at_utc"]), utc(r["captured_at_utc"])
         if event <= last or capture < event:
             raise ValueError("duplicate, noncausal or out-of-order receipt")
