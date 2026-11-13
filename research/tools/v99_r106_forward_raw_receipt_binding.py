@@ -41,6 +41,11 @@ def audit(journal, manifest, raw_dir):
                 errors.append(f"EVENT_{i}_RECEIPT_ACQUIRED_AFTER_EVENT")
         except (ValueError, TypeError, KeyError):
             errors.append(f"EVENT_{i}_INVALID_RECEIPT_TIME")
+        if event.get("type") == "FILL":
+            if event.get("symbol") is not None and event.get("symbol") != receipt.get("symbol"):
+                errors.append(f"EVENT_{i}_SYMBOL_MISMATCH")
+            if event.get("fee_tier") is not None and event.get("fee_tier") != receipt.get("fee_tier"):
+                errors.append(f"EVENT_{i}_FEE_TIER_MISMATCH")
         if event.get("type") == "FILL" and receipt.get("kind") != "execution":
             errors.append(f"EVENT_{i}_WRONG_RECEIPT_KIND")
         if event.get("type") == "FUNDING":
