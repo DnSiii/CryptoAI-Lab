@@ -72,13 +72,15 @@ def validate(m: dict) -> dict:
             if not amount.is_finite() or (field in ("quantity", "price") and amount <= 0) or (field == "fee_amount" and amount < 0):
                 raise ValueError(f"invalid economic receipt field: {field}")
         event, capture = utc(r["event_at_utc"]), utc(r["captured_at_utc"])
-        if event <= last or capture < event:
-            raise ValueError("duplicate, noncausal or out-of-order receipt")
+        if event < last or event <= boundary or capture < event:
+            raise ValueError("pre-boundary, noncausal or out-of-order receipt")
         if len(r["raw_sha256"]) != 64 or any(c not in "0123456789abcdef" for c in r["raw_sha256"]):
             raise ValueError("invalid raw receipt hash")
         if r["raw_sha256"] in hashes:
             raise ValueError("duplicate raw receipt")
         hashes.add(r["raw_sha256"])
+        # Multiple independent fills may share an exchange timestamp; raw hashes
+        # identify duplicate receipts without discarding legitimate same-time fills.
         last = event
     return {
         "validated_manifest_structure": True,
