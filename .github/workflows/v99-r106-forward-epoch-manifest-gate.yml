@@ -1,0 +1,23 @@
+name: V99 forward epoch manifest adversarial gate
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - 'scripts/validate_v99_forward_epoch_manifest.py'
+      - 'tests/test_v99_forward_epoch_manifest_gate.py'
+      - '.github/workflows/v99-r106-forward-epoch-manifest-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  manifest-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Adversarial manifest checks (research only)
+        run: python -m unittest discover -s tests -p 'test_v99_forward_epoch_manifest_gate.py' -v
