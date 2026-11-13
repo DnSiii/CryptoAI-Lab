@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
+import re
 from decimal import Decimal, InvalidOperation
 import sys
 from datetime import datetime, timezone
@@ -38,6 +38,8 @@ def validate(m: dict) -> dict:
         raise ValueError("exactly five unique frozen variant IDs required")
     if not m.get("epoch_id") or not str(m.get("output_namespace", "")).startswith("research-forward-epochs/"):
         raise ValueError("new versioned epoch ID and isolated output namespace required")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}", str(m["epoch_id"])):
+        raise ValueError("unsafe epoch ID")
     namespace = m["output_namespace"]
     if any(part in ("", ".", "..") for part in namespace.split("/")) or "\\" in namespace or namespace != f"research-forward-epochs/{m['epoch_id']}":
         raise ValueError("unsafe or mismatched forward namespace")
@@ -59,6 +61,9 @@ def validate(m: dict) -> dict:
     for r in events:
         if not REQUIRED_RECEIPT.issubset(r):
             raise ValueError("missing original receipt economic fields")
+        for field in ("source", "instrument", "units", "fee_currency"):
+            if not isinstance(r[field], str) or not r[field].strip():
+                raise ValueError(f"missing receipt provenance: {field}")
         for field in ("quantity", "price", "fee_amount", "settled_funding"):
             try:
                 amount = Decimal(str(r[field]))
