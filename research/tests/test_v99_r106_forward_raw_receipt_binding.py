@@ -30,6 +30,14 @@ class RawBindingTests(unittest.TestCase):
             (root/'receipt.json').write_bytes(b'forged bytes')
             self.assertEqual(audit(journal,manifest,root)["status"],"BLOCKED")
             (root/'receipt.json').write_bytes(raw)
+            # A genuine post-epoch receipt is not an as-of historical receipt.
+            manifest["receipts"][0]["close_utc"]="2026-11-12T01:00:00Z"
+            manifest["receipts"][0]["acquired_utc"]="2026-11-12T01:00:00Z"
+            self.assertEqual(audit(journal,manifest,root)["status"],"RAW_RECEIPT_BINDING_PRECHECK_ONLY")
+            # Future acquisition must never be used to justify a past event.
+            manifest["receipts"][0]["acquired_utc"]="2026-11-12T02:00:00Z"
+            self.assertIn("EVENT_0_RECEIPT_ACQUIRED_AFTER_EVENT",audit(journal,manifest,root)["errors"])
+            manifest["receipts"][0]["acquired_utc"]="2026-11-12T01:00:00Z"
             event["receipt_sha256"]="f"*64
             event["hash"]=hashlib.sha256(canonical({k:v for k,v in event.items() if k!="hash"})).hexdigest()
             journal["head_hash"]=event["hash"]
