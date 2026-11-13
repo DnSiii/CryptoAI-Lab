@@ -46,6 +46,13 @@ class ManifestGate(unittest.TestCase):
             lambda m: m["receipts"][0].update(raw_sha256="f" * 63),
             lambda m: m["receipts"][0].pop("fee_amount"),
             lambda m: m["receipts"].append(copy.deepcopy(m["receipts"][0])),
+            lambda m: m.update(output_namespace="research-forward-epochs/../paper-results"),
+            lambda m: m.update(output_namespace="research-forward-epochs/another-epoch"),
+            lambda m: m["receipts"][0].update(quantity="NaN"),
+            lambda m: m["receipts"][0].update(price="Infinity"),
+            lambda m: m["receipts"][0].update(quantity="0"),
+            lambda m: m["receipts"][0].update(price="-1"),
+            lambda m: m["receipts"][0].update(fee_amount="-0.01"),
         ]
         for i, mutate in enumerate(mutations):
             with self.subTest(case=i):
