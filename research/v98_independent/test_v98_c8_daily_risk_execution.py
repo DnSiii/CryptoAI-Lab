@@ -26,7 +26,7 @@ class C8DailyRiskExecution(unittest.TestCase):
         target.counter=0
         with patch("research.v98_independent.v98_c8_daily_risk_execution.regime_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.governor_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.compose_weights",side_effect=target):
             _,entries=replay_c8_daily_risk(self.bars,self.funding,self.sleeves)
-        self.assertAlmostEqual(entries[24]["weights_after_fill"][ASSETS[0]],0.1)
+        self.assertAlmostEqual(entries[25]["weights_after_fill"][ASSETS[0]],0.1)
         self.assertAlmostEqual(entries[29]["weights_after_fill"][ASSETS[0]],0.1)
         self.assertAlmostEqual(entries[47]["weights_after_fill"][ASSETS[0]],0.5)
 
