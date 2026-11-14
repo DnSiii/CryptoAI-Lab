@@ -9,6 +9,7 @@ on:
       - 'research/v98_independent/v98_c8_marginal_ablation_runner.py'
       - 'research/v98_independent/test_v98_c8_invariants.py'
       - 'research/v98_independent/v98_c8_chronological_evidence.py'
+      - 'research/v98_independent/v98_c8_execution_frequency_forensic.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -116,11 +117,14 @@ jobs:
               assert v['status']=='DESCRIPTIVE_TRAINING_ONLY_NO_PROMOTION'
           print('C8_CHRONOLOGY_TRAINING_ONLY_NOT_VALIDATION')
           PY
+      - name: Audit C8 interdecision drift rebalancing and cost attribution
+        run: python -m research.v98_independent.v98_c8_execution_frequency_forensic --directory /tmp/v98_independent/b0
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c8-unvalidated-${{ github.run_id }}
           path: |
+            /tmp/v98_independent/b0/c8_execution_frequency_forensic.json
             /tmp/v98_independent/b0/c8_chronological_evidence.json
             /tmp/v98_independent/b0/c8_marginal_ablations.json
             /tmp/v98_independent/b0/c8_composed_summary.json
