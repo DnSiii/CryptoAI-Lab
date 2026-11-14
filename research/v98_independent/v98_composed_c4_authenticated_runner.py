@@ -26,6 +26,14 @@ def run(prices, manifest, funding):
         if any(not math.isfinite(float(summary[k])) for k in
                ("final_equity","max_drawdown","total_turnover","funding_return_sum")):
             raise ValueError("C4_NONFINITE_RESULT")
+        # The ledger ends at the final fill; the replay subsequently marks the
+        # last hourly open-to-close without inventing another fill.
+        final_weights=entries[-1]["weights_after_fill"]
+        last_mark=1+sum(final_weights[a]*(data["bars"][a][-1][3]/data["bars"][a][-1][0]-1)
+                        for a in ASSETS)
+        reconciled=entries[-1]["equity"]*last_mark
+        if not math.isclose(reconciled,summary["final_equity"],rel_tol=1e-12,abs_tol=1e-8):
+            raise ValueError("C4_FINAL_MARK_RECONCILIATION_FAILED")
         key=str(int(scale))+"x"
         results[key]=summary
         ledgers[key]=entries
