@@ -69,6 +69,11 @@ def audit(directory):
         )
         fills = sums["interdecision_fills"] + sums["daily_decision_fills"]
         sums["interdecision_fill_fraction"] = sums["interdecision_fills"]/fills if fills else 0.
+        # Rates use observed ledger duration, not assumed trading-day counts.
+        observed_days = count / 24.0
+        sums["interdecision_fills_per_day"] = sums["interdecision_fills"] / observed_days
+        sums["interdecision_turnover_per_day"] = sums["interdecision_turnover"] / observed_days
+        sums["daily_decision_fills_per_day"] = sums["daily_decision_fills"] / observed_days
         # This legacy counter is post-fill weight movement, not a signal refresh.
         sums["interdecision_weight_changes_not_signal_changes"] = sums["interdecision_target_changes"]
         if not (0 <= sums["interdecision_cost_fraction"] <= 1):
