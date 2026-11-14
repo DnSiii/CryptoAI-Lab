@@ -1,0 +1,9 @@
+# V98 Independent C7 — preregistration (2026-11-14)
+
+Status: HYPOTHESIS ONLY; no validation, no promotion. Branch research/v98-independent-zero. Clean-4 training exclusively through 2025-12-31, 2022-12 warmup. Holdout untouched; XRP excluded; V14/V15/V99 prohibited during selection.
+
+## Distinct architectural hypothesis
+C3–C6 used stress/recovery entries during broad weakness; C7 tests *post-stress cross-sectional leadership confirmation*, not bottom picking or short-volatility breakout. Growth Core, Opportunity and Relative Value use the already declared C6 rules, but C7 is a new complete portfolio architecture, NOT a retrospective patch or reinstatement of any rejected C6 candidate. C7 stress sleeve activates only after a previously recorded broad negative 30-day regime has cleared, when >=3 of 4 assets have positive 7-day momentum and the leader has positive 30-day momentum; the leader must also exceed its 30-day median close. No simultaneous negative-regime dip buying. Regime router allocates to sleeves by state; dynamic allocator caps total exposure; risk governor enforces <=0.75 gross, <=0.40 per asset via existing causal executor. Fixed daily t-1 signal and next-open execution. Zero leverage. Do not alter these conditions after results.
+
+## Evaluation
+Run identical authenticated 27,048-hour history and native funding, 1x/2x/4x costs, twelve un-reallocated leave-one-sleeve-out ablations; report yearly/monthly performance, positive days, concentration, max DD, PF, payoff, win rate, regime breakdown, cost/funding ledger and reproducibility. Compare chronological training/validation splits without 2026+. Stress sleeve must have robust positive *marginal* contribution at 1x/2x/4x, and complete system must pass preregistered robustness before freeze. Reject on failure; no post-hoc sign/window/threshold rescue. This is a research hypothesis, not a claim of superiority.
