@@ -10,7 +10,7 @@ class C7Transitions(unittest.TestCase):
 
     def test_no_future_lookahead(self):
         # Any update before the next 24h decision boundary must preserve prior weights.
-        n=LONG+STEP+1
+        n=LONG+STEP+2
         bars={a:[100.*(1.0001**i) for i in range(n)] for a in ASSETS}
         fn=composed_c7_sleeves()
         before=fn({a:v[:n-1] for a,v in bars.items()})
