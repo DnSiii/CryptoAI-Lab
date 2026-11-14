@@ -8,6 +8,7 @@ on:
       - 'research/v98_independent/v98_composed_c8_authenticated_runner.py'
       - 'research/v98_independent/v98_c8_marginal_ablation_runner.py'
       - 'research/v98_independent/test_v98_c8_invariants.py'
+      - 'research/v98_independent/v98_c8_chronological_evidence.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -101,11 +102,26 @@ jobs:
                   assert abs(values['full_final_equity']-values['without_final_equity']-values['marginal_final_equity'])<1e-7
           print('C8_TWELVE_MARGINAL_ABLATIONS_COMPLETE_NOT_PROMOTED')
           PY
+      - name: Audit C8 complete chronological training evidence without holdout
+        run: |
+          python -m research.v98_independent.v98_c8_chronological_evidence --directory /tmp/v98_independent/b0
+          python - <<'PY'
+          import json
+          p='/tmp/v98_independent/b0/c8_chronological_evidence.json'
+          r=json.load(open(p))
+          assert r['holdout_accessed'] is False
+          assert set(r['results'])=={'1x','2x','4x'}
+          for k,v in r['results'].items():
+              assert v['months']==37,(k,v['months'])
+              assert v['status']=='DESCRIPTIVE_TRAINING_ONLY_NO_PROMOTION'
+          print('C8_CHRONOLOGY_TRAINING_ONLY_NOT_VALIDATION')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c8-unvalidated-${{ github.run_id }}
           path: |
+            /tmp/v98_independent/b0/c8_chronological_evidence.json
             /tmp/v98_independent/b0/c8_marginal_ablations.json
             /tmp/v98_independent/b0/c8_composed_summary.json
             /tmp/v98_independent/b0/c8_composed_summary_*_ledger.jsonl
