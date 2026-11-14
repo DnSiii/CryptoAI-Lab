@@ -39,7 +39,10 @@ def run(prices,manifest,funding):
         results[str(int(scale))+"x"]=dict(baseline=base,daily_risk=alt,
             baseline_execution=attribution(base_ledger),daily_risk_execution=attribution(alt_ledger),
             final_equity_delta=alt["final_equity"]-base["final_equity"],
-            max_drawdown_delta=alt["max_drawdown"]-base["max_drawdown"])
+            max_drawdown_delta=alt["max_drawdown"]-base["max_drawdown"],
+            turnover_delta=alt["total_turnover"]-base["total_turnover"],
+            intraday_turnover_delta=attribution(alt_ledger)["intraday_turnover"]-attribution(base_ledger)["intraday_turnover"],
+            intraday_cost_return_delta=attribution(alt_ledger)["intraday_cost_return_sum"]-attribution(base_ledger)["intraday_cost_return_sum"])
     return dict(status="C8_EXECUTION_AB_TRAINING_ONLY_NO_PROMOTION",
         source="AUTHENTICATED_CLEAN4",holdout_accessed=False,
         price_manifest_sha256=data["price_manifest_sha256"],
