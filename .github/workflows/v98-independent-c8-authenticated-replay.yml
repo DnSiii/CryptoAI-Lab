@@ -126,6 +126,28 @@ jobs:
         run: python -m research.v98_independent.v98_c8_execution_frequency_forensic --directory /tmp/v98_independent/b0
       - name: Compare C8 causal daily-risk execution against hourly baseline
         run: python -m research.v98_independent.v98_c8_execution_policy_ab --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c8_execution_policy_ab.json
+      - name: Verify A/B baseline parity and report cost-stressed deltas without promotion
+        run: |
+          python - <<'PY'
+          import json, math
+          root='/tmp/v98_independent/b0/'
+          original=json.load(open(root+'c8_composed_summary.json'))
+          ab=json.load(open(root+'c8_execution_policy_ab.json'))
+          assert ab['holdout_accessed'] is False and ab['source']=='AUTHENTICATED_CLEAN4'
+          assert set(ab['results'])=={'1x','2x','4x'}
+          for scenario,comparison in ab['results'].items():
+              reference=original['results'][scenario]
+              baseline=comparison['baseline']
+              alternative=comparison['daily_risk']
+              for field in ('final_equity','max_drawdown','total_turnover','funding_return_sum'):
+                  assert math.isclose(reference[field],baseline[field],rel_tol=1e-10,abs_tol=1e-7),(scenario,field,'BASELINE_MISMATCH')
+                  assert math.isfinite(alternative[field]),(scenario,field,'NONFINITE_ALTERNATIVE')
+              assert alternative['hours']==baseline['hours']==27048
+              assert math.isclose(comparison['final_equity_delta'],alternative['final_equity']-baseline['final_equity'],rel_tol=1e-12,abs_tol=1e-7)
+              assert math.isclose(comparison['turnover_delta'],alternative['total_turnover']-baseline['total_turnover'],rel_tol=1e-12,abs_tol=1e-7)
+              print('V98_EXECUTION_AB_TRAINING_ONLY',scenario,'equity_delta',comparison['final_equity_delta'],'drawdown_delta',comparison['max_drawdown_delta'],'turnover_delta',comparison['turnover_delta'])
+          print('V98_AB_BASELINE_PARITY_VERIFIED_NOT_PROMOTED')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
