@@ -27,6 +27,18 @@ def run(prices,manifest,funding):
         for label,summary,ledger in (("baseline",base,base_ledger),("daily_risk",alt,alt_ledger)):
             if not all(math.isfinite(float(summary[k])) for k in ("final_equity","max_drawdown","total_turnover","funding_return_sum")):
                 raise ValueError("NONFINITE_RESULT")
+            # Enforce portfolio survival constraints on every historical fill,
+            # including daily decisions (not only intraday risk cuts).
+            for entry in ledger:
+                if not math.isfinite(float(entry["equity"])) or entry["equity"] <= 0:
+                    raise ValueError("INVALID_LEDGER_EQUITY_"+label)
+                after=entry["weights_after_fill"]
+                if set(after)!=set(ASSETS):
+                    raise ValueError("INVALID_LEDGER_ASSETS_"+label)
+                if any(not math.isfinite(float(after[a])) or after[a] < -1e-12 or after[a] > 0.40+1e-12 for a in ASSETS):
+                    raise ValueError("ASSET_CAP_BREACH_"+label)
+                if sum(after.values()) > 0.75+1e-12:
+                    raise ValueError("PORTFOLIO_CAP_BREACH_"+label)
             final_weights=ledger[-1]["weights_after_fill"]
             last_mark=1+sum(final_weights[a]*(data["bars"][a][-1][3]/data["bars"][a][-1][0]-1) for a in ASSETS)
             if not math.isclose(ledger[-1]["equity"]*last_mark,summary["final_equity"],rel_tol=1e-12,abs_tol=1e-8):
