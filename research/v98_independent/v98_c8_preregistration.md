@@ -1,0 +1,11 @@
+# V98 Independent C8 — pre-registration (2026-11-14)
+
+Status: HYPOTHESIS ONLY; no execution, validation, promotion or benchmark access. Branch research/v98-independent-zero. Clean-4 BTC/ETH/BNB/SOL, 1h, 2022-12 warmup to 2025-12 only; native funding, causal next-open; XRP quarantined; 2026+ and contaminated holdout forbidden.
+
+## Distinct complete-engine hypothesis: persistent post-stress recovery allocation
+
+C7's single-day recovery leadership entry was rejected under 4x costs; it cannot be retuned or promoted. C8 instead tests a *stateful, fixed-horizon post-stress recovery sleeve*: after at least three assets have negative 30-day log return, record a stress episode; wait for two consecutive daily observations with >=3 assets positive on 30-day return and positive 7-day return; at that confirmation, select the highest 90-day positive-momentum asset and allocate 10% for exactly 30 daily decisions (720 hours), with no intrahorizon reselection. If no eligible asset, abandon the episode. Re-arm only after a fresh broad-stress observation following completion. No entry during broad stress, no sign inversion, no dynamic hold extension, no window/threshold selection after results. This is a fixed-horizon state machine rather than C7's instantaneous leadership impulse. Growth, Opportunity and Relative Value remain predeclared C7 versions; regime router, allocator and risk governor use the unchanged causal execution system (<=75% gross, <=40% per asset).
+
+## Gates
+
+Before any promotion, require authenticated 27,048-hour full training, 1x/2x/4x fees/slippage and native funding, twelve un-reallocated leave-one-out marginal ablations, strict timestamp and mark reconciliation, monthly/yearly and chronological train/validation folds, PF, payoff, win rate, positive days, concentration, tail, DD and cost sensitivity. Require positive stress marginal at all three cost levels and robust full-system chronological validation. Any failure rejects C8 permanently; no rescue via post-hoc threshold, sign, leverage, cost or period changes. No benchmark access until a complete internally frozen candidate passes its own validation.
