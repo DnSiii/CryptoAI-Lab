@@ -1,0 +1,110 @@
+name: V98 Independent C5 Authenticated Training Replay
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - '.github/workflows/v98-independent-c5-authenticated-replay.yml'
+      - 'research/v98_independent/v98_composed_c5.py'
+      - 'research/v98_independent/v98_composed_c5_authenticated_runner.py'
+      - 'research/v98_independent/v98_c5_marginal_ablation_runner.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  c5-authenticated:
+    if: github.ref == 'refs/heads/research/v98-independent-zero'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Retrieve pinned V98-only authenticated Clean-4 sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/b0/sources
+          python - <<'PY'
+          import json, os, subprocess, zipfile
+          from pathlib import Path
+          repo=os.environ['GH_REPO']
+          for label,artifact_id in {'prices':13444665313,'funding':13464271018}.items():
+              a=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}'],text=True))
+              name=a.get('name','').lower()
+              if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
+                  raise SystemExit(f'PINNED_SOURCE_UNAVAILABLE {label} {artifact_id}')
+              if label=='prices' and not name.startswith('v98-independent-clean4-148-official-archives-'):
+                  raise SystemExit('WRONG_PRICE_SOURCE')
+              if label=='funding' and not ('native' in name and 'funding' in name):
+                  raise SystemExit('WRONG_FUNDING_SOURCE')
+              target=Path('/tmp/v98_independent/b0/sources')/label
+              target.mkdir(parents=True,exist_ok=True)
+              archive=target/'artifact.zip'
+              with archive.open('wb') as stream:
+                  subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}/zip'],stdout=stream,check=True)
+              with zipfile.ZipFile(archive) as z:
+                  for item in z.infolist():
+                      if not (target/item.filename).resolve().is_relative_to(target.resolve()):
+                          raise SystemExit('ZIP_PATH_TRAVERSAL')
+                  z.extractall(target)
+              print('PINNED_SOURCE',label,artifact_id)
+          PY
+      - name: Resolve manifests and validate native Clean-4 training history
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/b0/sources')
+          prices=list((root/'prices').rglob('source_manifest.json'))
+          funding=list((root/'funding').rglob('funding_manifest.json'))
+          if len(prices)!=1 or len(funding)!=1:
+              raise SystemExit(f'MISSING_OR_AMBIGUOUS_MANIFESTS {len(prices)} {len(funding)}')
+          (root/'paths.env').write_text(f'PRICES={prices[0].parent}\nMANIFEST={prices[0]}\nFUNDING={funding[0].parent}\n')
+          PY
+          cat /tmp/v98_independent/b0/sources/paths.env >> "$GITHUB_ENV"
+      - name: Run preregistered C5 full-history native-funding replay
+        run: python -m research.v98_independent.v98_composed_c5_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c5_composed_summary.json
+      - name: Require complete C5 training replay
+        run: |
+          python - <<'PY'
+          import json,math
+          r=json.load(open('/tmp/v98_independent/b0/c5_composed_summary.json'))
+          assert r['holdout_accessed'] is False and r['source']=='AUTHENTICATED_CLEAN4'
+          assert set(r['results'])=={'1x','2x','4x'}
+          for k,v in r['results'].items():
+              assert v['hours']==27048,k
+              assert all(math.isfinite(v[z]) for z in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
+          print('C5_COMPLETE_TRAINING_REPLAY_NOT_VALIDATION')
+          PY
+      - name: Require all twelve C5 leave-one-out marginal replay scenarios
+        run: |
+          python -m research.v98_independent.v98_c5_marginal_ablation_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c5_marginal_ablations.json
+          python - <<'PY'
+          import json,math
+          r=json.load(open('/tmp/v98_independent/b0/c5_marginal_ablations.json'))
+          assert r['holdout_accessed'] is False and r['hours']==27048
+          assert set(r['slots'])=={'growth','opportunity','relative_value','stress_recovery'}
+          for slot,scenarios in r['slots'].items():
+              assert set(scenarios)=={'1x','2x','4x'},slot
+              for scenario,values in scenarios.items():
+                  assert all(math.isfinite(v) for v in values.values()),(slot,scenario)
+                  assert abs(values['full_final_equity']-values['without_final_equity']-values['marginal_final_equity'])<1e-7
+          print('C5_TWELVE_MARGINAL_ABLATIONS_COMPLETE_NOT_PROMOTED')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-c5-unvalidated-${{ github.run_id }}
+          path: |
+            /tmp/v98_independent/b0/c5_marginal_ablations.json
+            /tmp/v98_independent/b0/c5_composed_summary.json
+            /tmp/v98_independent/b0/c5_composed_summary_*_ledger.jsonl
+          retention-days: 30
+          if-no-files-found: warn
