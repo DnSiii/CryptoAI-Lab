@@ -63,6 +63,18 @@ def audit(directory):
                             rel_tol=1e-9, abs_tol=1e-8):
             raise ValueError("SUMMARY_TURNOVER_MISMATCH")
         sums["interdecision_turnover_fraction"] = sums["interdecision_turnover"]/total if total else 0.
+        total_cost = sums["daily_decision_cost_return_sum"] + sums["interdecision_cost_return_sum"]
+        sums["interdecision_cost_fraction"] = (
+            sums["interdecision_cost_return_sum"]/total_cost if total_cost else 0.
+        )
+        fills = sums["interdecision_fills"] + sums["daily_decision_fills"]
+        sums["interdecision_fill_fraction"] = sums["interdecision_fills"]/fills if fills else 0.
+        # This legacy counter is post-fill weight movement, not a signal refresh.
+        sums["interdecision_weight_changes_not_signal_changes"] = sums["interdecision_target_changes"]
+        if not (0 <= sums["interdecision_cost_fraction"] <= 1):
+            raise ValueError("INVALID_COST_ATTRIBUTION")
+        if not (0 <= sums["interdecision_fill_fraction"] <= 1):
+            raise ValueError("INVALID_FILL_ATTRIBUTION")
         result["scenarios"][scenario] = sums
     return result
 
