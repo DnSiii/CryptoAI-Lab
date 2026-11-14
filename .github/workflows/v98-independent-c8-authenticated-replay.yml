@@ -12,6 +12,7 @@ on:
       - 'research/v98_independent/v98_c8_execution_frequency_forensic.py'
       - 'research/v98_independent/v98_c8_daily_risk_execution.py'
       - 'research/v98_independent/v98_c8_execution_policy_ab.py'
+      - 'research/v98_independent/test_v98_c8_daily_risk_execution.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,6 +32,8 @@ jobs:
           python-version: '3.11'
       - name: Run C8 synthetic causal invariants
         run: python -m unittest research.v98_independent.test_v98_c8_invariants -v
+      - name: Run C8 daily-risk execution causal invariants
+        run: python -m unittest research.v98_independent.test_v98_c8_daily_risk_execution -v
       - name: Retrieve pinned V98-only authenticated Clean-4 sources
         env:
           GH_TOKEN: ${{ github.token }}
