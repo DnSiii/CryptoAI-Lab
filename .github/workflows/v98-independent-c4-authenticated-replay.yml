@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v98-independent-c4-authenticated-replay.yml'
       - 'research/v98_independent/v98_composed_c4.py'
       - 'research/v98_independent/v98_composed_c4_authenticated_runner.py'
+      - 'research/v98_independent/v98_c4_marginal_ablation_runner.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -82,11 +83,27 @@ jobs:
               assert all(math.isfinite(v[z]) for z in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
           print('C4_COMPLETE_TRAINING_REPLAY_NOT_VALIDATION')
           PY
+      - name: Require all twelve C4 leave-one-out marginal replay scenarios
+        run: |
+          python -m research.v98_independent.v98_c4_marginal_ablation_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c4_marginal_ablations.json
+          python - <<'PY'
+          import json,math
+          r=json.load(open('/tmp/v98_independent/b0/c4_marginal_ablations.json'))
+          assert r['holdout_accessed'] is False and r['hours']==27048
+          assert set(r['slots'])=={'growth','opportunity','relative_value','stress_recovery'}
+          for slot,scenarios in r['slots'].items():
+              assert set(scenarios)=={'1x','2x','4x'},slot
+              for scenario,values in scenarios.items():
+                  assert all(math.isfinite(v) for v in values.values()),(slot,scenario)
+                  assert abs(values['full_final_equity']-values['without_final_equity']-values['marginal_final_equity'])<1e-7
+          print('C4_TWELVE_MARGINAL_ABLATIONS_COMPLETE_NOT_PROMOTED')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c4-unvalidated-${{ github.run_id }}
           path: |
+            /tmp/v98_independent/b0/c4_marginal_ablations.json
             /tmp/v98_independent/b0/c4_composed_summary.json
             /tmp/v98_independent/b0/c4_composed_summary_*_ledger.jsonl
           retention-days: 30
