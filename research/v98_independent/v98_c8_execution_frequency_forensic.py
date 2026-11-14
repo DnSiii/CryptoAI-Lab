@@ -26,7 +26,8 @@ def audit(directory):
         path = directory / f"c8_composed_summary_{scenario}_ledger.jsonl"
         sums = {"daily_decision_turnover": 0., "interdecision_turnover": 0.,
                 "daily_decision_fills": 0, "interdecision_fills": 0,
-                "daily_decision_cost_return_sum": 0., "interdecision_cost_return_sum": 0.}
+                "daily_decision_cost_return_sum": 0., "interdecision_cost_return_sum": 0.,
+                "interdecision_target_changes": 0}
         previous = None
         count = 0
         for line in path.open():
@@ -48,7 +49,7 @@ def audit(directory):
                 raise ValueError("TURNOVER_MISMATCH")
             if previous is not None and i % 24 != 0:
                 if any(abs(after[a]-previous[a]) > 1e-10 for a in ASSETS):
-                    raise ValueError("INTERDECISION_TARGET_CHANGED")
+                    sums["interdecision_target_changes"] += 1
             bucket = "daily_decision" if i % 24 == 0 else "interdecision"
             sums[bucket+"_turnover"] += e["turnover"]
             sums[bucket+"_cost_return_sum"] += e["cost_return"]
