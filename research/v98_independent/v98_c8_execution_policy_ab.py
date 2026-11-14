@@ -31,6 +31,19 @@ def run(prices,manifest,funding):
             last_mark=1+sum(final_weights[a]*(data["bars"][a][-1][3]/data["bars"][a][-1][0]-1) for a in ASSETS)
             if not math.isclose(ledger[-1]["equity"]*last_mark,summary["final_equity"],rel_tol=1e-12,abs_tol=1e-8):
                 raise ValueError("FAILED_RECONCILIATION_"+label)
+        # Fail closed if the counterfactual increases any intraday exposure.
+        # Check actual fills rather than trusting the execution-policy label.
+        for entry in alt_ledger:
+            if entry["index"] % 24:
+                for asset in ASSETS:
+                    before=entry["weights_before_fill"][asset]
+                    after=entry["weights_after_fill"][asset]
+                    if after > before + 1e-12:
+                        raise ValueError("INTRADAY_RISK_INCREASE_"+asset)
+                    if after < -1e-12 or after > 0.40 + 1e-12:
+                        raise ValueError("INVALID_INTRADAY_ASSET_EXPOSURE_"+asset)
+                if sum(entry["weights_after_fill"].values()) > 0.75 + 1e-12:
+                    raise ValueError("INVALID_INTRADAY_GROSS_EXPOSURE")
         def attribution(ledger):
             return dict(intraday_turnover=sum(e["turnover"] for e in ledger if e["index"]%24),
                 intraday_cost_return_sum=sum(e["cost_return"] for e in ledger if e["index"]%24),
