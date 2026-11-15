@@ -47,7 +47,8 @@ def test_publication_allows_append_but_rejects_rewrites():
         verify(old, new)
 
 
-def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch):
+@pytest.mark.parametrize('code', [409, 422])
+def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch, code):
     import json
     import subprocess
     calls = []
@@ -60,7 +61,7 @@ def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch):
         if "workflow" == args[0]:
             return ""
         if "/cancel" in args[-1] or "/force-cancel" in args[-1]:
-            raise subprocess.CalledProcessError(1, args, output="Cannot cancel (HTTP 409)")
+            raise subprocess.CalledProcessError(1, args, output=f"Cannot cancel (HTTP {code})")
         if "contents/" in args[-1]:
             return "{}"
         return json.dumps([{"workflow_runs": [ghost] if "status=queued" in args[-1] else []}])
@@ -127,4 +128,20 @@ def test_active_retry_does_not_hide_stale_official_data(monkeypatch):
         return json.dumps([{'workflow_runs':[run] if 'status=in_progress' in args[-1] else []}])
     monkeypatch.setattr(recovery,'gh',fake_gh)
     with pytest.raises(RuntimeError,match='stale'):
+        recovery.main()
+
+
+def test_phantom_cancellation_permission_error_is_not_hidden(monkeypatch):
+    import json
+    import subprocess
+    ghost = {"id": 34748927780, "status": "queued", "created_at": "2026-09-13T09:05:49Z"}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    def fake_gh(*args):
+        if "/cancel" in args[-1] or "/force-cancel" in args[-1]:
+            raise subprocess.CalledProcessError(1, args, output="Forbidden (HTTP 403)")
+        if "contents/" in args[-1]:
+            return "{}"
+        return json.dumps([{"workflow_runs": [ghost] if "status=queued" in args[-1] else []}])
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    with pytest.raises(subprocess.CalledProcessError):
         recovery.main()
