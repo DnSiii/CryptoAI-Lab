@@ -27,7 +27,7 @@ def replay_c8_daily_risk(bars, funding, sleeve_fn, *, initial_equity=10000.,
     for i in range(n):
         # Snapshot known before open i: never use the opening mark to decide
         # a governor order filled at that same opening price.
-        causal_governor = causal_governor
+        causal_governor = governor_multiplier(equity, peak)
         gross=carry=0.
         gross_by_asset={a:0. for a in ASSETS}
         funding_by_asset={a:0. for a in ASSETS}
