@@ -26,7 +26,7 @@ def composed_c8_sleeves():
         if any(len(history[a])!=n for a in ASSETS):
             raise ValueError("C8_MISALIGNED")
         i=n-1
-        if i<LONG or i%STEP:
+        if i<LONG or (i+1)%STEP:
             return last
         metrics={}
         for a in ASSETS:
