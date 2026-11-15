@@ -25,6 +25,9 @@ def replay_c8_daily_risk(bars, funding, sleeve_fn, *, initial_equity=10000.,
     entries=[]
     max_drawdown=0.
     for i in range(n):
+        # Snapshot known before open i: never use the opening mark to decide
+        # a governor order filled at that same opening price.
+        causal_governor = causal_governor
         gross=carry=0.
         gross_by_asset={a:0. for a in ASSETS}
         funding_by_asset={a:0. for a in ASSETS}
@@ -44,7 +47,7 @@ def replay_c8_daily_risk(bars, funding, sleeve_fn, *, initial_equity=10000.,
         if i:
             sleeves=sleeve_fn({a:tuple(histories[a]) for a in ASSETS})
             routers={a:regime_multiplier(histories[a]) for a in ASSETS}
-            governor=governor_multiplier(equity,peak)
+            governor=causal_governor
             target=compose_weights(sleeves,routers,governor)
             if i%24:
                 # No risk increases between decisions. Apply asset-specific
