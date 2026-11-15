@@ -28,6 +28,9 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
     # Bar i open: mark holdings from open i-1, then apply funding, then fill
     # target based ONLY on close i-1. No current-bar close is accessible.
     for i in range(n):
+        # Snapshot known before open i: never use the opening mark to decide
+        # a governor order filled at that same opening price.
+        causal_governor = causal_governor
         if i:
             returns = {a: bars[a][i][0]/bars[a][i-1][0]-1 for a in ASSETS}
             gross_by_asset = {a:weights[a]*returns[a] for a in ASSETS}
