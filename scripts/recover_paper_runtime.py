@@ -118,9 +118,16 @@ def main(continue_chain: bool = False) -> None:
             try:
                 gh("api", "--method", "POST", f"repos/{repo}/actions/runs/{run['id']}/force-cancel")
             except subprocess.CalledProcessError as force_error:
-                if "HTTP 409" not in force_error.output:
+                # GitHub may retain a months-old queued run in listings while
+                # refusing both cancellation endpoints (409/422). Only tolerate
+                # this for runs already classified as expired; never hide auth
+                # failures or failures affecting a recent active run.
+                output = force_error.output or ""
+                if classify_run(run, datetime.now(timezone.utc)) != "expired" or not any(
+                    code in output for code in ("HTTP 409", "HTTP 422")
+                ):
                     raise
-                print(f"WARNING: GitHub refuses cancellation of phantom run {run['id']}; expired run is excluded from active count.")
+                print(f"WARNING: GitHub refuses cancellation of expired phantom run {run['id']}; excluded from active count.")
     if expired:
         for attempt in range(3):
             time.sleep(2)
