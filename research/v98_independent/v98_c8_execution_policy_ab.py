@@ -39,6 +39,22 @@ def run(prices,manifest,funding):
                     raise ValueError("ASSET_CAP_BREACH_"+label)
                 if sum(after.values()) > 0.75+1e-12:
                     raise ValueError("PORTFOLIO_CAP_BREACH_"+label)
+            # Independently reconcile every fill, not just the final mark.
+            # Report drift BEFORE fills: post-fill caps alone cannot establish
+            # continuous exposure compliance between hourly decisions.
+            for entry in ledger:
+                if not math.isclose(sum(entry["gross_by_asset"].values()),entry["gross_return"],rel_tol=1e-11,abs_tol=1e-12):
+                    raise ValueError("GROSS_ATTRIBUTION_MISMATCH_"+label)
+                if not math.isclose(sum(entry["funding_by_asset"].values()),entry["funding_return"],rel_tol=1e-11,abs_tol=1e-12):
+                    raise ValueError("FUNDING_ATTRIBUTION_MISMATCH_"+label)
+                expected_turnover=sum(abs(entry["weights_after_fill"][a]-entry["weights_before_fill"][a]) for a in ASSETS)
+                if not math.isclose(expected_turnover,entry["turnover"],rel_tol=1e-11,abs_tol=1e-12):
+                    raise ValueError("TURNOVER_RECONCILIATION_MISMATCH_"+label)
+                expected_cost=expected_turnover*(.0004+.0002)*scale
+                if not math.isclose(expected_cost,entry["cost_return"],rel_tol=1e-11,abs_tol=1e-12):
+                    raise ValueError("COST_RECONCILIATION_MISMATCH_"+label)
+                if not math.isclose(entry["pre_fill_equity"]*(1-entry["cost_return"]),entry["equity"],rel_tol=1e-11,abs_tol=1e-8):
+                    raise ValueError("EQUITY_FILL_RECONCILIATION_MISMATCH_"+label)
             final_weights=ledger[-1]["weights_after_fill"]
             last_mark=1+sum(final_weights[a]*(data["bars"][a][-1][3]/data["bars"][a][-1][0]-1) for a in ASSETS)
             if not math.isclose(ledger[-1]["equity"]*last_mark,summary["final_equity"],rel_tol=1e-12,abs_tol=1e-8):
@@ -61,8 +77,16 @@ def run(prices,manifest,funding):
                 intraday_cost_return_sum=sum(e["cost_return"] for e in ledger if e["index"]%24),
                 intraday_fills=sum(e["turnover"]>1e-12 for e in ledger if e["index"]%24),
                 daily_fills=sum(e["turnover"]>1e-12 for e in ledger if not e["index"]%24))
+        def prefill_drift(ledger):
+            # Diagnostic only: these are open-to-open marked exposures prior to
+            # rebalancing, not necessarily executable intrabar risk breaches.
+            return dict(max_asset=max(max(e["weights_before_fill"].values()) for e in ledger),
+                max_gross=max(sum(e["weights_before_fill"].values()) for e in ledger),
+                asset_cap_exceedances=sum(any(v>0.40+1e-12 for v in e["weights_before_fill"].values()) for e in ledger),
+                gross_cap_exceedances=sum(sum(e["weights_before_fill"].values())>0.75+1e-12 for e in ledger))
         results[str(int(scale))+"x"]=dict(baseline=base,daily_risk=alt,
             baseline_execution=attribution(base_ledger),daily_risk_execution=attribution(alt_ledger),
+            baseline_prefill_drift=prefill_drift(base_ledger),daily_risk_prefill_drift=prefill_drift(alt_ledger),
             final_equity_delta=alt["final_equity"]-base["final_equity"],
             max_drawdown_delta=alt["max_drawdown"]-base["max_drawdown"],
             turnover_delta=alt["total_turnover"]-base["total_turnover"],
