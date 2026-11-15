@@ -85,10 +85,16 @@ def run(prices,manifest,funding):
         def prefill_drift(ledger):
             # Diagnostic only: these are open-to-open marked exposures prior to
             # rebalancing, not necessarily executable intrabar risk breaches.
+            asset_excess=[max(0.,max(e["weights_before_fill"].values())-0.40) for e in ledger]
+            gross_excess=[max(0.,sum(e["weights_before_fill"].values())-0.75) for e in ledger]
             return dict(max_asset=max(max(e["weights_before_fill"].values()) for e in ledger),
                 max_gross=max(sum(e["weights_before_fill"].values()) for e in ledger),
-                asset_cap_exceedances=sum(any(v>0.40+1e-12 for v in e["weights_before_fill"].values()) for e in ledger),
-                gross_cap_exceedances=sum(sum(e["weights_before_fill"].values())>0.75+1e-12 for e in ledger))
+                asset_cap_exceedances=sum(v>1e-12 for v in asset_excess),
+                gross_cap_exceedances=sum(v>1e-12 for v in gross_excess),
+                max_asset_excess=max(asset_excess),max_gross_excess=max(gross_excess),
+                cumulative_asset_excess=sum(asset_excess),
+                cumulative_gross_excess=sum(gross_excess),
+                per_asset_exceedances={a:sum(e["weights_before_fill"][a]>0.40+1e-12 for e in ledger) for a in ASSETS})
         results[str(int(scale))+"x"]=dict(baseline=base,daily_risk=alt,
             baseline_execution=attribution(base_ledger),daily_risk_execution=attribution(alt_ledger),
             baseline_prefill_drift=prefill_drift(base_ledger),daily_risk_prefill_drift=prefill_drift(alt_ledger),
