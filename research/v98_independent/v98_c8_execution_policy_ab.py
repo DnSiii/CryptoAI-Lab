@@ -42,7 +42,12 @@ def run(prices,manifest,funding):
             # Independently reconcile every fill, not just the final mark.
             # Report drift BEFORE fills: post-fill caps alone cannot establish
             # continuous exposure compliance between hourly decisions.
+            previous_equity=10000.0
             for entry in ledger:
+                expected_prefill=previous_equity*(1+entry["gross_return"]+entry["funding_return"])
+                if not math.isclose(expected_prefill,entry["pre_fill_equity"],rel_tol=1e-11,abs_tol=1e-7):
+                    raise ValueError("MARK_TO_MARK_EQUITY_MISMATCH_"+label)
+                previous_equity=entry["equity"]
                 if not math.isclose(sum(entry["gross_by_asset"].values()),entry["gross_return"],rel_tol=1e-11,abs_tol=1e-12):
                     raise ValueError("GROSS_ATTRIBUTION_MISMATCH_"+label)
                 if not math.isclose(sum(entry["funding_by_asset"].values()),entry["funding_return"],rel_tol=1e-11,abs_tol=1e-12):
