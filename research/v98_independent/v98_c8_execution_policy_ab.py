@@ -43,11 +43,23 @@ def run(prices,manifest,funding):
             # Report drift BEFORE fills: post-fill caps alone cannot establish
             # continuous exposure compliance between hourly decisions.
             previous_equity=10000.0
+            previous_weights={a:0. for a in ASSETS}
             for entry in ledger:
                 expected_prefill=previous_equity*(1+entry["gross_return"]+entry["funding_return"])
                 if not math.isclose(expected_prefill,entry["pre_fill_equity"],rel_tol=1e-11,abs_tol=1e-7):
                     raise ValueError("MARK_TO_MARK_EQUITY_MISMATCH_"+label)
+                factor=1+entry["gross_return"]+entry["funding_return"]
+                if not math.isfinite(factor) or factor<=0:
+                    raise ValueError("INVALID_MARK_FACTOR_"+label)
+                for a in ASSETS:
+                    expected_weight=previous_weights[a]*(1+entry["gross_by_asset"][a]/previous_weights[a] if previous_weights[a] else 1)
+                    # Recover the asset price return from the ledger only when
+                    # previously invested; zero holdings must remain zero.
+                    expected_weight=expected_weight/factor
+                    if not math.isclose(expected_weight,entry["weights_before_fill"][a],rel_tol=1e-10,abs_tol=1e-11):
+                        raise ValueError("WEIGHT_DRIFT_RECONCILIATION_MISMATCH_"+label+"_"+a)
                 previous_equity=entry["equity"]
+                previous_weights=dict(entry["weights_after_fill"])
                 if not math.isclose(sum(entry["gross_by_asset"].values()),entry["gross_return"],rel_tol=1e-11,abs_tol=1e-12):
                     raise ValueError("GROSS_ATTRIBUTION_MISMATCH_"+label)
                 if not math.isclose(sum(entry["funding_by_asset"].values()),entry["funding_return"],rel_tol=1e-11,abs_tol=1e-12):
