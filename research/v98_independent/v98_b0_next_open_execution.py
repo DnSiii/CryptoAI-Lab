@@ -30,7 +30,7 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
     for i in range(n):
         # Snapshot known before open i: never use the opening mark to decide
         # a governor order filled at that same opening price.
-        causal_governor = causal_governor
+        causal_governor = governor_multiplier(equity, peak)
         if i:
             returns = {a: bars[a][i][0]/bars[a][i-1][0]-1 for a in ASSETS}
             gross_by_asset = {a:weights[a]*returns[a] for a in ASSETS}
@@ -47,7 +47,7 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
         if i:
             sleeves = sleeve_fn({a:tuple(histories[a]) for a in ASSETS})
             routers = {a:regime_multiplier(histories[a]) for a in ASSETS}
-            governor = governor_multiplier(equity, peak)
+            governor = causal_governor
             target = compose_weights(sleeves, routers, governor)
             turnover = sum(abs(target[a]-weights[a]) for a in ASSETS)
             cost = turnover*(fee_rate+slippage_rate)*cost_scale
