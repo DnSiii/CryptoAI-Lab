@@ -14,14 +14,16 @@ class GovernorOpenClockTest(unittest.TestCase):
         bars[ASSETS[0]][2] = (150., 0., 0., 150.)
         funding = {a: {} for a in ASSETS}
         def sleeve(_):
-            return {"growth": [0.1]*len(ASSETS)}
+            return {a: (0.1, 0., 0., 0.) for a in ASSETS}
         for executor in (replay_next_open, replay_c8_daily_risk):
             observed = []
             def governor(equity, peak):
                 observed.append((equity, peak))
                 return 1.
             with patch.object(__import__(executor.__module__, fromlist=["governor_multiplier"]),
-                              "governor_multiplier", side_effect=governor):
+                              "governor_multiplier", side_effect=governor), patch.object(
+                              __import__(executor.__module__, fromlist=["regime_multiplier"]),
+                              "regime_multiplier", return_value=1.):
                 executor(bars, funding, sleeve)
             self.assertEqual(len(observed), n)
             # No position at i=1 prior to decision; i=2 prior mark is
