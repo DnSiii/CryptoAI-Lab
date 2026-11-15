@@ -11,7 +11,7 @@ class C8DailyRiskExecution(unittest.TestCase):
         self.sleeves=lambda history:{a:(1.,0.,0.,0.) if a==ASSETS[0] else (0.,0.,0.,0.) for a in ASSETS}
 
     def test_no_intraday_replenishment(self):
-        with patch("research.v98_independent.v98_c8_daily_risk_execution.regime_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.governor_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.compose_weights",side_effect=lambda s,r,g:{a:0.5 if a==ASSETS[0] else 0. for a in ASSETS}):
+        with patch("research.v98_independent.v98_c8_daily_risk_execution.regime_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.governor_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.compose_weights",side_effect=lambda s,r,g:{a:0.4 if a==ASSETS[0] else 0. for a in ASSETS}):
             summary,entries=replay_c8_daily_risk(self.bars,self.funding,self.sleeves)
         self.assertEqual(summary["hours"],51)
         self.assertTrue(all(e["turnover"]==0 for e in entries if e["index"]%24))
@@ -21,14 +21,24 @@ class C8DailyRiskExecution(unittest.TestCase):
         def target(s,r,g):
             i=target.counter
             target.counter+=1
-            exposure=0.5 if i<25 or i>=30 else 0.1
+            exposure=0.4 if i<25 or i>=30 else 0.1
             return {a:exposure if a==ASSETS[0] else 0. for a in ASSETS}
         target.counter=0
         with patch("research.v98_independent.v98_c8_daily_risk_execution.regime_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.governor_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.compose_weights",side_effect=target):
             _,entries=replay_c8_daily_risk(self.bars,self.funding,self.sleeves)
         self.assertAlmostEqual(entries[25]["weights_after_fill"][ASSETS[0]],0.1)
         self.assertAlmostEqual(entries[29]["weights_after_fill"][ASSETS[0]],0.1)
-        self.assertAlmostEqual(entries[47]["weights_after_fill"][ASSETS[0]],0.5)
+        self.assertAlmostEqual(entries[47]["weights_after_fill"][ASSETS[0]],0.4)
+
+    def test_cost_scale_and_turnover_reconcile(self):
+        with patch("research.v98_independent.v98_c8_daily_risk_execution.regime_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.governor_multiplier",return_value=1.), patch("research.v98_independent.v98_c8_daily_risk_execution.compose_weights",side_effect=lambda s,r,g:{a:0.4 if a==ASSETS[0] else 0. for a in ASSETS}):
+            summary,entries=replay_c8_daily_risk(self.bars,self.funding,self.sleeves,cost_scale=4.)
+        self.assertAlmostEqual(summary["total_turnover"],sum(e["turnover"] for e in entries))
+        for e in entries:
+            self.assertAlmostEqual(e["cost_return"],e["turnover"]*(.0004+.0002)*4.)
+            self.assertAlmostEqual(e["equity"],e["pre_fill_equity"]*(1-e["cost_return"]))
+            self.assertLessEqual(sum(e["weights_after_fill"].values()),0.75)
+            self.assertLessEqual(max(e["weights_after_fill"].values()),0.40)
 
     def test_reject_non_clean4(self):
         with self.assertRaisesRegex(ValueError,"INVALID_CLEAN4_ASSETS"):
