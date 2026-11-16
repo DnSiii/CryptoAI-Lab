@@ -49,6 +49,18 @@ class NextOpenTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INVALID_CLEAN4_OHLC"):
             replay_next_open(series, {a:{} for a in ASSETS}, sleeve)
 
+    def test_canonical_ohlcv_volume_contract(self):
+        base = bars()
+        funding = {a:{} for a in ASSETS}
+        zero = lambda h:{a:(0.,0.,0.,0.) for a in ASSETS}
+        result,_ = replay_next_open(base, funding, zero)
+        self.assertEqual(result["final_equity"], 10000.)
+        for invalid in (-1., float("nan"), float("inf")):
+            modified = {a:list(v) for a,v in base.items()}
+            modified[ASSETS[0]][1] = (100.,100.,100.,100.,invalid)
+            with self.subTest(volume=invalid), self.assertRaisesRegex(ValueError,"INVALID_CLEAN4_OHLC"):
+                replay_next_open(modified, funding, zero)
+
     def test_reject_invalid_costs_and_funding(self):
         base = bars()
         funding = {a:{} for a in ASSETS}
