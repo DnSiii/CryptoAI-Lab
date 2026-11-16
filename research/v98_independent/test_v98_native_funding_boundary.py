@@ -40,5 +40,18 @@ class NativeFundingBoundaryTest(unittest.TestCase):
             self.assertAlmostEqual(ledger[24]['weights_after_fill'][first], 0.)
 
 
+    def test_corrupt_ohlc_rejected_before_system_pnl(self):
+        for executor in (replay_next_open, replay_c8_daily_risk):
+            for corrupt in ((0., 100., 100., 100.),
+                            (100., 99., 100., 100.),
+                            (100., float('nan'), 100., 100.)):
+                with self.subTest(executor=executor.__name__, candle=corrupt):
+                    bars = {a: [(100., 100., 100., 100.) for _ in range(3)]
+                            for a in ASSETS}
+                    bars[ASSETS[0]][1] = corrupt
+                    with self.assertRaisesRegex(ValueError, 'INVALID_CLEAN4_OHLC'):
+                        executor(bars, {a: {} for a in ASSETS}, lambda _: {})
+
+
 if __name__ == '__main__':
     unittest.main()
