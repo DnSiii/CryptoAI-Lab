@@ -34,8 +34,20 @@ class RawNotionalContinuationTests(unittest.TestCase):
 
     def test_rounding_boundary(self):
         old, segment = fixture(0.003, 0.0)
-        with self.assertRaisesRegex(RuntimeError, 'mismatch'):
+        merged = merge_ledger(old, segment, {})
+        adjustment = merged['decisions'][-1]['adjustments'][0]
+        self.assertAlmostEqual(adjustment['order_value_brl_unrounded'], 0.006)
+        self.assertEqual(adjustment['order_value_brl'], 0.01)
+
+    def test_source_mismatch_rejected(self):
+        old, segment = fixture(0.003, 0.01)
+        with self.assertRaisesRegex(RuntimeError, 'Original raw/displayed'):
             merge_ledger(old, segment, {})
+
+    def test_preserve_existing_display_when_scaling_one(self):
+        old, segment = fixture(0.003, 0.0, factor=1.0)
+        merged = merge_ledger(old, segment, {})
+        self.assertEqual(merged['decisions'][-1]['adjustments'][0]['order_value_brl'], 0.0)
 
     def test_invalid_raw_rejected(self):
         for raw in (0, -0.001, float('nan'), float('inf')):
