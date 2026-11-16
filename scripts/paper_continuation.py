@@ -119,7 +119,15 @@ def continue_paper(data, targets, original, ledger_path, previous=None):
 def merge_ledger(old, segment, execution_state):
     new = copy.deepcopy(segment)
     cutoff = old['latest_data_timestamp']
-    factor = old['equity_curve'][-1]['capital_brl'] / segment['base_capital_brl']
+    source_capital = segment['base_capital_brl']
+    published_capital = old['equity_curve'][-1]['capital_brl']
+    if (not isinstance(source_capital, (int, float)) or not np.isfinite(source_capital)
+            or source_capital <= 0 or not isinstance(published_capital, (int, float))
+            or not np.isfinite(published_capital) or published_capital <= 0):
+        raise RuntimeError('Invalid continuation capital scaling inputs')
+    factor = published_capital / source_capital
+    if not np.isfinite(factor) or factor <= 0:
+        raise RuntimeError('Invalid continuation scaling factor')
     def scaled(row):
         original_row = row
         row = copy.deepcopy(row)
