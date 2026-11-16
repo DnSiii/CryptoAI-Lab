@@ -3,14 +3,14 @@ from research.v98_independent.v98_b0_next_open_execution import replay_next_open
 from research.v98_independent.v98_b0_stream_integration import ASSETS
 from research.v98_independent.v98_b0_ledger_diagnostics import diagnose
 
-def bars(n=4, shock=1):
-    return {a:[(100. if i<2 else shock, 100., 100., 100., 0.)
+def bars(n=4, shock=100.):
+    return {a:[(100. if i<2 else shock, max(100.,shock), min(100.,shock), 100., 0.)
                for i in range(n)] for a in ASSETS}
 
 def warmed_bars(n=2190):
     # Nonzero rolling volatility is required before the preregistered router
     # permits any exposure (13 x 168 completed returns + initial close).
-    return {a:[(100. + (i % 2), 100., 100., 100. + (i % 2), 0.)
+    return {a:[(100. + (i % 2), 101., 100., 100. + (i % 2), 0.)
                for i in range(n)] for a in ASSETS}
 
 class NextOpenTests(unittest.TestCase):
@@ -46,7 +46,7 @@ class NextOpenTests(unittest.TestCase):
             op, hi, lo, _, vol = series[a][-1]
             series[a][-1] = (op, hi, lo, float("nan"), vol)
         # A nonfinite final close must fail closed, not produce NaN PnL.
-        with self.assertRaisesRegex(ValueError, "INSOLVENT_FINAL_MARK"):
+        with self.assertRaisesRegex(ValueError, "INVALID_CLEAN4_OHLC"):
             replay_next_open(series, {a:{} for a in ASSETS}, sleeve)
 
     def test_reject_invalid_costs_and_funding(self):
