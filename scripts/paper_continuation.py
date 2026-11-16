@@ -123,8 +123,17 @@ def merge_ledger(old, segment, execution_state):
     def scaled(row):
         row = copy.deepcopy(row)
         for key, value in list(row.items()):
-            if key.endswith('_brl') and isinstance(value, (int, float)):
+            if key == 'order_value_brl_unrounded':
+                if not isinstance(value, (int, float)) or not np.isfinite(value) or value <= 0:
+                    raise RuntimeError('Invalid original raw order notional in continuation')
+                row[key] = float(value) * factor
+                if not np.isfinite(row[key]) or row[key] <= 0:
+                    raise RuntimeError('Invalid scaled raw order notional in continuation')
+            elif key.endswith('_brl') and isinstance(value, (int, float)):
                 row[key] = round(value * factor, 2)
+        if 'order_value_brl_unrounded' in row and 'order_value_brl' in row:
+            if round(row['order_value_brl_unrounded'], 2) != row['order_value_brl']:
+                raise RuntimeError('Continuation raw/displayed order notional mismatch')
         if 'adjustments' in row:
             row['adjustments'] = [scaled(r) for r in row['adjustments']]
         if 'capital_brl' in row:
