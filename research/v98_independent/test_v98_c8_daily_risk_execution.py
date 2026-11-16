@@ -6,7 +6,7 @@ from .v98_b0_stream_integration import ASSETS
 
 class C8DailyRiskExecution(unittest.TestCase):
     def setUp(self):
-        self.bars={a:[(100.,100.,100.,100.) for _ in range(51)] for a in ASSETS}
+        self.bars={a:[(100.,100.,100.,100.,0.) for _ in range(51)] for a in ASSETS}
         self.funding={a:{} for a in ASSETS}
         self.sleeves=lambda history:{a:(1.,0.,0.,0.) if a==ASSETS[0] else (0.,0.,0.,0.) for a in ASSETS}
 
