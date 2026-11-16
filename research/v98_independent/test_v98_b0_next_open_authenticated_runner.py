@@ -19,6 +19,12 @@ class AuthenticatedRunnerTests(unittest.TestCase):
         self.assertEqual(result["results"]["1x"]["hours"], n)
         self.assertFalse(result["holdout_accessed"])
         self.assertEqual(result["source"], "AUTHENTICATED_CLEAN4")
+        for scenario in ("1x", "2x", "4x"):
+            exposure = result["results"][scenario]["exposure_contract"]
+            self.assertTrue(exposure["post_fill_gate_pass"])
+            self.assertEqual(exposure["rows"], n - 1)
+            self.assertEqual(exposure["after_asset_cap_breaches"], 0)
+            self.assertEqual(exposure["after_gross_cap_breaches"], 0)
 
     def test_reject_off_grid_funding(self):
         n = 3
