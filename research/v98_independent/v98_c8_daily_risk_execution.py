@@ -17,6 +17,14 @@ def replay_c8_daily_risk(bars, funding, sleeve_fn, *, initial_equity=10000.,
         raise ValueError("INVALID_CLEAN4_LENGTH")
     if not all(math.isfinite(float(v)) for v in (initial_equity,fee_rate,slippage_rate,cost_scale)) or not (initial_equity>0 and fee_rate>=0 and slippage_rate>=0 and cost_scale>=0):
         raise ValueError("INVALID_ACCOUNT")
+    # Fail closed on corrupt candles before calculating system PnL.
+    for asset in ASSETS:
+        for bar in bars[asset]:
+            if len(bar) != 4 or any(not math.isfinite(float(v)) or float(v) <= 0 for v in bar):
+                raise ValueError("INVALID_CLEAN4_OHLC")
+            o, h, l, c = map(float, bar)
+            if l > min(o, c) or h < max(o, c) or l > h:
+                raise ValueError("INVALID_CLEAN4_OHLC")
     if any(not math.isfinite(float(v)) for a in ASSETS for v in funding[a].values()):
         raise ValueError("INVALID_NATIVE_FUNDING")
     equity=peak=float(initial_equity)
