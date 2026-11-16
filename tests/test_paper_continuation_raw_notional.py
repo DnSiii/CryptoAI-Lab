@@ -57,5 +57,25 @@ class RawNotionalContinuationTests(unittest.TestCase):
                     merge_ledger(old, segment, {})
 
 
+    def test_invalid_scaling_capitals_fail_closed(self):
+        for capital in (0, -1, float('nan'), float('inf'), float('-inf')):
+            with self.subTest(segment_base=capital):
+                old, segment = fixture(0.003, 0.0)
+                segment['base_capital_brl'] = capital
+                with self.assertRaisesRegex(RuntimeError, 'Invalid continuation'):
+                    merge_ledger(old, segment, {})
+            with self.subTest(published_capital=capital):
+                old, segment = fixture(0.003, 0.0)
+                old['equity_curve'][-1]['capital_brl'] = capital
+                with self.assertRaisesRegex(RuntimeError, 'Invalid continuation'):
+                    merge_ledger(old, segment, {})
+
+    def test_factor_overflow_fails_closed(self):
+        old, segment = fixture(0.003, 0.0)
+        old['equity_curve'][-1]['capital_brl'] = 1e308
+        segment['base_capital_brl'] = 1e-308
+        with self.assertRaisesRegex(RuntimeError, 'Invalid continuation scaling factor'):
+            merge_ledger(old, segment, {})
+
 if __name__ == '__main__':
     unittest.main()
