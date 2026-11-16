@@ -7,6 +7,7 @@ from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
 from .v98_b0_authenticated_replay_bridge import preregistered_sleeves
 from .v98_b0_next_open_execution import replay_next_open
+from .v98_b0_exposure_contract_audit import audit as audit_exposure
 
 def run(prices, manifest, funding):
     data = load(prices, manifest, funding)
@@ -30,6 +31,10 @@ def run(prices, manifest, funding):
                    (summary["final_equity"], summary["max_drawdown"],
                     summary["total_turnover"], summary["funding_return_sum"])):
             raise ValueError("NONFINITE_ECONOMIC_RESULT")
+        exposure = audit_exposure(entries)
+        if not exposure["post_fill_gate_pass"]:
+            raise ValueError("POST_FILL_EXPOSURE_CAP_BREACH")
+        summary["exposure_contract"] = exposure
         scenario = str(int(scale)) + "x"
         results[scenario] = summary
         ledgers[scenario] = entries
