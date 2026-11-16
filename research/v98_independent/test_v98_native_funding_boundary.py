@@ -13,7 +13,7 @@ from .v98_c8_daily_risk_execution import replay_c8_daily_risk
 
 class NativeFundingBoundaryTest(unittest.TestCase):
     def test_funding_charged_to_previous_position_before_fill(self):
-        bars = {a: [(100., 100., 100., 100.) for _ in range(27)]
+        bars = {a: [(100., 100., 100., 100., 0.) for _ in range(27)]
                 for a in ASSETS}
         funding = {a: {} for a in ASSETS}
         first = ASSETS[0]
@@ -42,11 +42,12 @@ class NativeFundingBoundaryTest(unittest.TestCase):
 
     def test_corrupt_ohlc_rejected_before_system_pnl(self):
         for executor in (replay_next_open, replay_c8_daily_risk):
-            for corrupt in ((0., 100., 100., 100.),
-                            (100., 99., 100., 100.),
-                            (100., float('nan'), 100., 100.)):
+            for corrupt in ((0., 100., 100., 100., 0.),
+                            (100., 99., 100., 100., 0.),
+                            (100., float('nan'), 100., 100., 0.),
+                            (100., 100., 100., 100., -1.)):
                 with self.subTest(executor=executor.__name__, candle=corrupt):
-                    bars = {a: [(100., 100., 100., 100.) for _ in range(3)]
+                    bars = {a: [(100., 100., 100., 100., 0.) for _ in range(3)]
                             for a in ASSETS}
                     bars[ASSETS[0]][1] = corrupt
                     with self.assertRaisesRegex(ValueError, 'INVALID_CLEAN4_OHLC'):
