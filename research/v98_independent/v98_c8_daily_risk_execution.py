@@ -20,10 +20,10 @@ def replay_c8_daily_risk(bars, funding, sleeve_fn, *, initial_equity=10000.,
     # Fail closed on corrupt candles before calculating system PnL.
     for asset in ASSETS:
         for bar in bars[asset]:
-            if len(bar) != 4 or any(not math.isfinite(float(v)) or float(v) <= 0 for v in bar):
+            if len(bar) != 5 or any(not math.isfinite(float(v)) for v in bar):
                 raise ValueError("INVALID_CLEAN4_OHLC")
-            o, h, l, c = map(float, bar)
-            if l > min(o, c) or h < max(o, c) or l > h:
+            o, h, l, c, volume = map(float, bar)
+            if min(o, h, l, c) <= 0 or volume < 0 or l > min(o, c) or h < max(o, c) or l > h:
                 raise ValueError("INVALID_CLEAN4_OHLC")
     if any(not math.isfinite(float(v)) for a in ASSETS for v in funding[a].values()):
         raise ValueError("INVALID_NATIVE_FUNDING")
