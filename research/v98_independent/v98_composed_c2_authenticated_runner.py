@@ -7,6 +7,7 @@ from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
 from .v98_composed_c2 import composed_c2_sleeves
 from .v98_b0_next_open_execution import replay_next_open
+from .v98_b0_exposure_contract_audit import audit as audit_exposure
 
 def run(prices, manifest, funding):
     data=load(prices,manifest,funding)
@@ -27,6 +28,10 @@ def run(prices, manifest, funding):
                ("final_equity","max_drawdown","total_turnover","funding_return_sum")):
             raise ValueError("C2_NONFINITE_RESULT")
         key=str(int(scale))+"x"
+        exposure=audit_exposure(entries)
+        summary["exposure_contract_audit"]=exposure
+        if not exposure["post_fill_gate_pass"]:
+            raise ValueError("C2_POST_FILL_EXPOSURE_GATE_FAILED_"+key)
         results[key]=summary
         ledgers[key]=entries
     return dict(status="C2_PREREGISTERED_TRAINING_ONLY_NO_PROMOTION",
