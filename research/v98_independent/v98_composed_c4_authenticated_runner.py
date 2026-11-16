@@ -7,6 +7,7 @@ from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
 from .v98_composed_c4 import composed_c4_sleeves
 from .v98_b0_next_open_execution import replay_next_open
+from .v98_b0_exposure_contract_audit import audit as audit_exposure
 
 def run(prices, manifest, funding):
     data=load(prices,manifest,funding)
@@ -19,6 +20,7 @@ def run(prices, manifest, funding):
             indexed[a][offset//HOUR_MS]=rate
     results={}
     ledgers={}
+    exposure_audits={}
     for scale in (1.,2.,4.):
         summary,entries=replay_next_open(data["bars"],indexed,composed_c4_sleeves(),cost_scale=scale)
         if summary["hours"] != data["hours"] or len(entries)!=data["hours"]-1:
@@ -35,13 +37,17 @@ def run(prices, manifest, funding):
         if not math.isclose(reconciled,summary["final_equity"],rel_tol=1e-12,abs_tol=1e-8):
             raise ValueError("C4_FINAL_MARK_RECONCILIATION_FAILED")
         key=str(int(scale))+"x"
+        exposure = audit_exposure(entries)
+        if not exposure['post_fill_gate_pass']:
+            raise ValueError('C4_POST_FILL_EXPOSURE_CONTRACT_FAILED_'+key)
+        exposure_audits[key] = exposure
         results[key]=summary
         ledgers[key]=entries
     return dict(status="C4_PREREGISTERED_TRAINING_ONLY_NO_PROMOTION",
                 holdout_accessed=False,source="AUTHENTICATED_CLEAN4",
                 price_manifest_sha256=data["price_manifest_sha256"],
                 funding_manifest_sha256=data["funding_manifest_sha256"],
-                results=results,ledgers=ledgers)
+                results=results,ledgers=ledgers,exposure_audits=exposure_audits)
 
 def main():
     p=argparse.ArgumentParser()
