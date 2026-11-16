@@ -47,7 +47,8 @@ def test_publication_allows_append_but_rejects_rewrites():
         verify(old, new)
 
 
-def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch):
+@pytest.mark.parametrize('code', [409, 422])
+def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch, code):
     import json
     import subprocess
     calls = []
@@ -60,7 +61,7 @@ def test_uncancellable_phantom_still_dispatches_recovery(monkeypatch):
         if "workflow" == args[0]:
             return ""
         if "/cancel" in args[-1] or "/force-cancel" in args[-1]:
-            raise subprocess.CalledProcessError(1, args, output="Cannot cancel (HTTP 409)")
+            raise subprocess.CalledProcessError(1, args, output=f"Cannot cancel (HTTP {code})")
         if "contents/" in args[-1]:
             return "{}"
         return json.dumps([{"workflow_runs": [ghost] if "status=queued" in args[-1] else []}])
@@ -127,4 +128,72 @@ def test_active_retry_does_not_hide_stale_official_data(monkeypatch):
         return json.dumps([{'workflow_runs':[run] if 'status=in_progress' in args[-1] else []}])
     monkeypatch.setattr(recovery,'gh',fake_gh)
     with pytest.raises(RuntimeError,match='stale'):
+        recovery.main()
+
+
+def test_phantom_cancellation_permission_error_is_not_hidden(monkeypatch):
+    import json
+    import subprocess
+    ghost = {"id": 34748927780, "status": "queued", "created_at": "2026-09-13T09:05:49Z"}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    def fake_gh(*args):
+        if "/cancel" in args[-1] or "/force-cancel" in args[-1]:
+            raise subprocess.CalledProcessError(1, args, output="Forbidden (HTTP 403)")
+        if "contents/" in args[-1]:
+            return "{}"
+        return json.dumps([{"workflow_runs": [ghost] if "status=queued" in args[-1] else []}])
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    with pytest.raises(subprocess.CalledProcessError):
+        recovery.main()
+
+
+@pytest.mark.parametrize("cancel_code,force_code,expected_force", [
+    (422, None, False),
+    (409, 422, True),
+    (409, 409, True),
+])
+def test_expired_phantom_cancellation_paths(monkeypatch, cancel_code, force_code, expected_force):
+    import json
+    import subprocess
+    calls = []
+    ghost = {"id": 34748927780, "status": "queued", "created_at": "2026-09-13T09:05:49Z"}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    monkeypatch.setattr(recovery.time, "sleep", lambda seconds: None)
+
+    def fake_gh(*args):
+        calls.append(args)
+        if args[0] == "workflow":
+            return ""
+        if args[-1].endswith("/force-cancel"):
+            raise subprocess.CalledProcessError(1, args, output=f"HTTP {force_code}")
+        if args[-1].endswith("/cancel"):
+            raise subprocess.CalledProcessError(1, args, output=f"HTTP {cancel_code}")
+        if "contents/" in args[-1]:
+            return "{}"
+        return json.dumps([{"workflow_runs": [ghost] if "status=queued" in args[-1] else []}])
+
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    recovery.main()
+    assert any(args[:2] == ("workflow", "run") for args in calls)
+    assert any(args[-1].endswith("/force-cancel") for args in calls) == expected_force
+
+
+def test_recent_obsolete_direct_422_remains_fail_closed(monkeypatch):
+    import json
+    import subprocess
+    run = {"id": 55, "status": "queued", "created_at": datetime.now(timezone.utc).isoformat(),
+           "head_sha": "old"}
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    def fake_gh(*args):
+        if args[-1].endswith("/cancel"):
+            raise subprocess.CalledProcessError(1, args, output="HTTP 422")
+        if "contents/" in args[-1]:
+            if "ref=paper-results" in args[-1]:
+                return "{}"
+            return json.dumps({"sha": "main" if "ref=main" in args[-1] else "old"})
+        if args[-1].endswith("/jobs"):
+            return json.dumps({"jobs": []})
+        return json.dumps([{"workflow_runs": [run] if "status=queued" in args[-1] else []}])
+    monkeypatch.setattr(recovery, "gh", fake_gh)
+    with pytest.raises(subprocess.CalledProcessError):
         recovery.main()
