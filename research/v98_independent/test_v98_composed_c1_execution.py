@@ -26,7 +26,7 @@ class C1ExecutionTests(unittest.TestCase):
         altered={a:list(v) for a,v in bars.items()}
         a=ASSETS[0]
         op,hi,lo,cl,vol=altered[a][-1]
-        altered[a][-1]=(op,hi,lo,cl*2,vol)
+        altered[a][-1]=(op,max(hi,cl*2),lo,cl*2,vol)
         _,second=replay_next_open(altered,funding,composed_c1_sleeves())
         self.assertEqual([r["weights_after_fill"] for r in first],
                          [r["weights_after_fill"] for r in second])
@@ -40,7 +40,7 @@ class C1ExecutionTests(unittest.TestCase):
         cutoff=1700
         a=ASSETS[0]
         op,hi,lo,cl,vol=altered[a][cutoff]
-        altered[a][cutoff]=(op,hi,lo,cl*1.5,vol)
+        altered[a][cutoff]=(op,max(hi,cl*1.5),lo,cl*1.5,vol)
         _,changed=replay_next_open(altered,funding,composed_c1_sleeves())
         self.assertEqual(
             [r["weights_after_fill"] for r in original if r["index"]<=cutoff],
