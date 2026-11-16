@@ -13,17 +13,17 @@ from .v98_c8_daily_risk_execution import replay_c8_daily_risk
 
 class NativeFundingBoundaryTest(unittest.TestCase):
     def test_funding_charged_to_previous_position_before_fill(self):
-        bars = {a: [(100., 100., 100., 100.) for _ in range(4)]
+        bars = {a: [(100., 100., 100., 100.) for _ in range(27)]
                 for a in ASSETS}
         funding = {a: {} for a in ASSETS}
         first = ASSETS[0]
-        funding[first][2] = 0.01
+        funding[first][25] = 0.01
         calls = [0]
 
         def sleeve(_):
             calls[0] += 1
-            # Open 1: establish a position. Open 2: exit it.
-            allocation = 0.4 if calls[0] == 1 else 0.
+            # C8 only permits new exposure at open 24; exit at open 25.
+            allocation = 0.4 if calls[0] == 24 else 0.
             return {a: (allocation if a == first else 0., 0., 0., 0.)
                     for a in ASSETS}
 
@@ -33,11 +33,11 @@ class NativeFundingBoundaryTest(unittest.TestCase):
                               'regime_multiplier', return_value=1.):
                 summary, ledger = executor(bars, funding, sleeve,
                                            fee_rate=0., slippage_rate=0.)
-            self.assertAlmostEqual(ledger[0]['weights_after_fill'][first], 0.4)
-            self.assertAlmostEqual(ledger[1]['funding_by_asset'][first], -0.004)
-            self.assertAlmostEqual(ledger[1]['funding_return'], -0.004)
+            self.assertAlmostEqual(ledger[23]['weights_after_fill'][first], 0.4)
+            self.assertAlmostEqual(ledger[24]['funding_by_asset'][first], -0.004)
+            self.assertAlmostEqual(ledger[24]['funding_return'], -0.004)
             self.assertAlmostEqual(summary['final_equity'], 9960.)
-            self.assertAlmostEqual(ledger[1]['weights_after_fill'][first], 0.)
+            self.assertAlmostEqual(ledger[24]['weights_after_fill'][first], 0.)
 
 
 if __name__ == '__main__':
