@@ -127,11 +127,30 @@ jobs:
               assert math.isclose(v['calendar_year_training_segments']['2025']['end_equity'],v['final_equity_reported'],rel_tol=1e-12,abs_tol=1e-7),k
           print('C5_LEDGER_TRAINING_DIAGNOSTICS_COMPLETE_NOT_VALIDATION')
           PY
+      - name: Reject C5 if any sleeve has nonpositive marginal equity
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/v98_independent/b0/c5_marginal_ablations.json')
+          data=json.loads(p.read_text())
+          failed=[(slot,scenario,values['marginal_final_equity'])
+                  for slot,scenarios in data['slots'].items()
+                  for scenario,values in scenarios.items()
+                  if values['marginal_final_equity']<=0]
+          decision={'candidate':'C5','status':'REJECTED_TRAINING_MARGINAL_GATE' if failed else 'MARGINAL_GATE_PASS_NOT_VALIDATED',
+                    'failed_marginals':[{'slot':s,'scenario':k,'marginal_final_equity':v} for s,k,v in failed],
+                    'holdout_accessed':False,'promoted':False}
+          Path('/tmp/v98_independent/b0/c5_training_decision.json').write_text(json.dumps(decision,indent=2,sort_keys=True)+'\\n')
+          print(json.dumps(decision))
+          if failed: raise SystemExit('C5_REJECTED_NONPOSITIVE_MARGINAL_NO_PROMOTION')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c5-unvalidated-${{ github.run_id }}
           path: |
+            /tmp/v98_independent/b0/c5_training_decision.json
             /tmp/v98_independent/b0/c5_training_diagnostics.json
             /tmp/v98_independent/b0/c5_marginal_ablations.json
             /tmp/v98_independent/b0/c5_composed_summary.json
