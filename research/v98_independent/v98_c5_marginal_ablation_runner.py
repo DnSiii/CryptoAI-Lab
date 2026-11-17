@@ -20,7 +20,7 @@ def masked_sleeves(slot):
                 for asset in ASSETS}
     return compute
 
-def run(prices,manifest,funding):
+def run(prices,manifest,funding,baseline_path=None):
     data=load(prices,manifest,funding)
     indexed={a:{} for a in ASSETS}
     for a in ASSETS:
@@ -29,7 +29,22 @@ def run(prices,manifest,funding):
             if offset%HOUR_MS or not 0<=offset<data["hours"]*HOUR_MS:
                 raise ValueError("C5_INVALID_FUNDING_TIMESTAMP")
             indexed[a][offset//HOUR_MS]=rate
-    full=full_run(prices,manifest,funding)
+    if baseline_path is None:
+        full=full_run(prices,manifest,funding)
+    else:
+        full=json.loads(Path(baseline_path).read_text())
+        if (full.get("status")!="C5_EXPLORATORY_TRAINING_ONLY_PREREG_UNVERIFIED_NO_PROMOTION"
+            or full.get("holdout_accessed") is not False
+            or full.get("source")!="AUTHENTICATED_CLEAN4"
+            or full.get("price_manifest_sha256")!=data["price_manifest_sha256"]
+            or full.get("funding_manifest_sha256")!=data["funding_manifest_sha256"]
+            or set(full.get("results",{}))!={"1x","2x","4x"}):
+            raise ValueError("C5_BASELINE_SOURCE_OR_STATUS_MISMATCH")
+        for scenario in ("1x","2x","4x"):
+            v=full["results"][scenario]
+            if (v["hours"]!=data["hours"] or
+                not math.isfinite(float(v["final_equity"]))):
+                raise ValueError("C5_BASELINE_INCOMPLETE_"+scenario)
     output={}
     for j,slot in enumerate(SLOTS):
         output[slot]={}
@@ -61,10 +76,12 @@ def main():
     p=argparse.ArgumentParser()
     for name in ("prices","manifest","funding","output"):
         p.add_argument("--"+name,type=Path,required=True)
+    p.add_argument("--baseline",type=Path,default=None,
+                   help="Authenticated C5 full replay summary from the same Clean-4 manifests")
     a=p.parse_args()
     if "v98_independent" not in a.output.absolute().parts:
         raise ValueError("V98_NAMESPACE_REQUIRED")
-    result=run(a.prices,a.manifest,a.funding)
+    result=run(a.prices,a.manifest,a.funding,a.baseline)
     a.output.parent.mkdir(parents=True,exist_ok=True)
     a.output.write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+"\n")
     print(json.dumps({"status":result["status"],"slots":result["slots"]},sort_keys=True))
