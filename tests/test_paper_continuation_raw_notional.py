@@ -57,6 +57,13 @@ class RawNotionalContinuationTests(unittest.TestCase):
                     merge_ledger(old, segment, {})
 
 
+    def test_nonfinite_display_rejected(self):
+        for display in (float('nan'), float('inf'), float('-inf')):
+            with self.subTest(display=display):
+                old, segment = fixture(0.003, display)
+                with self.assertRaisesRegex(RuntimeError, 'Invalid original displayed'):
+                    merge_ledger(old, segment, {})
+
     def test_invalid_scaling_capitals_fail_closed(self):
         for capital in (0, -1, float('nan'), float('inf'), float('-inf')):
             with self.subTest(segment_base=capital):
