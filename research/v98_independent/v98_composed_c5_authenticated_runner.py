@@ -43,7 +43,7 @@ def run(prices, manifest, funding):
         exposure_audits[key]=exposure
         results[key]=summary
         ledgers[key]=entries
-    return dict(status="C5_PREREGISTERED_TRAINING_ONLY_NO_PROMOTION",
+    return dict(status="C5_EXPLORATORY_TRAINING_ONLY_PREREG_UNVERIFIED_NO_PROMOTION",
                 holdout_accessed=False,source="AUTHENTICATED_CLEAN4",
                 price_manifest_sha256=data["price_manifest_sha256"],
                 funding_manifest_sha256=data["funding_manifest_sha256"],
