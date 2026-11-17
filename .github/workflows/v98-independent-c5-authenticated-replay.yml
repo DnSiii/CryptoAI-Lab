@@ -119,9 +119,12 @@ jobs:
           r=json.load(open(p))
           assert r['holdout_accessed'] is False
           assert set(r['scenarios'])=={'1x','2x','4x'}
+          import math
           for k,v in r['scenarios'].items():
               assert v['rows']==27047,k
               assert set(v['calendar_year_training_segments'])=={'2023','2024','2025'},k
+              assert math.isclose(v['reconciled_final_equity'],v['final_equity_reported'],rel_tol=1e-12,abs_tol=1e-7),k
+              assert math.isclose(v['calendar_year_training_segments']['2025']['end_equity'],v['final_equity_reported'],rel_tol=1e-12,abs_tol=1e-7),k
           print('C5_LEDGER_TRAINING_DIAGNOSTICS_COMPLETE_NOT_VALIDATION')
           PY
       - uses: actions/upload-artifact@v4
