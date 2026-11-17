@@ -3,7 +3,7 @@ on:
   push:
     branches: [research/v98-independent-zero]
     paths:
-      - '.github/workflows/v98-independent-c10-authenticated-replay.yml'
+      - '.github/workflows/v98-independent-c10-seven-slot-ablation.yml'
       - 'research/v98_independent/v98_composed_c10.py'
       - 'research/v98_independent/v98_c10_seven_slot_ablation.py'
   workflow_dispatch:
@@ -70,11 +70,21 @@ jobs:
           cat /tmp/v98_independent/b0/sources/paths.env >> "$GITHUB_ENV"
       - name: Run preregistered C10 Seven Slot full-history native-funding replay
         run: python -m research.v98_independent.v98_c10_seven_slot_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c10_seven_slot_ablation.json
-      - name: Require complete seven-slot training diagnostics\n        run: |\n          python - <<'PY'\n          import json\n          r=json.load(open('/tmp/v98_independent/b0/c10_seven_slot_ablation.json'))\n          assert r['source']=='AUTHENTICATED_CLEAN4' and r['holdout_accessed'] is False\n          assert len(r['results'])==8\n          assert all(set(x)=={'1x','2x','4x'} for x in r['results'].values())\n          print(r['decision'])\n          PY\n      - uses: actions/upload-artifact@v4
+      - name: Require complete seven-slot training diagnostics
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/v98_independent/b0/c10_seven_slot_ablation.json'))
+          assert r['source']=='AUTHENTICATED_CLEAN4' and r['holdout_accessed'] is False
+          assert len(r['results'])==8
+          assert all(set(x)=={'1x','2x','4x'} for x in r['results'].values())
+          print(r['decision'])
+          PY
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c10-unvalidated-${{ github.run_id }}
           path: |
-            /tmp/v98_independent/b0/c10_composed_summary.json
+            /tmp/v98_independent/b0/c10_seven_slot_ablation.json
           retention-days: 30
           if-no-files-found: warn
