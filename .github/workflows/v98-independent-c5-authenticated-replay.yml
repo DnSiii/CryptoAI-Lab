@@ -100,7 +100,12 @@ jobs:
           for slot,scenarios in r['slots'].items():
               assert set(scenarios)=={'1x','2x','4x'},slot
               for scenario,values in scenarios.items():
-                  assert all(math.isfinite(v) for v in values.values()),(slot,scenario)
+                  numeric=('without_final_equity','full_final_equity','marginal_final_equity','without_max_drawdown','without_total_turnover','without_funding_return_sum')
+                  assert all(math.isfinite(values[k]) for k in numeric),(slot,scenario)
+                  audit=values['post_fill_exposure_audit']
+                  assert audit['rows']==27047,(slot,scenario)
+                  assert audit['post_fill_gate_pass'] is True,(slot,scenario)
+                  assert audit['after_asset_cap_breaches']==0 and audit['after_gross_cap_breaches']==0,(slot,scenario)
                   assert abs(values['full_final_equity']-values['without_final_equity']-values['marginal_final_equity'])<1e-7
           print('C5_TWELVE_MARGINAL_ABLATIONS_COMPLETE_NOT_PROMOTED')
           PY
