@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/v98_independent/v98_c9_sleeve_ablation.py'
       - '.github/workflows/v98-independent-c9-sleeve-ablation.yml'
+      - 'research/v98_independent/v98_c9_overlay_counterfactuals.py'
   workflow_dispatch:
 jobs:
   c9-sleeve-ablation:
@@ -58,11 +59,16 @@ jobs:
       - name: Run C9 four-sleeve leave-one-out at 1x 2x 4x
         run: |
           python -m research.v98_independent.v98_c9_sleeve_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/c9_ablation/result.json
+      - name: Run C9 three-overlay system counterfactuals
+        run: |
+          python -m research.v98_independent.v98_c9_overlay_counterfactuals --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/c9_ablation/overlay_counterfactuals.json
       - name: Archive C9 ablation even on failed economic gate
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: v98-independent-c9-sleeve-ablation-${{ github.run_id }}
-          path: /tmp/v98_independent/c9_ablation/result.json
+          path: |
+            /tmp/v98_independent/c9_ablation/result.json
+            /tmp/v98_independent/c9_ablation/overlay_counterfactuals.json
           if-no-files-found: warn
           retention-days: 30
