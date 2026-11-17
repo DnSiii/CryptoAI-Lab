@@ -1,0 +1,68 @@
+name: V98 Independent C9 Overlay Counterfactuals
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_c9_overlay_counterfactuals.py'
+      - '.github/workflows/v98-independent-c9-overlay-counterfactuals.yml'
+  workflow_dispatch:
+jobs:
+  c9-overlay-counterfactuals:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/v98-independent-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch pinned V98 Clean-4 native sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess,zipfile
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/c9_overlay/sources')
+          for label,artifact_id in {'prices':13444665313,'funding':13464271018}.items():
+              a=json.loads(subprocess.check_output(['gh','api',f'repos/{os.environ["GH_REPO"]}/actions/artifacts/{artifact_id}'],text=True))
+              name=a.get('name','').lower()
+              if a.get('expired') or a.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
+                  raise SystemExit('PINNED_SOURCE_UNAVAILABLE')
+              if label=='prices' and not name.startswith('v98-independent-clean4-148-official-archives-'):
+                  raise SystemExit('WRONG_PRICE_SOURCE')
+              if label=='funding' and not ('native' in name and 'funding' in name):
+                  raise SystemExit('WRONG_FUNDING_SOURCE')
+              target=root/label
+              target.mkdir(parents=True,exist_ok=True)
+              archive=target/'artifact.zip'
+              with archive.open('wb') as stream:
+                  subprocess.run(['gh','api',f'repos/{os.environ["GH_REPO"]}/actions/artifacts/{artifact_id}/zip'],stdout=stream,check=True)
+              with zipfile.ZipFile(archive) as z:
+                  if any(not (target/item.filename).resolve().is_relative_to(target.resolve()) for item in z.infolist()):
+                      raise SystemExit('ZIP_PATH_TRAVERSAL')
+                  z.extractall(target)
+          prices=list((root/'prices').rglob('source_manifest.json'))
+          funding=list((root/'funding').rglob('funding_manifest.json'))
+          if len(prices)!=1 or len(funding)!=1:
+              raise SystemExit('MISSING_OR_AMBIGUOUS_MANIFESTS')
+          with open(os.environ['GITHUB_ENV'],'a') as out:
+              out.write(f'PRICES={prices[0].parent}\nMANIFEST={prices[0]}\nFUNDING={funding[0].parent}\n')
+          PY
+      - name: Run C9 router allocator governor counterfactuals at 1x 2x 4x
+        run: |
+          python -m research.v98_independent.v98_c9_sleeve_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/c9_overlay/result.json
+      - name: Archive C9 overlay counterfactuals even on failed economic gate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v98-independent-c9-overlay-counterfactuals-${{ github.run_id }}
+          path: /tmp/v98_independent/c9_overlay/result.json
+          if-no-files-found: warn
+          retention-days: 30
