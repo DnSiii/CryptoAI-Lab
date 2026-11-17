@@ -7,6 +7,7 @@ on:
       - 'research/v98_independent/v98_composed_c5.py'
       - 'research/v98_independent/v98_composed_c5_authenticated_runner.py'
       - 'research/v98_independent/v98_c5_marginal_ablation_runner.py'
+      - 'research/v98_independent/v98_c5_training_ledger_diagnostics.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -109,11 +110,26 @@ jobs:
                   assert abs(values['full_final_equity']-values['without_final_equity']-values['marginal_final_equity'])<1e-7
           print('C5_TWELVE_MARGINAL_ABLATIONS_COMPLETE_NOT_PROMOTED')
           PY
+      - name: Audit C5 ledger economics and calendar-year training segments
+        run: |
+          python -m research.v98_independent.v98_c5_training_ledger_diagnostics --summary /tmp/v98_independent/b0/c5_composed_summary.json --output /tmp/v98_independent/b0/c5_training_diagnostics.json
+          python - <<'PY'
+          import json
+          p='/tmp/v98_independent/b0/c5_training_diagnostics.json'
+          r=json.load(open(p))
+          assert r['holdout_accessed'] is False
+          assert set(r['scenarios'])=={'1x','2x','4x'}
+          for k,v in r['scenarios'].items():
+              assert v['rows']==27047,k
+              assert set(v['calendar_year_training_segments'])=={'2023','2024','2025'},k
+          print('C5_LEDGER_TRAINING_DIAGNOSTICS_COMPLETE_NOT_VALIDATION')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c5-unvalidated-${{ github.run_id }}
           path: |
+            /tmp/v98_independent/b0/c5_training_diagnostics.json
             /tmp/v98_independent/b0/c5_marginal_ablations.json
             /tmp/v98_independent/b0/c5_composed_summary.json
             /tmp/v98_independent/b0/c5_composed_summary_*_ledger.jsonl
