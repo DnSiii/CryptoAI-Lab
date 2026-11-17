@@ -1,0 +1,11 @@
+# V98 C9 — preregistration before any economic replay (2026-11-17)
+
+Status: UNTESTED / TRAINING ONLY. Branch: research/v98-independent-zero. C5 rejected; C9 is a new cross-sectional dispersion and recovery-confirmation architecture, not a threshold/sign rescue of C5. No 2026+, XRP, Phase083, or external-engine inspection.
+
+## Fixed architecture (no search grid)
+Clean-4 1h closes, causal previous-close decisions filled at next open. Daily decision every 24 completed bars; 90d/30d/7d/24h fixed lookbacks. Four additive sleeves: (1) Growth Core: positive 90d absolute trend with positive 30d and 7d persistence, budget 0.40 equal across eligible; (2) Opportunity: single highest 7d positive return among assets above their own 30d high, budget 0.15; (3) Relative Value: single positive 30d residual versus equal-weight Clean-4 log return, only when 3+ assets have positive 30d return, budget 0.10; (4) Stress/Recovery: breadth first reaches 3+ negative 30d assets, then at least 3 assets have positive 7d returns and one asset closes above its 30d midpoint, select highest 7d return for a fixed 14 daily decisions; budget 0.10. Stress state can arm only on a fresh transition into stress; no repeated post-result reselection. Cash is valid when a sleeve is inactive.
+
+(5) Regime Router, (6) Dynamic Allocator and (7) Risk Governor: existing frozen V98 B0 causal overlay and execution conventions, not retuned to C9. Maximum exposure is enforced by that overlay. All module budgets and conditions fixed before evaluation.
+
+## Gates
+Run authenticated prices and native funding with SHA-256, exact 2022-12 warmup through 2025-12 training only. Replay 1x/2x/4x costs and reconcile final mark and ledger; check prefix invariance and 0 exposure violations. Report 2023/2024/2025 chronological returns, CAGR, max DD, tails, PF, payoff, win rate, positive days, concentration, funding and turnover. Full-system and each sleeve's leave-one-out contribution must be positive in all three cost scenarios; otherwise reject without parameter rescue. Then separate chronological validation, untouched future holdout only after internal freeze; external V14/V15/V99 benchmarks only after independent validation. No promotion based on training-only results.
