@@ -8,6 +8,7 @@ from .v98_composed_c5 import composed_c5_sleeves
 from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
 from .v98_b0_next_open_execution import replay_next_open
+from .v98_b0_exposure_contract_audit import audit as audit_exposure
 
 SLOTS=("growth","opportunity","relative_value","stress_recovery")
 
@@ -40,12 +41,16 @@ def run(prices,manifest,funding):
                 raise ValueError("C5_ABLATION_INCOMPLETE")
             if not all(math.isfinite(float(summary[k])) for k in ("final_equity","max_drawdown","total_turnover","funding_return_sum")):
                 raise ValueError("C5_ABLATION_NONFINITE")
+            exposure=audit_exposure(ledger)
+            if not exposure["post_fill_gate_pass"]:
+                raise ValueError("C5_ABLATION_POST_FILL_EXPOSURE_CONTRACT_FAILED_"+slot+"_"+key)
             output[slot][key]={"without_final_equity":summary["final_equity"],
                 "full_final_equity":baseline,
                 "marginal_final_equity":baseline-summary["final_equity"],
                 "without_max_drawdown":summary["max_drawdown"],
                 "without_total_turnover":summary["total_turnover"],
-                "without_funding_return_sum":summary["funding_return_sum"]}
+                "without_funding_return_sum":summary["funding_return_sum"],
+                "post_fill_exposure_audit":exposure}
     return {"status":"C5_ABLATIONS_TRAINING_ONLY_NO_PROMOTION","holdout_accessed":False,
         "source":"AUTHENTICATED_CLEAN4","hours":data["hours"],
         "price_manifest_sha256":data["price_manifest_sha256"],
