@@ -141,7 +141,7 @@ jobs:
           decision={'candidate':'C5','status':'REJECTED_TRAINING_MARGINAL_GATE' if failed else 'MARGINAL_GATE_PASS_NOT_VALIDATED',
                     'failed_marginals':[{'slot':s,'scenario':k,'marginal_final_equity':v} for s,k,v in failed],
                     'holdout_accessed':False,'promoted':False}
-          Path('/tmp/v98_independent/b0/c5_training_decision.json').write_text(json.dumps(decision,indent=2,sort_keys=True)+'\\n')
+          Path('/tmp/v98_independent/b0/c5_training_decision.json').write_text(json.dumps(decision,indent=2,sort_keys=True)+'\n')
           print(json.dumps(decision))
           if failed: raise SystemExit('C5_REJECTED_NONPOSITIVE_MARGINAL_NO_PROMOTION')
           PY
