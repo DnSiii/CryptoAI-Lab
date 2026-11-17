@@ -78,6 +78,11 @@ jobs:
           r=json.load(open('/tmp/v98_independent/b0/c5_composed_summary.json'))
           assert r['holdout_accessed'] is False and r['source']=='AUTHENTICATED_CLEAN4'
           assert set(r['results'])=={'1x','2x','4x'}
+          assert set(r['exposure_audits'])=={'1x','2x','4x'}
+          for scenario,audit in r['exposure_audits'].items():
+              assert audit['rows']==27047,scenario
+              assert audit['post_fill_gate_pass'] is True,scenario
+              assert audit['after_asset_cap_breaches']==0 and audit['after_gross_cap_breaches']==0,scenario
           for k,v in r['results'].items():
               assert v['hours']==27048,k
               assert all(math.isfinite(v[z]) for z in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
