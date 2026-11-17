@@ -1,5 +1,10 @@
 name: V98 Independent C9 Sleeve Ablation
 on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_c9_sleeve_ablation.py'
+      - '.github/workflows/v98-independent-c9-sleeve-ablation.yml'
   workflow_dispatch:
 jobs:
   c9-sleeve-ablation:
