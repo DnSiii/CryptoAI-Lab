@@ -1,0 +1,29 @@
+name: V13 historical raw notional read-only audit
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - '.github/workflows/v13-historical-notional-audit.yml'
+      - 'scripts/audit_paper_v13_raw_notional_readonly.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout research auditor
+        uses: actions/checkout@v4
+        with:
+          path: research
+          persist-credentials: false
+      - name: Checkout original published paper ledger read-only
+        uses: actions/checkout@v4
+        with:
+          ref: paper-results
+          path: published
+          persist-credentials: false
+      - name: Audit original historical ledger without writing
+        working-directory: published
+        run: python3 ../research/scripts/audit_paper_v13_raw_notional_readonly.py
