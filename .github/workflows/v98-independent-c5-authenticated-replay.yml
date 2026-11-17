@@ -91,7 +91,7 @@ jobs:
           PY
       - name: Require all twelve C5 leave-one-out marginal replay scenarios
         run: |
-          python -m research.v98_independent.v98_c5_marginal_ablation_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c5_marginal_ablations.json
+          python -m research.v98_independent.v98_c5_marginal_ablation_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --baseline /tmp/v98_independent/b0/c5_composed_summary.json --output /tmp/v98_independent/b0/c5_marginal_ablations.json
           python - <<'PY'
           import json,math
           r=json.load(open('/tmp/v98_independent/b0/c5_marginal_ablations.json'))
