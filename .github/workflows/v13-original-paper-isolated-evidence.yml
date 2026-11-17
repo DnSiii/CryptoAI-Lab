@@ -1,0 +1,40 @@
+name: V13 original paper verifier isolated evidence
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths: ['.github/workflows/v13-original-paper-isolated-evidence.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout research verifier
+        uses: actions/checkout@v4
+        with:
+          path: research
+          persist-credentials: false
+      - name: Checkout original paper read-only
+        uses: actions/checkout@v4
+        with:
+          ref: paper-results
+          path: published
+          persist-credentials: false
+      - name: Verify unchanged original input fingerprints
+        run: |
+          sha256sum published/reports/paper_v13_ledger.json published/reports/paper_v13_snapshot.json published/state/paper_v13_state.json published/reports/paper_data_sync_v13.json
+      - name: Run research verifier against original paper in isolated temporary directory
+        run: |
+          python3 -m pip install pandas
+          mkdir -p /tmp/v13-verification/scripts /tmp/v13-verification/config /tmp/v13-verification/state /tmp/v13-verification/reports
+          cp research/scripts/verify_paper_cycle_v13.py /tmp/v13-verification/scripts/
+          cp published/config/candidate_v13_circuit_breaker.json /tmp/v13-verification/config/
+          cp published/state/paper_v13_state.json /tmp/v13-verification/state/
+          cp published/reports/paper_v13_snapshot.json published/reports/paper_v13_ledger.json published/reports/paper_data_sync_v13.json /tmp/v13-verification/reports/
+          python3 /tmp/v13-verification/scripts/verify_paper_cycle_v13.py
+      - name: Verify published checkout remains untouched
+        run: |
+          test -z "$(git -C published status --porcelain)"
+          test -z "$(git -C research status --porcelain)"
+          sha256sum published/reports/paper_v13_ledger.json published/reports/paper_v13_snapshot.json published/state/paper_v13_state.json published/reports/paper_data_sync_v13.json
