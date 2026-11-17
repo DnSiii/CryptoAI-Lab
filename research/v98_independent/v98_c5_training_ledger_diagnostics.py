@@ -13,9 +13,16 @@ def audit(summary_path):
         if len(rows)!=27047 or [r["index"] for r in rows]!=list(range(1,27048)):
             raise ValueError("C5_LEDGER_INDEX_GAP")
         equities=[10000.]+[float(r["equity"]) for r in rows]
+        final_equity=float(summary["results"][scenario]["final_equity"])
+        if not math.isfinite(final_equity) or final_equity<=0:
+            raise ValueError("C5_INVALID_FINAL_MARK")
+        final_mark_pnl=final_equity-equities[-1]
         if any(not math.isfinite(x) or x<=0 for x in equities):
             raise ValueError("C5_NONFINITE_LEDGER")
         hourly=[equities[i]-equities[i-1] for i in range(1,len(equities))]
+        # Final bar close is part of the economic sample, but has no next-open fill.
+        # Include its mark in the final observation, not as an invented trade.
+        hourly[-1]+=final_mark_pnl
         gains=[x for x in hourly if x>0]
         losses=[-x for x in hourly if x<0]
         day_groups={}
@@ -26,6 +33,8 @@ def audit(summary_path):
         previous=10000.
         for day in sorted(day_groups):
             end=day_groups[day][-1]["equity"]
+            if day==max(day_groups):
+                end=final_equity
             day_pnls.append(end-previous)
             previous=end
         year_metrics={}
@@ -33,19 +42,23 @@ def audit(summary_path):
             segment=[r for r in rows if start<=r["index"]<end]
             if not segment: raise ValueError("C5_EMPTY_YEAR")
             start_eq=equities[start-1]
-            end_eq=segment[-1]["equity"]
+            end_eq=final_equity if year==2025 else segment[-1]["equity"]
             year_metrics[str(year)]={"start_equity":start_eq,"end_equity":end_eq,
                 "return_pct":100*(end_eq/start_eq-1)}
         top10=sum(sorted(gains,reverse=True)[:10])
         total_net=sum(hourly)
         result={"rows":len(rows),"final_ledger_equity_before_close_mark":equities[-1],
+          "final_close_mark_pnl":final_mark_pnl,
+          "reconciled_final_equity":equities[-1]+final_mark_pnl,
           "hourly_positive_fraction":len(gains)/len(hourly),
           "hourly_profit_factor":sum(gains)/sum(losses) if losses else None,
           "hourly_payoff":(sum(gains)/len(gains))/(sum(losses)/len(losses)) if gains and losses else None,
           "positive_day_fraction":sum(x>0 for x in day_pnls)/len(day_pnls),
           "top10_positive_hour_gains_over_net":top10/total_net if total_net>0 else None,
           "calendar_year_training_segments":year_metrics,
-          "final_equity_reported":summary["results"][scenario]["final_equity"]}
+          "final_equity_reported":final_equity}
+        if not math.isclose(sum(hourly),final_equity-10000.,rel_tol=1e-12,abs_tol=1e-7):
+            raise ValueError("C5_FULL_ECONOMIC_LEDGER_RECONCILIATION_FAILED")
         if any(not math.isfinite(v) for v in result.values() if isinstance(v,float)):
             raise ValueError("C5_NONFINITE_METRIC")
         output["scenarios"][scenario]=result
