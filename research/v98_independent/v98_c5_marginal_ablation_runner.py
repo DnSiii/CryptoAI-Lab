@@ -38,10 +38,17 @@ def run(prices,manifest,funding,baseline_path=None):
             or full.get("source")!="AUTHENTICATED_CLEAN4"
             or full.get("price_manifest_sha256")!=data["price_manifest_sha256"]
             or full.get("funding_manifest_sha256")!=data["funding_manifest_sha256"]
-            or set(full.get("results",{}))!={"1x","2x","4x"}):
+            or set(full.get("results",{}))!={"1x","2x","4x"}
+            or set(full.get("exposure_audits",{}))!={"1x","2x","4x"}):
             raise ValueError("C5_BASELINE_SOURCE_OR_STATUS_MISMATCH")
         for scenario in ("1x","2x","4x"):
             v=full["results"][scenario]
+            audit=full["exposure_audits"][scenario]
+            if (audit.get("rows")!=data["hours"]-1
+                or audit.get("post_fill_gate_pass") is not True
+                or audit.get("after_asset_cap_breaches")!=0
+                or audit.get("after_gross_cap_breaches")!=0):
+                raise ValueError("C5_BASELINE_EXPOSURE_INVALID_"+scenario)
             if (v["hours"]!=data["hours"] or
                 not math.isfinite(float(v["final_equity"]))):
                 raise ValueError("C5_BASELINE_INCOMPLETE_"+scenario)
