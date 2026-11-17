@@ -2,7 +2,9 @@ name: V13 original paper verifier isolated evidence
 on:
   push:
     branches: [research/v99-r106-native-all-regime-engine]
-    paths: ['.github/workflows/v13-original-paper-isolated-evidence.yml']
+    paths:
+      - '.github/workflows/v13-original-paper-isolated-evidence.yml'
+      - 'scripts/verify_paper_cycle_v13.py'
   workflow_dispatch:
 permissions:
   contents: read
