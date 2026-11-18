@@ -85,6 +85,21 @@ jobs:
           PY
       - name: Independent full-ledger C14 arithmetic audit
         run: python -m research.v98_independent.v98_c14_ledger_audit --summary /tmp/v98_independent/b0/c14_composed_summary.json > /tmp/v98_independent/b0/c14_independent_audit.json
+      - name: Publish audited annual diagnostics in job log
+        run: |
+          python - <<'PY'
+          import json
+          p='/tmp/v98_independent/b0/c14_independent_audit.json'
+          d=json.load(open(p))
+          for scale in ('1x','2x','4x'):
+              x=d[scale]
+              print('C14_AUDITED',scale,'final_equity',round(x['final_equity'],2),
+                    'positive_days',x['positive_days'],'total_days',x['total_days'],
+                    'max_asset_weight',round(x['max_asset_weight'],6))
+              for year,v in x['annual_training_only'].items():
+                  print('C14_ANNUAL',scale,year,'return_pct',round(v['return']*100,4),
+                        'hours',v['ledger_hours'])
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
