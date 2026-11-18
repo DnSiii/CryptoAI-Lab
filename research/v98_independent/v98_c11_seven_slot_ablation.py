@@ -21,6 +21,16 @@ def run(prices, manifest, funding):
             if offset % HOUR_MS or not 0 <= offset < data["hours"]*HOUR_MS:
                 raise ValueError("INVALID_NATIVE_FUNDING_TIMESTAMP")
             indexed[a][offset//HOUR_MS] = rate
+    # Independently reproduce the untouched C11 baseline using the same source
+    # and execution path before interpreting any marginal contribution.
+    with patch.object(execution,"regime_multiplier",breadth_router), patch.object(
+            execution,"compose_weights",c11_allocator):
+        baseline, baseline_ledger = replay_next_open(
+            data["bars"],indexed,composed_c11_sleeves(),cost_scale=4.)
+    if baseline["hours"] != data["hours"] or len(baseline_ledger) != data["hours"]-1:
+        raise ValueError("INCOMPLETE_BASELINE")
+    if abs(baseline["final_equity"]-11369.641556719436) > 0.01:
+        raise ValueError("C11_BASELINE_MISMATCH")
     results = {}
     # Exactly one predeclared counterfactual per slot. The 4th sleeve is
     # deliberately allowed to be inactive; report its actual activation.
@@ -58,12 +68,14 @@ def run(prices, manifest, funding):
             "max_drawdown_4x":summary["max_drawdown"],
             "total_turnover_4x":summary["total_turnover"],
             "sleeve_active_calls":active if slot < 4 else None,
+            "marginal_equity_vs_baseline":baseline["final_equity"]-summary["final_equity"],
             "calls":calls}
     return {"status":"C11_REJECTED_DIAGNOSTICS_NO_PROMOTION",
             "source":"AUTHENTICATED_CLEAN4","holdout_accessed":False,
             "price_manifest_sha256":data["price_manifest_sha256"],
             "funding_manifest_sha256":data["funding_manifest_sha256"],
-            "baseline_c11_4x_equity":11369.641556719436,
+            "baseline_c11_4x_equity":baseline["final_equity"],
+            "baseline_c11_4x_max_drawdown":baseline["max_drawdown"],
             "results":results}
 
 def main():
