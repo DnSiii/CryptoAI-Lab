@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/v13-original-paper-isolated-evidence.yml'
       - 'scripts/verify_paper_cycle_v13.py'
+      - 'scripts/test_v13_original_paper_adversarial.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,6 +36,9 @@ jobs:
           cp published/state/paper_v13_state.json /tmp/v13-verification/state/
           cp published/reports/paper_v13_snapshot.json published/reports/paper_v13_ledger.json published/reports/paper_data_sync_v13.json /tmp/v13-verification/reports/
           python3 /tmp/v13-verification/scripts/verify_paper_cycle_v13.py
+      - name: Adversarial original-paper verification (disposable copies only)
+        run: |
+          python3 research/scripts/test_v13_original_paper_adversarial.py research published
       - name: Verify published checkout remains untouched
         run: |
           test -z "$(git -C published status --porcelain)"
