@@ -38,6 +38,7 @@ def run(prices, manifest, funding):
         if not math.isclose(reconciled,summary["final_equity"],rel_tol=1e-12,abs_tol=1e-8):
             raise ValueError("C11_FINAL_MARK_RECONCILIATION_FAILED")
         key=str(int(scale))+"x"
+        summary["last_mark_factor"]=last_mark
         results[key]=summary
         ledgers[key]=entries
     return dict(status="C11_PREREGISTERED_TRAINING_ONLY_NO_PROMOTION",
