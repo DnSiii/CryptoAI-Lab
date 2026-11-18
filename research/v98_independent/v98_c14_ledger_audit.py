@@ -53,8 +53,11 @@ def audit(summary_path):
                     raise ValueError("ASSET_ATTRIBUTION_SCHEMA")
             vals = [e[k] for k in ("equity","pre_fill_equity","turnover","cost_return","drawdown","gross_return","funding_return")]
             vals += list(e["weights_before_fill"].values()) + list(e["weights_after_fill"].values())
+            vals += list(e["gross_by_asset"].values()) + list(e["funding_by_asset"].values())
             if not all(math.isfinite(float(v)) for v in vals):
                 raise ValueError("NONFINITE_LEDGER")
+            if e["equity"] <= 0 or e["pre_fill_equity"] <= 0 or e["turnover"] < -TOL or e["cost_return"] < -TOL:
+                raise ValueError("NONPOSITIVE_EQUITY_OR_NEGATIVE_TRADING_COST")
             if not close(sum(e["gross_by_asset"].values()),e["gross_return"]) or not close(sum(e["funding_by_asset"].values()),e["funding_return"]):
                 raise ValueError("ASSET_ATTRIBUTION_MISMATCH")
             expected_pre = prior_equity * (1 + e["gross_return"] + e["funding_return"])
