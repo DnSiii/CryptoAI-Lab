@@ -21,6 +21,8 @@ def audit(summary_path):
         if len(entries) != 27047 or any(e["index"] != i for i, e in enumerate(entries, 1)):
             raise ValueError("C11_NONCONTIGUOUS_LEDGER")
         previous_equity = 10000.0
+        running_peak = previous_equity
+        independently_measured_max_dd = 0.0
         for e in entries:
             if not all(math.isfinite(float(e[k])) for k in ("equity", "pre_fill_equity", "turnover", "cost_return", "gross_return", "funding_return")):
                 raise ValueError("C11_NONFINITE_LEDGER")
@@ -45,10 +47,21 @@ def audit(summary_path):
             expected_turnover = sum(abs(e["weights_after_fill"][a] - e["weights_before_fill"][a]) for a in assets)
             if not math.isclose(expected_turnover, e["turnover"], rel_tol=1e-10, abs_tol=1e-10):
                 raise ValueError("C11_TURNOVER_RECONCILIATION")
+            running_peak = max(running_peak, e["pre_fill_equity"], e["equity"])
+            independently_measured_max_dd = max(
+                independently_measured_max_dd,
+                1 - e["pre_fill_equity"] / running_peak,
+                1 - e["equity"] / running_peak,
+            )
             previous_equity = e["equity"]
             w = e["weights_after_fill"]
             if set(w) != {"BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"} or any(not 0 <= v <= .42000001 for v in w.values()) or sum(w.values()) > .78000001:
                 raise ValueError("C11_EXPOSURE_LIMIT")
+        final_equity = entries[-1]["equity"] * s["last_mark_factor"]
+        running_peak = max(running_peak, final_equity)
+        independently_measured_max_dd = max(independently_measured_max_dd, 1 - final_equity / running_peak)
+        if not math.isclose(independently_measured_max_dd, s["max_drawdown"], rel_tol=1e-9, abs_tol=1e-9):
+            raise ValueError("C11_MAX_DRAWDOWN_RECONCILIATION")
         if not math.isclose(sum(e["turnover"] for e in entries), s["total_turnover"], rel_tol=1e-9, abs_tol=1e-7):
             raise ValueError("C11_TURNOVER_MISMATCH")
         if not math.isclose(sum(e["funding_return"] for e in entries), s["funding_return_sum"], rel_tol=1e-9, abs_tol=1e-7):
@@ -80,6 +93,7 @@ def audit(summary_path):
                             "positive_days":positive_days, "total_days":len(days),
                             "turnover":sum(e["turnover"] for e in section)}
         report["scenarios"][scenario] = {"final_equity_reported":s["final_equity"], "folds":folds,
+                                         "max_drawdown_independently_reconciled":independently_measured_max_dd,
                                          "gross_exposure_peak":max(sum(e["weights_after_fill"].values()) for e in entries)}
     return report
 
