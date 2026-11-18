@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v98-independent-c14-authenticated-replay.yml'
       - 'research/v98_independent/v98_composed_c14.py'
       - 'research/v98_independent/v98_composed_c14_authenticated_runner.py'
+      - 'research/v98_independent/v98_c14_ledger_audit.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -82,12 +83,15 @@ jobs:
               assert all(math.isfinite(v[z]) for z in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
           print('C14_COMPLETE_TRAINING_REPLAY_NOT_VALIDATION')
           PY
+      - name: Independent full-ledger C14 arithmetic audit
+        run: python -m research.v98_independent.v98_c14_ledger_audit --summary /tmp/v98_independent/b0/c14_composed_summary.json > /tmp/v98_independent/b0/c14_independent_audit.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c14-unvalidated-${{ github.run_id }}
           path: |
             /tmp/v98_independent/b0/c14_composed_summary.json
+            /tmp/v98_independent/b0/c14_independent_audit.json
             /tmp/v98_independent/b0/c14_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
