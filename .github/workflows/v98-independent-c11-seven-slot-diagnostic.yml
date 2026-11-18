@@ -1,0 +1,56 @@
+name: V98 Independent C11 Seven Slot Diagnostic
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - research/v98_independent/v98_c11_seven_slot_ablation.py
+      - .github/workflows/v98-independent-c11-seven-slot-diagnostic.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  c11-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download pinned authenticated V98-only price and funding archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v98_independent/ablation/sources/prices /tmp/v98_independent/ablation/sources/funding
+          gh run download 13444665313 --dir /tmp/v98_independent/ablation/sources/prices
+          gh run download 13464271018 --dir /tmp/v98_independent/ablation/sources/funding
+      - name: Resolve unique authenticated manifests
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/ablation/sources')
+          prices=list((root/'prices').rglob('source_manifest.json'))
+          funding=list((root/'funding').rglob('funding_manifest.json'))
+          if len(prices)!=1 or len(funding)!=1:
+              raise SystemExit(f'MISSING_OR_AMBIGUOUS_MANIFESTS {len(prices)} {len(funding)}')
+          with open('/tmp/v98_independent/ablation/paths.env','w') as f:
+              f.write(f'PRICES={prices[0].parent}\nMANIFEST={prices[0]}\nFUNDING={funding[0].parent}\n')
+          PY
+          cat /tmp/v98_independent/ablation/paths.env >> "$GITHUB_ENV"
+      - name: Run fixed seven-slot counterfactuals at severe 4x costs
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c11_seven_slot_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/ablation/c11_seven_slot_diagnostic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-independent-c11-seven-slot-diagnostic-${{ github.run_id }}
+          path: /tmp/v98_independent/ablation/c11_seven_slot_diagnostic.json
+          if-no-files-found: warn
+          retention-days: 30
