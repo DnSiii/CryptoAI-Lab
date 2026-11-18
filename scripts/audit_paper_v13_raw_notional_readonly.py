@@ -8,6 +8,7 @@ ledger = json.loads(Path("reports/paper_v13_ledger.json").read_text())
 counts = Counter()
 examples_by_class = {}
 mismatch_ratios = []
+mismatch_by_day_symbol = Counter()
 for i, decision in enumerate(ledger.get("decisions", [])):
     for j, adj in enumerate(decision.get("adjustments", [])):
         display = adj.get("order_value_brl")
@@ -32,6 +33,7 @@ for i, decision in enumerate(ledger.get("decisions", [])):
             classification = "invalid_parse"
         counts[classification] += 1
         if classification == "positive_mismatch" and r is not None and math.isfinite(r) and r > 0:
+            mismatch_by_day_symbol[(str(decision.get('timestamp', 'unknown'))[:10], str(adj.get('symbol', 'unknown')))] += 1
             mismatch_ratios.append({"decision_index": i, "adjustment_index": j,
                                     "timestamp": decision.get("timestamp"), "symbol": adj.get("symbol"),
                                     "ratio": d / r, "display": d, "raw": r})
@@ -51,6 +53,8 @@ if mismatch_ratios:
                      "first_12": mismatch_ratios[:12]}
 print(json.dumps({"counts": dict(sorted(counts.items())), "examples_by_class": examples_by_class,
                   "positive_mismatch_ratio_diagnostics": ratio_summary,
+                  "mismatch_by_day_symbol": [{"day": day, "symbol": symbol, "count": count}
+                     for (day, symbol), count in sorted(mismatch_by_day_symbol.items())],
                   "latest_data_timestamp": ledger.get("latest_data_timestamp")},
                  ensure_ascii=False, indent=2, default=str))
 bad = sum(n for k, n in counts.items() if k not in ("valid_positive_reconciled", "valid_subcent", "positive_missing_raw"))
