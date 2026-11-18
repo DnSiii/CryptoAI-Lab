@@ -20,15 +20,38 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Download pinned authenticated V98-only price and funding archives
+      - name: Download and verify pinned authenticated V98-only price and funding artifacts
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/v98_independent/ablation/sources/prices /tmp/v98_independent/ablation/sources/funding
-          gh run download 13444665313 --dir /tmp/v98_independent/ablation/sources/prices
-          gh run download 13464271018 --dir /tmp/v98_independent/ablation/sources/funding
+          python - <<'PY'
+          import json, os, subprocess, zipfile
+          from pathlib import Path
+          repo=os.environ['GH_REPO']
+          root=Path('/tmp/v98_independent/ablation/sources')
+          for label,artifact_id in {'prices':13444665313,'funding':13464271018}.items():
+              meta=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}'],text=True))
+              name=meta.get('name','').lower()
+              if meta.get('expired') or meta.get('workflow_run',{}).get('head_branch')!='research/v98-independent-zero':
+                  raise SystemExit(f'PINNED_SOURCE_UNAVAILABLE {label} {artifact_id}')
+              if label=='prices' and not name.startswith('v98-independent-clean4-148-official-archives-'):
+                  raise SystemExit('WRONG_PRICE_SOURCE')
+              if label=='funding' and not ('native' in name and 'funding' in name):
+                  raise SystemExit('WRONG_FUNDING_SOURCE')
+              target=root/label
+              target.mkdir(parents=True,exist_ok=True)
+              archive=target/'artifact.zip'
+              with archive.open('wb') as stream:
+                  subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}/zip'],stdout=stream,check=True)
+              with zipfile.ZipFile(archive) as z:
+                  for item in z.infolist():
+                      if not (target/item.filename).resolve().is_relative_to(target.resolve()):
+                          raise SystemExit('ZIP_PATH_TRAVERSAL')
+                  z.extractall(target)
+              print('PINNED_SOURCE',label,artifact_id)
+          PY
       - name: Resolve unique authenticated manifests
         run: |
           set -euo pipefail
