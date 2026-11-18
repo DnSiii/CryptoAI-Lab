@@ -20,6 +20,7 @@ def audit(summary_path):
         entries = [json.loads(line) for line in path.open()]
         if len(entries) != 27047 or any(e["index"] != i for i, e in enumerate(entries, 1)):
             raise ValueError("C11_NONCONTIGUOUS_LEDGER")
+        previous_equity = 10000.0
         for e in entries:
             if not all(math.isfinite(float(e[k])) for k in ("equity", "pre_fill_equity", "turnover", "cost_return", "gross_return", "funding_return")):
                 raise ValueError("C11_NONFINITE_LEDGER")
@@ -27,6 +28,24 @@ def audit(summary_path):
                 raise ValueError("C11_INVALID_ACCOUNT")
             if not math.isclose(e["equity"], e["pre_fill_equity"] * (1 - e["cost_return"]), rel_tol=1e-10, abs_tol=1e-7):
                 raise ValueError("C11_COST_RECONCILIATION")
+            assets = {"BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"}
+            if set(e["gross_by_asset"]) != assets or set(e["funding_by_asset"]) != assets:
+                raise ValueError("C11_ASSET_LEDGER_INCOMPLETE")
+            if not math.isclose(sum(e["gross_by_asset"].values()), e["gross_return"], rel_tol=1e-10, abs_tol=1e-10):
+                raise ValueError("C11_GROSS_ASSET_RECONCILIATION")
+            if not math.isclose(sum(e["funding_by_asset"].values()), e["funding_return"], rel_tol=1e-10, abs_tol=1e-10):
+                raise ValueError("C11_FUNDING_ASSET_RECONCILIATION")
+            expected_pre_fill = previous_equity * (1 + e["gross_return"] + e["funding_return"])
+            if not math.isclose(expected_pre_fill, e["pre_fill_equity"], rel_tol=1e-10, abs_tol=1e-7):
+                raise ValueError("C11_HOURLY_EQUITY_CHAIN")
+            if not math.isclose(e["cost_return"], e["turnover"] * .0006 * float(scenario[0]), rel_tol=1e-10, abs_tol=1e-10):
+                raise ValueError("C11_COST_SCALE_MISMATCH")
+            if set(e["weights_before_fill"]) != assets or set(e["weights_after_fill"]) != assets:
+                raise ValueError("C11_WEIGHTS_INCOMPLETE")
+            expected_turnover = sum(abs(e["weights_after_fill"][a] - e["weights_before_fill"][a]) for a in assets)
+            if not math.isclose(expected_turnover, e["turnover"], rel_tol=1e-10, abs_tol=1e-10):
+                raise ValueError("C11_TURNOVER_RECONCILIATION")
+            previous_equity = e["equity"]
             w = e["weights_after_fill"]
             if set(w) != {"BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"} or any(not 0 <= v <= .42000001 for v in w.values()) or sum(w.values()) > .78000001:
                 raise ValueError("C11_EXPOSURE_LIMIT")
