@@ -86,6 +86,17 @@ def main() -> None:
                         and displayed == 0.0 and delta != 0.0
                         and round(precise, 2) == displayed):
                     raise RuntimeError("movimentação sem valor executado")
+            # Validate raw/display reconciliation for positive values too, whenever
+            # the historical record supplies raw precision. Do not fabricate it.
+            raw_value = adjustment.get("order_value_brl_unrounded")
+            if raw_value is not None:
+                try:
+                    precise = float(raw_value)
+                except (TypeError, ValueError, OverflowError) as exc:
+                    raise RuntimeError("movimentação com valor bruto inválido") from exc
+                if not (math.isfinite(precise) and precise > 0.0
+                        and round(precise, 2) == displayed):
+                    raise RuntimeError("movimentação bruta/exibida divergente")
             if adjustment.get("result_scope") != "whole_asset_hour_not_order_profit":
                 raise RuntimeError("resultado do ativo está atribuído incorretamente à ordem")
     if sync.get("mode") != "PUBLIC_DATA_ONLY" or sync.get("private_api_used") is not False:
