@@ -1,33 +1,47 @@
-"""Read-only audit of original V13 paper ledger; never rewrites trades."""
+"""Read-only raw/display reconciliation of immutable V13 historical paper."""
 import json
 import math
+from collections import Counter
 from pathlib import Path
 
-path = Path("reports/paper_v13_ledger.json")
-ledger = json.loads(path.read_text())
-counts = {"valid_positive": 0, "valid_subcent": 0, "invalid": 0}
+ledger = json.loads(Path("reports/paper_v13_ledger.json").read_text())
+counts = Counter()
+examples = []
 for i, decision in enumerate(ledger.get("decisions", [])):
     for j, adj in enumerate(decision.get("adjustments", [])):
         display = adj.get("order_value_brl")
         raw = adj.get("order_value_brl_unrounded")
-        delta = float(adj["new_weight"]) - float(adj["previous_weight"])
         try:
             d = float(display)
             r = float(raw) if raw is not None else None
-            valid_positive = math.isfinite(d) and d > 0
-            valid_subcent = (d == 0 and r is not None and math.isfinite(r)
-                            and 0 < r < 0.005 and delta != 0
-                            and round(r, 2) == d)
-        except (TypeError, ValueError, OverflowError):
-            valid_positive = valid_subcent = False
-        key = "valid_positive" if valid_positive else "valid_subcent" if valid_subcent else "invalid"
-        counts[key] += 1
-        if key != "valid_positive":
-            print(json.dumps({"decision_index": i, "adjustment_index": j,
-                              "timestamp": decision.get("timestamp"),
-                              "symbol": adj.get("symbol"), "display": display,
-                              "raw": raw, "delta": delta, "classification": key},
-                             ensure_ascii=False, default=str))
-print(json.dumps({"counts": counts, "latest_data_timestamp": ledger.get("latest_data_timestamp")}))
-if counts["invalid"]:
-    raise SystemExit("FAIL CLOSED: inconsistent movements in historical ledger")
+            delta = float(adj["new_weight"]) - float(adj["previous_weight"])
+            if not math.isfinite(d) or not math.isfinite(delta) or delta == 0:
+                classification = "invalid_display_or_delta"
+            elif r is None:
+                classification = "positive_missing_raw" if d > 0 else "invalid_missing_raw"
+            elif not math.isfinite(r) or r <= 0:
+                classification = "invalid_raw"
+            elif d == 0 and 0 < r < 0.005 and round(r, 2) == d:
+                classification = "valid_subcent"
+            elif d > 0 and round(r, 2) == d:
+                classification = "valid_positive_reconciled"
+            else:
+                classification = "positive_mismatch" if d > 0 else "invalid_zero"
+        except (TypeError, ValueError, OverflowError, KeyError):
+            classification = "invalid_parse"
+        counts[classification] += 1
+        if classification not in ("valid_positive_reconciled", "valid_subcent") and len(examples) < 30:
+            examples.append({"decision_index": i, "adjustment_index": j,
+                             "timestamp": decision.get("timestamp"), "symbol": adj.get("symbol"),
+                             "display": display, "raw": raw,
+                             "previous_weight": adj.get("previous_weight"),
+                             "new_weight": adj.get("new_weight"),
+                             "classification": classification})
+print(json.dumps({"counts": dict(sorted(counts.items())), "examples": examples,
+                  "latest_data_timestamp": ledger.get("latest_data_timestamp")},
+                 ensure_ascii=False, indent=2, default=str))
+bad = sum(n for k, n in counts.items() if k not in ("valid_positive_reconciled", "valid_subcent", "positive_missing_raw"))
+if bad:
+    raise SystemExit(f"FAIL CLOSED: {bad} inconsistent original movements; historical paper unchanged")
+if counts["positive_missing_raw"]:
+    print("CAUTION: positive records missing raw precision cannot be independently reconciled")
