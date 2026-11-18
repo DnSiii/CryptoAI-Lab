@@ -60,6 +60,16 @@ def audit(summary_path):
             expected_pre = prior_equity * (1 + e["gross_return"] + e["funding_return"])
             if not close(expected_pre, e["pre_fill_equity"]):
                 raise ValueError("OPEN_MARK_RECONCILIATION")
+            # Reconstruct drifted holdings independently of the runner's weights.
+            factor = 1 + e["gross_return"] + e["funding_return"]
+            if factor <= 0:
+                raise ValueError("NONPOSITIVE_MARK_FACTOR")
+            for a in ASSETS:
+                if abs(prior_weights[a]) <= TOL and (abs(e["gross_by_asset"][a]) > TOL or abs(e["funding_by_asset"][a]) > TOL):
+                    raise ValueError("UNHELD_ASSET_PNL")
+                expected_weight = (prior_weights[a] + e["gross_by_asset"][a]) / factor
+                if not close(expected_weight, e["weights_before_fill"][a]):
+                    raise ValueError("PRE_FILL_WEIGHT_DRIFT_MISMATCH")
             turnover = sum(abs(e["weights_after_fill"][a]-e["weights_before_fill"][a]) for a in ASSETS)
             if not close(turnover,e["turnover"]):
                 raise ValueError("TURNOVER_RECONCILIATION")
