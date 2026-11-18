@@ -105,7 +105,42 @@ def resolve_paper_start(
     return max(latest, initialization_hour)
 
 
+def assert_historical_orders_unchanged(old: dict, new: dict) -> None:
+    """Fail closed on changed published order records; never silently rewrite trades."""
+    def orders(ledger: dict) -> dict:
+        result = {}
+        for event in ledger.get("decisions", []):
+            timestamp = event["timestamp"]
+            for row in event.get("adjustments", []):
+                key = (timestamp, row["symbol"])
+                if key in result:
+                    raise RuntimeError(f"duplicate historical order: {key}")
+                result[key] = row
+        return result
+
+    old_orders, new_orders = orders(old), orders(new)
+    fields = ("order_side", "action_code", "order_value_brl",
+              "previous_weight", "new_weight", "execution_price")
+    for key, previous in old_orders.items():
+        if key not in new_orders:
+            raise RuntimeError(f"historical order disappeared: {key}")
+        current = new_orders[key]
+        for field in fields:
+            if previous.get(field) != current.get(field):
+                raise RuntimeError(
+                    f"historical order drift: {key} {field}: "
+                    f"published={previous.get(field)!r} recomputed={current.get(field)!r}"
+                )
+        # Old ledgers may predate the precision field; do not invent it.
+        if ("order_value_brl_unrounded" in previous
+                and previous["order_value_brl_unrounded"] !=
+                current.get("order_value_brl_unrounded")):
+            raise RuntimeError(f"historical raw notional drift: {key}")
+
+
 def checkpoint(payload: dict, ledger: dict) -> None:
+    if LEDGER_PATH.exists():
+        assert_historical_orders_unchanged(json.loads(LEDGER_PATH.read_text()), ledger)
     STATE_PATH.parent.mkdir(exist_ok=True)
     STATE_PATH.write_text(json.dumps(payload, indent=2) + "\n")
     SNAPSHOT_PATH.write_text(json.dumps(payload, indent=2) + "\n")
