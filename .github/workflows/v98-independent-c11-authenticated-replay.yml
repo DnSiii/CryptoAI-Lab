@@ -82,12 +82,15 @@ jobs:
               assert all(math.isfinite(v[z]) for z in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
           print('C11_COMPLETE_TRAINING_REPLAY_NOT_VALIDATION')
           PY
+      - name: Audit C11 independent chronological folds and ledger invariants
+        run: python -m research.v98_independent.v98_c11_chronological_ledger_audit --summary /tmp/v98_independent/b0/c11_composed_summary.json --output /tmp/v98_independent/b0/c11_chronological_audit.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v98-independent-c11-unvalidated-${{ github.run_id }}
           path: |
             /tmp/v98_independent/b0/c11_composed_summary.json
+            /tmp/v98_independent/b0/c11_chronological_audit.json
             /tmp/v98_independent/b0/c11_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
