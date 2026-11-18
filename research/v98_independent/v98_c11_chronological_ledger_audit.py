@@ -34,7 +34,7 @@ def audit(summary_path):
             raise ValueError("C11_TURNOVER_MISMATCH")
         if not math.isclose(sum(e["funding_return"] for e in entries), s["funding_return_sum"], rel_tol=1e-9, abs_tol=1e-7):
             raise ValueError("C11_FUNDING_MISMATCH")
-        if not math.isclose(entries[-1]["equity"], s["final_equity"], rel_tol=1e-10, abs_tol=1e-6):
+        if not math.isclose(entries[-1]["equity"] * s["last_mark_factor"], s["final_equity"], rel_tol=1e-10, abs_tol=1e-6):
             raise ValueError("C11_FINAL_EQUITY_MISMATCH")
         # Fold returns are equity changes, not independent starting-capital backtests.
         folds = {}
