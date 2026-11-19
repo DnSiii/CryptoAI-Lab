@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
-from .v98_composed_c23 import c23_model, c23_allocator
+from .v98_composed_c23 import c23_model, c23_allocator, WARMUP, REBALANCE
 from .v98_b0_next_open_execution import replay_next_open
 from unittest.mock import patch
 from . import v98_b0_next_open_execution as execution
@@ -24,7 +24,12 @@ def run(prices, manifest, funding):
     for scale in (1.,2.,4.):
         sleeve_fn,router=c23_model()
         with patch.object(execution,"regime_multiplier",router), patch.object(execution,"compose_weights",c23_allocator):
-            summary,entries=replay_next_open(data["bars"],indexed,sleeve_fn,cost_scale=scale)
+            summary,entries=replay_next_open(data["bars"],indexed,sleeve_fn,cost_scale=scale,
+                rebalance_filter=lambda i: i >= WARMUP+1 and (i-WARMUP-1)%REBALANCE == 0)
+        off_schedule=[e['index'] for e in entries if e['turnover'] > 1e-12
+                      and (e['index'] < WARMUP+1 or (e['index']-WARMUP-1)%REBALANCE)]
+        if off_schedule:
+            raise ValueError('C23_OFF_SCHEDULE_TURNOVER')
         if summary["hours"] != data["hours"] or len(entries)!=data["hours"]-1:
             raise ValueError("C23_INCOMPLETE_REPLAY")
         if any(not math.isfinite(float(summary[k])) for k in
