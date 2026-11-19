@@ -1,0 +1,22 @@
+name: V13 historical order immutability regression
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - '.github/workflows/v13-historical-immutability-regression.yml'
+      - 'tests/test_paper_historical_order_immutability.py'
+      - 'scripts/paper_once_v13.py'
+  workflow_dispatch:
+jobs:
+  immutability:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test original historical orders remain immutable
+        run: python -m unittest discover -s tests -p 'test_paper_historical_order_immutability.py' -v
