@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from paper_once_v13 import assert_historical_orders_unchanged
 
 
-def ledger(value=7.81, raw=7.7148819, timestamp="2026-11-04T19:00:00+00:00"):
+def ledger(value=7.71, raw=7.7148819, timestamp="2026-11-04T19:00:00+00:00"):
     return {"decisions": [{"timestamp": timestamp, "adjustments": [{
         "symbol": "ETHUSDT", "order_side": "buy", "action_code": "increase_long",
         "order_value_brl": value, "order_value_brl_unrounded": raw,
@@ -25,7 +25,7 @@ class HistoricalOrderTests(unittest.TestCase):
 
     def test_reject_changed_displayed_notional(self):
         with self.assertRaisesRegex(RuntimeError, "historical order drift"):
-            assert_historical_orders_unchanged(ledger(), ledger(value=7.82))
+            assert_historical_orders_unchanged(ledger(), ledger(value=7.72))
 
     def test_reject_changed_raw_notional(self):
         with self.assertRaisesRegex(RuntimeError, "historical raw notional drift"):
