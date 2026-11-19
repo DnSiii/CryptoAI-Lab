@@ -10,7 +10,7 @@ from .v98_b0_causal_overlay import regime_multiplier, governor_multiplier, compo
 from .v98_b0_stream_integration import ASSETS
 
 def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
-                     fee_rate=.0004, slippage_rate=.0002, cost_scale=1.):
+                     fee_rate=.0004, slippage_rate=.0002, cost_scale=1., rebalance_filter=None):
     if set(bars) != set(ASSETS) or set(funding) != set(ASSETS):
         raise ValueError("INVALID_CLEAN4_ASSETS")
     n = len(bars[ASSETS[0]])
@@ -53,10 +53,15 @@ def replay_next_open(bars, funding, sleeve_fn, *, initial_equity=10000.,
             max_drawdown = max(max_drawdown, 1-equity/peak)
             weights = {a:weights[a]*(1+returns[a])/factor for a in ASSETS}
         if i:
-            sleeves = sleeve_fn({a:tuple(histories[a]) for a in ASSETS})
-            routers = {a:regime_multiplier(histories[a]) for a in ASSETS}
-            governor = causal_governor
-            target = compose_weights(sleeves, routers, governor)
+            if rebalance_filter is None or rebalance_filter(i):
+                sleeves = sleeve_fn({a:tuple(histories[a]) for a in ASSETS})
+                routers = {a:regime_multiplier(histories[a]) for a in ASSETS}
+                governor = causal_governor
+                target = compose_weights(sleeves, routers, governor)
+            else:
+                # Buy-and-hold between scheduled fills; do not silently
+                # rebalance drifted positions on every hourly open.
+                target = dict(weights)
             turnover = sum(abs(target[a]-weights[a]) for a in ASSETS)
             cost = turnover*(fee_rate+slippage_rate)*cost_scale
             if not math.isfinite(cost) or cost >= 1:
