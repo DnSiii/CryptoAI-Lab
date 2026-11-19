@@ -1,0 +1,11 @@
+# V98 C17 — preregistration before authenticated execution (2026-11-19)
+
+Status: HYPOTHESIS ONLY; no candidate promotion. C14/C15/C16 rejected permanently. This is a distinct sparse-event, longer-horizon seven-slot composed engine, not a retune of C16.
+
+Data: only authenticated Clean-4 BTCUSDT ETHUSDT BNBUSDT SOLUSDT Binance USD-M 1h, December 2022 warmup through December 2025, native funding; XRP quarantined; 2026+ prohibited; Phase083 excluded. Execution at next hourly open, t-1 only. Fixed costs 1x, 2x, 4x. Do not inspect V14/V15/V99.
+
+Architecture: (1) growth core uses positive 90-day log trend and positive 30-day trend, (2) opportunity sleeve requires a 30-day high breakout and positive 7-day momentum, (3) relative-value sleeve uses top-ranked 90-day momentum with positive 90-day trend, (4) stress/recovery sleeve requires 30-day drawdown at least 20% and 14-day recovery at least 8% with positive 7-day trend, (5) router uses 30-day breadth and market basket return to scale exposure, (6) allocator uses fixed sleeve budgets 50/20/20/10, inverse 30-day realized volatility within sleeves and 7-day sparse rebalance, (7) existing causal governor enforces gross cap 0.90 and asset cap 0.40. No leverage rescue or dynamic tuning. On empty sleeve, redistribute active budget by fixed proportional renormalization. The 30-day high breakout must exclude the current close.
+
+Precommitted evaluation: execute full 27,048-hour replay with audited 27,047-row ledgers; report annual 2023 development, 2024 and 2025 separate chronological checks, compounded equity/CAGR, max drawdown, PF, payoff, win rate, positive days, turnover, tails, concentration, 1x/2x/4x native costs/funding, module marginal ablations if economics warrant. Reject if either 2024 or 2025 is negative at 4x, or if accounting/causality fails. Passing these internal checks does not confer independent future holdout validation. Because prior research has already examined 2024/2025, treat these years as research-exposed and require a genuinely untouched future holdout for any eventual promotion. Never select based on 2026+ observations during training.
+
+No post-result threshold/sign/window/scale adjustment. If C17 fails, reject without rescue.
