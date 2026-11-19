@@ -18,5 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install minimal paper module dependencies
+        run: python -m pip install numpy pandas
       - name: Test original historical orders remain immutable
         run: python -m unittest discover -s tests -p 'test_paper_historical_order_immutability.py' -v
