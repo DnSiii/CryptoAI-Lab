@@ -100,6 +100,28 @@ jobs:
                   print('C21_ANNUAL',scale,year,'return_pct',round(v['return']*100,4),
                         'hours',v['ledger_hours'])
           PY
+      - name: C21 fail-closed training economic gate (no promotion)
+        run: |
+          python - <<'PY'
+          import json, math
+          p='/tmp/v98_independent/b0/c21_independent_audit.json'
+          d=json.load(open(p))
+          reasons=[]
+          for scenario in ('1x','2x','4x'):
+              x=d[scenario]
+              if not x.get('arithmetic_reconciled'):
+                  reasons.append(scenario+':ledger_not_reconciled')
+              if not math.isfinite(x['final_equity']) or x['final_equity'] <= 10000:
+                  reasons.append(scenario+':nonpositive_total_growth')
+          annual=d['4x']['annual_training_only']
+          for year in ('2023','2024','2025'):
+              if year not in annual or not math.isfinite(annual[year]['return']) or annual[year]['return'] <= 0:
+                  reasons.append('4x:'+year+':nonpositive_annual_return')
+          if reasons:
+              print('C21_TRAINING_GATE_REJECT',','.join(reasons))
+              raise SystemExit(1)
+          print('C21_TRAINING_GATE_PASS_ONLY_NOT_VALIDATION_NOT_PROMOTION')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
