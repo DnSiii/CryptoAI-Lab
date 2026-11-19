@@ -51,11 +51,14 @@ def c23_model():
                 for a in ASSETS: weights[a][j]=budget*scores[a][j]/total
         previous={a:tuple(weights[a]) for a in ASSETS}
         return previous
-    def route(history): return router[history[0]] if False else 1.
-    # The execution harness calls router separately for each asset history.
-    # Match by immutable trailing history identity through a lookup by last close
-    # is unsafe; use a deterministic per-asset closure in the runner instead.
-    return compute,lambda _:1.
+    def route(history):
+        if len(history)<WARMUP+1: return 0.
+        p=history
+        if p[-1]<=0 or p[-721]<=0 or p[-2161]<=0: raise ValueError("C23_ROUTER_INVALID")
+        m90=math.log(p[-1]/p[-2161])
+        m30=math.log(p[-1]/p[-721])
+        return 1. if m90>0 and m30>0 else (.5 if m90>0 else 0.)
+    return compute,route
 def c23_allocator(sleeves,routers,governor):
     from .v98_b0_causal_overlay import compose_weights
     # Apply regime gating directly from sleeve computation: all four sleeves
