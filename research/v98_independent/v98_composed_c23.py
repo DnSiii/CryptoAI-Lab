@@ -16,7 +16,7 @@ def c23_model():
         if set(history)!=set(ASSETS): raise ValueError("C23_CLEAN4_ONLY")
         n=len(history[ASSETS[0]])
         if any(len(history[a])!=n for a in ASSETS): raise ValueError("C23_MISALIGNED")
-        if n<WARMUP+1 or (n-1)%REBALANCE: return previous
+        if n<WARMUP+1 or (n-WARMUP-1)%REBALANCE: return previous
         f={}
         for a in ASSETS:
             p=history[a][-WARMUP-1:]
