@@ -5,6 +5,8 @@ on:
     paths:
       - 'research/v98_independent/v98_c27_two_clock_governor.py'
       - 'research/v98_independent/test_v98_c27_two_clock_governor.py'
+      - 'research/v98_independent/v98_c27_gap_envelope.py'
+      - 'research/v98_independent/test_v98_c27_gap_envelope.py'
       - '.github/workflows/v98-independent-c27-governor-tests.yml'
   workflow_dispatch:
 permissions:
@@ -18,4 +20,4 @@ jobs:
         with:
           python-version: '3.11'
       - name: Deterministic causality and gap checks
-        run: python -m unittest research.v98_independent.test_v98_c27_two_clock_governor -v
+        run: python -m unittest research.v98_independent.test_v98_c27_two_clock_governor research.v98_independent.test_v98_c27_gap_envelope -v
