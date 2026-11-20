@@ -119,12 +119,37 @@ def continue_paper(data, targets, original, ledger_path, previous=None):
 def merge_ledger(old, segment, execution_state):
     new = copy.deepcopy(segment)
     cutoff = old['latest_data_timestamp']
-    factor = old['equity_curve'][-1]['capital_brl'] / segment['base_capital_brl']
+    source_capital = segment['base_capital_brl']
+    published_capital = old['equity_curve'][-1]['capital_brl']
+    if (not isinstance(source_capital, (int, float)) or not np.isfinite(source_capital)
+            or source_capital <= 0 or not isinstance(published_capital, (int, float))
+            or not np.isfinite(published_capital) or published_capital <= 0):
+        raise RuntimeError('Invalid continuation capital scaling inputs')
+    factor = published_capital / source_capital
+    if not np.isfinite(factor) or factor <= 0:
+        raise RuntimeError('Invalid continuation scaling factor')
     def scaled(row):
+        original_row = row
         row = copy.deepcopy(row)
         for key, value in list(row.items()):
-            if key.endswith('_brl') and isinstance(value, (int, float)):
+            if key == 'order_value_brl_unrounded':
+                if not isinstance(value, (int, float)) or not np.isfinite(value) or value <= 0:
+                    raise RuntimeError('Invalid original raw order notional in continuation')
+                row[key] = float(value) * factor
+                if not np.isfinite(row[key]) or row[key] <= 0:
+                    raise RuntimeError('Invalid scaled raw order notional in continuation')
+            elif key.endswith('_brl') and isinstance(value, (int, float)):
                 row[key] = round(value * factor, 2)
+        if 'order_value_brl_unrounded' in row and 'order_value_brl' in row:
+            # The raw notional is authoritative; rounding must occur AFTER scaling.
+            # Check the original raw/display pair before accepting the transformation.
+            original_raw = row['order_value_brl_unrounded'] / factor
+            original_display = original_row.get('order_value_brl')
+            if not isinstance(original_display, (int, float)) or not np.isfinite(original_display):
+                raise RuntimeError('Invalid original displayed order notional in continuation')
+            if round(original_raw, 2) != original_display:
+                raise RuntimeError('Original raw/displayed order notional mismatch')
+            row['order_value_brl'] = round(row['order_value_brl_unrounded'], 2)
         if 'adjustments' in row:
             row['adjustments'] = [scaled(r) for r in row['adjustments']]
         if 'capital_brl' in row:
