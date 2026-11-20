@@ -81,6 +81,10 @@ jobs:
           for k,v in r['results'].items():
               assert v['hours']==27048,k
               assert all(math.isfinite(v[z]) for z in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
+          # A complete zero-trade replay is not evidence of a functioning engine.
+          # C23 previously passed structural checks while never opening a position.
+          if any(r['results'][k]['total_turnover'] <= 1e-10 for k in ('1x','2x','4x')):
+              raise SystemExit('C26_ZERO_TRADE_REPLAY_REJECT')
           print('C26_COMPLETE_TRAINING_REPLAY_NOT_VALIDATION')
           PY
       - name: Independent full-ledger C26 arithmetic audit
