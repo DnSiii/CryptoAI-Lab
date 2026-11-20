@@ -1,0 +1,21 @@
+name: V98 Independent C27 causal governor checks
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_c27_two_clock_governor.py'
+      - 'research/v98_independent/test_v98_c27_two_clock_governor.py'
+      - '.github/workflows/v98-independent-c27-governor-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  c27-governor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Deterministic causality and gap checks
+        run: python -m unittest research.v98_independent.test_v98_c27_two_clock_governor -v
