@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
-from .v98_composed_c24 import c24_model, c24_allocator, WARMUP, WARMUP
+from .v98_composed_c24 import c24_model, c24_allocator, WARMUP
 from .v98_b0_next_open_execution import replay_next_open
 from unittest.mock import patch
 from . import v98_b0_next_open_execution as execution
