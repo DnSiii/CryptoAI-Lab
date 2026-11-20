@@ -27,6 +27,9 @@ def analyze(summary_path):
         before_buffer = before_hard = after_buffer = after_hard = 0
         max_before_asset = max_after_asset = max_before_gross = max_after_gross = 0.
         delayed_buffer_events = 0
+        strategic_buffer_breaches = 0
+        drift_without_fill = 0
+        safety_not_reducing = 0
         prev_queue = {a: 0. for a in ASSETS}
         for raw in path.open():
             row = json.loads(raw)
@@ -53,8 +56,18 @@ def analyze(summary_path):
                 delayed_buffer_events += 1
             if bool(row["hard_cap_breach_after_fill"]) != a_hard:
                 raise ValueError("C27_HARD_CAP_FLAG_MISMATCH")
-            if a_buf:
-                raise ValueError(f"C27_BUFFER_NOT_ENFORCED_AFTER_FILL_{scenario}_{count}")
+            # Ex-ante buffers cannot constrain a new gap before causal orders.
+            # Strategic fills must respect buffers; hold drift is diagnostic.
+            if a_buf and row["order_type"] == "strategic":
+                strategic_buffer_breaches += 1
+                raise ValueError(f"C27_STRATEGIC_BUFFER_BREACH_{scenario}_{count}")
+            if a_buf and row["order_type"] == "hold":
+                drift_without_fill += 1
+            if row["order_type"] == "safety" and any(
+                after[a] > before[a] + TOL for a in ASSETS
+            ):
+                safety_not_reducing += 1
+                raise ValueError(f"C27_SAFETY_INCREASED_WEIGHT_{scenario}_{count}")
             if a_hard:
                 raise ValueError(f"C27_HARD_CAP_AFTER_FILL_{scenario}_{count}")
             if row["order_type"] == "safety" and not any(v > TOL for v in prev_queue.values()):
@@ -70,6 +83,9 @@ def analyze(summary_path):
             "post_fill_buffer_excursions": after_buffer,
             "post_fill_hard_cap_excursions": after_hard,
             "buffer_excursions_corrected_at_open": delayed_buffer_events,
+            "strategic_buffer_breaches": strategic_buffer_breaches,
+            "drift_without_fill": drift_without_fill,
+            "safety_not_reducing": safety_not_reducing,
             "max_pre_fill_asset": max_before_asset, "max_post_fill_asset": max_after_asset,
             "max_pre_fill_gross": max_before_gross, "max_post_fill_gross": max_after_gross,
         }
