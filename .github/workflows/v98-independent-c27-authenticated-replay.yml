@@ -10,6 +10,7 @@ on:
       - 'research/v98_independent/v98_c27_authenticated_runner.py'
       - 'research/v98_independent/v98_c27_causal_audit.py'
       - 'research/v98_independent/v98_c27_chronological_diagnostics.py'
+      - 'research/v98_independent/v98_c27_exposure_forensics.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -96,6 +97,8 @@ jobs:
         run: python -m research.v98_independent.v98_c27_causal_audit --summary /tmp/v98_independent/b0/c27_composed_summary.json > /tmp/v98_independent/b0/c27_causal_audit.json
       - name: Independent chronological 2023/2024/2025 diagnostics (not a validation gate)
         run: python -m research.v98_independent.v98_c27_chronological_diagnostics --summary /tmp/v98_independent/b0/c27_composed_summary.json --output /tmp/v98_independent/b0/c27_chronological_diagnostics.json
+      - name: Audit C27 gap exposure before and after queued fills
+        run: python -m research.v98_independent.v98_c27_exposure_forensics --summary /tmp/v98_independent/b0/c27_composed_summary.json --output /tmp/v98_independent/b0/c27_exposure_forensics.json
       - name: Publish audited annual diagnostics in job log
         run: |
           python - <<'PY'
@@ -142,6 +145,7 @@ jobs:
             /tmp/v98_independent/b0/c27_independent_audit.json
             /tmp/v98_independent/b0/c27_causal_audit.json
             /tmp/v98_independent/b0/c27_chronological_diagnostics.json
+            /tmp/v98_independent/b0/c27_exposure_forensics.json
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
