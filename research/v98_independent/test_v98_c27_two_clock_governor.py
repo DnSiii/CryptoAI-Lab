@@ -32,7 +32,7 @@ class C27TwoClockTests(unittest.TestCase):
 
     def test_no_unplanned_buy(self):
         w={"BTCUSDT":.25,"ETHUSDT":.20,"BNBUSDT":.10,"SOLUSDT":.05}
-        self.assertTrue(all(f==0 for f in queue_sell_fractions(w)))
+        self.assertTrue(all(f==0 for f in queue_sell_fractions(w).values()))
 
     def test_invalid_inputs_fail_closed(self):
         with self.assertRaises(ValueError):
