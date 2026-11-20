@@ -6,7 +6,7 @@ from pathlib import Path
 from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import HOUR_MS, ASSETS
 from .v98_composed_c26 import c26_model, c26_allocator, WARMUP
-from .v98_c27_two_clock_governor import queue_sell_fractions, execute_queued_units
+from .v98_c27_two_clock_governor import planned_trim, execute_queued_units
 from .v98_c27_gap_envelope import preemptive_asset_cap, preemptive_gross_cap, prove_envelope
 from .v98_b0_causal_overlay import governor_multiplier
 
@@ -84,13 +84,11 @@ def replay(bars, funding, scale):
             peak=max(peak,equity)
             max_dd=max(max_dd,1-equity/peak)
             # Queue reductions only: the current mark cannot trigger a current fill.
-            queued=queue_sell_fractions(weights)
-            # Queue at buffered limits, not merely hard caps.
-            buffered={a:min(weights[a],ASSET_BUFFER) for a in ASSETS}
-            total=sum(buffered.values())
-            if total>GROSS_BUFFER:
-                buffered={a:v*GROSS_BUFFER/total for a,v in buffered.items()}
-            queued={a:0. if weights[a]<=1e-12 else max(queued[a],1-buffered[a]/weights[a])
+            # The next-open safety queue is based on the PRECOMMITTED buffered
+            # limits, not the hard limits.  This is a delayed sell-only order:
+            # no fill is permitted at the observation open.
+            buffered=planned_trim(weights,asset_cap=ASSET_BUFFER,gross_cap=GROSS_BUFFER)
+            queued={a:0. if weights[a]<=1e-12 else max(0.,min(1.,1-buffered[a]/weights[a]))
                     for a in ASSETS}
             ledger.append(dict(index=i,equity=equity,pre_fill_equity=before_cost,
                 weights_before_fill=marked,weights_after_fill=dict(weights),
