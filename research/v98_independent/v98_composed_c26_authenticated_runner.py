@@ -23,14 +23,17 @@ def run(prices, manifest, funding):
     ledgers={}
     for scale in (1.,2.,4.):
         sleeve_model,router=c26_model()
-        cache={"index":None,"sleeves":None}
+        cache={"index":None,"sleeves":None,"btc_history":()}
         def sleeve_fn(history):
             length=len(history[ASSETS[0]])
+            cache["btc_history"]=history["BTCUSDT"]
             if cache["sleeves"] is None or (length >= WARMUP+1 and (length-(WARMUP+1))%168==0):
                 cache["sleeves"]=sleeve_model(history)
                 cache["index"]=length
             return cache["sleeves"]
-        with patch.object(execution,"regime_multiplier",router), patch.object(execution,"compose_weights",c26_allocator):
+        def btc_router(_ignored_asset_history):
+            return router(cache["btc_history"])
+        with patch.object(execution,"regime_multiplier",btc_router), patch.object(execution,"compose_weights",c26_allocator):
             summary,entries=replay_next_open(data["bars"],indexed,sleeve_fn,cost_scale=scale,
                 rebalance_filter=None)
         if summary["hours"] != data["hours"] or len(entries)!=data["hours"]-1:
