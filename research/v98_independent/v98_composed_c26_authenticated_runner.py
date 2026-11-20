@@ -23,7 +23,7 @@ def run(prices, manifest, funding):
     ledgers={}
     for scale in (1.,2.,4.):
         sleeve_model,router=c26_model()
-        cache={"index":None,"sleeves":None,"btc_history":()}
+        cache={"index":None,"sleeves":None,"btc_history":(),"router_length":None,"router_value":0.}
         def sleeve_fn(history):
             length=len(history[ASSETS[0]])
             cache["btc_history"]=history["BTCUSDT"]
@@ -32,7 +32,11 @@ def run(prices, manifest, funding):
                 cache["index"]=length
             return cache["sleeves"]
         def btc_router(_ignored_asset_history):
-            return router(cache["btc_history"])
+            length=len(cache["btc_history"])
+            if cache["router_length"]!=length:
+                cache["router_value"]=router(cache["btc_history"])
+                cache["router_length"]=length
+            return cache["router_value"]
         with patch.object(execution,"regime_multiplier",btc_router), patch.object(execution,"compose_weights",c26_allocator):
             summary,entries=replay_next_open(data["bars"],indexed,sleeve_fn,cost_scale=scale,
                 rebalance_filter=None)
