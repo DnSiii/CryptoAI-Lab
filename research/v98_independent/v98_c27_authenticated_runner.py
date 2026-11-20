@@ -73,6 +73,9 @@ def replay(bars, funding, scale):
             if cost>=1 or not math.isfinite(cost):
                 raise ValueError("C27_INSOLVENT_COST")
             before_cost=equity
+            # Audit includes the pre-fee opening mark in the equity high-water mark.
+            # Using only post-fee peaks understates drawdown and breaks reconciliation.
+            peak=max(peak,before_cost)
             equity*=1-cost
             # Replay uses target fractions as the post-cost book convention;
             # independent audit must confirm the identical accounting convention.
