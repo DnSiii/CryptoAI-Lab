@@ -8,6 +8,7 @@ on:
       - 'research/v98_independent/v98_c27_gap_envelope.py'
       - 'research/v98_independent/c27_two_clock_preregistration_20261120.md'
       - 'research/v98_independent/v98_c27_authenticated_runner.py'
+      - 'research/v98_independent/v98_c27_causal_audit.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -90,6 +91,8 @@ jobs:
           PY
       - name: Independent full-ledger C27 arithmetic audit
         run: python -m research.v98_independent.v98_c21_ledger_audit --summary /tmp/v98_independent/b0/c27_composed_summary.json > /tmp/v98_independent/b0/c27_independent_audit.json
+      - name: Independent C27 chronological queue and clock audit
+        run: python -m research.v98_independent.v98_c27_causal_audit --summary /tmp/v98_independent/b0/c27_composed_summary.json > /tmp/v98_independent/b0/c27_causal_audit.json
       - name: Publish audited annual diagnostics in job log
         run: |
           python - <<'PY'
@@ -134,6 +137,7 @@ jobs:
           path: |
             /tmp/v98_independent/b0/c27_composed_summary.json
             /tmp/v98_independent/b0/c27_independent_audit.json
+            /tmp/v98_independent/b0/c27_causal_audit.json
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
