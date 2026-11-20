@@ -39,7 +39,13 @@ def run(prices, manifest, funding):
             return cache["router_value"]
         with patch.object(execution,"regime_multiplier",btc_router), patch.object(execution,"compose_weights",c26_allocator):
             summary,entries=replay_next_open(data["bars"],indexed,sleeve_fn,cost_scale=scale,
-                rebalance_filter=None)
+                rebalance_filter=lambda i: i >= WARMUP+1 and (i-(WARMUP+1))%168 == 0)
+        # Fail closed if any off-calendar trade appears; the common replay
+        # harness otherwise silently rebalances drifted weights hourly.
+        if any(e["turnover"] > 1e-10 and not
+               (e["index"] >= WARMUP+1 and
+                (e["index"]-(WARMUP+1))%168 == 0) for e in entries):
+            raise ValueError("C26_OFF_CALENDAR_TRADE")
         if summary["hours"] != data["hours"] or len(entries)!=data["hours"]-1:
             raise ValueError("C26_INCOMPLETE_REPLAY")
         if any(not math.isfinite(float(summary[k])) for k in
