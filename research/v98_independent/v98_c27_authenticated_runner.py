@@ -36,6 +36,10 @@ def replay(bars, funding, scale):
     queued={a:0. for a in ASSETS}
     ledger=[]
     max_dd=0.
+    # Previous completed opening ledger state; never use the current opening mark
+    # to select a same-open strategic order or feed the drawdown governor.
+    decision_equity=equity
+    decision_peak=peak
     for i in range(n):
         if i:
             previous=dict(weights)
@@ -58,7 +62,7 @@ def replay(bars, funding, scale):
                 cached=model(history)
                 router_value=router(history["BTCUSDT"])
                 routers={a:router_value for a in ASSETS}
-                target=c26_allocator(cached,routers,governor_multiplier(equity,peak))
+                target=c26_allocator(cached,routers,governor_multiplier(decision_equity,decision_peak))
                 # Precommitted gap-envelope buffers; never retuned to realized PnL.
                 target={a:max(0.,min(float(target[a]),ASSET_BUFFER)) for a in ASSETS}
                 total=sum(target.values())
@@ -97,6 +101,9 @@ def replay(bars, funding, scale):
                 funding_by_asset=funding_by_asset,order_type=order_type,
                 queued_next_open_sell_fractions=dict(queued),
                 hard_cap_breach_after_fill=(max(weights.values())>.40+1e-10 or sum(weights.values())>.90+1e-10)))
+        if i:
+            decision_equity=equity
+            decision_peak=peak
         for a in ASSETS:
             histories[a].append(bars[a][i][3])
     final_factor=1+sum(weights[a]*(bars[a][-1][3]/bars[a][-1][0]-1) for a in ASSETS)
