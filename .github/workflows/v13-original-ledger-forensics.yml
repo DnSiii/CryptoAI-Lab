@@ -1,0 +1,54 @@
+name: V13 original ledger forensic audit (read-only)
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - '.github/workflows/v13-original-ledger-forensics.yml'
+      - 'scripts/audit_v13_original_ledger_readonly.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download original failed-run artifact (immutable source)
+        uses: actions/download-artifact@v4
+        with:
+          name: paper-v13-opportunities-42032849643
+          run-id: 42032849643
+          github-token: ${{ github.token }}
+          path: original
+      - name: Inventory original ledgers
+        run: |
+          find original -type f | sort | tee original-files.txt
+          find original -type f -name 'paper_v13_ledger.json' -print > ledger-paths.txt
+          test "$(wc -l < ledger-paths.txt)" -eq 1
+          sha256sum "$(cat ledger-paths.txt)" | tee original-ledger-sha256.txt
+      - name: Audit historical adjustments (failure is expected until provenance proven)
+        id: forensic
+        continue-on-error: true
+        run: |
+          python scripts/audit_v13_original_ledger_readonly.py "$(cat ledger-paths.txt)" --output original-ledger-audit.json
+      - name: Preserve audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v13-original-ledger-forensic-evidence
+          path: |
+            original-files.txt
+            ledger-paths.txt
+            original-ledger-sha256.txt
+            original-ledger-audit.json
+          if-no-files-found: warn
+      - name: Fail closed on unresolved ledger provenance
+        if: steps.forensic.outcome != 'success'
+        run: |
+          echo 'Historical ledger is not certified. No merge/promotion.' >&2
+          exit 1
