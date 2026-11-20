@@ -76,6 +76,7 @@ def replay(bars, funding, scale):
             # Audit includes the pre-fee opening mark in the equity high-water mark.
             # Using only post-fee peaks understates drawdown and breaks reconciliation.
             peak=max(peak,before_cost)
+            max_dd=max(max_dd,1-before_cost/peak)
             equity*=1-cost
             # Replay uses target fractions as the post-cost book convention;
             # independent audit must confirm the identical accounting convention.
