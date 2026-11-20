@@ -28,7 +28,7 @@ jobs:
       - name: Inventory original ledgers
         run: |
           find original -type f | sort | tee original-files.txt
-          find original -type f -name 'paper_v13_ledger.json' -print > ledger-paths.txt
+          printf '%s\n' 'original/reports/paper_v13_ledger.json' > ledger-paths.txt\n          test -f "$(cat ledger-paths.txt)"
           test "$(wc -l < ledger-paths.txt)" -eq 1
           sha256sum "$(cat ledger-paths.txt)" | tee original-ledger-sha256.txt
       - name: Audit historical adjustments (failure is expected until provenance proven)
