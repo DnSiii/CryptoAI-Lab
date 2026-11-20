@@ -61,7 +61,7 @@
     if(!section){section=document.createElement('section');section.id='v99research';section.className='view';const footer=$('.footer');footer?footer.parentElement.insertBefore(section,footer):$('.main')?.appendChild(section)}
     section.innerHTML=`
       <article class="v99-hero"><div><p class="eyebrow">V99 · RESEARCH LAB COMPLETO</p><h2>Cinco versões. Mesma estrutura. Mesmo mercado.</h2><p>R98, R106 F1, F3, F7/F9 e F12 com backtest completo e paper forward no mesmo boundary. Os controles abaixo afetam somente a visualização; nenhuma versão é recalibrada pelos dados do paper.</p></div><div class="v99-badge">PAPER ONLY · 0 ORDENS REAIS</div></article>
-      <div class="v99-tabs"><button class="v99-tab active" data-v99-tab="backtest">Backtest completo</button><button class="v99-tab" data-v99-tab="paper">Paper completo</button></div>
+      <div id="v99-freshness-warning" role="status" style="margin:0 0 16px;padding:14px 16px;border:1px solid #d5a34b;border-radius:12px;background:rgba(213,163,75,.10);color:#f3d8a0;font-weight:700">PESQUISA · PAPER ONLY · SEM ORDENS REAIS. Os resultados não são desempenho financeiro comprovado. A atualização dos dados ainda não foi verificada.</div>\n      <div class="v99-tabs"><button class="v99-tab active" data-v99-tab="backtest">Backtest completo</button><button class="v99-tab" data-v99-tab="paper">Paper completo</button></div>
       <div id="v99-backtest" class="v99-pane active"></div>
       <div id="v99-paper" class="v99-pane"></div>`;
     $$('.v99-tab',section).forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.v99Tab)));
@@ -261,6 +261,17 @@
       const message='Não foi possível carregar o V99 Research. Recarregue a página para tentar novamente.';
       for(const id of ['#v99-backtest','#v99-paper']){const root=$(id);if(root)root.innerHTML=`<div class="v99-empty">${message}</div>`;}
       return;
+    }
+    // Derive freshness from the immutable published research curves, not the deployment time.
+    const timestamps=ORDER.flatMap(k=>(state.data.v99Research?.paper?.[k]?.curve||[]).map(p=>Date.parse(p.time)).filter(Number.isFinite));
+    const latest=timestamps.length?Math.max(...timestamps):NaN;
+    const ageHours=Number.isFinite(latest)?(Date.now()-latest)/3600000:Infinity;
+    const banner=$('#v99-freshness-warning');
+    if(banner){
+      const stale=ageHours>24 || !Number.isFinite(ageHours) || ageHours< -1;
+      banner.textContent=stale
+        ? 'DADOS DESATUALIZADOS / RESEARCH ONLY · Último ponto do paper de pesquisa: '+(Number.isFinite(latest)?dt(latest):'não disponível')+'. Não confundir com o V99 Frozen oficial. Sem ordens reais, sem lucro validado.'
+        : 'RESEARCH ONLY · Último ponto do paper de pesquisa: '+dt(latest)+'. Sem ordens reais; resultados não validados economicamente.';
     }
     render();
   }
