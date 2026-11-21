@@ -39,6 +39,24 @@ def replay_without_sleeve(bars, funding, slot):
     finally:
         engine.c26_model=original
 
+def replay_without_control(bars, funding, control):
+    original_model=engine.c26_model
+    original_governor=engine.governor_multiplier
+    def no_router_model():
+        compute,_=original_model()
+        return compute,(lambda history: 1.)
+    try:
+        if control=="router":
+            engine.c26_model=no_router_model
+        elif control=="governor":
+            engine.governor_multiplier=lambda equity,peak: 1.
+        else:
+            raise ValueError("UNKNOWN_CONTROL")
+        return engine.replay(bars,funding,4.)
+    finally:
+        engine.c26_model=original_model
+        engine.governor_multiplier=original_governor
+
 def run(prices, manifest, funding):
     data=load(prices,manifest,funding)
     bars=data["bars"]
@@ -61,6 +79,17 @@ def run(prices, manifest, funding):
             "without_positive_days":sum(rows[i]["equity"]>rows[i-1]["equity"] for i in range(1,len(rows))),
             "marginal_positive":baseline["final_equity"]>summary["final_equity"]
         }
+    controls={}
+    for control in ("router","governor"):
+        summary,rows=replay_without_control(bars,carry,control)
+        if len(rows)!=len(baseline_rows):
+            raise ValueError("C27_CONTROL_ABLATION_MISALIGNED")
+        controls[control]={
+            "without_equity":summary["final_equity"],
+            "full_minus_without_log_wealth":math.log(baseline["final_equity"]/summary["final_equity"]),
+            "without_max_drawdown":summary["max_drawdown"],
+            "marginal_positive":baseline["final_equity"]>summary["final_equity"]
+        }
     return {
         "status":"TRAINING_ONLY_ABLATION_NOT_VALIDATION_NOT_PROMOTION",
         "method":"leave_one_sleeve_out_no_budget_redistribution",
@@ -71,7 +100,8 @@ def run(prices, manifest, funding):
         "baseline_final_equity":baseline["final_equity"],
         "baseline_max_drawdown":baseline["max_drawdown"],
         "scenarios":scenarios,
-        "limitations":"Router, allocator and governor are held fixed; these four ablations cannot prove all seven slots' marginal value. Historical training is already inspected, not independent validation."
+        "control_ablations":controls,
+        "limitations":"Allocator held fixed. Four sleeve and two control ablations cannot prove all seven slots. Governor-off is diagnostic only, never deployable. Already inspected training is not independent validation."
     }
 
 def main():
