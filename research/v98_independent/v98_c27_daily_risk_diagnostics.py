@@ -25,11 +25,13 @@ def evaluate(summary_path):
         for row in rows:
             day=(epoch+timedelta(hours=row["index"])).date().isoformat()
             daily[day]=float(row["equity"])
-        days=sorted(daily)
-        if len(days)<1095:
-            raise ValueError("INSUFFICIENT_DAYS")
+        # Exclude December 2022 warmup; anchor at its last completed UTC day.
+        baseline=daily.get("2022-12-31")
+        days=sorted(d for d in daily if "2023-01-01" <= d <= "2025-12-31")
+        if baseline is None or len(days)!=1096 or days[-1]!="2025-12-31":
+            raise ValueError("INCOMPLETE_2023_2025_DAILY_TRAINING_WINDOW")
         daily[days[-1]]=float(summary["results"][scenario]["final_equity"])
-        equity=[10000.]+[daily[d] for d in days]
+        equity=[baseline]+[daily[d] for d in days]
         returns=[equity[i]/equity[i-1]-1 for i in range(1,len(equity))]
         if not all(math.isfinite(r) for r in returns):
             raise ValueError("NONFINITE_DAILY_RETURN")
@@ -43,7 +45,7 @@ def evaluate(summary_path):
             worst_streak=max(worst_streak,streak)
         ordered=sorted(returns)
         n=len(returns)
-        if not math.isclose(math.prod(1+r for r in returns),equity[-1]/10000,rel_tol=1e-9):
+        if not math.isclose(math.prod(1+r for r in returns),equity[-1]/baseline,rel_tol=1e-9):
             raise ValueError("DAILY_COMPOUND_MISMATCH")
         result[scenario]=dict(
             definition="DAILY_MARK_TO_MARK_NOT_TRADE_LEVEL",
