@@ -27,7 +27,8 @@ def decimal_or_none(value):
 def triage(ledger):
     groups = Counter()
     by_symbol = defaultdict(Counter)
-    examples = []
+    examples_by_category = defaultdict(list)
+    max_abs_difference_by_symbol = {}
     for di, decision in enumerate(ledger.get("decisions", [])):
         for ai, row in enumerate(decision.get("adjustments", [])):
             shown = decimal_or_none(row.get("order_value_brl"))
@@ -47,9 +48,9 @@ def triage(ledger):
             groups[category] += 1
             symbol = str(row.get("symbol", "UNKNOWN"))
             by_symbol[symbol][category] += 1
-            if category not in ("matched",) and len(examples) < 40:
+            if category not in ("matched",) and len(examples_by_category[category]) < 10:
                 serialized = json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-                examples.append({
+                examples_by_category[category].append({
                     "decision_index": di, "adjustment_index": ai,
                     "symbol": symbol,
                     "decision_timestamp": decision.get("timestamp"),
@@ -59,11 +60,15 @@ def triage(ledger):
                     "difference_brl": str(shown - raw) if shown is not None and raw is not None else None,
                     "classification": category,
                 })
+            if category == "mismatch":
+                difference = abs(shown - raw)
+                max_abs_difference_by_symbol[symbol] = max(difference, max_abs_difference_by_symbol.get(symbol, Decimal("0")))
     return {
+        "max_abs_mismatch_brl_by_symbol": {k: str(v) for k, v in sorted(max_abs_difference_by_symbol.items())},
         "ledger_sha256": hashlib.sha256(LEDGER.read_bytes()).hexdigest() if LEDGER.exists() else None,
         "counts": dict(groups),
         "by_symbol": {k: dict(v) for k, v in sorted(by_symbol.items())},
-        "first_40_nonmatched": examples,
+        "examples_by_category": dict(examples_by_category),
         "warning": "Generated raw notional is not an independent exchange fill or FX receipt.",
     }
 
