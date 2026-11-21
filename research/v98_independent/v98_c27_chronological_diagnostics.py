@@ -45,8 +45,8 @@ def evaluate(summary):
                 dd = max(dd, 1 - hi / peak)
             folds[year] = {"return": hi / lo - 1, "max_drawdown": dd,
                            "positive_hours": positive, "observed_hours": end - start,
-                           "fees_return_sum": sum(rows[i - 1]["cost_return"] for i in range(start, end)),
-                           "funding_return_sum": sum(rows[i - 1]["funding_return"] for i in range(start, end))}
+                           "fees_return_sum": sum(rows[i - 1]["cost_return"] for i in range(start, min(end, 27047))),
+                           "funding_return_sum": sum(rows[i - 1]["funding_return"] for i in range(start, min(end, 27047)))}
             if not all(math.isfinite(v) for v in folds[year].values()):
                 raise ValueError("C27_NONFINITE_FOLD")
         out["folds"][scenario] = folds
