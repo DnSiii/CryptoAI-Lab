@@ -24,19 +24,18 @@ def evaluate(summary):
             raise ValueError("C27_INCOMPLETE_OR_NONCHRONOLOGICAL_LEDGER")
         folds = {}
         for year, (start, end) in YEAR_HOURS.items():
-            # Opening marks at start/end use post-cost equity. This is a diagnostic
-            # convention, not an independent strategy selection criterion.
-            lo = rows[start - 1]["equity"]
-            # Hour end is the closing boundary, not the preceding hourly mark.
-            # The final boundary (27048) is stored in the authenticated summary.
-            hi = (rows[end - 1]["equity"] if end < 27048
+            # Year starts at the previous hour close; year ends at the last
+            # hour of that year. Never import the next year opening mark.
+            lo = rows[start - 2]["equity"]
+            # The final 2025 close is stored in the authenticated summary.
+            hi = (rows[end - 2]["equity"] if end < 27048
                   else result["results"][scenario]["final_equity"])
             hourly = [rows[i - 1]["equity"] / rows[i - 2]["equity"] - 1
-                      for i in range(start + 1, min(end, 27047) + 1)]
+                      for i in range(start, min(end - 1, 27047) + 1)]
             positive = sum(x > 0 for x in hourly)
             peak = lo
             dd = 0.
-            for i in range(start, min(end, 27047) + 1):
+            for i in range(start, min(end - 1, 27047) + 1):
                 equity = rows[i - 1]["equity"]
                 peak = max(peak, equity)
                 dd = max(dd, 1 - equity / peak)
@@ -45,7 +44,7 @@ def evaluate(summary):
                 dd = max(dd, 1 - hi / peak)
             folds[year] = {"return": hi / lo - 1, "max_drawdown": dd,
                            "positive_hours": positive, "observed_hours": end - start,
-                           "fees_return_sum": sum(rows[i - 1]["cost_return"] for i in range(start, min(end, 27047))),
+                           "fees_return_sum": sum(rows[i - 1]["cost_return"] for i in range(start, min(end - 1, 27047))),
                            "funding_return_sum": sum(rows[i - 1]["funding_return"] for i in range(start, min(end, 27047)))}
             if not all(math.isfinite(v) for v in folds[year].values()):
                 raise ValueError("C27_NONFINITE_FOLD")
