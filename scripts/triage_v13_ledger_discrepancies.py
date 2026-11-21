@@ -24,8 +24,10 @@ def decimal_or_none(value):
         return None
 
 
-def triage(ledger):
+def triage(ledger, source_bytes=None):
     groups = Counter()
+    missing_raw_by_symbol = Counter()
+    mismatch_over_cent_by_symbol = Counter()
     by_symbol = defaultdict(Counter)
     examples_by_category = defaultdict(list)
     max_abs_difference_by_symbol = {}
@@ -46,6 +48,10 @@ def triage(ledger):
             else:
                 category = "matched"
             groups[category] += 1
+            if category == "missing_raw":
+                missing_raw_by_symbol[str(row.get("symbol", "UNKNOWN"))] += 1
+            if category == "mismatch" and abs(shown - raw) > Decimal("0.01"):
+                mismatch_over_cent_by_symbol[str(row.get("symbol", "UNKNOWN"))] += 1
             symbol = str(row.get("symbol", "UNKNOWN"))
             by_symbol[symbol][category] += 1
             if category not in ("matched",) and len(examples_by_category[category]) < 10:
@@ -65,7 +71,9 @@ def triage(ledger):
                 max_abs_difference_by_symbol[symbol] = max(difference, max_abs_difference_by_symbol.get(symbol, Decimal("0")))
     return {
         "max_abs_mismatch_brl_by_symbol": {k: str(v) for k, v in sorted(max_abs_difference_by_symbol.items())},
-        "ledger_sha256": hashlib.sha256(LEDGER.read_bytes()).hexdigest() if LEDGER.exists() else None,
+        "ledger_sha256": hashlib.sha256(source_bytes).hexdigest() if source_bytes is not None else None,
+        "missing_raw_by_symbol": dict(sorted(missing_raw_by_symbol.items())),
+        "mismatch_over_one_cent_by_symbol": dict(sorted(mismatch_over_cent_by_symbol.items())),
         "counts": dict(groups),
         "by_symbol": {k: dict(v) for k, v in sorted(by_symbol.items())},
         "examples_by_category": dict(examples_by_category),
@@ -74,7 +82,8 @@ def triage(ledger):
 
 
 def main():
-    result = triage(json.loads(LEDGER.read_text(encoding="utf-8")))
+    source_bytes = LEDGER.read_bytes()
+    result = triage(json.loads(source_bytes.decode("utf-8")), source_bytes=source_bytes)
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if any(result["counts"].get(k, 0) for k in ("invalid_display", "missing_raw", "invalid_raw", "mismatch")):
         raise SystemExit(2)
