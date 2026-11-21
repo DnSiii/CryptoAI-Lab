@@ -20,7 +20,7 @@ def classify(adjustment: dict) -> str:
         delta = float(adjustment["new_weight"]) - float(adjustment["previous_weight"])
     except (KeyError, ValueError, TypeError, OverflowError):
         return "invalid_display_or_weight"
-    if not math.isfinite(shown) or not math.isfinite(delta) or delta == 0:
+    if not math.isfinite(shown) or shown < 0 or not math.isfinite(delta) or delta == 0:
         return "invalid_display_or_weight"
     raw = adjustment.get("order_value_brl_unrounded")
     if raw is None:
@@ -54,7 +54,7 @@ def main() -> None:
                     "order_value_brl_unrounded": adjustment.get("order_value_brl_unrounded"),
                 }
     print(json.dumps({"counts": dict(counts), "first_examples": examples}, indent=2, ensure_ascii=False))
-    failures = ("missing_raw_provenance", "invalid_display_or_weight", "invalid_raw",
+    failures = ("missing_raw_provenance", "positive_display_without_raw", "invalid_display_or_weight", "invalid_raw",
                 "raw_display_mismatch", "invalid_zero")
     if any(counts[k] for k in failures):
         raise SystemExit(2)
