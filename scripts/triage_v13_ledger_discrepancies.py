@@ -31,6 +31,7 @@ def triage(ledger, source_bytes=None):
     by_symbol = defaultdict(Counter)
     examples_by_category = defaultdict(list)
     max_abs_difference_by_symbol = {}
+    mismatch_manifest = []
     for di, decision in enumerate(ledger.get("decisions", [])):
         for ai, row in enumerate(decision.get("adjustments", [])):
             shown = decimal_or_none(row.get("order_value_brl"))
@@ -67,6 +68,13 @@ def triage(ledger, source_bytes=None):
                     "classification": category,
                 })
             if category == "mismatch":
+                mismatch_manifest.append({
+                    "decision_index": di, "adjustment_index": ai,
+                    "symbol": symbol, "decision_timestamp": decision.get("timestamp"),
+                    "row_sha256": hashlib.sha256(json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest(),
+                    "shown": str(shown), "raw": str(raw),
+                    "difference_brl": str(shown - raw),
+                })
                 difference = abs(shown - raw)
                 max_abs_difference_by_symbol[symbol] = max(difference, max_abs_difference_by_symbol.get(symbol, Decimal("0")))
     return {
@@ -75,6 +83,7 @@ def triage(ledger, source_bytes=None):
         "missing_raw_by_symbol": dict(sorted(missing_raw_by_symbol.items())),
         "mismatch_over_one_cent_by_symbol": dict(sorted(mismatch_over_cent_by_symbol.items())),
         "counts": dict(groups),
+        "mismatch_manifest": mismatch_manifest,
         "by_symbol": {k: dict(v) for k, v in sorted(by_symbol.items())},
         "examples_by_category": dict(examples_by_category),
         "warning": "Generated raw notional is not an independent exchange fill or FX receipt.",
