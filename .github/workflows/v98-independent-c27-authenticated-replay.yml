@@ -14,6 +14,7 @@ on:
       - 'research/v98_independent/v98_c27_daily_risk_diagnostics.py'
       - 'research/v98_independent/v98_c21_ledger_audit.py'
       - 'research/v98_independent/v98_c27_native_source_audit.py'
+      - 'research/v98_independent/v98_c27_sleeve_ablation.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -160,6 +161,23 @@ jobs:
               raise SystemExit(1)
           print('C27_TRAINING_GATE_PASS_ONLY_NOT_VALIDATION_NOT_PROMOTION')
           PY
+      - name: C27 preregistered seven-slot marginal attribution diagnostics (training only)
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c27_sleeve_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_sleeve_ablation.json
+          python - <<'PY'
+          import json,math
+          p='/tmp/v98_independent/b0/c27_sleeve_ablation.json'
+          d=json.load(open(p))
+          if d['holdout_accessed'] is not False or set(d['scenarios'])!={'growth_core','opportunity','relative_value','stress_recovery'} or set(d['control_ablations'])!={'router','governor'}:
+              raise SystemExit('C27_ABLATION_INCOMPLETE')
+          baseline=json.load(open('/tmp/v98_independent/b0/c27_composed_summary.json'))['results']['4x']['final_equity']
+          if not math.isclose(baseline,d['baseline_final_equity'],rel_tol=1e-12):
+              raise SystemExit('C27_ABLATION_BASELINE_MISMATCH')
+          for slot,x in {**d['scenarios'],**d['control_ablations']}.items():
+              print('C27_MARGINAL_TRAINING_ONLY',slot,'delta_log_wealth',round(x['full_minus_without_log_wealth'],8),'positive',x['marginal_positive'])
+          print('C27_ABLATION_DIAGNOSTIC_ONLY_NOT_VALIDATION_NOT_PROMOTION')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -172,6 +190,7 @@ jobs:
             /tmp/v98_independent/b0/c27_chronological_diagnostics.json
             /tmp/v98_independent/b0/c27_exposure_forensics.json
             /tmp/v98_independent/b0/c27_daily_risk_diagnostics.json
+            /tmp/v98_independent/b0/c27_sleeve_ablation.json
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
