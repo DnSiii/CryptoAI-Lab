@@ -123,7 +123,18 @@ def audit(summary_path):
                   for y in sorted(year_end)}
         if not close(math.prod(1 + annual[y]['return'] for y in annual), final_equity / 10000.):
             raise ValueError('YEARLY_COMPOUND_RECONCILIATION')
-        day_returns = [daily[i]/daily[i-1]-1 for i in range(1,len(daily))]
+        # Report economic daily counts only for 2023-2025; December 2022 is warmup.
+        # The baseline is the last December 2022 UTC close (not initial capital).
+        training_days = sorted(k for k in day_end if '2023-01-01' <= k <= '2025-12-31')
+        if len(training_days) != 1096 or training_days[0] != '2023-01-01' or training_days[-1] != '2025-12-31':
+            raise ValueError('INCOMPLETE_TRAINING_DAILY_WINDOW')
+        if '2022-12-31' not in day_end:
+            raise ValueError('MISSING_WARMUP_DAILY_ANCHOR')
+        training_equity = [day_end['2022-12-31']] + [day_end[k] for k in training_days]
+        training_equity[-1] = final_equity
+        day_returns = [training_equity[i]/training_equity[i-1]-1 for i in range(1,len(training_equity))]
+        if not close(math.prod(1+r for r in day_returns), final_equity/training_equity[0]):
+            raise ValueError('TRAINING_DAILY_COMPOUND_MISMATCH')
         report[scenario] = dict(rows=len(rows),final_equity=final_equity,
             max_drawdown=max_dd,positive_days=sum(r>0 for r in day_returns),
             total_days=len(day_returns),max_asset_weight=max_concentration,
