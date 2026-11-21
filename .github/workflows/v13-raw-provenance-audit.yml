@@ -20,3 +20,20 @@ jobs:
           python-version: '3.11'
       - name: Run raw-provenance adversarial tests without modifying historical paper
         run: python -m unittest discover -s tests -p 'test_audit_v13_paper_raw_provenance.py' -v
+
+  published-ledger-provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Restore original published ledger (read-only)
+        run: |
+          git fetch --no-tags --depth=1 origin paper-results
+          mkdir -p reports
+          git show FETCH_HEAD:reports/paper_v13_ledger.json > reports/paper_v13_ledger.json
+      - name: Classify actual historical adjustments (fail closed)
+        run: python scripts/audit_v13_paper_raw_provenance.py
