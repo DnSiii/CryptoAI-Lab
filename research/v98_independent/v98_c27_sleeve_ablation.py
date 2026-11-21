@@ -42,6 +42,14 @@ def replay_without_sleeve(bars, funding, slot):
 def replay_without_control(bars, funding, control):
     original_model=engine.c26_model
     original_governor=engine.governor_multiplier
+    original_allocator=engine.c26_allocator
+    def equal_active_allocator(sleeves,routers,governor):
+        # Preregistered structural comparator: preserve aggregate routed budget,
+        # distribute equally across eligible assets; same external C27 caps/costs.
+        active=[a for a in ASSETS if sum(sleeves[a])>0 and routers[a]>0]
+        budget=sum(sum(sleeves[a])*routers[a]*governor for a in ASSETS)
+        each=budget/len(active) if active else 0.
+        return {a:(each if a in active else 0.) for a in ASSETS}
     def no_router_model():
         compute,_=original_model()
         return compute,(lambda history: 1.)
@@ -50,12 +58,15 @@ def replay_without_control(bars, funding, control):
             engine.c26_model=no_router_model
         elif control=="governor":
             engine.governor_multiplier=lambda equity,peak: 1.
+        elif control=="allocator_equal_active":
+            engine.c26_allocator=equal_active_allocator
         else:
             raise ValueError("UNKNOWN_CONTROL")
         return engine.replay(bars,funding,4.)
     finally:
         engine.c26_model=original_model
         engine.governor_multiplier=original_governor
+        engine.c26_allocator=original_allocator
 
 def run(prices, manifest, funding):
     data=load(prices,manifest,funding)
@@ -82,7 +93,7 @@ def run(prices, manifest, funding):
             "marginal_positive":baseline["final_equity"]>summary["final_equity"]
         }
     controls={}
-    for control in ("router","governor"):
+    for control in ("router","governor","allocator_equal_active"):
         summary,rows=replay_without_control(bars,carry,control)
         if len(rows)!=len(baseline_rows) or not math.isfinite(summary["final_equity"]) or summary["final_equity"]<=0:
             raise ValueError("C27_CONTROL_ABLATION_MISALIGNED_OR_INSOLVENT")
@@ -103,7 +114,7 @@ def run(prices, manifest, funding):
         "baseline_max_drawdown":baseline["max_drawdown"],
         "scenarios":scenarios,
         "control_ablations":controls,
-        "limitations":"Allocator held fixed. Four sleeve and two control ablations cannot prove all seven slots. Governor-off is diagnostic only, never deployable. Already inspected training is not independent validation."
+        "limitations":"Four sleeve removals, router/governor removals and a preregistered equal-active allocator comparator. Allocator comparator is NOT a pure leave-one-out; its budget is fixed before C27 safety caps. Governor-off is diagnostic only, never deployable. Already inspected training is not independent validation."
     }
 
 def main():
