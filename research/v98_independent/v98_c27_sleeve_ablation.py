@@ -64,11 +64,13 @@ def run(prices, manifest, funding):
     baseline,baseline_rows=engine.replay(bars,carry,4.)
     if baseline["hours"]!=27048 or len(baseline_rows)!=27047:
         raise ValueError("C27_ABLATION_INCOMPLETE_TRAINING")
+    if not math.isfinite(baseline["final_equity"]) or baseline["final_equity"]<=0:
+        raise ValueError("C27_ABLATION_INVALID_BASELINE")
     scenarios={}
     for slot,name in enumerate(SLEEVES):
         summary,rows=replay_without_sleeve(bars,carry,slot)
-        if len(rows)!=len(baseline_rows):
-            raise ValueError("C27_ABLATION_MISALIGNED")
+        if len(rows)!=len(baseline_rows) or not math.isfinite(summary["final_equity"]) or summary["final_equity"]<=0:
+            raise ValueError("C27_ABLATION_MISALIGNED_OR_INSOLVENT")
         scenarios[name]={
             "without_equity":summary["final_equity"],
             "full_minus_without_equity":baseline["final_equity"]-summary["final_equity"],
@@ -76,14 +78,14 @@ def run(prices, manifest, funding):
             "without_max_drawdown":summary["max_drawdown"],
             "without_total_turnover":summary["total_turnover"],
             "without_funding_return_sum":summary["funding_return_sum"],
-            "without_positive_days":sum(rows[i]["equity"]>rows[i-1]["equity"] for i in range(1,len(rows))),
+            "without_positive_ledger_hours":sum(rows[i]["equity"]>rows[i-1]["equity"] for i in range(1,len(rows))),
             "marginal_positive":baseline["final_equity"]>summary["final_equity"]
         }
     controls={}
     for control in ("router","governor"):
         summary,rows=replay_without_control(bars,carry,control)
-        if len(rows)!=len(baseline_rows):
-            raise ValueError("C27_CONTROL_ABLATION_MISALIGNED")
+        if len(rows)!=len(baseline_rows) or not math.isfinite(summary["final_equity"]) or summary["final_equity"]<=0:
+            raise ValueError("C27_CONTROL_ABLATION_MISALIGNED_OR_INSOLVENT")
         controls[control]={
             "without_equity":summary["final_equity"],
             "full_minus_without_log_wealth":math.log(baseline["final_equity"]/summary["final_equity"]),
