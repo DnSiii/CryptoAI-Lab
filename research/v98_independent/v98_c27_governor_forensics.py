@@ -26,13 +26,21 @@ def analyze(prices, manifest, funding):
     for a,b in zip(base_rows,off_rows):
         if a["index"]!=b["index"]:
             raise ValueError("GOVERNOR_FORENSICS_MISALIGNED")
-        wa=sum(a["weights_after_fill"].values())
-        wb=sum(b["weights_after_fill"].values())
-        if abs(wa-wb)>1e-10:
+        # Gross risk must use absolute notionals; signed net exposure can hide
+        # offsetting long/short risk. Detect changes in the whole weight vector.
+        aw=a["weights_after_fill"]
+        bw=b["weights_after_fill"]
+        if set(aw)!=set(bw):
+            raise ValueError("GOVERNOR_FORENSICS_ASSET_MISMATCH")
+        if not all(math.isfinite(v) for v in (*aw.values(),*bw.values())):
+            raise ValueError("GOVERNOR_FORENSICS_NONFINITE_WEIGHT")
+        wa=sum(abs(v) for v in aw.values())
+        wb=sum(abs(v) for v in bw.values())
+        if any(abs(aw[k]-bw[k])>1e-10 for k in aw):
             active+=1
             exposure_deltas.append(wb-wa)
-        base_limited+=wa>0.90+1e-9 or max(a["weights_after_fill"].values())>0.40+1e-9
-        off_limited+=wb>0.90+1e-9 or max(b["weights_after_fill"].values())>0.40+1e-9
+        base_limited+=wa>0.90+1e-9 or max((abs(v) for v in aw.values()),default=0.)>0.40+1e-9
+        off_limited+=wb>0.90+1e-9 or max((abs(v) for v in bw.values()),default=0.)>0.40+1e-9
     if min(base["final_equity"],off["final_equity"])<=0:
         raise ValueError("GOVERNOR_FORENSICS_INSOLVENT")
     return {
