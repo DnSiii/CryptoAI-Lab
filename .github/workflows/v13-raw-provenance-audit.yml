@@ -8,6 +8,7 @@ on:
       - tests/test_audit_v13_paper_raw_provenance.py
       - .github/workflows/v13-raw-provenance-audit.yml
       - scripts/triage_v13_ledger_discrepancies.py
+      - tests/test_triage_v13_ledger_discrepancies.py
   workflow_dispatch:
 jobs:
   adversarial-classifier:
@@ -20,7 +21,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Run raw-provenance adversarial tests without modifying historical paper
-        run: python -m unittest discover -s tests -p 'test_audit_v13_paper_raw_provenance.py' -v
+        run: |
+          python -m unittest discover -s tests -p 'test_audit_v13_paper_raw_provenance.py' -v
+          python -m unittest discover -s tests -p 'test_triage_v13_ledger_discrepancies.py' -v
 
   published-ledger-provenance:
     runs-on: ubuntu-latest
