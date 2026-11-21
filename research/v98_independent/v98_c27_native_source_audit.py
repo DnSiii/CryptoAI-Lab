@@ -39,6 +39,25 @@ def check(summary_path, prices, manifest, funding):
                         actual=row[label][a]
                         if not math.isfinite(actual) or not math.isclose(actual,expected,rel_tol=1e-10,abs_tol=1e-11):
                             raise ValueError("C27_NATIVE_SOURCE_MISMATCH "+scenario+" "+a+" "+label+" "+str(count))
+                # Independently verify the pre-fill marked book and aggregate cashflows.
+                # This catches a source-correct gross ledger paired with an
+                # inconsistent portfolio state or unaccounted native funding.
+                expected_gross_total=sum(previous[a]*(data["bars"][a][count][0]/
+                    data["bars"][a][count-1][0]-1) for a in ASSETS)
+                expected_funding_total=sum(-previous[a]*rates[a].get(count,0.) for a in ASSETS)
+                factor=1+expected_gross_total+expected_funding_total
+                if not math.isfinite(factor) or factor<=0:
+                    raise ValueError("C27_NATIVE_INSOLVENT_MARK")
+                for label,expected in (("gross_return",expected_gross_total),
+                                       ("funding_return",expected_funding_total)):
+                    if not math.isclose(row[label],expected,rel_tol=1e-10,abs_tol=1e-11):
+                        raise ValueError("C27_NATIVE_AGGREGATE_MISMATCH "+scenario+" "+label+" "+str(count))
+                for a in ASSETS:
+                    ret=data["bars"][a][count][0]/data["bars"][a][count-1][0]-1
+                    marked=previous[a]*(1+ret)/factor
+                    if not math.isclose(row["weights_before_fill"][a],marked,
+                                        rel_tol=1e-10,abs_tol=1e-11):
+                        raise ValueError("C27_NATIVE_MARKED_WEIGHT_MISMATCH "+scenario+" "+a+" "+str(count))
                 previous=row["weights_after_fill"]
         if count!=data["hours"]-1:
             raise ValueError("C27_SOURCE_INCOMPLETE_LEDGER")
