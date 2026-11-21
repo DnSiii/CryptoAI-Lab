@@ -27,16 +27,22 @@ def evaluate(summary):
             # Opening marks at start/end use post-cost equity. This is a diagnostic
             # convention, not an independent strategy selection criterion.
             lo = rows[start - 1]["equity"]
-            hi = rows[end - 2]["equity"]
+            # Hour end is the closing boundary, not the preceding hourly mark.
+            # The final boundary (27048) is stored in the authenticated summary.
+            hi = (rows[end - 1]["equity"] if end < 27048
+                  else result["results"][scenario]["final_equity"])
             hourly = [rows[i - 1]["equity"] / rows[i - 2]["equity"] - 1
-                      for i in range(start + 1, end)]
+                      for i in range(start + 1, min(end, 27047) + 1)]
             positive = sum(x > 0 for x in hourly)
             peak = lo
             dd = 0.
-            for i in range(start, end):
+            for i in range(start, min(end, 27047) + 1):
                 equity = rows[i - 1]["equity"]
                 peak = max(peak, equity)
                 dd = max(dd, 1 - equity / peak)
+            if end == 27048:
+                peak = max(peak, hi)
+                dd = max(dd, 1 - hi / peak)
             folds[year] = {"return": hi / lo - 1, "max_drawdown": dd,
                            "positive_hours": positive, "observed_hours": end - start,
                            "fees_return_sum": sum(rows[i - 1]["cost_return"] for i in range(start, end)),
