@@ -15,6 +15,7 @@ on:
       - 'research/v98_independent/v98_c21_ledger_audit.py'
       - 'research/v98_independent/v98_c27_native_source_audit.py'
       - 'research/v98_independent/v98_c27_sleeve_ablation.py'
+      - 'research/v98_independent/v98_c27_governor_forensics.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -182,6 +183,17 @@ jobs:
                     'annual_delta_log_wealth',annual,'positive_all_training_years',all(v>0 for v in annual.values()))
           print('C27_ABLATION_DIAGNOSTIC_ONLY_NOT_VALIDATION_NOT_PROMOTION')
           PY
+      - name: Diagnose C27 governor opportunity cost versus survival on training only
+        run: |
+          python -m research.v98_independent.v98_c27_governor_forensics --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_governor_forensics.json
+          python - <<'PY'
+          import json,math
+          d=json.load(open('/tmp/v98_independent/b0/c27_governor_forensics.json'))
+          assert d['holdout_accessed'] is False and d['hours_compared']==27047
+          assert all(math.isfinite(d[k]) for k in ('governor_marginal_log_wealth','drawdown_reduction','baseline_final_equity','governor_off_final_equity'))
+          assert d['baseline_hard_cap_breach_hours']==0
+          print('C27_GOVERNOR_TRAINING_DIAGNOSTIC_NOT_VALIDATION',d)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -195,6 +207,7 @@ jobs:
             /tmp/v98_independent/b0/c27_exposure_forensics.json
             /tmp/v98_independent/b0/c27_daily_risk_diagnostics.json
             /tmp/v98_independent/b0/c27_sleeve_ablation.json
+            /tmp/v98_independent/b0/c27_governor_forensics.json
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
