@@ -76,6 +76,23 @@ jobs:
           cat /tmp/v98_independent/b0/sources/paths.env >> "$GITHUB_ENV"
       - name: Run preregistered C27 full-history native-funding replay
         run: python -m research.v98_independent.v98_c27_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_composed_summary.json
+      - name: Repeat full C27 native replay and prove byte-identical economics
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c27_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_repro_summary.json
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/b0')
+          for suffix in ('.json','_1x_ledger.jsonl','_2x_ledger.jsonl','_4x_ledger.jsonl'):
+              a=root/('c27_composed_summary'+suffix)
+              b=root/('c27_repro_summary'+suffix)
+              ah=hashlib.sha256(a.read_bytes()).hexdigest()
+              bh=hashlib.sha256(b.read_bytes()).hexdigest()
+              if ah!=bh:
+                  raise SystemExit('C27_REPRODUCIBILITY_MISMATCH '+suffix+' '+ah+' '+bh)
+              print('C27_REPRODUCIBLE',suffix,ah)
+          PY
       - name: Require complete C27 training replay
         run: |
           python - <<'PY'
