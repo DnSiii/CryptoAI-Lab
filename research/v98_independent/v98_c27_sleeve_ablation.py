@@ -127,7 +127,8 @@ def run(prices, manifest, funding):
             "without_equity":summary["final_equity"],
             "full_minus_without_log_wealth":math.log(baseline["final_equity"]/summary["final_equity"]),
             "without_max_drawdown":summary["max_drawdown"],
-            "marginal_positive":baseline["final_equity"]>summary["final_equity"]
+            "marginal_positive":baseline["final_equity"]>summary["final_equity"],
+            "annual_marginal_log_wealth_training_only":annual_marginal_log_wealth(baseline_rows,rows)
         }
     return {
         "status":"TRAINING_ONLY_ABLATION_NOT_VALIDATION_NOT_PROMOTION",
