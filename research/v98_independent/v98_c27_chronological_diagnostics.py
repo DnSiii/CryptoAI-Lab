@@ -48,6 +48,18 @@ def evaluate(summary):
                            "funding_return_sum": sum(rows[i - 1]["funding_return"] for i in range(start, min(end, 27047)))}
             if not all(math.isfinite(v) for v in folds[year].values()):
                 raise ValueError("C27_NONFINITE_FOLD")
+        # Fail closed if annual boundary marks do not form a contiguous,
+        # self-financing equity chain. This checks accounting only, not OOS.
+        opening = rows[YEAR_HOURS["2023"][0] - 2]["equity"]
+        if not math.isfinite(opening) or opening <= 0:
+            raise ValueError("C27_INVALID_TRAINING_OPENING_EQUITY")
+        compounded = opening
+        for year in YEAR_HOURS:
+            compounded *= 1.0 + folds[year]["return"]
+        terminal = result["results"][scenario]["final_equity"]
+        if not math.isfinite(terminal) or not math.isclose(
+                compounded, terminal, rel_tol=1e-10, abs_tol=1e-7):
+            raise ValueError("C27_ANNUAL_BOUNDARY_RECONCILIATION_FAILED")
         out["folds"][scenario] = folds
     return out
 
