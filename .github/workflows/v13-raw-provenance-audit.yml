@@ -1,0 +1,22 @@
+name: V13 raw provenance adversarial audit
+on:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - scripts/audit_v13_paper_raw_provenance.py
+      - tests/test_audit_v13_paper_raw_provenance.py
+      - .github/workflows/v13-raw-provenance-audit.yml
+  workflow_dispatch:
+jobs:
+  adversarial-classifier:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run raw-provenance adversarial tests without modifying historical paper
+        run: python -m unittest discover -s tests -p 'test_audit_v13_paper_raw_provenance.py' -v
