@@ -175,7 +175,11 @@ jobs:
           if not math.isclose(baseline,d['baseline_final_equity'],rel_tol=1e-12):
               raise SystemExit('C27_ABLATION_BASELINE_MISMATCH')
           for slot,x in {**d['scenarios'],**d['control_ablations']}.items():
-              print('C27_MARGINAL_TRAINING_ONLY',slot,'delta_log_wealth',round(x['full_minus_without_log_wealth'],8),'positive',x['marginal_positive'])
+              annual=x.get('annual_marginal_log_wealth_training_only',{})
+              if set(annual)!={'2023','2024','2025'} or not all(math.isfinite(v) for v in annual.values()):
+                  raise SystemExit('C27_ANNUAL_MARGINAL_INCOMPLETE '+slot)
+              print('C27_MARGINAL_TRAINING_ONLY',slot,'delta_log_wealth',round(x['full_minus_without_log_wealth'],8),'positive',x['marginal_positive'],
+                    'annual_delta_log_wealth',annual,'positive_all_training_years',all(v>0 for v in annual.values()))
           print('C27_ABLATION_DIAGNOSTIC_ONLY_NOT_VALIDATION_NOT_PROMOTION')
           PY
       - uses: actions/upload-artifact@v4
