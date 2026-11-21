@@ -68,6 +68,31 @@ def replay_without_control(bars, funding, control):
         engine.governor_multiplier=original_governor
         engine.c26_allocator=original_allocator
 
+def annual_marginal_log_wealth(baseline_rows, counterfactual_rows):
+    """Training-year marginal log-growth, aligned on the prior close, not cherry-picked windows."""
+    from datetime import datetime, timezone
+    if len(baseline_rows)!=len(counterfactual_rows):
+        raise ValueError("C27_ANNUAL_MARGINAL_LEDGER_MISMATCH")
+    out={}
+    for year in (2023,2024,2025):
+        start=int(datetime(year,1,1,tzinfo=timezone.utc).timestamp()*1000)
+        end=int(datetime(year+1,1,1,tzinfo=timezone.utc).timestamp()*1000)
+        lo=(start-START_MS)//HOUR_MS
+        hi=(end-START_MS)//HOUR_MS-1
+        # Ledger index 1 is the first observed opening mark after the initial bar.
+        # Annual return uses the last prior-hour mark as the beginning equity.
+        before=lo-1
+        if before<1 or hi>=len(baseline_rows)+1:
+            raise ValueError("C27_ANNUAL_MARGINAL_OUT_OF_RANGE")
+        def equity_at(index,rows):
+            return rows[index-1]["equity"]
+        b0,b1=equity_at(before,baseline_rows),equity_at(hi,baseline_rows)
+        c0,c1=equity_at(before,counterfactual_rows),equity_at(hi,counterfactual_rows)
+        if min(b0,b1,c0,c1)<=0 or not all(math.isfinite(x) for x in (b0,b1,c0,c1)):
+            raise ValueError("C27_ANNUAL_MARGINAL_INVALID_EQUITY")
+        out[str(year)]=math.log(b1/b0)-math.log(c1/c0)
+    return out
+
 def run(prices, manifest, funding):
     data=load(prices,manifest,funding)
     bars=data["bars"]
@@ -90,7 +115,8 @@ def run(prices, manifest, funding):
             "without_total_turnover":summary["total_turnover"],
             "without_funding_return_sum":summary["funding_return_sum"],
             "without_positive_ledger_hours":sum(rows[i]["equity"]>rows[i-1]["equity"] for i in range(1,len(rows))),
-            "marginal_positive":baseline["final_equity"]>summary["final_equity"]
+            "marginal_positive":baseline["final_equity"]>summary["final_equity"],
+            "annual_marginal_log_wealth_training_only":annual_marginal_log_wealth(baseline_rows,rows)
         }
     controls={}
     for control in ("router","governor","allocator_equal_active"):
