@@ -22,6 +22,17 @@ def evaluate(summary):
         rows = [json.loads(line) for line in ledger.open()]
         if len(rows) != 27047 or [r["index"] for r in rows] != list(range(1, 27048)):
             raise ValueError("C27_INCOMPLETE_OR_NONCHRONOLOGICAL_LEDGER")
+        # Validate the full economic ledger before deriving any annual statistic.
+        # JSON permits NaN/Infinity by default; never allow either into a gate.
+        for expected_index, row in enumerate(rows, 1):
+            if row["index"] != expected_index:
+                raise ValueError("C27_LEDGER_INDEX_DISCONTINUITY")
+            for field in ("equity", "cost_return", "funding_return"):
+                value = row[field]
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                    raise ValueError("C27_NONFINITE_LEDGER_" + field.upper())
+            if row["equity"] <= 0:
+                raise ValueError("C27_NONPOSITIVE_LEDGER_EQUITY")
         folds = {}
         for year, (start, end) in YEAR_HOURS.items():
             # Year starts at the previous hour close; year ends at the last
