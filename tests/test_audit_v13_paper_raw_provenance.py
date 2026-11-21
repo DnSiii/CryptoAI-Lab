@@ -30,6 +30,8 @@ class RawProvenanceTests(unittest.TestCase):
         self.assertEqual(classify(record(0, 0.001, 0.2, 0.2)), "invalid_display_or_weight")
     def test_invalid_display(self):
         self.assertEqual(classify(record(float("nan"), 0.001)), "invalid_display_or_weight")
+    def test_negative_display_rejected(self):
+        self.assertEqual(classify(record(-0.01, 0.01)), "invalid_display_or_weight")
     def test_valid_positive(self):
         self.assertEqual(classify(record(1.23, 1.234)), "verified_positive")
 
