@@ -31,6 +31,15 @@ class TriageTests(unittest.TestCase):
         self.assertEqual([r["adjustment_index"] for r in result["mismatch_manifest"]], list(range(15)))
         self.assertTrue(all(len(r["row_sha256"]) == 64 for r in result["mismatch_manifest"]))
 
+    def test_missing_raw_manifest_keeps_all_rows_and_indices(self):
+        rows = [{"symbol": "BTC", "order_value_brl": "1.00"} for _ in range(17)]
+        result = triage({"decisions": [{"timestamp": "t", "adjustments": rows}]})
+        self.assertEqual(result["counts"]["missing_raw"], 17)
+        self.assertEqual(len(result["missing_raw_manifest"]), 17)
+        self.assertEqual([r["adjustment_index"] for r in result["missing_raw_manifest"]], list(range(17)))
+        self.assertTrue(all(len(r["row_sha256"]) == 64 for r in result["missing_raw_manifest"]))
+        self.assertEqual(len(result["examples_by_category"]["missing_raw"]), 10)
+
     def test_examples_not_monopolized_by_missing_raw(self):
         rows = [{"symbol": "BTC", "order_value_brl": "1"} for _ in range(50)]
         rows.append({"symbol": "ETH", "order_value_brl": "2", "order_value_brl_unrounded": "1"})
