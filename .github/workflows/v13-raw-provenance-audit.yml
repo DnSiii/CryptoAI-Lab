@@ -7,6 +7,7 @@ on:
       - scripts/audit_v13_paper_raw_provenance.py
       - tests/test_audit_v13_paper_raw_provenance.py
       - .github/workflows/v13-raw-provenance-audit.yml
+      - scripts/triage_v13_ledger_discrepancies.py
   workflow_dispatch:
 jobs:
   adversarial-classifier:
@@ -37,3 +38,40 @@ jobs:
           git show FETCH_HEAD:reports/paper_v13_ledger.json > reports/paper_v13_ledger.json
       - name: Classify actual historical adjustments (fail closed)
         run: python scripts/audit_v13_paper_raw_provenance.py
+
+  published-ledger-discrepancy-triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Retrieve immutable ledger snapshot from paper-results
+        run: |
+          git fetch --no-tags --depth=1 origin paper-results
+          mkdir -p reports
+          git show FETCH_HEAD:reports/paper_v13_ledger.json > reports/paper_v13_ledger.json
+          sha256sum reports/paper_v13_ledger.json > reports/paper_v13_ledger.sha256
+          git rev-parse FETCH_HEAD > reports/paper_results_commit.txt
+      - name: Run read-only row-level triage (fail closed)
+        shell: bash
+        run: |
+          set +e
+          python scripts/triage_v13_ledger_discrepancies.py > reports/v13_discrepancy_triage.json
+          status=$?
+          cat reports/v13_discrepancy_triage.json
+          echo "Triage exit status: $status"
+          exit "$status"
+      - name: Preserve diagnostic artifact even on audit failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v13-original-ledger-triage
+          path: |
+            reports/v13_discrepancy_triage.json
+            reports/paper_v13_ledger.sha256
+            reports/paper_results_commit.txt
+          if-no-files-found: warn
+          retention-days: 30
