@@ -22,6 +22,15 @@ class TriageTests(unittest.TestCase):
         self.assertEqual(result["max_abs_mismatch_brl_by_symbol"]["ETHUSDT"], "0.0951181")
         self.assertEqual(result["examples_by_category"]["mismatch"][0]["adjustment_index"], 1)
 
+    def test_full_mismatch_manifest_preserves_all_row_identifiers(self):
+        rows = [{"symbol": "ETH", "order_value_brl": "10.00", "order_value_brl_unrounded": "9.00"} for _ in range(15)]
+        result = triage({"decisions": [{"timestamp": "t", "adjustments": rows}]})
+        self.assertEqual(result["counts"]["mismatch"], 15)
+        self.assertEqual(len(result["examples_by_category"]["mismatch"]), 10)
+        self.assertEqual(len(result["mismatch_manifest"]), 15)
+        self.assertEqual([r["adjustment_index"] for r in result["mismatch_manifest"]], list(range(15)))
+        self.assertTrue(all(len(r["row_sha256"]) == 64 for r in result["mismatch_manifest"]))
+
     def test_examples_not_monopolized_by_missing_raw(self):
         rows = [{"symbol": "BTC", "order_value_brl": "1"} for _ in range(50)]
         rows.append({"symbol": "ETH", "order_value_brl": "2", "order_value_brl_unrounded": "1"})
