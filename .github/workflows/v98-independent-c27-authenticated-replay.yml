@@ -161,7 +161,7 @@ jobs:
               raise SystemExit(1)
           print('C27_TRAINING_GATE_PASS_ONLY_NOT_VALIDATION_NOT_PROMOTION')
           PY
-      - name: C27 preregistered seven-slot marginal attribution diagnostics (training only)
+      - name: C27 seven-slot training diagnostics and allocator counterfactual
         run: |
           set -euo pipefail
           python -m research.v98_independent.v98_c27_sleeve_ablation --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_sleeve_ablation.json
@@ -169,7 +169,7 @@ jobs:
           import json,math
           p='/tmp/v98_independent/b0/c27_sleeve_ablation.json'
           d=json.load(open(p))
-          if d['holdout_accessed'] is not False or set(d['scenarios'])!={'growth_core','opportunity','relative_value','stress_recovery'} or set(d['control_ablations'])!={'router','governor'}:
+          if d['holdout_accessed'] is not False or set(d['scenarios'])!={'growth_core','opportunity','relative_value','stress_recovery'} or set(d['control_ablations'])!={'router','governor','allocator_equal_active'}:
               raise SystemExit('C27_ABLATION_INCOMPLETE')
           baseline=json.load(open('/tmp/v98_independent/b0/c27_composed_summary.json'))['results']['4x']['final_equity']
           if not math.isclose(baseline,d['baseline_final_equity'],rel_tol=1e-12):
