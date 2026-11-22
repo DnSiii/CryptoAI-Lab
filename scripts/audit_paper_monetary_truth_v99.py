@@ -5,8 +5,8 @@ Never modifies ledger, never derives missing historical raw notionals.
 Run: python scripts/audit_paper_monetary_truth_v99.py [ledger.json] [output.json]
 """
 from __future__ import annotations
+import hashlib
 import json
-import math
 import sys
 from collections import Counter
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN
@@ -54,9 +54,9 @@ def audit(ledger):
     counts = Counter()
     examples = {}
     seen = set()
-    for decision in ledger.get("decisions", []):
+    for decision_index, decision in enumerate(ledger.get("decisions", [])):
         timestamp = decision.get("timestamp")
-        for row in decision.get("adjustments", []):
+        for adjustment_index, row in enumerate(decision.get("adjustments", [])):
             key = (timestamp, row.get("symbol"))
             if key in seen:
                 category = "duplicate_order_key"
@@ -65,12 +65,17 @@ def audit(ledger):
                 category = classify(row)
             counts[category] += 1
             if len(examples.get(category, [])) < 8:
+                row_canonical = json.dumps(row, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+                row_sha256 = hashlib.sha256(row_canonical.encode("utf-8")).hexdigest()
                 examples.setdefault(category, []).append({
+                    "decision_index": decision_index, "adjustment_index": adjustment_index,
+                    "row_sha256": row_sha256,
                     "timestamp": timestamp, "symbol": row.get("symbol"),
                     "display": row.get("order_value_brl"),
                     "raw": row.get("order_value_brl_unrounded"),
                 })
     return {"total": sum(counts.values()), "counts": dict(sorted(counts.items())),
+            "evidence_identity": "sha256 of canonical original adjustment JSON; never a reconstructed trade",
             "examples": examples, "read_only": True,
             "historical_values_reconstructed": False}
 
