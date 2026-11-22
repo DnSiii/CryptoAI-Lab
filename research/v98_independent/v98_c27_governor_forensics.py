@@ -7,7 +7,7 @@ import argparse
 import json
 import math
 from pathlib import Path
-from .v98_c27_sleeve_ablation import indexed_funding, replay_without_control
+from .v98_c27_sleeve_ablation import indexed_funding, replay_without_control, annual_marginal_log_wealth
 from .v98_phase243_training_reader import load
 from . import v98_c27_authenticated_runner as engine
 
@@ -25,6 +25,10 @@ def analyze(prices, manifest, funding):
     base_limited=0
     off_limited=0
     exposure_deltas=[]
+    baseline_pre_fill_hard_cap_pressure=0
+    off_pre_fill_hard_cap_pressure=0
+    baseline_queued_safety_hours=0
+    off_queued_safety_hours=0
     for a,b in zip(base_rows,off_rows):
         if a["index"]!=b["index"]:
             raise ValueError("GOVERNOR_FORENSICS_MISALIGNED")
@@ -36,6 +40,18 @@ def analyze(prices, manifest, funding):
             raise ValueError("GOVERNOR_FORENSICS_ASSET_MISMATCH")
         if not all(math.isfinite(v) for v in (*aw.values(),*bw.values())):
             raise ValueError("GOVERNOR_FORENSICS_NONFINITE_WEIGHT")
+        for row, label in ((a,"base"),(b,"off")):
+            before=row["weights_before_fill"]
+            if set(before)!=set(aw) or not all(math.isfinite(v) for v in before.values()):
+                raise ValueError("GOVERNOR_FORENSICS_BAD_PRE_FILL_EXPOSURE")
+            pressure=(sum(abs(v) for v in before.values())>0.90+1e-9 or
+                      max((abs(v) for v in before.values()),default=0.)>0.40+1e-9)
+            if label=="base":
+                baseline_pre_fill_hard_cap_pressure+=pressure
+                baseline_queued_safety_hours+=row["order_type"]=="safety"
+            else:
+                off_pre_fill_hard_cap_pressure+=pressure
+                off_queued_safety_hours+=row["order_type"]=="safety"
         wa=sum(abs(v) for v in aw.values())
         wb=sum(abs(v) for v in bw.values())
         if any(abs(aw[k]-bw[k])>1e-10 for k in aw):
@@ -64,11 +80,16 @@ def analyze(prices, manifest, funding):
         "governor_off_max_drawdown":off["max_drawdown"],
         "drawdown_reduction":off["max_drawdown"]-base["max_drawdown"],
         "baseline_hard_cap_breach_hours":base_limited,
+        "baseline_pre_fill_hard_cap_pressure_hours":baseline_pre_fill_hard_cap_pressure,
+        "governor_off_pre_fill_hard_cap_pressure_hours":off_pre_fill_hard_cap_pressure,
+        "baseline_queued_safety_hours":baseline_queued_safety_hours,
+        "governor_off_queued_safety_hours":off_queued_safety_hours,
+        "annual_governor_marginal_log_wealth_training_only":annual_marginal_log_wealth(base_rows,off_rows),
         "governor_off_hard_cap_breach_hours":off_limited,
         "mean_off_minus_on_gross_exposure_when_different":sum(exposure_deltas)/len(exposure_deltas) if exposure_deltas else 0.,
         "baseline_turnover":base["total_turnover"],
         "governor_off_turnover":off["total_turnover"],
-        "limitations":"Governor-off retains the C27 preemptive hard-cap envelope and is not a fully unconstrained governor removal. Post-fill exposure differences are path-dependent and do not prove direct governor intervention. Hard-cap breach counts after fill cannot measure pre-cap pressure. This is inspected training, not independent validation, holdout, or promotion."
+        "limitations":"Governor-off retains the C27 preemptive hard-cap envelope and is not a fully unconstrained governor removal. Post-fill exposure differences are path-dependent and do not prove direct governor intervention. Pre-fill hard-cap pressure is measured before execution but does not identify governor causality; post-fill breaches remain a separate constraint check. This is inspected training, not independent validation, holdout, or promotion."
     }
 
 def main():
