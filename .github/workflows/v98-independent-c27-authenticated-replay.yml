@@ -229,6 +229,17 @@ jobs:
           for k,v in d.items():
               print('C27_SUPERSEVERE_AUDITED_TRAINING_ONLY',k,'equity',round(v['final_equity'],2),'drawdown',round(v['max_drawdown'],6))
           PY
+      - name: Independently reconcile 8x/12x native price and funding cashflows
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c27_native_source_audit --summary /tmp/v98_independent/b0/c27_supersevere_cost_stress.json --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --supersevere --output /tmp/v98_independent/b0/c27_supersevere_native_source_audit.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/v98_independent/b0/c27_supersevere_native_source_audit.json'))
+          if set(d)!={'8x','12x'} or not all(v['native_price_funding_reconciled'] and v['final_close_reconciled'] and v['audited_hours']==27047 for v in d.values()):
+              raise SystemExit('C27_SUPERSEVERE_NATIVE_SOURCE_AUDIT_FAILED')
+          print('C27_SUPERSEVERE_NATIVE_SOURCE_AUDITED_TRAINING_ONLY',d)
+          PY
       - name: Independently verify 8x/12x causal execution clocks and safety queues
         run: |
           set -euo pipefail
@@ -257,6 +268,7 @@ jobs:
             /tmp/v98_independent/b0/c27_supersevere_cost_stress.json
             /tmp/v98_independent/b0/c27_supersevere_independent_audit.json
             /tmp/v98_independent/b0/c27_supersevere_causal_audit.json
+            /tmp/v98_independent/b0/c27_supersevere_native_source_audit.json
             /tmp/v98_independent/b0/c27_supersevere_cost_stress_*_ledger.jsonl
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
