@@ -31,7 +31,7 @@ def stamp_ms(value):
 
 def validate(root, receipt_path):
     root, receipt_path = Path(root).resolve(), Path(receipt_path).resolve()
-    if "v98_independent" not in root.parts or "v98_independent" not in receipt_path.parts:
+    if "v98_independent" not in root.parts or root not in receipt_path.parents or not receipt_path.is_file():
         raise ValueError("V98_NAMESPACE_REQUIRED")
     receipt = json.loads(receipt_path.read_text())
     if (receipt.get("mode") != "V98_C27_PROSPECTIVE_SOURCE_ONLY"
@@ -62,7 +62,10 @@ def validate(root, receipt_path):
         price = root / entry["price_file"]
         count = 0
         with price.open(newline="") as stream:
-            for row in csv.DictReader(stream):
+            reader = csv.DictReader(stream)
+            if reader.fieldnames != ["open_time", "open", "high", "low", "close", "quote_volume"]:
+                raise ValueError("PROSPECTIVE_PRICE_SCHEMA_" + asset)
+            for row in reader:
                 t = stamp_ms(row["open_time"])
                 if t != start + count * HOUR or t >= end:
                     raise ValueError("PROSPECTIVE_PRICE_GAP_" + asset)
@@ -75,7 +78,10 @@ def validate(root, receipt_path):
         seen = set()
         previous = None
         with (root / entry["funding_file"]).open(newline="") as stream:
-            for row in csv.DictReader(stream):
+            reader = csv.DictReader(stream)
+            if reader.fieldnames != ["timestamp_utc", "funding_rate"]:
+                raise ValueError("PROSPECTIVE_FUNDING_SCHEMA_" + asset)
+            for row in reader:
                 t = stamp_ms(row["timestamp_utc"])
                 rate = float(row["funding_rate"])
                 if (t in seen or t < start or t >= end or not math.isfinite(rate)
