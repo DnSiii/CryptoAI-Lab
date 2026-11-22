@@ -1,0 +1,51 @@
+name: V99 Paper Monetary Truth Read Only
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - scripts/audit_paper_monetary_truth_v99.py
+      - .github/workflows/v99-paper-monetary-truth.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Read immutable published ledger from paper-results
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin paper-results
+          git rev-parse FETCH_HEAD > paper_source_commit.txt
+          git show FETCH_HEAD:reports/paper_v13_ledger.json > published_ledger.json
+          sha256sum published_ledger.json > published_ledger.sha256
+      - name: Run adversarial checks and classify published orders
+        run: |
+          set -euo pipefail
+          python scripts/audit_paper_monetary_truth_v99.py published_ledger.json paper_monetary_truth.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("paper_monetary_truth.json").read_text())
+          assert report["read_only"] is True
+          assert report["historical_values_reconstructed"] is False
+          assert report["total"] == sum(report["counts"].values())
+          assert report["total"] > 0
+          print("Audited:",report["total"],report["counts"])
+          PY
+      - name: Preserve forensic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v99-paper-monetary-truth
+          path: |
+            paper_source_commit.txt
+            published_ledger.sha256
+            paper_monetary_truth.json
+          if-no-files-found: warn
