@@ -10,11 +10,11 @@ from .v98_composed_c26 import WARMUP
 from .v98_c27_two_clock_governor import execute_queued_units, queue_sell_fractions
 from .v98_c27_authenticated_runner import ASSET_BUFFER, GROSS_BUFFER
 
-def audit(path):
+def audit(path, scenarios=("1x","2x","4x")):
     summary=json.loads(path.read_text())
     assert summary["source"]=="AUTHENTICATED_CLEAN4" and summary["holdout_accessed"] is False
     report={}
-    for scenario in ("1x","2x","4x"):
+    for scenario in scenarios:
         ledger=path.with_name(path.stem+"_"+scenario+"_ledger.jsonl")
         queued={a:0. for a in ASSETS}
         checks=0
@@ -56,7 +56,8 @@ def audit(path):
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--summary",type=Path,required=True)
+    p.add_argument("--supersevere",action="store_true",help="Audit 8x/12x stress queue and execution clocks")
     a=p.parse_args()
     if "v98_independent" not in a.summary.resolve().parts:
         raise ValueError("C27_NAMESPACE_REQUIRED")
-    print(json.dumps(audit(a.summary),sort_keys=True))
+    print(json.dumps(audit(a.summary, ("8x","12x") if a.supersevere else ("1x","2x","4x")),sort_keys=True))
