@@ -217,6 +217,24 @@ jobs:
               assert all(math.isfinite(v[k]) for k in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
               print('C27_SUPERSEVERE_TRAINING_ONLY',key,'final_equity',round(v['final_equity'],2),'max_drawdown',round(v['max_drawdown'],6),'turnover',round(v['total_turnover'],6))
           PY
+      - name: Repeat 8x/12x supersevere replay and prove deterministic full ledgers
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c27_supersevere_cost_stress --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_supersevere_repro.json
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          root=Path('/tmp/v98_independent/b0')
+          pairs=[('c27_supersevere_cost_stress.json','c27_supersevere_repro.json')]
+          for scenario in ('8x','12x'):
+              pairs.append((f'c27_supersevere_cost_stress_{scenario}_ledger.jsonl',f'c27_supersevere_repro_{scenario}_ledger.jsonl'))
+          for a,b in pairs:
+              ha=hashlib.sha256((root/a).read_bytes()).hexdigest()
+              hb=hashlib.sha256((root/b).read_bytes()).hexdigest()
+              if ha!=hb:
+                  raise SystemExit('C27_SUPERSEVERE_NONDETERMINISTIC '+a+' '+ha+' '+hb)
+              print('C27_SUPERSEVERE_REPRODUCIBLE',a,ha)
+          PY
       - name: Independently reconcile 8x/12x full ledgers before publishing stress results
         run: |
           set -euo pipefail
