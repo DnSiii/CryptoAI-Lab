@@ -269,6 +269,26 @@ jobs:
               raise SystemExit('C27_SUPERSEVERE_CAUSAL_GATE_FAILED')
           print('C27_SUPERSEVERE_CAUSAL_TRAINING_ONLY',d)
           PY
+      - name: Fail-closed 8x/12x supersevere net-growth survival gate (training only)
+        run: |
+          python - <<'PY'
+          import json, math
+          d=json.load(open('/tmp/v98_independent/b0/c27_supersevere_independent_audit.json'))
+          failures=[]
+          for scale in ('8x','12x'):
+              x=d.get(scale,{})
+              if x.get('arithmetic_reconciled') is not True:
+                  failures.append(scale+':ledger_not_reconciled')
+              equity=x.get('final_equity')
+              if not isinstance(equity,(int,float)) or not math.isfinite(equity) or equity<=10000:
+                  failures.append(scale+':no_positive_net_growth')
+              dd=x.get('max_drawdown')
+              if not isinstance(dd,(int,float)) or not math.isfinite(dd) or not 0<=dd<1:
+                  failures.append(scale+':invalid_drawdown')
+          if failures:
+              raise SystemExit('C27_SUPERSEVERE_TRAINING_GATE_REJECT '+','.join(failures))
+          print('C27_SUPERSEVERE_TRAINING_GATE_PASS_ONLY_NOT_VALIDATION_NOT_PROMOTION')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
