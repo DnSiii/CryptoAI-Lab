@@ -54,15 +54,16 @@ def audit(ledger):
     counts = Counter()
     examples = {}
     seen = set()
+    duplicate_keys = []
     for decision_index, decision in enumerate(ledger.get("decisions", [])):
         timestamp = decision.get("timestamp")
         for adjustment_index, row in enumerate(decision.get("adjustments", [])):
             key = (timestamp, row.get("symbol"))
             if key in seen:
-                category = "duplicate_order_key"
+                duplicate_keys.append({"decision_index": decision_index, "adjustment_index": adjustment_index, "timestamp": timestamp, "symbol": row.get("symbol")})
             else:
                 seen.add(key)
-                category = classify(row)
+            category = classify(row)
             counts[category] += 1
             if len(examples.get(category, [])) < 8:
                 row_canonical = json.dumps(row, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
@@ -76,7 +77,8 @@ def audit(ledger):
                 })
     return {"total": sum(counts.values()), "counts": dict(sorted(counts.items())),
             "evidence_identity": "sha256 of canonical original adjustment JSON; never a reconstructed trade",
-            "examples": examples, "read_only": True,
+            "examples": examples, "duplicate_order_key_count": len(duplicate_keys),
+            "duplicate_order_key_examples": duplicate_keys[:8], "read_only": True,
             "historical_values_reconstructed": False}
 
 def self_test():
@@ -91,6 +93,13 @@ def self_test():
         ({"order_value_brl": float("inf")}, "invalid_display"),
         ({"order_value_brl": 0.005, "order_value_brl_unrounded": 0.005}, "invalid_display"),
     ]
+    # A duplicate identity must never hide an invalid monetary amount.
+    sample = {"decisions": [{"timestamp": "2026-01-01", "adjustments": [
+        {"symbol": "BTCUSDT", "order_value_brl": 0, "order_value_brl_unrounded": 0.004},
+        {"symbol": "BTCUSDT", "order_value_brl": 0, "order_value_brl_unrounded": 0.006}]}]}
+    duplicate_report = audit(sample)
+    assert duplicate_report["counts"] == {"inconsistent_zero": 1, "legitimate_subcent": 1}
+    assert duplicate_report["duplicate_order_key_count"] == 1
     for row, expected in cases:
         actual = classify(row)
         assert actual == expected, (row, actual, expected)
