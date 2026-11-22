@@ -73,6 +73,55 @@ jobs:
           Path("reports/lineage/summary.json").write_text(json.dumps(summary,indent=2)+"\\n")
           print(json.dumps(summary,indent=2))
           PY
+      - name: Attribute ledger records to first observed publication commit (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, subprocess
+          from collections import Counter
+          from pathlib import Path
+          target="reports/paper_v13_ledger.json"
+          ref="refs/remotes/origin/paper-results"
+          commits=subprocess.check_output(["git","log","--format=%H","--reverse",ref,"--",target],text=True).splitlines()
+          latest=json.loads(Path("reports/lineage/original_ledger.json").read_text())
+          def rows(doc):
+            for d in doc.get("decisions",[]):
+              for a in d.get("adjustments",[]):
+                yield d.get("timestamp"),a
+          def key(ts,a):
+            # Stable fingerprint includes the historical execution, not just time/symbol.
+            fields=(ts,a.get("symbol"),a.get("order_side"),a.get("previous_weight"),
+                    a.get("new_weight"),a.get("order_value_brl"),a.get("execution_price"))
+            return hashlib.sha256(json.dumps(fields,sort_keys=True,default=str).encode()).hexdigest()
+          wanted={key(t,a) for t,a in rows(latest)}
+          first={}
+          changed=Counter()
+          for sha in commits:
+            raw=subprocess.run(["git","show",f"{sha}:{target}"],capture_output=True)
+            if raw.returncode: continue
+            try: doc=json.loads(raw.stdout)
+            except (ValueError,UnicodeDecodeError): continue
+            seen=set()
+            for ts,a in rows(doc):
+              k=key(ts,a)
+              if k in wanted and k not in seen:
+                seen.add(k)
+                if k not in first: first[k]=sha
+            changed["revisions_examined"]+=1
+          by_commit=Counter(first.values())
+          report={"method":"first observed matching execution fingerprint in chronological paper-results ledger revisions; NOT proof of generator commit",
+                  "paper_results_head":Path("reports/lineage/paper_results_sha.txt").read_text().strip(),
+                  "ledger_revisions_found":len(commits),
+                  "ledger_revisions_examined":changed["revisions_examined"],
+                  "unique_current_fingerprints":len(wanted),
+                  "fingerprints_attributed":len(first),
+                  "unattributed":len(wanted)-len(first),
+                  "first_publication_counts":dict(by_commit),
+                  "warning":"Matching execution fingerprint may predate raw field; publication commit does not prove the generator revision. Do not backfill or rewrite."}
+          Path("reports/lineage/first_publication_summary.json").write_text(json.dumps(report,indent=2)+"\n")
+          print(json.dumps({k:v for k,v in report.items() if k!="first_publication_counts"},indent=2))
+          PY
       - name: Upload immutable lineage evidence
         if: always()
         uses: actions/upload-artifact@v4
