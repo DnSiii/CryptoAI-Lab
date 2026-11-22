@@ -16,6 +16,7 @@ on:
       - 'research/v98_independent/v98_c27_native_source_audit.py'
       - 'research/v98_independent/v98_c27_sleeve_ablation.py'
       - 'research/v98_independent/v98_c27_governor_forensics.py'
+      - 'research/v98_independent/v98_c27_supersevere_cost_stress.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -198,6 +199,24 @@ jobs:
           assert all(math.isfinite(x) for x in d['annual_governor_marginal_log_wealth_training_only'].values())
           print('C27_GOVERNOR_TRAINING_DIAGNOSTIC_NOT_VALIDATION',d)
           PY
+      - name: Full-history C27 fixed supersevere 8x/12x cost stress (training only)
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c27_supersevere_cost_stress --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_supersevere_cost_stress.json
+          python - <<'PY'
+          import json, math
+          base=json.load(open('/tmp/v98_independent/b0/c27_composed_summary.json'))
+          stress=json.load(open('/tmp/v98_independent/b0/c27_supersevere_cost_stress.json'))
+          assert stress['holdout_accessed'] is False and stress['source']==base['source']
+          assert stress['price_manifest_sha256']==base['price_manifest_sha256']
+          assert stress['funding_manifest_sha256']==base['funding_manifest_sha256']
+          assert set(stress['results'])=={'8x','12x'}
+          for key in ('8x','12x'):
+              v=stress['results'][key]
+              assert v['hours']==27048 and v['total_turnover']>0
+              assert all(math.isfinite(v[k]) for k in ('final_equity','max_drawdown','total_turnover','funding_return_sum'))
+              print('C27_SUPERSEVERE_TRAINING_ONLY',key,'final_equity',round(v['final_equity'],2),'max_drawdown',round(v['max_drawdown'],6),'turnover',round(v['total_turnover'],6))
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -212,6 +231,7 @@ jobs:
             /tmp/v98_independent/b0/c27_daily_risk_diagnostics.json
             /tmp/v98_independent/b0/c27_sleeve_ablation.json
             /tmp/v98_independent/b0/c27_governor_forensics.json
+            /tmp/v98_independent/b0/c27_supersevere_cost_stress.json
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
           if-no-files-found: warn
