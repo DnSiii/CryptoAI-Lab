@@ -30,6 +30,7 @@ jobs:
           git log --all --format='%H %aI %s' -- reports/paper_v13_ledger.json > reports/lineage/ledger_history.txt
           python - <<'PY'
           import json
+          import math
           from pathlib import Path
           ledger=json.loads(Path("reports/lineage/original_ledger.json").read_text())
           decisions=ledger.get("decisions",[])
@@ -38,7 +39,38 @@ jobs:
             "first_decision":decisions[0].get("timestamp") if decisions else None,
             "last_decision":decisions[-1].get("timestamp") if decisions else None,
             "missing_raw":sum(a.get("order_value_brl_unrounded") is None for _,a in adjustments)}
-          Path("reports/lineage/summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          from datetime import datetime, timezone
+          from collections import Counter
+          # 2026-11-05T17:51:47Z is the generator commit adding raw notional.
+          boundary=datetime.fromisoformat("2026-11-05T17:51:47+00:00")
+          by_era={}
+          samples=[]
+          for ts,a in adjustments:
+            try:
+              moment=datetime.fromisoformat(str(ts).replace("Z","+00:00"))
+              era="before_raw_generator_commit" if moment < boundary else "after_raw_generator_commit"
+            except (TypeError,ValueError):
+              era="timestamp_unparseable"
+            bucket=by_era.setdefault(era,Counter())
+            bucket["total"]+=1
+            raw=a.get("order_value_brl_unrounded")
+            if raw is None:
+              bucket["missing_raw"]+=1
+            else:
+              try:
+                precise=float(raw)
+                displayed=float(a.get("order_value_brl"))
+                if not (math.isfinite(precise) and precise>0 and math.isfinite(displayed) and round(precise,2)==displayed):
+                  bucket["raw_display_mismatch"]+=1
+                  if len(samples)<25:
+                    samples.append({"timestamp":ts,"symbol":a.get("symbol"),"raw":raw,"displayed":a.get("order_value_brl")})
+              except (TypeError,ValueError,OverflowError):
+                bucket["invalid_numeric"]+=1
+          summary["generator_raw_commit"]="dc17b44794b747ea8b43c5d36c340ad7a800c0c7"
+          summary["generator_raw_commit_timestamp"]=boundary.isoformat()
+          summary["by_era"]={key:dict(value) for key,value in by_era.items()}
+          Path("reports/lineage/era_mismatch_samples.json").write_text(json.dumps(samples,indent=2)+"\\n")
+          Path("reports/lineage/summary.json").write_text(json.dumps(summary,indent=2)+"\\n")
           print(json.dumps(summary,indent=2))
           PY
       - name: Upload immutable lineage evidence
