@@ -49,6 +49,8 @@ def validate(root, receipt_path):
     if receipt.get("window_precommitted") is not True or not receipt.get("precommit_reference"):
         raise ValueError("VALIDATION_WINDOW_NOT_PRECOMMITTED")
     hours = (end - start) // HOUR
+    if hours < 2:
+        raise ValueError("PROSPECTIVE_WINDOW_TOO_SHORT")
     for asset in ASSETS:
         entry = receipt["assets"][asset]
         if set(entry) != {"price_file", "price_sha256", "funding_file", "funding_sha256"}:
@@ -71,13 +73,16 @@ def validate(root, receipt_path):
         if count != hours:
             raise ValueError("PROSPECTIVE_INCOMPLETE_PRICES_" + asset)
         seen = set()
+        previous = None
         with (root / entry["funding_file"]).open(newline="") as stream:
             for row in csv.DictReader(stream):
                 t = stamp_ms(row["timestamp_utc"])
                 rate = float(row["funding_rate"])
-                if t in seen or t < start or t >= end or not math.isfinite(rate):
+                if (t in seen or t < start or t >= end or not math.isfinite(rate)
+                        or (previous is not None and t <= previous)):
                     raise ValueError("PROSPECTIVE_BAD_FUNDING_" + asset)
                 seen.add(t)
+                previous = t
         if not seen:
             raise ValueError("PROSPECTIVE_EMPTY_FUNDING_" + asset)
         # Funding schedules may change; do not fabricate missing events.
