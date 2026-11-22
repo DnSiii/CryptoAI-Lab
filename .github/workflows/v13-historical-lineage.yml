@@ -1,0 +1,50 @@
+name: V13 historical generator lineage (read-only)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/v99-r106-native-all-regime-engine
+    paths:
+      - .github/workflows/v13-historical-lineage.yml
+jobs:
+  trace-lineage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture original paper and generator provenance without modifying either
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/lineage
+          git fetch --no-tags origin paper-results
+          git rev-parse refs/remotes/origin/paper-results > reports/lineage/paper_results_sha.txt
+          git show refs/remotes/origin/paper-results:reports/paper_v13_ledger.json > reports/lineage/original_ledger.json
+          sha256sum reports/lineage/original_ledger.json > reports/lineage/ledger_sha256.txt
+          git log --all --format='%H %aI %s' -- scripts/paper_once_v13.py > reports/lineage/generator_history.txt
+          git log refs/remotes/origin/paper-results -20 --format='%H %aI %s' > reports/lineage/paper_history.txt
+          git log --all --format='%H %aI %s' -- reports/paper_v13_ledger.json > reports/lineage/ledger_history.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          ledger=json.loads(Path("reports/lineage/original_ledger.json").read_text())
+          decisions=ledger.get("decisions",[])
+          adjustments=[(d.get("timestamp"),a) for d in decisions for a in d.get("adjustments",[])]
+          summary={"decision_count":len(decisions),"adjustment_count":len(adjustments),
+            "first_decision":decisions[0].get("timestamp") if decisions else None,
+            "last_decision":decisions[-1].get("timestamp") if decisions else None,
+            "missing_raw":sum(a.get("order_value_brl_unrounded") is None for _,a in adjustments)}
+          Path("reports/lineage/summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          print(json.dumps(summary,indent=2))
+          PY
+      - name: Upload immutable lineage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v13-historical-generator-lineage
+          path: reports/lineage/
+          retention-days: 30
