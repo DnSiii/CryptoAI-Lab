@@ -9,7 +9,7 @@ from pathlib import Path
 from .v98_phase243_training_reader import load, START_MS
 from .phase243_native_funding_cashflow import ASSETS, HOUR_MS
 
-def check(summary_path, prices, manifest, funding):
+def check(summary_path, prices, manifest, funding, scenarios=("1x", "2x", "4x")):
     summary_path=Path(summary_path)
     summary=json.loads(summary_path.read_text())
     if summary.get("source")!="AUTHENTICATED_CLEAN4" or summary.get("holdout_accessed") is not False:
@@ -20,7 +20,11 @@ def check(summary_path, prices, manifest, funding):
         raise ValueError("C27_SOURCE_MANIFEST_MISMATCH")
     rates={a:{(t-START_MS)//HOUR_MS:v for t,v in data["funding"][a].items()} for a in ASSETS}
     report={}
-    for scenario in ("1x","2x","4x"):
+    if set(scenarios) not in ({"1x", "2x", "4x"}, {"8x", "12x"}):
+        raise ValueError("C27_UNAPPROVED_SOURCE_AUDIT_SCENARIOS")
+    if set(summary.get("results", {})) != set(scenarios):
+        raise ValueError("C27_SOURCE_AUDIT_SCENARIO_MISMATCH")
+    for scenario in scenarios:
         ledger=summary_path.with_name(summary_path.stem+"_"+scenario+"_ledger.jsonl")
         previous={a:0. for a in ASSETS}
         count=0
@@ -72,11 +76,12 @@ def main():
     p=argparse.ArgumentParser()
     for name in ("summary","prices","manifest","funding","output"):
         p.add_argument("--"+name,type=Path,required=True)
+    p.add_argument("--supersevere", action="store_true", help="Reconcile fixed 8x/12x stress ledgers")
     a=p.parse_args()
     if any("v98_independent" not in x.resolve().parts for x in
            (a.summary,a.prices,a.manifest,a.funding,a.output)):
         raise ValueError("V98_NAMESPACE_REQUIRED")
-    result=check(a.summary,a.prices,a.manifest,a.funding)
+    result=check(a.summary,a.prices,a.manifest,a.funding, ("8x","12x") if a.supersevere else ("1x","2x","4x"))
     a.output.write_text(json.dumps(result,sort_keys=True,indent=2,allow_nan=False)+"\n")
     print(json.dumps(result,sort_keys=True))
 
