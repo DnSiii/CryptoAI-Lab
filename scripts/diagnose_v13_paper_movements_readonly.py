@@ -3,7 +3,7 @@
 import argparse
 import json
 import math
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN
 from pathlib import Path
 
 def classify(adjustment):
@@ -19,8 +19,12 @@ def classify(adjustment):
         if adjustment.get("order_side") != ("buy" if delta > 0 else "sell"):
             return "INCONSISTENT_SIDE"
         if shown > 0:
-            return "POSITIVE_DISPLAYED_VALUE"
-        if shown == 0 and raw is not None and Decimal(0) < raw < Decimal("0.005") and round(raw, 2) == shown:
+            if raw is None:
+                return "POSITIVE_RAW_MISSING"
+            if raw <= 0 or raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN) != shown:
+                return "INCONSISTENT_POSITIVE_RAW_DISPLAY"
+            return "POSITIVE_RECONCILED"
+        if shown == 0 and raw is not None and Decimal(0) < raw < Decimal("0.005") and raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN) == shown:
             return "LEGITIMATE_SUBCENT_DISPLAY"
         return "INCONSISTENT_ZERO_OR_NEGATIVE_VALUE"
     except (KeyError, InvalidOperation, ValueError, TypeError):
@@ -32,7 +36,7 @@ def inspect(path):
     for di, decision in enumerate(ledger.get("decisions", [])):
         for ai, adjustment in enumerate(decision.get("adjustments", [])):
             status = classify(adjustment)
-            if status != "POSITIVE_DISPLAYED_VALUE":
+            if status != "POSITIVE_RECONCILED":
                 records.append({"decision_index": di, "adjustment_index": ai, "classification": status,
                                 "raw_adjustment": adjustment})
     return {"source": str(path), "read_only": True, "movement_exceptions": records,
@@ -51,12 +55,15 @@ def selftest():
         ({"order_value_brl_unrounded": "0.0049", "order_side": "sell"}, "INCONSISTENT_SIDE"),
         ({"order_value_brl_unrounded": "0.0049", "new_weight": "0"}, "INCONSISTENT_ZERO_DELTA"),
         ({"order_value_brl_unrounded": "0.0049", "order_value_brl": "-0.01"}, "INCONSISTENT_ZERO_OR_NEGATIVE_VALUE"),
-        ({"order_value_brl_unrounded": "0.0049", "order_value_brl": "0.01"}, "POSITIVE_DISPLAYED_VALUE"),
+        ({"order_value_brl_unrounded": "0.0049", "order_value_brl": "0.01"}, "INCONSISTENT_POSITIVE_RAW_DISPLAY"),
+        ({"order_value_brl_unrounded": "7.7148818969", "order_value_brl": "7.81"}, "INCONSISTENT_POSITIVE_RAW_DISPLAY"),
+        ({"order_value_brl_unrounded": "7.7148818969", "order_value_brl": "7.71"}, "POSITIVE_RECONCILED"),
+        ({"order_value_brl": "7.81"}, "POSITIVE_RAW_MISSING"),
     ]
     for override, expected in cases:
         actual = classify({**base, **override})
         assert actual == expected, (override, actual, expected)
-    print("V13 movement forensic adversarial tests: 10 PASS (fixtures only)")
+    print(f"V13 movement forensic adversarial tests: {len(cases)} PASS (fixtures only)")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
