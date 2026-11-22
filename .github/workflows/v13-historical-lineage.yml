@@ -110,6 +110,34 @@ jobs:
                 if k not in first: first[k]=sha
             changed["revisions_examined"]+=1
           by_commit=Counter(first.values())
+          # Report the actual first-publication lineage of each current row,
+          # not merely the timestamp of the simulated decision.
+          classifications=Counter()
+          evidence=[]
+          for ts,a in rows(latest):
+            fingerprint=key(ts,a)
+            publication=first.get(fingerprint)
+            raw=a.get("order_value_brl_unrounded")
+            displayed=a.get("order_value_brl")
+            if raw is None:
+              status="missing_raw"
+            else:
+              try:
+                import math
+                precise=float(raw)
+                rounded=float(displayed)
+                status="reconciled" if math.isfinite(precise) and precise>0 and math.isfinite(rounded) and round(precise,2)==rounded else "mismatch"
+              except (TypeError,ValueError,OverflowError):
+                status="invalid_numeric"
+            classifications[(publication or "UNATTRIBUTED",status)]+=1
+            if status!="reconciled" and len(evidence)<50:
+              evidence.append({"fingerprint":fingerprint,"first_publication_commit":publication,
+                               "decision_timestamp":ts,"symbol":a.get("symbol"),
+                               "raw":raw,"displayed":displayed,"classification":status})
+          Path("reports/lineage/first_publication_discrepancy_samples.json").write_text(json.dumps(evidence,indent=2)+"\\n")
+          Path("reports/lineage/first_publication_discrepancy_counts.json").write_text(json.dumps(
+              [{"first_publication_commit":sha,"classification":status,"count":count}
+               for (sha,status),count in sorted(classifications.items())],indent=2)+"\\n")
           report={"method":"first observed matching execution fingerprint in chronological paper-results ledger revisions; NOT proof of generator commit",
                   "paper_results_head":Path("reports/lineage/paper_results_sha.txt").read_text().strip(),
                   "ledger_revisions_found":len(commits),
