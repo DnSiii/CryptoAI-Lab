@@ -17,7 +17,6 @@ on:
       - 'research/v98_independent/v98_c27_sleeve_ablation.py'
       - 'research/v98_independent/v98_c27_governor_forensics.py'
       - 'research/v98_independent/v98_c27_supersevere_cost_stress.py'
-      - 'research/v98_independent/v98_c21_ledger_audit.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -230,6 +229,17 @@ jobs:
           for k,v in d.items():
               print('C27_SUPERSEVERE_AUDITED_TRAINING_ONLY',k,'equity',round(v['final_equity'],2),'drawdown',round(v['max_drawdown'],6))
           PY
+      - name: Independently verify 8x/12x causal execution clocks and safety queues
+        run: |
+          set -euo pipefail
+          python -m research.v98_independent.v98_c27_causal_audit --summary /tmp/v98_independent/b0/c27_supersevere_cost_stress.json --supersevere > /tmp/v98_independent/b0/c27_supersevere_causal_audit.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/v98_independent/b0/c27_supersevere_causal_audit.json'))
+          if set(d)!={'8x','12x'} or not all(v['causal_queue_reconciled'] and v['checked_hours']==27047 and v['strategic_rebalances']>0 for v in d.values()):
+              raise SystemExit('C27_SUPERSEVERE_CAUSAL_GATE_FAILED')
+          print('C27_SUPERSEVERE_CAUSAL_TRAINING_ONLY',d)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -246,6 +256,7 @@ jobs:
             /tmp/v98_independent/b0/c27_governor_forensics.json
             /tmp/v98_independent/b0/c27_supersevere_cost_stress.json
             /tmp/v98_independent/b0/c27_supersevere_independent_audit.json
+            /tmp/v98_independent/b0/c27_supersevere_causal_audit.json
             /tmp/v98_independent/b0/c27_supersevere_cost_stress_*_ledger.jsonl
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
           retention-days: 30
