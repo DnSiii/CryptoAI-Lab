@@ -1,0 +1,21 @@
+name: V98 Independent prospective preflight tests
+on:
+  push:
+    branches: [research/v98-independent-zero]
+    paths:
+      - 'research/v98_independent/v98_c27_prospective_source_preflight.py'
+      - 'research/v98_independent/test_v98_c27_prospective_source_preflight.py'
+      - '.github/workflows/v98-independent-prospective-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-source-firewall:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run V98 synthetic prospective source firewall tests
+        run: python -m unittest research.v98_independent.test_v98_c27_prospective_source_preflight -v
