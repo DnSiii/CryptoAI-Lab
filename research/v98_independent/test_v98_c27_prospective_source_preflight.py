@@ -47,7 +47,7 @@ class ProspectiveFirewallTests(unittest.TestCase):
             for asset in assets:
                 funding = root / assets[asset]["funding_file"]
                 lines = funding.read_text().splitlines()
-                funding.write_text("\\n".join([lines[0],lines[2],lines[1]]) + "\\n")
+                funding.write_text(chr(10).join([lines[0],lines[2],lines[1]]) + chr(10))
                 assets[asset]["funding_sha256"] = hashlib.sha256(funding.read_bytes()).hexdigest()
             receipt_data = json.loads(receipt.read_text())
             receipt_data["assets"] = assets
