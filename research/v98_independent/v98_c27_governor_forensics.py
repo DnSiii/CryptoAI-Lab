@@ -20,6 +20,8 @@ def analyze(prices, manifest, funding):
     if len(base_rows)!=27047 or len(off_rows)!=27047:
         raise ValueError("GOVERNOR_FORENSICS_INCOMPLETE")
     active=0
+    strategic_differences=0
+    safety_queue_differences=0
     base_limited=0
     off_limited=0
     exposure_deltas=[]
@@ -39,6 +41,10 @@ def analyze(prices, manifest, funding):
         if any(abs(aw[k]-bw[k])>1e-10 for k in aw):
             active+=1
             exposure_deltas.append(wb-wa)
+            if a["order_type"]=="strategic":
+                strategic_differences+=1
+            if a["order_type"]=="safety" or b["order_type"]=="safety":
+                safety_queue_differences+=1
         base_limited+=wa>0.90+1e-9 or max((abs(v) for v in aw.values()),default=0.)>0.40+1e-9
         off_limited+=wb>0.90+1e-9 or max((abs(v) for v in bw.values()),default=0.)>0.40+1e-9
     if min(base["final_equity"],off["final_equity"])<=0:
@@ -49,6 +55,8 @@ def analyze(prices, manifest, funding):
         "cost_scale":"4x",
         "hours_compared":len(base_rows),
         "hours_different_post_fill_exposure":active,
+        "strategic_rebalance_hours_with_different_exposure":strategic_differences,
+        "safety_queue_hours_with_different_exposure":safety_queue_differences,
         "baseline_final_equity":base["final_equity"],
         "governor_off_final_equity":off["final_equity"],
         "governor_marginal_log_wealth":math.log(base["final_equity"]/off["final_equity"]),
@@ -60,7 +68,7 @@ def analyze(prices, manifest, funding):
         "mean_off_minus_on_gross_exposure_when_different":sum(exposure_deltas)/len(exposure_deltas) if exposure_deltas else 0.,
         "baseline_turnover":base["total_turnover"],
         "governor_off_turnover":off["total_turnover"],
-        "limitations":"Governor-off is not deployable. This is already inspected training; no chronological independent validation, no holdout, no promotion."
+        "limitations":"Governor-off retains the C27 preemptive hard-cap envelope and is not a fully unconstrained governor removal. Post-fill exposure differences are path-dependent and do not prove direct governor intervention. Hard-cap breach counts after fill cannot measure pre-cap pressure. This is inspected training, not independent validation, holdout, or promotion."
     }
 
 def main():
