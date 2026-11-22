@@ -192,6 +192,10 @@ jobs:
           assert d['holdout_accessed'] is False and d['hours_compared']==27047
           assert all(math.isfinite(d[k]) for k in ('governor_marginal_log_wealth','drawdown_reduction','baseline_final_equity','governor_off_final_equity'))
           assert d['baseline_hard_cap_breach_hours']==0
+          assert d['governor_off_hard_cap_breach_hours']==0
+          assert all(isinstance(d[k],int) and 0<=d[k]<=d['hours_compared'] for k in ('baseline_pre_fill_hard_cap_pressure_hours','governor_off_pre_fill_hard_cap_pressure_hours','baseline_queued_safety_hours','governor_off_queued_safety_hours'))
+          assert set(d['annual_governor_marginal_log_wealth_training_only'])=={'2023','2024','2025'}
+          assert all(math.isfinite(x) for x in d['annual_governor_marginal_log_wealth_training_only'].values())
           print('C27_GOVERNOR_TRAINING_DIAGNOSTIC_NOT_VALIDATION',d)
           PY
       - uses: actions/upload-artifact@v4
