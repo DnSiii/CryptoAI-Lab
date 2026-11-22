@@ -14,7 +14,7 @@ from .v98_c27_authenticated_runner import replay
 
 STRESS_SCALES = (8., 12.)
 
-def evaluate(prices, manifest, funding):
+def evaluate(prices, manifest, funding, output=None):
     data = load(prices, manifest, funding)
     indexed = {asset: {} for asset in ASSETS}
     for asset in ASSETS:
@@ -34,7 +34,13 @@ def evaluate(prices, manifest, funding):
             raise ValueError("C27_STRESS_INSOLVENT_OR_ZERO_TRADE")
         if any(row["hard_cap_breach_after_fill"] for row in ledger):
             raise ValueError("C27_STRESS_HARD_CAP_BREACH")
-        results[f"{int(scale)}x"] = summary
+        key = f"{int(scale)}x"
+        results[key] = summary
+        if output is not None:
+            ledger_path = output.with_name(output.stem + "_" + key + "_ledger.jsonl")
+            with ledger_path.open("w") as stream:
+                for row in ledger:
+                    stream.write(json.dumps(row, sort_keys=True, allow_nan=False) + "\n")
     return {
         "status": "C27_TRAINING_ONLY_SUPERSEVERE_COST_STRESS_NOT_VALIDATION",
         "holdout_accessed": False,
@@ -52,8 +58,8 @@ def main():
     args = parser.parse_args()
     if "v98_independent" not in args.output.absolute().parts:
         raise ValueError("V98_NAMESPACE_REQUIRED")
-    result = evaluate(args.prices, args.manifest, args.funding)
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    result = evaluate(args.prices, args.manifest, args.funding, args.output)
     args.output.write_text(json.dumps(result, sort_keys=True, indent=2, allow_nan=False) + "\n")
     print(json.dumps(result, sort_keys=True, allow_nan=False))
 
