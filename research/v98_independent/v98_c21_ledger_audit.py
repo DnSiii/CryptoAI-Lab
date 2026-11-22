@@ -12,20 +12,21 @@ from pathlib import Path
 
 ASSETS = ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")
 SCALES = ("1x", "2x", "4x")
+SUPERSEVERE_SCALES = ("8x", "12x")
 TOL = 1e-9
 
 def close(a, b):
     return math.isclose(a, b, rel_tol=TOL, abs_tol=TOL)
 
-def audit(summary_path):
+def audit(summary_path, scenarios=SCALES):
     summary_path = Path(summary_path)
     summary = json.loads(summary_path.read_text())
     if summary.get("source") != "AUTHENTICATED_CLEAN4" or summary.get("holdout_accessed") is not False:
         raise ValueError("SOURCE_OR_HOLDOUT_CONTRACT")
-    if set(summary["results"]) != set(SCALES):
+    if set(summary["results"]) != set(scenarios):
         raise ValueError("SCENARIOS_MISSING")
     report = {}
-    for scenario in SCALES:
+    for scenario in scenarios:
         path = summary_path.with_name(summary_path.stem + "_" + scenario + "_ledger.jsonl")
         rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
         result = summary["results"][scenario]
@@ -76,7 +77,7 @@ def audit(summary_path):
             turnover = sum(abs(e["weights_after_fill"][a]-e["weights_before_fill"][a]) for a in ASSETS)
             if not close(turnover,e["turnover"]):
                 raise ValueError("TURNOVER_RECONCILIATION")
-            expected_cost = turnover * .0006 * int(scenario[0])
+            expected_cost = turnover * .0006 * int(scenario[:-1])
             if not close(expected_cost,e["cost_return"]):
                 raise ValueError("NATIVE_COST_RECONCILIATION")
             if not close(e["pre_fill_equity"]*(1-e["cost_return"]),e["equity"]):
@@ -145,10 +146,11 @@ def audit(summary_path):
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--summary",type=Path,required=True)
+    p.add_argument("--supersevere",action="store_true",help="Audit the fixed 8x/12x Clean-4 stress ledgers")
     args=p.parse_args()
     if "v98_independent" not in args.summary.resolve().parts:
         raise ValueError("V98_NAMESPACE_REQUIRED")
-    print(json.dumps(audit(args.summary),indent=2,sort_keys=True))
+    print(json.dumps(audit(args.summary, SUPERSEVERE_SCALES if args.supersevere else SCALES),indent=2,sort_keys=True))
 
 if __name__ == "__main__":
     main()
