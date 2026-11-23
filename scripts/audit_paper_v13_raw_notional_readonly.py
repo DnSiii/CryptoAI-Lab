@@ -58,7 +58,5 @@ print(json.dumps({"counts": dict(sorted(counts.items())), "examples_by_class": e
                   "latest_data_timestamp": ledger.get("latest_data_timestamp")},
                  ensure_ascii=False, indent=2, default=str))
 bad = sum(n for k, n in counts.items() if k not in ("valid_positive_reconciled", "valid_subcent", "positive_missing_raw"))
-if bad:
-    raise SystemExit(f"FAIL CLOSED: {bad} inconsistent original movements; historical paper unchanged")
-if counts["positive_missing_raw"]:
-    print("CAUTION: positive records missing raw precision cannot be independently reconciled")
+if bad or counts["positive_missing_raw"]:
+    raise SystemExit(f"FAIL CLOSED: {bad} inconsistent movements; {counts['positive_missing_raw']} missing original raw amounts; historical paper unchanged")
