@@ -55,7 +55,33 @@ def audit(prices, manifest, funding_path):
                     raise ValueError(f"C27_CROSS_EXECUTOR_DIVERGENCE scale={scale} index={SPLIT+index} field={key}")
         if not math.isclose(continued["final_equity"], summary["final_equity"], rel_tol=1e-12):
             raise ValueError("C27_CROSS_EXECUTOR_TERMINAL")
-        verdict[f"{int(scale)}x"] = dict(compared_hours=len(actual), status="CROSS_EXECUTOR_EQUAL_TRAINING_ONLY")
+        # A second fixed 2024/2025 training boundary tests carry_out from the
+        # continuation kernel itself, rather than reconstructing it from the
+        # original historical ledger. The state crosses a JSON boundary again.
+        second_split = 18000
+        first_n = second_split - SPLIT
+        first_bars = {a: bars[a][SPLIT:second_split] for a in ASSETS}
+        first_funding = {a: {i-SPLIT: v for i, v in funding[a].items()
+                             if SPLIT <= i < second_split} for a in ASSETS}
+        first = continue_replay(first_bars, first_funding, scale, state)
+        carried = json.loads(json.dumps(first["carry_out"], sort_keys=True, allow_nan=False))
+        if carried["absolute_index"] != second_split:
+            raise ValueError("C27_CROSS_EXECUTOR_SECOND_CLOCK")
+        second_bars = {a: bars[a][second_split:] for a in ASSETS}
+        second_funding = {a: {i-second_split: v for i, v in funding[a].items()
+                              if i >= second_split} for a in ASSETS}
+        second = continue_replay(second_bars, second_funding, scale, carried)
+        stitched = first["ledger"] + second["ledger"]
+        if len(stitched) != len(expected):
+            raise ValueError("C27_CROSS_EXECUTOR_STITCH_LENGTH")
+        for index, (a, b) in enumerate(zip(stitched, expected)):
+            for key in fields:
+                if a[key] != b[key]:
+                    raise ValueError(f"C27_CROSS_EXECUTOR_STITCH_DIVERGENCE scale={scale} index={SPLIT+index} field={key}")
+        if not math.isclose(second["final_equity"], summary["final_equity"], rel_tol=1e-12):
+            raise ValueError("C27_CROSS_EXECUTOR_STITCH_TERMINAL")
+        verdict[f"{int(scale)}x"] = dict(compared_hours=len(actual),
+            stitched_hours=len(stitched), status="CROSS_EXECUTOR_EQUAL_TRAINING_ONLY")
     return verdict
 
 def main():
