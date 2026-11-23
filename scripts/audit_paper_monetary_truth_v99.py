@@ -75,9 +75,37 @@ def audit(ledger):
                     "display": row.get("order_value_brl"),
                     "raw": row.get("order_value_brl_unrounded"),
                 })
+    # Preserve all anomalous row identities, not only the first eight examples.
+    # Ratios are diagnostic observations, never reconstructed execution values.
+    anomalies = []
+    for di, decision in enumerate(ledger.get("decisions", [])):
+        for ai, row in enumerate(decision.get("adjustments", [])):
+            category = classify(row)
+            if category in ("reconciled_positive", "legitimate_subcent"):
+                continue
+            canonical = json.dumps(row, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+            entry = {"decision_index": di, "adjustment_index": ai,
+                     "timestamp": decision.get("timestamp"), "symbol": row.get("symbol"),
+                     "classification": category,
+                     "row_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+                     "display": row.get("order_value_brl"),
+                     "raw": row.get("order_value_brl_unrounded")}
+            try:
+                displayed = number(row.get("order_value_brl"))
+                raw = number(row.get("order_value_brl_unrounded"))
+                if displayed > 0 and raw > 0:
+                    entry["display_to_raw_ratio"] = str(displayed / raw)
+                    entry["absolute_difference_brl"] = str(displayed - raw)
+            except ValueError:
+                pass
+            anomalies.append(entry)
+    by_symbol = {}
+    for entry in anomalies:
+        symbol = str(entry["symbol"])
+        by_symbol.setdefault(symbol, Counter())[entry["classification"]] += 1
     return {"total": sum(counts.values()), "counts": dict(sorted(counts.items())),
             "evidence_identity": "sha256 of canonical original adjustment JSON; never a reconstructed trade",
-            "examples": examples, "duplicate_order_key_count": len(duplicate_keys),
+            "examples": examples, "anomalies": anomalies,\n            "anomaly_counts_by_symbol": {k: dict(v) for k, v in sorted(by_symbol.items())},\n            "duplicate_order_key_count": len(duplicate_keys),
             "duplicate_order_key_examples": duplicate_keys[:8], "read_only": True,
             "historical_values_reconstructed": False}
 
