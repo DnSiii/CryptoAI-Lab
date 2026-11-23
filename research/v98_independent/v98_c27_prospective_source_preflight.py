@@ -51,12 +51,16 @@ def validate(root, receipt_path):
     hours = (end - start) // HOUR
     if hours < 2:
         raise ValueError("PROSPECTIVE_WINDOW_TOO_SHORT")
+    used_paths = set()
     for asset in ASSETS:
         entry = receipt["assets"][asset]
         if set(entry) != {"price_file", "price_sha256", "funding_file", "funding_sha256"}:
             raise ValueError("INVALID_ASSET_RECEIPT_" + asset)
         for name, hash_name in (("price_file", "price_sha256"), ("funding_file", "funding_sha256")):
             path = (root / entry[name]).resolve()
+            if path in used_paths:
+                raise ValueError("PROSPECTIVE_DUPLICATE_SOURCE_PATH_" + asset)
+            used_paths.add(path)
             if root not in path.parents or not path.is_file() or digest(path) != entry[hash_name]:
                 raise ValueError("PROVENANCE_HASH_OR_PATH_" + asset + "_" + name)
         price = root / entry["price_file"]
@@ -66,6 +70,8 @@ def validate(root, receipt_path):
             if reader.fieldnames != ["open_time", "open", "high", "low", "close", "quote_volume"]:
                 raise ValueError("PROSPECTIVE_PRICE_SCHEMA_" + asset)
             for row in reader:
+                if None in row or any(value is None for value in row.values()):
+                    raise ValueError("PROSPECTIVE_PRICE_ROW_SCHEMA_" + asset)
                 t = stamp_ms(row["open_time"])
                 if t != start + count * HOUR or t >= end:
                     raise ValueError("PROSPECTIVE_PRICE_GAP_" + asset)
@@ -82,6 +88,8 @@ def validate(root, receipt_path):
             if reader.fieldnames != ["timestamp_utc", "funding_rate"]:
                 raise ValueError("PROSPECTIVE_FUNDING_SCHEMA_" + asset)
             for row in reader:
+                if None in row or any(value is None for value in row.values()):
+                    raise ValueError("PROSPECTIVE_FUNDING_ROW_SCHEMA_" + asset)
                 t = stamp_ms(row["timestamp_utc"])
                 rate = float(row["funding_rate"])
                 if (t in seen or t < start or t >= end or not math.isfinite(rate)
