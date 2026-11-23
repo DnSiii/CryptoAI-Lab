@@ -34,6 +34,19 @@ class ContinuationTests(unittest.TestCase):
         self.assertEqual(full["final_equity"],second["final_equity"])
         self.assertEqual(full["carry_out"]["weights"],second["carry_out"]["weights"])
 
+    def test_nonzero_book_with_native_funding_split_invariance(self):
+        s,b,f=fixture()
+        s["weights"]["BTCUSDT"]=0.2
+        f["BTCUSDT"]={0:0.0001,2:-0.0002}
+        full=continue_replay(b,f,4.,s)
+        left=continue_replay({a:b[a][:2] for a in ASSETS},
+                             {a:{i:v for i,v in f[a].items() if i<2} for a in ASSETS},4.,s)
+        right=continue_replay({a:b[a][2:] for a in ASSETS},
+                              {a:{i-2:v for i,v in f[a].items() if i>=2} for a in ASSETS},
+                              4.,left["carry_out"])
+        self.assertAlmostEqual(full["final_equity"],right["final_equity"],places=8)
+        self.assertAlmostEqual(full["carry_out"]["equity"],right["carry_out"]["equity"],places=8)
+
     def test_rejects_bad_state_and_missing_asset(self):
         s,b,f=fixture()
         s["peak"]=9999.
