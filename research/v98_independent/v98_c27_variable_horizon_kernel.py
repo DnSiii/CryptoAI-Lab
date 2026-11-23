@@ -52,6 +52,9 @@ def continue_replay(bars, funding, scale, state):
             raise ValueError("C27_CONTINUATION_HISTORY")
         if not math.isfinite(float(previous_open[a])) or previous_open[a]<=0:
             raise ValueError("C27_CONTINUATION_PREVIOUS_MARK")
+        if any(type(x) not in (int, float) or not math.isfinite(x)
+               for x in (weights[a], queued[a])):
+            raise ValueError("C27_CONTINUATION_BOOK_NONFINITE")
         if not 0<=weights[a]<=ASSET_BUFFER+1e-10 or not 0<=queued[a]<=1:
             raise ValueError("C27_CONTINUATION_BOOK")
         if any(type(i)!=int or i<0 or i>=n or not math.isfinite(float(v))
