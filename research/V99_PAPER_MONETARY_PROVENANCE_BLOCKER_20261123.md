@@ -15,3 +15,11 @@ Status: **BLOCKED / NO PROMOTION**. This note does not modify any published ledg
 4. Run independent forensic and paper CI on the original artifacts and attach machine-readable evidence. Do not promote the paper's monetary certification or any V99 economic claim until every discrepancy is explained and checks pass.
 
 Separate engine gate: D1 remains rejected; I1 requires licensed, complete original Deribit options history (658/661 days missing), explicit procurement authorization, and independent economic validation. No orders, no holdout opening, no performance claim.
+
+## 2026-11-23 19:48 UTC — fail-closed workflow verified against later ledger
+
+- Research commit `1f1602fff3433ee5eaaf20a0d90671e98d38b977`; [CI run 45252684426](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/45252684426), job `137966208859`, finished **failure as required**, not a certified paper run.
+- The run fetched `paper-results` read-only and audited **1,745** adjustments: **316 inconsistent positive raw/display**, **1,425 positive displayed with missing raw**, **3 reconciled positive**, **1 legitimate subcent**, **0 duplicate timestamp/symbol keys**. The blocked count is 1,741, with four eligible categories counted separately; do not compare the 316 directly to older 314/310/300 without pinning each source revision.
+- Machine-readable provenance artifact [14856158842](https://github.com/DnSiii/CryptoAI-Lab/actions/runs/45252684426/artifacts/14856158842) contains `paper_source_commit.txt`, `published_ledger.sha256`, `paper_monetary_truth.json` and expires 2027-02-21. Workflow upload succeeded after the audit intentionally failed.
+- Existing generator trace identifies `scripts/paper_once_v13.py` `build_ledger` as deriving display and raw from the same simulated notional at generation time; it is **not exchange fill evidence**. Investigate per-revision inputs/equity/FX rather than substituting rounded raw or modifying historical rows. Historical positive rows without raw precision remain explicitly uncertified.
+- **NO PROMOTION**: publication success is not monetary provenance certification; preserve immutable historical ledger and sealed validation/holdout. No orders.
