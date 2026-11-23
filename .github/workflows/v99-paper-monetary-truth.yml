@@ -25,6 +25,48 @@ jobs:
           git rev-parse FETCH_HEAD > paper_source_commit.txt
           git show FETCH_HEAD:reports/paper_v13_ledger.json > published_ledger.json
           sha256sum published_ledger.json > published_ledger.sha256
+      - name: Trace original monetary fields across adjacent published revisions
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, subprocess
+          from pathlib import Path
+          head = Path("paper_source_commit.txt").read_text().strip()
+          parents = subprocess.check_output(["git","rev-list","--parents","-n","1",head],text=True).split()
+          report = {"current_commit": head, "parent_commit": parents[1] if len(parents)>1 else None,
+                    "read_only": True, "historical_values_reconstructed": False}
+          if len(parents)>1:
+              old = json.loads(subprocess.check_output(["git","show",f"{parents[1]}:reports/paper_v13_ledger.json"]))
+              new = json.loads(Path("published_ledger.json").read_text())
+              def index(ledger):
+                  out = {}
+                  duplicates = []
+                  for i,decision in enumerate(ledger.get("decisions",[])):
+                      for j,row in enumerate(decision.get("adjustments",[])):
+                          key=(decision.get("timestamp"),row.get("symbol"))
+                          if key in out: duplicates.append({"timestamp":key[0],"symbol":key[1]})
+                          out[key] = (i,j,row)
+                  return out,duplicates
+              before, old_dups = index(old)
+              after, new_dups = index(new)
+              fields=("order_value_brl","order_value_brl_unrounded","previous_weight","new_weight","execution_price","order_side")
+              changes=[]
+              for key in sorted(before.keys() & after.keys()):
+                  oi,oj,a=before[key]; ni,nj,b=after[key]
+                  changed={f:{"previous":a.get(f),"current":b.get(f)} for f in fields if a.get(f)!=b.get(f)}
+                  if changed:
+                      changes.append({"timestamp":key[0],"symbol":key[1],
+                                      "previous_index":[oi,oj],"current_index":[ni,nj],"changed":changed})
+              report.update({"previous_adjustments":len(before),"current_adjustments":len(after),
+                             "common_keys":len(before.keys() & after.keys()),
+                             "removed_keys":len(before.keys()-after.keys()),
+                             "added_keys":len(after.keys()-before.keys()),
+                             "changed_historical_keys":len(changes),
+                             "previous_duplicate_keys":old_dups[:10],"current_duplicate_keys":new_dups[:10],
+                             "changes":changes})
+          Path("paper_adjacent_revision_drift.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\\n")
+          print("Adjacent-revision provenance:", {k:v for k,v in report.items() if k!="changes"},flush=True)
+          PY
       - name: Run adversarial checks and classify published orders
         run: |
           set -euo pipefail
@@ -53,4 +95,5 @@ jobs:
             paper_source_commit.txt
             published_ledger.sha256
             paper_monetary_truth.json
+            paper_adjacent_revision_drift.json
           if-no-files-found: warn
