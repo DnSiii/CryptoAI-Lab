@@ -23,11 +23,20 @@ def resumed_suffix(bars, funding, scale, prefix, split=SPLIT):
     last = prefix[-1]
     if last["index"] != split - 1:
         raise ValueError("C27_SPLIT_LEDGER_INDEX")
-    equity = float(last["equity"])
-    peak = max([10000.] + [max(r["equity"], r["pre_fill_equity"]) for r in prefix])
-    weights = dict(last["weights_after_fill"])
-    queued = dict(last["queued_next_open_sell_fractions"])
-    histories = {a: [bars[a][j][3] for j in range(split)] for a in ASSETS}
+    # Cross the split via JSON bytes, not retained in-memory objects.
+    carry = dict(absolute_index=split, equity=float(last["equity"]),
+        peak=max([10000.] + [max(r["equity"], r["pre_fill_equity"]) for r in prefix]),
+        weights=dict(last["weights_after_fill"]),
+        queued=dict(last["queued_next_open_sell_fractions"]),
+        histories={a: [bars[a][j][3] for j in range(split)] for a in ASSETS},
+        previous_open={a: bars[a][split-1][0] for a in ASSETS})
+    carry = json.loads(json.dumps(carry, sort_keys=True, allow_nan=False))
+    if carry["absolute_index"] != split or set(carry["weights"]) != set(ASSETS) or set(carry["queued"]) != set(ASSETS):
+        raise ValueError("C27_SPLIT_SERIALIZED_STATE_INVALID")
+    if any(len(carry["histories"][a]) != split or carry["previous_open"][a] != bars[a][split-1][0] for a in ASSETS):
+        raise ValueError("C27_SPLIT_SERIALIZED_HISTORY_INVALID")
+    equity, peak = carry["equity"], carry["peak"]
+    weights, queued, histories = carry["weights"], carry["queued"], carry["histories"]
     decision_equity, decision_peak = equity, peak
     model, router = c26_model()
     result = []
