@@ -9,6 +9,8 @@ on:
       - 'research/v98_independent/test_v98_c27_prospective_replay_bridge.py'
       - 'research/v98_independent/v98_c27_carry_state_gate.py'
       - 'research/v98_independent/test_v98_c27_carry_state_gate.py'
+      - 'research/v98_independent/v98_c27_prospective_link_gate.py'
+      - 'research/v98_independent/test_v98_c27_prospective_link_gate.py'
       - '.github/workflows/v98-independent-prospective-preflight.yml'
   workflow_dispatch:
 permissions:
@@ -22,4 +24,4 @@ jobs:
         with:
           python-version: '3.11'
       - name: Run V98 synthetic prospective source firewall tests
-        run: python -m unittest research.v98_independent.test_v98_c27_prospective_source_preflight research.v98_independent.test_v98_c27_prospective_replay_bridge research.v98_independent.test_v98_c27_carry_state_gate -v
+        run: python -m unittest research.v98_independent.test_v98_c27_prospective_source_preflight research.v98_independent.test_v98_c27_prospective_replay_bridge research.v98_independent.test_v98_c27_carry_state_gate research.v98_independent.test_v98_c27_prospective_link_gate -v
