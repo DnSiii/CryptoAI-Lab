@@ -27,6 +27,8 @@ jobs:
           mkdir -p forensic
           git show origin/paper-results:reports/paper_v13_ledger.json > forensic/paper_v13_ledger_original.json
           sha256sum forensic/paper_v13_ledger_original.json | tee forensic/original.sha256
+          git rev-parse origin/paper-results | tee forensic/paper_results_commit.txt
+          git rev-parse HEAD | tee forensic/research_commit.txt
       - name: Audit original ledger and preserve report
         shell: bash
         run: |
@@ -46,6 +48,8 @@ jobs:
           if-no-files-found: error
           path: |
             forensic/original.sha256
+            forensic/paper_results_commit.txt
+            forensic/research_commit.txt
             forensic/monetary_audit.json
             forensic/audit_stdout.json
       - name: Fail closed if published values are not independently reconciled
