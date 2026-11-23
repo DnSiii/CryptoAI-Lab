@@ -140,6 +140,7 @@ def run(prices,manifest,funding):
 
 def main():
     p=argparse.ArgumentParser()
+    p.add_argument("--export-training-checkpoints",action="store_true",help="Export UNATTESTED continuation checkpoints for each cost scenario")
     for name in ("prices","manifest","funding","output"):
         p.add_argument("--"+name,type=Path,required=True)
     args=p.parse_args()
@@ -148,6 +149,15 @@ def main():
     result=run(args.prices,args.manifest,args.funding)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     ledgers=result.pop("ledgers")
+    if args.export_training_checkpoints:
+        # Re-load through the same authenticated Clean-4 reader, never from a
+        # fabricated or truncated ledger. This is NOT independent attestation.
+        from .v98_c27_training_checkpoint import write_checkpoint
+        authenticated=load(args.prices,args.manifest,args.funding)
+        for key,rows in ledgers.items():
+            cp=args.output.with_name(args.output.stem+"_"+key+"_checkpoint.json")
+            receipt=write_checkpoint(authenticated["bars"],rows,cp)
+            result.setdefault("training_checkpoint_receipts",{})[key]=receipt
     for key,rows in ledgers.items():
         with args.output.with_name(args.output.stem+"_"+key+"_ledger.jsonl").open("w") as out:
             for row in rows:
