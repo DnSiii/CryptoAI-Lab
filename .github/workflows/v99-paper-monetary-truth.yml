@@ -37,7 +37,12 @@ jobs:
           assert report["historical_values_reconstructed"] is False
           assert report["total"] == sum(report["counts"].values())
           assert report["total"] > 0
-          print("Audited:",report["total"],report["counts"])
+          blocked = {k: v for k, v in report["counts"].items() if k not in ("legitimate_subcent", "reconciled_positive") and v}
+          if report["duplicate_order_key_count"]:
+              blocked["duplicate_order_keys"] = report["duplicate_order_key_count"]
+          print("Audited:",report["total"],report["counts"],"blocked:",blocked,flush=True)
+          if blocked:
+              raise SystemExit("MONETARY_PROVENANCE_BLOCKED: historical values remain unverified")
           PY
       - name: Preserve forensic evidence
         if: always()
