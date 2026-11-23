@@ -1,0 +1,63 @@
+name: V99 paper monetary truth forensic (read-only)
+on:
+  push:
+    branches: [research/v99-r106-native-all-regime-engine]
+    paths:
+      - ".github/workflows/v99-paper-monetary-forensic.yml"
+      - "scripts/audit_paper_monetary_truth_v99.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  forensic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Fetch published original V13 ledger without writing history
+        shell: bash
+        run: |
+          git fetch --no-tags --depth=1 origin refs/heads/paper-results:refs/remotes/origin/paper-results
+          mkdir -p forensic
+          git show origin/paper-results:reports/paper_v13_ledger.json > forensic/paper_v13_ledger_original.json
+          sha256sum forensic/paper_v13_ledger_original.json | tee forensic/original.sha256
+      - name: Audit original ledger and preserve report
+        shell: bash
+        run: |
+          python scripts/audit_paper_monetary_truth_v99.py forensic/paper_v13_ledger_original.json forensic/monetary_audit.json > forensic/audit_stdout.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('forensic/monetary_audit.json').read_text())
+          print('total:',d['total'],'counts:',d['counts'],'duplicate keys:',d['duplicate_order_key_count'])
+          PY
+      - name: Upload forensic evidence regardless of classification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: v99-paper-monetary-forensic-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            forensic/original.sha256
+            forensic/monetary_audit.json
+            forensic/audit_stdout.json
+      - name: Fail closed if published values are not independently reconciled
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('forensic/monetary_audit.json').read_text())
+          allowed={'reconciled_positive','legitimate_subcent'}
+          unresolved={k:v for k,v in d['counts'].items() if k not in allowed and v}
+          if unresolved or d['duplicate_order_key_count']:
+              raise SystemExit(f'NOT CERTIFIED: {unresolved}; duplicate keys={d["duplicate_order_key_count"]}')
+          print('CERTIFIED: all published rows reconcile with original raw precision')
+          PY
