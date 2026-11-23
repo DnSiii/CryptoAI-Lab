@@ -8,6 +8,7 @@ on:
       - 'research/v98_independent/v98_c27_gap_envelope.py'
       - 'research/v98_independent/c27_two_clock_preregistration_20261120.md'
       - 'research/v98_independent/v98_c27_authenticated_runner.py'
+      - 'research/v98_independent/v98_c27_checkpoint_ledger_audit.py'
       - 'research/v98_independent/v98_c27_causal_audit.py'
       - 'research/v98_independent/v98_c27_chronological_diagnostics.py'
       - 'research/v98_independent/v98_c27_exposure_forensics.py'
@@ -98,6 +99,8 @@ jobs:
                   raise SystemExit('C27_REPRODUCIBILITY_MISMATCH '+suffix+' '+ah+' '+bh)
               print('C27_REPRODUCIBLE',suffix,ah)
           PY
+      - name: Independently reconcile exported C27 training checkpoint against full ledger
+        run: python -m research.v98_independent.v98_c27_checkpoint_ledger_audit --summary /tmp/v98_independent/b0/c27_composed_summary.json --output /tmp/v98_independent/b0/c27_checkpoint_ledger_audit.json
       - name: Require complete C27 training replay
         run: |
           python - <<'PY'
@@ -295,6 +298,7 @@ jobs:
           name: v98-independent-c27-unvalidated-${{ github.run_id }}
           path: |
             /tmp/v98_independent/b0/c27_composed_summary.json
+            /tmp/v98_independent/b0/c27_checkpoint_ledger_audit.json
             /tmp/v98_independent/b0/c27_independent_audit.json
             /tmp/v98_independent/b0/c27_native_source_audit.json
             /tmp/v98_independent/b0/c27_causal_audit.json
