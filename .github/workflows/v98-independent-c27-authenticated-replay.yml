@@ -80,7 +80,7 @@ jobs:
           PY
           cat /tmp/v98_independent/b0/sources/paths.env >> "$GITHUB_ENV"
       - name: Run preregistered C27 full-history native-funding replay
-        run: python -m research.v98_independent.v98_c27_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_composed_summary.json
+        run: python -m research.v98_independent.v98_c27_authenticated_runner --prices "$PRICES" --manifest "$MANIFEST" --funding "$FUNDING" --output /tmp/v98_independent/b0/c27_composed_summary.json --export-training-checkpoints
       - name: Repeat full C27 native replay and prove byte-identical economics
         run: |
           set -euo pipefail
@@ -309,5 +309,6 @@ jobs:
             /tmp/v98_independent/b0/c27_supersevere_native_source_audit.json
             /tmp/v98_independent/b0/c27_supersevere_cost_stress_*_ledger.jsonl
             /tmp/v98_independent/b0/c27_composed_summary_*_ledger.jsonl
+            /tmp/v98_independent/b0/c27_composed_summary_*_checkpoint.json
           retention-days: 30
           if-no-files-found: warn
