@@ -10,7 +10,8 @@ from research.v98_independent.v98_c27_verified_kernel_integration import replay_
 class IntegrationTests(unittest.TestCase):
     def test_digest_rejected_before_market_read(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as tmp:
-            root=Path(tmp)
+            root=Path(tmp)/"v98_independent"
+            root.mkdir()
             state=root/"checkpoint.json"
             state.write_text("{}")
             with patch("research.v98_independent.v98_c27_verified_kernel_integration.prepare") as prepare:
@@ -20,7 +21,8 @@ class IntegrationTests(unittest.TestCase):
 
     def test_verified_input_is_not_promotion(self):
         with tempfile.TemporaryDirectory(prefix="v98_independent_") as tmp:
-            root=Path(tmp)
+            root=Path(tmp)/"v98_independent"
+            root.mkdir()
             state=root/"checkpoint.json"
             state.write_text(json.dumps({"example":"unattested"}))
             digest=hashlib.sha256(state.read_bytes()).hexdigest()
