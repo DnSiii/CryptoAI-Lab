@@ -95,6 +95,33 @@ class ProspectiveFirewallTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "PROSPECTIVE_PRICE_SCHEMA"):
                 validate(root, receipt)
 
+    def test_duplicate_asset_paths_rejected_before_data_read(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / "v98_independent"
+            root.mkdir()
+            price = root / "shared_price.csv"
+            funding = root / "shared_funding.csv"
+            price.write_text("open_time,open,high,low,close,quote_volume\n"
+                             "2026-01-01T00:00:00Z,100,110,90,101,500\n"
+                             "2026-01-01T01:00:00Z,100,110,90,101,500\n")
+            funding.write_text("timestamp_utc,funding_rate\n2026-01-01T00:00:00Z,0.0001\n")
+            entry = {"price_file": price.name,
+                     "price_sha256": hashlib.sha256(price.read_bytes()).hexdigest(),
+                     "funding_file": funding.name,
+                     "funding_sha256": hashlib.sha256(funding.read_bytes()).hexdigest()}
+            receipt = root / "receipt.json"
+            receipt.write_text(json.dumps({
+                "mode": "V98_C27_PROSPECTIVE_SOURCE_ONLY",
+                "candidate_commit": "6c609dacde9f197ba58ed23546bd14fda968a035",
+                "exchange": "Binance", "product": "USD-M", "interval": "1h",
+                "phase083_used": False, "fitting_allowed": False,
+                "assets": {a: dict(entry) for a in ("BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT")},
+                "start_utc": "2026-01-01T00:00:00Z",
+                "end_utc": "2026-01-01T02:00:00Z",
+                "window_precommitted": True, "precommit_reference": "synthetic-only"}))
+            with self.assertRaisesRegex(ValueError, "PROSPECTIVE_DUPLICATE_SOURCE_PATH"):
+                validate(root, receipt)
+
     def test_utc_required(self):
         with self.assertRaises(ValueError):
             stamp_ms("2026-01-01T00:00:00")
