@@ -24,7 +24,7 @@ def audit(prices, manifest, funding_path):
     bars = data["bars"]
     verdict = {}
     for scale in (1., 2., 4.):
-        _, full = replay(bars, funding, scale)
+        summary, full = replay(bars, funding, scale)
         prefix = full[:SPLIT - 1]
         last = prefix[-1]
         state = dict(
@@ -53,7 +53,7 @@ def audit(prices, manifest, funding_path):
             for key in fields:
                 if a[key] != b[key]:
                     raise ValueError(f"C27_CROSS_EXECUTOR_DIVERGENCE scale={scale} index={SPLIT+index} field={key}")
-        if not math.isclose(continued["final_equity"], replay(bars, funding, scale)[0]["final_equity"], rel_tol=1e-12):
+        if not math.isclose(continued["final_equity"], summary["final_equity"], rel_tol=1e-12):
             raise ValueError("C27_CROSS_EXECUTOR_TERMINAL")
         verdict[f"{int(scale)}x"] = dict(compared_hours=len(actual), status="CROSS_EXECUTOR_EQUAL_TRAINING_ONLY")
     return verdict
