@@ -12,6 +12,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout research auditor
         uses: actions/checkout@v4
@@ -24,6 +25,27 @@ jobs:
           ref: paper-results
           path: published
           persist-credentials: false
-      - name: Audit original historical ledger without writing
+      - name: Capture immutable provenance and audit report
         working-directory: published
-        run: python3 ../research/scripts/audit_paper_v13_raw_notional_readonly.py
+        run: |
+          git rev-parse HEAD | tee ../published-commit.txt
+          git -C ../research rev-parse HEAD | tee ../research-commit.txt
+          sha256sum reports/paper_v13_ledger.json | tee ../published-ledger-sha256.txt
+          python3 ../research/scripts/audit_paper_v13_raw_notional_readonly.py > ../historical-notional-audit.json 2> ../audit-stderr.txt || echo "audit rejected (expected until provenance reconciled)" > ../audit-status.txt
+      - name: Preserve original evidence even when audit fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v13-historical-notional-evidence
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            published-commit.txt
+            research-commit.txt
+            published-ledger-sha256.txt
+            historical-notional-audit.json
+            audit-stderr.txt
+            audit-status.txt
+      - name: Fail closed on unresolved historical movements
+        run: |
+          test ! -f audit-status.txt || { cat audit-stderr.txt; cat audit-status.txt; exit 1; }
