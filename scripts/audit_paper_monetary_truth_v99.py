@@ -105,7 +105,9 @@ def audit(ledger):
         by_symbol.setdefault(symbol, Counter())[entry["classification"]] += 1
     return {"total": sum(counts.values()), "counts": dict(sorted(counts.items())),
             "evidence_identity": "sha256 of canonical original adjustment JSON; never a reconstructed trade",
-            "examples": examples, "anomalies": anomalies,\n            "anomaly_counts_by_symbol": {k: dict(v) for k, v in sorted(by_symbol.items())},\n            "duplicate_order_key_count": len(duplicate_keys),
+            "examples": examples, "anomalies": anomalies,
+            "anomaly_counts_by_symbol": {k: dict(v) for k, v in sorted(by_symbol.items())},
+            "duplicate_order_key_count": len(duplicate_keys),
             "duplicate_order_key_examples": duplicate_keys[:8], "read_only": True,
             "historical_values_reconstructed": False}
 
