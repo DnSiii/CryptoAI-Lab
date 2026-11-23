@@ -57,5 +57,14 @@ class ContinuationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"ASSETS"):
             continue_replay(b,f,1.,s)
 
+    def test_rejects_nonfinite_and_boolean_book_before_economic_replay(self):
+        for field, value in (("weights", float("nan")), ("weights", float("inf")),
+                             ("queued", float("nan")), ("queued", True)):
+            with self.subTest(field=field, value=str(value)):
+                s,b,f=fixture()
+                s[field]["BTCUSDT"]=value
+                with self.assertRaisesRegex(ValueError,"BOOK_NONFINITE"):
+                    continue_replay(b,f,1.,s)
+
 if __name__=="__main__":
     unittest.main()
