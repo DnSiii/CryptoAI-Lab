@@ -2,6 +2,9 @@
 import argparse
 import json
 import math
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 from .phase243_native_funding_cashflow import ASSETS, HOUR_MS
 from .v98_phase243_training_reader import load, START_MS
@@ -9,6 +12,28 @@ from .v98_c27_authenticated_runner import replay
 from .v98_c27_variable_horizon_kernel import continue_replay
 
 SPLIT = 12000  # fixed 2024 training boundary, never selected by performance
+
+
+def isolated_continue(bars, funding, scale, state):
+    # JSON on disk is the only state transfer into a fresh interpreter.
+    with tempfile.TemporaryDirectory(prefix="v98_independent_c27_") as tmp:
+        request = Path(tmp) / "request.json"
+        response = Path(tmp) / "response.json"
+        request.write_text(json.dumps(dict(bars=bars, funding=funding,
+            scale=scale, state=state), allow_nan=False))
+        subprocess.run([sys.executable, "-m",
+            "research.v98_independent.v98_c27_cross_executor_continuation_audit",
+            "--worker", str(request), str(response)], check=True, timeout=900)
+        return json.loads(response.read_text())
+
+def worker(request, response):
+    payload = json.loads(Path(request).read_text())
+    funding = {a: {int(i): v for i, v in rows.items()}
+               for a, rows in payload["funding"].items()}
+    result = continue_replay(payload["bars"], funding, payload["scale"],
+                             payload["state"])
+    Path(response).write_text(json.dumps(result, allow_nan=False))
+
 
 def audit(prices, manifest, funding_path):
     data = load(prices, manifest, funding_path)
@@ -63,14 +88,14 @@ def audit(prices, manifest, funding_path):
         first_bars = {a: bars[a][SPLIT:second_split] for a in ASSETS}
         first_funding = {a: {i-SPLIT: v for i, v in funding[a].items()
                              if SPLIT <= i < second_split} for a in ASSETS}
-        first = continue_replay(first_bars, first_funding, scale, state)
+        first = isolated_continue(first_bars, first_funding, scale, state)
         carried = json.loads(json.dumps(first["carry_out"], sort_keys=True, allow_nan=False))
         if carried["absolute_index"] != second_split:
             raise ValueError("C27_CROSS_EXECUTOR_SECOND_CLOCK")
         second_bars = {a: bars[a][second_split:] for a in ASSETS}
         second_funding = {a: {i-second_split: v for i, v in funding[a].items()
                               if i >= second_split} for a in ASSETS}
-        second = continue_replay(second_bars, second_funding, scale, carried)
+        second = isolated_continue(second_bars, second_funding, scale, carried)
         stitched = first["ledger"] + second["ledger"]
         if len(stitched) != len(expected):
             raise ValueError("C27_CROSS_EXECUTOR_STITCH_LENGTH")
@@ -81,7 +106,7 @@ def audit(prices, manifest, funding_path):
         if not math.isclose(second["final_equity"], summary["final_equity"], rel_tol=1e-12):
             raise ValueError("C27_CROSS_EXECUTOR_STITCH_TERMINAL")
         verdict[f"{int(scale)}x"] = dict(compared_hours=len(actual),
-            stitched_hours=len(stitched), status="CROSS_EXECUTOR_EQUAL_TRAINING_ONLY")
+            stitched_hours=len(stitched), isolated_processes=2, status="CROSS_EXECUTOR_EQUAL_TRAINING_ONLY")
     return verdict
 
 def main():
@@ -97,4 +122,7 @@ def main():
     print("C27_CROSS_EXECUTOR_TRAINING_ONLY", json.dumps(result, sort_keys=True))
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 4 and sys.argv[1] == "--worker":
+        worker(sys.argv[2], sys.argv[3])
+    else:
+        main()
