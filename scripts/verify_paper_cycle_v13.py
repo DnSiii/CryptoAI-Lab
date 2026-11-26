@@ -68,6 +68,8 @@ def main() -> None:
             delta = float(adjustment["new_weight"]) - float(
                 adjustment["previous_weight"]
             )
+            if not math.isfinite(delta) or delta == 0.0:
+                raise RuntimeError("movimentação sem variação de posição válida")
             expected_side = "buy" if delta > 0 else "sell"
             if adjustment.get("order_side") != expected_side:
                 raise RuntimeError("lado da ordem não corresponde à execução real")
