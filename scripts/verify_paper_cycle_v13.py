@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -67,17 +68,25 @@ def main() -> None:
             delta = float(adjustment["new_weight"]) - float(
                 adjustment["previous_weight"]
             )
+            if not math.isfinite(delta) or delta == 0.0:
+                raise RuntimeError("variação de peso inválida")
             expected_side = "buy" if delta > 0 else "sell"
             if adjustment.get("order_side") != expected_side:
                 raise RuntimeError("lado da ordem não corresponde à execução real")
             displayed = float(adjustment.get("order_value_brl", 0.0))
+            if not math.isfinite(displayed) or displayed < 0.0:
+                raise RuntimeError("valor executado inválido")
+            raw = adjustment.get("order_value_brl_unrounded")
+            if raw is not None:
+                precise = float(raw)
+                if not math.isfinite(precise) or precise <= 0.0 or round(precise, 2) != displayed:
+                    raise RuntimeError("valor bruto não reconcilia com valor exibido")
             if displayed <= 0.0:
                 # Only a positive simulated pre-round notional strictly below half a cent
                 # can explain zero in the two-decimal display. Fail closed otherwise.
                 raw = adjustment.get("order_value_brl_unrounded")
                 if raw is None:
                     raise RuntimeError("movimentação sem valor executado")
-                import math
                 precise = float(raw)
                 if not (math.isfinite(precise) and 0.0 < precise < 0.005
                         and displayed == 0.0 and delta != 0.0
