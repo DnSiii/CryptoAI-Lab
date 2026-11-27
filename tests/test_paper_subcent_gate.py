@@ -31,7 +31,12 @@ def test_positive_subcent():
     (-0.01, 0.00223, 0.0000002),
 ])
 def test_fail_closed(displayed, raw, delta):
-    with pytest.raises(RuntimeError, match="movimentação sem valor executado"):
+    with pytest.raises(RuntimeError, match=(
+        "^valor executado inválido$" if displayed < 0 else
+        "^valor bruto não reconcilia com valor exibido$" if raw is not None and (
+            not math.isfinite(raw) or raw <= 0 or round(raw, 2) != displayed
+        ) else "^movimentação sem valor executado$"
+    )):
         check(displayed, raw, delta)
 
 def test_regular_positive_order():
